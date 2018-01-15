@@ -543,8 +543,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $('#dashboard-stop-buy').on('click', stopOrder);
         $('#dashboard-stop-sell').on('click', stopOrder);
         /**/
-        $('#dashboard-buy-accept').on('click', orderBuyAccept);
-        $('#dashboard-sell-accept').on('click', orderSellAccept);
+        $('#dashboard-buy-accept').on('click', orderBuy/*orderBuyAccept*/);
+        $('#dashboard-sell-accept').on('click', orderSell/*orderSellAccept*/);
         /**/
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
