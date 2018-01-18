@@ -54,7 +54,7 @@ public interface OrderService {
    * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
    * @return generated ID of the newly created order, or 0 if order was not be created
    */
-  int createOrder(OrderCreateDto order, OrderActionEnum action);
+  int createOrder(OrderCreateDto order, Integer presavedOrderId, OrderActionEnum action);
 
   Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -101,7 +101,7 @@ public interface OrderService {
    * @param ordersList     is list the ID of order that must be accepted
    * @param locale         is current locale. Used to generate messages
    */
-  void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale);
+  void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, Integer counterOrderId);
 
   /**
    * Accepts the order
@@ -112,7 +112,7 @@ public interface OrderService {
    * - TransactionPersistException
    * - OrderAcceptionException
    *
-   * @param userId  is ID of acceptor-user
+   * @param acceptorEmail  is ID of acceptor-user
    * @param orderId is ID of order that must be accepted
    * @param locale  is current locale. Used to generate messages
    */

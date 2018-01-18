@@ -118,7 +118,7 @@ public class BotServiceImpl implements BotService {
                         try {
                             Thread.sleep(botTrader.getAcceptDelayInMillis());
                             log.debug("Accepting order: {}", exOrder);
-                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH);
+                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH, null);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
                             email.setMessage("Insufficient costs on bot account");
@@ -229,7 +229,7 @@ public class BotServiceImpl implements BotService {
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         log.debug("Prepared order: {}", orderCreateDto);
-        orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+        orderService.createOrder(orderCreateDto, null, OrderActionEnum.CREATE);
     }
 
 

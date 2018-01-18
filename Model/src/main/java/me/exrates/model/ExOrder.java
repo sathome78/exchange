@@ -34,6 +34,7 @@ public class ExOrder {
     private Integer sourceId;
     private BigDecimal stop;
     private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
+    private Integer counterOrderId;
 
     /*constructors*/
     public ExOrder() {

@@ -123,7 +123,7 @@ public class BotServiceImplTest {
         when(botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), 1, OrderType.SELL))
                 .thenReturn(Optional.of(testSettings));
         when(orderService.prepareNewOrder(any(), any(), anyString(), any(), any())).thenCallRealMethod();
-        when(orderService.createOrder(any(), eq(OrderActionEnum.CREATE))).thenReturn(111);
+        when(orderService.createOrder(any(), null, eq(OrderActionEnum.CREATE))).thenReturn(111);
 
     }
 

@@ -140,6 +140,11 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <p hidden id="aggree" style="text-decoration: underline; text-decoration-color: red">
+                    <span id="aggree_text"></span>
+                    <input id="aggree_check" type="checkbox" >
+                </p>
+
                 <div class="order-create-confirm__button-wrapper">
                     <button id="order-create-confirm__submit" class="order-create-confirm__button">
                         <loc:message code="orders.submit"/>
