@@ -5,6 +5,8 @@ import me.exrates.service.SessionParamsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
@@ -39,15 +41,13 @@ import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;
 //        @PropertySource("classpath:angular.properties")
 //})
 @PropertySource(value = {
-        "classpath:session.properties"
+        "classpath:session.properties",
+        "classpath:angular.properties"
 })
 public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     @Autowired
     private SessionParamsService sessionParamsService;
-
-    /*@Autowired
-    private Map<String, String> angularProperties;*/
 
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
@@ -59,6 +59,9 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
     private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
     private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
+
+//    private @Value("${angular.allowed.origin}") String angularAllowedOrigin;
+    private String angularAllowedOrigin = "http://localhost:4200";
 
 
 
@@ -83,6 +86,11 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
+        // headers test angular
+        response.setHeader("Access-Control-Allow-Origin", angularAllowedOrigin);
+        response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, x-auth-token");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
         HttpSession session = request.getSession(false);
         if (session != null) {
