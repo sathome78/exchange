@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;
@@ -41,13 +42,15 @@ import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;
 //        @PropertySource("classpath:angular.properties")
 //})
 @PropertySource(value = {
-        "classpath:session.properties",
-        "classpath:angular.properties"
+        "classpath:session.properties"
 })
 public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     @Autowired
     private SessionParamsService sessionParamsService;
+
+    @Autowired
+    private Map<String, String> angularProperties;
 
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
@@ -59,9 +62,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
     private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
     private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
-
-//    private @Value("${angular.allowed.origin}") String angularAllowedOrigin;
-    private String angularAllowedOrigin = "http://localhost:4200";
 
 
 
@@ -87,9 +87,9 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         HttpServletResponse response = (HttpServletResponse) res;
 
         // headers test angular
-        response.setHeader("Access-Control-Allow-Origin", angularAllowedOrigin);
+        response.setHeader("Access-Control-Allow-Origin", angularProperties.get("angularAllowedOrigin"));
         response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, x-auth-token");
+        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Exrates-Rest-Token");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         HttpSession session = request.getSession(false);
