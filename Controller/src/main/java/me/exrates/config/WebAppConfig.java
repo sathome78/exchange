@@ -164,9 +164,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
     }
 
-
-
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -280,6 +277,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(120_000L);
         super.configureAsyncSupport(configurer);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(angularAllowedOrigin)
+                .allowedMethods("POST", "GET",  "PUT", "OPTIONS", "DELETE")
+                .allowedHeaders("X-Auth-Token", "Content-Type")
+//                .exposedHeaders("custom-header1", "custom-header2")
+                .allowCredentials(false)
+                .maxAge(4800);
     }
 
     @Bean
@@ -586,13 +594,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ZMQ.Context zmqContext() {
         return ZMQ.context(1);
-    }
-
-    @Bean
-    public Map<String, String> angularProperties(){
-        Map<String, String> props = new HashMap<>();
-        props.put("angularAllowedOrigin", angularAllowedOrigin);
-        return props;
     }
 
 }

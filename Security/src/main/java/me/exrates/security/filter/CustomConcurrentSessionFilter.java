@@ -52,9 +52,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     @Autowired
     private SessionParamsService sessionParamsService;
 
-    /*@Autowired
-    private Map<String, String> angularProperties;*/
-
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
     private LogoutHandler[] handlers = new LogoutHandler[] { new SecurityContextLogoutHandler() };
@@ -88,13 +85,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-
-        // headers test angular
-//        response.setHeader("Access-Control-Allow-Origin", angularProperties.get("angularAllowedOrigin"));
-        response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Exrates-Rest-Token");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-
         HttpSession session = request.getSession(false);
         if (session != null) {
             SessionInformation info = sessionRegistry.getSessionInformation(session
