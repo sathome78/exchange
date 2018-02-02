@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 
+import com.google.common.base.Preconditions;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -8,9 +9,9 @@ import io.jsonwebtoken.impl.DefaultClaims;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
-import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.MissingCredentialException;
-import me.exrates.security.exception.TokenException;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.security.exception.*;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
@@ -26,9 +27,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by OLEG on 23.08.2016.
@@ -44,6 +47,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private long TOKEN_DURATION_TIME;
     @Value("${token.max.duration}")
     private long TOKEN_MAX_DURATION_TIME;
+    private static final int PIN_WAIT_MINUTES = 15;
 
 
     @Autowired
@@ -55,6 +59,49 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Autowired
     @Qualifier("userDetailsService")
     private UserDetailsService userDetailsService;
+    @Autowired
+    private SecureService secureService;
+    @Autowired
+    private UserService userService;
+
+    private Map<String, LocalDateTime> usersForPincheck = new ConcurrentHashMap<>();
+
+    @Override
+    public Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
+                                                  HttpServletRequest request, String pin, boolean checkPin) {
+        if (username == null || encodedPassword == null) {
+            throw new MissingCredentialException("Credentials missing");
+        }
+        String password = RestApiUtils.decodePassword(encodedPassword);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (passwordEncoder.matches(password, userDetails.getPassword())) {
+            if(checkPin) {
+                checkPin(request, userDetails, pin);
+            }
+            try {
+                secureService.checkLoginAuthNg(username, request);
+            } catch (PinCodeCheckNeedException e) {
+                usersForPincheck.put(username, LocalDateTime.now());
+                throw e;
+            }
+            return prepareAuthToken(userDetails);
+        } else {
+            throw new IncorrectPasswordException("Incorrect password");
+        }
+    }
+
+    private void checkPin(HttpServletRequest request, UserDetails userDetails, String pin) {
+        LocalDateTime dateTime = usersForPincheck.get(userDetails.getUsername());
+        if (dateTime == null || dateTime.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now())) {
+           return;
+        }
+        if (!userService.checkPin(userDetails.getUsername(), pin, NotificationMessageEventEnum.LOGIN)) {
+            String res = secureService.reSendLoginMessage(request, userDetails.getUsername());
+            throw new IncorrectPinException(res);
+        }
+    }
+
+
 
 
     @Override
@@ -65,21 +112,25 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         String password = RestApiUtils.decodePassword(encodedPassword);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            ApiAuthToken token = createAuthToken(userDetails.getUsername());
-            Map<String, Object> tokenData = new HashMap<>();
-            tokenData.put("token_id", token.getId());
-            tokenData.put("username", token.getUsername());
-            tokenData.put("value", token.getValue());
-            JwtBuilder jwtBuilder = Jwts.builder();
-            Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
-            tokenData.put("expiration", expiration.getTime());
-            jwtBuilder.setClaims(tokenData);
-            AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
-            return Optional.of(authTokenDto);
+            return prepareAuthToken(userDetails);
         } else {
             throw new IncorrectPasswordException("Incorrect password");
         }
+    }
 
+    private Optional<AuthTokenDto> prepareAuthToken(UserDetails userDetails) {
+        ApiAuthToken token = createAuthToken(userDetails.getUsername());
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("token_id", token.getId());
+        tokenData.put("username", token.getUsername());
+        tokenData.put("value", token.getValue());
+        JwtBuilder jwtBuilder = Jwts.builder();
+        Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
+        tokenData.put("expiration", expiration.getTime());
+        jwtBuilder.setClaims(tokenData);
+        AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
+        usersForPincheck.remove(token.getUsername());
+        return Optional.of(authTokenDto);
     }
 
     private ApiAuthToken createAuthToken(String username) {
@@ -139,6 +190,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     public void deleteExpiredTokens() {
         int deletedQuantity = apiAuthTokenDao.deleteAllExpired(TOKEN_DURATION_TIME);
         logger.info(String.format("%d expired tokens deleted", deletedQuantity));
+        usersForPincheck.values().removeIf(v -> v.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now()));
     }
 
 }

@@ -239,7 +239,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
         .antMatchers(GET, "/utcOffset").permitAll()
-        .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
+            .antMatchers( "/info/public/**").permitAll()
+        .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/authenticate").anonymous()
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
@@ -317,7 +318,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/payeer/payment/success",
             "/merchants/payeer/payment/status",
                 "/test/**",
-            "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+            "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/**");
     http
         .headers()
         .frameOptions()

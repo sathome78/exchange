@@ -1,5 +1,6 @@
 package me.exrates.controller.mobile;
 
+import com.google.gson.JsonObject;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
@@ -8,10 +9,7 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserAgent;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.MissingCredentialException;
-import me.exrates.security.exception.UserNotEnabledException;
+import me.exrates.security.exception.*;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
@@ -681,6 +679,57 @@ public class MobileEntryController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/info/public/test", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> testNg() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test", "ok");
+        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
+    }
+
+
+    @RequestMapping(value = "/info/public/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<AuthTokenDto> authenticateNg(@RequestBody @Valid UserAuthenticationDto authenticationDto,
+                                                       @RequestParam(required = false) String checkPin,
+                                                     HttpServletRequest request) {
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(ipAddress);
+
+        Optional<AuthTokenDto> authTokenResult = null;
+        try {
+            authTokenResult = authTokenService.retrieveTokenNg(authenticationDto.getEmail(), authenticationDto.getPassword(),
+                                                                request, authenticationDto.getPin(), StringUtils.isEmpty(checkPin));
+        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
+            ipBlockingService.processLoginFailure(ipAddress);
+            throw new WrongUsernameOrPasswordException("Wrong credentials");
+        }
+        AuthTokenDto authTokenDto = authTokenResult.get();
+        String userAgentHeader = request.getHeader("User-Agent");
+        logger.debug(userAgentHeader);
+
+
+        User user = userService.findByEmail(authenticationDto.getEmail());
+
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            throw new UnconfirmedUserException("User account not yet confirmed");
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new UserNotEnabledException("Blocked account");
+        }
+        authTokenDto.setNickname(user.getNickname());
+        authTokenDto.setUserId(user.getId());
+        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
+        String avatarLogicalPath = userService.getAvatarPath(user.getId());
+        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
+        authTokenDto.setAvatarPath(avatarFullPath);
+        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
+        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+        ipBlockingService.processLoginSuccess(ipAddress);
+        return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
+    }
+
+
+
+
     private void checkAppKey(String appKey, String userAgentHeader) {
         UserAgent userAgent = UserAgent.DESKTOP;
         String headerLowerCase = userAgentHeader.toLowerCase();
@@ -1101,6 +1150,18 @@ public class MobileEntryController {
     @ExceptionHandler(MissingCredentialException.class)
     public ApiError MissingCredentialExceptionHandler(HttpServletRequest req, MissingCredentialException exception) {
         return new ApiError(MISSING_CREDENTIALS, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(PinCodeCheckNeedException.class)
+    public ApiError pinCheckNeededExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(PIN_CHECK_REUQIRED, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(IncorrectPinException.class)
+    public ApiError incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(INCORRECT_PIN, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

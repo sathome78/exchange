@@ -279,16 +279,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         super.configureAsyncSupport(configurer);
     }
 
-    @Override
+    /*@Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
+        registry.addMapping("*//**")
                 .allowedOrigins(angularAllowedOrigin)
                 .allowedMethods("POST", "GET",  "PUT", "OPTIONS", "DELETE")
                 .allowedHeaders("X-Auth-Token", "Content-Type")
 //                .exposedHeaders("custom-header1", "custom-header2")
                 .allowCredentials(false)
                 .maxAge(4800);
-    }
+    }*/
 
     @Bean
     public PlatformTransactionManager platformTransactionManager() {

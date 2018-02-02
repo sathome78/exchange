@@ -52,6 +52,14 @@ public class SecureServiceImpl implements SecureService {
     @Autowired
     private NotificationsSettingsService settingsService;
 
+    @Override
+    public void checkLoginAuthNg(String email, HttpServletRequest request) {
+        String result = reSendLoginMessage(request, email);
+        if (result != null) {
+            throw new PinCodeCheckNeedException(result);
+        }
+    }
+
 
     @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,

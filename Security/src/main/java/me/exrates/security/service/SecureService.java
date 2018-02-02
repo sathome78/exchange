@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface SecureService {
 
+    void checkLoginAuthNg(String email, HttpServletRequest request);
+
     void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                         CapchaAuthorizationFilter filter);
 
