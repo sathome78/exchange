@@ -62,7 +62,7 @@ public class PublicController {
         }
     }
 
-    @RequestMapping(value = "/public/if_email_exists", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/info/public/if_email_exists", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<String> checkIfNewUserEmailUnique(@RequestParam("email") String email, HttpServletRequest request) {
         long before = System.currentTimeMillis();
@@ -81,7 +81,7 @@ public class PublicController {
         }
     }
 
-    @RequestMapping(value = "/public/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/info/public/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<String> checkIfNewUserUsernameUnique(@RequestParam("username") String username, HttpServletRequest request) {
         long before = System.currentTimeMillis();

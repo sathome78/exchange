@@ -123,6 +123,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
@@ -239,8 +240,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
         .antMatchers(GET, "/utcOffset").permitAll()
-            .antMatchers( "/info/public/**").permitAll()
-        .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/authenticate").anonymous()
+        .antMatchers( "/info/public/**").permitAll()
+        .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/register", "/info/public/authenticate").anonymous()
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
