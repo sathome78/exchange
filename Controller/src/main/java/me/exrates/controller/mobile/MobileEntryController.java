@@ -1,5 +1,6 @@
 package me.exrates.controller.mobile;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
@@ -679,17 +680,12 @@ public class MobileEntryController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/info/public/test", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> testNg() {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("test", "ok");
-        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
-    }
+
 
 
     @RequestMapping(value = "/info/public/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AuthTokenDto> authenticateNg(@RequestBody @Valid UserAuthenticationDto authenticationDto,
-                                                       @RequestParam(required = false) String checkPin,
+                                                       @RequestParam(name = "checkPin", required = false) String checkPin,
                                                      HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
         ipBlockingService.checkIp(ipAddress);
@@ -697,7 +693,7 @@ public class MobileEntryController {
         Optional<AuthTokenDto> authTokenResult = null;
         try {
             authTokenResult = authTokenService.retrieveTokenNg(authenticationDto.getEmail(), authenticationDto.getPassword(),
-                                                                request, authenticationDto.getPin(), StringUtils.isEmpty(checkPin));
+                                                                request, authenticationDto.getPin(), checkPin == null);
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
             ipBlockingService.processLoginFailure(ipAddress);
             throw new WrongUsernameOrPasswordException("Wrong credentials");
@@ -705,8 +701,6 @@ public class MobileEntryController {
         AuthTokenDto authTokenDto = authTokenResult.get();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
-
-
         User user = userService.findByEmail(authenticationDto.getEmail());
 
         if (user.getStatus() == UserStatus.REGISTERED) {
@@ -726,7 +720,6 @@ public class MobileEntryController {
         ipBlockingService.processLoginSuccess(ipAddress);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
-
 
 
 

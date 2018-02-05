@@ -20,6 +20,12 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
     @Autowired
     private UserRoleService userRoleService;
 
+    /*to diasble csrf protection for sockets*/
+    @Override
+    protected boolean sameOriginDisabled() {
+        return true;
+    }
+
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
@@ -28,7 +34,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .map(p->p.getUserRole().name())
                 .toArray(String[]::new);
        /* -----------------------------------------------------------------------------------------------------------*/
-        messages.nullDestMatcher().permitAll()
+       messages.nullDestMatcher().permitAll()
                 .simpSubscribeDestMatchers("/app/statistics").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()

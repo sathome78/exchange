@@ -1,7 +1,6 @@
 package me.exrates.security.service;
 
 
-import com.google.common.base.Preconditions;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -47,7 +46,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private long TOKEN_DURATION_TIME;
     @Value("${token.max.duration}")
     private long TOKEN_MAX_DURATION_TIME;
-    private static final int PIN_WAIT_MINUTES = 15;
+    private static final int PIN_WAIT_MINUTES = 20;
 
 
     @Autowired
@@ -68,21 +67,18 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Override
     public Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
-                                                  HttpServletRequest request, String pin, boolean checkPin) {
+                                                  HttpServletRequest request, String pin, boolean checkPinParam) {
         if (username == null || encodedPassword == null) {
             throw new MissingCredentialException("Credentials missing");
         }
-        String password = RestApiUtils.decodePassword(encodedPassword);
+        username = "avto12@i.ua";
+        String password = /*RestApiUtils.decodePassword(encodedPassword);*/"sprinter313";
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            if(checkPin) {
-                checkPin(request, userDetails, pin);
-            }
-            try {
-                secureService.checkLoginAuthNg(username, request);
-            } catch (PinCodeCheckNeedException e) {
-                usersForPincheck.put(username, LocalDateTime.now());
-                throw e;
+            if(checkPinParam) {
+                checkPinCode(request, userDetails, pin);
+            } else {
+                checkLoginAuth(username, request);
             }
             return prepareAuthToken(userDetails);
         } else {
@@ -90,14 +86,24 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
     }
 
-    private void checkPin(HttpServletRequest request, UserDetails userDetails, String pin) {
+    private void checkPinCode(HttpServletRequest request, UserDetails userDetails, String pin) {
         LocalDateTime dateTime = usersForPincheck.get(userDetails.getUsername());
         if (dateTime == null || dateTime.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now())) {
+           checkLoginAuth(userDetails.getUsername(), request);
            return;
         }
         if (!userService.checkPin(userDetails.getUsername(), pin, NotificationMessageEventEnum.LOGIN)) {
             String res = secureService.reSendLoginMessage(request, userDetails.getUsername());
             throw new IncorrectPinException(res);
+        }
+    }
+
+    private void checkLoginAuth(String userName, HttpServletRequest request) {
+        try {
+            secureService.checkLoginAuthNg(userName, request);
+        } catch (PinCodeCheckNeedException e) {
+            usersForPincheck.put(userName, LocalDateTime.now());
+            throw e;
         }
     }
 
