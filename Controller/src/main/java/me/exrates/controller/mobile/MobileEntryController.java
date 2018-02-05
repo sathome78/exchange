@@ -517,6 +517,20 @@ public class MobileEntryController {
      *
      *
      */
+
+    @RequestMapping(value = "/info/public/register", method = RequestMethod.POST)
+    public ResponseEntity<Integer> registerUserFromAngular( @RequestBody HashMap<String, String> mapper,
+                                                            HttpServletRequest request) throws IOException {
+        return registerUser(mapper.get("nickname"),
+                            mapper.get("email"),
+                            mapper.get("password"),
+                            mapper.get("sponsor"),
+                            mapper.get("language"),
+                            null,
+                            request);
+    }
+
+
     @RequestMapping(value = "/rest/user/register", produces = {"application/json;charset=utf-8"})
     public ResponseEntity<Integer> registerUser(@RequestParam String nickname,
                                                 @RequestParam String email,
