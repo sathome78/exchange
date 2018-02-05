@@ -71,8 +71,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (username == null || encodedPassword == null) {
             throw new MissingCredentialException("Credentials missing");
         }
-        username = "avto12@i.ua";
-        String password = /*RestApiUtils.decodePassword(encodedPassword);*/"sprinter313";
+        String password = RestApiUtils.decodePassword(encodedPassword);;
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             if(checkPinParam) {
