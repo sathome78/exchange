@@ -640,21 +640,22 @@ public class OrderDaoImpl implements OrderDao {
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
         String userJoinClause;
-        if(scope == null || scope.isEmpty()) {
+        if(scope == null || scope.isEmpty()) { /*closed*/
             userFilterClause = " AND CREATOR.email = :email ";
             userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
         } else {
             switch (scope) {
-                case "ALL":
-                    userFilterClause = " AND (CREATOR.email = :email OR ACCEPTOR.email = :email) ";
+                case "ALL": /*все сделки*/
+                    userFilterClause = " AND (CREATOR.email = :email OR ACCEPTOR.email = :email) AND (EX2.id IS NULL) ";
                     userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id " +
-                            "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
+                            "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id " +
+                            " LEFT JOIN EXORDERS EX2 ON EXORDERS.id = EX2.counter_order_id ";
                     break;
-                case "ACCEPTED":
+                case "ACCEPTED":/*принятые*/
                     userFilterClause = " AND ACCEPTOR.email = :email ";
                     userJoinClause = "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
                     break;
-                default:
+                default: /*mine - мои ордера*/
                     userFilterClause = " AND CREATOR.email = :email ";
                     userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
                     break;
@@ -662,16 +663,16 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
-        String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
+        String orderClause = "  ORDER BY -EXORDERS.date_acception ASC, EXORDERS.date_creation DESC";
         if (statusIds.size() > 1) {
             orderClause = "  ORDER BY status_modification_date DESC";
         }
-        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
-                "  FROM EXORDERS " +
+        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name " +
+                "FROM EXORDERS " +
                 userJoinClause +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                "  WHERE (status_id IN (:status_ids))" +
-                "    AND (operation_type_id = :operation_type_id)" +
+                "  WHERE (EXORDERS.status_id IN (:status_ids))" +
+                "    AND (EXORDERS.operation_type_id = :operation_type_id) " +
                 userFilterClause +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                  orderClause +

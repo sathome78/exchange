@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
+import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
@@ -82,7 +83,7 @@ public class TransferRequestController {
 
   private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
-
+  @FinPassCheck
   @RequestMapping(value = "/transfer/request/create", method = POST)
   @ResponseBody
   public Map<String, Object> createTransferRequest(
