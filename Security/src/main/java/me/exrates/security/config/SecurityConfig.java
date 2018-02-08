@@ -123,7 +123,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-   /* http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);*/
+
+    http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
@@ -319,7 +320,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/payeer/payment/success",
             "/merchants/payeer/payment/status",
                 "/test/**",
-            "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/**");
+            "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/**", "/info/private/**");
     http
         .headers()
         .frameOptions()

@@ -2,6 +2,7 @@ package me.exrates.security.config;
 
 import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
 import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
+import me.exrates.security.filter.CORSFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.Filter;
@@ -44,6 +46,9 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
+
         http
                 .antMatcher("/api/**")
                 .authorizeRequests()
