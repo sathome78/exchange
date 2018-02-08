@@ -12,9 +12,13 @@ import me.exrates.service.exception.IllegalChatMessageException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -85,6 +90,34 @@ public class ChatController {
             }
         });
         return new ResponseEntity<>(OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/info/private/chat/new-message", method = POST)
+    public ResponseEntity<String> addNewChatMessage(@RequestBody HashMap<String, String> object) {
+        String email = "";
+        try {
+            email = SecurityContextHolder.getContext().getAuthentication().getName();
+        } catch (NullPointerException e) {
+            LOG.info("Attempt to add chat message by unauthenticated user");
+            return new ResponseEntity<>("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+        }
+        final ChatLang chatLang = ChatLang.toInstance(object.get("lang"));
+        final ChatMessage message;
+        try {
+            message = chatService.persistMessage(object.get("body"), email, chatLang);
+        } catch (IllegalChatMessageException e) {
+            LOG.info(e);
+            return new ResponseEntity<>("BAD_REQUEST", HttpStatus.BAD_REQUEST);
+        }
+        handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
+            try {
+                webSocketSession.sendMessage(new TextMessage(mapper.writeValueAsString(message)));
+            } catch (IOException e) {
+                LOG.error(e);
+            }
+        });
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 
     @RequestMapping(value = "/chat/history", method = GET)

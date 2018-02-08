@@ -715,6 +715,8 @@ public class MobileEntryController {
         AuthTokenDto authTokenDto = authTokenResult.get();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
+
+
         User user = userService.findByEmail(authenticationDto.getEmail());
 
         if (user.getStatus() == UserStatus.REGISTERED) {
