@@ -1,27 +1,24 @@
 package me.exrates.controller.mobile;
 
+import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
 import me.exrates.controller.exception.*;
+import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserAgent;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.MissingCredentialException;
-import me.exrates.security.exception.UserNotEnabledException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.exception.*;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
-import me.exrates.service.ApiService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.InvalidNicknameException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.session.UserSessionService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -36,14 +33,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
@@ -56,7 +55,7 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
  * Created by OLEG on 19.08.2016.
  */
 @RestController
-@PropertySource(value = {"classpath:about_us.properties", "classpath:/mobile.properties"})
+@PropertySource(value = {"classpath:about_us.properties"})
 public class MobileEntryController {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
 
@@ -72,13 +71,6 @@ public class MobileEntryController {
     String email;
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
-
-    @Value("${pass.encode.key}")
-    String passEncodeKey;
-
-    @Autowired
-    private UserSessionService userSessionService;
-
     @Autowired
     private AuthTokenService authTokenService;
 
@@ -92,10 +84,8 @@ public class MobileEntryController {
     @Autowired
     private ApiService apiService;
 
-    /*TODO temporary disable
-
     @Autowired
-    private StoreSessionListener storeSessionListener;*/
+    private StoreSessionListener storeSessionListener;
 
     @Autowired
     private IpBlockingService ipBlockingService;
@@ -234,12 +224,13 @@ public class MobileEntryController {
      * */
 
 
+
     /**
-     * @apiDefine IncorrectPasswordError
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
+    * @apiDefine IncorrectPasswordError
+    * @apiError (406) {String} errorCode error code
+    * @apiError (406) {String} url request URL
+    * @apiError (406) {String} cause name of root exception
+    * @apiError (406) {String} details detail of root exception
      * @apiErrorExample {json} Incorrect password:
      * HTTP/1.1 406 Not Acceptable
      *      {
@@ -249,7 +240,7 @@ public class MobileEntryController {
      *          "detail": "Incorrect password"
      *      }
      *
-     * */
+    * */
 
     /**
      * @apiDefine NotExistingEmailError
@@ -456,6 +447,7 @@ public class MobileEntryController {
      * */
 
 
+
     /**
      * @apiDefine InternalServerError
      * @apiError (500) {String} errorCode error code
@@ -470,7 +462,8 @@ public class MobileEntryController {
      *          "detail": "Illegal mix of collations (latin1_swedish_ci,IMPLICIT) and (utf8_general_ci,COERCIBLE) for operation '='",
      *          "errorCode": "INTERNAL_SERVER_ERROR"
      *      }
-     * */
+    * */
+
 
 
     /**
@@ -484,41 +477,45 @@ public class MobileEntryController {
      * @apiParam {String} language Preferred language
      * @apiParam {File} avatar User avatar
      * @apiParamExample {multipart/form-data} Request Example:
-     * POST /rest/user/register HTTP/1.1
-     * Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-     * <p>
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="nickname"
-     * <p>
-     * user
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="email"
-     * <p>
-     * user@user.com
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="password"
-     * <p>
-     * AgAGARJFUUQ=
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="language"
-     * <p>
-     * en
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="avatar"; filename=""
-     * Content-Type:
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+     *      POST /rest/user/register HTTP/1.1
+     *      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+     *
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *      Content-Disposition: form-data; name="nickname"
+     *
+     *      user
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *      Content-Disposition: form-data; name="email"
+     *
+     *      user@user.com
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *      Content-Disposition: form-data; name="password"
+     *
+     *      AgAGARJFUUQ=
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *      Content-Disposition: form-data; name="language"
+     *
+     *      en
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *      Content-Disposition: form-data; name="avatar"; filename=""
+     *      Content-Type:
+     *      ------WebKitFormBoundary7MA4YWxkTrZu0gW--
      * @apiPermission anonymous
      * @apiDescription Registers user
+     *
      * @apiSuccess (201) {Integer} id User identification number (by which one is saved in database)
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 201 Created
-     * 706
+     *     HTTP/1.1 201 Created
+     *     706
+     *
      * @apiUse MessageNotReadableError
      * @apiUse InvalidParamError
      * @apiUse ExistingEmailError
      * @apiUse ExistingNicknameError
      * @apiUse InternalServerError
      * @apiUse InvalidFileError
+     *
+     *
      */
 
     @RequestMapping(value = "/info/public/register", method = RequestMethod.POST)
@@ -542,7 +539,6 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
-
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());
@@ -557,7 +553,7 @@ public class MobileEntryController {
             throw new InvalidEmailException("Invalid email");
         }
         user.setEmail(email);
-        String decodedPassword = decodePassword(password, passEncodeKey);
+        String decodedPassword = decodePassword(password);
         if (!decodedPassword.matches(PASSWORD_REGEX)) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
         }
@@ -580,7 +576,7 @@ public class MobileEntryController {
                 final int userId = userService.getIdByEmail(user.getEmail());
                 final int parentId;
                 String parentEmail = user.getParentEmail();
-
+                
                 if (StringUtils.isEmpty(parentEmail) || parentEmail.equals(user.getEmail())) {
                     parentId = getCommonReferralRootId();
                 } else {
@@ -604,11 +600,12 @@ public class MobileEntryController {
         }
 
     }
-
+    
     private int getCommonReferralRootId() {
         User commonReferralRoot = userService.getCommonReferralRoot();
         return commonReferralRoot == null ? 0 : commonReferralRoot.getId();
     }
+
 
 
     /**
@@ -619,13 +616,14 @@ public class MobileEntryController {
      * @apiParam {String} password User password
      * @apiParam {String} appKey App version key
      * @apiParamExample {json} Request Example:
-     * {
-     * "email": "user111@user.com",
-     * "password": "user1234",
-     * "appKey": "A1.0.0"
-     * }
+     *      {
+     *          "email": "user111@user.com",
+     *          "password": "user1234",
+     *          "appKey": "A1.0.0"
+     *       }
      * @apiPermission anonymous
      * @apiDescription Supplies authentication token and basic user info
+     *
      * @apiSuccess (200) {String} token Authentication token
      * @apiSuccess (200) {Long} expires Token expiration date
      * @apiSuccess (200) {String} nickname User nickname
@@ -633,17 +631,19 @@ public class MobileEntryController {
      * @apiSuccess (200) {String} avatarPath url of user avatar
      * @apiSuccess (200) {String} language preferred language
      * @apiSuccess (200) {Boolean} finPasswordSet false if fin pass is null, true otherwise
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
-     * {
-     * "token": "eyJhbGciOiJIUzUxMiJ9.eyJjbGllbnRUeXBlIjoidXNlciIsInRva2VuX2V4cGlyYXRpb25fZGF0ZSI6ODY0MTQ3NjI3MTg0NDY1NCwidXNlcm5hbWUiOiJzZW50aW5lbDc3N0BiaWdtaXIubmV0IiwidG9rZW5fY3JlYXRlX2RhdGUiOjE0NzYyNzE4NDQ2NTR9.dwSDdUF8gOzI0AjDLT1h2KILqIZpvuTrK4Cnrl6lqZGX28QIPkHp23TGSbDzi2gWBk_c81HLN2bhsuSh_71vGw",
-     * "expires": 8641476271844654,
-     * "nickname": "talalai123",
-     * "avatarPath": "http://test.exrates.me:80/rest/userFiles/494/avatar/38bd7383-688d-4d22-a378-13af4a7c5303.jpeg",
-     * "finPasswordSet": true,
-     * "id": 494,
-     * "language": "ar"
-     * }
+     *     HTTP/1.1 200 OK
+     *     {
+     *          "token": "eyJhbGciOiJIUzUxMiJ9.eyJjbGllbnRUeXBlIjoidXNlciIsInRva2VuX2V4cGlyYXRpb25fZGF0ZSI6ODY0MTQ3NjI3MTg0NDY1NCwidXNlcm5hbWUiOiJzZW50aW5lbDc3N0BiaWdtaXIubmV0IiwidG9rZW5fY3JlYXRlX2RhdGUiOjE0NzYyNzE4NDQ2NTR9.dwSDdUF8gOzI0AjDLT1h2KILqIZpvuTrK4Cnrl6lqZGX28QIPkHp23TGSbDzi2gWBk_c81HLN2bhsuSh_71vGw",
+     *          "expires": 8641476271844654,
+     *          "nickname": "talalai123",
+     *          "avatarPath": "http://test.exrates.me:80/rest/userFiles/494/avatar/38bd7383-688d-4d22-a378-13af4a7c5303.jpeg",
+     *          "finPasswordSet": true,
+     *          "id": 494,
+     *          "language": "ar"
+     *     }
+     *
      * @apiUse MessageNotReadableError
      * @apiUse MissingCredentialError
      * @apiUse DisabledAccountError
@@ -656,13 +656,13 @@ public class MobileEntryController {
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+        ipBlockingService.checkIp(ipAddress);
 
         Optional<AuthTokenDto> authTokenResult = null;
         try {
             authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
+            ipBlockingService.processLoginFailure(ipAddress);
             throw new WrongUsernameOrPasswordException("Wrong credentials");
         }
         AuthTokenDto authTokenDto = authTokenResult.get();
@@ -690,9 +690,54 @@ public class MobileEntryController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-        ipBlockingService.successfulProcessing(ipAddress,IpTypesOfChecking.LOGIN);
+        ipBlockingService.processLoginSuccess(ipAddress);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
+
+
+
+
+    @RequestMapping(value = "/info/public/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<AuthTokenDto> authenticateNg(@RequestBody @Valid UserAuthenticationDto authenticationDto,
+                                                       @RequestParam(name = "checkPin", required = false) String checkPin,
+                                                     HttpServletRequest request) {
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(ipAddress);
+
+        Optional<AuthTokenDto> authTokenResult = null;
+        try {
+            authTokenResult = authTokenService.retrieveTokenNg(authenticationDto.getEmail(), authenticationDto.getPassword(),
+                                                                request, authenticationDto.getPin(), checkPin == null);
+        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
+            ipBlockingService.processLoginFailure(ipAddress);
+            throw new WrongUsernameOrPasswordException("Wrong credentials");
+        }
+        AuthTokenDto authTokenDto = authTokenResult.get();
+        String userAgentHeader = request.getHeader("User-Agent");
+        logger.debug(userAgentHeader);
+
+
+        User user = userService.findByEmail(authenticationDto.getEmail());
+
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            throw new UnconfirmedUserException("User account not yet confirmed");
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new UserNotEnabledException("Blocked account");
+        }
+        authTokenDto.setNickname(user.getNickname());
+        authTokenDto.setUserId(user.getId());
+        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
+        String avatarLogicalPath = userService.getAvatarPath(user.getId());
+        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
+        authTokenDto.setAvatarPath(avatarFullPath);
+        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
+        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+        ipBlockingService.processLoginSuccess(ipAddress);
+        return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
+    }
+
+
 
     private void checkAppKey(String appKey, String userAgentHeader) {
         UserAgent userAgent = UserAgent.DESKTOP;
@@ -711,6 +756,7 @@ public class MobileEntryController {
     }
 
 
+
     /**
      * @api {post} /rest/user/restorePassword Submit password restoration
      * @apiName restorePassword
@@ -718,15 +764,17 @@ public class MobileEntryController {
      * @apiParam {String} email User email
      * @apiParam {String} password User password
      * @apiParamExample {json} Request Example:
-     * {
-     * "email": "user111@user.com",
-     * "password": "UFxdUxpLVkQVDA=="
-     * }
+     *      {
+     *          "email": "user111@user.com",
+     *          "password": "UFxdUxpLVkQVDA=="
+     *       }
      * @apiPermission anonymous
      * @apiDescription Accepts email and new password to send confirmation link.
      * In case of success returns empty response with HTTP 200
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
+     *
      * @apiUse MessageNotReadableError
      * @apiUse MissingCredentialError
      * @apiUse DisabledAccountError
@@ -736,12 +784,12 @@ public class MobileEntryController {
     @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+        ipBlockingService.checkIp(ipAddress);
         if (!(body.containsKey("email") && body.containsKey("password"))) {
             throw new MissingCredentialException("Credentials missing");
         }
         String email = body.get("email");
-        String newPass = decodePassword(body.get("password"), passEncodeKey);
+        String newPass = decodePassword(body.get("password"));
         try {
             User user = userService.findByEmail(email);
             if (user.getStatus() == UserStatus.DELETED) {
@@ -753,7 +801,7 @@ public class MobileEntryController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("Could not find user with email " + email);
-            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
+            ipBlockingService.processLoginFailure(ipAddress);
             throw new UsernameNotFoundException("Email not found");
         }
 
@@ -768,6 +816,7 @@ public class MobileEntryController {
     }
 
 
+
     /**
      * @api {post} /api/user/changePass Change password by user
      * @apiName changePass
@@ -775,14 +824,15 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} password User password
      * @apiParamExample {json} Request Example:
-     * {
-     * "password": "XF5aWQwDBQc="
-     * }
+     *      {
+     *          "password": "XF5aWQwDBQc="
+     *       }
      * @apiPermission User
      * @apiDescription Change password by authenticated user.
      * In case of success returns empty response with HTTP 200
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -807,14 +857,15 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} finPass financial password
      * @apiParamExample {json} Request Example:
-     * {
-     * "finPass": "XF5aWQwDBQc="
-     * }
+     *      {
+     *          "finPass": "XF5aWQwDBQc="
+     *       }
      * @apiPermission User
      * @apiDescription Set or change financial password by authenticated user.
      * In case of success returns empty response with HTTP 200
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -831,8 +882,8 @@ public class MobileEntryController {
     }
 
     private void changeUserPasses(String password, String finPass) {
-        String decodedPassword = password == null ? null : decodePassword(password, passEncodeKey);
-        String decodedFinPass = finPass == null ? null : decodePassword(finPass, passEncodeKey);
+        String decodedPassword = password == null ? null : decodePassword(password);
+        String decodedFinPass = finPass == null ? null : decodePassword(finPass);
         if ((decodedPassword != null && !decodedPassword.matches(PASSWORD_REGEX)) ||
                 (decodedFinPass != null && !decodedFinPass.matches(PASSWORD_REGEX))) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
@@ -845,8 +896,6 @@ public class MobileEntryController {
         updateUserDto.setFinpassword(decodedFinPass);
         updateUserDto.setEmail(user.getEmail()); //need for send the email
         userService.updateUserSettings(updateUserDto);
-
-        userSessionService.invalidateUserSessionExceptSpecific(userEmail, RequestContextHolder.currentRequestAttributes().getSessionId());
     }
 
 
@@ -857,14 +906,16 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} finPass financial password
      * @apiParamExample {json} Request Example:
-     * {
-     * "finPass": "XF5aWQwDBQc="
-     * }
+     *      {
+     *          "finPass": "XF5aWQwDBQc="
+     *       }
      * @apiPermission User
      * @apiDescription Set or change financial password by authenticated user.
      * In case of success returns empty response with HTTP 200
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
+     *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -878,7 +929,7 @@ public class MobileEntryController {
     @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> checkFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
-        String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true), passEncodeKey);
+        String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true));
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(userEmail);
         userService.checkFinPassword(decodedFinPass, user, new Locale(userService.getPreferedLang(user.getId())));
@@ -893,26 +944,28 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {MultipartFile} avatar Image for avatar (jpg or png < 5 MB)
      * @apiParamExample {json} Request Example:
-     * {
-     * POST /api/user/setAvatar HTTP/1.1
-     * Exrates-Rest-Token: eyJhbGciOiJIUzUxMiJ9.eyJjbGllbnRUeXBlIjoidXNlciIsInRva2VuX2V4cGlyYXRpb25fZGF0ZSI6ODY0MTQ3NTY2OTk2ODM0NiwidXNlcm5hbWUiOiJzZW50aW5lbDc3N0BiaWdtaXIubmV0IiwidG9rZW5fY3JlYXRlX2RhdGUiOjE0NzU2Njk5NjgzNDZ9.L-g2ZZ7WJjl3cprwSoc7fyosyP2NGWxdag2JaO3MGbM6Nukn5_EigoRx9c8EZBi0OAj1oF36VHIG4bwFYe7UrA
-     * Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-     * <p>
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW
-     * Content-Disposition: form-data; name="file"; filename=""
-     * Content-Type:
-     * ------WebKitFormBoundary7MA4YWxkTrZu0gW--
-     * }
+     *      {
+     *          POST /api/user/setAvatar HTTP/1.1
+     *          Exrates-Rest-Token: eyJhbGciOiJIUzUxMiJ9.eyJjbGllbnRUeXBlIjoidXNlciIsInRva2VuX2V4cGlyYXRpb25fZGF0ZSI6ODY0MTQ3NTY2OTk2ODM0NiwidXNlcm5hbWUiOiJzZW50aW5lbDc3N0BiaWdtaXIubmV0IiwidG9rZW5fY3JlYXRlX2RhdGUiOjE0NzU2Njk5NjgzNDZ9.L-g2ZZ7WJjl3cprwSoc7fyosyP2NGWxdag2JaO3MGbM6Nukn5_EigoRx9c8EZBi0OAj1oF36VHIG4bwFYe7UrA
+     *          Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+     *
+     *          ------WebKitFormBoundary7MA4YWxkTrZu0gW
+     *          Content-Disposition: form-data; name="file"; filename=""
+     *          Content-Type:
+     *          ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+     *       }
      * @apiPermission User
      * @apiDescription Set avatar by authenticated user.
      * Returns URL of image
+     *
      * @apiSuccess (200) {String} url Avatar url
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
-     * <p>
-     * {
-     * "url": "http://127.0.0.1:8080/rest/userFiles/494/avatar/f58df357-bf29-4043-bafb-0fbc470bbe7e.jpeg"
-     * }
+     *     HTTP/1.1 200 OK
+     *
+     *     {
+     *          "url": "http://127.0.0.1:8080/rest/userFiles/494/avatar/f58df357-bf29-4043-bafb-0fbc470bbe7e.jpeg"
+     *     }
+     *
      * @apiUse MessageNotReadableError
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -949,14 +1002,16 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} language language code (en, ru, cn, in, ar available)
      * @apiParamExample {json} Request Example:
-     * {
-     * "language": "en"
-     * }
+     *      {
+     *          "language": "en"
+     *       }
      * @apiPermission User
      * @apiDescription Set user's preferred language.
      * In case of success returns empty response with HTTP 200
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
+     *
      * @apiUse MessageNotReadableError
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -987,6 +1042,7 @@ public class MobileEntryController {
     }
 
 
+
     @RequestMapping(value = "/api/user/deleteUser", method = RequestMethod.DELETE, consumes = "application/json;charset=utf-8")
     public ResponseEntity<Void> tempDeleteUser(@RequestBody Map<String, String> body, HttpServletRequest request) {
         logger.debug(body.get("email"));
@@ -1001,18 +1057,19 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} language language code (en, ru, cn, in, ar available)
      * @apiParamExample {json} Request Example:
-     * /api/user/findNicknames?part=sd
+     *      /api/user/findNicknames?part=sd
      * @apiPermission User
      * @apiDescription Find nickname variants by part
      * In case of success returns empty response with HTTP 200
      * @apiSuccess (200) {Array} data Nicknames found
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
-     * <p>
-     * [
-     * "asda",
-     * "chinasddyzyx"
-     * ]
+     *     HTTP/1.1 200 OK
+     *
+     *     [
+     *          "asda",
+     *          "chinasddyzyx"
+     *     ]
+     *
      * @apiUse MessageNotReadableError
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -1039,11 +1096,13 @@ public class MobileEntryController {
      * @apiGroup User
      * @apiParam {String} sessionId session id retrieved from QR
      * @apiParamExample {test/plain} Request Example:
-     * FC7A1B7703714C5C4CE20A7F8146D9FD
+     *      FC7A1B7703714C5C4CE20A7F8146D9FD
      * @apiPermission User
      * @apiDescription Authenticates user by QR
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
+     *
      * @apiUse MessageNotReadableError
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -1053,7 +1112,6 @@ public class MobileEntryController {
      */
     @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> authenticateQR(@RequestBody Map<String, String> params, @RequestHeader("Exrates-Rest-Token") String token) {
-        /*TODO temporary disable
         logger.debug(params);
         String sessionId = params.get("sessionId");
         logger.debug(sessionId);
@@ -1063,8 +1121,7 @@ public class MobileEntryController {
         synchronized (mutex) {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
-        return new ResponseEntity<>(HttpStatus.OK);*/
-        throw new NotImplimentedMethod("NOT IMPLEMENTED");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
@@ -1083,7 +1140,7 @@ public class MobileEntryController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, InvalidPasswordException.class, InvalidEmailException.class})
     public ApiError methodArgumentNotValidExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ApiError(INVALID_PARAM_VALUE, req.getRequestURL(), exception);
+         return new ApiError(INVALID_PARAM_VALUE, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -1105,6 +1162,18 @@ public class MobileEntryController {
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(PinCodeCheckNeedException.class)
+    public ApiError pinCheckNeededExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(PIN_CHECK_REUQIRED, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(IncorrectPinException.class)
+    public ApiError incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(INCORRECT_PIN, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(WrongUsernameOrPasswordException.class)
     public ApiError incorrectPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(INCORRECT_LOGIN_OR_PASSWORD, req.getRequestURL(), exception);
@@ -1122,12 +1191,12 @@ public class MobileEntryController {
     public ApiError uniqueEmailConstraintExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(EXISTING_EMAIL, req.getRequestURL(), exception);
     }
-
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(UniqueNicknameConstraintException.class)
     public ApiError uniqueNicknameConstraintExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(EXISTING_NICKNAME, req.getRequestURL(), exception);
     }
+
 
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
