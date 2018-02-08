@@ -107,7 +107,7 @@ public class TransferRequestController {
         .orElseThrow(InvalidAmountException::new);
     TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     try {
-      secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
+      secureServiceImpl.checkEventAdditionalPin(localeResolver.resolveLocale(servletRequest), principal.getName(),
               NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
     } catch (PinCodeCheckNeedException e) {
       servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
@@ -123,7 +123,7 @@ public class TransferRequestController {
   @RequestMapping(value = "/transfer/request/pin", method = POST)
   @ResponseBody
   public Map<String, Object> withdrawRequestCheckPin(
-          @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
+          @RequestParam String pin, HttpServletRequest request, Principal principal) {
     Object object = request.getSession().getAttribute(transferRequestCreateDto);
     Preconditions.checkNotNull(object);
     Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
@@ -131,7 +131,7 @@ public class TransferRequestController {
       request.getSession().removeAttribute(transferRequestCreateDto);
       return transferService.createTransferRequest((TransferRequestCreateDto)object);
     } else {
-      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+      String res = secureServiceImpl.resendEventPin(localeResolver.resolveLocale(request), principal.getName(),
               NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency((TransferRequestCreateDto)object));
       throw new IncorrectPinException(res);
     }
@@ -171,7 +171,7 @@ public class TransferRequestController {
   @ResponseBody
   public String getHashForUser(
           @RequestParam Integer id, Principal principal) {
-    return transferService.getHash(id, principal);
+    return transferService.getHash(id, principal.getName());
   }
 
   @RequestMapping(value = "/transfer/request/revoke", method = POST)

@@ -97,7 +97,7 @@ public class WithdrawRequestController {
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
     try {
-      secureServiceImpl.checkEventAdditionalPin(request, principal.getName(),
+      secureServiceImpl.checkEventAdditionalPin(localeResolver.resolveLocale(request), principal.getName(),
               NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency(withdrawRequestCreateDto));
     } catch (PinCodeCheckNeedException e) {
       request.getSession().setAttribute(withdrawRequestSessionAttr, withdrawRequestCreateDto);
@@ -122,7 +122,7 @@ public class WithdrawRequestController {
       request.getSession().removeAttribute(withdrawRequestSessionAttr);
       return withdrawService.createWithdrawalRequest((WithdrawRequestCreateDto)object, locale);
     } else {
-      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+      String res = secureServiceImpl.resendEventPin(localeResolver.resolveLocale(request), principal.getName(),
               NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency((WithdrawRequestCreateDto)object));
       throw new IncorrectPinException(res);
     }

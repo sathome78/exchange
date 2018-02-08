@@ -197,10 +197,19 @@ public class TransferServiceImpl implements TransferService {
   @Transactional
   @Override
   public void revokeByUser(int requestId, Principal principal) {
+    if (principal == null) {
+      throw new TransferRequestRevokeException();
+    }
+    revokeByUser(requestId, principal.getName());
+  }
+
+  @Transactional
+  @Override
+  public void revokeByUser(int requestId, String email) {
     TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
             .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-    
-    if (principal == null || !getUserEmailByTrnasferId(requestId).equals(principal.getName())) {
+
+    if (!getUserEmailByTrnasferId(requestId).equals(email)) {
       throw new TransferRequestRevokeException();
     }
     TransferStatusEnum currentStatus = transferRequest.getStatus();
@@ -372,9 +381,9 @@ public class TransferServiceImpl implements TransferService {
 
 
   @Override
-  public String getHash(Integer id, Principal principal) {
+  public String getHash(Integer id, String email) {
     TransferRequestFlatDto dto = getFlatById(id);
-    if (dto == null || !dto.getCreatorEmail().equals(principal.getName())
+    if (dto == null || !dto.getCreatorEmail().equals(email)
             || !dto.getStatus().availableForAction(PRESENT_VOUCHER)) {
       throw new InvoiceNotFoundException("");
     }

@@ -10,7 +10,14 @@ import me.exrates.model.dto.ngDto.UserSettingsDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.form.NotificationOptionsForm;
+import me.exrates.service.NotificationService;
+import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserService;
+import me.exrates.service.notifications.NotificationsSettingsService;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +37,21 @@ import java.util.Map;
 @Log4j2
 @RestController
 public class SettingsNgController {
+
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private SessionParamsService sessionService;
+    @Autowired
+    private NotificationsSettingsService settingsService;
+    @Value("${telegram.bot.url}")
+    String TBOT_URL;
+    @Value("${telegram_bot_name}")
+    String TBOT_NAME;
 
     /*Controller for initialize user settings*/
     @RequestMapping(value = "/info/private/get_settings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -96,10 +118,13 @@ public class SettingsNgController {
     public ResponseEntity<String> submitNotificationOptions() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
+        JSONObject jsonObject = new JSONObject();
+        HttpStatus httpStatus;
         try {
             int userId = userService.getIdByEmail(userEmail);
             Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
+            /*todo: define type of data for update*/
+            /*settingsMap.forEach((k,v) -> {
                 Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
@@ -115,15 +140,15 @@ public class SettingsNgController {
                     v.setNotificatorId(notificatorId);
                     settingsService.createOrUpdate(v);
                 }
-            });
-            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    localeResolver.resolveLocale(request)));
+            });*/
+            jsonObject.put("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    locale));
+            httpStatus = HttpStatus.OK;
         } catch (Exception e) {
             log.error(e);
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
-                    localeResolver.resolveLocale(request)));
-            throw e;
+            jsonObject.put("msg", messageSource.getMessage("message.error_saving_settings", null, locale));
+            httpStatus = HttpStatus.NOT_ACCEPTABLE;
         }
-        return redirectView;
+        return new ResponseEntity<>(jsonObject.toString(), httpStatus);
     }
 }

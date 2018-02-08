@@ -380,13 +380,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
+
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
                 "Bitcoin", "BTC", 4, 40);
     }
 
-    @Bean(name = "litecoinServiceImpl")
+    /*todo uncomment for prod*/
+    /*@Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
                 "Litecoin", "LTC", 4, 20);
@@ -449,7 +451,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public BitcoinService occService() {
         return new BitcoinServiceImpl("merchants/occ_wallet.properties",
                 "OCC", "OCC", 4, 20);
-    }
+    }*/
 
 
     @Bean(name = "ethereumServiceImpl")
@@ -458,11 +460,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Ethereum", "ETH", 12);
     }
 
+
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
                 "Ethereum Classic", "ETC", 12);
     }
+
 
     @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {

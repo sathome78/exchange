@@ -40,23 +40,17 @@ import java.util.*;
 @PropertySource(value = {"classpath:/telegram_bot.properties"})
 public class PublicControllerNg {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private SessionParamsService sessionService;
-    @Autowired
-    private NotificationsSettingsService settingsService;
-    @Value("${telegram.bot.url}")
-    String TBOT_URL;
-    @Value("${telegram_bot_name}")
-    String TBOT_NAME;
+
 
     @RequestMapping(value = "/info/public/test", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> testNg() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test", "ok");
+        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/info/private/test", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> test2Ng() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("test", "ok");
         return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
