@@ -14,7 +14,7 @@ public interface NotificationsSettingsService {
 
     void createOrUpdate(NotificationsUserSetting setting);
 
-    Object get2faOptionsForUser(int id);
+    Map<String, Object> get2faOptionsForUser(int id);
 
     Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);
 }

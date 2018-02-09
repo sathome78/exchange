@@ -25,6 +25,15 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
+	private String prefferedLang;
+
+	public String getPrefferedLang() {
+		return prefferedLang;
+	}
+
+	public void setPrefferedLang(String prefferedLang) {
+		this.prefferedLang = prefferedLang;
+	}
 
 	public UserRole getRole() {
 		return role;

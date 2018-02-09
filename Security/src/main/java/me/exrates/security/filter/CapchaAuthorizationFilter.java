@@ -49,6 +49,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     private IpBlockingService ipBlockingService;
 
+
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
     private @Value("${session.passwordParam}") String passwordParam;
@@ -85,7 +86,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                String res = secureServiceImpl.reSendLoginMessage(request, authentication.getName());
+                String res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), localeResolver.resolveLocale(request));
                 throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),

@@ -53,8 +53,8 @@ public class SecureServiceImpl implements SecureService {
     private NotificationsSettingsService settingsService;
 
     @Override
-    public void checkLoginAuthNg(String email, HttpServletRequest request) {
-        String result = reSendLoginMessage(request, email);
+    public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
+        String result = reSendLoginMessage(request, email, locale);
         if (result != null) {
             throw new PinCodeCheckNeedException(result);
         }
@@ -64,7 +64,7 @@ public class SecureServiceImpl implements SecureService {
     @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                                CapchaAuthorizationFilter filter) {
-        String result = reSendLoginMessage(request, authentication.getName());
+        String result = reSendLoginMessage(request, authentication.getName(), localeResolver.resolveLocale(request));
         if (result != null) {
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);
@@ -75,7 +75,7 @@ public class SecureServiceImpl implements SecureService {
     }
 
     @Override
-    public String reSendLoginMessage(HttpServletRequest request, String userEmail) {
+    public String reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
         int userId = userService.getIdByEmail(userEmail);
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
@@ -91,7 +91,7 @@ public class SecureServiceImpl implements SecureService {
                 setting.setNotificatorId(NotificationTypeEnum.EMAIL.getCode());
             }
             log.debug("noty_setting {}", setting.toString());
-            return sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)});
+            return sendPinMessage(userEmail, setting, locale, new String[]{IpUtils.getClientIpAddress(request, 18)});
         }
         return null;
     }
@@ -99,27 +99,26 @@ public class SecureServiceImpl implements SecureService {
 
     /*Method used For withdraw or transfer*/
     @Override
-    public void checkEventAdditionalPin(HttpServletRequest request, String email,
+    public void checkEventAdditionalPin(Locale locale, String email,
                                         NotificationMessageEventEnum event, String amountCurrency) {
-        String result = resendEventPin(request, email, event, amountCurrency);
+        String result = resendEventPin(locale, email, event, amountCurrency);
         if (result != null) {
             throw new PinCodeCheckNeedException(result);
         }
     }
 
     @Override
-    public String resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
+    public String resendEventPin(Locale locale, String email, NotificationMessageEventEnum event, String amountCurrency) {
         Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
         if (setting != null && setting.getNotificatorId() != null) {
-            return sendPinMessage(email, setting, request, new String[]{amountCurrency});
+            return sendPinMessage(email, setting, locale, new String[]{amountCurrency});
         }
         return null;
     }
 
-    private String sendPinMessage(String email, NotificationsUserSetting setting, HttpServletRequest request, String[] args) {
-        Locale locale = localeResolver.resolveLocale(request);
+    private String sendPinMessage(String email, NotificationsUserSetting setting, Locale locale, String[] args) {
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String[] pin = new String[]{userService.updatePinForUserForEvent(email, setting.getNotificationMessageEventEnum())};
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
