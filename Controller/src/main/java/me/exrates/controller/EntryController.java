@@ -322,6 +322,8 @@ public class EntryController {
                                  put("price", price);}}.toString();
     }
 
+
+    /*todo what about news?*/
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/{newsVariant}/newstopic")
     public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {
