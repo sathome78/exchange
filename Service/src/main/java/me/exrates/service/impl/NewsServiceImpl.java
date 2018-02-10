@@ -58,6 +58,13 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<NewsDto> getNewsBriefList(Integer offset, Integer limit, Locale locale) {
+        List<NewsDto> result = serviceCacheableProxy.getNewsBriefList(offset, limit, locale);
+        return result;
+    }
+
+    @Override
     public News getNews(Integer newsId, Locale locale) {
         return newsDao.getNews(newsId, locale);
     }

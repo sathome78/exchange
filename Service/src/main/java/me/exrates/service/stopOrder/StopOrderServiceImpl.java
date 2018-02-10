@@ -314,6 +314,14 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Transactional(readOnly = true)
     @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        return stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, scope, offset, limit, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
     public List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                   OperationType operationType,
                                                                   Integer offset, Integer limit, Locale locale) {

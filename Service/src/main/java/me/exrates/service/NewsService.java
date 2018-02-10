@@ -4,6 +4,7 @@ import me.exrates.model.News;
 import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,6 +25,9 @@ public interface NewsService {
      * @return list the news
      */
     List<NewsDto> getNewsBriefList(CacheData cacheData, final Integer offset, final Integer limit, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<NewsDto> getNewsBriefList(Integer offset, Integer limit, Locale locale);
 
     /**
      * Returns news with given ID in variant of current locale
