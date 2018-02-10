@@ -3,10 +3,10 @@ package me.exrates.security.config;
 import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
 import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
 import me.exrates.security.filter.CORSFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,12 +19,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import javax.servlet.Filter;
 
 /**
- * Created by OLEG on 22.08.2016.
+ * Created by Maks on 09.02.2018.
  */
 @Configuration
-@Order(value = 1)
+@Order(value = 2)
 @EnableWebSecurity
-public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
+public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Bean
@@ -32,7 +32,7 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
         return new RestAuthenticationEntryPoint();
     }
 
-   @Bean
+    @Bean
     public Filter authenticationTokenProcessingFilter() throws Exception {
         return new AuthenticationTokenProcessingFilter("/**", authenticationManagerBean());
     }
@@ -47,10 +47,12 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
+
         http
-                .antMatcher("/api/**")
+                .antMatcher("/info/private/**")
                 .authorizeRequests()
-                .antMatchers("/api/**").authenticated()
+                .antMatchers("/info/private/**").authenticated()
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
@@ -61,4 +63,5 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .httpBasic();
     }
+
 }

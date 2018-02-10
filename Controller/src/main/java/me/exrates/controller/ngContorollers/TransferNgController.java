@@ -53,7 +53,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * Created by Maks on 08.02.2018.
  */
 @Log4j2
-@RestController("/info/private/transfer")
+@RestController
+@RequestMapping("/info/private/transfer")
 public class TransferNgController {
 
 
