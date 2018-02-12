@@ -69,7 +69,12 @@ public interface OrderService {
       OperationType operationType,
       String scope, Integer offset, Integer limit, Locale locale);
 
-  /**
+    @Transactional(readOnly = true)
+    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                OperationType operationType,
+                                                String scope, Integer offset, Integer limit, Locale locale);
+
+    /**
    * TODO ADD JAVADOC
    */
   public OrderCreateDto getMyOrderById(int orderId);

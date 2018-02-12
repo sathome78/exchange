@@ -33,6 +33,9 @@ public interface WalletService {
      */
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
 
+    @Transactional(readOnly = true)
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale);
 
     int getWalletId(int userId, int currencyId);

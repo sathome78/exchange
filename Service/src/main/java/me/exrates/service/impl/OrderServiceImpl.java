@@ -572,6 +572,14 @@ public class OrderServiceImpl implements OrderService {
     return result;
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                     OperationType operationType,
+                                                     String scope, Integer offset, Integer limit, Locale locale) {
+    return orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, scope, offset, limit, locale);
+  }
+
   @Override
   public OrderCreateDto getMyOrderById(int orderId) {
     return orderDao.getMyOrderById(orderId);
