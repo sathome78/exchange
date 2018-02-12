@@ -2,21 +2,18 @@ package me.exrates.controller.ngContorollers;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.RefFilterData;
-import me.exrates.model.dto.RefsListContainer;
-import me.exrates.model.dto.TableParams;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.dto.onlineTableDto.*;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderBaseType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.PagingDirection;
+import me.exrates.model.enums.*;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +21,13 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.web3j.protocol.core.methods.response.Transaction;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -60,6 +60,17 @@ public class StatNgController {
     private StopOrderService stopOrderService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private CommissionService comissionService;
+
+    /*default depth the interval for chart*/
+    final public static BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
+    /*depth the accepted order history*/
+    final public static BackDealInterval ORDER_HISTORY_INTERVAL = new BackDealInterval("24 HOUR");
+    /*limit the data fetching of order history (additional to ORDER_HISTORY_INTERVAL). (-1) means no limit*/
+    final public static Integer ORDER_HISTORY_LIMIT = 100;
 
 
 
@@ -217,6 +228,55 @@ public class StatNgController {
         Integer finalPage = page;
         result.forEach(p->p.setPage(finalPage));
         return result;
+    }
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's wallet to show in page "Balance"
+     * @return list the data of user's wallet
+     * @author ValkSam
+     */
+    @OnlineMethod
+    @RequestMapping(value = "/info/private/myWalletsData", method = RequestMethod.GET)
+    public List<MyWalletsDetailedDto> getMyWalletsData() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(userEmail, locale);
+        return result;
+    }
+
+
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns data with statistics for orders of current CurrencyPair to show above the graphics
+     *
+     * @param pairId - id of currency pair
+     * @param interval - interval for statistic
+     * @param loc - current user locale on client-side
+     * @return: data with statistics for orders of current CurrencyPair
+     * @author ValkSam
+     */
+    @OnlineMethod
+    @RequestMapping(value = "/info/public/ordersForPairStatistics", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExOrderStatisticsDto getNewCurrencyPairData(Integer pairId, String interval, String loc) {
+        Locale locale = Locale.forLanguageTag(loc);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(pairId);
+        BackDealInterval backDealInterval = new BackDealInterval(interval);
+        if (currencyPair == null || backDealInterval == null) {
+            return null;
+        }
+        /**/
+        ExOrderStatisticsDto exOrderStatisticsDto = orderService.getOrderStatistic(currencyPair, backDealInterval, locale);
+        return exOrderStatisticsDto;
+    }
+
+    @OnlineMethod
+    @RequestMapping(value = "/info/private/myWalletsStatistic", method = RequestMethod.GET)
+    public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(email);
+        return walletService.getAllWalletsForUserReduced(email, locale);
     }
 
 }

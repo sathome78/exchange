@@ -100,6 +100,14 @@ public final class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
+  public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
+    List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale) {
     List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale);
     if (Cache.checkCache(cacheData, result)) {
