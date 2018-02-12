@@ -33,8 +33,6 @@ public class WebSocketAuthenticatorService {
 			logger.info("Received token was null or empty.");
 			throw new TokenException("Received token was null or empty.");
 		}
-
-		logger.error("$$$$$$ Obtained token: " + token.substring(0, 10));
 		UserDetails user;
 		try {
 			user = authTokenService.getUserByToken(token);
@@ -42,7 +40,6 @@ public class WebSocketAuthenticatorService {
 			logger.info("Failed to retrieve user by token as " + e.getMessage());
 			throw new TokenException(e.getMessage());
 		}
-		logger.error("$$$$$$ Retrieved user: " + user.getUsername());
 //		logger.error("$$$$$$ Registered user: " + SecurityContextHolder.getContext().getAuthentication().getName());
 //		if(!(user.getUsername().equals(SecurityContextHolder.getContext().getAuthentication().getName()))){
 //			throw new BadCredentialsException("Current principal is not the same with user (username) " + user.getUsername());

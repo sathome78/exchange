@@ -16,4 +16,5 @@ public interface ChatDao {
     void persist(ChatLang lang, Set<ChatMessage> message);
 
     void delete(ChatLang lang, ChatMessage message);
+
 }

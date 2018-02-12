@@ -42,10 +42,10 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
-                .simpSubscribeDestMatchers("/topic/chat-**").permitAll()
+                .simpSubscribeDestMatchers("/topic/chat/**").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .simpDestMatchers("/app/ev/*").permitAll()
-                .simpDestMatchers("/topic/**").authenticated()
+                .simpDestMatchers("/app/topic/**").authenticated()
                 .simpMessageDestMatchers("/app/topic/chat-**").authenticated()
                 .anyMessage().denyAll();
     }
