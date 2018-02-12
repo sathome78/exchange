@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -93,13 +94,13 @@ public class ChatController {
     }
 
     @RequestMapping(value = "/info/private/chat/new-message", method = POST)
-    public ResponseEntity<Long> addNewChatMessage(@RequestBody HashMap<String, String> object) {
+    public ResponseEntity<ChatMessage> addNewChatMessage(@RequestBody HashMap<String, String> object) {
         String email = "";
         try {
             email = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException e) {
             LOG.info("Attempt to add chat message by unauthenticated user");
-            return new ResponseEntity<>(0L, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new ChatMessage(), HttpStatus.UNAUTHORIZED);
         }
         final ChatLang chatLang = ChatLang.toInstance(object.get("lang"));
         final ChatMessage message;
@@ -107,7 +108,7 @@ public class ChatController {
             message = chatService.persistMessage(object.get("body"), email, chatLang);
         } catch (IllegalChatMessageException e) {
             LOG.info(e);
-            return new ResponseEntity<>(0L, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ChatMessage(), HttpStatus.BAD_REQUEST);
         }
         handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
             try {
@@ -116,7 +117,7 @@ public class ChatController {
                 LOG.error(e);
             }
         });
-        return new ResponseEntity<>(message.getId(), HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/chat/history", method = GET)

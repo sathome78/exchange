@@ -16,6 +16,8 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.Arrays;
+
 /**
  * Created by Maks on 24.08.2017.
  */
@@ -40,6 +42,8 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         String[] origins = allowedOrigins.split(",");
+
+        System.out.println("*************************** Orginis for WebSockets: " + Arrays.toString(origins) + " ****************");
         registry
                 .addEndpoint("/public_socket")
                 .setAllowedOrigins(origins)

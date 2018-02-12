@@ -35,16 +35,21 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .toArray(String[]::new);
        /* -----------------------------------------------------------------------------------------------------------*/
        messages.nullDestMatcher().permitAll()
+                .simpSubscribeDestMatchers("/topic/chat**").permitAll()
                 .simpSubscribeDestMatchers("/app/statistics").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()
                 .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
-                .simpDestMatchers("/app/ev/*").permitAll()
+                .simpSubscribeDestMatchers("/topic/chat-**").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
+                .simpDestMatchers("/app/ev/*").permitAll()
+                .simpDestMatchers("/topic/**").authenticated()
+                .simpMessageDestMatchers("/app/topic/chat-**").authenticated()
                 .anyMessage().denyAll();
-
     }
+
+
 
 }
