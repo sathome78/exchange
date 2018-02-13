@@ -36,6 +36,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -305,7 +306,8 @@ public class OrderDaoImpl implements OrderDao {
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
                     "       LIMIT 1,1) AS pred_last_exrate, " +
                     "   (SELECT SUM(EX.amount_convert) FROM EXORDERS EX " +
-                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS volume " +
+                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
+                    "       AND EX.currency_pair_id = AGRIGATE.currency_pair_id) AS volume " +
                     " FROM ( " +
                     "   SELECT DISTINCT" +
                     "   EXORDERS.status_id AS status_id,  " +
@@ -326,7 +328,8 @@ public class OrderDaoImpl implements OrderDao {
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                     exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                     exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                    exOrderStatisticsDto.setVolume(rs.getString("volume"));
+                    BigDecimal volume = rs.getBigDecimal("volume");
+                    exOrderStatisticsDto.setVolume(volume == null ? "0.000" : volume.setScale(3, RoundingMode.HALF_UP).toPlainString());
                     exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
                     return exOrderStatisticsDto;
                 }
@@ -362,7 +365,8 @@ public class OrderDaoImpl implements OrderDao {
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
                     "       LIMIT 1,1) AS pred_last_exrate, " +
                     "   (SELECT SUM(EX.amount_convert) FROM EXORDERS EX " +
-                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS volume" +
+                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
+                    "     AND CP.id = EX.currency_pair_id) AS volume" +
                     " FROM CURRENCY_PAIR CP " +
                     " WHERE CP.id IN (:pair_id) AND CP.hidden != 1";
 
@@ -374,7 +378,8 @@ public class OrderDaoImpl implements OrderDao {
                 exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                 exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                exOrderStatisticsDto.setVolume(rs.getString("volume"));
+                BigDecimal volume = rs.getBigDecimal("volume");
+                exOrderStatisticsDto.setVolume(volume == null ? "0.00" : volume.setScale(3, RoundingMode.HALF_UP).toPlainString());
                 exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
                 return exOrderStatisticsDto;
             });
