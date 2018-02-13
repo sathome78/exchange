@@ -12,6 +12,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.*;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,7 +88,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             } else {
                 checkLoginAuth(username, request, locale);
             }
-            return prepareAuthToken(userDetails);
+            return prepareAuthToken(userDetails, request);
         } else {
             throw new IncorrectPasswordException("Incorrect password");
         }
@@ -130,18 +131,19 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            return prepareAuthToken(userDetails);
+            return prepareAuthToken(userDetails, null);
         } else {
             throw new IncorrectPasswordException("Incorrect password");
         }
     }
 
-    private Optional<AuthTokenDto> prepareAuthToken(UserDetails userDetails) {
+    private Optional<AuthTokenDto> prepareAuthToken(UserDetails userDetails, HttpServletRequest request) {
         ApiAuthToken token = createAuthToken(userDetails.getUsername());
         Map<String, Object> tokenData = new HashMap<>();
         tokenData.put("token_id", token.getId());
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
+        tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));
         JwtBuilder jwtBuilder = Jwts.builder();
         Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
         tokenData.put("expiration", expiration.getTime());
@@ -163,7 +165,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
-    public UserDetails getUserByToken(String token) {
+    public UserDetails getUserByToken(String token, String currentIp) {
         if (token == null) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
@@ -175,18 +177,23 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
 
-        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value"))) {
+        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value")) && claims.containsKey("ip")) {
             throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
         Long tokenId = Long.parseLong(String.valueOf(claims.get("token_id")));
         String username = claims.get("username", String.class);
         String value = claims.get("value", String.class);
+        String ip = claims.get("ip", String.class);
         Optional<ApiAuthToken> tokenSearchResult = apiAuthTokenDao.retrieveTokenById(tokenId);
         if (tokenSearchResult.isPresent()) {
             ApiAuthToken savedToken = tokenSearchResult.get();
             if (!(username.equals(savedToken.getUsername()) && value.equals(savedToken.getValue()))) {
                 throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
             }
+            /*if (ip != null && !ip.equals(currentIp)) {
+                *//*check ip *//*
+                throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+            }*/
             LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
             LocalDateTime finalExpiration = new Date(claims.get("expiration", Long.class)).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();

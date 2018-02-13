@@ -27,7 +27,7 @@ public class WebSocketAuthenticatorService {
 		this.authTokenService = authTokenService;
 	}
 
-	public UsernamePasswordAuthenticationToken getAuthenticatedOrFail(final String token){
+	public UsernamePasswordAuthenticationToken getAuthenticatedOrFail(final String token, final String ip){
 
 		if(null == token || token.isEmpty()){
 			logger.info("Received token was null or empty.");
@@ -35,7 +35,7 @@ public class WebSocketAuthenticatorService {
 		}
 		UserDetails user;
 		try {
-			user = authTokenService.getUserByToken(token);
+			user = authTokenService.getUserByToken(token, ip);
 		} catch (TokenException e) {
 			logger.info("Failed to retrieve user by token as " + e.getMessage());
 			throw new TokenException(e.getMessage());

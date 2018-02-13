@@ -21,11 +21,10 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
 		if(StompCommand.SEND == accessor.getCommand()){
 			final String token = accessor.getFirstNativeHeader(TOKEN_HEADER);
-
-			final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFail(token);
+			/*todo method in ipUtils to get ip from header*/
+			final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFail(token, null);
 
 			accessor.setUser(user);
 		}

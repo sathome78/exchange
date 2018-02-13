@@ -1115,7 +1115,7 @@ public class MobileEntryController {
         logger.debug(params);
         String sessionId = params.get("sessionId");
         logger.debug(sessionId);
-        UserDetails userDetails = authTokenService.getUserByToken(token);
+        UserDetails userDetails = authTokenService.getUserByToken(token, null);
         HttpSession session = storeSessionListener.getSessionById(sessionId).orElseThrow(InvalidSessionIdException::new);
         final Object mutex = WebUtils.getSessionMutex(session);
         synchronized (mutex) {

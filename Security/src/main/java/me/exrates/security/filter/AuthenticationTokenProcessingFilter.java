@@ -5,6 +5,7 @@ import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -70,7 +71,8 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
         if (token == null) {
             token = request.getParameter("token");
         }
-        UserDetails userDetails = authTokenService.getUserByToken(token);
+        String ip = IpUtils.getClientIpAddress(request);
+        UserDetails userDetails = authTokenService.getUserByToken(token, ip);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authentication;

@@ -14,6 +14,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String predLastOrderRate;
   private String percentChange;
   private String volume;
+  private String description;
+  private String market;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -32,6 +34,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
     this.pairId = exOrderStatisticsShortByPairsDto.pairId;
     this.volume = exOrderStatisticsShortByPairsDto.volume;
+    this.description = exOrderStatisticsShortByPairsDto.description;
+    this.market = exOrderStatisticsShortByPairsDto.market;
   }
 
   @Override

@@ -17,7 +17,7 @@ public interface AuthTokenService {
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);
 
-    UserDetails getUserByToken(String token);
+    UserDetails getUserByToken(String token, String ip);
 
     @Scheduled(fixedDelay = 24L * 60L * 60L * 1000L, initialDelay = 60000L)
     void deleteExpiredTokens();

@@ -291,6 +291,7 @@ public class OrderDaoImpl implements OrderDao {
             String sql = "SELECT  " +
                     "   CURRENCY_PAIR.name AS currency_pair_name,       " +
                     "   CURRENCY_PAIR.id AS pairId, " +
+                    "   CURRENCY_PAIR.market, CU.description, " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
@@ -317,7 +318,7 @@ public class OrderDaoImpl implements OrderDao {
                     "   ) " +
                     " AGRIGATE " +
                     " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
-                    "" +
+                    " JOIN CURRENCY CU ON CU.id = CURRENCY_PAIR.currency1_id " +
                     " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
@@ -331,6 +332,8 @@ public class OrderDaoImpl implements OrderDao {
                     BigDecimal volume = rs.getBigDecimal("volume");
                     exOrderStatisticsDto.setVolume(volume == null ? "0.000" : volume.setScale(3, RoundingMode.HALF_UP).toPlainString());
                     exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
+                    exOrderStatisticsDto.setDescription(rs.getString("description"));
+                    exOrderStatisticsDto.setMarket(rs.getString("market"));
                     return exOrderStatisticsDto;
                 }
             });
@@ -366,8 +369,10 @@ public class OrderDaoImpl implements OrderDao {
                     "       LIMIT 1,1) AS pred_last_exrate, " +
                     "   (SELECT SUM(EX.amount_convert) FROM EXORDERS EX " +
                     "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR) " +
-                    "     AND CP.id = EX.currency_pair_id) AS volume" +
+                    "     AND CP.id = EX.currency_pair_id) AS volume, " +
+                    "    CP.market, CU.description " +
                     " FROM CURRENCY_PAIR CP " +
+                    " JOIN CURRENCY CU ON CU.id = CP.currency1_id " +
                     " WHERE CP.id IN (:pair_id) AND CP.hidden != 1";
 
             Map<String, Object> namedParameters = new HashMap<>();
@@ -381,6 +386,8 @@ public class OrderDaoImpl implements OrderDao {
                 BigDecimal volume = rs.getBigDecimal("volume");
                 exOrderStatisticsDto.setVolume(volume == null ? "0.00" : volume.setScale(3, RoundingMode.HALF_UP).toPlainString());
                 exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
+                exOrderStatisticsDto.setDescription(rs.getString("description"));
+                exOrderStatisticsDto.setMarket(rs.getString("market"));
                 return exOrderStatisticsDto;
             });
         } catch (Exception e) {
