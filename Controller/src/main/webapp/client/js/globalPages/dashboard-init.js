@@ -151,6 +151,7 @@ function subscribeStatistics() {
         var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/statistics';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
+            console.log(message);
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));

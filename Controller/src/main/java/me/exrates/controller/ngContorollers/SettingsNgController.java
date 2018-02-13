@@ -131,17 +131,16 @@ public class SettingsNgController {
         return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
     }
 
-   /* @RequestMapping(value = "/2FaOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> submitNotificationOptions(@RequestBody ) {
+    @RequestMapping(value = "/2FaOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> submitNotificationOptions(HttpServletRequest request) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         JSONObject jsonObject = new JSONObject();
         HttpStatus httpStatus;
         try {
             int userId = userService.getIdByEmail(userEmail);
-            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);*/
-            /*todo: define type of data for update*/
-        /*    settingsMap.forEach((k,v) -> {
+            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
+            settingsMap.forEach((k,v) -> {
                 Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
@@ -167,7 +166,7 @@ public class SettingsNgController {
             httpStatus = HttpStatus.NOT_ACCEPTABLE;
         }
         return new ResponseEntity<>(jsonObject.toString(), httpStatus);
-    }*/
+    }
 
     @ResponseBody
     @RequestMapping("/2FaOptions/getNotyPrice")

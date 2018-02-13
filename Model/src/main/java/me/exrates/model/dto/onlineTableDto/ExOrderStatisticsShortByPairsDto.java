@@ -8,10 +8,12 @@ import lombok.Setter;
  */
 @Getter @Setter
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
+  private Integer pairId;
   private String currencyPairName;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
+  private String volume;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -28,6 +30,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
+    this.pairId = exOrderStatisticsShortByPairsDto.pairId;
+    this.volume = exOrderStatisticsShortByPairsDto.volume;
   }
 
   @Override

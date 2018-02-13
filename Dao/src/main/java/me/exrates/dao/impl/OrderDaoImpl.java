@@ -289,6 +289,7 @@ public class OrderDaoImpl implements OrderDao {
         try {
             String sql = "SELECT  " +
                     "   CURRENCY_PAIR.name AS currency_pair_name,       " +
+                    "   CURRENCY_PAIR.id AS pairId, " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
@@ -302,7 +303,9 @@ public class OrderDaoImpl implements OrderDao {
                     "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
                     "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate " +
+                    "       LIMIT 1,1) AS pred_last_exrate, " +
+                    "   (SELECT SUM(EX.amount_convert) FROM EXORDERS EX " +
+                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS volume " +
                     " FROM ( " +
                     "   SELECT DISTINCT" +
                     "   EXORDERS.status_id AS status_id,  " +
@@ -323,6 +326,8 @@ public class OrderDaoImpl implements OrderDao {
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                     exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                     exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+                    exOrderStatisticsDto.setVolume(rs.getString("volume"));
+                    exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
                     return exOrderStatisticsDto;
                 }
             });
@@ -340,7 +345,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<ExOrderStatisticsShortByPairsDto> getOrderStatisticForSomePairs(List<Integer> pairsIds) {
         long before = System.currentTimeMillis();
         try {
-            String sql = "SELECT " +
+            String sql = "SELECT CP.id AS pairId, " +
                     "   CP.name AS currency_pair_name,       " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
@@ -355,7 +360,9 @@ public class OrderDaoImpl implements OrderDao {
                     "       (PRED_LASTORDER.currency_pair_id = CP.id)  AND  " +
                     "       (PRED_LASTORDER.status_id = :status_id) " +
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate " +
+                    "       LIMIT 1,1) AS pred_last_exrate, " +
+                    "   (SELECT SUM(EX.amount_convert) FROM EXORDERS EX " +
+                    "    WHERE EX.date_acception > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS volume" +
                     " FROM CURRENCY_PAIR CP " +
                     " WHERE CP.id IN (:pair_id) AND CP.hidden != 1";
 
@@ -367,6 +374,8 @@ public class OrderDaoImpl implements OrderDao {
                 exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                 exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+                exOrderStatisticsDto.setVolume(rs.getString("volume"));
+                exOrderStatisticsDto.setPairId(rs.getInt("pairId"));
                 return exOrderStatisticsDto;
             });
         } catch (Exception e) {
