@@ -17,11 +17,11 @@ public class StatTableDto<T> {
     private List<T> data;
 
 
-    public StatTableDto(int page, int pageSize, boolean hasNextPage, int currentSize, List<T> data) {
+    public StatTableDto(int page, int pageSize, List<T> data) {
         this.page = page;
         this.pageSize = pageSize;
-        this.hasNextPage = hasNextPage;
-        this.currentSize = currentSize;
-        this.data = data;
+        this.hasNextPage = data.size() > pageSize;
+        this.data = data.subList(0, pageSize > data.size() ? data.size() : pageSize);
+        this.currentSize = this.data.size();
     }
 }

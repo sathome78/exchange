@@ -86,12 +86,8 @@ public class StatNgController {
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         int walletId = walletService.getWalletId(userService.getIdByEmail(userEmail), currencyId);
         List<AccountStatementDto> dtos = transactionService.getAccountStatement(walletId, offset, pageSize + 1, locale);
-        List<AccountStatementDto> subList = dtos.subList(0, pageSize > dtos.size() ? dtos.size() : pageSize);
-        return new StatTableDto<>(page,
-                                    pageSize,
-                        dtos.size() > pageSize,
-                                    subList.size(),
-                                    subList);
+        return new StatTableDto<>(page, pageSize, dtos);
+
     }
 
 
@@ -121,17 +117,15 @@ public class StatNgController {
      * @return list the news
      */
     @OnlineMethod
-    @RequestMapping(value = "/info/public/news/{tableId}", method = RequestMethod.GET)
-    public List<NewsDto> getNewsList(
+    @RequestMapping(value = "/info/public/news", method = RequestMethod.GET)
+    public StatTableDto<NewsDto> getNewsList(
             @RequestParam(required = false) Integer page,
             @RequestParam String locale) {
         int pageSize = 5;
         if (page == null || page < 1) page = 1;
         Integer offset = (page - 1) * pageSize;
-        List<NewsDto> result = newsService.getNewsBriefList(offset, pageSize, Locale.forLanguageTag(locale));
-        Integer finalPage = page;
-        result.forEach(p->p.setPage(finalPage));
-        return result;
+        List<NewsDto> dtos = newsService.getNewsBriefList(offset, pageSize, Locale.forLanguageTag(locale));
+        return new StatTableDto<>(page, pageSize, dtos);
     }
 
     /**
@@ -142,8 +136,8 @@ public class StatNgController {
      * @return list the data of user's orders
      */
     @OnlineMethod
-    @RequestMapping(value = "/info/private/myInputoutputData/", method = RequestMethod.GET)
-    public List<MyInputOutputHistoryDto> getMyInputoutputData(
+    @RequestMapping(value = "/info/private/myInputoutputData", method = RequestMethod.GET)
+    public StatTableDto<MyInputOutputHistoryDto> getMyInputoutputData(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -151,10 +145,8 @@ public class StatNgController {
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(userEmail, offset, pageSize, locale);
-        Integer finalPage = page;
-        result.forEach(p->p.setPage(finalPage));
-        return result;
+        List<MyInputOutputHistoryDto> dtos = inputOutputService.getMyInputOutputHistory(userEmail, offset, pageSize, locale);
+        return new StatTableDto<>(page, pageSize, dtos);
     }
 
 
@@ -167,18 +159,15 @@ public class StatNgController {
      */
     @OnlineMethod
     @RequestMapping(value = "/info/private/myReferralData", method = RequestMethod.GET)
-    public List<MyReferralDetailedDto> getMyReferralData(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) PagingDirection direction) {
+    public StatTableDto<MyReferralDetailedDto> getMyReferralData(
+            @RequestParam(required = false) Integer page) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
         List<MyReferralDetailedDto> result = referralService.findAllMyReferral(userEmail, offset, pageSize, locale);
-        Integer finalPage = page;
-        result.forEach(p->p.setPage(finalPage));
-        return result;
+        return new StatTableDto<>(page, pageSize, result);
     }
 
 
@@ -193,7 +182,7 @@ public class StatNgController {
      */
     @OnlineMethod
     @RequestMapping(value = "/info/private/myOrdersData/", method = RequestMethod.GET)
-    public List<OrderWideListDto> getMyOrdersData(
+    public StatTableDto<OrderWideListDto> getMyOrdersData(
             @RequestParam Integer pairId,
             @RequestParam(required = false) OperationType type,
             @RequestParam(required = false) OrderStatus status,
@@ -203,12 +192,12 @@ public class StatNgController {
             @RequestParam(value = "baseType", defaultValue = "LIMIT") OrderBaseType orderBaseType) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        if (pairId == null) {
-            return Collections.EMPTY_LIST;
-        }
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
+        if (pairId == null) {
+            return new StatTableDto<>(page, pageSize, Collections.EMPTY_LIST);
+        }
         Boolean showAllPairs = pairId.equals(0);
         CurrencyPair currencyPair = null;
         if (!showAllPairs) {
@@ -228,9 +217,7 @@ public class StatNgController {
                         status, type, scope, offset, pageSize, locale);
             }
         }
-        Integer finalPage = page;
-        result.forEach(p->p.setPage(finalPage));
-        return result;
+        return new StatTableDto<>(page, pageSize, result);
     }
 
     /**
