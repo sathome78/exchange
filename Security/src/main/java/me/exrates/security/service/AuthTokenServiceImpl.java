@@ -143,7 +143,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         tokenData.put("token_id", token.getId());
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
-        tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));
+       /* tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));*/
         JwtBuilder jwtBuilder = Jwts.builder();
         Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
         tokenData.put("expiration", expiration.getTime());
