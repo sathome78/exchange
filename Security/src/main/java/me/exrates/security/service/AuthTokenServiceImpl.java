@@ -143,7 +143,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         tokenData.put("token_id", token.getId());
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
-        tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));
+       /* tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));*/
         JwtBuilder jwtBuilder = Jwts.builder();
         Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
         tokenData.put("expiration", expiration.getTime());
@@ -177,13 +177,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
 
-        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value")) && claims.containsKey("ip")) {
+        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value"))) {
             throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
         Long tokenId = Long.parseLong(String.valueOf(claims.get("token_id")));
         String username = claims.get("username", String.class);
         String value = claims.get("value", String.class);
-        String ip = claims.get("ip", String.class);
+        /*String ip = claims.get("ip", String.class);*/
         Optional<ApiAuthToken> tokenSearchResult = apiAuthTokenDao.retrieveTokenById(tokenId);
         if (tokenSearchResult.isPresent()) {
             ApiAuthToken savedToken = tokenSearchResult.get();
