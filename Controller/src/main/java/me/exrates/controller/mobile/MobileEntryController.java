@@ -714,7 +714,7 @@ public class MobileEntryController {
         Optional<AuthTokenDto> authTokenResult = null;
         try {
             authTokenResult = authTokenService.retrieveTokenNg(authenticationDto.getEmail(), authenticationDto.getPassword(),
-                                                                request, authenticationDto.getClientIp(), authenticationDto.getPin(), checkPin == null);
+                                                                request, ipAddress, authenticationDto.getPin(), checkPin == null);
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
             ipBlockingService.processLoginFailure(ipAddress);
             throw new WrongUsernameOrPasswordException("Wrong credentials");

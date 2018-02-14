@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	private static final String TOKEN_HEADER = "Exrates-Rest-Token";
+	private static final String IP_HEADER = "X-Forwarded-For";
 	private final WebSocketAuthenticatorService webSocketAuthenticatorService;
 
 	@Autowired
@@ -23,8 +24,9 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 		final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 		if(StompCommand.SEND == accessor.getCommand()){
 			final String token = accessor.getFirstNativeHeader(TOKEN_HEADER);
-			/*todo method in ipUtils to get ip from header*/
-			final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFail(token, null);
+			final String ip = accessor.getFirstNativeHeader(IP_HEADER);
+
+			final UsernamePasswordAuthenticationToken user = webSocketAuthenticatorService.getAuthenticatedOrFail(token, ip);
 
 			accessor.setUser(user);
 		}
