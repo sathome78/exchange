@@ -69,7 +69,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     @Override
     public Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
-                                                  HttpServletRequest request, String pin, boolean checkPinParam) {
+                                                  HttpServletRequest request, String clientIp, String pin, boolean checkPinParam) {
         if (username == null || encodedPassword == null) {
             throw new MissingCredentialException("Credentials missing");
         }
@@ -88,7 +88,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             } else {
                 checkLoginAuth(username, request, locale);
             }
-            return prepareAuthToken(userDetails, request);
+            return prepareAuthTokenNg(userDetails, request, clientIp);
         } else {
             throw new IncorrectPasswordException("Incorrect password");
         }
@@ -135,6 +135,22 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         } else {
             throw new IncorrectPasswordException("Incorrect password");
         }
+    }
+    private Optional<AuthTokenDto> prepareAuthTokenNg(UserDetails userDetails, HttpServletRequest request, String clientIp) {
+        ApiAuthToken token = createAuthToken(userDetails.getUsername());
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("token_id", token.getId());
+        tokenData.put("client_ip", clientIp);
+        tokenData.put("username", token.getUsername());
+        tokenData.put("value", token.getValue());
+        /* tokenData.put("ip", request == null ? null : IpUtils.getClientIpAddress(request));*/
+        JwtBuilder jwtBuilder = Jwts.builder();
+        Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
+        tokenData.put("expiration", expiration.getTime());
+        jwtBuilder.setClaims(tokenData);
+        AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
+        usersForPincheck.remove(token.getUsername());
+        return Optional.of(authTokenDto);
     }
 
     private Optional<AuthTokenDto> prepareAuthToken(UserDetails userDetails, HttpServletRequest request) {

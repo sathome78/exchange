@@ -1,7 +1,5 @@
 package me.exrates.controller.mobile;
 
-import com.google.common.base.Preconditions;
-import com.google.gson.JsonObject;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
@@ -704,9 +702,9 @@ public class MobileEntryController {
         String ipAddress = IpUtils.getClientIpAddress(request);
 
         // ****************
-        String clientIp = authenticationDto.getEntryIp();
+        String clientIp = authenticationDto.getClientIp();
 
-        System.out.println("$$$$ ip: " + authenticationDto.getEntryIp());
+        System.out.println("$$$$ ip: " + authenticationDto.getClientIp());
         System.out.println("$$$$ ipAddress: " + ipAddress);
 
         // ****************
@@ -716,7 +714,7 @@ public class MobileEntryController {
         Optional<AuthTokenDto> authTokenResult = null;
         try {
             authTokenResult = authTokenService.retrieveTokenNg(authenticationDto.getEmail(), authenticationDto.getPassword(),
-                                                                request, authenticationDto.getPin(), checkPin == null);
+                                                                request, authenticationDto.getClientIp(), authenticationDto.getPin(), checkPin == null);
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
             ipBlockingService.processLoginFailure(ipAddress);
             throw new WrongUsernameOrPasswordException("Wrong credentials");

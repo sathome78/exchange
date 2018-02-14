@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface AuthTokenService {
 
     Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
-                                           HttpServletRequest request, String pin, boolean checkpin);
+                                           HttpServletRequest request, String clientIp, String pin, boolean checkpin);
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);
 

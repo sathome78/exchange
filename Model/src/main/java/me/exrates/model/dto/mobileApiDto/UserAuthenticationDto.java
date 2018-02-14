@@ -14,7 +14,7 @@ public class UserAuthenticationDto {
     @NotNull(message = "Application key is missing")
     private String appKey;
 
-    private String entryIp;
+    private String clientIp;
 
     private String pin;
 
@@ -53,12 +53,12 @@ public class UserAuthenticationDto {
         this.pin = pin;
     }
 
-    public String getEntryIp() {
-        return entryIp;
+    public String getClientIp() {
+        return clientIp;
     }
 
-    public void setEntryIp(String entryIp) {
-        this.entryIp = entryIp;
+    public void setClientIp(String clientIp) {
+        this.clientIp = clientIp;
     }
 
     @Override
