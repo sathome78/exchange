@@ -702,6 +702,15 @@ public class MobileEntryController {
                                                        @RequestParam(name = "checkPin", required = false) String checkPin,
                                                      HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
+
+        // ****************
+        String clientIp = authenticationDto.getEntryIp();
+
+        System.out.println("$$$$ ip: " + authenticationDto.getEntryIp());
+        System.out.println("$$$$ ipAddress: " + ipAddress);
+
+        // ****************
+
         ipBlockingService.checkIp(ipAddress);
 
         Optional<AuthTokenDto> authTokenResult = null;
