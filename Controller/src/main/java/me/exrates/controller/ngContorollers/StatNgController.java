@@ -76,7 +76,7 @@ public class StatNgController {
 
 
     @RequestMapping(value = "/info/private/myStatementData", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public List<AccountStatementDto> getMyAccountStatementData(
+    public StatTableDto<AccountStatementDto> getMyAccountStatementData(
             @RequestParam("currencyId") Integer currencyId,
             @RequestParam(required = false) Integer page) {
         int pageSize  = 40;
@@ -85,10 +85,13 @@ public class StatNgController {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         int walletId = walletService.getWalletId(userService.getIdByEmail(userEmail), currencyId);
-        List<AccountStatementDto> dtos = transactionService.getAccountStatement(walletId, offset, pageSize, locale);
-        Integer finalPage = page;
-        dtos.forEach(p->p.setPage(finalPage));
-        return dtos;
+        List<AccountStatementDto> dtos = transactionService.getAccountStatement(walletId, offset, pageSize + 1, locale);
+        List<AccountStatementDto> subList = dtos.subList(0, pageSize > dtos.size() ? dtos.size() : pageSize);
+        return new StatTableDto<>(page,
+                                    pageSize,
+                        dtos.size() > pageSize,
+                                    subList.size(),
+                                    subList);
     }
 
 
