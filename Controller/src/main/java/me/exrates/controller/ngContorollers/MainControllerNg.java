@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.ngDto.UserSettingsDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -41,7 +42,6 @@ import static java.util.Collections.singletonMap;
 @Log4j2
 @RequestMapping(value = "/info")
 @RestController
-@PropertySource(value = {"classpath:/telegram_bot.properties"})
 public class MainControllerNg {
 
     @Autowired
@@ -119,6 +119,14 @@ public class MainControllerNg {
     public OrderCommissionsDto getOrderCommissions() {
         OrderCommissionsDto result = orderService.getCommissionForOrder();
         return result;
+    }
+
+    @RequestMapping(value = "/private/orderinfo", method = RequestMethod.GET)
+    public OrderInfoDto getOrderInfo(@RequestParam int id) {
+        /*todo: check to access only own orders, not all*/
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        return orderService.getOrderInfo(id, locale);
     }
 
 

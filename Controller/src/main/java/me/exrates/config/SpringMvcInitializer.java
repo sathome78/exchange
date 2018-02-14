@@ -62,7 +62,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     public Filter[] getServletFilters() {
-        return new Filter[]{new CorsFilter(),
+        return new Filter[]{/*new CorsFilter(),*/
                             new XssRequestFilter(),
                             new CharacterEncodingFilter("UTF-8", true)};
     }
