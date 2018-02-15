@@ -144,9 +144,10 @@ public class TransferNgController {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         log.debug("code {}", code);
-        if (!rateLimitService.checkLimitsExceed(userEmail)) {
+        /*todo: uncomment on prod*/
+       /* if (!rateLimitService.checkLimitsExceed(userEmail)) {
             throw new RequestsLimitExceedException();
-        }
+        }*/
         InvoiceActionTypeEnum action = PRESENT_VOUCHER;
         List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
         if(requiredStatus.size() > 1) {
