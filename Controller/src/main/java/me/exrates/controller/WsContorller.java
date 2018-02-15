@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Controller;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -95,6 +97,24 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
+    @SubscribeMapping("/info/trade_orders/{currencyPairId}")
+    public String subscribeToTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
+        return getSimpleTradeOrders(currencyPairId);
+    }
+
+    private String getSimpleTradeOrders(Integer currencyPairId) throws JsonProcessingException {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderListDto> orders = new ArrayList<>();
+        orders.addAll(orderService.getAllSellOrdersEx(cp, Locale.ENGLISH, null));
+        orders.addAll(orderService.getAllBuyOrdersEx(cp, Locale.ENGLISH, null));
+        JSONArray objectsArray = new JSONArray();
+        objectsArray.put(objectMapper.writeValueAsString(orders));
+        return objectsArray.toString();
+
+    }
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
