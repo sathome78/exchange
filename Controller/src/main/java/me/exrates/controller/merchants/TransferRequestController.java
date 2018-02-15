@@ -141,9 +141,10 @@ public class TransferRequestController {
   @RequestMapping(value = "/transfer/accept", method = POST, produces = "application/json; charset=utf-8")
   public String acceptTransfer(String code, Principal principal, HttpServletRequest request) {
     log.debug("code {}", code);
-    if (!rateLimitService.checkLimitsExceed(principal.getName())) {
+    /*todo uncomment for prod*/
+   /* if (!rateLimitService.checkLimitsExceed(principal.getName())) {
         throw new RequestsLimitExceedException();
-    }
+    }*/
     InvoiceActionTypeEnum action = PRESENT_VOUCHER;
     List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
     if(requiredStatus.size() > 1) {
