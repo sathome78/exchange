@@ -7,6 +7,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.TransferCodeDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
@@ -38,6 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -139,11 +141,11 @@ public class TransferNgController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/accept", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String acceptTransfer(String code) {
+    @RequestMapping(value = "/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String acceptTransfer(@Valid @RequestBody TransferCodeDto codeDto) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        log.debug("code {}", code);
+        log.debug("code {}", codeDto);
         /*todo: uncomment on prod*/
        /* if (!rateLimitService.checkLimitsExceed(userEmail)) {
             throw new RequestsLimitExceedException();
@@ -154,7 +156,7 @@ public class TransferNgController {
             throw new RuntimeException("voucher processing error");
         }
         Optional<TransferRequestFlatDto> dto =  transferService
-                .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
+                .getByHashAndStatus(codeDto.getCode(), requiredStatus.get(0).getCode(), true);
         if (!dto.isPresent() || !transferService.checkRequest(dto.get(), userEmail)) {
             rateLimitService.registerRequest(userEmail);
             throw new InvoiceNotFoundException(messageSource.getMessage(
