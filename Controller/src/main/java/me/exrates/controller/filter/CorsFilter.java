@@ -20,7 +20,7 @@ public class CorsFilter implements Filter {
         if (path.startsWith("/info")) {
             httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
             httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
-            httpResponse.setHeader("Access-Control-Allow-Headers", "X-Auth-Token, Exrates-Rest-Token, Content-Type");
+            httpResponse.setHeader("Access-Control-Allow-Headers", "X-Forwarded-For, X-Auth-Token, Exrates-Rest-Token, Content-Type");
             httpResponse.setHeader("Access-Control-Allow-Credentials", "false");
             httpResponse.setHeader("Access-Control-Max-Age", "4800");
         }

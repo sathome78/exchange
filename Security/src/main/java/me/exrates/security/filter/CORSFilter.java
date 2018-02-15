@@ -27,7 +27,7 @@ public class CORSFilter extends GenericFilterBean {
 		// TODO in real life origin (*) must be replaced with our frontend hosts
 		response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200, ");
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, x-auth-token, Exrates-Rest-Token");
+		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
 		response.setHeader("Access-Control-Max-Age", "3600");
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
@@ -41,7 +41,7 @@ public class CORSFilter extends GenericFilterBean {
 			System.out.println("Pre-flight for uri: " + ((HttpServletRequest) request).getRequestURI());
 			response.setHeader("Access-Control-Allowed-Methods", "POST, GET, DELETE");
 			response.setHeader("Access-Control-Max-Age", "3600");
-			response.setHeader("Access-Control-Allow-Headers", "authorization, content-type, x-auth-token, Exrates-Rest-Token, " +
+			response.setHeader("Access-Control-Allow-Headers", "authorization, content-type, X-Forwarded-For, x-auth-token, Exrates-Rest-Token, " +
 					"access-control-request-headers,access-control-request-method,accept,origin,authorization,x-requested-with");
 			response.setStatus(HttpServletResponse.SC_OK);
 		}

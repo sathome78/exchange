@@ -699,15 +699,7 @@ public class MobileEntryController {
     public ResponseEntity<AuthTokenDto> authenticateNg(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                        @RequestParam(name = "checkPin", required = false) String checkPin,
                                                      HttpServletRequest request) {
-        String ipAddress = IpUtils.getClientIpAddress(request);
-
-        // ****************
-        String clientIp = authenticationDto.getClientIp();
-
-        System.out.println("$$$$ ip: " + authenticationDto.getClientIp());
-        System.out.println("$$$$ ipAddress: " + ipAddress);
-
-        // ****************
+        String ipAddress = authenticationDto.getClientIp();
 
         ipBlockingService.checkIp(ipAddress);
 
