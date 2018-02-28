@@ -13,7 +13,6 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.*;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -116,9 +116,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             throw e;
         }
     }
-
-
-
 
     @Override
     public Optional<AuthTokenDto> retrieveToken(String username, String encodedPassword) {
@@ -235,4 +232,33 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         usersForPincheck.values().removeIf(v -> v.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now()));
     }
 
+    @Override
+    public boolean isValid(HttpServletRequest request) {
+        String token = request.getHeader("Exrates-Rest-Token");
+        if (token == null) {
+            return false;
+        }
+        DefaultClaims claims;
+        try {
+            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
+            return claims.getExpiration().before(new Date());
+        } catch (Exception ex) {
+            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+        }
+    }
+
+    @Override
+    public String getUsernameFromToken(HttpServletRequest request) {
+        String token = request.getHeader("Exrates-Rest-Token");
+        if (token == null) {
+            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+        }
+        DefaultClaims claims;
+        try {
+            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
+            return claims.getSubject();
+        } catch (Exception ex) {
+            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+        }
+    }
 }

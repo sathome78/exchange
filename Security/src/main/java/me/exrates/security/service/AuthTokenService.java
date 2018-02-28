@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,4 +22,8 @@ public interface AuthTokenService {
 
     @Scheduled(fixedDelay = 24L * 60L * 60L * 1000L, initialDelay = 60000L)
     void deleteExpiredTokens();
+
+    boolean isValid(HttpServletRequest request);
+
+    String getUsernameFromToken(HttpServletRequest request);
 }

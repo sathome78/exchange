@@ -10,10 +10,20 @@ import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.NotificationsUserSetting;
+import me.exrates.model.dto.NotificatorSubscription;
+import me.exrates.model.dto.NotificatorTotalPriceDto;
+import me.exrates.model.dto.SmsSubscriptionDto;
+import me.exrates.model.dto.TelegramSubscription;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.ngDto.UserSettingsDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.form.NotificationOptionsForm;
+import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
@@ -22,7 +32,6 @@ import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.NotificationsSettingsService;
-import me.exrates.service.notifications.NotificatorService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import org.apache.commons.lang.math.NumberUtils;
@@ -30,11 +39,21 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -44,6 +63,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
+import static me.exrates.service.util.RestApiUtils.decodePassword;
 
 /**
  * Created by Maks on 07.02.2018.
@@ -51,7 +71,7 @@ import static me.exrates.model.util.BigDecimalProcessing.doAction;
 @Log4j2
 @RestController
 @RequestMapping("/info/private/settings")
-public class SettingsNgController {
+public class SettingsNgController1 {
 
     @Autowired
     private UserService userService;
@@ -65,13 +85,17 @@ public class SettingsNgController {
     private NotificationsSettingsService settingsService;
     @Autowired
     private NotificatorsService notificatorService;
+
+    @Autowired
+    private AuthTokenService authTokenService;
+
     @Value("${telegram.bot.url}")
     String TBOT_URL;
     @Value("${telegram_bot_name}")
     String TBOT_NAME;
 
     /*Controller for initialize user settings*/
-    @RequestMapping(value = "/depr", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public UserSettingsDto getSettings() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         final User user = userService.getUserById(userService.getIdByEmail(userEmail));
@@ -92,7 +116,82 @@ public class SettingsNgController {
         return settingsDto;
     }
 
-    @RequestMapping(value = "/set_settings/depr", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        User user = userService.findByEmail(email);
+        String encodedPassword = body.getOrDefault("pass", "");
+        if(encodedPassword.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        user.setPassword(decodePassword(encodedPassword));
+        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
+
+    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        User user = userService.findByEmail(email);
+        String encodedPassword = body.getOrDefault("pass", "");
+        if(encodedPassword.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        user.setFinpassword(decodePassword(encodedPassword));
+        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
+
+    @PutMapping(value = "/updateAuthorization", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+
+
+
+
+
+
+        User user = userService.findByEmail(email);
+        String encodedPassword = body.getOrDefault("pass", "");
+        if(encodedPassword.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        user.setFinpassword(decodePassword(encodedPassword));
+        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
+
+    private UpdateUserDto getUpdateUserDto(User user){
+        UpdateUserDto dto = new UpdateUserDto(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setFinpassword(user.getFinpassword());
+        dto.setPassword(user.getPassword());
+        dto.setRole(user.getRole());
+        dto.setStatus(user.getStatus());
+        dto.setPhone(user.getPhone());
+        return dto;
+    }
+
+    @RequestMapping(value = "/set_settings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm) {
         notificationOptionsForm.getOptions().forEach(log::debug);
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -108,7 +207,7 @@ public class SettingsNgController {
     }
 
 
-    @RequestMapping(value = "/sessionOptions/submit/depr", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/sessionOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> submitNotificationOptions(@ModelAttribute SessionParams sessionParams) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
@@ -131,7 +230,7 @@ public class SettingsNgController {
         return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/2FaOptions/submit/depr", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/2FaOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> submitNotificationOptions(HttpServletRequest request) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
@@ -169,7 +268,7 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/getNotyPrice/depr")
+    @RequestMapping("/2FaOptions/getNotyPrice")
     public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());/*implemented for telegram only*/
@@ -187,7 +286,7 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/preconnect_sms/depr")
+    @RequestMapping("/2FaOptions/preconnect_sms")
     public String preconnectSms(@RequestParam String number) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
@@ -204,7 +303,7 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/confirm_connect_sms/depr")
+    @RequestMapping("/2FaOptions/confirm_connect_sms")
     public String connectSms() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
@@ -213,7 +312,7 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/verify_connect_sms/depr")
+    @RequestMapping("/2FaOptions/verify_connect_sms")
     public String verifyConnectSms(@RequestParam String code) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
@@ -226,7 +325,7 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/connect_telegram/depr")
+    @RequestMapping("/2FaOptions/connect_telegram")
     public String getNotyPrice() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
@@ -234,14 +333,14 @@ public class SettingsNgController {
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/reconnect_telegram/depr")
+    @RequestMapping("/2FaOptions/reconnect_telegram")
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
     }
 
     @ResponseBody
-    @RequestMapping("/2FaOptions/contact_info/depr")
+    @RequestMapping("/2FaOptions/contact_info")
     public String getInfo(@RequestParam int id) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Subscribable subscribable = notificatorService.getByNotificatorId(id);
