@@ -163,22 +163,47 @@ public class SettingsNgController1 {
 
 
 
-
-
-
-
-        User user = userService.findByEmail(email);
-        String encodedPassword = body.getOrDefault("pass", "");
-        if(encodedPassword.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        user.setFinpassword(decodePassword(encodedPassword));
-        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-        }
+//        User user = userService.findByEmail(email);
+//        String encodedPassword = body.getOrDefault("pass", "");
+//        if(encodedPassword.isEmpty()){
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }
+//        user.setFinpassword(decodePassword(encodedPassword));
+//        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        } else {
+//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+//        }
+        return null;
     }
+
+    @PutMapping(value = "/updateDocuments", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateDocuments(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return null;
+    }
+
+    @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateNotifications(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return null;
+    }
+
+    @PutMapping(value = "/updateSessionPeriod", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return null;
+    }
+
 
     private UpdateUserDto getUpdateUserDto(User user){
         UpdateUserDto dto = new UpdateUserDto(user.getId());
