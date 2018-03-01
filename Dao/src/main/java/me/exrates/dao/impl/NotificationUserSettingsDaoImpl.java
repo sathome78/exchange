@@ -78,4 +78,14 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
         namedParameterJdbcTemplate.update(sql, params, keyHolder);
         return keyHolder.getKey().intValue();
     }
+
+    @Override
+    public void delete(int userId, NotificationMessageEventEnum messageEvent) {
+        final String sql = " DELETE FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS  " +
+                " WHERE user_id = :userId AND event_name =: eventName";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("user_id", userId)
+                .addValue("event_name", messageEvent);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
 }

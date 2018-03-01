@@ -45,6 +45,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -155,50 +157,44 @@ public class SettingsNgController1 {
     }
 
     @PutMapping(value = "/updateAuthorization", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body, HttpServletRequest request){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-
-        JSONObject jsonObject = new JSONObject();
-        HttpStatus httpStatus;
         try {
             int userId = userService.getIdByEmail(userEmail);
-            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
-                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
-                if (notificatorId.equals(0)) {
-                    notificatorId = null;
-                }
-                if (v == null) {
-                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                            .userId(userId)
-                            .notificatorId(notificatorId)
-                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                            .build();
-                    settingsService.createOrUpdate(setting);
-                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                    v.setNotificatorId(notificatorId);
-                    settingsService.createOrUpdate(v);
+            Map<NotificationMessageEventEnum, NotificationTypeEnum> newSettings = new HashMap<>();
+            body.forEach((key, value) -> {
+                if (!(value.startsWith("DISABLE"))){
+                    newSettings.put(NotificationMessageEventEnum.valueOf(key), NotificationTypeEnum.valueOf(value));
+                } else {
+                    newSettings.put(NotificationMessageEventEnum.valueOf(key), null);
                 }
             });
-            jsonObject.put("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    locale));
-            httpStatus = HttpStatus.OK;
+            settingsService.updateUser2FactorSettings(userId, newSettings);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error(e);
-            jsonObject.put("msg", messageSource.getMessage("message.error_saving_settings", null, locale));
-            httpStatus = HttpStatus.NOT_ACCEPTABLE;
+            return ResponseEntity.unprocessableEntity().build();
         }
-        return new ResponseEntity<>(jsonObject.toString(), httpStatus);
+    }
 
-
-
-
-        return null;
+    @GetMapping(value = "/user2FactorAuthSettings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<NotificationMessageEventEnum, NotificationTypeEnum>> getAuthSettings(HttpServletRequest request){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            int userId = userService.getIdByEmail(userEmail);
+            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings = new HashMap<>();
+            settings.putAll(settingsService.getUser2FactorSettings(userId));
+            return new ResponseEntity<>(settings, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(value = "/updateDocuments", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
