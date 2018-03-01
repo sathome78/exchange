@@ -14,5 +14,4 @@ public interface NotificationUserSettingsDao {
 
     void update(NotificationsUserSetting setting);
 
-    void delete(int userId, NotificationMessageEventEnum messageEvent);
 }

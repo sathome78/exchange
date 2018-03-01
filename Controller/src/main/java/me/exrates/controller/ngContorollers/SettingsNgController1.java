@@ -96,34 +96,10 @@ public class SettingsNgController1 {
     @Value("${telegram_bot_name}")
     String TBOT_NAME;
 
-    /*Controller for initialize user settings*/
-    @RequestMapping(value = "/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public UserSettingsDto getSettings() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        final User user = userService.getUserById(userService.getIdByEmail(userEmail));
-        final List<UserFile> userFile = userService.findUserDoc(user.getId());
-        List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
-        notificationOptions.forEach(option -> option.localize(messageSource, Locale.forLanguageTag(user.getPrefferedLang())));
-        NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
-        notificationOptionsForm.setOptions(notificationOptions);
-        UserSettingsDto settingsDto = new UserSettingsDto();
-        settingsDto.setUser(user);
-        settingsDto.setUserFiles(userFile);
-        settingsDto.setNotificationOptionsForm(notificationOptionsForm);
-        settingsDto.setSessionParams(sessionService.getByEmailOrDefault(user.getEmail()));
-        settingsDto.setSessionLifeTimeTypes(sessionService.getAllByActive(true));
-        settingsDto.setUser2faOptions(settingsService.get2faOptionsForUser(user.getId()));
-        settingsDto.setTelegramBotName(TBOT_NAME);
-        settingsDto.setTelegramBotUrl(TBOT_URL);
-        return settingsDto;
-    }
-
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+
         User user = userService.findByEmail(email);
         String encodedPassword = body.getOrDefault("pass", "");
         if(encodedPassword.isEmpty()){
@@ -140,9 +116,6 @@ public class SettingsNgController1 {
     @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
         User user = userService.findByEmail(email);
         String encodedPassword = body.getOrDefault("pass", "");
         if(encodedPassword.isEmpty()){
@@ -157,23 +130,11 @@ public class SettingsNgController1 {
     }
 
     @PutMapping(value = "/updateAuthorization", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body, HttpServletRequest request){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body){
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             int userId = userService.getIdByEmail(userEmail);
-            Map<NotificationMessageEventEnum, NotificationTypeEnum> newSettings = new HashMap<>();
-            body.forEach((key, value) -> {
-                if (!(value.startsWith("DISABLE"))){
-                    newSettings.put(NotificationMessageEventEnum.valueOf(key), NotificationTypeEnum.valueOf(value));
-                } else {
-                    newSettings.put(NotificationMessageEventEnum.valueOf(key), null);
-                }
-            });
-            settingsService.updateUser2FactorSettings(userId, newSettings);
+            settingsService.updateUser2FactorSettings(userId, body);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.unprocessableEntity().build();
@@ -182,18 +143,14 @@ public class SettingsNgController1 {
 
     @GetMapping(value = "/user2FactorAuthSettings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<NotificationMessageEventEnum, NotificationTypeEnum>> getAuthSettings(HttpServletRequest request){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             int userId = userService.getIdByEmail(userEmail);
-            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings = new HashMap<>();
-            settings.putAll(settingsService.getUser2FactorSettings(userId));
+            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings =
+                    new HashMap<>(settingsService.getUser2FactorSettings(userId));
             return new ResponseEntity<>(settings, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
     }
 
@@ -225,7 +182,7 @@ public class SettingsNgController1 {
     }
 
 
-    private UpdateUserDto getUpdateUserDto(User user){
+    private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());
         dto.setEmail(user.getEmail());
         dto.setFinpassword(user.getFinpassword());
@@ -234,170 +191,6 @@ public class SettingsNgController1 {
         dto.setStatus(user.getStatus());
         dto.setPhone(user.getPhone());
         return dto;
-    }
-
-    @RequestMapping(value = "/set_settings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm) {
-        notificationOptionsForm.getOptions().forEach(log::debug);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
-        if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
-            return new ResponseEntity<String>(new JSONObject()
-            {{put("msg", messageSource.getMessage("notifications.invalid", null, locale));}}.toString(),
-                    HttpStatus.NOT_ACCEPTABLE);
-        }
-        notificationService.updateUserNotifications(notificationOptions);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-
-    @RequestMapping(value = "/sessionOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> submitNotificationOptions(@ModelAttribute SessionParams sessionParams) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        if (!sessionService.isSessionLifeTypeIdValid(sessionParams.getSessionLifeTypeId())) {
-            sessionParams.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
-        }
-        JSONObject jsonObject = new JSONObject();
-        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
-            try {
-                sessionService.saveOrUpdate(sessionParams, userEmail);
-                /*sessionService.setSessionLifeParams(request);*//*todo set new params for existing token???*/
-                jsonObject.put("successNoty", messageSource.getMessage("session.settings.success", null, locale));
-            } catch (Exception e) {
-                log.error("error", e);
-                jsonObject.put("msg", messageSource.getMessage("session.settings.invalid", null, locale));
-            }
-        } else {
-            jsonObject.put("msg", messageSource.getMessage("session.settings.time.invalid", null, locale));
-        }
-        return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/2FaOptions/submit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> submitNotificationOptions(HttpServletRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        JSONObject jsonObject = new JSONObject();
-        HttpStatus httpStatus;
-        try {
-            int userId = userService.getIdByEmail(userEmail);
-            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
-                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
-                if (notificatorId.equals(0)) {
-                    notificatorId = null;
-                }
-                if (v == null) {
-                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                            .userId(userId)
-                            .notificatorId(notificatorId)
-                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                            .build();
-                    settingsService.createOrUpdate(setting);
-                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                    v.setNotificatorId(notificatorId);
-                    settingsService.createOrUpdate(v);
-                }
-            });
-            jsonObject.put("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    locale));
-            httpStatus = HttpStatus.OK;
-        } catch (Exception e) {
-            log.error(e);
-            jsonObject.put("msg", messageSource.getMessage("message.error_saving_settings", null, locale));
-            httpStatus = HttpStatus.NOT_ACCEPTABLE;
-        }
-        return new ResponseEntity<>(jsonObject.toString(), httpStatus);
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/getNotyPrice")
-    public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());/*implemented for telegram only*/
-        Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
-        Object subscription = subscribable.getSubscription(userService.getIdByEmail(userEmail));
-        UserRole role = userService.getUserRoleFromDB(userEmail);
-        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());
-        if (subscription != null && subscription instanceof TelegramSubscription) {
-            if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
-                throw new IllegalStateException();
-            }
-            dto.setCode(((TelegramSubscription)subscription).getCode());
-        }
-        return dto;
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/preconnect_sms")
-    public String preconnectSms(@RequestParam String number) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
-        if (!NumberUtils.isDigits(number)) {
-            throw new UnoperableNumberException();
-        }
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(userEmail);
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .userId(userId)
-                .newContact(number)
-                .build();
-        return subscribable.prepareSubscription(subscriptionDto).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/confirm_connect_sms")
-    public String connectSms() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        subscribable.createSubscription(userEmail);
-        return "ok";
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/verify_connect_sms")
-    public String verifyConnectSms(@RequestParam String code) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
-        int userId = userService.getIdByEmail(userEmail);
-        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
-                .code(code)
-                .userId(userId)
-                .build();
-        return subscribable.subscribe(subscriptionDto).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/connect_telegram")
-    public String getNotyPrice() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.createSubscription(userEmail).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/reconnect_telegram")
-    public String reconnectTelegram(Principal principal) {
-        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
-        return subscribable.reconnect(principal.getName()).toString();
-    }
-
-    @ResponseBody
-    @RequestMapping("/2FaOptions/contact_info")
-    public String getInfo(@RequestParam int id) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Subscribable subscribable = notificatorService.getByNotificatorId(id);
-        Preconditions.checkNotNull(subscribable);
-        NotificatorSubscription subscription = subscribable.getSubscription(userService.getIdByEmail(userEmail));
-        Preconditions.checkState(subscription.isConnected());
-        String contact = Preconditions.checkNotNull(subscription.getContactStr());
-        int roleId = userService.getUserRoleFromSecurityContext().getRole();
-        BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
-        BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
-        return new JSONObject(){{put("contact", contact);
-            put("price", price);}}.toString();
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)

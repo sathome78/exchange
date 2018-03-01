@@ -42,4 +42,13 @@ public enum NotificationMessageEventEnum {
         return Stream.of(NotificationMessageEventEnum.values()).filter(item -> item.code == id).findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format("id: %s", id)));
     }
+
+    public static NotificationMessageEventEnum convert(String value) {
+        switch (value) {
+            case "TRANSFER" :   return TRANSFER;
+            case "WITHDRAW" :   return WITHDRAW;
+            case "LOGIN" :      return LOGIN;
+            default: return null;
+        }
+    }
 }

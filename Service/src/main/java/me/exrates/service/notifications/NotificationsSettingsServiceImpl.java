@@ -59,12 +59,13 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 		return settingsMap;
 	}
 
+	@Override
 	public Map<NotificationMessageEventEnum, NotificationTypeEnum> getUser2FactorSettings(int userId) {
 		Map<NotificationMessageEventEnum, NotificationTypeEnum> settings = new HashMap<>();
 		Arrays.asList(NotificationMessageEventEnum.values()).forEach(value -> {
 					NotificationTypeEnum typeEnum = null;
 					NotificationsUserSetting notification = getByUserAndEvent(userId, value);
-					if (null != notification) {
+					if (null != notification.getNotificatorId()) {
 						typeEnum = NotificationTypeEnum.convert(notification.getNotificatorId());
 					}
 					settings.put(value, typeEnum);
@@ -73,26 +74,34 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 		return settings;
 	}
 
-	public void updateUser2FactorSettings(int userId, Map<NotificationMessageEventEnum, NotificationTypeEnum> newSettings) {
+	@Override
+	public void updateUser2FactorSettings(int userId, Map<String, String> body) {
+		Map<NotificationMessageEventEnum, NotificationTypeEnum> newSettings = new HashMap<>();
+		body.forEach((key, value) -> {
+			if (null != value){
+				newSettings.put(NotificationMessageEventEnum.convert(key.toUpperCase()), NotificationTypeEnum.convert(value.toUpperCase()));
+			} else {
+				newSettings.put(NotificationMessageEventEnum.convert(key.toUpperCase()), null);
+			}
+		});
 		Arrays.asList(NotificationMessageEventEnum.values()).forEach(type -> {
-					NotificationsUserSetting notification = getByUserAndEvent(userId, type);
-					if (null != notification) {
-						notification.setNotificatorId(newSettings.get(type).getCode());
-						createOrUpdate(notification);
-					} else if (newSettings.get(type) == null) {
-						settingsDao.delete(userId, type);
-					} else {
-						notification = new NotificationsUserSetting()
-								.builder()
-								.userId(userId)
-								.notificationMessageEventEnum(type)
-								.notificatorId(newSettings.get(type).getCode())
-								.build();
-						createOrUpdate(notification);
-					}
-
+			NotificationsUserSetting notification = getByUserAndEvent(userId, type);
+			if (null != notification) {
+				if (null != newSettings.get(type)) {
+					notification.setNotificatorId(newSettings.get(type).getCode());
+				} else {
+					notification.setNotificatorId(null);
 				}
-		);
+				settingsDao.update(notification);
+			} else {
+				settingsDao.create(NotificationsUserSetting
+										.builder()
+										.userId(userId)
+										.notificationMessageEventEnum(type)
+										.notificatorId(null != newSettings.get(type) ? newSettings.get(type).getCode() : null)
+										.build());
+			}
+		});
 	}
 
 

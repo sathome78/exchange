@@ -40,4 +40,13 @@ public enum NotificationTypeEnum {
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("invalid id " + String.valueOf(id)));
     }
+
+    public static NotificationTypeEnum convert(String value) {
+        switch (value) {
+            case "SMS": return SMS;
+            case "EMAIL": return EMAIL;
+            case "TELEGRAM": return TELEGRAM;
+            default: return null;
+        }
+    }
 }
