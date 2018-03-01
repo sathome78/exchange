@@ -160,20 +160,44 @@ public class SettingsNgController1 {
         if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+
+        JSONObject jsonObject = new JSONObject();
+        HttpStatus httpStatus;
+        try {
+            int userId = userService.getIdByEmail(userEmail);
+            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
+            settingsMap.forEach((k,v) -> {
+                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
+                if (notificatorId.equals(0)) {
+                    notificatorId = null;
+                }
+                if (v == null) {
+                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
+                            .userId(userId)
+                            .notificatorId(notificatorId)
+                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
+                            .build();
+                    settingsService.createOrUpdate(setting);
+                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
+                    v.setNotificatorId(notificatorId);
+                    settingsService.createOrUpdate(v);
+                }
+            });
+            jsonObject.put("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    locale));
+            httpStatus = HttpStatus.OK;
+        } catch (Exception e) {
+            log.error(e);
+            jsonObject.put("msg", messageSource.getMessage("message.error_saving_settings", null, locale));
+            httpStatus = HttpStatus.NOT_ACCEPTABLE;
+        }
+        return new ResponseEntity<>(jsonObject.toString(), httpStatus);
 
 
 
-//        User user = userService.findByEmail(email);
-//        String encodedPassword = body.getOrDefault("pass", "");
-//        if(encodedPassword.isEmpty()){
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
-//        user.setFinpassword(decodePassword(encodedPassword));
-//        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-//        }
+
         return null;
     }
 
