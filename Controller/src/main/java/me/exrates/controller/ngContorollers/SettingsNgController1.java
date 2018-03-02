@@ -6,6 +6,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.model.Notification;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
@@ -158,9 +159,7 @@ public class SettingsNgController1 {
     @PutMapping(value = "/updateDocuments", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateDocuments(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+
         return null;
     }
 
@@ -169,19 +168,22 @@ public class SettingsNgController1 {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             int userId = userService.getIdByEmail(email);
-            return notificatorService.getUserNotificationOptions(userId);
+            return notificationService.getNotificationOptionsByUser(userId);
         } catch (Exception e) {
             return new ArrayList<>();
         }
     }
 
     @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateNotifications(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
+    public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        return null;
+//        try {
+//            int userId = userService.getIdByEmail(email);
+//            return notificationService.updateUserNotificationOptions(userId, options);
+//        } catch (Exception e) {
+//            return new ArrayList<>();
+//        }
+//        return null;
     }
 
     @PutMapping(value = "/updateSessionPeriod", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

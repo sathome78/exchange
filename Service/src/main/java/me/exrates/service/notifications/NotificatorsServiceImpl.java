@@ -96,11 +96,6 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     }
 
     @Override
-    public List<NotificationOption> getUserNotificationOptions(int userId) {
-        return notificatorsDao.getUserNotificationOptions(userId);
-    }
-
-    @Override
     public void setEnable(int notificatorId, boolean enable) {
         notificatorsDao.setEnable(notificatorId, enable);
     }

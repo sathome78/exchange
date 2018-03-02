@@ -3,6 +3,7 @@ package me.exrates.service.notifications;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,7 +38,5 @@ public interface NotificatorsService {
     void updateNotificatorPrice(BigDecimal price, int roleId, int notificatorId);
 
     List<Notificator> getAllNotificators();
-
-    List<NotificationOption> getUserNotificationOptions(int userId);
 
 }

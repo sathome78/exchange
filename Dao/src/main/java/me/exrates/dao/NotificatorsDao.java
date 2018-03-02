@@ -18,6 +18,4 @@ public interface NotificatorsDao {
 
     List<Notificator> getAllNotificators();
 
-    List<NotificationOption> getUserNotificationOptions(int userId);
-
 }

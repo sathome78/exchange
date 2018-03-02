@@ -158,7 +158,6 @@ public class NotificationDaoImpl implements NotificationDao {
             put("notification_event_id", event.getEventType());
         }};
         return jdbcTemplate.queryForObject(sql, params, notificationOptionRowMapper);
-
     }
 
 

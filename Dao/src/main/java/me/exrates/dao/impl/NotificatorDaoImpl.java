@@ -87,15 +87,4 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         return jdbcTemplate.query(sql, notificatorRowMapper);
     }
 
-    @Override
-    public List<NotificationOption> getUserNotificationOptions(int userId) {
-        String sql =    "SELECT user_id, send_notification, send_email, name " +
-                        "FROM NOTIFICATION_OPTIONS " +
-                        "JOIN NOTIFICATION_EVENT AS E ON notification_event_id = E.id\n" +
-                        "WHERE user_id = :userId";
-        Map<String, Integer> params = Collections.singletonMap("userId", userId);
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            return notificationOptionRowMapper.mapRow(rs, rowNum);
-        });
-    }
 }
