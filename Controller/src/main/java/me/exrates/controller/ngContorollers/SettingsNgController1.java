@@ -108,7 +108,7 @@ public class SettingsNgController1 {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         user.setPassword(decodePassword(encodedPassword));
-        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+        if (userService.update(getUpdateUserDto(user), true, userService.getUserLocaleForMobile(email))){
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -177,13 +177,13 @@ public class SettingsNgController1 {
     @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            int userId = userService.getIdByEmail(email);
-//            return notificationService.updateUserNotificationOptions(userId, options);
-//        } catch (Exception e) {
-//            return new ArrayList<>();
-//        }
-        return null;
+        try {
+            int userId = userService.getIdByEmail(email);
+            notificationService.updateNotificationOptionsForUser(userId, options);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
     }
 
     @PutMapping(value = "/updateSessionPeriod", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -194,7 +194,6 @@ public class SettingsNgController1 {
         }
         return null;
     }
-
 
     private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());
