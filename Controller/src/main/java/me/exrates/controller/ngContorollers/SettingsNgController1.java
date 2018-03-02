@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -161,6 +162,17 @@ public class SettingsNgController1 {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         return null;
+    }
+
+    @GetMapping(value = "/notifications", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<NotificationOption> getUserNotifications(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            int userId = userService.getIdByEmail(email);
+            return notificatorService.getUserNotificationOptions(userId);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -32,6 +32,17 @@ public enum NotificationEvent {
         }
     }
 
+    public static NotificationEvent convert(String eventName) {
+        switch (eventName) {
+            case "CUSTOM": return CUSTOM;
+            case "ADMIN": return ADMIN;
+            case "ACCOUNT": return ACCOUNT;
+            case "ORDER": return ORDER;
+            case "IN_OUT": return IN_OUT;
+            default: throw new UnsupportedNotificationEventException("Unsupported notification event");
+        }
+    }
+
     public String toLocalizedString(MessageSource messageSource, Locale locale) {
         return messageSource.getMessage("notificationEvent." + this.name(), null, locale);
 

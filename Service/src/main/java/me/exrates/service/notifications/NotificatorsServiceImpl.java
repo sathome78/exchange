@@ -3,6 +3,7 @@ package me.exrates.service.notifications;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 import me.exrates.model.enums.BusinessUserRoleEnum;
@@ -92,6 +93,11 @@ public class NotificatorsServiceImpl implements NotificatorsService {
 
     public List<Notificator> getAllNotificators() {
         return notificatorsDao.getAllNotificators();
+    }
+
+    @Override
+    public List<NotificationOption> getUserNotificationOptions(int userId) {
+        return notificatorsDao.getUserNotificationOptions(userId);
     }
 
     @Override

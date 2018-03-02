@@ -1,5 +1,6 @@
 package me.exrates.service.notifications;
 
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 
@@ -36,5 +37,7 @@ public interface NotificatorsService {
     void updateNotificatorPrice(BigDecimal price, int roleId, int notificatorId);
 
     List<Notificator> getAllNotificators();
+
+    List<NotificationOption> getUserNotificationOptions(int userId);
 
 }

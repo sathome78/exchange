@@ -1,7 +1,10 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.NotificatorsDao;
+import me.exrates.model.Notification;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +36,15 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         notificator.setEnabled(rs.getBoolean("enable"));
         notificator.setNeedSubscribe(NotificationTypeEnum.convert(notificator.getId()).isNeedSubscribe());
         return notificator;
+    };
+
+    private static RowMapper<NotificationOption> notificationOptionRowMapper = (rs, idx) -> {
+        NotificationOption option = new NotificationOption();
+        option.setUserId(rs.getInt("user_id"));
+        option.setEvent(NotificationEvent.convert(rs.getString("name")));
+        option.setSendNotification(rs.getBoolean("send_notification"));
+        option.setSendEmail(rs.getBoolean("send_email"));
+        return option;
     };
 
     @Override
@@ -72,5 +85,17 @@ public class NotificatorDaoImpl implements NotificatorsDao {
     public List<Notificator> getAllNotificators() {
         String sql = "SELECT * FROM 2FA_NOTIFICATOR";
         return jdbcTemplate.query(sql, notificatorRowMapper);
+    }
+
+    @Override
+    public List<NotificationOption> getUserNotificationOptions(int userId) {
+        String sql =    "SELECT user_id, send_notification, send_email, name " +
+                        "FROM NOTIFICATION_OPTIONS " +
+                        "JOIN NOTIFICATION_EVENT AS E ON notification_event_id = E.id\n" +
+                        "WHERE user_id = :userId";
+        Map<String, Integer> params = Collections.singletonMap("userId", userId);
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            return notificationOptionRowMapper.mapRow(rs, rowNum);
+        });
     }
 }
