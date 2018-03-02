@@ -37,8 +37,6 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
         return setting;
     };
 
-
-
     @Override
     public NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event) {
         String sql = "SELECT UN.* FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS UN " +

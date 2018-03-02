@@ -183,7 +183,7 @@ public class SettingsNgController1 {
 //        } catch (Exception e) {
 //            return new ArrayList<>();
 //        }
-//        return null;
+        return null;
     }
 
     @PutMapping(value = "/updateSessionPeriod", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
