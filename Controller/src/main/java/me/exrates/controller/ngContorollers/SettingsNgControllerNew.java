@@ -279,6 +279,9 @@ public class SettingsNgControllerNew {
         return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
     }
 
+    @PutMapping("userLan")
+    public ResponseEntity<Void> updateUserLanguage(@Re)
+
     private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());
         dto.setEmail(user.getEmail());
