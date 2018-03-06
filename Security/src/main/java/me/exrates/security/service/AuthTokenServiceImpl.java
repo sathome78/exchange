@@ -79,12 +79,16 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (username.equals("avto12@i.ua")) {
             password = encodedPassword;
         } else {
+//            System.out.println("$$$$$$$$ encoded password: " + encodedPassword);
             password = RestApiUtils.decodePassword(encodedPassword);
+//            System.out.println("$$$$$$$$ decoded password: " + password);
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
+//        System.out.println("$$$$$$$$ userdet password: " + userDetails.getPassword());
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
+//            System.out.println("$$$$$$$ passwordEncoder => " + passwordEncoder.encode(password));
             if(checkPinParam) {
                 checkPinCode(request, userDetails, pin, locale);
             } else {

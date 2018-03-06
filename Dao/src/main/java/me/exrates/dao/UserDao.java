@@ -28,6 +28,8 @@ public interface UserDao {
 
   void deleteUserDoc(int docId);
 
+  void deleteUserDoc(String docPath);
+
   List<UserRole> getAllRoles();
 
   List<User> getUsersByRoles(List<UserRole> listRoles);

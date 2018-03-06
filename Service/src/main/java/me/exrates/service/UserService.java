@@ -35,6 +35,8 @@ public interface UserService {
 
   void deleteUserFile(int docId);
 
+  void deleteUserFile(String path);
+
   List<UserFile> findUserDoc(int userId);
 
   boolean isGlobal2FaActive();

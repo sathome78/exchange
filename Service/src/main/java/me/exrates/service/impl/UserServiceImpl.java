@@ -250,6 +250,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public void deleteUserFile(final String path) {
+    userDao.deleteUserDoc(path);
+  }
+
+  @Override
   public List<UserFile> findUserDoc(final int userId) {
     return userDao.findUserDoc(userId);
   }

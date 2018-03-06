@@ -174,6 +174,13 @@ public class UserFilesServiceImpl implements UserFilesService {
     public void deleteUserFile(final String filename, final int userId) throws IOException {
         final Path path = Paths.get(userFilesDir, String.valueOf(userId), filename);
         Files.delete(path);
+        String filePath = userFilesLogicalDir + "/" + String.valueOf(userId) + "/" + filename;
+        userService.deleteUserFile(filePath);
+    }
+
+    @Override
+    public Path getUserFilePath(final String filename, final int userId) throws IOException {
+        return Paths.get(userFilesDir, String.valueOf(userId), filename);
     }
 
     private String extractContentType(final MultipartFile file) {

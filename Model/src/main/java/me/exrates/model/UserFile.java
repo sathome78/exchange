@@ -1,5 +1,7 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.nio.file.Path;
 
 /**

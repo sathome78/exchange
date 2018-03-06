@@ -27,6 +27,7 @@ import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
@@ -35,19 +36,28 @@ import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,15 +66,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.management.BadAttributeValueExpException;
+import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.service.util.RestApiUtils.decodePassword;
@@ -75,28 +96,28 @@ import static me.exrates.service.util.RestApiUtils.decodePassword;
 @Log4j2
 @RestController
 @RequestMapping("/info/private/settings")
-public class SettingsNgController1 {
+public class SettingsNgControllerNew {
+
+    private static final Logger logger = LogManager.getLogger("restSettingsAPI");
+
+    private final UserService userService;
+    private final NotificationService notificationService;
+    private final SessionParamsService sessionService;
+    private final NotificationsSettingsService settingsService;
+    private final UserFilesService userFilesService;
 
     @Autowired
-    private UserService userService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private SessionParamsService sessionService;
-    @Autowired
-    private NotificationsSettingsService settingsService;
-    @Autowired
-    private NotificatorsService notificatorService;
-
-    @Autowired
-    private AuthTokenService authTokenService;
-
-    @Value("${telegram.bot.url}")
-    String TBOT_URL;
-    @Value("${telegram_bot_name}")
-    String TBOT_NAME;
+    public SettingsNgControllerNew(UserService userService,
+                                   NotificationService notificationService,
+                                   SessionParamsService sessionService,
+                                   NotificationsSettingsService settingsService,
+                                   UserFilesService userFilesService) {
+        this.userService = userService;
+        this.notificationService = notificationService;
+        this.sessionService = sessionService;
+        this.settingsService = settingsService;
+        this.userFilesService = userFilesService;
+    }
 
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
@@ -186,13 +207,76 @@ public class SettingsNgController1 {
         }
     }
 
-    @PutMapping(value = "/updateSessionPeriod", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!(authTokenService.getUsernameFromToken(request).equals(email))) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    @PutMapping(value = "/updateSessionInterval", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body){
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        int interval = body.get("interval");
+        if (interval == 0){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return null;
+        SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
+            sessionService.saveOrUpdate(sessionParams, userEmail);
+            /* todo set new params for existing token???*/
+
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping(value = "/sessionInterval", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Integer getSessionPeriod() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        SessionParams params = sessionService.getByEmailOrDefault(userEmail);
+        if (null == params) {
+            return 0;
+        }
+        return params.getSessionTimeMinutes();
+    }
+
+    @GetMapping(value = "/userFiles")
+    public List<File> getUserFiles() throws Exception {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        int userId = userService.getIdByEmail(userEmail);
+        List<File> files = new ArrayList<>();
+        userService.findUserDoc(userId).forEach(uf -> {
+            files.add(uf.getPath().toFile());
+        });
+        return files;
+    }
+
+    @GetMapping(value = "/userFiles/{userId}/{fileName:.+}")
+    public ResponseEntity<Resource> getSingleImage(@PathVariable Integer userId,
+                                                   @PathVariable String fileName) throws NoSuchFileException, IOException {
+        System.out.println("fileName: " + fileName);
+
+        Path imagePath = userFilesService.getUserFilePath(fileName, userId);
+        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
+
+        return ResponseEntity.ok()
+                .contentLength(imagePath.toFile().length())
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .body(resource);
+    }
+
+    @PostMapping(value = "/userFiles/submit")
+    public ResponseEntity<List<File>> saveUserFile(@RequestParam("file") MultipartFile file) throws Exception {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        int userId = userService.getIdByEmail(userEmail);
+        userFilesService.createUserFiles(userId, Collections.singletonList(file));
+        return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/userFiles/delete")
+    public ResponseEntity<List<File>> deleteUserFile(@RequestParam("filePath") String filePath) throws Exception {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if(filePath.contains("/")) {
+            filePath = filePath.substring(filePath.lastIndexOf("/")+1);
+        }
+        int userId = userService.getIdByEmail(userEmail);
+        userFilesService.deleteUserFile(filePath, userId);
+        return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
     }
 
     private UpdateUserDto getUpdateUserDto(User user) {
@@ -206,64 +290,17 @@ public class SettingsNgController1 {
         return dto;
     }
 
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(NoFileForLoadingException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NoSuchFileException.class)
     @ResponseBody
-    public ErrorInfo NoFileForLoadingExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
+    public ResponseEntity<Object> NotFileFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ResponseEntity<Object>("Not file found", HttpStatus.NOT_FOUND);
     }
 
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(FileLoadingException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     @ResponseBody
-    public ErrorInfo FileLoadingExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(NewsCreationException.class)
-    @ResponseBody
-    public ErrorInfo NewsCreationExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(ServiceUnavailableException.class)
-    @ResponseBody
-    public ErrorInfo SmsSubscribeExceptionHandler(HttpServletRequest req, Exception exception) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        return new ErrorInfo(req.getRequestURL(), exception,
-                messageSource.getMessage("message.service.unavialble", null, locale));
-    }
-
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(IncorrectSmsPinException.class)
-    @ResponseBody
-    public ErrorInfo IncorrectSmsPinExceptionHandler(HttpServletRequest req, Exception exception) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        return new ErrorInfo(req.getRequestURL(), exception,
-                messageSource.getMessage("message.connectCode.wrong", null, locale));
-    }
-
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(UnoperableNumberException.class)
-    @ResponseBody
-    public ErrorInfo SmsSubscribeUnoperableNumberExceptionHandler(HttpServletRequest req, Exception exception) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        return new ErrorInfo(req.getRequestURL(), exception,
-        messageSource.getMessage("message.numberUnoperable", null, locale));
-    }
-
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    @ExceptionHandler(PaymentException.class)
-    @ResponseBody
-    public ErrorInfo msSubscribeMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-        return new ErrorInfo(req.getRequestURL(), exception,
-        messageSource.getMessage("message.notEnoughtUsd", null, locale));
+    public ResponseEntity<Object> AuthExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ResponseEntity<Object>("Not authorised", HttpStatus.UNAUTHORIZED);
     }
 }

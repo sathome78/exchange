@@ -182,6 +182,12 @@ public class UserDaoImpl implements UserDao {
     namedParameterJdbcTemplate.update(sql, singletonMap("id", docId));
   }
 
+  @Override
+  public void deleteUserDoc(final String docPath) {
+    final String sql = "DELETE FROM USER_DOC where birzha.USER_DOC.path = :docPath";
+    namedParameterJdbcTemplate.update(sql, singletonMap("docPath", docPath));
+  }
+
   public List<UserRole> getAllRoles() {
     String sql = "select name from USER_ROLE";
     return namedParameterJdbcTemplate.query(sql, (rs, row) -> {
