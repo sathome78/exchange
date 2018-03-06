@@ -455,6 +455,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public boolean setPreferredLang(String userEmail, String language) {
+    return userDao.setPreferredLang(userEmail, language);
+  }
+
+  @Override
   public boolean insertIp(String email, String ip) {
     return userDao.insertIp(email, ip);
   }

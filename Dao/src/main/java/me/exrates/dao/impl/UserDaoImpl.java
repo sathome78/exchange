@@ -639,6 +639,16 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
+  public boolean setPreferredLang(String email, String lang) {
+    String sql = "UPDATE USER SET preferred_lang=:preferred_lang WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("email", email);
+    namedParameters.put("preferred_lang", lang);
+    int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+    return result > 0;
+  }
+
+  @Override
   public String getPreferredLang(int userId) {
     String sql = "SELECT preferred_lang FROM USER WHERE id = :id";
     Map<String, Integer> namedParameters = new HashMap<>();

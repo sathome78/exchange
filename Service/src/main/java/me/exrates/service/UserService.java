@@ -113,7 +113,9 @@ public interface UserService {
    */
   boolean setPreferedLang(int userId, Locale locale);
 
-  /**
+	boolean setPreferredLang(String userEmail, String language);
+
+	/**
    * Stores IP-address in DB for user. Data is stored in table USER_IP
    *
    * @param email is email the user as his identifier

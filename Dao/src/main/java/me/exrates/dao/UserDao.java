@@ -104,7 +104,9 @@ public interface UserDao {
 
   boolean delete(User user);
 
-  String getPreferredLang(int userId);
+	boolean setPreferredLang(String email, String lang);
+
+	String getPreferredLang(int userId);
 
   boolean setPreferredLang(int userId, Locale locale);
 

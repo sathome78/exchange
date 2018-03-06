@@ -51,6 +51,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -279,8 +280,26 @@ public class SettingsNgControllerNew {
         return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
     }
 
-    @PutMapping("userLan")
-    public ResponseEntity<Void> updateUserLanguage(@Re)
+    @PutMapping(value = "/userLanguage/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateUserLanguage(@RequestBody Map<String, String> body){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if(userService.setPreferredLang(email, body.get("lang").toLowerCase())){
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+        }
+    }
+
+    @GetMapping(value = "/userLanguage", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String getUserPreferredLanguage(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            return userService.getPreferedLangByEmail(email);
+        } catch (Exception e) {
+            throw new NotFoundException("Fail to get preferred langauge for user: " + email);
+        }
+    }
 
     private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());
@@ -298,6 +317,13 @@ public class SettingsNgControllerNew {
     @ResponseBody
     public ResponseEntity<Object> NotFileFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ResponseEntity<Object>("Not file found", HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ResponseEntity<Object> UnavailableFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ResponseEntity<Object>("Service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
