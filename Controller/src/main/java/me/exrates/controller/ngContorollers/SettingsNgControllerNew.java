@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.service.util.RestApiUtils.decodePassword;
@@ -290,15 +291,26 @@ public class SettingsNgControllerNew {
         }
     }
 
-    @GetMapping(value = "/userLanguage", produces = MediaType.TEXT_PLAIN_VALUE)
-    @ResponseBody
-    public String getUserPreferredLanguage(){
+    @GetMapping(value = "/userLanguage", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> getUserPreferredLanguage(){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
-            return userService.getPreferedLangByEmail(email);
+            return ResponseEntity.ok().body(Collections.singletonMap("lang", userService.getPreferedLangByEmail(email)));
         } catch (Exception e) {
             throw new NotFoundException("Fail to get preferred langauge for user: " + email);
         }
+    }
+
+    @GetMapping(value = "/serverTimezone", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> getServerTimeZone(){
+        String timeZone = TimeZone.getDefault().getDisplayName();
+        String stz [] = timeZone.split(" ");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String word : stz){
+            stringBuilder.append(word.charAt(0));
+        }
+        timeZone = stringBuilder.toString().equalsIgnoreCase("CUT") ? "UTC" : stringBuilder.toString();
+        return ResponseEntity.ok().body(Collections.singletonMap("timeZone", timeZone));
     }
 
     private UpdateUserDto getUpdateUserDto(User user) {

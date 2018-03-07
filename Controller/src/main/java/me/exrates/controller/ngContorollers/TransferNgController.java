@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -140,9 +141,8 @@ public class TransferNgController {
         return transferService.createTransferRequest(transferRequest);
     }
 
-    @ResponseBody
     @RequestMapping(value = "/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String acceptTransfer(@Valid @RequestBody TransferCodeDto codeDto) {
+    public ResponseEntity<String> acceptTransfer(@Valid @RequestBody TransferCodeDto codeDto) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         log.debug("code {}", codeDto);
@@ -169,7 +169,7 @@ public class TransferNgController {
         result.addProperty("result", messageSource.getMessage("message.receive.voucher" ,
                 new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
                         currencyService.getCurrencyName(flatDto.getCurrencyId())}, locale));
-        return result.toString();
+        return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/request/pin", method = POST)
