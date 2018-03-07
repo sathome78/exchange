@@ -194,7 +194,7 @@ public class WalletDaoImpl implements WalletDao {
   public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
                                                                     List<Integer> withdrawSuccessStatusIds,
                                                                     List<Integer> refillSuccessStatusIds) {
-    String sql = "SELECT wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance, " +
+    String sql = "SELECT wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
             "               SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
             "               SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
             "               SUM(total_input) AS total_input, SUM(total_output) AS total_output, " +
@@ -205,7 +205,7 @@ public class WalletDaoImpl implements WalletDao {
 
             "              /*SELL - ORDERS - RESERVE */ " +
             "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
-            "                WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "             CURRENCY.description AS currency_description, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
             "             IFNULL(SELL.amount_base,0) AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
             "             0 AS withdraw_amount, 0 AS withdraw_commission, " +
             "             0 AS total_sell, 0 AS total_buy, 0 AS total_input, 0 AS total_output " +
@@ -344,6 +344,7 @@ public class WalletDaoImpl implements WalletDao {
       WalletFormattedDto dto = new WalletFormattedDto();
       dto.setId(rs.getInt("wallet_id"));
       dto.setName(rs.getString("currency_name"));
+      dto.setDescription(rs.getString("currency_description"));
       dto.setActiveBalance(rs.getBigDecimal("active_balance"));
       dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
       dto.setReserveOrders(rs.getBigDecimal("reserved_balance_by_orders"));
