@@ -18,9 +18,11 @@
         <div class="form-horizontal refill__money">
           <div class="input-block-wrapper clearfix">
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
-              <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label"><loc:message
+              <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label">
+                <loc:message
                       code="merchants.inputCurrency"/></label>
             </div>
+
             <div class="col-md-8 input-block-wrapper__input-wrapper">
               <input id="currencyName"
                      style="float: left; width: auto"
