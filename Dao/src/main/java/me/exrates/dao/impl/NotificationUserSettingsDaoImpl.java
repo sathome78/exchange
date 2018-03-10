@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.dto.NotificationsUserSetting;

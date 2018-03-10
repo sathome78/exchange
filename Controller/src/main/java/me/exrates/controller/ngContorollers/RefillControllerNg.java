@@ -171,10 +171,10 @@ public class RefillControllerNg {
     public Map<String, String> getCommissions(
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
-            @RequestParam("merchant") Integer merchantId,
-            Principal principal,
-            Locale locale) {
-        Integer userId = userService.getIdByEmail(principal.getName());
+            @RequestParam("merchant") Integer merchantId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        Integer userId = userService.getIdByEmail(userEmail);
         return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId, locale);
     }
 

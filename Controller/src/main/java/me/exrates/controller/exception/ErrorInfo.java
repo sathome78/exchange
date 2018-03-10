@@ -15,6 +15,7 @@ public class ErrorInfo {
     public final String url;
     public final String cause;
     public final String detail;
+    public String uuid;
 
     public ErrorInfo(CharSequence url, Throwable ex) {
         this.url = url.toString();
@@ -29,6 +30,14 @@ public class ErrorInfo {
         this.cause = ex.getClass().getSimpleName();
         while (ex.getCause() != null) ex = ex.getCause();
         this.detail = reason;
+    }
+
+    public ErrorInfo(CharSequence url, Throwable ex, String reason, String uuid) {
+        this.url = url.toString();
+        this.cause = ex.getClass().getSimpleName();
+        while (ex.getCause() != null) ex = ex.getCause();
+        this.detail = reason;
+        this.uuid = uuid;
     }
 
     public ErrorInfo(CharSequence url, MethodArgumentNotValidException ex) {

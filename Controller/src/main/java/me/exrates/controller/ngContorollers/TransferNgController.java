@@ -7,10 +7,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.TransferCodeDto;
-import me.exrates.model.dto.TransferRequestCreateDto;
-import me.exrates.model.dto.TransferRequestFlatDto;
-import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.ngDto.TransferMerchantsDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -37,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,6 +77,8 @@ public class TransferNgController {
     private SecureService secureService;
     @Autowired
     private InputOutputService inputOutputService;
+
+    private Map<UUID, TransferRequestCreateDto> unconfirmedtransfers = new ConcurrentReferenceHashMap<>();
 
 
 
@@ -136,6 +136,9 @@ public class TransferNgController {
             secureService.checkEventAdditionalPin(locale, userEmail,
                     NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
         } catch (PinCodeCheckNeedException e) {
+            UUID orderKey = UUID.randomUUID();
+            unconfirmedtransfers.put(orderKey, transferRequest);
+            e.setUuid(orderKey.toString());
             throw e;
         }
         return transferService.createTransferRequest(transferRequest);
@@ -174,16 +177,20 @@ public class TransferNgController {
 
     @RequestMapping(value = "/request/pin", method = POST)
     @ResponseBody
-    public Map<String, Object> withdrawRequestCheckPin(@RequestParam String pin, TransferRequestCreateDto dto) {
+    public Map<String, Object> withdrawRequestCheckPin(@RequestParam String pin, @RequestParam String key) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        Preconditions.checkNotNull(dto);
+        UUID keyUUID = UUID.fromString(key);
+        TransferRequestCreateDto withdrawRequestCreateDto = unconfirmedtransfers.get(keyUUID);
         Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+        Preconditions.checkNotNull(withdrawRequestCreateDto, "No order found by key");
         if (userService.checkPin(userEmail, pin, NotificationMessageEventEnum.TRANSFER)) {
-            return transferService.createTransferRequest(dto);
+            Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "Yhe withdrawal is not yours");
+            unconfirmedtransfers.remove(keyUUID);
+            return transferService.createTransferRequest(withdrawRequestCreateDto);
         } else {
             String res = secureService.resendEventPin(locale, userEmail,
-                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(dto));
+                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(withdrawRequestCreateDto));
             throw new IncorrectPinException(res);
         }
     }
@@ -275,7 +282,7 @@ public class TransferNgController {
     @ExceptionHandler({PinCodeCheckNeedException.class})
     @ResponseBody
     public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage(), ((PinCodeCheckNeedException)exception).getUuid());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

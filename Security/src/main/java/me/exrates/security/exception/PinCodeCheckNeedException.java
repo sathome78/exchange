@@ -7,7 +7,7 @@ import org.springframework.security.core.AuthenticationException;
  */
 public class PinCodeCheckNeedException extends AuthenticationException {
 
-
+    private String uuid;
 
     public PinCodeCheckNeedException(String msg, Throwable t) {
         super(msg, t);
@@ -15,5 +15,18 @@ public class PinCodeCheckNeedException extends AuthenticationException {
 
     public PinCodeCheckNeedException(String msg) {
         super(msg);
+    }
+
+    public PinCodeCheckNeedException(String msg, String uuid) {
+        super(msg);
+        this.uuid = uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 }
