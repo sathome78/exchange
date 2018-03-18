@@ -301,6 +301,7 @@ public class SettingsNgControllerNew {
         }
     }
 
+    // TODO move to public paths
     @GetMapping(value = "/serverTimezone", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> getServerTimeZone(){
         String timeZone = TimeZone.getDefault().getDisplayName();

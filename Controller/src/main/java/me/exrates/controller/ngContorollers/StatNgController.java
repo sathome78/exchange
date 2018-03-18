@@ -140,7 +140,12 @@ public class StatNgController {
     public StatTableDto<MyInputOutputHistoryDto> getMyInputoutputData(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // TODO Only for test purpose
+//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        // ********* DELETE
+        String userEmail = "avto12@i.ua";
+        // *********
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;

@@ -30,7 +30,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,7 @@ import java.util.*;
 
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
+import static me.exrates.service.util.RestApiUtils.decodePassword;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -73,6 +76,7 @@ public class WithdarwControllerNg {
     private SecureService secureServiceImpl;
 
 
+
     private Map<UUID, WithdrawRequestCreateDto> unconfirmedWithdraws = new ConcurrentReferenceHashMap<>();
 
     @RequestMapping(value = "/merchants/output", method = GET)
@@ -100,6 +104,14 @@ public class WithdarwControllerNg {
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
         response.setWarningCodeList(warningCodeList);
         return response;
+    }
+
+    @GetMapping("/hasFinancialPassword")
+    @ResponseBody
+    public Map<String, Boolean> ifUserHasFinancialPassword(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.findByEmail(email);
+        return Collections.singletonMap("result", !StringUtils.isEmpty(user.getFinpassword()));
     }
 
     @FinPassCheck

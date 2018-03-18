@@ -82,11 +82,11 @@ public class TransferNgController {
 
 
 
-    @RequestMapping(value = "/", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public TransferMerchantsDataDto findAllTransferMerchantCurrencies(@RequestParam("currencyId") Integer currencyId) {
+    @RequestMapping(value = "/currency/{name}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public TransferMerchantsDataDto findAllTransferMerchantCurrencies(@PathVariable("name") String currencyName) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         OperationType operationType = USER_TRANSFER;
-        Currency currency = currencyService.findById(currencyId);
+        Currency currency = currencyService.findByName(currencyName);
         TransferMerchantsDataDto dto = new TransferMerchantsDataDto();
         dto.setCurrency(currency);
         Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(userEmail), currency);

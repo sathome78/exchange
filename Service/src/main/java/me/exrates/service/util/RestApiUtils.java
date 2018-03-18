@@ -21,7 +21,7 @@ public class RestApiUtils {
         for (int i = 0; i < txt.length; i++) {
             result[i] = (byte) (txt[i] ^ key[i % key.length]);
         }
-        String pass = new String(result);
+//        String pass = new String(result);
 //        System.out.println("$$$$$$$ util out decoded password: " + pass + " length: " + pass.length());
         return new String(result);
     }
