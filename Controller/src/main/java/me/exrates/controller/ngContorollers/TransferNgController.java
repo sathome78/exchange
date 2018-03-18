@@ -81,6 +81,25 @@ public class TransferNgController {
     private Map<UUID, TransferRequestCreateDto> unconfirmedtransfers = new ConcurrentReferenceHashMap<>();
 
 
+    // todo - received dto contains property wallet, which contains user with such properties
+    // as e.g.    "id": 36149,
+    //            "nickname": "angular",
+    //            "email": "angular@i.ua",
+    //            "phone": null,
+    //            "status": "ACTIVE",
+    //            "userStatus": "REGISTERED",
+    //            "password": "$2a$10$QpOOkz98DD/PcEzYA8grcem4w61nXNnH93TrT.DgVUJRmxK5xaQB.",
+    //            "finpassword": "$2a$10$5dmzXQbWwRNYw9bLTSM.TOq7K.bxOzohrFwOWk26YMSxfHPl8MM0.",
+    //            "regdate": "2018-03-06",
+    //            "confirmPassword": null,
+    //            "confirmFinPassword": null,
+    //            "readRules": false,
+    //            "role": "ADMINISTRATOR",
+    //            "parentEmail": "kd3@bigmir.net",
+    //            "prefferedLang": null,
+    //            "ip": null
+    // to consider if its necessary !!!!!
+    // as to me property wallet is redundant as well as payment
 
     @RequestMapping(value = "/currency/{name}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public TransferMerchantsDataDto findAllTransferMerchantCurrencies(@PathVariable("name") String currencyName) {
