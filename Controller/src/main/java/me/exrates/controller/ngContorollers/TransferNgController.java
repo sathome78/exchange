@@ -196,14 +196,14 @@ public class TransferNgController {
 
     @RequestMapping(value = "/request/pin", method = POST)
     @ResponseBody
-    public Map<String, Object> withdrawRequestCheckPin(@RequestParam String pin, @RequestParam String key) {
+    public Map<String, Object> withdrawRequestCheckPin(@RequestBody Map <String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        UUID keyUUID = UUID.fromString(key);
+        UUID keyUUID = UUID.fromString(body.get("key"));
         TransferRequestCreateDto withdrawRequestCreateDto = unconfirmedtransfers.get(keyUUID);
-        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+        Preconditions.checkArgument(body.get("pin").length() > 2 && body.get("pin").length() < 15);
         Preconditions.checkNotNull(withdrawRequestCreateDto, "No order found by key");
-        if (userService.checkPin(userEmail, pin, NotificationMessageEventEnum.TRANSFER)) {
+        if (userService.checkPin(userEmail, body.get("pin"), NotificationMessageEventEnum.TRANSFER)) {
             Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "Yhe withdrawal is not yours");
             unconfirmedtransfers.remove(keyUUID);
             return transferService.createTransferRequest(withdrawRequestCreateDto);
