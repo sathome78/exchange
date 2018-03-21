@@ -150,17 +150,16 @@ public class WithdarwControllerNg {
     }
 
 
-    @RequestMapping(value = "/withdraw/request/pin", method = POST)
+    @RequestMapping(value = "/request/pin", method = POST)
     @ResponseBody
-    public Map<String, String> withdrawRequestCheckPin(
-            @RequestParam String pin, @RequestParam String key) {
+    public Map<String, String> withdrawRequestCheckPin(@RequestBody Map<String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        UUID keyUUID = UUID.fromString(key);
+        UUID keyUUID = UUID.fromString(body.get("key"));
         WithdrawRequestCreateDto withdrawRequestCreateDto = unconfirmedWithdraws.get(keyUUID);
-        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+        Preconditions.checkArgument(body.get("pin").length() > 2 && body.get("pin").length() < 15);
         Preconditions.checkNotNull(withdrawRequestCreateDto, "No order found by key");
-        if (userService.checkPin(userEmail, pin, NotificationMessageEventEnum.WITHDRAW)) {
+        if (userService.checkPin(userEmail, body.get("pin"), NotificationMessageEventEnum.WITHDRAW)) {
             Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "Yhe withdrawal is not yours");
             unconfirmedWithdraws.remove(keyUUID);
             return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
