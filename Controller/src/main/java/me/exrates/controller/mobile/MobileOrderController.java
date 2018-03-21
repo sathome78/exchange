@@ -10,10 +10,12 @@ import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,9 @@ public class MobileOrderController {
 
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    StopOrderService stopOrderService;
 
     @Autowired
     CommissionService commissionService;
@@ -221,6 +226,8 @@ public class MobileOrderController {
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+        orderCreateDto.setOrderBaseType(orderCreationParamsDto.getBaseType() == null ? OrderBaseType.LIMIT : orderCreationParamsDto.getBaseType());
+        orderCreateDto.setStop(orderCreationParamsDto.getStopRate());
         LOGGER.debug("Order prepared" + orderCreateDto);
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
         Map<String, Object> errors = orderValidationDto.getErrors();
@@ -280,7 +287,17 @@ public class MobileOrderController {
             }
             OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-            Integer createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
+            Integer createdOrderId;
+            switch (orderCreateDto.getOrderBaseType()) {
+                case STOP_LIMIT: {
+                    createdOrderId = stopOrderService.create(orderCreateDto, CREATE);
+                    break;
+                }
+                default: {
+                    /*todo: why create order without auto accept?*/
+                    createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
+                }
+            }
             if (createdOrderId <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
             }

@@ -358,6 +358,7 @@ public class OrderServiceImpl implements OrderService {
     return orderValidationDto;
   }
 
+  @Transactional
   @Override
   public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
     Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
@@ -371,6 +372,7 @@ public class OrderServiceImpl implements OrderService {
     }
     return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
   }
+
 
   @Override
   @Transactional

@@ -91,6 +91,19 @@ public class StopOrderServiceImpl implements StopOrderService {
         return "{\"result\":\"" + messageSource.getMessage("createdstoporder.text", null, locale) + "\"}";
     }
 
+    @Transactional
+    @Override
+    public Integer create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum) {
+        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+        if (orderId <= 0) {
+            return orderId;
+        }
+        ExOrder exOrder = new ExOrder(orderCreateDto);
+        exOrder.setId(orderId);
+        this.onStopOrderCreate(exOrder);
+        return orderId;
+    }
+
 
     @Transactional
     @Override

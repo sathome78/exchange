@@ -32,6 +32,9 @@ public interface StopOrderService {
     @Transactional
     String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale);
 
+    @Transactional
+    Integer create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum);
+
     Integer createOrder(ExOrder exOrder);
 
     void proceedStopOrders(int pairId, NavigableSet<StopOrderSummaryDto> orders);
