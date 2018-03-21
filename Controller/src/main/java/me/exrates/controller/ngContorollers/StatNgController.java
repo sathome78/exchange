@@ -1,6 +1,7 @@
 package me.exrates.controller.ngContorollers;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
@@ -75,16 +76,18 @@ public class StatNgController {
 
 
 
-    @RequestMapping(value = "/info/private/myStatementData", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/info/private/myStatementData/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public StatTableDto<AccountStatementDto> getMyAccountStatementData(
-            @RequestParam("currencyId") Integer currencyId,
+            @PathVariable("name") String currencyName,
             @RequestParam(required = false) Integer page) {
         int pageSize  = 40;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
+
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Currency currency = currencyService.findByName(currencyName);
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        int walletId = walletService.getWalletId(userService.getIdByEmail(userEmail), currencyId);
+        int walletId = walletService.getWalletId(userService.getIdByEmail(userEmail), currency.getId());
         List<AccountStatementDto> dtos = transactionService.getAccountStatement(walletId, offset, pageSize + 1, locale);
         return new StatTableDto<>(page, pageSize, dtos);
 
@@ -141,11 +144,7 @@ public class StatNgController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction) {
 
-        // TODO Only for test purpose
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        // ********* DELETE
-        String userEmail = "avto12@i.ua";
-        // *********
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;

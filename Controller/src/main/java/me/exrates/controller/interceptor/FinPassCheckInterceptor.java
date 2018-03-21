@@ -11,6 +11,7 @@ import me.exrates.service.exception.WrongFinPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import org.springframework.web.method.HandlerMethod;
@@ -53,7 +54,8 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
                     }
                     String financePassFieldName = String.valueOf(annotationAttributes.get("paramName"));
                     String finPass = String.valueOf(request.getParameter(financePassFieldName));
-                    User storedUser = userService.getUserById(userService.getIdByEmail(request.getUserPrincipal().getName()));
+                    String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+                    User storedUser = userService.getUserById(userService.getIdByEmail(userEmail));
                     userService.checkFinPassword(finPass, storedUser, localeResolver.resolveLocale(request));
                 } catch (AbsentFinPasswordException | NotConfirmedFinPasswordException | WrongFinPasswordException e) {
                     boolean throwCheckPassExceptionAttribute = (boolean)annotationAttributes.get("throwCheckPassException");

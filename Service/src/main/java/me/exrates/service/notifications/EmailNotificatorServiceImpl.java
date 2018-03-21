@@ -35,6 +35,9 @@ public class EmailNotificatorServiceImpl implements NotificatorService {
         Email email = new Email();
         email.setTo(userEmail);
         email.setMessage(message);
+
+        // todo
+        System.out.println("$$$$$$$$ email: " + message);
         email.setSubject(subject);
         sendMailService.sendInfoMail(email);
         return userEmail;
