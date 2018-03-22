@@ -1,7 +1,9 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.AlertDto;
@@ -110,10 +112,7 @@ public class WsContorller {
         List<OrderListDto> orders = new ArrayList<>();
         orders.addAll(orderService.getAllSellOrdersEx(cp, Locale.ENGLISH, null));
         orders.addAll(orderService.getAllBuyOrdersEx(cp, Locale.ENGLISH, null));
-        JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(orders));
-        return objectsArray.toString();
-
+        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(orders);
     }
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
