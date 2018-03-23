@@ -45,10 +45,14 @@ public class OrdersStatisticByPairsCache {
     public void update() {
         log.info("try update cache");
         if (semaphore.tryAcquire()) {
-            log.info("update cache");
-            this.cachedList = orderDao.getOrderStatisticByPairs();
-            needUpdate.set(false);
-            semaphore.release();
+            try {
+                log.info("update cache");
+                this.cachedList = orderDao.getOrderStatisticByPairs();
+                log.info("end update cache");
+                needUpdate.set(false);
+            } finally {
+                semaphore.release();
+            }
         }
     }
 
@@ -66,6 +70,7 @@ public class OrdersStatisticByPairsCache {
                 }
             }
         }
+        log.info("return cache");
         return cachedList;
     }
 
