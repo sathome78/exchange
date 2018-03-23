@@ -326,7 +326,10 @@ public interface OrderService {
     @Transactional(readOnly = true)
     String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
 
-    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+	@Transactional(readOnly = true)
+	String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException;
+
+	Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
@@ -334,7 +337,9 @@ public interface OrderService {
 
   String getAllCurrenciesStatForRefresh();
 
-  String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+	String getAllCurrenciesStatForRefreshNg();
+
+	String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);

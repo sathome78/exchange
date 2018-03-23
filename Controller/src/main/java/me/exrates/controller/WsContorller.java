@@ -75,6 +75,11 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefresh();
     }
 
+	@SubscribeMapping("/info/statistics")
+	public String subscribeStatisticNg() {
+    	return orderService.getAllCurrenciesStatForRefreshNg();
+	}
+
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
     public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
@@ -86,6 +91,12 @@ public class WsContorller {
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
         return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
+    }
+
+    @SubscribeMapping("/info/trades/{currencyPairId}")
+    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        Principal principal = headerAccessor.getUser();
+        return orderService.getAllAndMyTradesForInitNg(currencyPairId, principal);
     }
 
     @SubscribeMapping("/charts/{currencyPairId}/{period}")

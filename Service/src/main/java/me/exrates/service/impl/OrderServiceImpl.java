@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -1515,6 +1516,32 @@ public class OrderServiceImpl implements OrderService {
     return jsonArray.toString();
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    Map<String, List<OrderAcceptedHistoryDto>> trades = new HashMap<>();
+    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
+            new BackDealInterval("24 HOUR"),
+            100,
+            cp,
+            Locale.ENGLISH);
+    trades.put("ALL", dtos);
+    if (principal != null) {
+      List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
+              new BackDealInterval("24 HOUR"),
+              100,
+              cp,
+              Locale.ENGLISH);
+      trades.put("MY", myDtos);
+    }
+    return new GsonBuilder()
+                            .setPrettyPrinting()
+                            .disableHtmlEscaping()
+                            .create()
+                            .toJson(trades);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType) {
@@ -1562,6 +1589,23 @@ public class OrderServiceImpl implements OrderService {
       log.error(e);
       return null;
     }
+  }
+
+  @Override
+  public String getAllCurrenciesStatForRefreshNg() {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(),
+            RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
+    return new GsonBuilder()
+                            .setPrettyPrinting()
+                            .disableHtmlEscaping()
+                            .create()
+                            .toJson(this.getOrdersStatisticByPairsEx());
+//    try {
+//      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
+//    } catch (JsonProcessingException e) {
+//      log.error(e);
+//      return null;
+//    }
   }
 
   @Override
