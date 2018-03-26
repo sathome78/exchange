@@ -44,6 +44,9 @@ import static java.util.Collections.singletonMap;
 @RestController
 public class MainControllerNg {
 
+    @Value("${contacts.feedbackEmail}")
+    String feedbackEmail;
+
     @Autowired
     private ReferralService referralService;
     @Autowired
@@ -56,6 +59,8 @@ public class MainControllerNg {
     private CommissionService comissionService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private SendMailService mailService;
 
 
 
@@ -127,6 +132,17 @@ public class MainControllerNg {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         return orderService.getOrderInfo(id, locale);
+    }
+
+    @PostMapping(value = "/info/public/feedback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> sendFeedback(@RequestBody Map<String, String> body){
+        try {
+            mailService.sendFeedbackMail(body.get("name"), body.get("email"), body.get("message"), feedbackEmail);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
     }
 
 

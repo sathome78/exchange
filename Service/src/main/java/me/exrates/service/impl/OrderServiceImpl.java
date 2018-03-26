@@ -1593,19 +1593,11 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public String getAllCurrenciesStatForRefreshNg() {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(),
-            RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
     return new GsonBuilder()
                             .setPrettyPrinting()
                             .disableHtmlEscaping()
                             .create()
                             .toJson(this.getOrdersStatisticByPairsEx());
-//    try {
-//      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
-//    } catch (JsonProcessingException e) {
-//      log.error(e);
-//      return null;
-//    }
   }
 
   @Override
