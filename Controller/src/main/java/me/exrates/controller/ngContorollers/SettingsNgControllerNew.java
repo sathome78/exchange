@@ -267,19 +267,6 @@ public class SettingsNgControllerNew {
         }
     }
 
-    // TODO move to public paths
-    @GetMapping(value = "/serverTimezone", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, String>> getServerTimeZone(){
-        String timeZone = TimeZone.getDefault().getDisplayName();
-        String stz [] = timeZone.split(" ");
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String word : stz){
-            stringBuilder.append(word.charAt(0));
-        }
-        timeZone = stringBuilder.toString().equalsIgnoreCase("CUT") ? "UTC" : stringBuilder.toString();
-        return ResponseEntity.ok().body(Collections.singletonMap("timeZone", timeZone));
-    }
-
     private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());
         dto.setEmail(user.getEmail());

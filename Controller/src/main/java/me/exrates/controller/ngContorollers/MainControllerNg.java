@@ -42,6 +42,7 @@ import static java.util.Collections.singletonMap;
 @Log4j2
 @RequestMapping(value = "/info")
 @RestController
+@PropertySource(value = {"classpath:about_us.properties"})
 public class MainControllerNg {
 
     @Value("${contacts.feedbackEmail}")
@@ -134,7 +135,7 @@ public class MainControllerNg {
         return orderService.getOrderInfo(id, locale);
     }
 
-    @PostMapping(value = "/info/public/feedback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/public/feedback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> sendFeedback(@RequestBody Map<String, String> body){
         try {
             mailService.sendFeedbackMail(body.get("name"), body.get("email"), body.get("message"), feedbackEmail);
@@ -143,6 +144,18 @@ public class MainControllerNg {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @GetMapping(value = "/public/serverTimezone", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> getServerTimeZone(){
+        String timeZone = TimeZone.getDefault().getDisplayName();
+        String stz [] = timeZone.split(" ");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String word : stz){
+            stringBuilder.append(word.charAt(0));
+        }
+        timeZone = stringBuilder.toString().equalsIgnoreCase("CUT") ? "UTC" : stringBuilder.toString();
+        return ResponseEntity.ok().body(Collections.singletonMap("timeZone", timeZone));
     }
 
 
