@@ -158,6 +158,18 @@ public class MainControllerNg {
         return ResponseEntity.ok().body(Collections.singletonMap("timeZone", timeZone));
     }
 
+    @GetMapping("/public/terms/{language}")
+	@ResponseBody
+	public Map<String, String> getTerms(@PathVariable String language){
+    	Locale locale = new Locale(language);
+    	return Collections.singletonMap("content", messageSource.getMessage("dashboard.termsContent", null, locale));
+	}
 
+	@GetMapping("/public/privacy/{language}")
+	@ResponseBody
+	public Map<String, String> getPrivacyPolicy(@PathVariable String language){
+		Locale locale = new Locale(language);
+		return Collections.singletonMap("content", messageSource.getMessage("dashboard.privacyContent", null, locale));
+	}
 
 }
