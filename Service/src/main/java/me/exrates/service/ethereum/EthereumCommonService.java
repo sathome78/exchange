@@ -53,6 +53,11 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
         return true;
     }
 
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
+    }
+
     Web3j getWeb3j();
 
     List<String> getAccounts();
@@ -62,6 +67,8 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     String loadLastBlock();
 
     String getMainAddress();
+
+    String getWithdrawAddress();
 
     Credentials getCredentialsMain();
 

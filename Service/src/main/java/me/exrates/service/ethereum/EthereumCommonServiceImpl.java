@@ -10,6 +10,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
@@ -128,6 +131,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigInteger gasPrice;
 
+    private BigDecimal ethComissionPrice = new BigDecimal(0.0005);
+
+    private String withdrawAddress;
+
+    private static final Integer ETH_TANSFER_GAS = 21000;
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -141,6 +150,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Override
     public String getMainAddress() {
         return mainAddress;
+    }
+
+    @Override
+    public String getWithdrawAddress() {
+        return withdrawAddress;
     }
 
     @Override
@@ -242,21 +256,38 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws IOException, TransactionException, InterruptedException {
-        BigDecimal ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
-        BigDecimal feeAmount = calculateEthWithdrawFee(new BigDecimal(withdrawMerchantOperationDto.getAmount()));
-        if (ethBalance.compareTo(feeAmount) < 0) {
-            Transfer.sendFunds(web3j, getCredentialsMain(), withdrawMerchantOperationDto.getAccountTo(), feeAmount, Convert.Unit.ETHER).sendAsync();
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase(currencyName)) {
+            try {
+                withdrawEth(withdrawMerchantOperationDto);
+            } catch (Exception e) {
+                /*todo*/
+            }
+        } else {
+            withdrawTokens(withdrawMerchantOperationDto);
         }
-
-
-
         return new HashMap<>();
     }
 
-    private BigDecimal calculateEthWithdrawFee(BigDecimal ethAmount) {
-
+    private HashMap<String, String> withdrawEth(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        BigDecimal ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+        BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
+        if (ethBalance.compareTo(withdrawAmount.add(ethComissionPrice)) < 0) {
+            throw new InsufficientCostsInWalletException("ETH BALANCE LOW");
+        }
+        TransactionReceipt tx = Transfer.sendFunds(web3j, getCredentialsMain(),
+                withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, Convert.Unit.ETHER).send();
+        /*todo: checkstatus*/
+        log.debug("transaction answer {}", tx);
+        return new HashMap<String, String>() {{
+            put("hash", tx.getTransactionHash());
+        }};
     }
+
+    private HashMap<String, String> withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        return null;
+    }
+
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
