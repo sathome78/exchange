@@ -24,6 +24,7 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -125,6 +126,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
+    private BigInteger gasPrice;
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -155,7 +158,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return transferAccAddress;
     }
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     private final ScheduledExecutorService checkerScheduler = Executors.newScheduledThreadPool(1);
 
@@ -197,6 +200,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }
         }, 1, 8, TimeUnit.MINUTES);
 
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                checkSession();
+            }
+        }, 0, 12, TimeUnit.HOURS);
+
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 transferFundsToMainAccount();
@@ -224,9 +233,29 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         }, 5, 5, TimeUnit.MINUTES);
     }
 
+    private void getNewGasPrice() {
+        try {
+            gasPrice = web3j.ethGasPrice().send().getGasPrice();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws IOException, TransactionException, InterruptedException {
+        BigDecimal ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+        BigDecimal feeAmount = calculateEthWithdrawFee(new BigDecimal(withdrawMerchantOperationDto.getAmount()));
+        if (ethBalance.compareTo(feeAmount) < 0) {
+            Transfer.sendFunds(web3j, getCredentialsMain(), withdrawMerchantOperationDto.getAccountTo(), feeAmount, Convert.Unit.ETHER).sendAsync();
+        }
+
+
+
         return new HashMap<>();
+    }
+
+    private BigDecimal calculateEthWithdrawFee(BigDecimal ethAmount) {
+
     }
 
     @Override
