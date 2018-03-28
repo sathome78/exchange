@@ -24,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
@@ -62,6 +64,8 @@ public class MainControllerNg {
     private OrderService orderService;
     @Autowired
     private SendMailService mailService;
+    @Autowired
+    private Twitter twitter;
 
 
 
@@ -173,5 +177,10 @@ public class MainControllerNg {
 		Optional<String> result = Optional.ofNullable(messageSource.getMessage("dashboard.privacyContent", null, locale));
 		return Collections.singletonMap("content", result.orElse(""));
 	}
+
+    @RequestMapping(value = "/private/twitterTimeLine", method = RequestMethod.GET)
+    public List<Tweet> getTwitterPosts(@RequestParam(value = "amount", defaultValue = "30") int amount) {
+        return twitter.timelineOperations().getUserTimeline(amount);
+    }
 
 }
