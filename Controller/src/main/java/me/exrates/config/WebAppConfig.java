@@ -48,6 +48,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -88,7 +90,8 @@ import java.util.stream.Collectors;
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
     "classpath:/mail.properties",
-    "classpath:/angular.properties"})
+    "classpath:/angular.properties",
+    "classpath:/twitter.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -155,6 +158,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Value("${angular.allowed.origin}")
     private String angularAllowedOrigin;
+
+    @Value("${twitter.appId}")
+    private String twitterConsumerKey;
+    @Value("${twitter.appSecret}")
+    private String twitterConsumerSecret;
+    @Value("${twitter.accessToken}")
+    private String twitterAccessToken;
+    @Value("${twitter.accessTokenSecret}")
+    private String twitterAccessTokenSecret;
 
     @PostConstruct
     public void init() {
@@ -598,6 +610,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ZMQ.Context zmqContext() {
         return ZMQ.context(1);
+    }
+
+    @Bean
+    public Twitter twitter() {
+        return new TwitterTemplate(
+                twitterConsumerKey,
+                twitterConsumerSecret,
+                twitterAccessToken,
+                twitterAccessTokenSecret);
     }
 
 }
