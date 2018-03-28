@@ -162,14 +162,16 @@ public class MainControllerNg {
 	@ResponseBody
 	public Map<String, String> getTerms(@PathVariable String language){
     	Locale locale = new Locale(language);
-    	return Collections.singletonMap("content", messageSource.getMessage("dashboard.termsContent", null, locale));
+        Optional<String> result = Optional.ofNullable(messageSource.getMessage("dashboard.termsContent", null, locale));
+        return Collections.singletonMap("content", result.orElse(""));
 	}
 
 	@GetMapping("/public/privacy/{language}")
 	@ResponseBody
 	public Map<String, String> getPrivacyPolicy(@PathVariable String language){
 		Locale locale = new Locale(language);
-		return Collections.singletonMap("content", messageSource.getMessage("dashboard.privacyContent", null, locale));
+		Optional<String> result = Optional.ofNullable(messageSource.getMessage("dashboard.privacyContent", null, locale));
+		return Collections.singletonMap("content", result.orElse(""));
 	}
 
 }
