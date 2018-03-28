@@ -87,6 +87,16 @@ public class EthTokenServiceImpl implements EthTokenService {
     private EthereumCommonService ethereumCommonService;
 
     @Override
+    public boolean isERC20() {
+        return isERC20;
+    }
+
+    @Override
+    public ExConvert.Unit getUnit() {
+        return unit;
+    }
+
+    @Override
     public Integer currencyId() {
         return currency.getId();
     }

@@ -132,7 +132,14 @@ function updateMerchantCommissionsDataTable() {
                     "data": "inputCommission"
                 },
                 {
-                    "data": "outputCommission"
+                    "data": "outputCommission",
+                    "render": function (data, type, row) {
+                        if (row.merchantFixedComission === true) {
+                            return data + ' ' + row.currencyName;
+                        } else {
+                            return data + ' %';
+                        }
+                    }
                 },
                 {
                     "data": "minFixedCommission"

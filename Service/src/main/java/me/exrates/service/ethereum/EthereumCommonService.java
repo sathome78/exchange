@@ -58,6 +58,11 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
         return true;
     }
 
+    @Override
+    default boolean fixedComissionSetsByAdmin() {
+        return true;
+    }
+
     Web3j getWeb3j();
 
     List<String> getAccounts();

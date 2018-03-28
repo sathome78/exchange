@@ -210,7 +210,18 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
-    return merchantDao.findMerchantCurrencyOptions(processTypes);
+    List<MerchantCurrencyOptionsDto> merchantCurrencyOptionsDtos = merchantDao.findMerchantCurrencyOptions(processTypes);
+    merchantCurrencyOptionsDtos.forEach(p -> {
+      IMerchantService service = null;
+      try {
+        service = merchantServiceContext.getMerchantService(p.getMerchantId());
+      } catch (Exception e) {
+      }
+      if (service != null && service instanceof IWithdrawable) {
+          p.setMerchantFixedComission(((IWithdrawable)(service)).fixedComissionSetsByAdmin());
+        }
+    });
+    return merchantCurrencyOptionsDtos;
   }
 
   @Override

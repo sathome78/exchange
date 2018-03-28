@@ -24,7 +24,11 @@ public interface IWithdrawable extends IMerchantService {
     return false;
   }
 
-  default BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+  default boolean fixedComissionSetsByAdmin() {
+    return false;
+  }
+
+  default BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId, Integer currencyId) {
     return BigDecimal.ZERO;
    };
 

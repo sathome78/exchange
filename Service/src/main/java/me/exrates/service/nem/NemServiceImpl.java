@@ -258,7 +258,7 @@ public class NemServiceImpl implements NemService {
     }
 
     @Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId, Integer currencyId) {
         log.error("comission merchant {}", merchantId);
         if (!merchantId.equals(merchant.getId())) {
             return countSpecComissionForMosaic(amount, destinationTag, merchantId);
