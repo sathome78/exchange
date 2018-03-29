@@ -143,11 +143,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
-    private BigDecimal ethComissionPrice = new BigDecimal(0.0005);
-    private BigDecimal ethComissionTokeWithdraw = new BigDecimal(0.006);
+    private BigDecimal ethComissionPrice = new BigDecimal(0.0002);
+    private BigDecimal ethComissionTokeWithdraw = new BigDecimal(0.003);
 
     private static final Integer ETH_TANSFER_GAS = 21000;
-    private static final Integer TOKENS_TANSFER_GAS = 200000;
+    private static final BigInteger TOKENS_TANSFER_GAS = BigInteger.valueOf(200000);
 
     @Override
     public Web3j getWeb3j() {
@@ -262,6 +262,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+
         if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase("ETH")) {
             return withdrawEth(withdrawMerchantOperationDto);
         } else {
@@ -293,8 +294,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             TransactionReceipt tx = Transfer.sendFunds(web3j, credentialsWithdrawAcc,
                     withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, Convert.Unit.ETHER).send();
-            /*todo: checkstatus*/
-            log.debug("transaction answer {}", tx);
+            log.info("transaction answer {}", tx);
+            if (!tx.getStatus().equals("0x1")) {
+                throw new MerchantException(tx.toString());
+            }
             return new HashMap<String, String>() {{
                 put("hash", tx.getTransactionHash());
             }};
@@ -320,7 +323,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     getWeb3j(), credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
             balance = ExConvert.fromWei(contract.balanceOf(withdrawAccAddress).send().toString(), tokenService.getUnit());
             ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
-            log.debug("balance {}, eth balance {}", balance, ethBalance);
+            log.info("balance {}, eth balance {}", balance, ethBalance);
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
             throw new MerchantException();
@@ -328,15 +331,18 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         if (ethBalance.compareTo(ethComissionTokeWithdraw) <= 0 || balance.compareTo(withdarwAmount) < 0) {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW for withdraw " + merchantName);
         }
-        log.debug("withdraw amount {}, converted {}", withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
+        log.info("withdraw amount {}, converted {}", withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
         try {
-            tx = contract.transfer(getWithdrawAddress(),
+            tx = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
                     ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger()).send();
+            log.info("response {}", tx);
+            if (!tx.getStatus().equals("0x1")) {
+                throw new MerchantException(tx.toString());
+            }
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
             throw new MerchantException();
         }
-        log.debug("response {}", tx);
         return new HashMap<String, String>() {{
             put("hash", tx.getTransactionHash());
         }};
