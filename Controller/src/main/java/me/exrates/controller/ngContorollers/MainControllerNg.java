@@ -178,7 +178,7 @@ public class MainControllerNg {
 		return Collections.singletonMap("content", result.orElse(""));
 	}
 
-    @RequestMapping(value = "/private/twitterTimeLine", method = RequestMethod.GET)
+    @RequestMapping(value = "/public/twitterTimeLine", method = RequestMethod.GET)
     public List<Tweet> getTwitterPosts(@RequestParam(value = "amount", defaultValue = "30") int amount) {
         return twitter.timelineOperations().getUserTimeline(amount);
     }
