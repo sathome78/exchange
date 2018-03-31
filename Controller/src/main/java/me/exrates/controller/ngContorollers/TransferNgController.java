@@ -219,20 +219,26 @@ public class TransferNgController {
     }
 
 
-    @RequestMapping(value = "/request/hash", method = POST)
-    @ResponseBody
-    public String getHashForUser(
-            @RequestParam Integer id) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return transferService.getHash(id,userEmail);
+    @RequestMapping(value = "/request/hash/{id}", method = POST)
+    public ResponseEntity<String> getHashForUser(@PathVariable Integer id) {
+        try {
+            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            String hash = transferService.getHash(id, userEmail);
+            return ResponseEntity.ok(hash);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @RequestMapping(value = "/request/revoke", method = POST)
-    @ResponseBody
-    public void revokeVoucherByUser(
-            @RequestParam Integer id) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        transferService.revokeByUser(id, userEmail);
+    @RequestMapping(value = "/request/revoke/{id}", method = POST)
+    public ResponseEntity<Void> revokeVoucherByUser(@PathVariable Integer id) {
+        try {
+            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            transferService.revokeByUser(id, userEmail);
+            return  ResponseEntity.ok().build();
+        } catch (Exception exc) {
+            return  ResponseEntity.badRequest().build();
+        }
     }
 
     @RequestMapping(value = "/commission", method = GET)
