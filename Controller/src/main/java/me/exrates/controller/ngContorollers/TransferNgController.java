@@ -220,7 +220,7 @@ public class TransferNgController {
     }
 
 
-    @RequestMapping(value = "/request/hash/{id}", method = POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(value = "/request/hash/{id}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getHashForUser(@PathVariable Integer id) {
         try {
             String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
