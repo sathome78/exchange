@@ -35,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -219,7 +220,7 @@ public class TransferNgController {
     }
 
 
-    @RequestMapping(value = "/request/hash/{id}", method = POST)
+    @RequestMapping(value = "/request/hash/{id}", method = POST, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getHashForUser(@PathVariable Integer id) {
         try {
             String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
