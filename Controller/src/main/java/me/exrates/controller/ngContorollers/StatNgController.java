@@ -187,7 +187,7 @@ public class StatNgController {
     @OnlineMethod
     @RequestMapping(value = "/info/private/myOrdersData/", method = RequestMethod.GET)
     public StatTableDto<OrderWideListDto> getMyOrdersData(
-            @RequestParam Integer pairId,
+            @RequestParam(required = false) Integer pairId,
             @RequestParam(required = false) OperationType type,
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) String scope,
