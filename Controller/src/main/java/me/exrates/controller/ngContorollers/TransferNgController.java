@@ -231,7 +231,7 @@ public class TransferNgController {
         }
     }
 
-    @RequestMapping(value = "/request/revoke/{id}", method = POST)
+    @GetMapping(value = "/request/revoke/{id}")
     public ResponseEntity<Void> revokeVoucherByUser(@PathVariable Integer id) {
         try {
             String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();

@@ -217,9 +217,6 @@ public class RefillControllerNg {
         return new ErrorInfo(req.getRequestURL(), exception, exception.getReason());
     }
 
-
-
-
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     @ResponseBody
