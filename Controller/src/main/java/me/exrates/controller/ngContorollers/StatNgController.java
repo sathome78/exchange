@@ -131,6 +131,13 @@ public class StatNgController {
         return new StatTableDto<>(page, pageSize, dtos);
     }
 
+    // this is needed to for dispersing between markets
+    @GetMapping(value = "/info/private/currencyPairs", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public List<CurrencyPair> getAllCurrencyPairs() {
+        return currencyService.getAllCurrencyPairs();
+    }
+
     /**
      * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
      * returns list the data of user's input/output orders to show in pages "History input/output"
