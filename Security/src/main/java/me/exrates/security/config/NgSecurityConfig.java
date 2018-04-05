@@ -47,7 +47,7 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
+//        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
 
         http
                 .antMatcher("/info/private/**")
