@@ -302,12 +302,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 .maxAge(4800);
     }*/
 
-        //temporary for murkup development
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**");
-    }
-
     @Bean
     public PlatformTransactionManager platformTransactionManager() {
         return new DataSourceTransactionManager(hikariDataSource());
