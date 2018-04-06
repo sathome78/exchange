@@ -203,6 +203,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       if (merchant instanceof IWithdrawable) {
           IWithdrawable merchantService = (IWithdrawable) merchant;
           e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+          e.setFixedComissionByAdmin(merchantService.fixedComissionSetsByAdmin());
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());

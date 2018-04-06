@@ -17,6 +17,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -295,16 +296,24 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             TransactionReceipt tx = Transfer.sendFunds(web3j, credentialsWithdrawAcc,
                     withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, Convert.Unit.ETHER).send();
-            log.info("transaction answer {}", tx);
-            if (!tx.getStatus().equals("0x1")) {
+            log.info("eth transaction answer {}", tx);
+            if (!tx.getStatus().equals("0x1") || StringUtils.isEmpty(tx.getTransactionHash().trim())) {
+                log.error(tx);
                 throw new MerchantException(tx.toString());
             }
             return new HashMap<String, String>() {{
                 put("hash", tx.getTransactionHash());
             }};
+
+        } catch (MerchantException e){
+            log.error(e);
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("error sending tx {}", e);
+            throw new InvalidAccountException(e);
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            throw new InvalidAccountException("error sending transaction");
+            throw new MerchantException("error sending transaction");
         }
     }
 
@@ -336,13 +345,20 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             tx = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
                     ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger()).send();
-            log.info("response {}", tx);
-            if (!tx.getStatus().equals("0x1")) {
-                throw new InvalidAccountException(tx.toString());
+            log.debug("response {}", tx);
+            if (!tx.getStatus().equals("0x1") || StringUtils.isEmpty(tx.getTransactionHash())) {
+                log.error(tx);
+                throw new MerchantException(tx.toString());
             }
+        } catch (MerchantException e){
+            log.error(e);
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("error sending tx {}", e);
+            throw new InvalidAccountException(e);
         } catch (Exception e) {
-            log.error("transfer token error {}" , e);
-            throw new MerchantException();
+            log.error("error sending tx {}", e);
+            throw new MerchantException("error sending transaction");
         }
         return new HashMap<String, String>() {{
             put("hash", tx.getTransactionHash());
