@@ -15,6 +15,7 @@ import me.exrates.service.ethereum.ethTokensWrappers.ethTokenERC20;
 import me.exrates.service.ethereum.ethTokensWrappers.ethTokenNotERC20;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -302,8 +303,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 put("hash", tx.getTransactionHash());
             }};
         } catch (Exception e) {
-            log.error(e);
-            throw new MerchantException("error sending transaction");
+            log.error("error sending tx {}", e);
+            throw new InvalidAccountException("error sending transaction");
         }
     }
 
@@ -337,7 +338,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger()).send();
             log.info("response {}", tx);
             if (!tx.getStatus().equals("0x1")) {
-                throw new MerchantException(tx.toString());
+                throw new InvalidAccountException(tx.toString());
             }
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
