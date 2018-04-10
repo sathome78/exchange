@@ -264,7 +264,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-
+        if (WalletUtils.isValidAddress(withdrawMerchantOperationDto.getAccountTo())) {
+            throw new InvalidAccountException(withdrawMerchantOperationDto.getAccountTo());
+        }
         if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase("ETH")) {
             return withdrawEth(withdrawMerchantOperationDto);
         } else {
@@ -305,15 +307,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 put("hash", tx.getTransactionHash());
             }};
 
-        } catch (MerchantException e){
-            log.error(e);
-            throw e;
-        } catch (RuntimeException e) {
-            log.error("error sending tx {}", e);
-            throw new InvalidAccountException(e);
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            throw new MerchantException("error sending transaction");
+            throw new MerchantException(e);
         }
     }
 
@@ -350,15 +346,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 log.error(tx);
                 throw new MerchantException(tx.toString());
             }
-        } catch (MerchantException e){
-            log.error(e);
-            throw e;
-        } catch (RuntimeException e) {
-            log.error("error sending tx {}", e);
-            throw new InvalidAccountException(e);
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            throw new MerchantException("error sending transaction");
+            throw new MerchantException(e);
         }
         return new HashMap<String, String>() {{
             put("hash", tx.getTransactionHash());
