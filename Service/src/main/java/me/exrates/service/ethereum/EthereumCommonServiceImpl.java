@@ -264,7 +264,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        if (WalletUtils.isValidAddress(withdrawMerchantOperationDto.getAccountTo())) {
+        if (!WalletUtils.isValidAddress(withdrawMerchantOperationDto.getAccountTo())) {
             throw new InvalidAccountException(withdrawMerchantOperationDto.getAccountTo());
         }
         if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase("ETH")) {
@@ -325,7 +325,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
             Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
             withdarwAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-            contract = (ethTokenERC20)method.invoke(null, tokenService.getContractAddress().get(0),
+            contract = (EthToken)method.invoke(null, tokenService.getContractAddress().get(0),
                     getWeb3j(), credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
             balance = ExConvert.fromWei(contract.balanceOf(withdrawAccAddress).send().toString(), tokenService.getUnit());
             ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
