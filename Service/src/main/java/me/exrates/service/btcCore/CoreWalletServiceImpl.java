@@ -61,6 +61,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private BtcDaemon btcDaemon;
 
   private Boolean supportInstantSend;
+  private Boolean supportSubtractFee;
 
   private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
@@ -72,7 +73,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
 
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend) {
+  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -82,6 +83,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       log.info("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
+      this.supportSubtractFee = supportSubtractFee;
     } catch (Exception e) {
       log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
@@ -108,10 +110,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   @Override
   public String getNewAddress(String walletPassword) {
+      Integer keyPoolSize = getKeypoolSize();
+
     try {
-      WalletInfo walletInfo = btcdClient.getWalletInfo();
-      Integer keyPoolSize = walletInfo.getKeypoolSize();
-      
+
       /*
       * If wallet is encrypted and locked, pool of private keys is not refilled
       * Keys are automatically refilled on unlocking
@@ -125,8 +127,24 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException("Cannot generate new address!");
     }
   }
-  
-  @Override
+
+    private Integer getKeypoolSize() {
+        Integer keyPoolSize;
+        try {
+            keyPoolSize = btcdClient.getInfo().getKeypoolSize();
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            try {
+                keyPoolSize = btcdClient.getWalletInfo().getKeypoolSize();
+            } catch (BitcoindException | CommunicationException e2) {
+                log.error(e2);
+                throw new BitcoinCoreException("Cannot generate new address!");
+            }
+        }
+        return keyPoolSize;
+    }
+
+    @Override
   public void backupWallet(String backupFolder) {
     try {
       String filename = new StringJoiner("").add(backupFolder).add("backup_")
@@ -197,22 +215,30 @@ public class CoreWalletServiceImpl implements CoreWalletService {
  
   @Override
   public BtcWalletInfoDto getWalletInfo() {
-    try {
       BtcWalletInfoDto dto = new BtcWalletInfoDto();
-      WalletInfo walletInfo = btcdClient.getWalletInfo();
-      BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
-      BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
-      BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
-      
-      dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
-      dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
-      dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
-      dto.setTransactionCount(walletInfo.getTxCount());
-      return dto;
+
+      try {
+          BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
+          dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+
+          WalletInfo walletInfo = btcdClient.getWalletInfo();
+
+          BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
+          BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
+          dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
+          dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
+          dto.setTransactionCount(walletInfo.getTxCount());
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
-    }
+          try {
+              BigDecimal spendableBalance = btcdClient.getBalance();
+              dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+          } catch (BitcoindException | CommunicationException e1) {
+              log.error(e1);
+          }
+      }
+      return dto;
+
   }
   
   @Override
@@ -292,7 +318,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       } catch (BitcoindException | CommunicationException e1) {
         log.error(e1);
       }
-      throw new BitcoinCoreException(e);
+      return new BigDecimal(-1L);
     }
   }
   
@@ -367,12 +393,29 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   private void unlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
-    Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
-    if (unlockedUntil != null && unlockedUntil == 0) {
-      btcdClient.walletPassphrase(password, authTimeout);
-    }
+    unlockWallet(password, authTimeout, false);
   }
-  
+
+  private void forceUnlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
+      unlockWallet(password, authTimeout, true);
+  }
+
+    private void unlockWallet(String password, int authTimeout, boolean forceUnlock) throws BitcoindException, CommunicationException {
+        Long unlockedUntil = getUnlockedUntil();
+        if (unlockedUntil != null && (forceUnlock || unlockedUntil == 0) ) {
+            btcdClient.walletPassphrase(password, authTimeout);
+        }
+    }
+
+    private Long getUnlockedUntil() throws BitcoindException, CommunicationException {
+        try {
+            return btcdClient.getInfo().getUnlockedUntil();
+        } catch (Exception e) {
+            log.error(e);
+            return btcdClient.getWalletInfo().getUnlockedUntil();
+        }
+    }
+
   @Override
   public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount) {
     try {
@@ -386,8 +429,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                       "", subtractFeeAddresses);
           } else {
-              txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
-                      "", subtractFeeAddresses);
+              if (supportSubtractFee) {
+                  txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                          "", subtractFeeAddresses);
+              } else {
+                  txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,"");
+              }
           }
       }
       return new BtcPaymentResultDto(txId);

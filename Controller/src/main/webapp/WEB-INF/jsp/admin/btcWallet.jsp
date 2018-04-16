@@ -32,10 +32,15 @@
             <div class="row text-center" style="font-size: 1.4rem">
                 <p class="green"><strong><loc:message code="btcWallet.balance"/>
                     <span id="current-btc-balance">${walletInfo.balance}</span> ${currency}</strong></p>
-                <p ><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
-                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> ${currency}</strong></p>
-                <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
-                    <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> ${currency}</strong></p>
+                <c:if test="${not empty walletInfo.confirmedNonSpendableBalance}">
+                    <p><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
+                        <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> ${currency}</strong></p>
+                </c:if>
+                <c:if test="${not empty walletInfo.unconfirmedBalance}">
+                    <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
+                        <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> ${currency}</strong></p>
+                </c:if>
+
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
             <div id="walletMenu" class="buttons text-center">

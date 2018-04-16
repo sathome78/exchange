@@ -16,6 +16,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.UrlEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +29,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -39,11 +45,16 @@ public class NewsServiceImpl implements NewsService {
 
     private static final Logger LOG = LogManager.getLogger(NewsServiceImpl.class);
 
+    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
     @Autowired
     private NewsDao newsDao;
 
     @Autowired
     ServiceCacheableProxy serviceCacheableProxy;
+
+    @Autowired
+    private Twitter twitter;
 
     @Override
     @Transactional(readOnly = true)
@@ -252,6 +263,29 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public List<NewsSummaryDto> findAllNewsVariants() {
         return newsDao.findAllNewsVariants();
+    }
+
+    @Override
+    public List<NewsDto> getTwitterNews(Integer amount) {
+        return twitter.timelineOperations().getUserTimeline(amount)
+                .stream()
+                .map(tweet -> {
+                    NewsDto dto = new NewsDto();
+                    dto.setTitle(this.removeUrlFromTweet(tweet));
+                    dto.setDate(tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                    dto.setRef(tweet.getIdStr());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String removeUrlFromTweet(Tweet tweet) {
+        String fullText = tweet.getText();
+        List<UrlEntity> URLs = tweet.getEntities().getUrls();
+        for (UrlEntity ue : URLs) {
+            fullText = fullText.replace(ue.getUrl(), "");
+        }
+        return fullText;
     }
 
 

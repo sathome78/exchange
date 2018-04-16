@@ -272,4 +272,9 @@ public class CurrencyServiceImpl implements CurrencyService {
   public List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType) {
     return currencyDao.findAllCurrenciesByProcessType(processType);
   }
+
+  @Override
+  public List<CurrencyPair> findPermitedCurrencyPairs(){
+    return currencyDao.findPermitedCurrencyPairs();
+  }
 }

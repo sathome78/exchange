@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
@@ -59,7 +60,9 @@ public interface MerchantDao {
 
   Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
 
-  List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
+    List<CoreWalletDto> retrieveCoreWallets();
+
+    List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
 
   MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 

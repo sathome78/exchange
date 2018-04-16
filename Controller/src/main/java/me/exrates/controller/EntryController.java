@@ -39,12 +39,14 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -88,6 +90,8 @@ public class EntryController {
     private NotificatorsService notificatorService;
     @Autowired
     private ReferralService referralService;
+    @Autowired
+    private CurrencyService currencyService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -95,6 +99,7 @@ public class EntryController {
             @RequestParam(required = false) String successNoty,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
+            @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
         if (StringUtils.isEmpty(successNoty)) {
@@ -135,6 +140,13 @@ public class EntryController {
                                                 .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                                                 .collect(Collectors.toList()));
         }
+        if (currencyPair != null){
+            currencyService.findPermitedCurrencyPairs().stream()
+                    .filter(p-> p.getName().equals(currencyPair))
+                    .limit(1)
+                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+        }
+
         return model;
     }
 

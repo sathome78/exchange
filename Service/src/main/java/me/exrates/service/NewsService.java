@@ -55,4 +55,6 @@ public interface NewsService {
     int deleteNews(News news);
 
     List<NewsSummaryDto> findAllNewsVariants();
+
+    List<NewsDto> getTwitterNews(Integer amount);
 }

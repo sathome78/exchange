@@ -11,7 +11,6 @@ import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
-import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
@@ -20,12 +19,15 @@ import me.exrates.service.ethereum.*;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.lisk.LiskService;
 import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -54,6 +56,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -97,7 +101,10 @@ import java.util.stream.Collectors;
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
     "classpath:/mail.properties",
-    "classpath:/angular.properties"})
+    "classpath:/angular.properties",
+    "classpath:/twitter.properties",
+    "classpath:/angular.properties",
+    "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -164,6 +171,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Value("${angular.allowed.origin}")
     private String angularAllowedOrigin;
+
+    @Value("${twitter.appId}")
+    private String twitterConsumerKey;
+    @Value("${twitter.appSecret}")
+    private String twitterConsumerSecret;
+    @Value("${twitter.accessToken}")
+    private String twitterAccessToken;
+    @Value("${twitter.accessTokenSecret}")
+    private String twitterAccessTokenSecret;
+
 
     @PostConstruct
     public void init() {
@@ -439,10 +456,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BCD", "BCD", 4, 20, false);
     }
 
+    @Bean(name = "plcServiceImpl")
+    public BitcoinService pbtcService() {
+        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
+                "PLC", "PLC", 4, 20, false);
+    }
+
     @Bean(name = "bcxServiceImpl")
     public BitcoinService bcxService() {
         return new BitcoinServiceImpl("merchants/bcx_wallet.properties",
                 "BCX", "BCX", 4, 20, false);
+    }
+
+    @Bean(name = "bciServiceImpl")
+    public BitcoinService bciService() {
+        return new BitcoinServiceImpl("merchants/bci_wallet.properties",
+                "BCI", "BCI", 4, 20, false);
     }
 
     @Bean(name = "occServiceImpl")
@@ -484,16 +513,30 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
-    @Bean(name = "plcServiceImpl")
-    public BitcoinService plcService() {
-        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
-                "PLC", "PLC", 4, 20, false);
+
+    @Bean(name = "szcServiceImpl")
+    public BitcoinService szcService() {
+        return new BitcoinServiceImpl("merchants/szc_wallet.properties",
+                "SZC", "SZC", 4, 20, false, false);
+    }
+
+    @Bean(name = "btxServiceImpl")
+    public BitcoinService btxService() {
+        return new BitcoinServiceImpl("merchants/btx_wallet.properties",
+                "BTX", "BTX", 4, 20, true, false);
+    }
+
+    @Bean(name = "bitdollarServiceImpl")
+    public BitcoinService bitdollarService() {
+        return new BitcoinServiceImpl("merchants/xbd_wallet.properties",
+                "BitDollar", "XBD", 4, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
-                "Ethereum", "ETH", 12);
+//                "Ethereum", "ETH", 12);
+                "Ethereum", "ETH", 2);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
@@ -671,6 +714,47 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ECHT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "idhServiceImpl")
+    public EthTokenService idhService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5136c98a80811c3f46bdda8b5c4555cfd9f812f0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IDH",
+                "IDH", false, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "cobcServiceImpl")
+    public EthTokenService cobcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6292cec07c345c6c6953e9166324f58db6d9f814");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "COBC",
+                "COBC", true, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "bcsServiceImpl")
+    public EthTokenService bcsService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x98bde3a768401260e7025faf9947ef1b81295519");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BCS",
+                "BCS", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uqcServiceImpl")
+    public EthTokenService uqcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd01db73e047855efb414e6202098c4be4cd2423b");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UQC",
+                "UQC", true, ExConvert.Unit.ETHER);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
@@ -692,6 +776,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(9000000000L),
                 10);
+    }
+
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    @Bean(name = "sltStellarService")
+    public StellarAsset sltStellarService() {
+        return new StellarAsset("SLT",
+                "SLT",
+                "SLT",
+        SLT_EMMITER);
     }
 
     @Bean
@@ -761,6 +855,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;
+    }
+
+    @Bean
+    public Twitter twitter() {
+        return new TwitterTemplate(
+                twitterConsumerKey,
+                twitterConsumerSecret,
+                twitterAccessToken,
+                twitterAccessTokenSecret);
     }
 
 }

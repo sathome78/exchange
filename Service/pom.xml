@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
-    <btcd-cli4j.version>0.5.9.11</btcd-cli4j.version>
+    <btcd-cli4j.version>0.5.9.14</btcd-cli4j.version>
   </properties>
   <dependencies>
     <dependency>

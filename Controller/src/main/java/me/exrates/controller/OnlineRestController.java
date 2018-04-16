@@ -878,6 +878,12 @@ public class OnlineRestController {
   }
 
   @OnlineMethod
+  @RequestMapping(value = "/dashboard/newsTwitter", method = RequestMethod.GET)
+  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "30")int amount) {
+    return newsService.getTwitterNews(amount);
+  }
+
+  @OnlineMethod
   @RequestMapping(value = "/dashboard/notifications/{tableId}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public List<NotificationDto> findNotificationsByUser(@PathVariable("tableId") String tableId,
                                                        @RequestParam(required = false) Boolean refreshIfNeeded,

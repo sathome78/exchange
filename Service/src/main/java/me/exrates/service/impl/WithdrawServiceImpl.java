@@ -455,7 +455,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     try {
       log.debug("before post");
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
-      log.debug("before withdraw");
+      log.debug("before withdraw {}", merchantService.getClass().getName());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       log.debug("withdrawed");
       if (transactionParams != null) {

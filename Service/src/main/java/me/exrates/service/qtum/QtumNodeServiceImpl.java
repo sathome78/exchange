@@ -123,7 +123,7 @@ public class QtumNodeServiceImpl implements QtumNodeService {
 
     @Override
     public void sendToContract(String tokenAddress, String data, String addressFrom) {
-        invokeJsonRpcMethod("sendtocontract", Arrays.asList(tokenAddress, data, 0, "250000", 0.0000004, addressFrom), new TypeReference<QtumJsonRpcResponse<QtumTransaction>>() {});
+        invokeJsonRpcMethod("sendtocontract", Arrays.asList(tokenAddress, data, 0, 250000, 0.0000004, addressFrom), new TypeReference<QtumJsonRpcResponse<QtumTransaction>>() {});
     }
 
     private <T> T invokeJsonRpcMethod(String methodName, List<Object> args, TypeReference<QtumJsonRpcResponse<T>> typeReference) {

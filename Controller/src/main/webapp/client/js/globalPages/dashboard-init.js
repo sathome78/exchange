@@ -39,6 +39,7 @@ var reconnectsCounter = 0;
 var timer;
 
 
+
 var onConnectFail = function () {
     connectedPS = false;
     setTimeout(connectAndReconnect, 5000);
@@ -545,6 +546,11 @@ function showSubPage(subPageId) {
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
+
+    if($("#preferedCurrencyPairName").val()!=""){
+        currencyPairName = $("#preferedCurrencyPairName").val();
+        $("#preferedCurrencyPairName").val("");
+    }
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');

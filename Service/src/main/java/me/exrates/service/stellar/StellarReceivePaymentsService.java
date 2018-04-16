@@ -33,6 +33,8 @@ public class StellarReceivePaymentsService {
     private StellarTransactionService stellarTransactionService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+    @Autowired
+    private StellarAsssetsContext asssetsContext;
 
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;
@@ -70,20 +72,30 @@ public class StellarReceivePaymentsService {
                     PaymentOperationResponse response = ((PaymentOperationResponse) payment);
                     log.debug(response.getAsset().getType());
                     if (response.getAsset().equals(new AssetTypeNative())) {
-                        TransactionResponse transactionResponse = null;
-                        try {
-                            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
-                        } catch (Exception e) {
-                            log.error("error getting transaction {}", e);
+                       processPayment(response, "XLM", MERCHANT_NAME);
+                    } else {
+                        log.debug("asset {}", response.getAsset().toString());
+                        StellarAsset asset = asssetsContext.getStellarAssetByAssetObject(response.getAsset());
+                        if (asset != null) {
+                            processPayment(response, asset.getCurrencyName(), asset.getMerchantName());
                         }
-                        log.debug("process transaction");
-                        stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
-                        // Record the paging token so we can start from here next time.
-                        log.debug("transaction xlm {} saved ", transactionResponse.getHash());
                     }
                 }
             }
         });
+    }
+
+    private void processPayment(PaymentOperationResponse response, String currencyName, String merchant) {
+        TransactionResponse transactionResponse = null;
+        try {
+            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
+        } catch (Exception e) {
+            log.error("error getting transaction {}", e);
+        }
+        log.debug("process transaction");
+        stellarService.onTransactionReceive(transactionResponse, response.getAmount(), currencyName, merchant);
+        // Record the paging token so we can start from here next time.
+        log.debug("transaction {} {} saved ", currencyName, transactionResponse.getHash());
     }
 
     private void checkEventSource() {

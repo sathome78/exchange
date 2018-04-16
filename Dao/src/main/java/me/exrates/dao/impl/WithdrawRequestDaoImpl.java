@@ -211,12 +211,14 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       WithdrawFilterData withdrawFilterData) {
     final String JOINS_FOR_USER =
         " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id ";
+    final String JOINS_CURRENCY_AND_MERCHANT = " JOIN CURRENCY CUR ON (CUR.id=WITHDRAW_REQUEST.currency_id) " +
+            " JOIN MERCHANT MER ON (MER.id=WITHDRAW_REQUEST.merchant_id) ";
     String filter = withdrawFilterData.getSQLFilterClause();
     String searchClause = dataTableParams.getSearchByEmailAndNickClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
             getPermissionClause(requesterUserId) +
-            JOINS_FOR_USER +
+            JOINS_FOR_USER + JOINS_CURRENCY_AND_MERCHANT +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)

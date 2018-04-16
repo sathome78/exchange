@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
@@ -448,6 +449,28 @@ public class MerchantDaoImpl implements MerchantDao {
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public List<CoreWalletDto> retrieveCoreWallets() {
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+            "FROM CRYPTO_CORE_WALLET ccw " +
+            "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
+            "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
+            "ORDER BY currency_name ASC;";
+
+    return jdbcTemplate.query(sql, (rs, row) -> {
+      CoreWalletDto dto = new CoreWalletDto();
+      dto.setId(rs.getInt("id"));
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setMerchantName(rs.getString("merchant_name"));
+      dto.setTitleCode(rs.getString("title"));
+
+      return dto;
+    });
+
   }
 
   @Override

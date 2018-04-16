@@ -89,11 +89,11 @@
 <body>
 
 <%@include file="../fragments/header.jsp" %>
-
 <main class="container">
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
+    <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">

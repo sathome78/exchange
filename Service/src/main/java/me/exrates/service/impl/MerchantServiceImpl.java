@@ -8,6 +8,7 @@ import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.*;
@@ -369,6 +370,14 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public String retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
     return merchantDao.retrieveCoreWalletCurrencyNameByMerchant(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
+  }
+
+  @Override
+  public List<CoreWalletDto> retrieveCoreWallets(Locale locale) {
+
+    List<CoreWalletDto> result = merchantDao.retrieveCoreWallets();
+    result.forEach(dto -> dto.localizeTitle(messageSource, locale));
+    return result;
   }
 
   @Override

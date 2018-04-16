@@ -83,10 +83,12 @@ public class NemRecieveTransactionsService {
                 saveLastHash(trHash);
             }
             log.debug("mosaics {}", params.get("mosaics"));
-            if (params.get("amount").equalsIgnoreCase("0")) {
+            double amountD = Double.valueOf(params.get("amount"));
+            log.debug("amountD {}", amountD);
+            if (amountD == 0) {
                 continue;
             }
-            if (params.get("mosaics") != null && params.get("amount").equalsIgnoreCase("1")) {
+            if (params.get("mosaics") != null && amountD != 1) {
                 try {
                     List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
                     nemService.processMosaicPayment(mosaics, params);

@@ -2037,6 +2037,12 @@ input[type=email], .dropdown-menu__form,
     font-size: 1.2rem;
 }
 
+#archive_news_table_wrapper {
+    height: 500px;
+    overflow: hidden;
+    display: block;
+}
+
 #notification-icon {
     position: relative;
 }

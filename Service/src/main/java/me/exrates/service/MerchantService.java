@@ -5,6 +5,7 @@ import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
@@ -70,6 +71,8 @@ public interface MerchantService {
   List<String> retrieveBtcCoreBasedMerchantNames();
 
   String retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+
+    List<CoreWalletDto> retrieveCoreWallets(Locale locale);
 
     Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount,
                                                            OperationType type,

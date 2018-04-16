@@ -130,17 +130,16 @@ public class OrderServiceImpl implements OrderService {
   public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
     ExOrderStatisticsDto result = serviceCacheableProxy.getOrderStatistic(currencyPair, backDealInterval);
     result = new ExOrderStatisticsDto(result);
-    result.setPercentChange(BigDecimalProcessing.formatLocale(BigDecimalProcessing.doAction(
-            result.getFirstOrderRate(), result.getLastOrderRate(), ActionType.PERCENT_GROWTH),
-            locale, 2));
-    result.setFirstOrderAmountBase(BigDecimalProcessing.formatLocale(result.getFirstOrderAmountBase(),locale, true));
-    result.setFirstOrderRate(BigDecimalProcessing.formatLocale(result.getFirstOrderRate(), locale, true));
-    result.setLastOrderAmountBase(BigDecimalProcessing.formatLocale(result.getLastOrderAmountBase(), locale, true));
-    result.setLastOrderRate(BigDecimalProcessing.formatLocale(result.getLastOrderRate(), locale, true));
-    result.setMinRate(BigDecimalProcessing.formatLocale(result.getMinRate(), locale, true));
-    result.setMaxRate(BigDecimalProcessing.formatLocale(result.getMaxRate(), locale, true));
-    result.setSumBase(BigDecimalProcessing.formatLocale(result.getSumBase(), locale, true));
-    result.setSumConvert(BigDecimalProcessing.formatLocale(result.getSumConvert(), locale, true));
+    result.setPercentChange(BigDecimalProcessing.formatNonePoint(BigDecimalProcessing.doAction(
+            result.getFirstOrderRate(), result.getLastOrderRate(), ActionType.PERCENT_GROWTH), 2));
+    result.setFirstOrderAmountBase(BigDecimalProcessing.formatNonePoint(result.getFirstOrderAmountBase(), true));
+    result.setFirstOrderRate(BigDecimalProcessing.formatNonePoint(result.getFirstOrderRate(), true));
+    result.setLastOrderAmountBase(BigDecimalProcessing.formatNonePoint(result.getLastOrderAmountBase(), true));
+    result.setLastOrderRate(BigDecimalProcessing.formatNonePoint(result.getLastOrderRate(), true));
+    result.setMinRate(BigDecimalProcessing.formatNonePoint(result.getMinRate(), true));
+    result.setMaxRate(BigDecimalProcessing.formatNonePoint(result.getMaxRate(), true));
+    result.setSumBase(BigDecimalProcessing.formatNonePoint(result.getSumBase(), true));
+    result.setSumConvert(BigDecimalProcessing.formatNonePoint(result.getSumConvert(), true));
     return result;
   }
 

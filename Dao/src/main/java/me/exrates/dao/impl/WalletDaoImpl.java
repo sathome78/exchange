@@ -173,7 +173,7 @@ public class WalletDaoImpl implements WalletDao {
       MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
-      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, true));
+      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
       return myWalletsStatisticsDto;
     });
   }

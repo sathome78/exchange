@@ -69,7 +69,9 @@ public class RefillRequestAdminController {
   public ModelAndView refillRequests(Principal principal) {
     final Map<String, Object> params = new HashMap<>();
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+            .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
+            .collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
     if (!permittedCurrencies.isEmpty()) {
       List<Integer> currencyList = permittedCurrencies.stream()
@@ -78,7 +80,7 @@ public class RefillRequestAdminController {
       List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.INPUT)
           .stream()
           .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-          .distinct()
+          .distinct().sorted(Comparator.comparing(Merchant::getName))
           .collect(Collectors.toList());
       params.put("merchants", merchants);
     }

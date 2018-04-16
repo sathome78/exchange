@@ -208,7 +208,6 @@ public class NewsControllerRest {
 
     }
 
-
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(NoFileForLoadingException.class)
     @ResponseBody

@@ -404,7 +404,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "currencyName",
-                    "name": "CURRENCY.name"
+                    "name": "CUR.name"
                 },
 
                 {
@@ -419,7 +419,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "merchantName",
-                    "name": "MERCHANT.name",
+                    "name": "MER.name",
                     "render": function (data, type, row) {
                         var merchantName = data;
                         var merchantImageName = '';
@@ -441,7 +441,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "txHash",
-                    "name": "WITHDRAW_REQUEST.txHash",
+                    "name": "WITHDRAW_REQUEST.transaction_hash",
                     "type": "readonly",
                     "render": function (data, type, row) {
                         if (type === 'display') {
@@ -453,7 +453,7 @@ function updateWithdrawalTable() {
                     }
                 },                {
                     "data": "destinationTag",
-                    "name": "WITHDRAW_REQUEST.destinationTag",
+                    "name": "WITHDRAW_REQUEST.destination_tag",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             var tag = data == null ? '' : data;

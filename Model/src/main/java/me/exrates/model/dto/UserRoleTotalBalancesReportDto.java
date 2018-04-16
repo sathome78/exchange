@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter @Setter
-public class UserRoleTotalBalancesReportDto<T extends Enum> {
+public class UserRoleTotalBalancesReportDto<T extends Enum & RealCheckableRole> {
 
     private String currency;
     private Map<String, BigDecimal> balances;

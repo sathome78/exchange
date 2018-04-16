@@ -87,4 +87,6 @@ public interface CurrencyService {
   CurrencyPair getCurrencyPairByName(String pairName);
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
+
+  List<CurrencyPair> findPermitedCurrencyPairs();
 }

@@ -54,7 +54,7 @@ public interface StellarService extends IRefillable, IWithdrawable {
         return false;
     }
 
-    void onTransactionReceive(TransactionResponse payment, String amount);
+    void onTransactionReceive(TransactionResponse payment, String amount, String currencyName, String merchant);
 
     @Override
     default String additionalRefillFieldName() {
@@ -64,5 +64,10 @@ public interface StellarService extends IRefillable, IWithdrawable {
     @Override
     default String additionalWithdrawFieldName() {
         return "MEMO-ID";
+    }
+
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
     }
 }
