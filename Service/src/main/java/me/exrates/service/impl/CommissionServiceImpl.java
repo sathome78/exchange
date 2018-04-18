@@ -172,11 +172,13 @@ public class CommissionServiceImpl implements CommissionService {
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;
       String merchantCommissionUnit = "%";
+      BigDecimal totalCommissionAmount;
       if (type == INPUT) {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
         amount = amount.setScale(currencyScale, ROUND_DOWN);
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
+        totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
       } else if (type == OUTPUT) {
         IWithdrawable wMerchant = (IWithdrawable)merchantServiceContext.getMerchantService(merchantId);
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
@@ -191,6 +193,7 @@ public class CommissionServiceImpl implements CommissionService {
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
         }
+        totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD).setScale(currencyScale, ROUND_DOWN);
       } else if (type == USER_TRANSFER) {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
         amount = amount.setScale(currencyScale, ROUND_DOWN);
@@ -200,10 +203,10 @@ public class CommissionServiceImpl implements CommissionService {
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
         }
+        totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
       } else {
         throw new IllegalOperationTypeException(type.name());
       }
-      BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
       BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
       if (totalAmount.compareTo(ZERO) <= 0) {
         throw new InvalidAmountException(String.format("Commission %s exceeds amount %s",
