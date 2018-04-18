@@ -185,7 +185,7 @@ public class CommissionServiceImpl implements CommissionService {
         amount = amount.setScale(currencyScale, ROUND_DOWN);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_UP);
         if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
-          merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag, merchantId, currencyId);
+          merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag, merchantId, currencyId).setScale(currencyScale, ROUND_UP);
           specMerchantComissionCount = true;
         } else {
           merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_UP);
