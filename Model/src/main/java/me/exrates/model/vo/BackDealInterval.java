@@ -1,5 +1,6 @@
 package me.exrates.model.vo;
 
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.exceptions.UnsupportedIntervalFormatException;
 import me.exrates.model.exceptions.UnsupportedIntervalTypeException;
@@ -22,12 +23,17 @@ public class BackDealInterval {
     public BackDealInterval(String intervalString) {
         try {
             this.intervalValue = Integer.valueOf(intervalString.split(" ")[0]);
-            this.intervalType = IntervalType.convert(intervalString.split(" ")[1]);
+            this.intervalType = IntervalType.valueOf(intervalString.split(" ")[1]);
         } catch (UnsupportedIntervalTypeException e) {
             throw e;
         } catch (Exception e) {
             throw new UnsupportedIntervalFormatException(intervalString);
         }
+    }
+
+    public BackDealInterval(ChartTimeFrame timeFrame) {
+        this.intervalValue = timeFrame.getTimeValue();
+        this.intervalType = timeFrame.getTimeUnit();
     }
     /**/
     public String getInterval(){
