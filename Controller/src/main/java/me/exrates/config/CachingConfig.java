@@ -39,6 +39,9 @@ public class CachingConfig extends CachingConfigurerSupport {
   @Value("${candleChart.timeToLiveSeconds}")
   Integer candleChartTimeToLiveSeconds;
 
+  @Value("${twitter.timeToLiveSeconds}")
+  Integer twitterTimeToLiveSeconds;
+
   @Bean
   public net.sf.ehcache.CacheManager ehCacheManager() {
     net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
@@ -88,6 +91,13 @@ public class CachingConfig extends CachingConfigurerSupport {
     cacheConfiguration = new CacheConfiguration();
     cacheConfiguration.setName("candleChart");
     cacheConfiguration.setTimeToLiveSeconds(candleChartTimeToLiveSeconds);
+    cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
+    cacheConfiguration.setMaxEntriesLocalHeap(1000);
+    config.addCache(cacheConfiguration);
+    /**/
+    cacheConfiguration = new CacheConfiguration();
+    cacheConfiguration.setName("twitter");
+    cacheConfiguration.setTimeToLiveSeconds(twitterTimeToLiveSeconds);
     cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
     cacheConfiguration.setMaxEntriesLocalHeap(1000);
     config.addCache(cacheConfiguration);

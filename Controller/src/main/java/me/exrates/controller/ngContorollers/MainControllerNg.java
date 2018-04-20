@@ -13,6 +13,7 @@ import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
+import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.commons.math3.geometry.partitioning.BSPTreeVisitor;
 import org.json.JSONObject;
@@ -65,7 +66,7 @@ public class MainControllerNg {
     @Autowired
     private SendMailService mailService;
     @Autowired
-    private Twitter twitter;
+    private ServiceCacheableProxy serviceCacheableProxy;
 
 
 
@@ -179,8 +180,8 @@ public class MainControllerNg {
 	}
 
     @RequestMapping(value = "/public/twitterTimeLine", method = RequestMethod.GET)
-    public List<Tweet> getTwitterPosts(@RequestParam(value = "amount", defaultValue = "30") int amount) {
-        return twitter.timelineOperations().getUserTimeline(amount);
+    public List<Tweet> getTwitterTimeline(@RequestParam(value = "size", defaultValue = "50") int size) {
+        return serviceCacheableProxy.getTwitterTimeline(size);
     }
 
 }
