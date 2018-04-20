@@ -249,6 +249,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/login", "/register", "/create", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers("/resetPasswordConfirm/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers("/forgotPassword/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+        .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()

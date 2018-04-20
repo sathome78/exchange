@@ -4,18 +4,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ChartsCache;
+import me.exrates.service.cache.ChartsCacheManager;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by Maks on 24.08.2017.
@@ -46,6 +49,8 @@ public class WsContorller {
     private UserService userService;
     @Autowired
     private UsersAlertsService usersAlertsService;
+    @Autowired
+    private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ChartsCache chartsCache;
 
@@ -68,7 +73,7 @@ public class WsContorller {
 
     @SubscribeMapping("/statistics")
     public String subscribeStatistic() {
-        return orderService.getAllCurrenciesStatForRefresh();
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
@@ -81,13 +86,16 @@ public class WsContorller {
     @SubscribeMapping("/trades/{currencyPairId}")
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
+
         return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
     }
 
-    @SubscribeMapping("/charts/{currencyPairId}/{period}")
-    public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
-        BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
-        return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
+    @SubscribeMapping("/charts/{currencyPairId}/{resolution}")
+    public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
+        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
+//        Map<String, String> data = chartsCache.getData(currencyPairId);
+        String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
+        return preparedData;
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")

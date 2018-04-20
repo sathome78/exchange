@@ -202,7 +202,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -440,9 +439,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
     }
-
-
-
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
