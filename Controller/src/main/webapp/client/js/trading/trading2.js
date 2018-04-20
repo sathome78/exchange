@@ -349,7 +349,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             $('#amount-stop').val(initialAmountString);
             calculateFieldsForStop();
             that.fillOrderBalance(currencyPairName);
-      
+
 
 
         });
@@ -503,7 +503,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     (function init(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
-        chart = new ChartAmchartsClass(currentCurrencyPair, chartSubscribeCallback);
+        chart = new ChartAmchartsClass2(currentCurrencyPair, chartSubscribeCallback);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange);

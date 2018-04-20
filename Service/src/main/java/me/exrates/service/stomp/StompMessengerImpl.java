@@ -108,7 +108,7 @@ public class StompMessengerImpl implements StompMessenger{
         sendMessageToDestination(destination, message);
     }
 
-   @Override
+    @Override
     public void sendChartData(final Integer currencyPairId) {
        Map<String, String> data = chartsCache.getData(currencyPairId);
         orderService.getIntervals().forEach(p-> {
@@ -139,9 +139,17 @@ public class StompMessengerImpl implements StompMessenger{
        return timeFrames;
     }
 
-   /* public void sendChartUpdate(Integer currencyPairId) {
-       registry.findSubscriptions(sub -> sub.).forEach(sub -> sub.);
-    }*/
+
+    private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
+       List<BackDealInterval> intervals = new ArrayList<>();
+       orderService.getIntervals().forEach(p->{
+            Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
+            if (subscribers.size() > 0) {
+                intervals.add(p);
+            }
+       });
+       return intervals;
+    }
 
     @Synchronized
     @Override
