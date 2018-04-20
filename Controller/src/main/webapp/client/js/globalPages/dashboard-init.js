@@ -23,8 +23,8 @@ var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
 var subscribedCurrencyPairId;
-var chartPeriod;
-var newChartPeriod = null;
+var chartResolution;
+var newChartResolution = null;
 
 var socket_url = '/public_socket';
 var socket;
@@ -59,9 +59,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+   /* if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartResolution != chartResolution)) {
         subscribeChart();
-    }
+    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -160,21 +160,63 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
+function subscribeChart(subscriber) {
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
-        }, headers);
+    if (currentCurrencyPairId != null) {
+        var chart = trading.getChart();
+        if (chart.isReady()) {
+            debugger;
+            var headers = {'X-CSRF-TOKEN': csrf};
+            var pathBase = '/app/charts/' + currentCurrencyPairId + '/';
+            var path = pathBase + subscriber['resolution']
+
+            chartSubscription = client.subscribe(path, function (message) {
+                var messageBody = JSON.parse(message.body);
+                var lastBarTime = subscriber['lastBarTime'];
+                var resolutionSeconds = subscriber['resolutionSeconds'];
+                var nextBarTime = lastBarTime + resolutionSeconds * 1000;
+                var nextBarNeeded = Date.now() > nextBarTime;
+
+                var nextBar = null;
+
+                for (var i = 0; i < messageBody.length; i++) {
+
+                    if (!nextBarNeeded && messageBody[i]['time'] === lastBarTime) {
+                        nextBar = messageBody[i];
+                        break;
+                    }
+
+                    if (messageBody[i]['time'] > lastBarTime) {
+                        nextBar = messageBody[i];
+                        break;
+                    }
+                }
+
+                if (nextBar !== null) {
+                    subscriber['lastBarTime'] = nextBar['time'];
+                    var chartCallback = subscriber['callback'];
+                    chartCallback(nextBar);
+                }
+
+            }, headers);
+            console.log(chartSubscription)
+
+        }
     }
 }
-
+ updateDataForSubscriber = function (t) {
+     var r = this, e = this._subscribers[t], s = parseInt((Date.now() / 1e3).toString()),
+         o = s - function (e, t) {
+             var r = 0;
+             r = "D" === e ? t : "M" === e ? 31 * t : "W" === e ? 7 * t : t * parseInt(e) / 1440;
+             return 24 * r * 60 * 60
+         }(e.resolution, 10);
+     return this._historyProvider.getBars(e.symbolInfo, e.resolution, o, s).then(function (e) {
+         r._onSubscriberDataReceived(t, e)
+     })
+ }
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
@@ -460,8 +502,8 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
-            newChartPeriod = data.period;
+            trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart);
+            newChartResolution = data.period;
             leftSider = new LeftSiderClass();
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
@@ -567,7 +609,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             currentCurrencyPairId = data.currencyPair.id;
             enableF = enableFilter;
             if (period != null) {
-                newChartPeriod = period;
+                newChartResolution = period;
             }
             subscribeAll();
             if (callback) {

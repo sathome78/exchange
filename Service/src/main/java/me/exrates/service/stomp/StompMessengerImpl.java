@@ -2,6 +2,7 @@ package me.exrates.service.stomp;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
@@ -11,21 +12,19 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
-import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.QRLoginEvent;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSubscription;
-import org.springframework.messaging.simp.user.UserDestinationMessageHandler;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +45,15 @@ public class StompMessengerImpl implements StompMessenger{
     @Autowired
     private ChartsCache chartsCache;
 
+
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    @PostConstruct
+    public void init() {
+        scheduler.scheduleAtFixedRate(() ->  registry.findSubscriptions(sub -> true)
+                        .forEach(sub -> System.out.print("")/*System.out.printf("sub: dest %s, user %s")*/),
+                1, 2, TimeUnit.MINUTES);
+    }
 
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
@@ -100,7 +108,7 @@ public class StompMessengerImpl implements StompMessenger{
         sendMessageToDestination(destination, message);
     }
 
-    @Override
+   /* @Override
     public void sendChartData(final Integer currencyPairId) {
        Map<String, String> data = chartsCache.getData(currencyPairId);
         orderService.getIntervals().forEach(p-> {
@@ -108,18 +116,32 @@ public class StompMessengerImpl implements StompMessenger{
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
             sendMessageToDestination(destination, message);
         });
+    }*/
+
+    @Override
+    public void sendChartData(final Integer currencyPairId, String resolution, String data) {
+        log.error("send chart data to {} {}", currencyPairId, resolution);
+        String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(resolution));
+        sendMessageToDestination(destination, data);
     }
 
-    private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
-       List<BackDealInterval> intervals = new ArrayList<>();
-       orderService.getIntervals().forEach(p->{
-            Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
+    @Override
+    public List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId) {
+       List<ChartTimeFrame> timeFrames = new ArrayList<>();
+       orderService.getChartTimeFrames().forEach(timeFrame -> {
+           String destination = String.join("/", "/app/charts", pairId.toString(),
+                   timeFrame.getResolution().toString());
+            Set<SimpSubscription> subscribers = findSubscribersByDestination(destination);
             if (subscribers.size() > 0) {
-                intervals.add(p);
+                timeFrames.add(timeFrame);
             }
        });
-       return intervals;
+       return timeFrames;
     }
+
+   /* public void sendChartUpdate(Integer currencyPairId) {
+       registry.findSubscriptions(sub -> sub.).forEach(sub -> sub.);
+    }*/
 
     @Synchronized
     @Override

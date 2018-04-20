@@ -201,7 +201,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
     }
 
-
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**");
+    }
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -459,7 +462,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "EtherZero", "ETZ", 12);
+                "ETZ", "ETZ", 12);
     }
 
     @Bean(name = "cloServiceImpl")
