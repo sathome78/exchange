@@ -276,7 +276,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
 
   public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
     if (autoEnabled) {
-      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) < 0) {
+      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
         return PUT_FOR_AUTO;
       } else {
         return PUT_FOR_CONFIRM;

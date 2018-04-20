@@ -7,6 +7,8 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.chart.ChartResolution;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -20,6 +22,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.*;
 import me.exrates.service.*;
+import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
@@ -67,6 +70,10 @@ public class OrderServiceImpl implements OrderService {
   private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
           .map(ChartPeriodsEnum::getBackDealInterval)
           .collect(Collectors.toList());
+
+  private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
+          .map(ChartTimeFramesEnum::getTimeFrame)
+          .collect(toList());
 
   @Autowired
   private OrderDao orderDao;
@@ -117,11 +124,18 @@ public class OrderServiceImpl implements OrderService {
   private ApplicationEventPublisher eventPublisher;
   @Autowired
   private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+  @Autowired
+  private ChartsCacheManager chartsCacheManager;
 
 
   @Override
   public List<BackDealInterval> getIntervals() {
     return intervals;
+  }
+
+  @Override
+  public List<ChartTimeFrame> getChartTimeFrames() {
+    return timeFrames;
   }
 
   @Transactional
@@ -151,10 +165,53 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional
   @Override
+  public List<CandleChartItemDto> getDataForCandleChart(int pairId, BackDealInterval interval) {
+    return getDataForCandleChart(currencyService.findCurrencyPairById(pairId), interval);
+  }
+
+  @Transactional
+  @Override
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
     return serviceCacheableProxy.getDataForCandleChart(currencyPair, interval);
   }
-  
+
+  @Transactional
+  @Override
+  public List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame) {
+    return chartsCacheManager.getData(currencyPair.getId(), timeFrame);
+  }
+
+  @Transactional
+  @Override
+  public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                            LocalDateTime startTime, ChartResolution resolution) {
+
+
+    return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(currencyPairId), startTime, LocalDateTime.now(),
+            resolution.getTimeValue(), resolution.getTimeUnit().name());
+  }
+
+  @Transactional
+  @Override
+  public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                            LocalDateTime startTime, LocalDateTime endTime,ChartResolution resolution) {
+
+    return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(currencyPairId), startTime, endTime,
+            resolution.getTimeValue(), resolution.getTimeUnit().name());
+  }
+  @Override
+  public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
+    LocalDateTime endTime = LocalDateTime.now();
+    LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
+
+    return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
+            startTime, LocalDateTime.now(), timeFrame.getResolution().getTimeValue(),
+            timeFrame.getResolution().getTimeUnit().name());
+  }
+
+
+
+
   @Override
   @Transactional
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime) {
@@ -190,25 +247,7 @@ public class OrderServiceImpl implements OrderService {
    @Transactional(readOnly = true)
    @Override
    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
-     Locale locale = Locale.ENGLISH;
-     List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
-     result = result.stream()
-             .map(ExOrderStatisticsShortByPairsDto::new)
-             .collect(toList());
-     result.forEach(e -> {
-       BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-       BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-       e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-       e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-       BigDecimal percentChange = null;
-       if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-         percentChange = BigDecimal.ZERO;
-       }  else {
-         percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-       }
-       e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-     });
-     return result;
+     return this.processStatistic(ordersStatisticByPairsCache.getCachedList());
    }
 
     @Transactional(readOnly = true)
@@ -1568,6 +1607,18 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
+  public String getAllCurrenciesStatForRefreshForAllPairs() {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.processStatistic(ordersStatisticByPairsCache.getAllPairsCahedList()),
+            RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
+    try {
+      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
+
+  @Override
   public String getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
     OrdersListWrapper wrapper = new OrdersListWrapper(this.getStatForSomeCurrencies(currencyIds),
             RefreshObjectsEnum.CURRENCY_STATISTIC.name());
@@ -1606,6 +1657,27 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
     return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
+  }
+
+  private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
+    Locale locale = Locale.ENGLISH;
+    orders = orders.stream()
+            .map(ExOrderStatisticsShortByPairsDto::new)
+            .collect(toList());
+    orders.forEach(e -> {
+      BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+      BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+      e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+      e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+      BigDecimal percentChange = null;
+      if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+        percentChange = BigDecimal.ZERO;
+      }  else {
+        percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+      }
+      e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+    });
+    return orders;
   }
 }
 

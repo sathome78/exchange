@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.chart.ChartResolution;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -189,7 +191,9 @@ public interface OrderService {
 
     List<BackDealInterval> getIntervals();
 
-    /**
+  List<ChartTimeFrame> getChartTimeFrames();
+
+  /**
    * Returns object that contains data with statistics of orders for currencyPair.
    * Statistics formed by data for certain period: from current moment to <i></>backDealInterval</i> back
    *
@@ -200,7 +204,19 @@ public interface OrderService {
    */
   ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
+    @Transactional
+    List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
+
+    @Transactional
+    List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                       LocalDateTime startTime, ChartResolution resolution);
   @Transactional
+  List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                     LocalDateTime startTime, LocalDateTime endTime , ChartResolution resolution);
+
+    List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
+
+    @Transactional
   List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
 
   /**
@@ -212,7 +228,10 @@ public interface OrderService {
    */
   List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale);
 
-  /**
+    @Transactional
+    List<CandleChartItemDto> getDataForCandleChart(int pairId, BackDealInterval interval);
+
+    /**
    * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
    *
    * @param currencyPair
@@ -331,6 +350,8 @@ public interface OrderService {
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
   String getAllCurrenciesStatForRefresh();
+
+  String getAllCurrenciesStatForRefreshForAllPairs();
 
   String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 

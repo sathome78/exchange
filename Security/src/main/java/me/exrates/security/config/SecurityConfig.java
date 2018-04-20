@@ -184,7 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
         .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
+                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/registrationConfirm/**",
             "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
         .antMatchers(POST, "/merchants/withdrawal/request/accept",
             "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
@@ -249,6 +249,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/login", "/register", "/create", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers("/resetPasswordConfirm/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers("/forgotPassword/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+        .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
