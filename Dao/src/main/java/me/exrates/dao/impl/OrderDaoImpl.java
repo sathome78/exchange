@@ -51,6 +51,8 @@ public class OrderDaoImpl implements OrderDao {
 
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
 
+    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -243,11 +245,46 @@ public class OrderDaoImpl implements OrderDao {
     
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime) {
-        String startTimeString = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String startTimeString = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String startTimeSql = String.format("STR_TO_DATE('%s', '%%Y-%%m-%%d %%H:%%i:%%s')", startTimeString);
         return getCandleChartData(currencyPair, backDealInterval, startTimeSql);
     }
-    
+
+    @Override
+    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
+        String startTimeString = startTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endTimeString = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String sql = "{call GET_DATA_FOR_CANDLE_RANGE(" +
+                "STR_TO_DATE(:start_point, '%Y-%m-%d %H:%i:%s'), " +
+                "STR_TO_DATE(:end_point, '%Y-%m-%d %H:%i:%s'), " +
+                ":step_value, :step_type, :currency_pair_id)}";
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_point", startTimeString);
+        params.put("end_point", endTimeString);
+        params.put("step_value", resolutionValue);
+        params.put("step_type", resolutionType);
+        params.put("currency_pair_id", currencyPair.getId());
+        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
+            ResultSet rs = ps.executeQuery();
+            List<CandleChartItemDto> list = new ArrayList<>();
+            while (rs.next()) {
+                CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
+                candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
+                candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
+                candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
+                candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
+                candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
+                candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
+                candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
+                candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
+                candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
+                list.add(candleChartItemDto);
+            }
+            rs.close();
+            return list;
+        });
+    }
+
     
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";

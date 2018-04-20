@@ -1,102 +1,89 @@
-/**
- * Created by Valk on 09.05.2016.
- */
 
-function ChartAmchartsClass(type, period, $loadingImg) {
-    if ($('.amcharts-graphics').css('display') == 'none') {
-        throw new Error('Amcharts chart is switched off');
-    }
+
+function ChartAmchartsClass(currencyPair, subscribeCallback) {
+
     if (ChartAmchartsClass.__instance) {
         return ChartAmchartsClass.__instance;
     } else if (this === window) {
-        return new ChartAmchartsClass(chart);
+        return new ChartAmchartsClass();
     }
     ChartAmchartsClass.__instance = this;
 
     var that = this;
 
     this.chartType = null;
+    this.currencyPair = currencyPair;
+
+    var isChartReady = false;
+
+    var timeFrames;
+
+    var datafeed;
 
     var stockChart;
 
-    this.drawChart = function (data) {
-        switch (that.chartType) {
-            case 'STOCK':
-            {
-                stockChart.draw(data);
-                break;
-            }
-        }
+    this.isReady = function () {
+        return isChartReady;
     };
 
+
+    this.switchCurrencyPair = function () {
+        var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
+
+        stockChart.setSymbol(currencyPairName, function () {
+
+            stockChart.setSymbol(currencyPairName, function () {
+
+                stockChart.resetData()
+            })
+        })
+    };
+
+
+    function initChartWidget(currencyPair) {
+        var host = window.location.href
+        datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 20000);
+        var lang = $("#language").text().toLowerCase().trim();
+        var widget = window.tvWidget = new TradingView.widget({
+            // debug: true, // uncomment this line to see Library errors and warnings in the console
+            allow_symbol_change: true,
+            autosize: true,
+            symbol: currencyPair,
+            timezone: "UTC",
+            interval: 'D',
+            container_id: "amcharts-stock_chart_div",
+            //	BEWARE: no trailing slash is expected in feed URL
+            datafeed: datafeed,
+            library_path: "/client/js/lib/charting_library/",
+            locale:  lang || "en" ,
+            //	Regression Trend-related functionality is not implemented yet, so it's hidden for a while
+            disabled_features: ["header_symbol_search", "cl_feed_return_all_data"],
+            charts_storage_api_version: "1.2",
+            time_frames: [
+                {text: "8m", resolution: "D"},
+                {text: "2m", resolution: "D"},
+                {text: "7d", resolution: "60"},
+                {text: "5d", resolution: "30"},
+                {text: "3d", resolution: "30"},
+            ]
+
+        });
+
+        widget.onChartReady(function () {
+            stockChart = widget.activeChart();
+        });
+
+    }
+
     /*==========================================*/
-    (function init(type, period, $loadingImg) {
-        stockChart = new StockChartAmchartsClass($loadingImg);
-        that.chartType = type;
-        $('.period-menu__item').on('click', setPeriod);
-        $('.chart-type-menu__item').on('click', setChart);
-        syncButtonToPeriod(period);
-    })(type, period, $loadingImg);
 
-    function setPeriod() {
-        stockChart.$loadingImg.removeClass('hidden');
-        var period;
-        var button = this;
-        switch ($(button).attr('id')) {
-            case '12hour':
-            {
-                period = '12 HOUR';
-                break;
-            }
-            case '24hour':
-            {
-                period = '24 HOUR';
-                break;
-            }
-            case '7day':
-            {
-                period = '7 DAY';
-                break;
-            }
-            case '1month':
-            {
-                period = '1 MONTH';
-                break;
-            }
-            case '6month':
-            {
-                period = '6 MONTH';
-                break;
-            }
-        }
-        syncCurrentParams(null, period, null, null, null, function (data) {
-            $(button).siblings().removeClass('active');
-            $(button).toggleClass('active');
-            trading.getAndShowStatisticsForCurrency();
-            that.drawChart(data, data.chartType);
-        });
-    }
+    (function init() {
+        $.get('/stockChart/timeFrames', function (data) {
+            timeFrames = data;
+            TradingView.onready(function () {
+            })
+            initChartWidget(currencyPair);
+        })
+    })();
 
-    function syncButtonToPeriod(period){
-        var id = period.replace(/\s/g, '').toLowerCase();
-        $('.period-menu__item').removeClass('active');
-        $('#' + id).addClass('active');
-    }
-
-    function setChart() {
-        var button = this;
-        switch ($(button).attr('id')) {
-            case 'stock':
-            {
-                chartType = 'STOCK';
-                break;
-            }
-        }
-        syncCurrentParams(null, null, chartType, null, null, function (data) {
-            $(button).siblings().removeClass('active');
-            $(button).toggleClass('active');
-            chartType = data.chartType;
-            that.drawChart();
-        });
-    }
 }
