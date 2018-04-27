@@ -3,9 +3,7 @@ package me.exrates.controller.ngContorollers;
 import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.ngDto.UserSettingsDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -182,6 +180,17 @@ public class MainControllerNg {
     @RequestMapping(value = "/public/twitterTimeLine", method = RequestMethod.GET)
     public List<Tweet> getTwitterTimeline(@RequestParam(value = "size", defaultValue = "50") int size) {
         return serviceCacheableProxy.getTwitterTimeline(size);
+    }
+
+    @RequestMapping(value = "/private/myReferralStructure", method = RequestMethod.GET)
+    public RefsListContainer getRefferalStructure(@RequestParam("action") String action,
+                                                  @RequestParam(value = "userId", required = false) Integer userId,
+                                                  @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+                                                  @RequestParam(value = "page", defaultValue = "1") int page,
+                                                  RefFilterData refFilterData) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        /**/
+        return referralService.getRefsContainerForReq(action, userId, userService.getIdByEmail(email), onPage, page, refFilterData);
     }
 
 }
