@@ -7,6 +7,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -22,7 +23,9 @@ public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale);
 
-  void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
+    void setWithdrawHashAndStatus(String hash, int requestId, WithdrawStatusEnum withdrawStatusEnum);
+
+    void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
 
   void rejectError(int requestId, String reasonCode);
 

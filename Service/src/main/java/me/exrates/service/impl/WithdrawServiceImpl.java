@@ -386,6 +386,12 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   @Override
+  public void setWithdrawHashAndStatus(String hash, int requestId, WithdrawStatusEnum withdrawStatusEnum) {
+    withdrawRequestDao.setHashAndParamsById(requestId, Collections.singletonMap("hash", hash));
+    withdrawRequestDao.setStatusById(requestId, withdrawStatusEnum);
+  }
+
+  @Override
   @Transactional
   public void rejectError(int requestId, long timeoutInMinutes, String reasonCode) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
@@ -446,21 +452,23 @@ public class WithdrawServiceImpl implements WithdrawService {
     BigDecimal finalAmount = dto.getResultAmount();
     log.debug("Final amount: " + BigDecimalProcessing.formatNoneComma(finalAmount, false));
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
-        .currency(withdrawRequest.getCurrencyName())
-        .amount(finalAmount.toString())
-        .accountTo(withdrawRequest.getWallet())
-        .destinationTag(withdrawRequest.getDestinationTag())
-        .build();
+            .requestId(withdrawRequest.getId())
+            .currency(withdrawRequest.getCurrencyName())
+            .amount(finalAmount.toString())
+            .accountTo(withdrawRequest.getWallet())
+            .destinationTag(withdrawRequest.getDestinationTag())
+            .build();
     log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
     try {
       log.debug("before post");
-      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
+      WithdrawRequestFlatDto withdrawRequestResult =
+              postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded(), merchantService.asyncAutoWithdraw());
       log.debug("before withdraw {}", merchantService.getClass().getName());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       log.debug("withdrawed");
-      if (transactionParams != null) {
-            withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
-        }
+       if (transactionParams != null){
+          withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+      }
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
        try {
@@ -510,7 +518,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void postWithdrawalRequest(int requestId, Integer requesterAdminId, String txHash) {
-    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false);
+    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false, false);
     Map<String, String> transactionParams = new HashMap<>();
     transactionParams.put("id", String.valueOf(requestId));
     transactionParams.put("hash", txHash);
@@ -545,7 +553,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     return result;
   }
 
-  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId, boolean withdrawTransferringConfirmNeeded) {
+  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId, boolean withdrawTransferringConfirmNeeded, boolean asyncWithdraw) {
     ProfileData profileData = new ProfileData(1000);
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
@@ -554,8 +562,13 @@ public class WithdrawServiceImpl implements WithdrawService {
       if (currentStatus.isSuccessEndStatus()) {
         throw new WithdrawRequestAlreadyPostedException(withdrawRequest.toString());
       }
-      InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
-          withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+      InvoiceActionTypeEnum action;
+      if (asyncWithdraw) {
+        action = InvoiceActionTypeEnum.POST_ASYNC;
+      } else {
+        action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
+                withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+      }
       WithdrawStatusEnum newStatus = requesterAdminId == null ?
           (WithdrawStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);

@@ -11,6 +11,7 @@ import lombok.ToString;
 @ToString
 @Builder
 public class WithdrawMerchantOperationDto {
+  private Integer requestId;
   private String currency;
   private String amount;
   private String accountTo;

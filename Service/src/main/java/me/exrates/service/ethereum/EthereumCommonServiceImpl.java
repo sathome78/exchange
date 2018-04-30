@@ -1,43 +1,36 @@
 package me.exrates.service.ethereum;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Transaction;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.util.AtomicBigInteger;
 import me.exrates.service.*;
 import me.exrates.service.ethereum.ethTokensWrappers.EthToken;
-import me.exrates.service.ethereum.ethTokensWrappers.ethTokenERC20;
-import me.exrates.service.ethereum.ethTokensWrappers.ethTokenNotERC20;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.web3j.crypto.CipherException;
-import org.web3j.crypto.Credentials;
-import org.web3j.crypto.ECKeyPair;
-import org.web3j.crypto.WalletUtils;
+import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 import rx.Observable;
 import rx.Subscription;
 
@@ -52,6 +45,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,19 +58,10 @@ import java.util.concurrent.TimeUnit;
 public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
-    private EthereumNodeDao ethereumNodeDao;
-
-    @Autowired
     private CurrencyService currencyService;
 
     @Autowired
     private MerchantService merchantService;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
 
     @Autowired
     private MessageSource messageSource;
@@ -85,13 +70,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private RefillService refillService;
 
     @Autowired
-    private ApplicationEventPublisher eventPublisher;
-
-    @Autowired
     private MerchantSpecParamsDao specParamsDao;
 
     @Autowired
     private EthTokensContext ethTokensContext;
+
+    @Autowired
+    private WithdrawService withdrawService;
 
     private String url;
 
@@ -106,6 +91,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private final List<String> pendingTransactions = new ArrayList<>();
 
     private Web3j web3j;
+
+    private Web3j web3jForEthWithdr;
+
+    private Web3j web3jForTokensWithdr;
 
     private Observable<org.web3j.protocol.core.methods.response.Transaction> observable;
 
@@ -145,11 +134,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
-    private BigDecimal ethComissionPrice = new BigDecimal(0.0002);
+    private BigDecimal ethComissionPrice = new BigDecimal(0.0003);
     private BigDecimal ethComissionTokeWithdraw = new BigDecimal(0.003);
 
-    private static final Integer ETH_TANSFER_GAS = 21000;
-    private static final BigInteger TOKENS_TANSFER_GAS = BigInteger.valueOf(200000);
+    private static final BigInteger ETH_TANSFER_GAS = BigInteger.valueOf(31000);
+    private static final BigInteger TOKENS_TANSFER_GAS = BigInteger.valueOf(300000);
+
+    @Override
+    public boolean asyncAutoWithdraw() {
+        return merchantName.equals("Ethereum");
+    }
 
     @Override
     public Web3j getWeb3j() {
@@ -192,6 +186,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
+    private final Object ethSynchronizer = new Object();
+    private  final Object tokensSynchronizer = new Object();
+
+    private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
+
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
         try {
@@ -227,6 +226,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         merchantId = merchantService.findByName(merchantName).getId();
 
         web3j = Web3j.build(new HttpService(url));
+        web3jForEthWithdr = Web3j.build(new HttpService(url));
+        web3jForTokensWithdr = Web3j.build(new HttpService(url));
+
 
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
@@ -286,7 +288,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private HashMap<String, String> withdrawEth(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         BigDecimal ethBalance = null;
         try {
-            ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+            ethBalance = Convert.fromWei(String.valueOf(web3jForEthWithdr.ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
         } catch (IOException e) {
             log.error("error checking eth balance");
             throw new MerchantException("error checking balance");
@@ -296,39 +298,75 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW");
         }
         try {
-            TransactionReceipt tx = Transfer.sendFunds(web3j, credentialsWithdrawAcc,
-                    withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, Convert.Unit.ETHER).send();
-            log.info("eth transaction answer {}", tx);
-            if (!tx.getStatus().equals("0x1") || StringUtils.isEmpty(tx.getTransactionHash().trim())) {
-                log.error(tx);
-                throw new MerchantException(tx.toString());
+            synchronized (ethSynchronizer) {
+                log.info("try autowithdraw {}", withdrawMerchantOperationDto);
+                BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
+                BigInteger gasLimit = ETH_TANSFER_GAS;
+                BigInteger nonce = resolveNonce();
+                BigInteger amount = ExConvert.toWei(withdrawMerchantOperationDto.getAmount(), ExConvert.Unit.ETHER).toBigInteger();
+                log.info("amount {}, nonce {}, gas {} ", amount, nonce, gasLimit);
+                RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
+                        nonce, gasPrice, gasLimit, withdrawMerchantOperationDto.getAccountTo(), amount);
+                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentialsWithdrawAcc);
+                String hexValue = Numeric.toHexString(signedMessage);
+                web3jForEthWithdr.ethSendRawTransaction(hexValue).sendAsync().handleAsync((res, ex) -> {
+                    log.info("result async {} {}", res.getResult(), ex);
+                    if (ex != null || res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
+                        if (res.getError() != null) {
+                            log.info(res.getError().getMessage());
+                        }
+                        sendWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
+                    } else {
+                        withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
+                                withdrawMerchantOperationDto.getRequestId(),
+                                (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
+                    }
+                    return res;
+                });
             }
             return new HashMap<String, String>() {{
-                put("hash", tx.getTransactionHash());
             }};
-
         } catch (Exception e) {
             log.error("error sending tx {}", e);
             throw new MerchantException(e);
         }
     }
 
+    private void sendWithdrToReview(Throwable ex, int requestId) {
+        log.error(ex);
+        log.error("send to review");
+        withdrawService.setWithdrawHashAndStatus("error", requestId, WithdrawStatusEnum.WAITING_REVIEWING);
+
+    }
+
+    private BigInteger resolveNonce() throws IOException {
+        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                credentialsWithdrawAcc.getAddress(), DefaultBlockParameterName.LATEST).send();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+        if (nonce.compareTo(lastNonce.get()) <= 0) {
+            nonce = lastNonce.incrementAndGet();
+        }
+        lastNonce = new AtomicBigInteger(nonce);
+        return nonce;
+    }
+
+
+
     private HashMap<String, String> withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
                                                    EthTokenService tokenService, String merchantName) {
-        TransactionReceipt tx;
         BigDecimal withdarwAmount = null;
         EthToken contract = null;
         BigDecimal balance = null;
         BigDecimal ethBalance = null;
         try {
-            BigInteger GAS_PRICE = getWeb3j().ethGasPrice().send().getGasPrice();
+            BigInteger GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice();
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
             Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
             withdarwAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
             contract = (EthToken)method.invoke(null, tokenService.getContractAddress().get(0),
-                    getWeb3j(), credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
+                    web3jForTokensWithdr, credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
             balance = ExConvert.fromWei(contract.balanceOf(withdrawAccAddress).send().toString(), tokenService.getUnit());
-            ethBalance = Convert.fromWei(String.valueOf(getWeb3j().ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+            ethBalance = Convert.fromWei(String.valueOf(web3jForTokensWithdr.ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
             log.info("balance {}, eth balance {}", balance, ethBalance);
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
@@ -337,21 +375,29 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         if (ethBalance.compareTo(ethComissionTokeWithdraw) <= 0 || balance.compareTo(withdarwAmount) < 0) {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW for withdraw " + merchantName);
         }
-        log.info("withdraw amount {}, converted {}", withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
+        log.info("withdraw {} amount {}, converted {}",
+                merchantName, withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
         try {
-            tx = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
-                    ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger()).send();
-            log.debug("response {}", tx);
-            if (!tx.getStatus().equals("0x1") || StringUtils.isEmpty(tx.getTransactionHash())) {
-                log.error(tx);
-                throw new MerchantException(tx.toString());
+            synchronized (tokensSynchronizer) {
+                contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
+                        ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger())
+                        .sendAsync().handleAsync((res, ex) -> {
+                    log.info("result async {} {}", res.getStatus(), ex);
+                    if (ex != null || !res.getStatus().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
+                        sendWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
+                    } else {
+                        withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
+                                withdrawMerchantOperationDto.getRequestId(),
+                                (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
+                    }
+                    return res;
+                });
             }
         } catch (Exception e) {
             log.error("error sending tx {}", e);
             throw new MerchantException(e);
         }
         return new HashMap<String, String>() {{
-            put("hash", tx.getTransactionHash());
         }};
     }
 
@@ -555,7 +601,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                             currencyService.findByName(currencyName).getId(), false);
                     continue;
                 }
-
                 Credentials credentials = Credentials.create(new ECKeyPair(new BigInteger(refillRequestAddressDto.getPrivKey()),
                         new BigInteger(refillRequestAddressDto.getPubKey())));
                 log.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());

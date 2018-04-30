@@ -87,6 +87,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.POST_ASYNC, SENDED_WAITING_EXECUTION);
       schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
       schemaMap.put(InvoiceActionTypeEnum.REJECT_ERROR, DECLINED_ERROR);
     }
@@ -116,7 +117,21 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
     }
-  };
+  },
+  SENDED_WAITING_EXECUTION(16){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_ADMIN_CONFIRM);
+    }
+  },
+  WAITING_ADMIN_CONFIRM(17){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
+    }
+  }
+  ;
 
   final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
 
@@ -151,7 +166,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     for (WithdrawStatusEnum status : WithdrawStatusEnum.class.getEnumConstants()) {
       status.initSchema(status.schemaMap);
     }
-    /*check schemaMap*/
+   /*check schemaMap*/
     getBeginState();
   }
 

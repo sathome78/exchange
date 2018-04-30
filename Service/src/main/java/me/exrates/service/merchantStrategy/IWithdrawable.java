@@ -37,4 +37,8 @@ public interface IWithdrawable extends IMerchantService {
   default boolean comissionDependsOnDestinationTag() {
     return false;
   }
+
+  default boolean asyncAutoWithdraw() {
+    return false;
+  }
 }

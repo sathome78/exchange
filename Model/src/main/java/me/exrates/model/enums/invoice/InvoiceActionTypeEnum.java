@@ -89,6 +89,7 @@ public enum InvoiceActionTypeEnum {
   REJECT_ERROR,
   REQUEST_INNER_TRANSFER,
   DECLINE_MERCHANT,
+  POST_ASYNC,
   FINALIZE_POST {{
     getProperty().setLeadsToSuccessFinalState(true);
   }},
