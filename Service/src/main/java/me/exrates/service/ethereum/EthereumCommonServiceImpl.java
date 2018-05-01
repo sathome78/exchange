@@ -20,6 +20,7 @@ import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
@@ -45,10 +46,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by ajet
@@ -191,6 +189,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
+    private BlockingQueue<EthTokenWithdrawInfoDto> blockingQueue = new LinkedBlockingDeque<>();
+
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
         try {
@@ -214,6 +214,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 this.needToCheckTokens = true;
                 credentialsWithdrawAcc = Credentials.create(new ECKeyPair(new BigInteger(withdrawAccPrivateKey),
                         new BigInteger(withdrawAccPublicKey)));
+                CompletableFuture.runAsync(() -> {
+                    while (true) {
+                        try {
+                            EthTokenWithdrawInfoDto dto = blockingQueue.take();
+                            withdrawTokens(dto.getWithdrawMerchantOperationDto(), (EthTokenService) dto.getTokenService(), dto.getMerchantName());
+                        } catch (Exception e) {
+                            log.error(e);
+                        }
+                    }
+                });
             }
         } catch (IOException e) {
             log.error(e);
@@ -278,7 +288,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             List<MerchantCurrency> merchant = merchantService
                     .getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(currency.getId()), OperationType.OUTPUT);
             if (tokenService != null || merchant.size() !=1) {
-                return withdrawTokens(withdrawMerchantOperationDto, tokenService, merchant.get(0).getName());
+                return withdrawTokens(EthTokenWithdrawInfoDto.builder()
+                        .withdrawMerchantOperationDto(withdrawMerchantOperationDto)
+                        .tokenService(tokenService)
+                        .merchantName(merchant.get(0).getName())
+                        .build());
             }
         }
         throw new WithdrawRequestPostException("Currency not supported by merchant " + withdrawMerchantOperationDto.getCurrency());
@@ -351,6 +365,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
 
+    private Map withdrawTokens(EthTokenWithdrawInfoDto withdrawInfoDto) {
+        try {
+            blockingQueue.put(withdrawInfoDto);
+        } catch (InterruptedException e) {
+            log.error(e);
+        }
+        return new HashMap();
+    }
+
 
     private HashMap<String, String> withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
                                                    EthTokenService tokenService, String merchantName) {
@@ -378,27 +401,23 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         log.info("withdraw {} amount {}, converted {}",
                 merchantName, withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
         try {
-            synchronized (tokensSynchronizer) {
-                contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
+            TransactionReceipt res = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
                         ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger())
-                        .sendAsync().handleAsync((res, ex) -> {
-                    log.info("result async {} {}", res.getStatus(), ex);
-                    if (ex != null || !res.getStatus().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
-                        sendWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
-                    } else {
-                        withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
-                                withdrawMerchantOperationDto.getRequestId(),
-                                (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
-                    }
-                    return res;
-                });
+                        .send();
+            log.info("result async {} {}", res.getStatus(), res.getTransactionHash());
+            if (!res.getStatus().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
+                sendWithdrToReview(null, withdrawMerchantOperationDto.getRequestId());
+            } else {
+                withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
+                        withdrawMerchantOperationDto.getRequestId(),
+                        (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
             }
         } catch (Exception e) {
             log.error("error sending tx {}", e);
+            sendWithdrToReview(e, withdrawMerchantOperationDto.getRequestId());
             throw new MerchantException(e);
         }
-        return new HashMap<String, String>() {{
-        }};
+        return new HashMap();
     }
 
     @Override
