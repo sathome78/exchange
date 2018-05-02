@@ -22,11 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.*;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
@@ -381,8 +386,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         EthToken contract = null;
         BigDecimal balance = null;
         BigDecimal ethBalance = null;
+        BigInteger GAS_PRICE;
         try {
-            BigInteger GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice();
+            GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice().multiply(BigInteger.valueOf(2));
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
             Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
             withdarwAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
@@ -401,11 +407,25 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         log.info("withdraw {} amount {}, converted {}",
                 merchantName, withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
         try {
-            TransactionReceipt res = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
-                        ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger())
-                        .send();
-            log.info("result async {} {}", res.getStatus(), res.getTransactionHash());
-            if (!res.getStatus().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
+            BigInteger convertedAmount = ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger();
+            Function function = new Function(
+                    "transfer",  // function we're calling
+                    Arrays.asList(new Address(withdrawMerchantOperationDto.getAccountTo()), new Uint(convertedAmount)),
+                    Arrays.asList(new TypeReference<Bool>(){}));
+
+            String encodedFunction = FunctionEncoder.encode(function);
+            RawTransaction transaction = RawTransaction.createContractTransaction(resolveNonce(), GAS_PRICE, TOKENS_TANSFER_GAS,
+                    convertedAmount, encodedFunction);
+            byte[] signedMessage = TransactionEncoder.signMessage(transaction, credentialsWithdrawAcc);
+            String hexValue = Numeric.toHexString(signedMessage);
+            EthSendTransaction res = web3jForTokensWithdr.ethSendRawTransaction(hexValue).send();
+            log.info("response {} {}", res.getTransactionHash(), res.getRawResponse());
+//            TransactionReceipt res = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
+//                        ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger())
+//                        .send();
+//            log.info("result async {} {}", res.getStatus(), res.getTransactionHash());
+//            if (!res.getResult().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
+            if (res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
                 sendWithdrToReview(null, withdrawMerchantOperationDto.getRequestId());
             } else {
                 withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
