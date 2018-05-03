@@ -122,10 +122,10 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_ADMIN_CONFIRM);
+      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING_AFTER_AUTO);
     }
   },
-  WAITING_ADMIN_CONFIRM(17){
+  WAITING_REVIEWING_AFTER_AUTO(17){
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);

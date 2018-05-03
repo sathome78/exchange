@@ -1,6 +1,5 @@
 package me.exrates.service.ethereum;
 
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -20,7 +19,6 @@ import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
@@ -29,10 +27,9 @@ import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -50,6 +47,8 @@ import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -82,6 +81,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private WithdrawService withdrawService;
 
     private String url;
+
+    private String withdrawNodeUrl;
 
     private String destinationDir;
 
@@ -195,6 +196,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
     private BlockingQueue<EthTokenWithdrawInfoDto> blockingQueue = new LinkedBlockingDeque<>();
+    private Semaphore tokensWithdrawSemaphore = new Semaphore(2, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
@@ -210,6 +212,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
             if (merchantName.equals("Ethereum")){
+                this.withdrawNodeUrl = props.getProperty("ethereum.withdraw.url");
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
                 this.transferAccPublicKey = props.getProperty("ethereum.transferAccPublicKey");
@@ -223,9 +226,20 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     while (true) {
                         try {
                             EthTokenWithdrawInfoDto dto = blockingQueue.take();
-                            withdrawTokens(dto.getWithdrawMerchantOperationDto(), (EthTokenService) dto.getTokenService(), dto.getMerchantName());
+                            CompletableFuture.runAsync(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        withdrawTokens(dto.getWithdrawMerchantOperationDto(),
+                                                (EthTokenService) dto.getTokenService(), dto.getMerchantName());
+                                    } finally {
+                                        tokensWithdrawSemaphore.release();
+                                    }
+                                }
+                            });
                         } catch (Exception e) {
                             log.error(e);
+                            tokensWithdrawSemaphore.release();
                         }
                     }
                 });
@@ -241,8 +255,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         merchantId = merchantService.findByName(merchantName).getId();
 
         web3j = Web3j.build(new HttpService(url));
-        web3jForEthWithdr = Web3j.build(new HttpService(url));
-        web3jForTokensWithdr = Web3j.build(new HttpService(url));
+        web3jForEthWithdr = Web3j.build(new HttpService(withdrawNodeUrl));
+        web3jForTokensWithdr = Web3j.build(new HttpService(withdrawNodeUrl));
 
 
         scheduler.scheduleAtFixedRate(new Runnable() {
@@ -334,7 +348,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         if (res.getError() != null) {
                             log.info(res.getError().getMessage());
                         }
-                        sendWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
+                        sendAutoWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
                     } else {
                         withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
                                 withdrawMerchantOperationDto.getRequestId(),
@@ -351,10 +365,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         }
     }
 
-    private void sendWithdrToReview(Throwable ex, int requestId) {
+    private void sendAutoWithdrToReview(Throwable ex, int requestId) {
         log.error(ex);
         log.error("send to review");
-        withdrawService.setWithdrawHashAndStatus("error", requestId, WithdrawStatusEnum.WAITING_REVIEWING);
+        withdrawService.setWithdrawHashAndStatus("error", requestId, WithdrawStatusEnum.WAITING_REVIEWING_AFTER_AUTO);
 
     }
 
@@ -369,12 +383,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return nonce;
     }
 
-
     private Map withdrawTokens(EthTokenWithdrawInfoDto withdrawInfoDto) {
-        try {
-            blockingQueue.put(withdrawInfoDto);
-        } catch (InterruptedException e) {
-            log.error(e);
+        if (tokensWithdrawSemaphore.tryAcquire()) {
+            try {
+                blockingQueue.put(withdrawInfoDto);
+            } catch (InterruptedException e) {
+                log.error(e);
+                tokensWithdrawSemaphore.release();
+            }
+        } else {
+            throw new RuntimeException("withdraw queue is busy");
         }
         return new HashMap();
     }
@@ -388,7 +406,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         BigDecimal ethBalance = null;
         BigInteger GAS_PRICE;
         try {
-            GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice().multiply(BigInteger.valueOf(2));
+            GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice();
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
             Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
             withdarwAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
@@ -404,8 +422,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         if (ethBalance.compareTo(ethComissionTokeWithdraw) <= 0 || balance.compareTo(withdarwAmount) < 0) {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW for withdraw " + merchantName);
         }
-        log.info("withdraw {} amount {}, converted {}",
-                merchantName, withdarwAmount, ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger());
         try {
             BigInteger convertedAmount = ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger();
             Function function = new Function(
@@ -414,30 +430,44 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     Arrays.asList(new TypeReference<Bool>(){}));
 
             String encodedFunction = FunctionEncoder.encode(function);
-            RawTransaction transaction = RawTransaction.createContractTransaction(resolveNonce(), GAS_PRICE, TOKENS_TANSFER_GAS,
-                    convertedAmount, encodedFunction);
+            RawTransaction transaction = RawTransaction.createTransaction(resolveNonce(), GAS_PRICE, TOKENS_TANSFER_GAS,
+                     tokenService.getContractAddress().get(0), encodedFunction);
             byte[] signedMessage = TransactionEncoder.signMessage(transaction, credentialsWithdrawAcc);
             String hexValue = Numeric.toHexString(signedMessage);
             EthSendTransaction res = web3jForTokensWithdr.ethSendRawTransaction(hexValue).send();
             log.info("response {} {}", res.getTransactionHash(), res.getRawResponse());
-//            TransactionReceipt res = contract.transfer(withdrawMerchantOperationDto.getAccountTo(),
-//                        ExConvert.toWei(withdarwAmount, tokenService.getUnit()).toBigInteger())
-//                        .send();
-//            log.info("result async {} {}", res.getStatus(), res.getTransactionHash());
-//            if (!res.getResult().equals("0x1") || StringUtils.isEmpty(res.getTransactionHash().trim())) {
             if (res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
-                sendWithdrToReview(null, withdrawMerchantOperationDto.getRequestId());
+                sendAutoWithdrToReview(null, withdrawMerchantOperationDto.getRequestId());
             } else {
+                withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
+                        withdrawMerchantOperationDto.getRequestId(),
+                        WithdrawStatusEnum.SENDED_WAITING_EXECUTION);
+                waitForTxReceipt(res.getTransactionHash());
                 withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
                         withdrawMerchantOperationDto.getRequestId(),
                         (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
             }
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            sendWithdrToReview(e, withdrawMerchantOperationDto.getRequestId());
+            sendAutoWithdrToReview(e, withdrawMerchantOperationDto.getRequestId());
             throw new MerchantException(e);
         }
         return new HashMap();
+    }
+
+    private void waitForTxReceipt(String hash) {
+        EthGetTransactionReceipt receipt = null;
+        Instant start = Instant.now();
+        do {
+            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(25)) > 0) {
+                throw new RuntimeException("timeout execution");
+            }
+            try {
+                Thread.sleep(5000);
+                receipt = web3jForTokensWithdr.ethGetTransactionReceipt(hash).send();
+            } catch (Exception ignored) {
+            }
+        } while (receipt == null);
     }
 
     @Override
