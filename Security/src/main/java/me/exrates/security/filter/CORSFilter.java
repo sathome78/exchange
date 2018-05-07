@@ -32,8 +32,7 @@ public class CORSFilter extends GenericFilterBean {
 			response.setHeader("Access-Control-Allow-Origin", "http://birxa.exrates.tech");
 		}
 		response.setHeader("Access-Control-Allow-Origin", "*");*/
-		String requestUrl = request.getRemoteAddr() + ":" + request.getRemotePort();
-		response.setHeader("Access-Control-Allow-Origin", requestUrl);
+		response.setHeader("Access-Control-Allow-Origin", request.getRequestURL().toString());
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
 		response.setHeader("Access-Control-Max-Age", "3600");
