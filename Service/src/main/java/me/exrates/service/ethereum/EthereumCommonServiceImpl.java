@@ -51,6 +51,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 /**
  * Created by ajet
@@ -195,8 +196,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
-    private BlockingQueue<EthTokenWithdrawInfoDto> blockingQueue = new LinkedBlockingDeque<>();
     private Semaphore tokensWithdrawSemaphore = new Semaphore(2, true);
+    private Semaphore ethWithdrawSemaphore = new Semaphore(5, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
@@ -222,27 +223,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 this.needToCheckTokens = true;
                 credentialsWithdrawAcc = Credentials.create(new ECKeyPair(new BigInteger(withdrawAccPrivateKey),
                         new BigInteger(withdrawAccPublicKey)));
-                CompletableFuture.runAsync(() -> {
-                    while (true) {
-                        try {
-                            EthTokenWithdrawInfoDto dto = blockingQueue.take();
-                            CompletableFuture.runAsync(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        withdrawTokens(dto.getWithdrawMerchantOperationDto(),
-                                                (EthTokenService) dto.getTokenService(), dto.getMerchantName());
-                                    } finally {
-                                        tokensWithdrawSemaphore.release();
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            log.error(e);
-                            tokensWithdrawSemaphore.release();
-                        }
-                    }
-                });
             }
         } catch (IOException e) {
             log.error(e);
@@ -299,7 +279,18 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             throw new InvalidAccountException(withdrawMerchantOperationDto.getAccountTo());
         }
         if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase("ETH")) {
-            return withdrawEth(withdrawMerchantOperationDto);
+            if (ethWithdrawSemaphore.tryAcquire()) {
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        withdrawEth(withdrawMerchantOperationDto);
+                    } finally {
+                        ethWithdrawSemaphore.release();
+                    }
+                });
+                return Collections.emptyMap();
+            } else {
+                throw new RuntimeException("withdraw queue is busy");
+            }
         } else {
             Currency currency = currencyService.findByName(withdrawMerchantOperationDto.getCurrency());
             EthTokenService tokenService = ethTokensContext
@@ -307,18 +298,32 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             List<MerchantCurrency> merchant = merchantService
                     .getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(currency.getId()), OperationType.OUTPUT);
             if (tokenService != null || merchant.size() !=1) {
-                return withdrawTokens(EthTokenWithdrawInfoDto.builder()
-                        .withdrawMerchantOperationDto(withdrawMerchantOperationDto)
-                        .tokenService(tokenService)
-                        .merchantName(merchant.get(0).getName())
-                        .build());
+                if (tokensWithdrawSemaphore.tryAcquire()) {
+                    EthTokenWithdrawInfoDto dto = EthTokenWithdrawInfoDto.builder()
+                            .withdrawMerchantOperationDto(withdrawMerchantOperationDto)
+                            .tokenService(tokenService)
+                            .merchantName(merchant.get(0).getName())
+                            .build();
+                    CompletableFuture.runAsync(() -> {
+                        try {
+                            withdrawTokens(dto.getWithdrawMerchantOperationDto(),
+                                    (EthTokenService) dto.getTokenService(), dto.getMerchantName());
+                        } finally {
+                            tokensWithdrawSemaphore.release();
+                        }
+                    });
+                    return Collections.emptyMap();
+                } else {
+                    throw new RuntimeException("withdraw queue is busy");
+                }
             }
         }
         throw new WithdrawRequestPostException("Currency not supported by merchant " + withdrawMerchantOperationDto.getCurrency());
     }
 
 
-    private HashMap<String, String> withdrawEth(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+
+    private void withdrawEth(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         BigDecimal ethBalance = null;
         try {
             ethBalance = Convert.fromWei(String.valueOf(web3jForEthWithdr.ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
@@ -357,8 +362,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     return res;
                 });
             }
-            return new HashMap<String, String>() {{
-            }};
         } catch (Exception e) {
             log.error("error sending tx {}", e);
             throw new MerchantException(e);
@@ -383,22 +386,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return nonce;
     }
 
-    private Map withdrawTokens(EthTokenWithdrawInfoDto withdrawInfoDto) {
-        if (tokensWithdrawSemaphore.tryAcquire()) {
-            try {
-                blockingQueue.put(withdrawInfoDto);
-            } catch (InterruptedException e) {
-                log.error(e);
-                tokensWithdrawSemaphore.release();
-            }
-        } else {
-            throw new RuntimeException("withdraw queue is busy");
-        }
-        return new HashMap();
+    private void withdrawTokens(EthTokenWithdrawInfoDto dto) {
+
     }
 
 
-    private HashMap<String, String> withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
+    private void withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
                                                    EthTokenService tokenService, String merchantName) {
         BigDecimal withdarwAmount = null;
         EthToken contract = null;
@@ -452,7 +445,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             sendAutoWithdrToReview(e, withdrawMerchantOperationDto.getRequestId());
             throw new MerchantException(e);
         }
-        return new HashMap();
     }
 
     private void waitForTxReceipt(String hash) {
