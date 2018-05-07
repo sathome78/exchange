@@ -33,6 +33,7 @@ public class CORSFilter extends GenericFilterBean {
 		}
 		response.setHeader("Access-Control-Allow-Origin", "*");*/
 		response.setHeader("Access-Control-Allow-Origin", "http://localhost:9000");
+		response.setHeader("Access-Control-Allow-Origin", "http://dev2.exrates.tech");
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
 		response.setHeader("Access-Control-Max-Age", "3600");
