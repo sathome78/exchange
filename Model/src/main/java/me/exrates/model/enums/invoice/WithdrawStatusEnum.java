@@ -87,7 +87,6 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.POST_ASYNC, SENDED_WAITING_EXECUTION);
       schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
       schemaMap.put(InvoiceActionTypeEnum.REJECT_ERROR, DECLINED_ERROR);
     }
@@ -116,19 +115,6 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
-    }
-  },
-  SENDED_WAITING_EXECUTION(16){
-    @Override
-    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING_AFTER_AUTO);
-    }
-  },
-  WAITING_REVIEWING_AFTER_AUTO(17){
-    @Override
-    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
     }
   }
   ;

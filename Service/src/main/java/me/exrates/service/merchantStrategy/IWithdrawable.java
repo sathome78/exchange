@@ -38,7 +38,4 @@ public interface IWithdrawable extends IMerchantService {
     return false;
   }
 
-  default boolean asyncAutoWithdraw() {
-    return false;
-  }
 }

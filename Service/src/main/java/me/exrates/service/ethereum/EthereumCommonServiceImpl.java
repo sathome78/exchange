@@ -51,7 +51,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /**
  * Created by ajet
@@ -145,10 +144,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private static final BigInteger ETH_TANSFER_GAS = BigInteger.valueOf(31000);
     private static final BigInteger TOKENS_TANSFER_GAS = BigInteger.valueOf(300000);
 
-    @Override
-    public boolean asyncAutoWithdraw() {
-        return merchantName.equals("Ethereum");
-    }
 
     @Override
     public Web3j getWeb3j() {
@@ -183,6 +178,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Override
     public String getTransferAccAddress() {
         return transferAccAddress;
+    }
+
+    @Override
+    public Boolean withdrawTransferringConfirmNeeded() {
+        return true;
     }
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
@@ -252,7 +252,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 log.error(e);
             }
         }, 4, 20, TimeUnit.MINUTES);
-
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
@@ -264,7 +263,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }
             }
         }, 1, 24, TimeUnit.HOURS);
-
         checkerScheduler.scheduleWithFixedDelay(() -> {
             if (needToCheckTokens) {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
@@ -336,7 +334,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW");
         }
         try {
-            synchronized (ethSynchronizer) {
                 log.info("try autowithdraw {}", withdrawMerchantOperationDto);
                 BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
                 BigInteger gasLimit = ETH_TANSFER_GAS;
@@ -353,27 +350,20 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         if (res.getError() != null) {
                             log.info(res.getError().getMessage());
                         }
-                        sendAutoWithdrToReview(ex, withdrawMerchantOperationDto.getRequestId());
+                        withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
                     } else {
-                        withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
-                                withdrawMerchantOperationDto.getRequestId(),
-                                (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
-                    }
+                        withdrawService.setHash(withdrawMerchantOperationDto.getRequestId(), res.getTransactionHash());
+                        waitForTxReceipt(res.getTransactionHash());
+                        withdrawService.finalizePostWithdrawalRequest(withdrawMerchantOperationDto.getRequestId());
+                     }
                     return res;
                 });
-            }
         } catch (Exception e) {
             log.error("error sending tx {}", e);
             throw new MerchantException(e);
         }
     }
 
-    private void sendAutoWithdrToReview(Throwable ex, int requestId) {
-        log.error(ex);
-        log.error("send to review");
-        withdrawService.setWithdrawHashAndStatus("error", requestId, WithdrawStatusEnum.WAITING_REVIEWING_AFTER_AUTO);
-
-    }
 
     private BigInteger resolveNonce() throws IOException {
         EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
@@ -386,9 +376,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return nonce;
     }
 
-    private void withdrawTokens(EthTokenWithdrawInfoDto dto) {
-
-    }
 
 
     private void withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
@@ -430,20 +417,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             EthSendTransaction res = web3jForTokensWithdr.ethSendRawTransaction(hexValue).send();
             log.info("response {} {}", res.getTransactionHash(), res.getRawResponse());
             if (res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
-                sendAutoWithdrToReview(null, withdrawMerchantOperationDto.getRequestId());
+                withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
             } else {
-                withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
-                        withdrawMerchantOperationDto.getRequestId(),
-                        WithdrawStatusEnum.SENDED_WAITING_EXECUTION);
+                withdrawService.setHash(withdrawMerchantOperationDto.getRequestId(), res.getTransactionHash());
                 waitForTxReceipt(res.getTransactionHash());
-                withdrawService.setWithdrawHashAndStatus(res.getTransactionHash(),
-                        withdrawMerchantOperationDto.getRequestId(),
-                        (WithdrawStatusEnum) WithdrawStatusEnum.SENDED_WAITING_EXECUTION.nextState(InvoiceActionTypeEnum.FINALIZE_POST));
-            }
+                withdrawService.finalizePostWithdrawalRequest(withdrawMerchantOperationDto.getRequestId());     }
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            sendAutoWithdrToReview(e, withdrawMerchantOperationDto.getRequestId());
-            throw new MerchantException(e);
+            withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
         }
     }
 

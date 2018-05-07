@@ -23,9 +23,7 @@ public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale);
 
-    void setWithdrawHashAndStatus(String hash, int requestId, WithdrawStatusEnum withdrawStatusEnum);
-
-    void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
+  void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
 
   void rejectError(int requestId, String reasonCode);
 
@@ -77,4 +75,6 @@ public interface WithdrawService {
 
   @Transactional(readOnly = true)
   Optional<Integer> getRequestIdByHashAndMerchantId(String hash, int merchantId);
+
+  void setHash(int requestId, String hash);
 }

@@ -13,6 +13,14 @@ public enum InvoiceActionTypeButtonEnum {
   CONFIRM_ADMIN_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
+  /*new*/
+  CONFIRM_AUTO_ADMIN_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
+  RE_POST {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
+  /*---*/
   REVOKE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "transfer-table"});
   }},

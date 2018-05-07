@@ -39,11 +39,6 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     }
 
     @Override
-    default Boolean withdrawTransferringConfirmNeeded() {
-        return false;
-    }
-
-    @Override
     default Boolean additionalFieldForRefillIsUsed() {
         return false;
     }

@@ -89,7 +89,6 @@ public enum InvoiceActionTypeEnum {
   REJECT_ERROR,
   REQUEST_INNER_TRANSFER,
   DECLINE_MERCHANT,
-  POST_ASYNC,
   FINALIZE_POST {{
     getProperty().setLeadsToSuccessFinalState(true);
   }},
@@ -100,7 +99,8 @@ public enum InvoiceActionTypeEnum {
   PRESENT_VOUCHER {{
     getProperty().setActionTypeButton(SHOW_CODE_BUTTON);
     getProperty().setLeadsToSuccessFinalState(true);
-  }};
+  }}
+  ;
 
   private InvoiceActionParams property = new InvoiceActionParams();
 

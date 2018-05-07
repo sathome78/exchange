@@ -385,11 +385,6 @@ public class WithdrawServiceImpl implements WithdrawService {
     withdrawRequestDao.setHolderById(requestId, requesterAdminId);
   }
 
-  @Override
-  public void setWithdrawHashAndStatus(String hash, int requestId, WithdrawStatusEnum withdrawStatusEnum) {
-    withdrawRequestDao.setHashAndParamsById(requestId, Collections.singletonMap("hash", hash));
-    withdrawRequestDao.setStatusById(requestId, withdrawStatusEnum);
-  }
 
   @Override
   @Transactional
@@ -462,7 +457,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     try {
       log.debug("before post");
       WithdrawRequestFlatDto withdrawRequestResult =
-              postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded(), merchantService.asyncAutoWithdraw());
+              postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
       log.debug("before withdraw {}", merchantService.getClass().getName());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       log.debug("withdrawed");
@@ -518,7 +513,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void postWithdrawalRequest(int requestId, Integer requesterAdminId, String txHash) {
-    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false, false);
+    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false);
     Map<String, String> transactionParams = new HashMap<>();
     transactionParams.put("id", String.valueOf(requestId));
     transactionParams.put("hash", txHash);
@@ -553,7 +548,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     return result;
   }
 
-  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId, boolean withdrawTransferringConfirmNeeded, boolean asyncWithdraw) {
+  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId, boolean withdrawTransferringConfirmNeeded) {
     ProfileData profileData = new ProfileData(1000);
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
@@ -562,13 +557,8 @@ public class WithdrawServiceImpl implements WithdrawService {
       if (currentStatus.isSuccessEndStatus()) {
         throw new WithdrawRequestAlreadyPostedException(withdrawRequest.toString());
       }
-      InvoiceActionTypeEnum action;
-      if (asyncWithdraw) {
-        action = InvoiceActionTypeEnum.POST_ASYNC;
-      } else {
-        action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
+      InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
                 withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
-      }
       WithdrawStatusEnum newStatus = requesterAdminId == null ?
           (WithdrawStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
@@ -676,6 +666,12 @@ public class WithdrawServiceImpl implements WithdrawService {
         .build();
     return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, paramsValue);
   }
+
+  @Override
+  public void setHash(int requestId, String hash) {
+    withdrawRequestDao.setHashAndParamsById(requestId, Collections.singletonMap("hash", hash));
+  }
+
 
   private String sendWithdrawalNotification(
       WithdrawRequest withdrawRequest,
