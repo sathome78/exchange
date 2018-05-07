@@ -29,7 +29,7 @@ public class CORSFilter extends GenericFilterBean {
 		if (domain.equals("localhost")) {
 			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 		} else {
-			response.setHeader("Access-Control-Allow-Origin", "http://test.exrates.tech");
+			response.setHeader("Access-Control-Allow-Origin", "http://birxa.exrates.tech");
 		}
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
