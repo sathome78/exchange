@@ -1,7 +1,9 @@
 package me.exrates.service.stomp;
 
+import com.google.gson.GsonBuilder;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
@@ -55,7 +57,9 @@ public class StompMessengerImpl implements StompMessenger{
 
    @Override
    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
-       String message = orderService.getOrdersForRefresh(pairId, operationType, null);
+       List<OrdersListWrapper> wrappers = new ArrayList<>();
+       wrappers.add(orderService.getOrdersForRefresh(pairId, operationType, null));
+       String message = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(wrappers);
        sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
        sendMessageToDestination("/app/info/trade_orders/".concat(pairId.toString()), message);
        sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
@@ -78,7 +82,9 @@ public class StompMessengerImpl implements StompMessenger{
               }
           });
           map.forEach((k,v) -> {
-              String message = orderService.getOrdersForRefresh(pairId, operationType, k);
+              List<OrdersListWrapper> wrappers = new ArrayList<>();
+              wrappers.add(orderService.getOrdersForRefresh(pairId, operationType, k));
+              String message = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(wrappers);
               for (SimpSubscription subscription : v) {
                   sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
               }

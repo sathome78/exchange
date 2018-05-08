@@ -331,7 +331,7 @@ public interface OrderService {
 
 	Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
-  String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
+  OrdersListWrapper getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 

@@ -3,6 +3,7 @@ package me.exrates.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
@@ -131,12 +132,10 @@ public class WsContorller {
         if (cp == null) {
             return null;
         }
-        JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
-                (cp, Locale.ENGLISH, userRole), OperationType.SELL.name(), currencyPair)));
-        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
-                (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
-        return objectsArray.toString();
+        List<OrdersListWrapper> wrappers = new ArrayList<>();
+        wrappers.add(orderService.getOrdersForRefresh(currencyPair, OperationType.SELL, null));
+        wrappers.add(orderService.getOrdersForRefresh(currencyPair, OperationType.BUY, null));
+        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(wrappers);
     }
 
 }

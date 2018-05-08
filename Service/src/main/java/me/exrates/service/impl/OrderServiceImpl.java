@@ -1454,7 +1454,7 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional(readOnly = true)
   @Override
-  public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
+  public OrdersListWrapper getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
     List<OrderListDto> dtos;
     switch (operationType) {
@@ -1468,12 +1468,7 @@ public class OrderServiceImpl implements OrderService {
       }
       default: return null;
     }
-    try {
-      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name(), pairId));
-    } catch (JsonProcessingException e) {
-      log.error(e);
-      return null;
-    }
+    return new OrdersListWrapper(dtos, operationType.name(), pairId);
   }
 
   @Transactional(readOnly = true)

@@ -119,13 +119,10 @@ function subscribeTradeOrders() {
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
-        if (messageBody instanceof Array) {
-            messageBody.forEach(function(object){
+        console.log(messageBody);
+        messageBody.forEach(function(object){
                 initTradeOrders(object);
-            });
-        } else {
-            initTradeOrders(message.body);
-        }
+        });
     }, headers);
     f = enableF;
 }
@@ -307,7 +304,6 @@ function initTrades(object, currentCurrencyPair) {
 
 
 function initTradeOrders(object) {
-    object = JSON.parse(object);
     if (object.currencyPairId != subscribedCurrencyPairId) {
         return
     }
