@@ -1,5 +1,6 @@
 package me.exrates.service.ethereum;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -51,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.BiFunction;
 
 /**
  * Created by ajet
@@ -192,7 +194,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
     private final Object ethSynchronizer = new Object();
-    private  final Object tokensSynchronizer = new Object();
+    private final Object tokensSynchronizer = new Object();
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
@@ -278,13 +280,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         }
         if (withdrawMerchantOperationDto.getCurrency().equalsIgnoreCase("ETH")) {
             if (ethWithdrawSemaphore.tryAcquire()) {
-                CompletableFuture.runAsync(() -> {
-                    try {
-                        withdrawEth(withdrawMerchantOperationDto);
-                    } finally {
-                        ethWithdrawSemaphore.release();
-                    }
-                });
+                try {
+                    withdrawEth(withdrawMerchantOperationDto);
+                } finally {
+                    ethWithdrawSemaphore.release();
+                }
                 return Collections.emptyMap();
             } else {
                 throw new RuntimeException("withdraw queue is busy");
@@ -295,21 +295,19 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     .getByCurrencyId(currency.getId());
             List<MerchantCurrency> merchant = merchantService
                     .getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(currency.getId()), OperationType.OUTPUT);
-            if (tokenService != null || merchant.size() !=1) {
+            if (tokenService != null && merchant.size() == 1) {
                 if (tokensWithdrawSemaphore.tryAcquire()) {
                     EthTokenWithdrawInfoDto dto = EthTokenWithdrawInfoDto.builder()
                             .withdrawMerchantOperationDto(withdrawMerchantOperationDto)
                             .tokenService(tokenService)
                             .merchantName(merchant.get(0).getName())
                             .build();
-                    CompletableFuture.runAsync(() -> {
                         try {
                             withdrawTokens(dto.getWithdrawMerchantOperationDto(),
                                     (EthTokenService) dto.getTokenService(), dto.getMerchantName());
                         } finally {
                             tokensWithdrawSemaphore.release();
                         }
-                    });
                     return Collections.emptyMap();
                 } else {
                     throw new RuntimeException("withdraw queue is busy");
@@ -320,64 +318,40 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
 
-
+    @Synchronized(value = "ethSynchronizer")
     private void withdrawEth(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         BigDecimal ethBalance = null;
+        String hexValue;
         try {
             ethBalance = Convert.fromWei(String.valueOf(web3jForEthWithdr.ethGetBalance(getMainAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
         } catch (IOException e) {
             log.error("error checking eth balance");
-            throw new MerchantException("error checking balance");
+            throw new RuntimeException("error checking balance");
         }
         BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
         if (ethBalance.compareTo(withdrawAmount.add(ethComissionPrice)) < 0) {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW");
         }
         try {
-                log.info("try autowithdraw {}", withdrawMerchantOperationDto);
-                BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
-                BigInteger gasLimit = ETH_TANSFER_GAS;
-                BigInteger nonce = resolveNonce();
-                BigInteger amount = ExConvert.toWei(withdrawMerchantOperationDto.getAmount(), ExConvert.Unit.ETHER).toBigInteger();
-                log.info("amount {}, nonce {}, gas {} ", amount, nonce, gasLimit);
-                RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
-                        nonce, gasPrice, gasLimit, withdrawMerchantOperationDto.getAccountTo(), amount);
-                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentialsWithdrawAcc);
-                String hexValue = Numeric.toHexString(signedMessage);
-                web3jForEthWithdr.ethSendRawTransaction(hexValue).sendAsync().handleAsync((res, ex) -> {
-                    log.info("result async {} {}", res.getResult(), ex);
-                    if (ex != null || res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
-                        if (res.getError() != null) {
-                            log.info(res.getError().getMessage());
-                        }
-                        withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
-                    } else {
-                        withdrawService.setHash(withdrawMerchantOperationDto.getRequestId(), res.getTransactionHash());
-                        waitForTxReceipt(res.getTransactionHash());
-                        withdrawService.finalizePostWithdrawalRequest(withdrawMerchantOperationDto.getRequestId());
-                     }
-                    return res;
-                });
+            log.info("try autowithdraw {}", withdrawMerchantOperationDto);
+            BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
+            BigInteger gasLimit = ETH_TANSFER_GAS;
+            BigInteger nonce = resolveNonce();
+            BigInteger amount = ExConvert.toWei(withdrawMerchantOperationDto.getAmount(), ExConvert.Unit.ETHER).toBigInteger();
+            log.info("amount {}, nonce {}, gas {} ", amount, nonce, gasLimit);
+            RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
+                    nonce, gasPrice, gasLimit, withdrawMerchantOperationDto.getAccountTo(), amount);
+            byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentialsWithdrawAcc);
+            hexValue = Numeric.toHexString(signedMessage);
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            throw new MerchantException(e);
+            throw new RuntimeException(e);
         }
+        sendWithdraw(web3jForEthWithdr, hexValue, withdrawMerchantOperationDto.getRequestId());
     }
 
 
-    private BigInteger resolveNonce() throws IOException {
-        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
-                credentialsWithdrawAcc.getAddress(), DefaultBlockParameterName.LATEST).send();
-        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-        if (nonce.compareTo(lastNonce.get()) <= 0) {
-            nonce = lastNonce.incrementAndGet();
-        }
-        lastNonce = new AtomicBigInteger(nonce);
-        return nonce;
-    }
-
-
-
+    @Synchronized(value = "tokensSynchronizer")
     private void withdrawTokens(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
                                                    EthTokenService tokenService, String merchantName) {
         BigDecimal withdarwAmount = null;
@@ -385,6 +359,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         BigDecimal balance = null;
         BigDecimal ethBalance = null;
         BigInteger GAS_PRICE;
+        String hexValue;
         try {
             GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice();
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
@@ -397,7 +372,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             log.info("balance {}, eth balance {}", balance, ethBalance);
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
-            throw new MerchantException();
+            throw new RuntimeException(e);
         }
         if (ethBalance.compareTo(ethComissionTokeWithdraw) <= 0 || balance.compareTo(withdarwAmount) < 0) {
             throw new InsufficientCostsInWalletException("ETH BALANCE LOW for withdraw " + merchantName);
@@ -408,24 +383,54 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     "transfer",  // function we're calling
                     Arrays.asList(new Address(withdrawMerchantOperationDto.getAccountTo()), new Uint(convertedAmount)),
                     Arrays.asList(new TypeReference<Bool>(){}));
-
             String encodedFunction = FunctionEncoder.encode(function);
             RawTransaction transaction = RawTransaction.createTransaction(resolveNonce(), GAS_PRICE, TOKENS_TANSFER_GAS,
                      tokenService.getContractAddress().get(0), encodedFunction);
             byte[] signedMessage = TransactionEncoder.signMessage(transaction, credentialsWithdrawAcc);
-            String hexValue = Numeric.toHexString(signedMessage);
-            EthSendTransaction res = web3jForTokensWithdr.ethSendRawTransaction(hexValue).send();
-            log.info("response {} {}", res.getTransactionHash(), res.getRawResponse());
-            if (res.hasError() || StringUtils.isEmpty(res.getTransactionHash().trim())) {
-                withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
-            } else {
-                withdrawService.setHash(withdrawMerchantOperationDto.getRequestId(), res.getTransactionHash());
-                waitForTxReceipt(res.getTransactionHash());
-                withdrawService.finalizePostWithdrawalRequest(withdrawMerchantOperationDto.getRequestId());     }
+            hexValue = Numeric.toHexString(signedMessage);
         } catch (Exception e) {
             log.error("error sending tx {}", e);
-            withdrawService.rejectToReview(withdrawMerchantOperationDto.getRequestId());
+            throw new RuntimeException(e);
         }
+        sendWithdraw(web3jForTokensWithdr, hexValue, withdrawMerchantOperationDto.getRequestId());
+    }
+
+    private void sendWithdraw(Web3j web3j, String hex, int withdrawId) {
+        try {
+            web3j.ethSendRawTransaction(hex).sendAsync().handleAsync((result, ex) -> {
+                processWithdrawResult(result, ex, withdrawId);
+                return result;
+            });
+        } catch (Exception e) {
+            throw new MerchantException(e);
+        }
+    }
+
+    private void processWithdrawResult(EthSendTransaction result, Throwable ex, int withdrawRequstId) {
+        log.info("response {} {}", result.getTransactionHash(), result.getRawResponse());
+        if (ex != null || result.hasError() || StringUtils.isEmpty(result.getTransactionHash().trim())) {
+            if (result.getError() != null) {
+                log.error(result.getError().getMessage());
+            }
+            withdrawService.rejectToReview(withdrawRequstId);
+        } else {
+            withdrawService.rejectToReview(withdrawRequstId);
+            withdrawService.setHash(withdrawRequstId, result.getTransactionHash());
+            waitForTxReceipt(result.getTransactionHash());
+            withdrawService.finalizePostWithdrawalRequest(withdrawRequstId);
+        }
+    }
+
+    @Synchronized
+    private BigInteger resolveNonce() throws IOException {
+        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                credentialsWithdrawAcc.getAddress(), DefaultBlockParameterName.LATEST).send();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+        if (nonce.compareTo(lastNonce.get()) <= 0) {
+            nonce = lastNonce.incrementAndGet();
+        }
+        lastNonce = new AtomicBigInteger(nonce);
+        return nonce;
     }
 
     private void waitForTxReceipt(String hash) {
