@@ -54,7 +54,7 @@ public class NemRecieveTransactionsService {
     private @Value("${nem.address}")String address;
 
 
-    @Scheduled(initialDelay = 1000, fixedRate = 1000 * 60 * 4)
+    /*@Scheduled(initialDelay = 1000, fixedRate = 1000 * 60 * 4)*/
     public void checkTransactions() {
         log.debug("starting check nem income payments");
         String lastHash = loadLastHash();

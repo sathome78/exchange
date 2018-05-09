@@ -52,9 +52,9 @@ public class RippleWsServiceImpl {
 
     @PostConstruct
     public void init() throws IOException, DeploymentException {
-        WS_SERVER_URL = URI.create(wsUrl);
+     /*   WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
-        merchant = merchantService.findByName(XRP_MERCHANT);
+        merchant = merchantService.findByName(XRP_MERCHANT);*/
     }
 
     @OnMessage

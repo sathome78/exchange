@@ -72,7 +72,7 @@ public class StellarReceivePaymentsService {
     public void init() {
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
-        scheduler.scheduleAtFixedRate(this::checkEventSource, 20, 120, TimeUnit.SECONDS);
+       /* scheduler.scheduleAtFixedRate(this::checkEventSource, 20, 120, TimeUnit.SECONDS);*/
     }
 
     private void checkIncomePayment() {
