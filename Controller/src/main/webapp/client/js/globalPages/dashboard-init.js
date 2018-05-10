@@ -53,6 +53,10 @@ function subscribeAll() {
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
     }
+    if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
+        subscribeTrades();
+        subscribeForMyTrades();
+    }
     if (connectedPS) {
         subscribeStatistics();
         subscribeForAlerts();
@@ -61,10 +65,7 @@ function subscribeAll() {
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
     }
-    if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
-        subscribeTrades();
-        subscribeForMyTrades();
-    }
+
 }
 
 function connectAndReconnect() {
@@ -119,7 +120,6 @@ function subscribeTradeOrders() {
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
-        console.log(messageBody);
         messageBody.forEach(function(object){
                 initTradeOrders(object);
         });
@@ -129,6 +129,7 @@ function subscribeTradeOrders() {
 
 
 function subscribeTrades() {
+    console.log("subscribe to trades");
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
@@ -136,10 +137,9 @@ function subscribeTrades() {
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
         var messageBody = JSON.parse(message.body);
-        messageBody.forEach(function(object){
+        messageBody.forEach(function(object) {
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
-
     }, headers);
 }
 

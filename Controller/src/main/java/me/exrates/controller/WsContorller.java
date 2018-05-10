@@ -89,12 +89,6 @@ public class WsContorller {
 
 
     @SubscribeMapping("/trades/{currencyPairId}")
-    public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        Principal principal = headerAccessor.getUser();
-        return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
-    }
-
-    @SubscribeMapping("/info/trades/{currencyPairId}")
     public String subscribeTradesNg(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
         return orderService.getAllAndMyTradesForInitNg(currencyPairId, principal);
@@ -111,7 +105,7 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
-    @SubscribeMapping("/info/trade_orders/{currencyPairId}")
+    /*@SubscribeMapping("/info/trade_orders/{currencyPairId}")
     public String subscribeToTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
         return getSimpleTradeOrders(currencyPairId);
     }
@@ -125,7 +119,7 @@ public class WsContorller {
         orders.addAll(orderService.getAllSellOrdersEx(cp, Locale.ENGLISH, null));
         orders.addAll(orderService.getAllBuyOrdersEx(cp, Locale.ENGLISH, null));
         return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(orders);
-    }
+    }*/
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);

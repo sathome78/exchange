@@ -1488,28 +1488,7 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
-  @Transactional(readOnly = true)
-  @Override
-  public String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException {
-    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
-    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
-            new BackDealInterval("24 HOUR"),
-            100,
-            cp,
-            Locale.ENGLISH);
-    JSONArray jsonArray = new JSONArray(){{
-      put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, RefreshObjectsEnum.ALL_TRADES.name(), pairId)));
-    }};
-    if (principal != null) {
-      List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
-              new BackDealInterval("24 HOUR"),
-              100,
-              cp,
-              Locale.ENGLISH);
-      jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(myDtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
-    }
-    return jsonArray.toString();
-  }
+
 
   @Transactional(readOnly = true)
   @Override
@@ -1521,14 +1500,14 @@ public class OrderServiceImpl implements OrderService {
             100,
             cp,
             Locale.ENGLISH);
-    trades.put("ALL", dtos);
+    trades.put(RefreshObjectsEnum.ALL_TRADES.name(), dtos);
     if (principal != null) {
       List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
               new BackDealInterval("24 HOUR"),
               100,
               cp,
               Locale.ENGLISH);
-      trades.put("MY", myDtos);
+      trades.put(RefreshObjectsEnum.MY_TRADES.name(), myDtos);
     }
     return new GsonBuilder()
                             .setPrettyPrinting()

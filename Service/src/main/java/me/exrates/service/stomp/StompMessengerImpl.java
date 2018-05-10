@@ -61,7 +61,7 @@ public class StompMessengerImpl implements StompMessenger{
        wrappers.add(orderService.getOrdersForRefresh(pairId, operationType, null));
        String message = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(wrappers);
        sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
-       sendMessageToDestination("/app/info/trade_orders/".concat(pairId.toString()), message);
+      /* sendMessageToDestination("/app/info/trade_orders/".concat(pairId.toString()), message);*/
        sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
    }
 
