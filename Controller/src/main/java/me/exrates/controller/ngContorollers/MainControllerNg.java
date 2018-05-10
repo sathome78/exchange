@@ -99,12 +99,17 @@ public class MainControllerNg {
      * @return: list the data to create currency pairs menu
      * @author ValkSam
      */
-    @RequestMapping(value = "/public/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    /*@RequestMapping(value = "/public/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<CurrencyPair>> getCurrencyPairNameList(String loc) {
         Locale locale = Locale.forLanguageTag(loc);
         List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
         list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
         return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
+    }*/
+
+    @RequestMapping(value = "/public/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CurrencyPair> getCurrencyPairNameList() {
+        return currencyService.getAllCurrencyPairs();
     }
 
     @RequestMapping(value = "/private/commission/{type}", method = RequestMethod.GET)
