@@ -1494,7 +1494,7 @@ public class OrderServiceImpl implements OrderService {
     List<OrderAcceptedHistoryDto> dtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, null);
     trades.put(RefreshObjectsEnum.ALL_TRADES.name(), dtos);
     if (principal != null) {
-      List<OrderAcceptedHistoryDto> myDtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, principal.getName());
+      List<OrderAcceptedHistoryDto> myDtos = getTrades(cp, RefreshObjectsEnum.MY_TRADES, principal.getName());
       trades.put(RefreshObjectsEnum.MY_TRADES.name(), myDtos);
     }
     return new GsonBuilder()
