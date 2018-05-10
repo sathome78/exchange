@@ -1471,23 +1471,19 @@ public class OrderServiceImpl implements OrderService {
     return new OrdersListWrapper(dtos, operationType.name(), pairId);
   }
 
-  @Transactional(readOnly = true)
-  @Override
-  public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
-    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
-    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(email,
-            new BackDealInterval("24 HOUR"),
-            100,
-            cp,
-            Locale.ENGLISH);
-    try {
-      return new JSONArray(){{put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId)));}}.toString();
-    } catch (JsonProcessingException e) {
-      log.error(e);
-      return null;
-    }
-  }
 
+  @Override
+  public String getTradesForRefresh(int pairId, RefreshObjectsEnum tradesType, String email) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    Map<String, List<OrderAcceptedHistoryDto>> trades = new HashMap<>();
+    List<OrderAcceptedHistoryDto> dtos = getTrades(cp, tradesType, email);
+    trades.put(tradesType.name(), dtos);
+    return new GsonBuilder()
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create()
+            .toJson(trades);
+  }
 
 
   @Transactional(readOnly = true)
@@ -1495,26 +1491,46 @@ public class OrderServiceImpl implements OrderService {
   public String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
     Map<String, List<OrderAcceptedHistoryDto>> trades = new HashMap<>();
-    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
-            new BackDealInterval("24 HOUR"),
-            100,
-            cp,
-            Locale.ENGLISH);
+    List<OrderAcceptedHistoryDto> dtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, null);
     trades.put(RefreshObjectsEnum.ALL_TRADES.name(), dtos);
     if (principal != null) {
-      List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
-              new BackDealInterval("24 HOUR"),
-              100,
-              cp,
-              Locale.ENGLISH);
+      List<OrderAcceptedHistoryDto> myDtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, principal.getName());
       trades.put(RefreshObjectsEnum.MY_TRADES.name(), myDtos);
     }
     return new GsonBuilder()
-                            .setPrettyPrinting()
-                            .disableHtmlEscaping()
-                            .create()
-                            .toJson(trades);
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create()
+            .toJson(trades);
   }
+
+  private List<OrderAcceptedHistoryDto> getTrades(CurrencyPair cp, RefreshObjectsEnum tradesType, String email) {
+    List<OrderAcceptedHistoryDto> dtos;
+    switch (tradesType) {
+      case ALL_TRADES: {
+        dtos = this.getOrderAcceptedForPeriodEx(null,
+                new BackDealInterval("24 HOUR"),
+                100,
+                cp,
+                Locale.ENGLISH);
+        break;
+      }
+      case MY_TRADES: {
+        if (StringUtils.isEmpty(email)) {
+          throw new RuntimeException("no principal");
+        }
+           dtos = this.getOrderAcceptedForPeriodEx(email,
+                  new BackDealInterval("24 HOUR"),
+                  100,
+                  cp,
+                  Locale.ENGLISH);
+        break;
+      }
+      default: throw new RuntimeException("type not suported");
+    }
+    return dtos;
+  }
+
 
   @Override
   @Transactional(readOnly = true)

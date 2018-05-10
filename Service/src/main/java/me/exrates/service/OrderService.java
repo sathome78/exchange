@@ -321,12 +321,10 @@ public interface OrderService {
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
-  String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
-    @Transactional(readOnly = true)
-    String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
+  String getTradesForRefresh(int pairId, RefreshObjectsEnum tradesType, String email);
 
-	@Transactional(readOnly = true)
+  @Transactional(readOnly = true)
 	String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException;
 
 	Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);

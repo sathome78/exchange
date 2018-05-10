@@ -96,14 +96,14 @@ public class StompMessengerImpl implements StompMessenger{
    public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
        String userEmail = userService.getEmailById(userId);
        String destination = "/queue/personal/".concat(currencyPair.toString());
-       String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
+       String message = orderService.getTradesForRefresh(currencyPair, RefreshObjectsEnum.MY_TRADES, userEmail);
        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
    }
 
     @Override
     public void sendAllTrades(final Integer currencyPair) {
         String destination = "/app/trades/".concat(currencyPair.toString());
-        String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
+        String message = orderService.getTradesForRefresh(currencyPair, RefreshObjectsEnum.ALL_TRADES, null);
         sendMessageToDestination(destination, message);
     }
 
