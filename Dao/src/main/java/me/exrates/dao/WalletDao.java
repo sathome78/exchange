@@ -75,9 +75,11 @@ public interface WalletDao {
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
   
-  void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
+  void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved, Integer currencyId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
+
+    Wallet getWalletById(int walletId);
 }

@@ -1062,6 +1062,12 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
+  @Override
+  public String getEmailByWalletId(int walletId) {
+    final String sql = "SELECT U.email FROM USER U JOIN WALLET W ON W.user_id=U.id WHERE W.id = :id";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", walletId), String.class);
+  }
+
 
 
 }

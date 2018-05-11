@@ -173,4 +173,6 @@ public interface UserDao {
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+    String getEmailByWalletId(int walletId);
 }

@@ -1,11 +1,15 @@
 package me.exrates.service.handler;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.events.ChangeUserBalanceEvent;
 import me.exrates.model.ExOrder;
+import me.exrates.model.Wallet;
+import me.exrates.model.dto.CurrencyBalanceDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
@@ -36,6 +40,9 @@ public class OrdersEventHandleService  {
     private OrderService orderService;
     @Autowired
     private CurrencyStatisticsHandler currencyStatisticsHandler;
+    @Autowired
+    private WalletService walletService;
+
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -44,6 +51,8 @@ public class OrdersEventHandleService  {
     private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
+
+    private BalancesRefreshHandler balancesRefreshHandler = new BalancesRefreshHandler(stompMessenger);
 
 
     @Async
@@ -70,6 +79,14 @@ public class OrdersEventHandleService  {
         handleMyTrades(order);
         handleChart(order);
 
+    }
+
+    @Async
+    @TransactionalEventListener
+    void handleWalletBalanceChange(ChangeUserBalanceEvent event) {
+        Integer currencyId = event.getCurrencyId();
+        Integer walletId = (int)event.getSource();
+        balancesRefreshHandler.refresh(walletId, currencyId);
     }
 
 

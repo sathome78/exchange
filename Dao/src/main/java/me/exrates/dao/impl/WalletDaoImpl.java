@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.*;
+import me.exrates.dao.events.ChangeUserBalanceEvent;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
@@ -16,6 +17,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -46,6 +48,8 @@ public class WalletDaoImpl implements WalletDao {
   private CurrencyDao currencyDao;
   @Autowired
   private NamedParameterJdbcTemplate jdbcTemplate;
+  @Autowired
+  private ApplicationEventPublisher eventPublisher;
 
   protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
 
@@ -560,6 +564,7 @@ public class WalletDaoImpl implements WalletDao {
     return null;
   }
 
+  /*change balance*/
   @Override
   public boolean update(Wallet wallet) {
     final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance WHERE id = :id";
@@ -570,6 +575,7 @@ public class WalletDaoImpl implements WalletDao {
         put("reservedBalance", wallet.getReservedBalance());
       }
     };
+    eventPublisher.publishEvent(new ChangeUserBalanceEvent(wallet.getId(), wallet.getCurrencyId()));
     return jdbcTemplate.update(sql, params) == 1;
   }
 
@@ -741,10 +747,11 @@ public class WalletDaoImpl implements WalletDao {
       return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
     }
         /**/
+    eventPublisher.publishEvent(new ChangeUserBalanceEvent(wallet.getId(), wallet.getCurrencyId()));
     return WalletTransferStatus.SUCCESS;
   }
 
-
+  /*change balance*/
   public WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData) {
     BigDecimal amount = walletOperationData.getAmount();
     if (walletOperationData.getOperationType() == OperationType.OUTPUT) {
@@ -851,6 +858,7 @@ public class WalletDaoImpl implements WalletDao {
       walletOperationData.setTransaction(transaction);
     }
         /**/
+    eventPublisher.publishEvent(new ChangeUserBalanceEvent(wallet.getId(), wallet.getCurrencyId()));
     return WalletTransferStatus.SUCCESS;
   }
 
@@ -964,14 +972,16 @@ public class WalletDaoImpl implements WalletDao {
     });
   }
 
+  /*change wallet balance*/
   @Override
-  public void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved) {
+  public void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved, Integer currencyId) {
     String sql = "UPDATE WALLET SET active_balance = active_balance + :add_active, " +
         "reserved_balance = reserved_balance + :add_reserved WHERE id = :id";
     Map<String, Number> params = new HashMap<>();
     params.put("id", walletId);
     params.put("add_active", addedAmountActive);
     params.put("add_reserved", addedAmountReserved);
+    eventPublisher.publishEvent(new ChangeUserBalanceEvent(walletId, currencyId));
     jdbcTemplate.update(sql, params);
   }
 
@@ -1055,6 +1065,34 @@ public class WalletDaoImpl implements WalletDao {
         put("user_holder_id", walletHolderUserId);
       }};
       return jdbcTemplate.queryForList(sql, params, Integer.class).size() > 0;
+    }
+
+    @Override
+    public Wallet getWalletById(int walletId) {
+      Map<String, String> namedParameters = new HashMap<>();
+      namedParameters.put("walletId", String.valueOf(walletId));
+      String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance" +
+              "  FROM WALLET " +
+              "  WHERE WALLET.id = :walletId ";
+      namedParameters.put("walletId", String.valueOf(walletId));
+      Wallet wallet = null;
+      try {
+        wallet = jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Wallet>() {
+          @Override
+          public Wallet mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Wallet result = new Wallet();
+            result.setId(rs.getInt("wallet_id"));
+            result.setCurrencyId(rs.getInt("currency_id"));
+            result.setActiveBalance(rs.getBigDecimal("active_balance"));
+            result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+            return result;
+          }
+        });
+      } catch (EmptyResultDataAccessException e) {
+        log.error(ExceptionUtils.getStackTrace(e));
+        throw e;
+      }
+      return wallet;
     }
 
 }

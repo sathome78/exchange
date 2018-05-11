@@ -56,6 +56,7 @@ function subscribeAll() {
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
+        subscribeForMyBalance();
     }
     if (connectedPS) {
         subscribeStatistics();
@@ -109,6 +110,15 @@ function subscribeForMyTrades() {
     }, headers);
 }
 
+function subscribeForMyBalance() {
+    if (personalSubscription != undefined) {
+        personalSubscription.unsubscribe();
+    }
+    var headers = {'X-CSRF-TOKEN' : csrf};
+    personalSubscription = client.subscribe("/user/queue/balance/2" , function(message) {
+       console.log("balance" + message);
+    }, headers);
+}
 
 function subscribeTradeOrders() {
     if (ordersSubscription != undefined) {

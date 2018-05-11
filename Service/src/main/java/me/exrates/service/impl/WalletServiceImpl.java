@@ -1,8 +1,10 @@
 package me.exrates.service.impl;
 
+import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -25,9 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -169,7 +169,7 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(propagation = Propagation.NESTED)
   public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
-    walletDao.addToWalletBalance(wallet.getId(), sum, BigDecimal.ZERO);
+    walletDao.addToWalletBalance(wallet.getId(), sum, BigDecimal.ZERO, wallet.getCurrencyId());
   }
 
   @Override
@@ -180,7 +180,7 @@ public final class WalletServiceImpl implements WalletService {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
           wallet.toString());
     }
-    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), BigDecimal.ZERO);
+    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), BigDecimal.ZERO, wallet.getCurrencyId());
   }
 
   @Override
@@ -190,7 +190,7 @@ public final class WalletServiceImpl implements WalletService {
     if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
     }
-    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), sum);
+    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), sum, wallet.getCurrencyId());
   }
 
   @Override
@@ -200,7 +200,7 @@ public final class WalletServiceImpl implements WalletService {
     if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
     }
-    walletDao.addToWalletBalance(wallet.getId(), BigDecimal.ZERO, sum.negate());
+    walletDao.addToWalletBalance(wallet.getId(), BigDecimal.ZERO, sum.negate(), wallet.getCurrencyId());
   }
 
   @Override
@@ -418,5 +418,25 @@ public final class WalletServiceImpl implements WalletService {
   public boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId) {
     return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
   }
+
+  @Override
+  public String getActiveBalanceForCurrency(int currencyId, String email) {
+    int userId = userService.getIdByEmail(email);
+    Currency currency = currencyService.findById(currencyId);
+    Map<String, String> map = new HashMap<>();
+    BigDecimal activeBalance = getWalletABalance(getWalletId(userId, currencyId));
+    map.put(currency.getName(), BigDecimalProcessing.formatNonePoint(activeBalance, false));
+    return new GsonBuilder()
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create()
+            .toJson(map);
+  }
+
+  @Override
+  public Wallet getWalletById(int walletId) {
+    return walletDao.getWalletById(walletId);
+  }
+
 
 }

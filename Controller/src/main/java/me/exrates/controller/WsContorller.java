@@ -1,15 +1,12 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -17,10 +14,8 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ChartsCache;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -53,6 +48,8 @@ public class WsContorller {
     private UsersAlertsService usersAlertsService;
     @Autowired
     private ChartsCache chartsCache;
+    @Autowired
+    private WalletService walletService;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -80,6 +77,12 @@ public class WsContorller {
 	public String subscribeStatisticNg() {
     	return orderService.getAllCurrenciesStatForRefreshNg();
 	}
+
+    @SubscribeMapping("/queue/balance/{currencyId}")
+    public String subscribeCurrencyPairBalances(@DestinationVariable Integer currencyId, SimpMessageHeaderAccessor headerAccessor) {
+        Principal principal = headerAccessor.getUser();
+        return walletService.getActiveBalanceForCurrency(currencyId, principal.getName());
+    }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
     public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {

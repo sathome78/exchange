@@ -747,4 +747,9 @@ public class UserServiceImpl implements UserService {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @Override
+  public String getEmailByWalletId(int walletId) {
+    return userDao.getEmailByWalletId(walletId);
+  }
+
 }

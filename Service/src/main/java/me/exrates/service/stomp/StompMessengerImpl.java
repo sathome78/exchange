@@ -3,6 +3,7 @@ package me.exrates.service.stomp;
 import com.google.gson.GsonBuilder;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.CurrencyBalanceDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
@@ -11,19 +12,12 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.UsersAlertsService;
+import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCache;
-import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.QRLoginEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSubscription;
-import org.springframework.messaging.simp.user.UserDestinationMessageHandler;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
@@ -47,6 +41,8 @@ public class StompMessengerImpl implements StompMessenger{
     private UserService userService;
     @Autowired
     private ChartsCache chartsCache;
+    @Autowired
+    private WalletService walletService;
 
 
 
@@ -105,6 +101,18 @@ public class StompMessengerImpl implements StompMessenger{
         String destination = "/app/trades/".concat(currencyPair.toString());
         String message = orderService.getTradesForRefresh(currencyPair, RefreshObjectsEnum.ALL_TRADES, null);
         sendMessageToDestination(destination, message);
+    }
+
+    @Override
+    public void sendCurrencyBalance(int walletId, int currencyId) {
+        String destination = "/queue/balance/".concat(String.valueOf(currencyId));
+        String email = userService.getEmailByWalletId(walletId);
+        if (registry.getUser(email).getSessions().stream()
+                .flatMap(p->p.getSubscriptions().stream())
+                .anyMatch(p->p.getDestination().equals("/user".concat(destination)))) {
+            String message = walletService.getActiveBalanceForCurrency(walletId, email);
+            messagingTemplate.convertAndSendToUser(email, destination, message);
+        }
     }
 
     @Override

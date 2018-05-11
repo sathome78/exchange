@@ -113,4 +113,8 @@ public interface WalletService {
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId);
+
+    String getActiveBalanceForCurrency(int pairId, String email);
+
+    Wallet getWalletById(int walletId);
 }
