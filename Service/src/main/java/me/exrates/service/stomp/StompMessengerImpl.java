@@ -112,10 +112,8 @@ public class StompMessengerImpl implements StompMessenger{
                 .filter(p->p.getDestination().contains(destination)
                         && p.getDestination().contains(String.valueOf(currencyId)))
                 .map(SimpSubscription::getDestination).collect(Collectors.toList());
-        System.out.println("destinations "  + destinations.size());
         String message = walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId), email);
         destinations.forEach(p->{
-            System.out.println(p);
             messagingTemplate.convertAndSendToUser(email, p.replace("/user", ""), message);
         });
 
