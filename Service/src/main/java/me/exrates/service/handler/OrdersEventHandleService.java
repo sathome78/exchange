@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -52,8 +53,12 @@ public class OrdersEventHandleService  {
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
 
-    private BalancesRefreshHandler balancesRefreshHandler = new BalancesRefreshHandler(stompMessenger);
+    private BalancesRefreshHandler balancesRefreshHandler;
 
+    @PostConstruct
+    private void init() {
+        balancesRefreshHandler = new BalancesRefreshHandler(stompMessenger);
+    }
 
     @Async
     @TransactionalEventListener

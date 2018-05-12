@@ -26,6 +26,7 @@ import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -78,10 +79,15 @@ public class WsContorller {
     	return orderService.getAllCurrenciesStatForRefreshNg();
 	}
 
-    @SubscribeMapping("/queue/balance/{currencyId}")
-    public String subscribeCurrencyPairBalances(@DestinationVariable Integer currencyId, SimpMessageHeaderAccessor headerAccessor) {
+    @SubscribeMapping("/queue/balance/{currencyId1}/{currencyId2}")
+    public String subscribeCurrencyPairBalances(@DestinationVariable Integer currencyId1,
+                                                @DestinationVariable Integer currencyId2,
+                                                SimpMessageHeaderAccessor headerAccessor) {
         Principal principal = headerAccessor.getUser();
-        return walletService.getActiveBalanceForCurrency(currencyId, principal.getName());
+        if(principal == null) {
+            return "";
+        }
+        return walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId1, currencyId2), principal.getName());
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")

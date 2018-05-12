@@ -25,6 +25,10 @@ var currentCurrencyPairId;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
+var curencyId1;
+var curencyId2;
+var balance1Subscr;
+var balance2Subscr;
 
 var socket_url = '/public_socket';
 var socket;
@@ -111,12 +115,13 @@ function subscribeForMyTrades() {
 }
 
 function subscribeForMyBalance() {
-    if (personalSubscription != undefined) {
-        personalSubscription.unsubscribe();
+    if (balance1Subscr != undefined) {
+        balance1Subscr.unsubscribe();
     }
+    console.log("subscribe for new currencies " + curencyId1 + ' ' + curencyId2);
     var headers = {'X-CSRF-TOKEN' : csrf};
-    personalSubscription = client.subscribe("/user/queue/balance/2" , function(message) {
-       console.log("balance" + message);
+    balance1Subscr = client.subscribe('/user/queue/balance/' + curencyId2 + '/' + curencyId1 , function(message) {
+       console.log("balance " + message);
     }, headers);
 }
 
@@ -566,6 +571,8 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            curencyId1 = data.currencyPair.currency1.id;
+            curencyId2 = data.currencyPair.currency2.id;
             enableF = enableFilter;
             if (period != null) {
                 newChartPeriod = period;

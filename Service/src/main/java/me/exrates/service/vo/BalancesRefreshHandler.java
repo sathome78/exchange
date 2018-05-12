@@ -33,8 +33,10 @@ public class BalancesRefreshHandler {
             Thread.sleep(DELAY);
         } catch (InterruptedException e) {
             log.error(e);
+        } finally {
+            walletsSet.remove(walletId);
         }
-        walletsSet.remove(walletId);
         stompMessenger.sendCurrencyBalance(walletId, currencyId);
+
     }
 }

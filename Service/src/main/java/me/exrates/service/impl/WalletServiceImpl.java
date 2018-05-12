@@ -420,17 +420,25 @@ public final class WalletServiceImpl implements WalletService {
   }
 
   @Override
-  public String getActiveBalanceForCurrency(int currencyId, String email) {
+  public String getActiveBalanceForCurrencies(List<Integer> currencyids, String email) {
+    List<Map<String, String>> balances = new ArrayList<>();
+    currencyids.forEach(p->{
+      balances.add(getActiveBalanceForCurrency(p, email));
+    });
+    return new GsonBuilder()
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create()
+            .toJson(balances);
+  }
+
+  private Map<String, String> getActiveBalanceForCurrency(int currencyId, String email) {
     int userId = userService.getIdByEmail(email);
     Currency currency = currencyService.findById(currencyId);
     Map<String, String> map = new HashMap<>();
     BigDecimal activeBalance = getWalletABalance(getWalletId(userId, currencyId));
     map.put(currency.getName(), BigDecimalProcessing.formatNonePoint(activeBalance, false));
-    return new GsonBuilder()
-            .setPrettyPrinting()
-            .disableHtmlEscaping()
-            .create()
-            .toJson(map);
+    return map;
   }
 
   @Override

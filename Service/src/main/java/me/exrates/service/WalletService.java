@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface WalletService {
 
@@ -114,7 +115,7 @@ public interface WalletService {
 
     boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId);
 
-    String getActiveBalanceForCurrency(int pairId, String email);
+    String getActiveBalanceForCurrencies(List<Integer> currencyids, String email);
 
     Wallet getWalletById(int walletId);
 }

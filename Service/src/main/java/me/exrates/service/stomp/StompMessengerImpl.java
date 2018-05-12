@@ -105,14 +105,21 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendCurrencyBalance(int walletId, int currencyId) {
-        String destination = "/queue/balance/".concat(String.valueOf(currencyId));
+        String destination = "/queue/balance/";
         String email = userService.getEmailByWalletId(walletId);
-        if (registry.getUser(email).getSessions().stream()
+        List<String> destinations = registry.getUser(email).getSessions().stream()
                 .flatMap(p->p.getSubscriptions().stream())
-                .anyMatch(p->p.getDestination().equals("/user".concat(destination)))) {
-            String message = walletService.getActiveBalanceForCurrency(walletId, email);
-            messagingTemplate.convertAndSendToUser(email, destination, message);
-        }
+                .filter(p->p.getDestination().contains(destination)
+                        && p.getDestination().contains(String.valueOf(currencyId)))
+                .map(SimpSubscription::getDestination).collect(Collectors.toList());
+        System.out.println("destinations "  + destinations.size());
+        String message = walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId), email);
+        destinations.forEach(p->{
+            System.out.println(p);
+            messagingTemplate.convertAndSendToUser(email, p.replace("/user", ""), message);
+        });
+
+
     }
 
     @Override
