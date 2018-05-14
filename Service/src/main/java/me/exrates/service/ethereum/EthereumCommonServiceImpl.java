@@ -397,24 +397,22 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private void sendWithdraw(Web3j web3j, String hex, int withdrawId) {
         try {
-            web3j.ethSendRawTransaction(hex).sendAsync().handleAsync((result, ex) -> {
-                processWithdrawResult(result, ex, withdrawId);
-                return result;
-            });
+            EthSendTransaction result = web3j.ethSendRawTransaction(hex).send();
+            processWithdrawResult(result, withdrawId);
         } catch (Exception e) {
+            log.error(e);
             throw new MerchantException(e);
         }
     }
 
-    private void processWithdrawResult(EthSendTransaction result, Throwable ex, int withdrawRequstId) {
+    private void processWithdrawResult(EthSendTransaction result, int withdrawRequstId) {
         log.info("response {} {}", result.getTransactionHash(), result.getRawResponse());
-        if (ex != null || result.hasError() || StringUtils.isEmpty(result.getTransactionHash().trim())) {
+        if (result.hasError() || StringUtils.isEmpty(result.getTransactionHash().trim())) {
             if (result.getError() != null) {
                 log.error(result.getError().getMessage());
             }
             withdrawService.rejectToReview(withdrawRequstId);
         } else {
-            withdrawService.rejectToReview(withdrawRequstId);
             withdrawService.setHash(withdrawRequstId, result.getTransactionHash());
             waitForTxReceipt(result.getTransactionHash());
             withdrawService.finalizePostWithdrawalRequest(withdrawRequstId);
@@ -437,7 +435,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         EthGetTransactionReceipt receipt = null;
         Instant start = Instant.now();
         do {
-            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(25)) > 0) {
+            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(20)) > 0) {
                 throw new RuntimeException("timeout execution");
             }
             try {
