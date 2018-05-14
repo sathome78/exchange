@@ -137,7 +137,7 @@ $(function transferCreation() {
             currency: currency,
             merchant: merchant,
             sum: amount,
-            recipient: recipient,
+            recipient: recipientUserIsNeeded ? recipient : '',
             operationType: operationType,
         };
         sendRequest(data, finPassword);
