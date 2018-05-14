@@ -199,7 +199,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
     private Semaphore tokensWithdrawSemaphore = new Semaphore(2, true);
-    private Semaphore ethWithdrawSemaphore = new Semaphore(5, true);
+    private Semaphore ethWithdrawSemaphore = new Semaphore(2, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
