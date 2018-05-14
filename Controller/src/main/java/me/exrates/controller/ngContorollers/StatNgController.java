@@ -83,7 +83,6 @@ public class StatNgController {
         int pageSize  = 40;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
-
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Currency currency = currencyService.findByName(currencyName);
         Locale locale = userService.getUserLocaleForMobile(userEmail);

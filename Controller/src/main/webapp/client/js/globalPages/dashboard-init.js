@@ -133,6 +133,7 @@ function subscribeTradeOrders() {
     var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
+        console.log(message);
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         messageBody.forEach(function(object){

@@ -116,8 +116,6 @@ public class StompMessengerImpl implements StompMessenger{
         destinations.forEach(p->{
             messagingTemplate.convertAndSendToUser(email, p.replace("/user", ""), message);
         });
-
-
     }
 
     @Override
