@@ -40,6 +40,9 @@ var email;
 var csrf;
 var reconnectsCounter = 0;
 
+var token = 'eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbl9pZCI6MSwiZXhwaXJhdGlvbiI6MTUyODg5NTk1NDkwMywidmFsdWUiOiI1ZTdhNjJmMi1mODVlLTRkMzktYjk3NS03ZWYzZjhiZGEyNzQiLCJ1c2VybmFtZSI6ImF2dG8xMkBpLnVhIn0.X1ORubDf9CJ7HOp06v_IHYFxh_BDGUSMvqmYa-p_lUd5-2nUngJTb8ZJy0tjnMWiFeVkkoqcEcCDfejp-1Vf1A';
+
+
 var timer;
 
 
@@ -82,7 +85,7 @@ function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
     client.debug = null;
-    var headers = {'X-CSRF-TOKEN' : csrf};
+     var headers = {};
     client.connect(headers, onConnect, onConnectFail);
 }
 
@@ -90,7 +93,7 @@ function subscribeForAlerts() {
     if (alertsSubscription == undefined) {
         var lang = $("#language").text().toUpperCase().trim();
         console.log('lang ' + lang);
-        var headers = {'X-CSRF-TOKEN': csrf};
+        var headers = {};
         alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function (object) {
@@ -105,7 +108,7 @@ function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
         personalSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {};
     personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
         var messageBody = JSON.parse(message.body);
         console.log(messageBody);
@@ -119,8 +122,8 @@ function subscribeForMyBalance() {
     if (balance1Subscr != undefined) {
         balance1Subscr.unsubscribe();
     }
+    var headers = {};
     console.log("subscribe for new currencies " + curencyId1 + ' ' + curencyId2);
-    var headers = {'X-CSRF-TOKEN' : csrf};
     balance1Subscr = client.subscribe('/user/queue/balance/' + curencyId2 + '/' + curencyId1 , function(message) {
        /*console.log("balance " + message);*/
     }, headers);
@@ -130,7 +133,7 @@ function subscribeTradeOrders() {
     if (ordersSubscription != undefined) {
         ordersSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {};
     var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
@@ -149,9 +152,10 @@ function subscribeTrades() {
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : csrf};
+    var headers = {'Exrates-Rest-Token' : token};
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
+        console.log(tradesSubscription);
         var messageBody = JSON.parse(message.body);
         console.log(messageBody);
         messageBody.forEach(function(object) {

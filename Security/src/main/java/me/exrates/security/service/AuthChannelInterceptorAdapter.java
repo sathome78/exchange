@@ -8,6 +8,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.util.StringUtils;
+
 
 public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	private static final String TOKEN_HEADER = "Exrates-Rest-Token";
@@ -22,7 +24,8 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-		if(StompCommand.SEND == accessor.getCommand()){
+		if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())
+				&& !StringUtils.isEmpty(accessor.getFirstNativeHeader(TOKEN_HEADER))) {
 			final String token = accessor.getFirstNativeHeader(TOKEN_HEADER);
 			final String ip = accessor.getFirstNativeHeader(IP_HEADER);
 
