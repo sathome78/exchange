@@ -1509,7 +1509,7 @@ public class OrderServiceImpl implements OrderService {
     switch (tradesType) {
       case ALL_TRADES: {
         dtos = this.getOrderAcceptedForPeriodEx(null,
-                new BackDealInterval("24 HOUR"),
+                new BackDealInterval("90 DAY"),
                 100,
                 cp,
                 Locale.ENGLISH);
@@ -1520,7 +1520,7 @@ public class OrderServiceImpl implements OrderService {
           throw new RuntimeException("no principal");
         }
            dtos = this.getOrderAcceptedForPeriodEx(email,
-                  new BackDealInterval("24 HOUR"),
+                  new BackDealInterval("90 DAY"),
                   100,
                   cp,
                   Locale.ENGLISH);

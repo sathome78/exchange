@@ -20,7 +20,7 @@
           <label class="control-label" for="recipient">
             <loc:message code="merchants.modalTransferRecipient"/>
           </label>
-          <input class="form-control" autofocus type="text" id="recipient">
+          <input class="form-control" autofocus type="text" id="recipient" value="" autocomplete="off">
         </div>
         <div class="timeoutWarning">
           <c:forEach var="warningCode" items="${warningCodeList}">

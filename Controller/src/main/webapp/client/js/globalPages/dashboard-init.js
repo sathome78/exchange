@@ -108,6 +108,7 @@ function subscribeForMyTrades() {
     var headers = {'X-CSRF-TOKEN' : csrf};
     personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
         var messageBody = JSON.parse(message.body);
+        console.log(messageBody);
         messageBody.forEach(function(object){
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
@@ -121,7 +122,7 @@ function subscribeForMyBalance() {
     console.log("subscribe for new currencies " + curencyId1 + ' ' + curencyId2);
     var headers = {'X-CSRF-TOKEN' : csrf};
     balance1Subscr = client.subscribe('/user/queue/balance/' + curencyId2 + '/' + curencyId1 , function(message) {
-       console.log("balance " + message);
+       /*console.log("balance " + message);*/
     }, headers);
 }
 
@@ -133,7 +134,6 @@ function subscribeTradeOrders() {
     var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
-        console.log(message);
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         messageBody.forEach(function(object){
@@ -153,6 +153,7 @@ function subscribeTrades() {
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
         var messageBody = JSON.parse(message.body);
+        console.log(messageBody);
         messageBody.forEach(function(object) {
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });
