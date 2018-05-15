@@ -11,6 +11,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.dto.ngDto.MerchantCurrencyShortDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -41,6 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
@@ -79,27 +81,37 @@ public class WithdarwControllerNg {
 
     private Map<UUID, WithdrawRequestCreateDto> unconfirmedWithdraws = new ConcurrentReferenceHashMap<>();
 
+    /*todo exclude not needed fields from respone*/
     @RequestMapping(value = "/merchants/output", method = GET)
     public WithdrawDataDto outputCredits(
             @RequestParam("currency") String currencyName) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         WithdrawDataDto response = new WithdrawDataDto();
-        OperationType operationType = OUTPUT;
         Currency currency = currencyService.findByName(currencyName);
-        response.setCurrency(currency);
+       /* response.setCurrency(currency);*/
         Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(userEmail), currency);
-        response.setWallet(wallet);
+        response.setUserId(wallet.getUser().getId());
+        response.setActiveBalance(wallet.getActiveBalance());
+        response.setBalanceAndName(wallet.getFullName());
         response.setBalance(BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
-        Payment payment = new Payment();
+        /*Payment payment = new Payment();
         payment.setOperationType(operationType);
-        response.setPayment(payment);
+        response.setPayment(payment);*/
+        OperationType operationType = OUTPUT;
+        response.setOperationType(operationType);
         BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
         response.setMinWithdrawSum(minWithdrawSum);
         Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
         response.setScaleForCurrency(scaleForCurrency);
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
-        List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
+        List<MerchantCurrencyShortDto> merchantCurrencyData = merchantService
+                .getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType)
+                .stream()
+                .map(p -> new MerchantCurrencyShortDto(p, operationType)).collect(Collectors.toList());
+        withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrenciesDto(merchantCurrencyData);
+        if (!merchantCurrencyData.isEmpty()) {
+            response.setProcessType(merchantCurrencyData.get(0).getProcessType());
+        }
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
         response.setWarningCodeList(warningCodeList);
@@ -196,10 +208,10 @@ public class WithdarwControllerNg {
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
             @RequestParam("merchant") Integer merchantId,
-            @RequestParam(value = "memo", required = false) String memo,
-            Principal principal,
-            Locale locale) {
-        Integer userId = userService.getIdByEmail(principal.getName());
+            @RequestParam(value = "memo", required = false) String memo) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        Integer userId = userService.getIdByEmail(userEmail);
         if (!StringUtils.isEmpty(memo)) {
             merchantService.checkDestinationTag(merchantId, memo);
         }

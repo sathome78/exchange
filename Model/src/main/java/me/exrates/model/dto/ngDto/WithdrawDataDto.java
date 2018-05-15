@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
+import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,15 +16,18 @@ import java.util.List;
 @Data
 public class WithdrawDataDto {
 
-    private Currency currency;
-    private Wallet wallet;
-    private Payment payment;
+  /*  private Currency currency;*/
+    private BigDecimal activeBalance;
+    private String balanceAndName;
+    private int userId;
+    private OperationType operationType;
     private BigDecimal minWithdrawSum;
     private Integer scaleForCurrency;
     private List<Integer> currenciesId;
-    private List<MerchantCurrency> merchantCurrencyData;
+    private List<MerchantCurrencyShortDto> merchantCurrencyData;
     private List<String> warningCodeList;
     private String balance;
+    private String processType;
 
 
 }

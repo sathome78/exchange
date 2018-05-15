@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.ngDto.MerchantCurrencyShortDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -209,6 +210,25 @@ public class WithdrawServiceImpl implements WithdrawService {
               e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
               e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           }
+      }
+    });
+    return merchantCurrencies;
+  }
+
+  @Override
+  @Transactional
+  public List<MerchantCurrencyShortDto> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrenciesDto(List<MerchantCurrencyShortDto> merchantCurrencies) {
+    merchantCurrencies.forEach(e -> {
+      IMerchantService merchant = merchantServiceContext.getMerchantService(e.getMerchantId());
+      if (merchant instanceof IWithdrawable) {
+        IWithdrawable merchantService = (IWithdrawable) merchant;
+        e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+        if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+         /* e.setMainAddress(merchantService.getMainAddress());*/
+          e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
+          e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
+          e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
+        }
       }
     });
     return merchantCurrencies;
