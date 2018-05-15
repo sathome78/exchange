@@ -5,10 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.ngDto.UserSettingsDto;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
@@ -26,16 +24,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ForbiddenException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * Created by Maks on 02.02.2018.
@@ -66,7 +69,8 @@ public class MainControllerNg {
     @Autowired
     private ServiceCacheableProxy serviceCacheableProxy;
 
-
+    @Autowired
+    LocaleResolver localeResolver;
 
     /*controllers for testing*/
     @RequestMapping(value = "/public/test", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -95,7 +99,7 @@ public class MainControllerNg {
     /**
      * returns map the data to create currency pairs menu
      *  <market name, list<currencyPair name>>
-     * @param loc - current user locale on client-side
+     * @param  - current user locale on client-side
      * @return: list the data to create currency pairs menu
      * @author ValkSam
      */
@@ -128,6 +132,22 @@ public class MainControllerNg {
         }
     }
 
+    @RequestMapping(value = {"/public/open_orders/", "/public/open_orders/{currencyPairId}"},
+                                     method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId,
+                                                Principal principal, HttpServletRequest request ) {
+        if (principal == null) {
+            throw new ForbiddenException();
+        }
+
+        String email = principal.getName();
+        CurrencyPair currencyPair = null;
+        if (currencyPairId.isPresent()){
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId.get());
+        }
+
+        return orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.OPENED, null, null,0, -1, localeResolver.resolveLocale(request));
+    }
 
     @RequestMapping(value = "/private/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public OrderCommissionsDto getOrderCommissions() {
