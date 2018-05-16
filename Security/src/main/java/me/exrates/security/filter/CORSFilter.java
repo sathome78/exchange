@@ -32,8 +32,8 @@ public class CORSFilter extends GenericFilterBean {
 		} else {
 			response.setHeader("Access-Control-Allow-Origin", "http://dev2.exrates.tech");
 		}*/
-		System.out.println(domain);
-		System.out.println(port);
+		System.out.println("domain " + domain);
+		System.out.println("req_port " + port);
 		response.setHeader("Access-Control-Allow-Origin", "http://localhost:9001");
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
