@@ -132,7 +132,7 @@ public class MainControllerNg {
         }
     }
 
-    @RequestMapping(value = {"/public/open_orders/", "/public/open_orders/{currencyPairId}"},
+    @RequestMapping(value = {"/private/open_orders/", "/private/open_orders/{currencyPairId}"},
                                      method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId) {
 
