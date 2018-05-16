@@ -186,7 +186,7 @@ public class WithdarwControllerNg {
         return new StringJoiner(" ", dto.getAmount().toString(), dto.getCurrencyName()).toString();
     }
 
-    @RequestMapping(value = "/withdraw/request/revoke", method = POST)
+    @RequestMapping(value = "/request/revoke", method = POST)
     @ResponseBody
     public void revokeWithdrawRequest(
             @RequestParam Integer id) {
@@ -195,14 +195,14 @@ public class WithdarwControllerNg {
     }
 
     /*todo check where this metod used?*/
-    @RequestMapping(value = "/withdraw/banks", method = GET)
+    @RequestMapping(value = "/banks", method = GET)
     @ResponseBody
     public List<ClientBank> getBankListForCurrency(
             @RequestParam Integer currencyId) {
         return withdrawService.findClientBanksForCurrency(currencyId);
     }
 
-    @RequestMapping(value = "/withdraw/commission", method = GET)
+    @RequestMapping(value = "/commission", method = GET)
     @ResponseBody
     public Map<String, String> getCommissions(
             @RequestParam("amount") BigDecimal amount,
