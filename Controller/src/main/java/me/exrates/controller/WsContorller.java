@@ -104,7 +104,9 @@ public class WsContorller {
     }
 
     @SubscribeMapping("/queue/personal/{currencyPairId}")
-    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
+    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId,  SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        Principal principal = headerAccessor.getUser();
+        log.info("principal {}", principal);
         if (principal == null) {
             return "";
         }

@@ -108,10 +108,11 @@ function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
         personalSubscription.unsubscribe();
     }
+    console.log('subscribe my trades');
     var headers = {'Exrates-Rest-Token' : token};
     personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
+        console.log(message);
         var messageBody = JSON.parse(message.body);
-        console.log(messageBody);
       /*  messageBody.forEach(function(object){
             initTrades(JSON.parse(object), currentCurrencyPairId);
         });*/
