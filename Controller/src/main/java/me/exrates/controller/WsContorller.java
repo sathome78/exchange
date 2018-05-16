@@ -9,6 +9,7 @@ import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
@@ -98,9 +99,16 @@ public class WsContorller {
 
 
     @SubscribeMapping("/trades/{currencyPairId}")
-    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        Principal principal = headerAccessor.getUser();
-        return orderService.getAllAndMyTradesForInitNg(currencyPairId, principal);
+    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId) throws Exception {
+        return orderService.getAllAndMyTradesForInitNg(currencyPairId, RefreshObjectsEnum.ALL_TRADES, null);
+    }
+
+    @SubscribeMapping("/queue/personal/{currencyPairId}")
+    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
+        if (principal == null) {
+            return "";
+        }
+        return orderService.getAllAndMyTradesForInitNg(currencyPairId, RefreshObjectsEnum.MY_TRADES, principal);
     }
 
     @SubscribeMapping("/charts/{currencyPairId}/{period}")

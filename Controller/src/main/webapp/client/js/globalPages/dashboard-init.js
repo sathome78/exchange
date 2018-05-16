@@ -40,7 +40,7 @@ var email;
 var csrf;
 var reconnectsCounter = 0;
 
-var token = 'eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbl9pZCI6MSwiZXhwaXJhdGlvbiI6MTUyODg5NTk1NDkwMywidmFsdWUiOiI1ZTdhNjJmMi1mODVlLTRkMzktYjk3NS03ZWYzZjhiZGEyNzQiLCJ1c2VybmFtZSI6ImF2dG8xMkBpLnVhIn0.X1ORubDf9CJ7HOp06v_IHYFxh_BDGUSMvqmYa-p_lUd5-2nUngJTb8ZJy0tjnMWiFeVkkoqcEcCDfejp-1Vf1A';
+var token = 'eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbl9pZCI6MiwiZXhwaXJhdGlvbiI6MTUyODk5NDAxODM2OSwidmFsdWUiOiJmNDBjYjUyZC05MjZmLTRkZjQtOTcxOS1lNmFiN2I5YTg2NTkiLCJ1c2VybmFtZSI6ImF2dG8xMkBpLnVhIn0.-M1SEOwniN_4xGmvJ3IWLexerRe0a-PtlFLrN5FsuR6570r6cfwu6w4RcaOZ-PkpjQdzM_RD8pEPm6QYlNW_HA';
 
 
 var timer;
@@ -108,13 +108,13 @@ function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
         personalSubscription.unsubscribe();
     }
-    var headers = {};
+    var headers = {'Exrates-Rest-Token' : token};
     personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
         var messageBody = JSON.parse(message.body);
         console.log(messageBody);
-        messageBody.forEach(function(object){
+      /*  messageBody.forEach(function(object){
             initTrades(JSON.parse(object), currentCurrencyPairId);
-        });
+        });*/
     }, headers);
 }
 
@@ -152,16 +152,14 @@ function subscribeTrades() {
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
-    var headers = {'Exrates-Rest-Token' : token};
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
-        console.log(tradesSubscription);
+        console.log(message);
         var messageBody = JSON.parse(message.body);
-        console.log(messageBody);
-        messageBody.forEach(function(object) {
+       /* messageBody.forEach(function(object) {
             initTrades(JSON.parse(object), currentCurrencyPairId);
-        });
-    }, headers);
+        });*/
+    }, {});
 }
 
 function subscribeStatistics() {

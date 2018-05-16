@@ -325,7 +325,7 @@ public interface OrderService {
   String getTradesForRefresh(int pairId, RefreshObjectsEnum tradesType, String email);
 
   @Transactional(readOnly = true)
-	String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException;
+	String getAllAndMyTradesForInitNg(int pairId, RefreshObjectsEnum objectsEnum, Principal principal) throws JsonProcessingException;
 
 	Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 

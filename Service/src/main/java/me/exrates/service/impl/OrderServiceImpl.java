@@ -1488,15 +1488,22 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional(readOnly = true)
   @Override
-  public String getAllAndMyTradesForInitNg(int pairId, Principal principal) throws JsonProcessingException {
+  public String getAllAndMyTradesForInitNg(int pairId, RefreshObjectsEnum objectsEnum, Principal principal) throws JsonProcessingException {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
     Map<String, List<OrderAcceptedHistoryDto>> trades = new HashMap<>();
-    List<OrderAcceptedHistoryDto> dtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, null);
-    trades.put(RefreshObjectsEnum.ALL_TRADES.name(), dtos);
-    if (principal != null) {
-      List<OrderAcceptedHistoryDto> myDtos = getTrades(cp, RefreshObjectsEnum.MY_TRADES, principal.getName());
-      trades.put(RefreshObjectsEnum.MY_TRADES.name(), myDtos);
+    switch (objectsEnum) {
+      case ALL_TRADES: {
+        List<OrderAcceptedHistoryDto> dtos = getTrades(cp, RefreshObjectsEnum.ALL_TRADES, null);
+        trades.put(RefreshObjectsEnum.ALL_TRADES.name(), dtos);
+      }
+      case MY_TRADES: {
+        if (principal != null) {
+          List<OrderAcceptedHistoryDto> myDtos = getTrades(cp, RefreshObjectsEnum.MY_TRADES, principal.getName());
+          trades.put(RefreshObjectsEnum.MY_TRADES.name(), myDtos);
+        }
+      }
     }
+
     return new GsonBuilder()
             .setPrettyPrinting()
             .disableHtmlEscaping()
