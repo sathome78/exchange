@@ -40,7 +40,7 @@ var email;
 var csrf;
 var reconnectsCounter = 0;
 
-var token = 'eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbl9pZCI6MiwiZXhwaXJhdGlvbiI6MTUyODk5NDAxODM2OSwidmFsdWUiOiJmNDBjYjUyZC05MjZmLTRkZjQtOTcxOS1lNmFiN2I5YTg2NTkiLCJ1c2VybmFtZSI6ImF2dG8xMkBpLnVhIn0.-M1SEOwniN_4xGmvJ3IWLexerRe0a-PtlFLrN5FsuR6570r6cfwu6w4RcaOZ-PkpjQdzM_RD8pEPm6QYlNW_HA';
+var token = 'eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbl9pZCI6MzI4LCJleHBpcmF0aW9uIjoxNTI5MDU2Njg0MDY3LCJ2YWx1ZSI6Ijk4M2M1MmZlLTRiZWQtNDNlMS1hMTAyLWU2OGI3MzM0MTE3ZiIsInVzZXJuYW1lIjoiYXZ0bzEyQGkudWEifQ.R3srE-QxcvNoPAm8bTsOp3A72o5i972p8iDRmvIGQd_qQ7lFM4FdMnDKx9dHrfzbwVPjfgjqgLUS86CwBJs-ag';
 
 
 var timer;
@@ -123,7 +123,7 @@ function subscribeForMyBalance() {
     if (balance1Subscr != undefined) {
         balance1Subscr.unsubscribe();
     }
-    var headers = {};
+    var headers = {'Exrates-Rest-Token' : token};
     console.log("subscribe for new currencies " + curencyId1 + ' ' + curencyId2);
     balance1Subscr = client.subscribe('/user/queue/balance/' + curencyId2 + '/' + curencyId1 , function(message) {
        /*console.log("balance " + message);*/
