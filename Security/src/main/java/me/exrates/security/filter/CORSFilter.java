@@ -25,16 +25,24 @@ public class CORSFilter extends GenericFilterBean {
 		HttpServletResponse response = (HttpServletResponse) resp;
 		HttpServletRequest request = (HttpServletRequest) req;
 
-		String domain = new URL(request.getRequestURL().toString()).getHost();
-		int port = new URL(request.getRequestURL().toString()).getPort();
+		URL reqUrl =   new URL(request.getRequestURL().toString());
+		System.out.println(reqUrl.toString());
 		/*if (domain.equals("localhost")) {
 			response.setHeader("Access-Control-Allow-Origin", "http://localhost:9000");
 		} else {
 			response.setHeader("Access-Control-Allow-Origin", "http://dev2.exrates.tech");
 		}*/
-		System.out.println("domain " + domain);
-		System.out.println("req_port " + port);
-		response.setHeader("Access-Control-Allow-Origin", "http://localhost:9001");
+		;
+		System.out.println("protocol " + reqUrl.getProtocol());
+		System.out.println("domain " + reqUrl.getHost());
+		System.out.println("req_port " + reqUrl.getPort());
+
+		String path = String.join("", reqUrl.getProtocol(), "://", reqUrl.getHost());
+		if (reqUrl.getHost().equals("localhost")) {
+			path = String.join("", path, ":", String.valueOf(reqUrl.getPort()));
+		}
+		System.out.println("header path " + path);
+		response.setHeader("Access-Control-Allow-Origin", path);
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
 		response.setHeader("Access-Control-Max-Age", "3600");
