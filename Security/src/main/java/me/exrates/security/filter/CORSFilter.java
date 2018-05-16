@@ -26,12 +26,15 @@ public class CORSFilter extends GenericFilterBean {
 		HttpServletRequest request = (HttpServletRequest) req;
 
 		String domain = new URL(request.getRequestURL().toString()).getHost();
+		int port = new URL(request.getRequestURL().toString()).getPort();
 		/*if (domain.equals("localhost")) {
 			response.setHeader("Access-Control-Allow-Origin", "http://localhost:9000");
 		} else {
 			response.setHeader("Access-Control-Allow-Origin", "http://dev2.exrates.tech");
 		}*/
-		response.setHeader("Access-Control-Allow-Origin", "9001");
+		System.out.println(domain);
+		System.out.println(port);
+		response.setHeader("Access-Control-Allow-Origin", "http://localhost:9001");
 		response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
 		response.setHeader("Access-Control-Max-Age", "3600");
