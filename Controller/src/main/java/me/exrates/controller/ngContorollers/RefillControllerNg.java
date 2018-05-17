@@ -135,7 +135,8 @@ public class RefillControllerNg {
         refillService.revokeRefillRequest(id);
     }
 
-    @RequestMapping(value = "/request/info", method = GET)
+    /*used for invoices*/
+    @RequestMapping(value = "/invoice/request/info", method = GET)
     @ResponseBody
     public RefillRequestFlatDto getInfoRefill(
             @RequestParam Integer id) {
@@ -143,8 +144,8 @@ public class RefillControllerNg {
         return refillService.getFlatById(id);
     }
 
-    /*todo where this metod used?*/
-    @RequestMapping(value = "/request/confirm", method = POST)
+    /*used for invoices*/
+    @RequestMapping(value = "/invoice/request/confirm", method = POST)
     @ResponseBody
     public void confirmRefillRequest(
             InvoiceConfirmData invoiceConfirmData,
@@ -152,8 +153,8 @@ public class RefillControllerNg {
         refillService.confirmRefillRequest(invoiceConfirmData, locale);
     }
 
-    /*todo where this metod used?*/
-    @RequestMapping(value = "/banks", method = GET)
+    /*used for invoices*/
+    @RequestMapping(value = "/invoice/banks", method = GET)
     @ResponseBody
     public List<InvoiceBank> getBankListForCurrency(
             @RequestParam Integer currencyId) {
