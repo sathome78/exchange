@@ -364,14 +364,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         BigInteger GAS_PRICE;
         String hexValue;
         try {
-            GAS_PRICE = web3jForTokensWithdr.ethGasPrice().send().getGasPrice();
+            GAS_PRICE = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
             Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + merchantName);
             Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
             withdarwAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
             contract = (EthToken)method.invoke(null, tokenService.getContractAddress().get(0),
-                    web3jForTokensWithdr, credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
+                    web3jForEthWithdr, credentialsWithdrawAcc, GAS_PRICE, TOKENS_TANSFER_GAS);
             balance = ExConvert.fromWei(contract.balanceOf(withdrawAccAddress).send().toString(), tokenService.getUnit());
-            ethBalance = Convert.fromWei(String.valueOf(web3jForTokensWithdr.ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+            ethBalance = Convert.fromWei(String.valueOf(web3jForEthWithdr.ethGetBalance(withdrawAccAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
             log.info("balance {}, eth balance {}", balance, ethBalance);
         } catch (Exception e) {
             log.error("transfer token error {}" , e);
@@ -395,7 +395,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             log.error("error sending tx {}", e);
             throw new RuntimeException(e);
         }
-        sendWithdraw(web3jForTokensWithdr, hexValue, withdrawMerchantOperationDto.getRequestId(), tokensWithdrawSemaphore);
+        sendWithdraw(web3jForEthWithdr, hexValue, withdrawMerchantOperationDto.getRequestId(), tokensWithdrawSemaphore);
     }
 
     private void sendWithdraw(Web3j web3j, String hex, int withdrawId, Semaphore semaphore) {
@@ -403,7 +403,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             web3j.ethSendRawTransaction(hex).sendAsync().handleAsync((result, ex) -> {
                 try {
                     processWithdrawResult(result, ex, withdrawId, semaphore);
-                } catch (Exception e) {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignore) {
+                }
+                catch (Exception e) {
                     withdrawService.rejectToReview(withdrawId);
                 }
                 finally {
@@ -433,13 +436,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Synchronized
     private BigInteger resolveNonce() throws IOException {
-        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+        EthGetTransactionCount ethGetTransactionCount = web3jForEthWithdr.ethGetTransactionCount(
                 credentialsWithdrawAcc.getAddress(), DefaultBlockParameterName.LATEST).send();
         BigInteger nonce = ethGetTransactionCount.getTransactionCount();
         if (nonce.compareTo(lastNonce.get()) <= 0) {
             nonce = lastNonce.incrementAndGet();
         }
         lastNonce = new AtomicBigInteger(nonce);
+        log.info("nonce {}", nonce);
         return nonce;
     }
 
