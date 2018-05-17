@@ -31,6 +31,7 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -198,7 +199,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
-    private Semaphore tokensWithdrawSemaphore = new Semaphore(2, true);
+    private Semaphore tokensWithdrawSemaphore = new Semaphore(1, true);
     private Semaphore ethWithdrawSemaphore = new Semaphore(2, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
@@ -402,7 +403,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             web3j.ethSendRawTransaction(hex).sendAsync().handleAsync((result, ex) -> {
                 try {
                     processWithdrawResult(result, ex, withdrawId, semaphore);
-                } finally {
+                } catch (Exception e) {
+                    withdrawService.rejectToReview(withdrawId);
+                }
+                finally {
                     semaphore.release();
                 }
                 return result;
@@ -419,7 +423,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             if (result.getError() != null) {
                 log.error(result.getError().getMessage());
             }
-            withdrawService.rejectToReview(withdrawRequstId);
+            throw new MerchantException();
         } else {
             withdrawService.setHash(withdrawRequstId, result.getTransactionHash());
             waitForTxReceipt(result.getTransactionHash());
@@ -440,7 +444,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     private void waitForTxReceipt(String hash) {
-        EthGetTransactionReceipt receipt = null;
+        TransactionReceipt receipt = null;
         Instant start = Instant.now();
         do {
             if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(20)) > 0) {
@@ -448,10 +452,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }
             try {
                 Thread.sleep(5000);
-                receipt = web3jForTokensWithdr.ethGetTransactionReceipt(hash).send();
+                receipt = web3jForTokensWithdr.ethGetTransactionReceipt(hash).send().getTransactionReceipt().get();
             } catch (Exception ignored) {
             }
         } while (receipt == null);
+        log.info("status {}", receipt.getStatus());
+        log.info("tx {}", receipt);
+        if (!receipt.getStatus().equals("0x1")) {
+            throw new MerchantException();
+        }
     }
 
     @Override
