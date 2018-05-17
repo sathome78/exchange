@@ -193,6 +193,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
+    private final Object ethSynchronizer = new Object();
+    private final Object tokensSynchronizer = new Object();
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
