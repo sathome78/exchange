@@ -88,6 +88,14 @@ public class RefillControllerNg {
         return response;
     }
 
+    @RequestMapping(value = "/merchants/warnings", method = GET)
+    public List<String> getMerchantWarnings( @RequestParam("type") OperationType type,
+                                             @RequestParam("merchant") Integer merchantId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        return merchantService.getWarningsForMerchant(type, merchantId, locale);
+    }
+
     @RequestMapping(value = "/request/create", method = POST)
     @ResponseBody
     public Map<String, Object> createRefillRequest(
