@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSubscription;
+import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
@@ -107,15 +108,26 @@ public class StompMessengerImpl implements StompMessenger{
     public void sendCurrencyBalance(int walletId, int currencyId) {
         String destination = "/queue/balance/";
         String email = userService.getEmailByWalletId(walletId);
-        List<String> destinations = registry.getUser(email).getSessions().stream()
-                .flatMap(p->p.getSubscriptions().stream())
-                .filter(p->p.getDestination().contains(destination)
-                        && p.getDestination().contains(String.valueOf(currencyId)))
-                .map(SimpSubscription::getDestination).collect(Collectors.toList());
-        String message = walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId), email);
-        destinations.forEach(p->{
-            messagingTemplate.convertAndSendToUser(email, p.replace("/user", ""), message);
-        });
+        try {
+            SimpUser user = registry.getUser(email);
+            if (user == null) {
+                return;
+            }
+            List<String> destinations = user.getSessions().stream()
+                    .flatMap(p->p.getSubscriptions().stream())
+                    .filter(p->p.getDestination().contains(destination)
+                            && p.getDestination().contains(String.valueOf(currencyId)))
+                    .map(SimpSubscription::getDestination).collect(Collectors.toList());
+            if (destinations.isEmpty()) {
+                return;
+            }
+            String message = walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId), email);
+            destinations.forEach(p->{
+                messagingTemplate.convertAndSendToUser(email, p.replace("/user", ""), message);
+            });
+        } catch (Exception e) {
+            log.info(e);
+        }
     }
 
     @Override
