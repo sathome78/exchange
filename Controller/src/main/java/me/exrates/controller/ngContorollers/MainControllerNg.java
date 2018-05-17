@@ -132,21 +132,18 @@ public class MainControllerNg {
         }
     }
 
-    @RequestMapping(value = {"/public/open_orders/", "/public/open_orders/{currencyPairId}"},
+    @RequestMapping(value = {"/private/open_orders/", "/private/open_orders/{currencyPairId}"},
                                      method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId,
-                                                Principal principal, HttpServletRequest request ) {
-        if (principal == null) {
-            throw new ForbiddenException();
-        }
+    public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId) {
 
-        String email = principal.getName();
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
         CurrencyPair currencyPair = null;
         if (currencyPairId.isPresent()){
             currencyPair = currencyService.findCurrencyPairById(currencyPairId.get());
         }
 
-        return orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.OPENED, null, null,0, -1, localeResolver.resolveLocale(request));
+        return orderService.getMyOrdersWithState(userEmail, currencyPair, OrderStatus.OPENED, null, null,0, -1, locale);
     }
 
     @RequestMapping(value = "/private/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
