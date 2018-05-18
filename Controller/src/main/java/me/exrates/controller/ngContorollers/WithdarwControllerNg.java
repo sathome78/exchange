@@ -12,6 +12,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.ngDto.MerchantCurrencyShortDto;
+import me.exrates.model.dto.ngDto.PinDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -164,14 +165,14 @@ public class WithdarwControllerNg {
 
     @RequestMapping(value = "/request/pin", method = POST)
     @ResponseBody
-    public Map<String, String> withdrawRequestCheckPin(@RequestBody Map<String, String> body) {
+    public Map<String, String> withdrawRequestCheckPin(@RequestBody PinDto dto) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        UUID keyUUID = UUID.fromString(body.get("key"));
+        UUID keyUUID = UUID.fromString(dto.getKey());
         WithdrawRequestCreateDto withdrawRequestCreateDto = unconfirmedWithdraws.get(keyUUID);
-        Preconditions.checkArgument(body.get("pin").length() > 2 && body.get("pin").length() < 15);
+        Preconditions.checkArgument(dto.getPin().length() > 2 && dto.getPin().length() < 15);
         Preconditions.checkNotNull(withdrawRequestCreateDto, "No order found by key");
-        if (userService.checkPin(userEmail, body.get("pin"), NotificationMessageEventEnum.WITHDRAW)) {
+        if (userService.checkPin(userEmail, dto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
             Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "Yhe withdrawal is not yours");
             unconfirmedWithdraws.remove(keyUUID);
             return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);

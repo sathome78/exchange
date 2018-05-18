@@ -126,7 +126,7 @@ public class StatNgController {
         int pageSize = 5;
         if (page == null || page < 1) page = 1;
         Integer offset = (page - 1) * pageSize;
-        List<NewsDto> dtos = newsService.getNewsBriefList(offset, pageSize, Locale.forLanguageTag(locale));
+        List<NewsDto> dtos = newsService.getNewsBriefList(offset, pageSize + 1, Locale.forLanguageTag(locale));
         return new StatTableDto<>(page, pageSize, dtos);
     }
 
@@ -155,7 +155,7 @@ public class StatNgController {
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
-        List<MyInputOutputHistoryDto> dtos = inputOutputService.getMyInputOutputHistory(userEmail, offset, pageSize, locale);
+        List<MyInputOutputHistoryDto> dtos = inputOutputService.getMyInputOutputHistory(userEmail, offset, pageSize + 1, locale);
         return new StatTableDto<>(page, pageSize, dtos);
     }
 
@@ -176,7 +176,7 @@ public class StatNgController {
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
-        List<MyReferralDetailedDto> result = referralService.findAllMyReferral(userEmail, offset, pageSize, locale);
+        List<MyReferralDetailedDto> result = referralService.findAllMyReferral(userEmail, offset, pageSize + 1, locale);
         return new StatTableDto<>(page, pageSize, result);
     }
 
@@ -195,7 +195,7 @@ public class StatNgController {
     public StatTableDto<OrderWideListDto> getMyOrdersData(
             @RequestParam(required = false) Integer pairId,
             @RequestParam(required = false) OperationType type,
-            @RequestParam(required = false) OrderStatus status,
+            @RequestParam OrderStatus status,
             @RequestParam(required = false) String scope,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction,
@@ -205,10 +205,7 @@ public class StatNgController {
         int pageSize  = 10;
         if (page == null || page < 1) page = 1;
         int offset = (page - 1) * pageSize;
-        if (pairId == null) {
-            return new StatTableDto<>(page, pageSize, Collections.EMPTY_LIST);
-        }
-        Boolean showAllPairs = pairId.equals(0);
+        Boolean showAllPairs = pairId == null || pairId.equals(0);
         CurrencyPair currencyPair = null;
         if (!showAllPairs) {
             currencyPair = currencyService.findCurrencyPairById(pairId);
@@ -218,13 +215,13 @@ public class StatNgController {
             case STOP_LIMIT: {
                 result = stopOrderService.getMyOrdersWithState(userEmail,
                         showAllPairs ? null : currencyPair,
-                        status, type, scope, offset, pageSize, locale);
+                        status, type, scope, offset, pageSize + 1, locale);
                 break;
             }
             default: {
                 result = orderService.getMyOrdersWithState(userEmail,
                         showAllPairs ? null : currencyPair,
-                        status, type, scope, offset, pageSize, locale);
+                        status, type, scope, offset, pageSize + 1, locale);
             }
         }
         return new StatTableDto<>(page, pageSize, result);

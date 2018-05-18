@@ -401,13 +401,14 @@ public class MobileOrderController {
 
 
     /**
-     * @api {post} /api/orders/delete/:orderId Delete order
+     * @api {delete} /api/orders/delete/:orderId Delete order
      * @apiName deleteOrder
      * @apiGroup Orders
      * @apiUse TokenHeader
      * @apiParam {Integer} orderId id of order to be deleted
      * @apiParamExample Request Example:
-     *     /api/orders/delete?orderId=18382
+     *     /api/orders/delete/18382
+     * @requestParam baseType - 1- Limit order, 2- stop-limit order
      * @apiPermission User
      * @apiDescription Method accepts order data returned from submitDeleteOrder method and returns notification of successful deletion
      * @apiSuccess (200) {String} result Result detail
@@ -416,7 +417,7 @@ public class MobileOrderController {
      *    {
      *          "result": "order was successfull deleted"
      *    }
-     *
+     *  now it returns just 'true'
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -427,18 +428,41 @@ public class MobileOrderController {
      *
      */
     @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
-    public boolean deleteOrder(@PathVariable Integer orderId) {
+    public boolean deleteOrder(@PathVariable Integer orderId,
+                               @RequestParam(value = "baseType", defaultValue = "1") int typeId) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-
-        OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
+        OrderBaseType orderBaseType = OrderBaseType.convert(typeId);
+        OrderCreateDto orderCreateDto;
+        switch (orderBaseType) {
+            case STOP_LIMIT: {
+                orderCreateDto = stopOrderService.getOrderById(orderId, false);
+                break;
+            }
+            default: {
+                orderCreateDto = orderService.getMyOrderById(orderId);
+            }
+        }
         if (orderCreateDto == null) {
             throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, userLocale));
         }
-            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
-                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+        if (orderCreateDto.getUserId() != userService.getIdByEmail(userEmail)) {
+            throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+        }
+        switch (orderBaseType) {
+            case STOP_LIMIT: {
+                if (!stopOrderService.cancelOrder(new ExOrder(orderCreateDto), userLocale)) {
+                    throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+                }
+                break;
             }
-            return true;
+            default: {
+                if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
+                    throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+                }
+            }
+        }
+        return true;
     }
 
 

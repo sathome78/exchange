@@ -11,6 +11,7 @@ import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.math3.geometry.partitioning.BSPTreeVisitor;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,8 @@ public class MainControllerNg {
     private SendMailService mailService;
     @Autowired
     private ServiceCacheableProxy serviceCacheableProxy;
+    @Autowired
+    private StopOrderService stopOrderService;
 
     @Autowired
     LocaleResolver localeResolver;
@@ -134,7 +137,8 @@ public class MainControllerNg {
 
     @RequestMapping(value = {"/private/open_orders/", "/private/open_orders/{currencyPairId}"},
                                      method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId) {
+    public List<OrderWideListDto> getOpenOrders(@PathVariable Optional<Integer> currencyPairId,
+                                                @RequestParam(name = "baseType", required = false) int id) {
 
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
@@ -142,8 +146,15 @@ public class MainControllerNg {
         if (currencyPairId.isPresent()){
             currencyPair = currencyService.findCurrencyPairById(currencyPairId.get());
         }
-
-        return orderService.getMyOrdersWithState(userEmail, currencyPair, OrderStatus.OPENED, null, null,0, -1, locale);
+        OrderBaseType orderBaseType = OrderBaseType.convert(id);
+        switch (orderBaseType) {
+            case STOP_LIMIT: {
+                return stopOrderService.getMyOrdersWithState(userEmail, currencyPair, OrderStatus.OPENED, null, null,0, -1, locale);
+            }
+            default: {
+                return orderService.getMyOrdersWithState(userEmail, currencyPair, OrderStatus.OPENED, null, null,0, -1, locale);
+            }
+        }
     }
 
     @RequestMapping(value = "/private/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

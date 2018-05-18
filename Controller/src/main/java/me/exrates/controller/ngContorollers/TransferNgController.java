@@ -8,6 +8,7 @@ import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.ngDto.PinDto;
 import me.exrates.model.dto.ngDto.TransferMerchantsDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -197,15 +198,15 @@ public class TransferNgController {
 
     @RequestMapping(value = "/request/pin", method = POST)
     @ResponseBody
-    public Map<String, Object> withdrawRequestCheckPin(@RequestBody Map <String, String> body) {
+    public Map<String, Object> withdrawRequestCheckPin(@RequestBody PinDto dto) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
-        UUID keyUUID = UUID.fromString(body.get("key"));
+        UUID keyUUID = UUID.fromString(dto.getKey());
         TransferRequestCreateDto withdrawRequestCreateDto = unconfirmedtransfers.get(keyUUID);
-        Preconditions.checkArgument(body.get("pin").length() > 2 && body.get("pin").length() < 15);
+        Preconditions.checkArgument(dto.getPin().length() > 2 && dto.getPin().length() < 15);
         Preconditions.checkNotNull(withdrawRequestCreateDto, "No order found by key");
-        if (userService.checkPin(userEmail, body.get("pin"), NotificationMessageEventEnum.TRANSFER)) {
-            Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "Yhe withdrawal is not yours");
+        if (userService.checkPin(userEmail, dto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
+            Preconditions.checkArgument(withdrawRequestCreateDto.getUserEmail().equals(userEmail), "The withdrawal is not yours");
             unconfirmedtransfers.remove(keyUUID);
             return transferService.createTransferRequest(withdrawRequestCreateDto);
         } else {
