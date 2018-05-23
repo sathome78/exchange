@@ -1,6 +1,7 @@
 package me.exrates.controller.ngContorollers;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
@@ -25,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,12 +47,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.service.util.RestApiUtils.decodePassword;
@@ -64,6 +61,8 @@ import static me.exrates.service.util.RestApiUtils.decodePassword;
 public class SettingsNgControllerNew {
 
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
+    @Autowired
+    private RegisterFormValidation registerFormValidation;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -88,16 +87,23 @@ public class SettingsNgControllerNew {
     }
 
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
+    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, BindingResult result){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
         User user = userService.findByEmail(email);
-        String encodedPassword = body.getOrDefault("pass", "");
-        if(encodedPassword.isEmpty()){
+        Locale locale = userService.getUserLocaleForMobile(email);
+        String password = body.getOrDefault("password", "");
+        String confirmPassword = body.getOrDefault("confirmPassword", "");
+        if(password.isEmpty() || confirmPassword.isEmpty()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        user.setPassword(decodePassword(encodedPassword));
-        if (userService.update(getUpdateUserDto(user), true, userService.getUserLocaleForMobile(email))){
+        user.setPassword(password);
+        user.setConfirmPassword(confirmPassword);
+
+        if (!user.getPassword().equals(user.getConfirmPassword())) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+     //   registerFormValidation.validateResetPassword(user, result, locale);
+        if (userService.update(getUpdateUserDto(user), locale)){
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -108,12 +114,20 @@ public class SettingsNgControllerNew {
     public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(email);
-        String encodedPassword = body.getOrDefault("pass", "");
-        if(encodedPassword.isEmpty()){
+        Locale locale = userService.getUserLocaleForMobile(email);
+        String finpassword = body.getOrDefault("finpassword", "");
+        String confirmFinpassword = body.getOrDefault("confirmFinpassword", "");
+
+        if(finpassword.isEmpty() || confirmFinpassword.isEmpty()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        user.setFinpassword(decodePassword(encodedPassword));
-        if (userService.update(getUpdateUserDto(user), userService.getUserLocaleForMobile(email))){
+        user.setFinpassword(finpassword);
+        user.setConfirmFinPassword(confirmFinpassword);
+
+        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        if (userService.update(getUpdateUserDto(user), locale)){
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
