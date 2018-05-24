@@ -200,7 +200,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
     private Semaphore tokensWithdrawSemaphore = new Semaphore(1, true);
-    private Semaphore ethWithdrawSemaphore = new Semaphore(2, true);
+    private Semaphore ethWithdrawSemaphore = new Semaphore(1, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
@@ -399,11 +399,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     private void sendWithdraw(Web3j web3j, String hex, int withdrawId, Semaphore semaphore) {
+        System.out.println("sending withdraw");
         try {
             web3j.ethSendRawTransaction(hex).sendAsync().handleAsync((result, ex) -> {
                 try {
-                    processWithdrawResult(result, ex, withdrawId, semaphore);
-                    Thread.sleep(5000);
+                    processWithdrawResult(result, ex, withdrawId);
+                    withdrawService.finalizePostWithdrawalRequest(withdrawId);
+                    Thread.sleep(10000);
                 } catch (InterruptedException ignore) {
                 }
                 catch (Exception e) {
@@ -420,7 +422,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         }
     }
 
-    private void processWithdrawResult(EthSendTransaction result, Throwable ex, int withdrawRequstId, Semaphore semaphore) {
+    private void processWithdrawResult(EthSendTransaction result, Throwable ex, int withdrawRequstId) {
         log.info("response {} {}", result.getTransactionHash(), result.getRawResponse());
         if (ex != null || result.hasError() || StringUtils.isEmpty(result.getTransactionHash().trim())) {
             if (result.getError() != null) {
@@ -430,7 +432,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         } else {
             withdrawService.setHash(withdrawRequstId, result.getTransactionHash());
             waitForTxReceipt(result.getTransactionHash());
-            withdrawService.finalizePostWithdrawalRequest(withdrawRequstId);
         }
     }
 
