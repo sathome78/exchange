@@ -337,7 +337,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         }
         try {
             log.info("try autowithdraw {}", withdrawMerchantOperationDto);
-            BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice();
+            BigInteger gasPrice = web3jForEthWithdr.ethGasPrice().send().getGasPrice().multiply(BigInteger.valueOf(2));
             BigInteger gasLimit = ETH_TANSFER_GAS;
             BigInteger nonce = resolveNonce();
             BigInteger amount = ExConvert.toWei(withdrawMerchantOperationDto.getAmount(), ExConvert.Unit.ETHER).toBigInteger();
@@ -443,6 +443,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         if (nonce.compareTo(lastNonce.get()) <= 0) {
             nonce = lastNonce.incrementAndGet();
         }
+        nonce = nonce.add(BigInteger.ONE);
         lastNonce = new AtomicBigInteger(nonce);
         log.info("nonce {}", nonce);
         return nonce;
