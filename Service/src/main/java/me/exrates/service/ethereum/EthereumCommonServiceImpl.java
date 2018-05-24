@@ -440,10 +440,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         EthGetTransactionCount ethGetTransactionCount = web3jForEthWithdr.ethGetTransactionCount(
                 credentialsWithdrawAcc.getAddress(), DefaultBlockParameterName.LATEST).send();
         BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-        if (nonce.compareTo(lastNonce.get()) <= 0) {
+        if (nonce.compareTo(lastNonce.get()) < 0) {
             nonce = lastNonce.incrementAndGet();
         }
-        nonce = nonce.add(BigInteger.ONE);
         lastNonce = new AtomicBigInteger(nonce);
         log.info("nonce {}", nonce);
         return nonce;
@@ -453,7 +452,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         TransactionReceipt receipt = null;
         Instant start = Instant.now();
         do {
-            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(20)) > 0) {
+            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(10)) > 0) {
                 throw new RuntimeException("timeout execution");
             }
             try {
