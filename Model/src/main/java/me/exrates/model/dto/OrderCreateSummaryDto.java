@@ -19,6 +19,7 @@ public class OrderCreateSummaryDto {
     private String totalWithComission;
     private String stop;
     private String baseType;
+    private OrderCreateDto orderCreateDto;
 
     /*constructors*/
 
@@ -26,6 +27,7 @@ public class OrderCreateSummaryDto {
     }
 
     public OrderCreateSummaryDto(OrderCreateDto orderCreateDto, Locale locale) {
+        this.orderCreateDto = orderCreateDto;
         this.currencyPairName = orderCreateDto.getCurrencyPair().getName();
         this.operationTypeName = orderCreateDto.getOperationType().name();
         this.balance = BigDecimalProcessing.formatLocale(orderCreateDto.getSpentWalletBalance(), locale, 2);
@@ -120,6 +122,14 @@ public class OrderCreateSummaryDto {
         this.baseType = baseType;
     }
 
+    public OrderCreateDto getOrderCreateDto() {
+        return orderCreateDto;
+    }
+
+    public void setOrderCreateDto(OrderCreateDto orderCreateDto) {
+        this.orderCreateDto = orderCreateDto;
+    }
+
     @Override
     public String toString() {
         return "OrderCreateSummaryDto{" +
@@ -131,6 +141,9 @@ public class OrderCreateSummaryDto {
                 ", total='" + total + '\'' +
                 ", commission='" + commission + '\'' +
                 ", totalWithComission='" + totalWithComission + '\'' +
+                ", stop='" + stop + '\'' +
+                ", baseType='" + baseType + '\'' +
+                ", orderCreateDto=" + orderCreateDto +
                 '}';
     }
 }

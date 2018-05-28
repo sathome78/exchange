@@ -9,6 +9,9 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
+import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.OrderCreationException;
+import me.exrates.service.exception.OrderNotFoundException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.stopOrder.StopOrderService;
@@ -39,6 +42,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Collections.sort;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -169,6 +173,70 @@ public class MainControllerNg {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
         return orderService.getOrderInfo(id, locale);
+    }
+
+    @RequestMapping(value = "/private/order/submitdelete/{orderId}", method = RequestMethod.GET)
+    public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId,
+                                                   @RequestParam(value = "baseType", defaultValue = "1") int typeId,
+                                                   HttpServletRequest req) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        long before = System.currentTimeMillis();
+        OrderBaseType orderBaseType = OrderBaseType.convert(typeId);
+        try {
+            OrderCreateDto orderCreateDto;
+            switch (orderBaseType) {
+                case STOP_LIMIT: {
+                    orderCreateDto = stopOrderService.getOrderById(orderId, false);
+                    break;
+                }
+                default: {
+                    orderCreateDto = orderService.getMyOrderById(orderId);
+                }
+            }
+            if (orderCreateDto == null) {
+                throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, locale));
+            }
+            orderCreateDto.setOrderBaseType(orderBaseType);
+            return new OrderCreateSummaryDto(orderCreateDto, locale);
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+
+        }
+    }
+
+    @DeleteMapping(value = "/private/order/delete", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> deleteOrder(@RequestBody OrderCreateDto orderCreateDto, HttpServletRequest req) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        long before = System.currentTimeMillis();
+        try {
+            if (orderCreateDto == null) {
+                throw new OrderCreationException(messageSource.getMessage("order.redeleteerror", null, locale));
+            }
+            boolean result;
+            switch (orderCreateDto.getOrderBaseType()) {
+                case STOP_LIMIT: {
+                    result = stopOrderService.cancelOrder(new ExOrder(orderCreateDto), locale);
+                    break;
+                }
+                default: {
+                    result = orderService.cancellOrder(new ExOrder(orderCreateDto), locale);
+                }
+            }
+            if (!result) {
+                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, locale));
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+        }
     }
 
     @PostMapping(value = "/public/feedback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
