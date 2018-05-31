@@ -17,8 +17,10 @@ import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -63,6 +65,8 @@ public class SettingsNgControllerNew {
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
     @Autowired
     private RegisterFormValidation registerFormValidation;
+    @Autowired
+    private MessageSource messageSource;
 
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
@@ -190,21 +194,35 @@ public class SettingsNgControllerNew {
     }
 
     @PutMapping(value = "/updateSessionInterval", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body){
+    public ResponseEntity<String> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request){
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        int interval = body.get("interval");
-        if (interval == 0){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        Locale locale = userService.getUserLocaleForMobile(userEmail);
+        JSONObject jsonObject = new JSONObject();
+
+        try {
+            int interval = body.get("interval");
+            SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+            if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
+                sessionService.saveOrUpdate(sessionParams, userEmail);
+                sessionService.setSessionLifeParams(request); /*todo set new params for existing token???*/
+                jsonObject.put("successNoty", messageSource.getMessage("session.settings.success", null, locale));
+                return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
+            } else {
+                jsonObject.put("msg", messageSource.getMessage("session.settings.time.invalid", null, locale));
+                return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            jsonObject.put("msg", messageSource.getMessage("session.settings.invalid", null, locale));
+            return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.BAD_REQUEST);
         }
-        SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
-        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
+/*        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
             sessionService.saveOrUpdate(sessionParams, userEmail);
-            /* todo set new params for existing token???*/
+            *//* todo set new params for existing token???*//*
 
 
             return new ResponseEntity<>(HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);*/
     }
 
     @GetMapping(value = "/sessionInterval", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
