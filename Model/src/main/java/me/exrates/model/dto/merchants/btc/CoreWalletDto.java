@@ -1,5 +1,6 @@
 package me.exrates.model.dto.merchants.btc;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,6 +23,7 @@ public class CoreWalletDto {
     private String titleCode;
     private String localizedTitle = "";
 
+    @JsonIgnore
     private String TITLE_CODE_UNIVERSAL = "admin.btcWallet.title";
 
 

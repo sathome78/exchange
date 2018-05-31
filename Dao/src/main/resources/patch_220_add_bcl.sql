@@ -71,4 +71,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('BCL/USD', 'BCL/BTC', 'BCL/ETH'));
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
-VALUES ((SELECT id from MERCHANT WHERE name='BCL'), (select id from CURRENCY where name='BCL'), 'bclWallet.title');
+VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean'), (select id from CURRENCY where name='BCL'), 'bclWallet.title');
