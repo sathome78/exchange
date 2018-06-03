@@ -98,13 +98,13 @@ public class SettingsNgControllerNew {
         String password = body.getOrDefault("password", "");
         String confirmPassword = body.getOrDefault("confirmPassword", "");
         if(password.isEmpty() || confirmPassword.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         user.setPassword(password);
         user.setConfirmPassword(confirmPassword);
 
         if (!user.getPassword().equals(user.getConfirmPassword())) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.PARTIAL_CONTENT);
         }
      //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)){
@@ -123,13 +123,13 @@ public class SettingsNgControllerNew {
         String confirmFinpassword = body.getOrDefault("confirmFinpassword", "");
 
         if(finpassword.isEmpty() || confirmFinpassword.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         user.setFinpassword(finpassword);
         user.setConfirmFinPassword(confirmFinpassword);
 
         if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.PARTIAL_CONTENT);
         }
         if (userService.update(getUpdateUserDto(user), locale)){
             return new ResponseEntity<>(HttpStatus.OK);
@@ -182,15 +182,22 @@ public class SettingsNgControllerNew {
     }
 
     @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
+    public ResponseEntity<String> updateNotifications(@RequestBody  List<NotificationOption> options){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale locale = userService.getUserLocaleForMobile(email);
+        JSONObject jsonObject = new JSONObject();
         try {
+            if (options.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
+                jsonObject.put("msg", messageSource.getMessage("notifications.invalid", null, locale));
+                return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.PARTIAL_CONTENT);
+            }
             int userId = userService.getIdByEmail(email);
             notificationService.updateNotificationOptionsForUser(userId, options);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         }
+
     }
 
     @PutMapping(value = "/updateSessionInterval", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
