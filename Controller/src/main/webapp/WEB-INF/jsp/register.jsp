@@ -67,17 +67,17 @@
 
             <form:form method="post" action="create" modelAttribute="user" >
                 <%--nickname--%>
-                <div class="input-block-wrapper clearfix">
-                    <loc:message code="register.nickname" var="login"/>
-                    <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <form:input id="login" path="nickname"
-                                                placeholder="${login}"
-                                                class="form-control input-block-wrapper__input"/>
-                    </div>
-                    <div class="col-md-11 input-block-wrapper__error-wrapper">
-                        <form:errors path="nickname" class="input-block-wrapper__input"/>
-                    </div>
-                </div>
+                <%--<div class="input-block-wrapper clearfix">--%>
+                    <%--<loc:message code="register.nickname" var="login"/>--%>
+                    <%--<div class="col-md-11 input-block-wrapper__input-wrapper">--%>
+                        <%--<form:input id="login" path="nickname"--%>
+                                                <%--placeholder="${login}"--%>
+                                                <%--class="form-control input-block-wrapper__input"/>--%>
+                    <%--</div>--%>
+                    <%--<div class="col-md-11 input-block-wrapper__error-wrapper">--%>
+                        <%--<form:errors path="nickname" class="input-block-wrapper__input"/>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
                 <%--email--%>
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.email" var="email"/>
