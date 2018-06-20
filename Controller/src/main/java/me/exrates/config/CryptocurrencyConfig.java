@@ -147,6 +147,12 @@ public class CryptocurrencyConfig {
                 "NYC", "NYC", 4, 20, false, false);
     }
 
+    @Bean(name = "fgcServiceImpl")
+    public BitcoinService fgcService() {
+        return new BitcoinServiceImpl("merchants/fgc_wallet.properties",
+                "FGC", "FGC", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 
