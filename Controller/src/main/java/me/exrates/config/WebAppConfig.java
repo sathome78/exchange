@@ -884,6 +884,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "arnServiceImpl")
+    public EthTokenService arnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ARN",
+                "ARN", true, ExConvert.Unit.AIWEI);
+    }
+
     @Bean(name = "dtrcServiceImpl")
     public EthTokenService DtrcService() {
         List<String> tokensList = new ArrayList<>();
