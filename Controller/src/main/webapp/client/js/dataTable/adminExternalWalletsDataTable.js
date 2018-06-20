@@ -78,6 +78,15 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
+                    "data": "mainWalletBalanceUSD",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
                     "data": "reservedWalletBalance",
                     "render": function (data, type, row) {
                         if (type === 'display') {
@@ -97,6 +106,15 @@ function updateExternalWalletsTable() {
                 },
                 {
                     "data": "totalWalletsBalance",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "totalWalletsBalanceUSD",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);

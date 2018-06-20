@@ -35,9 +35,11 @@
                             <th><loc:message code="admin.externalWallets.name"/></th>
                             <th><loc:message code="admin.rate.to.usd"/></th>
                             <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
+                            <th><loc:message code="admin.externalWallets.mainWalletBalanceUSD"/></th>
                             <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.totalWalletBalance"/></th>
+                            <th><loc:message code="admin.externalWallets.totalWalletBalanceUSD"/></th>
                         </tr>
                         </thead>
                     </table>

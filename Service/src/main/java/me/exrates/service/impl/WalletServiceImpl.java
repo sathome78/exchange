@@ -462,8 +462,17 @@ public class WalletServiceImpl implements WalletService {
           }
         }
       });
+
+      try {
+          w.setMainWalletBalanceUSD(w.getRateUsdAdditional().multiply(w.getMainWalletBalance()));
+      }catch (Exception e){
+          log.error(e);
+      }
+
       try {
           w.setTotalWalletsBalance(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance()));
+          w.setTotalWalletsBalanceUSD(w.getRateUsdAdditional().multiply(w.getTotalWalletsBalance()));
+
       }catch (Exception e){
           log.error(e);
       }
