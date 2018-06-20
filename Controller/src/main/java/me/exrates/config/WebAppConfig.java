@@ -466,7 +466,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "ETZ", "ETZ", 12);
+                "EtherZero", "ETZ", 12);
     }
 
     @Bean(name = "cloServiceImpl")
