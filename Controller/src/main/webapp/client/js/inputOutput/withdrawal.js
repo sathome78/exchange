@@ -135,6 +135,9 @@ $(function () {
     $('#withdraw-requests-declined').click(function () {
         changeTableViewType(this, "DECLINED")
     });
+    $('#withdraw-requests-checking').click(function () {
+        changeTableViewType(this, "FOR_CHECKING")
+    });
     $('#withdraw-requests-All').click(function () {
         changeTableViewType(this, "ALL")
     });
@@ -446,7 +449,7 @@ function updateWithdrawalTable() {
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             var hash = data == null ? '' : data;
-                            var isHashReadOnly = tableViewType == "FOR_MANUAL" || tableViewType == "FOR_WORK" ? '<input ' : '<input readonly';
+                            var isHashReadOnly = tableViewType == "FOR_MANUAL" || tableViewType == "FOR_WORK" || tableViewType == "FOR_CHECKING" ? '<input ' : '<input readonly';
                             return isHashReadOnly + ' class="form-control txHashClass" value="' + hash + '">';
                         }
                         return data;

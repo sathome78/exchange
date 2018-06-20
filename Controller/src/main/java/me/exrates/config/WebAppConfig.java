@@ -904,6 +904,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "CEEK", false, ExConvert.Unit.ETHER);
     }
 
+
+    @Bean(name = "anyServiceImpl")
+    public EthTokenService anyService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdf67cf04f1f268e431bfecf2c76843afb8e536c1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ANY",
+                "ANY", false, ExConvert.Unit.AIWEI);
+    }
+
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
         List<String> tokensList = new ArrayList<>();

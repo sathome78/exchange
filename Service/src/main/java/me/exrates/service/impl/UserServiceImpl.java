@@ -386,8 +386,10 @@ public class UserServiceImpl implements UserService {
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
     email.setTo(user.getEmail());
-    if (tokenType.equals(TokenType.REGISTRATION)) {
-      sendMailService.sendMailRegistration(email);
+    if (tokenType.equals(TokenType.REGISTRATION)
+            || tokenType.equals(TokenType.CHANGE_PASSWORD)
+            || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
+      sendMailService.sendMailMandrill(email);
     }else {
       sendMailService.sendMail(email);
     }

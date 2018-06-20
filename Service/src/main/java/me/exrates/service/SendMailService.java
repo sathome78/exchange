@@ -6,7 +6,7 @@ public interface SendMailService {
 
 	void sendMail(Email email);
 
-    void sendMailRegistration(Email email);
+    void sendMailMandrill(Email email);
 
     void sendInfoMail(Email email);
 

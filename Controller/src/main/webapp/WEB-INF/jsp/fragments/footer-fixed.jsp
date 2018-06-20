@@ -4,7 +4,7 @@
 <style>
     .d_footer
     {
-        position: relative;
+        position: fixed;
         bottom:0px;
         width:100%;
         text-align:center;
@@ -12,7 +12,7 @@
         padding-bottom:5px;
     }
 </style>
-<footer class="d_footer" draggable: true>
+<footer class="d_footer">
     <div class="container">
         <div class="row">
             <span class="footer_link"><loc:message code="dashboard.allRightsReserved"/></span>

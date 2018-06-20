@@ -48,7 +48,6 @@ import java.util.concurrent.TimeUnit;
  * Created by ajet
  */
 //@Service
-@Log4j2(topic = "ethereum_log")
 public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
@@ -125,6 +124,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
+    private Logger log;
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -174,6 +175,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
+            this.log = LogManager.getLogger(props.getProperty("ethereum.log"));
             if (merchantName.equals("Ethereum")){
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
@@ -188,6 +190,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @PostConstruct
     void start() {
         merchantId = merchantService.findByName(merchantName).getId();
+
+        log.info("start " + merchantName);
 
         web3j = Web3j.build(new HttpService(url));
 

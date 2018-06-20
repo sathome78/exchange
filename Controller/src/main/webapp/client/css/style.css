@@ -722,7 +722,8 @@ td.blue-white {
 
 .blue-box,
 .red-box,
-.green-box {
+.green-box,
+.yellow-box {
     background-color: #5c6a80;
     color: #fff;
     padding: 5px 25px;
@@ -761,6 +762,10 @@ td.blue-white {
 
 .red-box {
     background-color: #c65857;
+}
+
+.yellow-box {
+    background-color: #e0d560;
 }
 
 .green-box {

@@ -44,6 +44,8 @@
                         <loc:message code="admin.withdraw.accepted"/></button>
                     <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.withdraw.declined"/></button>
+                    <button id="withdraw-requests-checking" class="myorders__button yellow-box margin-box">
+                        <loc:message code="admin.withdraw.checking"/></button>
                 </div>
             </div>
 

@@ -12,10 +12,10 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(of = {"id"})
 public class RatesUSDForReportDto {
     private int id;
-    private String currencyPairName;
+    private String currencyName;
     private BigDecimal rate;
 
     public String getName() {
-        return this.currencyPairName.replace("\\/.+$", "");
+        return this.currencyName.replace("\\/.+$", "");
     }
 }

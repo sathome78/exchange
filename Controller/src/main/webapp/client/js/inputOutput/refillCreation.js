@@ -78,24 +78,35 @@ $(function refillCreation() {
                 };
                 var newHTMLElements = [];
                 modalTemplate.slice().each(function (index, val) {
-                    newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+                    var elementId = $(val).attr('id');
+                    var elementIdString = elementId ? ' id="' + elementId + '"' : '';
+                    newHTMLElements[index] = '<p' + elementIdString + '>' + $(val).html() + '</p>';
                 });
+
                 newHTMLElements[0] = newHTMLElements[0]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                     .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
                 newHTMLElements[1] = newHTMLElements[1]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
+                newHTMLElements[2] = newHTMLElements[2]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                     .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
-                newHTMLElements[2] = newHTMLElements[2]
+                newHTMLElements[3] = newHTMLElements[3]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
                 var newHTML = '';
+
                 $.each(newHTMLElements, function (index) {
                     newHTML += newHTMLElements[index];
                 });
                 $('.paymentInfo').html(newHTML);
+                if (merchantIsCrypto || merchantIsSimpleInvoice) {
+                    $('#payment-info-commission-merchant').hide();
+                }
                 $('.merchantError').hide();
                 $("#amount-info-wrapper").show();
             });

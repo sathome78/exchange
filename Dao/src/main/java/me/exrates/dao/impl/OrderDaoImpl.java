@@ -1152,7 +1152,7 @@ public class OrderDaoImpl implements OrderDao {
     //query to get the last rates to exchange to USD
     @Override
     public List<RatesUSDForReportDto> getRatesToUSDForReport(){
-        String sql ="SELECT CWE.currency_id as id, CP.name,  IFNULL((SELECT exrate FROM EXORDERS where date_acception=RATES.date AND currency_pair_id=RATES.cp_id  \n" +
+        String sql ="SELECT CWE.currency_id as id, CR.name,  IFNULL((SELECT exrate FROM EXORDERS where date_acception=RATES.date AND currency_pair_id=RATES.cp_id  \n" +
                 "ORDER BY id DESC LIMIT 1), rate_usd_additional) AS rate\n" +
                 "FROM\n" +
                 "(SELECT  CURRENCY_PAIR.currency1_id AS id, CURRENCY_PAIR.id AS cp_id, CURRENCY_PAIR.name AS name, MAX(date_acception) AS date FROM EXORDERS \n" +
@@ -1162,11 +1162,11 @@ public class OrderDaoImpl implements OrderDao {
                 "WHERE  status_id = 3  \n" +
                 "GROUP BY currency_pair_id) AS RATES\n" +
                 "right join COMPANY_WALLET_EXTERNAL CWE on (RATES.id = CWE.currency_id)\n" +
-                "left join CURRENCY_PAIR CP on (CWE.currency_id = CP.currency1_id AND CP.name LIKE '%/USD');";
+                "join CURRENCY CR on (CWE.currency_id = CR.id);";
         return namedParameterJdbcTemplate.query(sql, (rs, row) -> {
             RatesUSDForReportDto dto = new RatesUSDForReportDto();
             dto.setId(rs.getInt("id"));
-            dto.setCurrencyPairName(rs.getString("name"));
+            dto.setCurrencyName(rs.getString("name"));
             dto.setRate(rs.getBigDecimal("rate"));
             return dto;
         });

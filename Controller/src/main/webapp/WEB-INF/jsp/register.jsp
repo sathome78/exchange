@@ -166,7 +166,7 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
+<%@include file='fragments/footer-fixed.jsp' %>
 </body>
 </html>
 

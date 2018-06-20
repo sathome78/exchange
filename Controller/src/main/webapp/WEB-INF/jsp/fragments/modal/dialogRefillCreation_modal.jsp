@@ -12,6 +12,7 @@
           <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
           <div class="paymentInfo">
             <p><loc:message code="merchants.modalInputHeader"/></p>
+            <p id="payment-info-commission-merchant"><loc:message code="merchants.modalInputCommissionMerchant"/></p>
             <p><loc:message code="merchants.modalInputCommission"/></p>
             <p><loc:message code="merchants.modalInputFinalSum"/></p>
           </div>

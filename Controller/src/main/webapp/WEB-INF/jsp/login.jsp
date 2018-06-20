@@ -198,7 +198,7 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
+<%@include file='fragments/footer-fixed.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

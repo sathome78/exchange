@@ -122,7 +122,8 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
+<jsp:include page="fragments/footer-fixed.jsp"/>
+
 </body>
 </html>
 
