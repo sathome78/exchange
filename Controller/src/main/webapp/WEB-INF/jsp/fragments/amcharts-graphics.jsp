@@ -3,16 +3,16 @@
 --%>
 <link rel="stylesheet" href="/client/js/chart-amcharts/style.css"/>
 <div class="amcharts-graphics graphic-wrapper">
-    <div>
-        <%--<!-- Amcharts Charts ... -->
-        <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
-        <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
-        <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-        <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
-        <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
-        <!-- ... Amcharts Charts -->--%>
-    </div>
-    <div id="amcharts-stock_chart_div" style="position: relative; !important; width:100%; height:550px;">
+    <%--<div>--%>
+        <%--&lt;%&ndash;<!-- Amcharts Charts ... -->--%>
+        <%--<script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>--%>
+        <%--<script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>--%>
+        <%--<script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>--%>
+        <%--<script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>--%>
+        <%--<script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>--%>
+        <%--<!-- ... Amcharts Charts -->&ndash;%&gt;--%>
+    <%--</div>--%>
+    <div id="amcharts-stock_chart_div" style="position: relative; !important; width:100%; height:475px">
     </div>
     <%--<div class="period-menu">--%>
         <%--<div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>--%>

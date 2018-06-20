@@ -482,6 +482,7 @@ $(function dashdoardInit() {
                 }
             });
             trading.fillOrderCreationFormFields();
+            trading.getCurrencyPairChange();
         });
         $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
             theme: "dark",
@@ -555,7 +556,10 @@ $(function dashdoardInit() {
             keyboard: false
         });
     });
+    $('.chart-controls-bar').on('click', function () {
+        $('.apply-common-tooltip').hide();
 
+    });
     $('#decline_2fa_finally').on('click', function () {
         $2faConfirmModal.modal('hide');
     });

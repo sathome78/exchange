@@ -90,7 +90,7 @@
     <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/datafeedExchange.js" type="text/javascript"></script>
+    <%--<script src="/client/js/chart-amcharts/datafeedExchange.js" type="text/javascript"></script>--%>
     <!-- ... Amcharts Charts -->
 
 
@@ -108,6 +108,14 @@
 
 <%@include file="../fragments/header.jsp" %>
 <main class="container">
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $('.apply-common-tooltip').hide();
+
+        });
+    </script>
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>

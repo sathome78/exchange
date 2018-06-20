@@ -62,11 +62,9 @@ function ChartAmchartsClass(currencyPair, subscribeCallback) {
             time_frames: [
                 {text: "8m", resolution: "D"},
                 {text: "2m", resolution: "D"},
-                {text: "1m", resolution: "60"},
-                {text: "1w", resolution: "30"},
-                {text: "7d", resolution: "30"},
-                {text: "5d", resolution: "10"},
-                {text: "3d", resolution: "10"}
+                {text: "7d", resolution: "60"},
+                {text: "5d", resolution: "30"},
+                {text: "3d", resolution: "30"},
             ]
 
         });

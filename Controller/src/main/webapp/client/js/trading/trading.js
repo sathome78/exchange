@@ -53,6 +53,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     this.getChart = function () {
         return chart;
     };
+    this.getCurrencyPairChange=function () {
+        onCurrencyPairChange();
+    }
 
     this.syncCurrencyPairSelector = function () {
         dashboardCurrencyPairSelector.syncState();
@@ -348,6 +351,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             $('#amount-stop').val(initialAmountString);
             calculateFieldsForStop();
             that.fillOrderBalance(currencyPairName);
+      
 
 
         });

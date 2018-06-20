@@ -98,7 +98,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         log.debug("setting update data {} {}", currencyPairId, timeFrame);
         if (!lazyUpdate) {
             log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
-            if (!timerLock.isLocked()) {
+            if (timerLock.tryLock()) {
                 timerLock.lock();
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -106,7 +106,9 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                             log.debug("execute task update data {} {}", currencyPairId, timeFrame);
                             updateCache(true);
                             eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
-                        if (timerLock.isLocked()) {  timerLock.unlock();  }
+                        if (timerLock.isLocked()) {
+                            timerLock = new ReentrantLock();
+                        }
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 

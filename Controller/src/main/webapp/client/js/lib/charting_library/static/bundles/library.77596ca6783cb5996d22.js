@@ -32136,7 +32136,7 @@ webpackJsonp([12], [function (t, e, i) {
         function o(t) {
             var i, o, n, a, l, h = this, d = this._chartWidget = t.chartWidget;
             this.$parent = t.parent, this._dateRangesPopupList = [], this._goToPopupBtn = [], this._iterativeHide = [], this._timeFormatter = new r, this._currentRange = window.urlParams && window.urlParams.range || "", this._$seriesControls = $(document.createElement("div")).attr("class", "chart-controls-bar-buttons chart-series-controls").appendTo(t.parent),
-                this._$timezoneButton = $('<a class="apply-common-tooltip" title="' + $.t("Timezone") + '"><span class="chart-controls-clock"></span><span class="chart-controls-tz"></span></a>'), e.enabled("fundamental_widget") || this._$timezoneButton.appendTo(this._$seriesControls), !d.onWidget() && e.enabled("timezone_menu") ? c(h._$timezoneButton, function () {
+                this._$timezoneButton = $('<a class="apply-common-tooltip"  title="' + $.t("Timezone") + '"  style="display:none;" ><span class="chart-controls-clock"></span><span class="chart-controls-tz"></span></a>'), e.enabled("fundamental_widget") || this._$timezoneButton.appendTo(this._$seriesControls), !d.onWidget() && e.enabled("timezone_menu") ? c(h._$timezoneButton, function () {
                 var t, e, i, o, n;
                 if (d.updateActions(), t = [], !(e = d.actions()) || !e.applyTimeZone || !e.applyTimeZone.subActions) return t;
                 for (i = e.applyTimeZone.subActions, o = 0; o < i.length; ++o) n = i[o], t.push({

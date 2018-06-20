@@ -9,13 +9,13 @@ import static me.exrates.model.enums.IntervalType.*;
 
 
 public enum ChartTimeFramesEnum {
-//    HOUR_2(new ChartTimeFrame(new ChartResolution(1, ChartResolutionTimeUnit.MINUTE), 2, HOUR)),
+//    HOUR_6(new ChartTimeFrame(new ChartResolution(1, ChartResolutionTimeUnit.MINUTE), 6, HOUR)),
 //    HOUR_12(new ChartTimeFrame(new ChartResolution(10, ChartResolutionTimeUnit.MINUTE), 12, HOUR)),
-//    DAY_1(new ChartTimeFrame(new ChartResolution(30, ChartResolutionTimeUnit.MINUTE), 4, DAY)),
-//    DAY_3(new ChartTimeFrame(new ChartResolution(60, ChartResolutionTimeUnit.MINUTE), 6, DAY)),
-//    DAY_7(new ChartTimeFrame(new ChartResolution(240, ChartResolutionTimeUnit.MINUTE), 7, DAY)),
-    DAY_5(new ChartTimeFrame(new ChartResolution(720, ChartResolutionTimeUnit.MINUTE), 5, DAY)),
-    MONTH_1(new ChartTimeFrame(new ChartResolution(1, ChartResolutionTimeUnit.DAY), 1, MONTH));
+    DAY_5(new ChartTimeFrame(new ChartResolution(30, ChartResolutionTimeUnit.MINUTE), 5, DAY)),
+    DAY_7(new ChartTimeFrame(new ChartResolution(60, ChartResolutionTimeUnit.MINUTE), 7, DAY)),
+    DAY_10(new ChartTimeFrame(new ChartResolution(240, ChartResolutionTimeUnit.MINUTE), 10, DAY)),
+    DAY_15(new ChartTimeFrame(new ChartResolution(720, ChartResolutionTimeUnit.MINUTE), 15, DAY)),
+    MONTH_7(new ChartTimeFrame(new ChartResolution(1, ChartResolutionTimeUnit.DAY), 7, MONTH));
 
 
 
