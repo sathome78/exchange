@@ -443,7 +443,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
     }
-
+    @Bean(name = "hcashServiceImpl")
+    public BitcoinService hcasheService() {
+        return new BitcoinServiceImpl("merchants/hcash_wallet.properties",
+                "HCASH", "HCASH", 4, 20, true);
+    }
 
 
 
@@ -462,7 +466,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "EtherZero", "ETZ", 12);
+                "ETZ", "ETZ", 12);
     }
 
     @Bean(name = "cloServiceImpl")
