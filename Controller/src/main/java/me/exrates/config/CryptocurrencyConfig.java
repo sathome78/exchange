@@ -153,6 +153,12 @@ public class CryptocurrencyConfig {
                 "FGC", "FGC", 4, 20, false);
     }
 
+    @Bean(name = "sabrServiceImpl")
+    public BitcoinService sabrService() {
+        return new BitcoinServiceImpl("merchants/sabr_wallet.properties",
+                "SABR", "SABR", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 
