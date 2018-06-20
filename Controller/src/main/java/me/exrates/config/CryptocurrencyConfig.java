@@ -159,6 +159,12 @@ public class CryptocurrencyConfig {
                 "SABR", "SABR", 4, 20, false);
     }
 
+    @Bean(name = "ptcServiceImpl")
+    public BitcoinService ptcService() {
+        return new BitcoinServiceImpl("merchants/perfectcoin_wallet.properties",
+                "Perfectcoin", "PTC", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
