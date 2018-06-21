@@ -58,7 +58,8 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     }
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState();
+        dashboardCurrencyPairSelector.syncState(onCurrencyPairChange);
+
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {

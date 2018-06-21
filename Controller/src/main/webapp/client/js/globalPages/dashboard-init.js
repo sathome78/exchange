@@ -482,8 +482,7 @@ $(function dashdoardInit() {
                 }
             });
             trading.fillOrderCreationFormFields();
-            trading.getCurrencyPairChange();
-        });
+            });
         $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
             theme: "dark",
             axis: "yx",
