@@ -926,6 +926,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ANY", false, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "tgameServiceImpl")
+    public EthTokenService tgameService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf8e06e4e4a80287fdca5b02dccecaa9d0954840f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TGAME",
+                "TGAME", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
         List<String> tokensList = new ArrayList<>();
