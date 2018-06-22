@@ -465,7 +465,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="achaim" fileName="${sys:catalina.home}/logs/crypto/achain.log"
+        <RollingFile name="achain" fileName="${sys:catalina.home}/logs/crypto/achain.log"
                      filePattern="${sys:catalina.home}/logs/crypto/achain_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
