@@ -2039,7 +2039,7 @@ html.theme-dark ._tv-dialog-content a:not([class*=button]):not([class*=btn]):not
 }
 
 ._tv-dialog-content .alert-dialog-content, ._tv-dialog-content .main-properties {
-    padding: 25px
+    padding: 7px
 }
 
 ._tv-dialog-content .alert-dialog-content.alert-aftertabs, ._tv-dialog-content .alert-dialog-content.main-properties-aftertabs, ._tv-dialog-content .main-properties.alert-aftertabs, ._tv-dialog-content .main-properties.main-properties-aftertabs {

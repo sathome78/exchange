@@ -44,6 +44,7 @@ function ChartAmchartsClass(currencyPair, subscribeCallback) {
         var host = window.location.href
         datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 20000);
         var lang = $("#language").text().toLowerCase().trim();
+
         var widget = window.tvWidget = new TradingView.widget({
             // debug: true, // uncomment this line to see Library errors and warnings in the console
             allow_symbol_change: true,
@@ -55,7 +56,7 @@ function ChartAmchartsClass(currencyPair, subscribeCallback) {
             //	BEWARE: no trailing slash is expected in feed URL
             datafeed: datafeed,
             library_path: "/client/js/lib/charting_library/",
-            locale:  lang || "en" ,
+            locale: lang || "en" ,
             //	Regression Trend-related functionality is not implemented yet, so it's hidden for a while
             disabled_features: ["header_symbol_search", "cl_feed_return_all_data"],
             charts_storage_api_version: "1.2",

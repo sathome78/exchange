@@ -201,10 +201,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**");
-    }
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -443,6 +439,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
     }
+
     @Bean(name = "hcashServiceImpl")
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hcash_wallet.properties",
