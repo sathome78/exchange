@@ -457,7 +457,16 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="cache_log" fileName="${sys:catalina.home}/logs/general/cache.log"
-                     filePattern="${sys:catalina.home}/logs/crypto/cache_log%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/cache_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="achaim" fileName="${sys:catalina.home}/logs/crypto/achain.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/achain_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -602,7 +611,6 @@
         </logger>
         <logger name="nem_log" level="ALL" additivity="false">
             <AppenderRef ref="nem_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
@@ -670,6 +678,9 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
+        </logger>
+        <logger name="achain" level="ALL" additivity="false">
+            <AppenderRef ref="achain"/>
         </logger>
 
         <Root level="INFO">

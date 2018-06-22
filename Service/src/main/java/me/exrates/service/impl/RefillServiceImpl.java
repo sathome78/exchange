@@ -169,6 +169,9 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime3();
+      /*if (merchantService.concatAdditionalToMainAddress()) {
+        ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
+      }*/
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
@@ -217,6 +220,9 @@ public class RefillServiceImpl implements RefillService {
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
+      }
+      if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
+        e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
       }
     });
     return merchantCurrencies;

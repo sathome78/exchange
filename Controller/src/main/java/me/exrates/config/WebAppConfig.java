@@ -15,6 +15,7 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
@@ -998,6 +999,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SLT",
                 "SLT",
         SLT_EMMITER);
+    }
+
+    @Bean("vexaniumContract")
+    public AchainContract achainContractService() {
+        return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
     }
 
     @Bean

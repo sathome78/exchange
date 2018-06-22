@@ -74,13 +74,17 @@
                       </c:if>
                       <br>
                       <span><loc:message code="merchants.commission"/>:</span>
-                      <c:if test="${merchantCurrency.comissionDependsOnDestinationTag}">
-                        <loc:message code="message.comission.dynamic"/>
-                      </c:if>
-                      <c:if test="${!merchantCurrency.comissionDependsOnDestinationTag}">
-                        <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
-                      </c:if>
-
+                      <c:choose>
+                        <c:when test="${merchantCurrency.comissionDependsOnDestinationTag}">
+                          <loc:message code="message.comission.dynamic"/>
+                        </c:when>
+                        <c:when test="${merchantCurrency.specMerchantComission}">
+                          <loc:message code="message.comission.fixed"/>
+                        </c:when>
+                        <c:otherwise>
+                          <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
+                        </c:otherwise>
+                      </c:choose>
                     </div>
                   </div>
                   <button class="start-withdraw btn btn-primary btn-lg start-button"
