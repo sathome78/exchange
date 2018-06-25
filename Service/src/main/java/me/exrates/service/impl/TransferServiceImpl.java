@@ -165,7 +165,7 @@ public class TransferServiceImpl implements TransferService {
           walletService.transferCostsToUser(
               transferRequestCreateDto.getUserId(),
               transferRequestCreateDto.getUserWalletId(),
-              transferRequestCreateDto.getRecipient(),
+              transferRequestCreateDto.getRecipientId(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getCommission(),
               transferRequestCreateDto.getLocale(),

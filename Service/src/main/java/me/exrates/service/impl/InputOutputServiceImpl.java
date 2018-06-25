@@ -206,7 +206,11 @@ public class InputOutputServiceImpl implements InputOutputService {
         currency.getId(),
         merchant.getId(), payment.getDestinationTag());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
-    User recipient = StringUtils.isEmpty(payment.getRecipient()) ? null : userService.findByNickname(payment.getRecipient());
+    User recipient = null;
+    if (!StringUtils.isEmpty(payment.getRecipient())){
+      recipient = userService.getIdByNickname(payment.getRecipient()) > 0 ?
+              userService.findByNickname(payment.getRecipient()) : userService.findByEmail(payment.getRecipient());
+    }
     Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .initialAmount(commissionData.getAmount())
