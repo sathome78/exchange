@@ -74,4 +74,7 @@ public interface WithdrawService {
 
   @Transactional(readOnly = true)
   Optional<Integer> getRequestIdByHashAndMerchantId(String hash, int merchantId);
+
+  @Transactional(readOnly = true)
+  WithdrawRequestInfoDto getWithdrawalInfo(Integer id, Locale locale);
 }

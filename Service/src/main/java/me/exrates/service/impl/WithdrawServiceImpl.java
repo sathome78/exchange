@@ -649,6 +649,23 @@ public class WithdrawServiceImpl implements WithdrawService {
     return withdrawRequestDao.getWithdrawalStatistic(startDate, endDate);
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public WithdrawRequestInfoDto getWithdrawalInfo(Integer id, Locale locale) {
+    WithdrawRequestInfoDto infoDto = withdrawRequestDao.findWithdrawInfo(id);
+    String notificationMessageCode = "merchants.withdrawNotification.".concat(infoDto.getStatusEnum().name());
+    final Object[] messageParams = {
+            infoDto.getRequestId(),
+            infoDto.getMerchantDescription(),
+            infoDto.getDelaySeconds()
+    };
+    final String notification = messageSource
+            .getMessage(notificationMessageCode, messageParams, locale);
+    infoDto.setMessage(notification);
+    infoDto.calculateFinalAmount();
+    return infoDto;
+  }
+
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
     Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(

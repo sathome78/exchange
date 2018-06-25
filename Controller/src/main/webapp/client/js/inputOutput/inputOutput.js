@@ -18,9 +18,11 @@ function InputOutputClass(currentCurrencyPair) {
     var showLog = false;
     /**/
     var $inputoutputContainer = $('#inputoutput');
+    const modalTemplate = $('.paymentInfo p');
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
+    const $withdrawParamsDialog = $('#dialog-withdraw-creation');
 
     var unconfirmedRefillsTableSize = 15;
     var $pagination = $('#unconfirmed-pagination');
@@ -151,6 +153,65 @@ function InputOutputClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
+
+        $('#inputoutput-table').on('click', 'tr[data-type=Output].in_out_row', function (e) {
+            console.log('click');
+            var id = $(this).data("id");
+            $.ajax({
+                url: '/withdraw/info?requestId=' + id,
+                type: 'GET',
+                success: function (data) {
+                    console.log(data);
+                    showWithdrawDialogAfterCreation(data)
+                }
+            });
+
+        });
+
+        function showWithdrawDialogAfterCreation(data) {
+            $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').show();
+            $withdrawParamsDialog.find('#message').show();
+            $withdrawParamsDialog.find('#message').html(data.message ? data.message : '');
+            fillModalWindow(data);
+            $withdrawParamsDialog.modal();
+        }
+
+        function fillModalWindow(data) {
+                var templateVariables = {
+                    amount: '__amount',
+                    currency: '__currency',
+                    merchant: '__merchant',
+                    percent: '__percent'
+                };
+                var newHTMLElements = [];
+                modalTemplate.slice().each(function (index, val) {
+                    newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+                });
+                newHTMLElements[0] = newHTMLElements[0]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.amount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.merchant, "<span class='modal-merchant'>" + data.merchantName + "</span>");
+                newHTMLElements[1] = newHTMLElements[1]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.comissionAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'></span>");
+                newHTMLElements[2] = newHTMLElements[2]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.merchantComissionAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'></span>");
+                newHTMLElements[3] = newHTMLElements[3]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.finalAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>");
+                newHTMLElements[4] = newHTMLElements[4]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.totalFee + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>");
+                var newHTML = '';
+                $.each(newHTMLElements, function (index) {
+                    newHTML += newHTMLElements[index];
+                });
+                $('.paymentInfo').html(newHTML);
+                $('.merchantError').hide();
+        }
 
         $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
             e.preventDefault();

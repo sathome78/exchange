@@ -463,6 +463,37 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
   }
 
+    @Override
+    public WithdrawRequestInfoDto findWithdrawInfo(Integer id) {
+      String sql = "SELECT WR.*, U.email, M.description, M.name AS merchant_name, C.name, MC.withdraw_auto_delay_seconds " +
+              " FROM WITHDRAW_REQUEST WR " +
+              " JOIN USER U on U.id = WR.user_id " +
+              " JOIN MERCHANT_CURRENCY MC ON (MC.currency_id = WR.currency_id " +
+              "  AND MC.merchant_id = WR.merchant_id) " +
+              " JOIN MERCHANT M ON M.id = WR.merchant_id " +
+              " JOIN CURRENCY C ON C.id = WR.currency_id " +
+              " WHERE WR.id = :id  ";
+      Map<String, Object> params = new HashMap<String, Object>() {{
+        put("id", id);
+      }};
+      return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+        WithdrawRequestInfoDto withdrawRequestInfoDto = new WithdrawRequestInfoDto();
+        withdrawRequestInfoDto.setRequestId(id);
+        withdrawRequestInfoDto.setAmount(rs.getBigDecimal("amount"));
+        withdrawRequestInfoDto.setComissionAmount(rs.getBigDecimal("commission"));
+        withdrawRequestInfoDto.setMerchantComissionAmount(rs.getBigDecimal("merchant_commission"));
+        withdrawRequestInfoDto.setUserEmail(rs.getString("email"));
+        withdrawRequestInfoDto.setStatusEnum(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+        withdrawRequestInfoDto.setMerchantDescription("description");
+        withdrawRequestInfoDto.setDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
+        withdrawRequestInfoDto.setCurrencyName(rs.getString("name"));
+        withdrawRequestInfoDto.setMerchantName(rs.getString("merchant_name"));
+        return withdrawRequestInfoDto;
+      });
+    }
+
+
+
   private String getPermissionClause(Integer requesterUserId) {
     if (requesterUserId == null) {
       return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";

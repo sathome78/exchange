@@ -9,6 +9,7 @@ import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestInfoDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -156,6 +157,14 @@ public class WithdrawRequestController {
       merchantService.checkDestinationTag(merchantId, memo);
     }
     return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchantId, locale, memo);
+  }
+
+  @RequestMapping(value = "/withdraw/info", method = GET)
+  @ResponseBody
+  public WithdrawRequestInfoDto getWithdrawRequestInfo(@RequestParam Integer requestId, Principal principal, HttpServletRequest request) {
+    WithdrawRequestInfoDto infoDto = withdrawService.getWithdrawalInfo(requestId, localeResolver.resolveLocale(request));
+    /*Preconditions.checkArgument(principal.getName().equalsIgnoreCase(infoDto.getUserEmail()));*/
+    return infoDto;
   }
 
   @AdminLoggable
