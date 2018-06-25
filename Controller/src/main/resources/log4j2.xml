@@ -483,10 +483,10 @@
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="bitcoin_core" level="INFO" additivity="false">
+        <logger name="bitcoin_core" level="DEBUG" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
-        <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
+        <logger name="com.neemre.btcdcli4j" level="DEBUG" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.apache.http" level="ERROR" additivity="false">
