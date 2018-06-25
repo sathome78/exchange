@@ -188,15 +188,15 @@ function InputOutputClass(currentCurrencyPair) {
                     newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
                 });
                 newHTMLElements[0] = newHTMLElements[0]
-                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.amount + "</span>")
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.amountStr + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
                     .replace(templateVariables.merchant, "<span class='modal-merchant'>" + data.merchantName + "</span>");
                 newHTMLElements[1] = newHTMLElements[1]
-                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.comissionAmount + "</span>")
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.comissionAmountStr + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
                     .replace(templateVariables.percent, "<span class='modal-amount'></span>");
                 newHTMLElements[2] = newHTMLElements[2]
-                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.merchantComissionAmount + "</span>")
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.merchantComissionAmountStr + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
                     .replace(templateVariables.percent, "<span class='modal-amount'></span>");
                 newHTMLElements[3] = newHTMLElements[3]

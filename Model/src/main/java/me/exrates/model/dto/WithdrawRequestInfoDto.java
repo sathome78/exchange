@@ -20,9 +20,15 @@ public class WithdrawRequestInfoDto {
 
     private BigDecimal merchantComissionAmount;
 
-    private BigDecimal finalAmount;
+    private String comissionAmountStr;
 
-    private BigDecimal totalFee;
+    private String amountStr;
+
+    private String merchantComissionAmountStr;
+
+    private String finalAmount;
+
+    private String totalFee;
 
     private String userEmail;
 
@@ -39,7 +45,10 @@ public class WithdrawRequestInfoDto {
     private WithdrawStatusEnum statusEnum;
 
     public void calculateFinalAmount() {
-        finalAmount = amount.subtract(comissionAmount).subtract(merchantComissionAmount).setScale(8, RoundingMode.HALF_UP);
-        totalFee = merchantComissionAmount.add(comissionAmount).setScale(8, RoundingMode.HALF_UP);
+        finalAmount = amount.subtract(comissionAmount).subtract(merchantComissionAmount).setScale(8, RoundingMode.HALF_UP).toPlainString();
+        totalFee = merchantComissionAmount.add(comissionAmount).setScale(8, RoundingMode.HALF_UP).toPlainString();
+        amountStr = amount.setScale(8, RoundingMode.HALF_UP).toPlainString();
+        comissionAmountStr = comissionAmount.setScale(8, RoundingMode.HALF_UP).toPlainString();
+        merchantComissionAmountStr = merchantComissionAmount.setScale(8, RoundingMode.HALF_UP).toPlainString();
     }
 }
