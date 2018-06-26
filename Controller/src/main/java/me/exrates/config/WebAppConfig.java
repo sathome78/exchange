@@ -896,6 +896,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ARN", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "hstServiceImpl")
+    public EthTokenService hstService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x554c20b7c486beee439277b4540a434566dc4c02");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HST",
+                "HST", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "dtrcServiceImpl")
     public EthTokenService DtrcService() {
         List<String> tokensList = new ArrayList<>();
