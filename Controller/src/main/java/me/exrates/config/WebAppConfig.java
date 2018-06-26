@@ -479,6 +479,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "B2G", "B2G", 12);
     }
 
+    @Bean(name = "golServiceImpl")
+    public EthereumCommonService golService() {
+        return new EthereumCommonServiceImpl("merchants/smartchain.properties",
+                "GOL", "GOL", 12);
+    }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
