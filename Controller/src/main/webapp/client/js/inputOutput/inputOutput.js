@@ -22,7 +22,7 @@ function InputOutputClass(currentCurrencyPair) {
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
-    const $withdrawParamsDialog = $('#dialog-withdraw-creation');
+    const $withdrawParamsDialog = $('#dialog-withdraw-info');
 
     var unconfirmedRefillsTableSize = 15;
     var $pagination = $('#unconfirmed-pagination');

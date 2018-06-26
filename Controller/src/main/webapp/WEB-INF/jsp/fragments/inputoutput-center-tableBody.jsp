@@ -12,7 +12,7 @@
   <th class="col-2 center blue-white"></th>
 </tr>
 <script type="text/template" id="${table_row_id}">
-  <tr class="in_out_row" data-type=<@=operationType@> data-id=<@=id@> >
+  <tr class="in_out_row" style="cursor: pointer" data-type=<@=operationType@> data-id=<@=id@> >
     <td class="center blue-white"><@=datetime@></td>
     <td class="center"><@=currencyName@></td>
     <td class="right"><@=amount@></td>
@@ -34,5 +34,5 @@
   </tr>
 </script>
 </tbody>
-<%@include file="modal/dialogWithdrawCreation_modal.jsp" %>
+<%@include file="modal/dialogWithdrawInfoModal.jsp" %>
 
