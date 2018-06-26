@@ -263,6 +263,8 @@
   "Bars Pattern": "复制K线",
   "D_input": "D",
 
+  "auto":"自动的",
+  "log":"日誌",
   "Volume":"音量",
   "minute":"分",
   "hour":"小时",
@@ -1142,7 +1144,7 @@
   "Up Wave 1 or A": "上涨浪1或A",
   "Scale Price Chart Only": "仅缩放价格图表",
   "Unmerge Up": "取消向上合并",
-  "auto_scale": "auto",
+  "auto_scale": "自动的",
   "Short period_input": "短周期",
   "Background": "背景",
   "Study Templates": "指标模板",

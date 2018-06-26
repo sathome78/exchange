@@ -100,6 +100,64 @@ public class ChartController {
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
 
+    @OnlineMethod
+    @RequestMapping(value = "/tradingview/history", method = RequestMethod.GET)
+    public ResponseEntity getCandleChartHistoryData2(
+            @QueryParam("symbol") String symbol,
+            @QueryParam("to") Long to,
+            @QueryParam("from") Long from,
+            @QueryParam("resolution") String resolution) {
+
+        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
+
+        LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
+        LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
+        ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
+        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
+        LocalDateTime startFrameTime = endTime.minus(timeFrame.getTimeValue() + 1, timeFrame.getTimeUnit().getCorrespondingTimeUnit());
+
+        LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+
+
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
+        List<CandleDto> result = new ArrayList<>();
+        if (currencyPair == null) {
+            HashMap<String, Object> errors = new HashMap<>();
+            errors.putAll(filterDataPeriod(result, from, to));
+            errors.put("s", "error");
+            errors.put("errmsg", "can not find currencyPair");
+            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
+        }
+
+        result = orderService.getCachedDataForCandle(currencyPair,
+                ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
+                .stream().map(CandleDto::new).collect(Collectors.toList());
+        return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
+
+    }
+
+
+    @OnlineMethod
+    @RequestMapping(value = "/tradingview/time", method = RequestMethod.GET)
+    public ResponseEntity getChartTime2() {
+
+        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
+    }
+
+    @OnlineMethod
+    @RequestMapping(value = "/tradingview/config", method = RequestMethod.GET)
+    public ResponseEntity getChartConfig2() {
+        return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
+    }
+
+    @OnlineMethod
+    @RequestMapping(value = "/tradingview/symbols", method = RequestMethod.GET)
+    public ResponseEntity getChartSymbol2(@QueryParam("symbol") String symbol) {
+
+        return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
+    }
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
 
         return Json.createObjectBuilder()
