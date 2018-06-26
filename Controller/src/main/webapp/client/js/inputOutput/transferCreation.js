@@ -110,7 +110,7 @@ $(function transferCreation() {
                 return;
             }
             $transferParamsDialog.one('hidden.bs.modal', function () {
-                showFinPassModal();
+                performTransfer();
             });
             $transferParamsDialog.modal("hide");
         });
@@ -118,7 +118,7 @@ $(function transferCreation() {
         $transferParamsDialog.modal();
     }
 
-    function showFinPassModal() {
+    /*function showFinPassModal() {
         $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
             e.preventDefault();
             var finPassword = $finPasswordDialog.find("#finpassword").val();
@@ -130,23 +130,23 @@ $(function transferCreation() {
         $finPasswordDialog.modal({
             backdrop: 'static'
         });
-    }
+    }*/
 
-    function performTransfer(finPassword) {
+    function performTransfer() {
         var data = {
             currency: currency,
             merchant: merchant,
             sum: amount,
             recipient: recipientUserIsNeeded ? recipient : '',
-            operationType: operationType,
+            operationType: operationType
         };
-        sendRequest(data, finPassword);
+        sendRequest(data);
     }
 
-    function sendRequest(data, finPassword) {
+    function sendRequest(data) {
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
-                url: urlForTransferCreate + '?finpassword=' + finPassword,
+                url: urlForTransferCreate,
                 async: true,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()

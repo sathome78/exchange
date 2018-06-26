@@ -155,7 +155,7 @@ $(function withdrawCreation() {
         }
         if (merchantIsSimpleInvoice) {
             $withdrawParamsDialog.find("#merchant-commission-warning").hide();
-            showFinPassModal();
+            performWithdraw();
         } else {
             $withdrawParamsDialog.find("#merchant-commission-warning").hide();
             $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
@@ -170,7 +170,7 @@ $(function withdrawCreation() {
                     return;
                 }
                 $withdrawParamsDialog.one('hidden.bs.modal', function () {
-                    showFinPassModal();
+                    performWithdraw();
                 });
                 $withdrawParamsDialog.modal("hide");
             });
@@ -179,7 +179,7 @@ $(function withdrawCreation() {
         }
     }
 
-    function showFinPassModal() {
+    /*function showFinPassModal() {
         $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
             e.preventDefault();
             var finPassword = $finPasswordDialog.find("#finpassword").val();
@@ -191,9 +191,9 @@ $(function withdrawCreation() {
         $finPasswordDialog.modal({
             backdrop: 'static'
         });
-    }
+    }*/
 
-    function performWithdraw(finPassword) {
+    function performWithdraw() {
         var data = {
             currency: currency,
             merchant: merchant,
@@ -219,19 +219,19 @@ $(function withdrawCreation() {
                     data.destination = $withdrawDetailedParamsDialog.find("#user-account").val();
                     data.userFullName = $withdrawDetailedParamsDialog.find("#user-full-name").val();
                     data.remark = $withdrawDetailedParamsDialog.find("#remark").val();
-                    sendRequest(data, finPassword);
+                    sendRequest(data);
                 }
             });
             showWithdrawDetailDialog();
         } else {
-            sendRequest(data, finPassword);
+            sendRequest(data);
         }
     }
 
-    function sendRequest(data, finPassword) {
+    function sendRequest(data) {
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
-                url: urlForWithdrawCreate + '?finpassword=' + finPassword,
+                url: urlForWithdrawCreate,
                 async: true,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()

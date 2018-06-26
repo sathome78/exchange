@@ -104,7 +104,12 @@ public class SecureServiceImpl implements SecureService {
         Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-        if (setting != null && setting.getNotificatorId() != null) {
+        if ((setting != null && setting.getNotificatorId() != null) || !event.isCanBeDisabled()) {
+            setting = NotificationsUserSetting.builder()
+                    .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+                    .userId(userId)
+                    .notificationMessageEventEnum(event)
+                    .build();
             return sendPinMessage(email, setting, request, new String[]{amountCurrency});
         }
         return null;

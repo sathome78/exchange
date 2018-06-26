@@ -632,7 +632,7 @@ public class AdminController {
     }
   }
 
-
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/settings/uploadFile", method = POST)
   public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                      final Principal principal,
@@ -658,6 +658,8 @@ public class AdminController {
     return mav;
   }
 
+
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                              ModelAndView model, HttpServletRequest request) {
@@ -681,7 +683,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
+  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
   public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                 ModelAndView model, HttpServletRequest request, RedirectAttributes redir) {
     user.setStatus(user.getUserStatus());
@@ -702,8 +704,9 @@ public class AdminController {
     }
 
     return model;
-  }
+  }*/
 
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/changePasswordConfirm")
   public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
     try {
@@ -726,7 +729,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "/changeFinPasswordConfirm")
+  /*@RequestMapping(value = "/changeFinPasswordConfirm")
   public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
     try {
       request.setCharacterEncoding("utf-8");
@@ -746,7 +749,7 @@ public class AdminController {
       e.printStackTrace();
     }
     return model;
-  }
+  }*/
 
   @RequestMapping(value = "/newIpConfirm")
   public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {

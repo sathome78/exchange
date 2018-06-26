@@ -30,8 +30,8 @@ function SettingsClass() {
         if (!that.tabIdx) {
             that.tabIdx = 0;
         }
-        setActiveSwitcher();
-        switchPassTab();
+        /*setActiveSwitcher();*/
+        /*switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -41,18 +41,18 @@ function SettingsClass() {
         checkSmsNumber();
     })();
 
-    function setActiveSwitcher(){
+   /* function setActiveSwitcher(){
         $('.orderForm-toggler').removeClass('active');
         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
     }
-
-    function switchPassTab(){
+*/
+    /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
         $('#'+tabId).siblings().removeClass('active');
         $('#'+tabId).addClass('active');
         blink($('#passwords-changing').find('[for="user-password"]'));
         blink($('#passwords-changing').find('[for="userFin-password"]'));
-    }
+    }*/
 
    $('#sessionTime').on('change keyup', function() {
        console.log('change');

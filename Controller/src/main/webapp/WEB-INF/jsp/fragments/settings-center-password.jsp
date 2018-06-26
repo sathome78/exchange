@@ -7,7 +7,7 @@
     </h4>
     <h4 class="under_h4_margin"></h4>
 
-    <div class="myhistory__button-wrapper">
+   <%-- <div class="myhistory__button-wrapper">
         <button class="orderForm-toggler myhistory__button blue-box"
                 data-tabid="tab__mainpass">
             <loc:message code="admin.changePassword"/>
@@ -16,13 +16,13 @@
                 data-tabid="tab__finpass">
             <loc:message code="admin.changeFinPassword"/>
         </button>
-    </div>
+    </div>--%>
     <div class="container">
         <div class="row">
             <div class="col-sm-8 content">
                 <div class="tab-content">
                     <%--change main passwod--%>
-                    <div class="tab-pane" id="tab__mainpass">
+                    <div <%--class="tab-pane"--%> id="tab__mainpass">
                         <form:form class="form-horizontal" id="settings-user-form"
                                    action="/settings/changePassword/submit"
                                    method="post" modelAttribute="user">
@@ -30,8 +30,8 @@
                             <form:input path="role" type="hidden" class="form-control" id="user-role"/>
                             <form:input path="userStatus" type="hidden" class="form-control"
                                         id="user-status"/>
-                            <form:input path="finpassword" type="hidden" class="form-control"
-                                        id="user-finpassword"/>
+                            <%--<form:input path="finpassword" type="hidden" class="form-control"
+                                        id="user-finpassword"/>--%>
                             <%----%>
                             <div class="input-block-wrapper clearfix">
                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
@@ -95,7 +95,7 @@
                         </form:form>
                     </div>
                     <%--change fin passwod--%>
-                    <div class="tab-pane" id="tab__finpass">
+                    <%--<div class="tab-pane" id="tab__finpass">
                         <form:form class="form-horizontal" id="settings-userFin-form"
                                    action="/settings/changeFinPassword/submit"
                                    method="post" modelAttribute="user">
@@ -104,7 +104,7 @@
                                         id="userFin-role"/>
                             <form:input path="userStatus" type="hidden" class="form-control"
                                         id="userFin-status"/>
-                            <%----%>
+                            &lt;%&ndash;&ndash;%&gt;
                             <div class="input-block-wrapper clearfix">
                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
                                     <label for="userFin-name"
@@ -159,15 +159,15 @@
                                     <form:errors path="confirmFinPassword" class="input-block-wrapper__input"/>
                                 </div>
                             </div>
-                            <%----%>
+                            &lt;%&ndash;&ndash;%&gt;
                             <h5><loc:message code="admin.changePasswordSendEmail"/></h5>
-                            <%----%>
+                            &lt;%&ndash;&ndash;%&gt;
                             <div class="confirm-button-wrapper">
                                 <button class="confirm-button" type="submit"><loc:message
                                         code="admin.save"/></button>
                             </div>
                         </form:form>
-                    </div>
+                    </div>--%>
                 </div>
             </div>
         </div>

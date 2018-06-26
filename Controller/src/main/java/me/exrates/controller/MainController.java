@@ -319,13 +319,13 @@ public class MainController {
 
     /*CHECK FIN PASSWORD*/
 
-    @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
+   /* @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
     @ResponseBody
     public void checkFinPassword(User user, HttpServletRequest request) {
         String enteredFinPassword = user.getFinpassword();
         User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
         userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
-    }
+    }*/
 
     /*
     error handlers for this controller

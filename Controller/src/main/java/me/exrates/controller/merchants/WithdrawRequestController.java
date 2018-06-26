@@ -74,7 +74,6 @@ public class WithdrawRequestController {
 
   private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
-  @FinPassCheck
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
