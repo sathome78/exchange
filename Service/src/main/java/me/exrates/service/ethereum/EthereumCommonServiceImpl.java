@@ -317,6 +317,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
                 }
+
+                if (ethBlock.getTo() != null && ethBlock.getInput().contains("0xb61d27f6")
+                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34,74))){
+                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34,74)).tokenTransaction(ethBlock);
+                }
 /*---------------------------------*/
 
                 counter[0]++;

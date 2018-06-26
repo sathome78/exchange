@@ -132,13 +132,13 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%@include file="../fragments/trading-center.jsp" %>
+            <%@include file="../fragments/trading-center2.jsp" %>
             <%@include file="../fragments/mywallets-center.jsp" %>
             <%@include file="../fragments/statement-center.jsp" %>
             <%@include file="../fragments/history-center.jsp" %>
             <%@include file="../fragments/orders-center.jsp" %>
         </div>
-        <%@include file="../fragments/right-sider.jsp" %>
+        <%@include file="../fragments/right-sider2.jsp" %>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>

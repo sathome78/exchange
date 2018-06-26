@@ -5,7 +5,7 @@ import me.exrates.model.chart.ChartTimeFrame;
 
 import java.util.Arrays;
 
-import static me.exrates.model.enums.IntervalType.*;
+import static me.exrates.model.enums.IntervalType2.*;
 
 
 public enum ChartTimeFramesEnum {
