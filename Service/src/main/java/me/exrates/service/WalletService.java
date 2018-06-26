@@ -99,7 +99,7 @@ public interface WalletService {
                                     Locale locale, int sourceId);
 
     @Transactional(rollbackFor = Exception.class)
-    String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
+    String transferCostsToUser(Integer userId, Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
                                BigDecimal comission, Locale locale, int sourceId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
