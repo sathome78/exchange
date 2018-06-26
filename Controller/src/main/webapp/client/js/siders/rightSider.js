@@ -23,8 +23,6 @@ function RightSiderClass() {
     /*===========================================================*/
     (function init() {
         that.newsList = new NewsClass($newsLoadingImg);
-
-        
         $.get('/utcOffset', function (data) {
             currentTime = moment().utcOffset(data);
             setInterval(function () {

@@ -46,6 +46,8 @@ public class ChartRefreshHandler {
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
             }
+            chartsCache.updateCache(currencyPairId);
+            stompMessenger.sendChartData(currencyPairId);
             chartsCacheManager.onUpdateEvent(currencyPairId);
             SEMAPHORE.release();
         }

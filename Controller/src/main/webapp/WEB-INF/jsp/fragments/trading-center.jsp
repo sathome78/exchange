@@ -37,14 +37,14 @@
     </div>
 
     <div id='graphics-container' style='position: relative;' class="clearfix">
-        <%--<img class="loading" src="/client/img/loading-circle.gif" alt=""
+        <img class="loading" src="/client/img/loading-circle.gif" alt=""
              style='position: absolute;
                     top: -100px;
                     bottom: 0;
                     left: 0;
                     right: 0;
                     margin: auto;
-                    z-index: 999;'/>--%>
+                    z-index: 999;'/>
         <%@include file="amcharts-graphics.jsp" %>
     </div>
     <div class="row">

@@ -20,7 +20,6 @@ import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.lisk.LiskService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.waves.WavesService;
 import org.apache.commons.lang.StringUtils;
