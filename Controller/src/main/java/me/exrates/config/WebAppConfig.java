@@ -959,15 +959,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TGAME", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "mtlServiceImpl")
-    public EthTokenService mtlServiceImpl() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xf433089366899d83a9f26a773d59ec7ecf30355e");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "MTL",
-                "MTL", true, ExConvert.Unit.AIWEI);
-    }
+
 
     @Bean(name = "leduServiceImpl")
     public EthTokenService leduService() {
@@ -987,6 +979,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "CEDEX",
                 "CEDEX", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mtlServiceImpl")
+    public EthTokenService mtlServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xF433089366899D83a9f26A773D59ec7eCF30355e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTL",
+                "MTL", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "egtServiceImpl")
