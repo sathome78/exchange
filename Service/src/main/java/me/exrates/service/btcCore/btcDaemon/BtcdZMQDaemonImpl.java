@@ -78,7 +78,6 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                                     log.warn("Illegal notification format: {}", hex);
                                 }
                             } catch (Exception e) {
-                                System.out.println(e.getClass());
                                 log.error(e);
                                 if (!isActive) {
                                     onError.accept(e);

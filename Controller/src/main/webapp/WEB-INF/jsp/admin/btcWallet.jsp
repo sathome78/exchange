@@ -32,10 +32,15 @@
             <div class="row text-center" style="font-size: 1.4rem">
                 <p class="green"><strong><loc:message code="btcWallet.balance"/>
                     <span id="current-btc-balance">${walletInfo.balance}</span> ${currency}</strong></p>
-                <p ><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
-                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> ${currency}</strong></p>
-                <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
-                    <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> ${currency}</strong></p>
+                <c:if test="${not empty walletInfo.confirmedNonSpendableBalance}">
+                    <p><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
+                        <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> ${currency}</strong></p>
+                </c:if>
+                <c:if test="${not empty walletInfo.unconfirmedBalance}">
+                    <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
+                        <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> ${currency}</strong></p>
+                </c:if>
+
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
             <div id="walletMenu" class="buttons text-center">
@@ -76,11 +81,14 @@
                 <div id="panel2" class="tab-pane">
                     <div class="text-center"><h4><loc:message code="btcWallet.send.title"/> ${currency}</h4></div>
                     <div class="col-md-8 col-md-offset-2">
+                        <div class="col-md-11">
+                            <div style="float: right; margin-bottom: 20px"><button id="addPayment" class="text-center btn btn-default">
+                                <span style="font-size: 2rem; margin: 0" class="fa fa-plus"></span></button></div>
+                        </div>
+
                         <form id="send-btc-form" class="form_full_width">
 
                             <div>
-                                <div style="float: right"><button id="addPayment" class="text-center btn btn-default">
-                                    <span style="font-size: 2.5rem; margin: 0" class="fa fa-plus"></span></button></div>
                                 <div class="col-md-11">
                                     <div id="payments">
                                         <div id="payment_0" class="btcWalletPayment">
@@ -88,9 +96,10 @@
                                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
                                                     <label class=" input-block-wrapper__label"><loc:message code="btcWallet.address"/></label>
                                                 </div>
-                                                <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <div class="col-md-6 input-block-wrapper__input-wrapper">
                                                     <input id="address_0" name="address" class="input-address input-block-wrapper__input admin-form-input"/>
                                                 </div>
+                                                <div style="padding-right: 0" class="rm-button-placeholder col-md-2 input-block-wrapper__input-wrapper"></div>
                                             </div>
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
@@ -107,7 +116,7 @@
                                             <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee" arguments="${currency}"/></label>
                                         </div>
                                         <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                            <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
+                                            <input id="input-fee" readonly disabled class="input-block-wrapper__input admin-form-input"/>
                                         </div>
                                     </div>
                                     <div class="input-block-wrapper">
@@ -121,15 +130,19 @@
                                             <button id="submitChangeFee" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
                                         </div>
                                     </div>
-                                    <div class="input-block-wrapper">
-                                        <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                            <label for="subtract-fee-from-amount" class="input-block-wrapper__label">
-                                                <loc:message code="btcWallet.subtractFeeFromAmount"/></label>
+                                    <c:if test="${!rawTxEnabled}">
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="subtract-fee-from-amount" class="input-block-wrapper__label">
+                                                    <loc:message code="btcWallet.subtractFeeFromAmount"/></label>
+                                            </div>
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <span id="subtract-fee-from-amount"></span>
+                                            </div>
                                         </div>
-                                        <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                            <span id="subtract-fee-from-amount"></span>
-                                        </div>
-                                    </div>
+                                    </c:if>
+
+
 
                                     <div id="btc-wallet-buttons">
                                         <div class="col-md-12">
@@ -137,6 +150,7 @@
                                                     type="button"><loc:message code="admin.submit"/></button>
                                             <button id="reset-btc" class="delete-order-info__button blue-box"
                                                     type="button"><loc:message code="admin.reset"/></button>
+
                                         </div>
                                     </div>
 
@@ -147,6 +161,17 @@
 
 
                         </form>
+                        <span hidden id="enable-raw-tx"><c:out value="${rawTxEnabled}"/></span>
+
+
+                        <div hidden id="rm-button-template">
+                            <div class="rm-button-container pull-right">
+                                <button class="remove-payment text-center btn btn-default input-block-wrapper__input admin-form-input">
+                                    <span style="font-size: 2rem" class="fa fa-minus"></span></button>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
                     <div hidden>
@@ -172,6 +197,7 @@
 </main>
 
 <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
+
 <div id="password-modal" class="modal fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
@@ -257,6 +283,51 @@
                         <div class="order-info__button-wrapper">
                             <button class="order-info__button" data-dismiss="modal">
                                 <loc:message code="orderinfo.ok"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="btc-prepare-raw-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div id="raw-tx-content" class="well">
+                        <div class="row" id="raw-tx-payments">
+                            <div class="col-md-12"><strong><loc:message code="btcWallet.raw.payments"/> </strong></div>
+                            <div class="col-md-12"><ul></ul></div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong><loc:message code="btcWallet.feeRate" arguments="${currency}"/>  </strong>
+                            </div>
+                            <div class="col-md-6">
+                                <input class="form-control" id="fee-rate-raw">
+                            </div>
+                            <div class="col-md-2">
+                                <button id="change-fee-raw" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
+                            </div>
+                        </div>
+                        <div class="row red text-center">
+                            <strong><loc:message code="btcWallet.totalFee"/> <span id="fee-amount-raw"></span> ${currency}</strong>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <div class="order-info__button-wrapper">
+                            <button id="submit-raw-tx">
+                                <loc:message code="admin.submit"/>
+                            </button>
+                            <button class="order-info__button" data-dismiss="modal">
+                                <loc:message code="admin.cancel"/>
                             </button>
                         </div>
                     </div>

@@ -10,22 +10,30 @@ import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.EthereumCommonService;
+import me.exrates.service.ethereum.*;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
-import me.exrates.service.impl.EthTokenService;
-import me.exrates.service.impl.EthTokenServiceImpl;
-import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.lisk.LiskService;
+import me.exrates.service.lisk.LiskServiceImpl;
+import me.exrates.service.qtum.QtumTokenService;
+import me.exrates.service.qtum.QtumTokenServiceImpl;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +56,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -59,6 +69,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.web3j.utils.Convert;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -66,6 +77,9 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -80,14 +94,18 @@ import java.util.stream.Collectors;
 @ComponentScan({"me.exrates"})
 @Import(
         {
-                SecurityConfig.class, WebSocketConfig.class
+                SecurityConfig.class, WebSocketConfig.class, CryptocurrencyConfig.class
         }
 )
 @PropertySource(value = {
   "classpath:/db.properties",
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
-    "classpath:/mail.properties"})
+    "classpath:/mail.properties",
+    "classpath:/angular.properties",
+    "classpath:/twitter.properties",
+    "classpath:/angular.properties",
+    "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -141,6 +159,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailSupportUser;
     @Value("${mail_support.password}")
     String mailSupportPassword;
+    @Value("${mail_mandrill.host}")
+    String mailMandrillHost;
+    @Value("${mail_mandrill.port}")
+    String mailMandrillPort;
+    @Value("${mail_mandrill.protocol}")
+    String mailMandrillProtocol;
+    @Value("${mail_mandrill.user}")
+    String mailMandrillUser;
+    @Value("${mail_mandrill.password}")
+    String mailMandrillPassword;
     @Value("${mail_info.host}")
     String mailInfoHost;
     @Value("${mail_info.port}")
@@ -152,6 +180,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${mail_info.password}")
     String mailInfoPassword;
 
+    @Value("${angular.allowed.origin}")
+    private String angularAllowedOrigin;
+
+    @Value("${twitter.appId}")
+    private String twitterConsumerKey;
+    @Value("${twitter.appSecret}")
+    private String twitterConsumerSecret;
+    @Value("${twitter.accessToken}")
+    private String twitterAccessToken;
+    @Value("${twitter.accessTokenSecret}")
+    private String twitterAccessTokenSecret;
+
+
     @PostConstruct
     public void init() {
         log.debug("initNem");
@@ -159,7 +200,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
     }
-
 
 
 
@@ -304,6 +344,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return mailSenderImpl;
     }
 
+    @Bean(name = "MandrillMailSender")
+    public JavaMailSenderImpl mandrillMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailMandrillHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailMandrillPort));
+        mailSenderImpl.setProtocol(mailMandrillProtocol);
+        mailSenderImpl.setUsername(mailMandrillUser);
+        mailSenderImpl.setPassword(mailMandrillPassword);
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", mailMandrillHost);
+        mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
     @Bean(name = "InfoMailSender")
     public JavaMailSenderImpl infoMailSenderImpl() {
         final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
@@ -367,59 +423,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
-
-    @Bean(name = "bitcoinServiceImpl")
-    public BitcoinService bitcoinService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
-                "Bitcoin", "BTC", 4, 40);
+    @Bean(name = "nsrServiceImpl")
+    public BitcoinService nsrService() {
+        return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
+                "NuShares", "NSR", 4, 20, false, false);
     }
 
-    @Bean(name = "litecoinServiceImpl")
-    public BitcoinService litecoinService() {
-        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
-                "Litecoin", "LTC", 4, 20);
-    }
-    
-    @Bean(name = "dashServiceImpl")
-    public BitcoinService dashService() {
-        return new BitcoinServiceImpl("merchants/dash_wallet.properties",
-                "Dash", "DASH", 4, 20);
+    @Bean(name = "amlServiceImpl")
+    public BitcoinService amlService() {
+        return new BitcoinServiceImpl("merchants/aml_wallet.properties",
+                "AML", "ABTC", 4, 20, false);
     }
 
-    @Bean(name = "atbServiceImpl")
-    public BitcoinService atbService() {
-        return new BitcoinServiceImpl("merchants/atb_wallet.properties",
-                "ATB", "ATB", 10, 20);
-    }
-    @Bean(name = "bitcoinCashServiceImpl")
-    public BitcoinService bchService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 4, 20);
+    @Bean(name = "bbccServiceImpl")
+    public BitcoinService bbccService() {
+        return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
+                "BBX", "BBX", 4, 20, false, false, false);
     }
 
-    @Bean(name = "dogecoinServiceImpl")
-    public BitcoinService dogeService() {
-        return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
-                "Dogecoin", "DOGE", 4, 20);
-    }
 
-    @Bean(name = "btgServiceImpl")
-    public BitcoinService btgService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_gold_wallet.properties",
-                "BTG", "BTG", 4, 20);
-    }
-
-    @Bean(name = "zcashServiceImpl")
-    public BitcoinService zecService() {
-        return new BitcoinServiceImpl("merchants/zec_wallet.properties",
-                "Zcash", "ZEC", 4, 20);
-    }
-
-    @Bean(name = "b2xServiceImpl")
-    public BitcoinService b2xService() {
-        return new BitcoinServiceImpl("merchants/b2x_wallet.properties",
-                "B2X", "B2X", 4, 20);
-    }
 
 
     @Bean(name = "ethereumServiceImpl")
@@ -434,15 +456,33 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Ethereum Classic", "ETC", 12);
     }
 
-    @Bean(name = "eosServiceImpl")
-    public EthTokenService EosService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "EOS",
-                "EOS", true);
+    @Bean(name = "etzServiceImpl")
+    public EthereumCommonService etzService() {
+        return new EthereumCommonServiceImpl("merchants/etherzero.properties",
+                "EtherZero", "ETZ", 12);
     }
+
+    @Bean(name = "cloServiceImpl")
+    public EthereumCommonService cloService() {
+        return new EthereumCommonServiceImpl("merchants/callisto.properties",
+                "CLO", "CLO", 12);
+    }
+
+    @Bean(name = "b2gServiceImpl")
+    public EthereumCommonService b2gService() {
+        return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
+                "B2G", "B2G", 12);
+    }
+
+//    @Bean(name = "eosServiceImpl")
+//    public EthTokenService EosService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "EOS",
+//                "EOS", true, ExConvert.Unit.ETHER);
+//    }
 
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
@@ -451,7 +491,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true);
+                "REP", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -461,7 +501,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
-                "GNT", false);
+                "GNT", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "omgServiceImpl")
@@ -471,7 +511,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
-                "OMG", true);
+                "OMG", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "bnbServiceImpl")
@@ -481,7 +521,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BinanceCoin",
-                "BNB", true);
+                "BNB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "atlServiceImpl")
@@ -491,7 +531,469 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "ATLANT",
-                "ATL", true);
+                "ATL", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "bitRentServiceImpl")
+    public EthTokenService BitRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1fe70be734e473e5721ea57c8b5b01e6caa52686");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BitRent",
+                "RNTB", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "nioServiceImpl")
+    public EthTokenService NioService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5554e04e76533e1d14c52f05beef6c9d329e1e30");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NIO",
+                "NIO", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "gosServiceImpl")
+    public EthTokenService GosService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5ce8e61f28f5948de4913bcaada90039481f1f53");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GOS",
+                "GOS", true, ExConvert.Unit.MWEI);
+    }
+
+
+    @Bean(name = "bptnServiceImpl")
+    public EthTokenService BptnRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6c22b815904165f3599f0a4a092d458966bd8024");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BPTN",
+                "BPTN", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "nbcServiceImpl")
+    public EthTokenService NbcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f195617fa8fbad9540c5d113a99a0a0172aaedc");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NBC",
+                "NBC", true, ExConvert.Unit.ETHER);
+    }
+
+
+
+    @Bean(name = "taxiServiceImpl")
+    public EthTokenService taxiRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8409e9c7d23ae978e809866abf46ac2e116f4d0e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TAXI",
+                "TAXI", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "nbtkServiceImpl")
+    public EthTokenService nbtkRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb0e6f83eba6a4ea20617e134b1aee30fcb0ac634");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NBTK",
+                "NBTK", false, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "ucashServiceImpl")
+    public EthTokenService ucashService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x92e52a1a235d9a103d970901066ce910aacefd37");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UCASH",
+                "UCASH", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "nacServiceImpl")
+    public EthTokenService nacService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8d80de8a78198396329dfa769ad54d24bf90e7aa");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NAC",
+                "NAC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "echtServiceImpl")
+    public EthTokenService echtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1a2277c83930b7a64c3e3d5544eaa8c4f946b1b7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ECHT",
+                "ECHT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "idhServiceImpl")
+    public EthTokenService idhService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5136c98a80811c3f46bdda8b5c4555cfd9f812f0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IDH",
+                "IDH", false, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "cobcServiceImpl")
+    public EthTokenService cobcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6292cec07c345c6c6953e9166324f58db6d9f814");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "COBC",
+                "COBC", true, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "bcsServiceImpl")
+    public EthTokenService bcsService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x98bde3a768401260e7025faf9947ef1b81295519");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BCS",
+                "BCS", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uqcServiceImpl")
+    public EthTokenService uqcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd01db73e047855efb414e6202098c4be4cd2423b");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UQC",
+                "UQC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "inoServiceImpl")
+    public EthTokenService inoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc9859fccc876e6b4b3c749c5d29ea04f48acb74f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "INO",
+                "INO", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "profitServiceImpl")
+    public EthTokenService profitService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe540935cabf4c2bac547c8067cbbc2991d030122");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PROFIT",
+                "PROFIT", false, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "ormeServiceImpl")
+    public EthTokenService ormeService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x516e5436bafdc11083654de7bb9b95382d08d5de");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ORME",
+                "ORME", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "bezServiceImpl")
+    public EthTokenService bezService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x3839d8ba312751aa0248fed6a8bacb84308e20ed");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BEZ",
+                "BEZ", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "simServiceImpl")
+    public EthTokenService simService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SIM",
+                "SIM", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "amnServiceImpl")
+    public EthTokenService amnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x737f98ac8ca59f2c68ad658e3c3d8c8963e40a4c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "AMN",
+                "AMN", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "getServiceImpl")
+    public EthTokenService getService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8a854288a5976036a725879164ca3e91d30c6a1b");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GET",
+                "GET", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "flotServiceImpl")
+    public EthTokenService flotService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x049399a6b048d52971f7d122ae21a1532722285f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FLOT",
+                "FLOT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "vdgServiceImpl")
+    public EthTokenService vdgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x57c75eccc8557136d32619a191fbcdc88560d711");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "VDG",
+                "VDG", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "dgtxServiceImpl")
+    public EthTokenService dgtxService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1c83501478f1320977047008496dacbd60bb15ef");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DGTX",
+                "DGTX", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "droneServiceImpl")
+    public EthTokenService droneService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x131f193692b5cce8c87d12ff4f7aa1d4e1668f1e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DRONE",
+                "DRONE", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "wdscServiceImpl")
+    public EthTokenService wdscService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x170cf89358ce17742955ea43927da5fc1e8e1211");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WDSC",
+                "WDSC", true, ExConvert.Unit.ETHER, new BigInteger("1"));
+    }
+
+    @Bean(name = "fsbtServiceImpl")
+    public EthTokenService fsbtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ed7ae1f0e2fa4276dd7ddc786334a3df81d50c0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FSBT",
+                "FSBT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "iprServiceImpl")
+    public EthTokenService iprService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x68b539381b317a04190c3bd7ce95b9233275d02a");
+        tokensList.add("0x9bcd4f04cafead107dfd715b4922b22d8ab941a0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IPR",
+                "IPR", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "casServiceImpl")
+    public EthTokenService casService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe8780b48bdb05f928697a5e8155f672ed91462f7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CAS",
+                "CAS", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "tnrServiceImpl")
+    public EthTokenService tnrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x543199bfd8c343fadd8c1a2bc289e876c588c8e5");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TNR",
+                "TNR", true, ExConvert.Unit.ETHER);
+    }
+
+    //    Qtum tokens:
+    @Bean(name = "inkServiceImpl")
+    public EthTokenService InkService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf4c90e18727c5c76499ea6369c856a6d61d3e92e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "Ink",
+                "INK", true, ExConvert.Unit.GWEI);
+    }
+
+    @Bean(name = "rthServiceImpl")
+    public EthTokenService rthService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x3fd8f39a962efda04956981c31ab89fab5fb8bc8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RTH",
+                "RTH", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "spdServiceImpl")
+    public EthTokenService SpdService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1dea979ae76f26071870f824088da78979eb91c8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SPD",
+                "SPD", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mtcServiceImpl")
+    public EthTokenService MtcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x905e337c6c8645263d3521205aa37bf4d034e745");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTC",
+                "MTC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "arnServiceImpl")
+    public EthTokenService arnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xba5f11b16b155792cf3b2e6880e8706859a8aeb6");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ARN",
+                "ARN", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "dtrcServiceImpl")
+    public EthTokenService DtrcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc20464e0c373486d2b3335576e83a218b1618a5e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DTRC",
+                "DTRC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ceekServiceImpl")
+    public EthTokenService CeekService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb056c38f6b7dc4064367403e26424cd2c60655e1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CEEK",
+                "CEEK", false, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "anyServiceImpl")
+    public EthTokenService anyService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdf67cf04f1f268e431bfecf2c76843afb8e536c1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ANY",
+                "ANY", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "tgameServiceImpl")
+    public EthTokenService tgameService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf8e06e4e4a80287fdca5b02dccecaa9d0954840f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TGAME",
+                "TGAME", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "egtServiceImpl")
+    public EthTokenService egtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5dbac24e98e2a4f43adc0dc82af403fca063ce2c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "EGT",
+                "EGT", true, ExConvert.Unit.ETHER);
+    }
+
+    //    Qtum tokens:
+    @Bean(name = "spcServiceImpl")
+    public QtumTokenService spcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("57931faffdec114056a49adfcaa1caac159a1a25");
+
+        return new QtumTokenServiceImpl(tokensList, "SPC", "SPC", ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "hlcServiceImpl")
+    public QtumTokenService hlcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
+
+        return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
+    }
+
+
+    /***tokens based on xem mosaic)****/
+    @Bean(name = "dimCoinServiceImpl")
+    public XemMosaicService dimCoinService() {
+        return new XemMosaicServiceImpl(
+                "DimCoin",
+                "DIM",
+                new MosaicIdDto("dim", "coin"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                10);
+    }
+
+
+    @Bean(name = "npxsServiceImpl")
+    public XemMosaicService npxsService() {
+        return new XemMosaicServiceImpl(
+                "NPXSXEM",
+                "NPXSXEM",
+                new MosaicIdDto("pundix", "npxs"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                0);
+    }
+
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    @Bean(name = "sltStellarService")
+    public StellarAsset sltStellarService() {
+        return new StellarAsset("SLT",
+                "SLT",
+                "SLT",
+        SLT_EMMITER);
     }
 
     @Bean
@@ -554,6 +1056,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ZMQ.Context zmqContext() {
         return ZMQ.context(1);
+    }
+
+    @Bean
+    public Map<String, String> angularProperties(){
+        Map<String, String> props = new HashMap<>();
+        props.put("angularAllowedOrigin", angularAllowedOrigin);
+        return props;
+    }
+
+    @Bean
+    public Twitter twitter() {
+        return new TwitterTemplate(
+                twitterConsumerKey,
+                twitterConsumerSecret,
+                twitterAccessToken,
+                twitterAccessTokenSecret);
     }
 
 }

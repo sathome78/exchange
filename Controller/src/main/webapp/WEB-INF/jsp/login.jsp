@@ -16,6 +16,12 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <%----------------------------------------%>
+    <%@include file="tools/google_head.jsp"%>
+    <%@include file="tools/alexa.jsp" %>
+    <%--<%@include file="tools/yandex.jsp" %>--%>
+
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
@@ -46,8 +52,7 @@
                 async defer>
         </script>
     </c:if>
-    <%@include file="tools/alexa.jsp" %>
-    <%--<%@include file="tools/yandex.jsp" %>--%>
+
 </head>
 
 
@@ -193,7 +198,7 @@
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
+<%@include file='fragments/footer-fixed.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

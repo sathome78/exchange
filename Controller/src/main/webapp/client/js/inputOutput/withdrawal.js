@@ -8,6 +8,46 @@ var filterParams;
 
 $(function () {
 
+    $('#withdrawal-request-filter_button').on('click', function (e) {
+        var element = document.getElementById("withdrawal-request-filter");
+        if (element.style.display === "none") {
+            element.style.display = "block";
+            document.getElementById("withdrawal-statistic").style.display = "none";
+        } else {
+            element.style.display = "none";
+        }
+    });
+
+    $('#withdrawal-statistic_button').on('click', function (e) {
+        var element = document.getElementById("withdrawal-statistic");
+        if (element.style.display === "none") {
+            element.style.display = "block";
+            document.getElementById("withdrawal-request-filter").style.display = "none";
+        } else {
+            element.style.display = "none";
+        }
+    });
+
+    $('#filter_statistic_button').on('click', function (e) {
+        var data = "startDate=" + $("#filter_statistic-datetimepicker_start").val() + ' 00:00:00' +
+            '&' + "endDate=" + $("#filter_statistic-datetimepicker_end").val() + ' 23:59:59';
+
+        $.ajax({
+            url: '/2a8fy7b07dxe44/withdraw/statistic',
+            async: false,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
+            },
+            type: 'POST',
+            data: data,
+            success: function (data) {
+                $("#manual_withdrawals").val(data[0]);
+                $("#auto_withdrawals").val(data[1]);
+            }
+        });
+    });
+
+
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
@@ -36,6 +76,38 @@ $(function () {
         defaultTime: '00:00'
     });
 
+    $('#filter_statistic-datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD',
+        formatDate: 'YYYY-MM-DD',
+        lang: 'ru',
+        defaultDate: new Date(),
+        timepicker: false,
+    });
+
+    $('#filter_statistic-datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD',
+        formatDate: 'YYYY-MM-DD',
+        lang: 'ru',
+        defaultDate: new Date(),
+        timepicker: false,
+    });
+
+    $('#filter-dateProcessing-datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $('#filter-dateProcessing-datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
 
     $withdrawalPage = $('#withdraw-requests-admin');
     $withdrawalTable = $('#withdrawalTable');
@@ -62,6 +134,9 @@ $(function () {
     });
     $('#withdraw-requests-declined').click(function () {
         changeTableViewType(this, "DECLINED")
+    });
+    $('#withdraw-requests-checking').click(function () {
+        changeTableViewType(this, "FOR_CHECKING")
     });
     $('#withdraw-requests-All').click(function () {
         changeTableViewType(this, "ALL")
@@ -332,7 +407,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "currencyName",
-                    "name": "CURRENCY.name"
+                    "name": "CUR.name"
                 },
 
                 {
@@ -347,7 +422,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "merchantName",
-                    "name": "MERCHANT.name",
+                    "name": "MER.name",
                     "render": function (data, type, row) {
                         var merchantName = data;
                         var merchantImageName = '';
@@ -369,19 +444,19 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "txHash",
-                    "name": "WITHDRAW_REQUEST.txHash",
+                    "name": "WITHDRAW_REQUEST.transaction_hash",
                     "type": "readonly",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             var hash = data == null ? '' : data;
-                            var isHashReadOnly = tableViewType == "FOR_MANUAL" || tableViewType == "FOR_WORK" ? '<input ' : '<input readonly';
+                            var isHashReadOnly = tableViewType == "FOR_MANUAL" || tableViewType == "FOR_WORK" || tableViewType == "FOR_CHECKING" ? '<input ' : '<input readonly';
                             return isHashReadOnly + ' class="form-control txHashClass" value="' + hash + '">';
                         }
                         return data;
                     }
                 },                {
                     "data": "destinationTag",
-                    "name": "WITHDRAW_REQUEST.destinationTag",
+                    "name": "WITHDRAW_REQUEST.destination_tag",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             var tag = data == null ? '' : data;

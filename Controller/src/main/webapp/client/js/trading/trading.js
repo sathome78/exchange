@@ -44,6 +44,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
+        $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }

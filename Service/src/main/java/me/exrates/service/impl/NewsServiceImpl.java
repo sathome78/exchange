@@ -16,6 +16,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.social.twitter.api.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -252,6 +254,29 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public List<NewsSummaryDto> findAllNewsVariants() {
         return newsDao.findAllNewsVariants();
+    }
+
+    @Override
+    public List<NewsDto> getTwitterNews(Integer amount) {
+        return serviceCacheableProxy.getTwitterTimeline(amount)
+                .stream()
+                .map(tweet -> {
+                    NewsDto dto = new NewsDto();
+                    dto.setTitle(this.removeUrlFromTweet(tweet));
+                    dto.setDate(tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                    dto.setRef(tweet.getIdStr());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String removeUrlFromTweet(Tweet tweet) {
+        String fullText = tweet.getText();
+        List<UrlEntity> URLs = tweet.getEntities().getUrls();
+        for (UrlEntity ue : URLs) {
+            fullText = fullText.replace(ue.getUrl(), "");
+        }
+        return fullText;
     }
 
 

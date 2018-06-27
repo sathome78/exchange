@@ -5,6 +5,7 @@ import com.google.gson.*;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -31,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-
+@Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edcmerchant.properties"})
 public class EDCServiceImpl implements EDCService {
@@ -40,8 +41,6 @@ public class EDCServiceImpl implements EDCService {
   private @Value("${edcmerchant.main_account}") String main_account;
   private @Value("${edcmerchant.hook}") String hook;
   private @Value("${edcmerchant.history}") String history;
-
-  private final Logger LOG = LogManager.getLogger("merchant");
 
   @Autowired
   TransactionService transactionService;
@@ -66,7 +65,7 @@ public class EDCServiceImpl implements EDCService {
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    LOG.info("Withdraw EDC: " + withdrawMerchantOperationDto.toString());
+    log.info("Withdraw EDC: " + withdrawMerchantOperationDto.toString());
     edcServiceNode.transferFromMainAccount(
         withdrawMerchantOperationDto.getAccountTo(),
         withdrawMerchantOperationDto.getAmount());
@@ -113,7 +112,7 @@ public class EDCServiceImpl implements EDCService {
       requestAcceptDto.setPredicate(predicate);*/
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      LOG.debug("RefillRequestAppropriateNotFoundException: " + params);
+      log.debug("RefillRequestAppropriateNotFoundException: " + params);
       Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);
@@ -159,7 +158,6 @@ public class EDCServiceImpl implements EDCService {
         throw new RefillRequestMerchantException(params.toString());
       }
     }
-//    return;
     throw new RefillRequestFakePaymentReceivedException(params.toString());
   }
 

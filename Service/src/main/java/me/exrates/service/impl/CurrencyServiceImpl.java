@@ -24,10 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -107,6 +104,13 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Override
   public List<CurrencyPair> getAllCurrencyPairs() {
     return currencyDao.getAllCurrencyPairs();
+  }
+
+  @Override
+  public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder() {
+    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs();
+    result.sort(Comparator.comparing(CurrencyPair::getName));
+    return result;
   }
 
   @Override
@@ -267,5 +271,10 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Override
   public List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType) {
     return currencyDao.findAllCurrenciesByProcessType(processType);
+  }
+
+  @Override
+  public List<CurrencyPair> findPermitedCurrencyPairs(){
+    return currencyDao.findPermitedCurrencyPairs();
   }
 }

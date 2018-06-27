@@ -26,7 +26,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public MerchantSpecParamDto getByMerchantIdAndParamName(String merchantName, String paramName) {
+    public MerchantSpecParamDto getByMerchantNameAndParamName(String merchantName, String paramName) {
         String sql = " SELECT MSP.* FROM MERCHANT_SPEC_PARAMETERS MSP " +
                 " INNER JOIN MERCHANT M ON M.id = MSP.merchant_id " +
                 " WHERE M.name = :merchant_name AND MSP.param_name = :param_name ";
@@ -34,16 +34,35 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
         params.put("merchant_name", merchantName);
         params.put("param_name", paramName);
         try {
-            return jdbcTemplate.queryForObject(sql, params, new RowMapper<MerchantSpecParamDto>() {
-                @Override
-                public MerchantSpecParamDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    MerchantSpecParamDto dto = new MerchantSpecParamDto();
-                    dto.setId(rs.getInt("id"));
-                    dto.setMerchantId(rs.getInt("merchant_id"));
-                    dto.setParamName(rs.getString("param_name"));
-                    dto.setParamValue(rs.getString("param_value"));
-                    return dto;
-                }
+            return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+                MerchantSpecParamDto dto = new MerchantSpecParamDto();
+                dto.setId(rs.getInt("id"));
+                dto.setMerchantId(rs.getInt("merchant_id"));
+                dto.setParamName(rs.getString("param_name"));
+                dto.setParamValue(rs.getString("param_value"));
+                return dto;
+            });
+        } catch (DataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public MerchantSpecParamDto getByMerchantIdAndParamName(int merchantId, String paramName) {
+        String sql = " SELECT MSP.* FROM MERCHANT_SPEC_PARAMETERS MSP " +
+                " INNER JOIN MERCHANT M ON M.id = MSP.merchant_id " +
+                " WHERE M.id = :merchant_id AND MSP.param_name = :param_name ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("param_name", paramName);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+                MerchantSpecParamDto dto = new MerchantSpecParamDto();
+                dto.setId(rs.getInt("id"));
+                dto.setMerchantId(rs.getInt("merchant_id"));
+                dto.setParamName(rs.getString("param_name"));
+                dto.setParamValue(rs.getString("param_value"));
+                return dto;
             });
         } catch (DataAccessException e) {
             return null;

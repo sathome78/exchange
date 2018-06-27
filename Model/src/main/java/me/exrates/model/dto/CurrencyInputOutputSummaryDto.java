@@ -11,6 +11,11 @@ import java.util.stream.Stream;
 @Getter @Setter
 public class CurrencyInputOutputSummaryDto {
     private Integer orderNum;
+    //wolper 19.04.18
+    //currency id added
+    private int curId;
+    //wolper 24.04.18
+    private BigDecimal rateToUSD;
     private String currencyName;
     private BigDecimal input;
     private BigDecimal output;
@@ -21,14 +26,14 @@ public class CurrencyInputOutputSummaryDto {
     }
 
     public static String getTitle() {
-        return Stream.of("No.", "currency", "input", "output", "diff")
+        return Stream.of("No.", "cur_id", "currency", "rateToUSD", "input", "output", "diff")
                 .collect(Collectors.joining(";", "", "\r\n"));
     }
 
 
     @Override
     public String toString() {
-        return Stream.of(String.valueOf(orderNum), currencyName,
+        return Stream.of(String.valueOf(orderNum), String.valueOf(curId),  currencyName, BigDecimalProcessing.formatNoneComma(rateToUSD, false),
                 BigDecimalProcessing.formatNoneComma(input, false),
                 BigDecimalProcessing.formatNoneComma(output, false),
                 BigDecimalProcessing.formatNoneComma(diff, false))

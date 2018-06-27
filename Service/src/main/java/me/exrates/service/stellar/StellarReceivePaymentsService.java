@@ -2,40 +2,19 @@ package me.exrates.service.stellar;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.MerchantSpecParamDto;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
-import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.media.sse.EventSource;
-import org.glassfish.jersey.media.sse.InboundEvent;
-import org.glassfish.jersey.media.sse.SseFeature;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.stellar.sdk.*;
-import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
-import org.stellar.sdk.requests.RequestBuilder;
-import org.stellar.sdk.requests.TransactionsRequestBuilder;
-import org.stellar.sdk.responses.GsonSingleton;
 import org.stellar.sdk.responses.TransactionResponse;
-import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +33,8 @@ public class StellarReceivePaymentsService {
     private StellarTransactionService stellarTransactionService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+    @Autowired
+    private StellarAsssetsContext asssetsContext;
 
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;
@@ -91,20 +72,30 @@ public class StellarReceivePaymentsService {
                     PaymentOperationResponse response = ((PaymentOperationResponse) payment);
                     log.debug(response.getAsset().getType());
                     if (response.getAsset().equals(new AssetTypeNative())) {
-                        TransactionResponse transactionResponse = null;
-                        try {
-                            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
-                        } catch (Exception e) {
-                            log.error("error getting transaction {}", e);
+                       processPayment(response, "XLM", MERCHANT_NAME);
+                    } else {
+                        log.debug("asset {}", response.getAsset().toString());
+                        StellarAsset asset = asssetsContext.getStellarAssetByAssetObject(response.getAsset());
+                        if (asset != null) {
+                            processPayment(response, asset.getCurrencyName(), asset.getMerchantName());
                         }
-                        log.debug("process transaction");
-                        stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
-                        // Record the paging token so we can start from here next time.
-                        log.debug("transaction xlm {} saved ", transactionResponse.getHash());
                     }
                 }
             }
         });
+    }
+
+    private void processPayment(PaymentOperationResponse response, String currencyName, String merchant) {
+        TransactionResponse transactionResponse = null;
+        try {
+            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
+        } catch (Exception e) {
+            log.error("error getting transaction {}", e);
+        }
+        log.debug("process transaction");
+        stellarService.onTransactionReceive(transactionResponse, response.getAmount(), currencyName, merchant);
+        // Record the paging token so we can start from here next time.
+        log.debug("transaction {} {} saved ", currencyName, transactionResponse.getHash());
     }
 
     private void checkEventSource() {
@@ -130,7 +121,7 @@ public class StellarReceivePaymentsService {
     }
 
     private String loadLastPagingToken() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 

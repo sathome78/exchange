@@ -13,11 +13,13 @@ $(function refillCreation() {
     const $loadingDialog = $container.find('#loading-process-modal');
     const $amountHolder = $container.find("#sum");
     const notifications = new NotificationsClass();
+    const inputOutput = new InputOutputClass();
     const urlForRefillCreate = "/refill/request/create";
     const modalTemplate = $container.find('.paymentInfo p');
     const numberFormat = '0,0.00[0000000]';
     const phrases = {
         "bankNotSelected": $container.find("#bank-not-selected").html(),
+        "enterOtherBankPhrase": $container.find("#enter-other-bank-phrase").html()
     };
 
     var currency;
@@ -76,8 +78,11 @@ $(function refillCreation() {
                 };
                 var newHTMLElements = [];
                 modalTemplate.slice().each(function (index, val) {
-                    newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+                    var elementId = $(val).attr('id');
+                    var elementIdString = elementId ? ' id="' + elementId + '"' : '';
+                    newHTMLElements[index] = '<p' + elementIdString + '>' + $(val).html() + '</p>';
                 });
+
                 newHTMLElements[0] = newHTMLElements[0]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
@@ -94,10 +99,14 @@ $(function refillCreation() {
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
                 var newHTML = '';
+
                 $.each(newHTMLElements, function (index) {
                     newHTML += newHTMLElements[index];
                 });
                 $('.paymentInfo').html(newHTML);
+                if (merchantIsCrypto || merchantIsSimpleInvoice) {
+                    $('#payment-info-commission-merchant').hide();
+                }
                 $('.merchantError').hide();
                 $("#amount-info-wrapper").show();
             });
@@ -197,7 +206,7 @@ $(function refillCreation() {
             }).success(function (result) {
                 if (!result || !result['redirectionUrl']) {
                     var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
-                    showRefillDialogAfterCreation(result['params']['message'], qrTag);
+                    showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
                     notifications.getNotifications();
                 } else {
                     if (!result['method']) {
@@ -267,16 +276,35 @@ $(function refillCreation() {
         });
     }
 
-    function showRefillDialogAfterCreation(message, qrTag) {
+    function showRefillDialogAfterCreation(message, qrTag, requestId) {
+        if (merchantIsSimpleInvoice) {
+            $refillParamsDialog.find("#simple-invoice-btns-wrapper").show();
+        } else {
+            $refillParamsDialog.find("#simple-invoice-btns-wrapper").hide();
+        }
         $refillParamsDialog.find('#request-money-operation-btns-wrapper').hide();
         $refillParamsDialog.find('#destination-input-wrapper').hide();
         $refillParamsDialog.find('#response-money-operation-btns-wrapper').show();
         $refillParamsDialog.find('#message').show();
         $refillParamsDialog.find('#message').html(message ? message : '');
         $refillParamsDialog.find('#payment-qr').html(qrTag ? qrTag : '');
-        $refillParamsDialog.one("hidden.bs.modal", function () {
+
+        $('#request-confirm-btn').click(function () {
+            $refillParamsDialog.modal('hide');
+            inputOutput.getRequestDataAndShowConfirmDialog(requestId, function () {
+                window.location.reload(true);
+            });
+        });
+        $('#request-revoke-btn').click(function () {
+            $refillParamsDialog.modal('hide');
+            inputOutput.revokeRefillRequest(requestId, function () {
+                window.location.reload(true);
+            });
+        });
+        $('#dialog-refill-creation-close').one("click", function () {
             window.location.reload(true);
         });
+
         $refillParamsDialog.modal();
     }
 

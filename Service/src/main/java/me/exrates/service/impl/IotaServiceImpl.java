@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import jota.IotaAPI;
+import jota.dto.response.GetInclusionStateResponse;
 import jota.dto.response.GetNodeInfoResponse;
 import jota.error.*;
 import jota.model.Bundle;
@@ -44,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
-@Log4j2(topic = "merchant")
+@Log4j2(topic = "iota_log")
 @Service
 @PropertySource("classpath:/merchants/iota.properties")
 public class IotaServiceImpl implements IotaService {
@@ -181,31 +182,48 @@ public class IotaServiceImpl implements IotaService {
             String[] stockArr = new String[ADDRESSES.size()];
             stockArr = ADDRESSES.toArray(stockArr);
 
-            Bundle[] bundles = iotaClient.bundlesFromAddresses(stockArr,true);
-            for (Bundle bundle : bundles){
-                for (Transaction transaction : bundle.getTransactions()){
-                    try {
-//                        log.info(transaction.toString());
-                        String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
-                        if ((transaction.getValue() <= 0) || (!transaction.getPersistence())
-                                || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(addressWithChecksum,merchant.getId(),currency.getId()
-                                ,transaction.getHash()).isPresent() || (!ADDRESSES.contains(addressWithChecksum))){
-                            continue;
+            iotaClient.findTransactionObjectsByAddresses(stockArr).stream()
+                    .filter(t -> {
+                        try {
+                            return !refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(Checksum.addChecksum(t.getAddress())
+                                    ,merchant.getId(),currency.getId(),t.getHash()).isPresent();
+                        }catch (Exception e){
+                            return false;
+                        }
+                    })
+                    .filter(t -> {
+                        try {
+                            return ADDRESSES.contains(Checksum.addChecksum(t.getAddress()));
+                        }catch (Exception e){
+                            return false;
+                        }
+                    })
+                    .filter(t -> t.getValue() > 0)
+                    .filter(t -> {
+                        try {
+                            return iotaClient.getLatestInclusion(new String[]{t.getHash()}).getStates()[0];
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .forEach(transaction -> {
+                        try {
+
+                            String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
+
+                            Map<String, String> mapPayment = new HashMap<>();
+                            mapPayment.put("address", addressWithChecksum);
+                            mapPayment.put("hash", transaction.getHash());
+                            mapPayment.put("amount", String.valueOf(transaction.getValue()));
+
+                            processPayment(mapPayment);
+                        }catch (Exception e){
+                            log.error(e);
                         }
 
-                        Map<String, String> mapPayment = new HashMap<>();
-                        mapPayment.put("address", addressWithChecksum);
-                        mapPayment.put("hash", transaction.getHash());
-                        mapPayment.put("amount", String.valueOf(transaction.getValue()));
+                        log.info("IOTA transaction hash-" + transaction.getHash() + ", sum-" + transaction.getValue() + " provided!");
+            });
 
-                        processPayment(mapPayment);
-                    }catch (Exception e){
-                        log.error(e);
-                    }
-
-                    log.info("IOTA transaction hash-" + transaction.getHash() + ", sum-" + transaction.getValue() + " provided!");
-                }
-            }
             log.info(new java.util.Date());
 
         } catch (Exception e) {

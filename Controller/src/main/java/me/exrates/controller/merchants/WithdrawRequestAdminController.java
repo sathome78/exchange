@@ -30,10 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -59,16 +56,15 @@ public class WithdrawRequestAdminController {
   MerchantService merchantService;
 
   @Autowired
-  private CommissionService commissionService;
-
-  @Autowired
   private CurrencyService currencyService;
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
   public ModelAndView withdrawalRequests(Principal principal) {
     final Map<String, Object> params = new HashMap<>();
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+            .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
+            .collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
     if (!permittedCurrencies.isEmpty()) {
       List<Integer> currencyList = permittedCurrencies.stream()
@@ -77,7 +73,7 @@ public class WithdrawRequestAdminController {
       List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.OUTPUT)
           .stream()
           .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-          .distinct().collect(Collectors.toList());
+          .distinct().sorted(Comparator.comparing(Merchant::getName)).collect(Collectors.toList());
       params.put("merchants", merchants);
     }
     return new ModelAndView("withdrawalRequests", params);

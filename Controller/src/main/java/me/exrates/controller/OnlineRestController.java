@@ -9,7 +9,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
-import me.exrates.service.events.QRLoginEvent;
+import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -17,11 +17,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.event.EventPublicationInterceptor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -32,6 +31,8 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -123,6 +124,9 @@ public class OnlineRestController {
   @Autowired
   StopOrderService stopOrderService;
 
+  @Autowired
+  private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
     UserRole userRole = userService.getUserRoleFromSecurityContext();
@@ -142,20 +146,75 @@ public class OnlineRestController {
 
   @OnlineMethod
   @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
-  public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+  public Map<String, Object> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                                              Principal principal, HttpServletRequest request) {
     if (principal == null) {
       return null;
     }
+
     String email = principal.getName();
     String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyWalletsStatisticsDto> result = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
-    return result;
+
+    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+    HashMap<String, Object> map = new HashMap<String, Object>();
+    map.put("mapWallets", resultWallet);
+
+    if (resultWallet.size() > 1) {
+
+      List<ExOrderStatisticsShortByPairsDto> resultOrders = ordersStatisticByPairsCache.getCachedList();
+
+      final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
+      resultOrders.stream()
+              .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
+              .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
+
+      final List<WalletTotalUsdDto> walletTotalUsdDtoList = new ArrayList<>();
+      for (MyWalletsStatisticsDto myWalletsStatisticsDto : resultWallet) {
+        WalletTotalUsdDto walletTotalUsdDto = new WalletTotalUsdDto(myWalletsStatisticsDto.getCurrencyName());
+        Map<String, BigDecimal> mapWalletTotalUsdDto = new HashMap<>();
+        if (myWalletsStatisticsDto.getCurrencyName().equals("USD")){
+            walletTotalUsdDto.setSumUSD(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+            walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+            walletTotalUsdDtoList.add(walletTotalUsdDto);
+        }
+        resultOrders.stream()
+                .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
+                        || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
+                        || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
+                )
+                .forEach(o -> {
+                  mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate()));
+                });
+        if (!mapWalletTotalUsdDto.isEmpty()) {
+          walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+          walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+          walletTotalUsdDtoList.add(walletTotalUsdDto);
+        }
+      }
+
+      walletTotalUsdDtoList.stream().forEach(wallet -> {
+        if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
+        } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/BTC"))
+                  .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("BTC/USD")));
+        } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/ETH"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/ETH"))
+                  .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("ETH/USD")));
+        }
+      });
+
+      map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getSumUSD().doubleValue()).sum());
+    }
+
+    return map;
+
   }
 
-  /**
+
+   /**
    * this method do two function:
    * - one of online methods. Retrieves current statistics (states) for all currency pairs
    * - controls the session state and start new session when necessary
@@ -523,7 +582,7 @@ public class OnlineRestController {
     Locale locale = localeResolver.resolveLocale(request);
     List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
-    return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
+    return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }
 
 
@@ -723,7 +782,35 @@ public class OnlineRestController {
     return result;
   }
 
+  @RequestMapping(value = "/dashboard/myOrdersData", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public Future<List<OrderWideListDto>> getMyOrders(@RequestParam("tableType") String tableType,
+                                                    @RequestParam(required = false) String scope,
+                                                    Principal principal, HttpServletRequest request) {
 
+    CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+    Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
+    String email = principal != null ? principal.getName() : "";
+    return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, showAllPairs == null || !showAllPairs ? currencyPair : null, scope, email, localeResolver.resolveLocale(request)));
+  }
+
+  private List<OrderWideListDto> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, String scope, String email, Locale locale) {
+    List<OrderWideListDto> result = new ArrayList<>();
+    switch (tableType) {
+      case "CLOSED":
+        List<OrderWideListDto> ordersSellClosed = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CLOSED, null, scope,0, -1, locale);
+        result = ordersSellClosed;
+        break;
+      case "CANCELLED":
+        List<OrderWideListDto> ordersSellCancelled = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CANCELLED, null, scope, 0, -1, locale);
+        result = ordersSellCancelled;
+        break;
+      case "OPENED":
+        List<OrderWideListDto> ordersSellOpened = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.OPENED, null, scope, 0, -1, locale);
+        result = ordersSellOpened;
+        break;
+    }
+    return result;
+  }
   /**
    * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
    * returns list the data of user's orders to show in pages "History"
@@ -875,6 +962,12 @@ public class OnlineRestController {
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
     List<NewsDto> result = newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
     return result;
+  }
+
+  @OnlineMethod
+  @RequestMapping(value = "/dashboard/newsTwitter", method = RequestMethod.GET)
+  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "50") int amount) {
+    return newsService.getTwitterNews(amount);
   }
 
   @OnlineMethod

@@ -10,6 +10,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
+import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.QRLoginEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,9 @@ public class StompMessengerImpl implements StompMessenger{
     private DefaultSimpUserRegistry registry;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ChartsCache chartsCache;
+
 
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
@@ -98,11 +102,23 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendChartData(final Integer currencyPairId) {
-        intervals.forEach(p-> {
-            String message = orderService.getChartData(currencyPairId, p);
+       Map<String, String> data = chartsCache.getData(currencyPairId);
+        orderService.getIntervals().forEach(p-> {
+            String message = data.get(p.getInterval());
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
             sendMessageToDestination(destination, message);
         });
+    }
+
+    private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
+       List<BackDealInterval> intervals = new ArrayList<>();
+       orderService.getIntervals().forEach(p->{
+            Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
+            if (subscribers.size() > 0) {
+                intervals.add(p);
+            }
+       });
+       return intervals;
     }
 
     @Synchronized

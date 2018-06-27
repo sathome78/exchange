@@ -69,7 +69,7 @@ public class BotServiceImpl implements BotService {
     private Scheduler botOrderCreationScheduler;
 
 
-    private final static ExecutorService botAcceptExecutors = Executors.newCachedThreadPool();
+    private final static ExecutorService botAcceptExecutors = Executors.newFixedThreadPool(10);
 
     @PostConstruct
     private void initBot() {
@@ -100,13 +100,6 @@ public class BotServiceImpl implements BotService {
         });
     }
 
-    @Override
-    @TransactionalEventListener
-    public void onOrderCreated(CreateOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        acceptAfterDelay(exOrder);
-    }
-
 
     @Override
     @Transactional
@@ -118,7 +111,7 @@ public class BotServiceImpl implements BotService {
                         try {
                             Thread.sleep(botTrader.getAcceptDelayInMillis());
                             log.debug("Accepting order: {}", exOrder);
-                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH, null);
+                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
                             email.setMessage("Insufficient costs on bot account");
@@ -225,11 +218,12 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional
-    @Synchronized
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         log.debug("Prepared order: {}", orderCreateDto);
-        orderService.createOrder(orderCreateDto, null, OrderActionEnum.CREATE);
+       // orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+        orderService.postBotOrderToDb(orderCreateDto);
+
     }
 
 

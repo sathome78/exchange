@@ -17,6 +17,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
 
   int CONFIRMATION_NEEDED_COUNT = 4;
 
+    boolean isRawTxEnabled();
+
     @EventListener(value = BtcWalletEvent.class)
     void onPayment(BtcTransactionDto transactionDto);
 
@@ -31,8 +33,10 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   List<BtcTransactionHistoryDto> listAllTransactions();
   
   BigDecimal estimateFee();
-  
-  BigDecimal getActualFee();
+
+    String getEstimatedFeeString();
+
+    BigDecimal getActualFee();
   
   void setTxFee(BigDecimal fee);
   
@@ -74,6 +78,12 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   default Boolean additionalFieldForRefillIsUsed() {
     return false;
   }
+
+    BtcAdminPreparedTxDto prepareRawTransactions(List<BtcWalletPaymentItemDto> payments);
+
+    BtcAdminPreparedTxDto updateRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions);
+
+    List<BtcPaymentResultDetailedDto> sendRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions);
 
   String getNewAddressForAdmin();
 

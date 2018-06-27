@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.okhttp.*;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
 import me.exrates.model.Transaction;
@@ -41,6 +42,7 @@ import static org.springframework.transaction.annotation.Propagation.NESTED;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
 public class EDCServiceNodeImpl implements EDCServiceNode {
@@ -56,8 +58,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   private @Value("${edc.account.main}") String MAIN_ACCOUNT;
   private @Value("${edc.account.main.private.key}") String MAIN_ACCOUNT_PRIVATE_KEY;
   private final String PENDING_PAYMENT_HASH = "1fc3403096856798ab8992f73f241334a4fe98ce";
-
-  private final Logger LOG = LogManager.getLogger("merchant");
 
   private final BigDecimal BTS = new BigDecimal(1000L);
   private final int DEC_PLACES = 2;
@@ -108,11 +108,11 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
         }
       }
     } catch (InterruptedException e) {
-      LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
-      LOG.error(e);
+      log.info("Method acceptTransaction InterruptedException........................................... error: ");
+      log.error(e);
     } catch (Exception e) {
-      LOG.info("Method acceptTransaction Exception........................................... error: ");
-      LOG.error(e);
+      log.info("Method acceptTransaction Exception........................................... error: ");
+      log.error(e);
     }
   }
 
@@ -160,9 +160,9 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
           }
         }
       } catch (IOException e) {
-        LOG.error(e);
+        log.error(e);
       } catch (InterruptedException e) {
-        LOG.error(e);
+        log.error(e);
       }
     }
   }
@@ -224,13 +224,12 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return result.get("result");
   }
 
-  @Transactional(propagation = NESTED)
   private String createAccount(final int id) throws Exception {
-    LOG.info("Start method createAccount");
+    log.info("Start method createAccount");
     final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
     final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallFast(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
     final String response = makeRpcCallFast(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
-    LOG.info("bit_response: " + response.toString());
+    log.info("bit_response: " + response.toString());
     if (response.contains("error")) {
       throw new Exception("Could not create new account!\n" + response);
     }
@@ -290,7 +289,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     if (responseImportKey.contains("true")) {
       final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,MAIN_ACCOUNT, accountName, amount, "EDC", "Output transfer", 1);
       if (responseTransfer.contains("error")) {
-        LOG.error(responseTransfer);
+        log.error(responseTransfer);
         if (responseTransfer.contains("rec && rec->name == account_name_or_id")){
           throw new InvalidAccountException();
         }

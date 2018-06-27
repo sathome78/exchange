@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 
 import java.time.LocalDateTime;
@@ -41,7 +42,11 @@ public interface ReportService {
     List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                List<UserRole> roleList);
 
-    boolean isReportMailingEnabled();
+    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
+
+  List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
+
+  boolean isReportMailingEnabled();
 
     List<String> retrieveReportSubscribersList(boolean selectWithPremissions);
 
@@ -55,5 +60,7 @@ public interface ReportService {
 
   void updateReportMailingTime(String newMailTimeString);
 
-    void sendReportMail();
+  void sendReportMail();
+
+  List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

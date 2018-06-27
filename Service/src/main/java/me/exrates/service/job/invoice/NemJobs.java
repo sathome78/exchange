@@ -22,11 +22,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maks on 20.07.2017.
  */
-@Log4j2
+@Log4j2(topic = "nem_log")
 @Service
 public class NemJobs {
 
@@ -46,14 +48,16 @@ public class NemJobs {
 
 
     private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
     public void init() {
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName("NEM");
+       /* scheduler.scheduleAtFixedRate(this::checkWithdrawals, 1, 5, TimeUnit.MINUTES);*/
+        scheduler.scheduleAtFixedRate(this::checkReffils, 1, 5, TimeUnit.MINUTES);
     }
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
     private void checkWithdrawals() {
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),
                 Collections.singletonList(WithdrawStatusEnum.ON_BCH_EXAM.getCode()));
@@ -76,10 +80,10 @@ public class NemJobs {
         }
     }
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 4)
-    public void checkReffils() {
+
+    private void checkReffils() {
         log.debug("check reffils");
-        List<RefillRequestFlatDto> dtos = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         if (dtos != null && !dtos.isEmpty()) {
             dtos.forEach((RefillRequestFlatDto p) -> {
                 executor.execute(() -> {
@@ -93,6 +97,7 @@ public class NemJobs {
         try {
             nemService.checkRecievedTransaction(dto);
         } catch (Exception e) {
+            log.error(e);
             log.error("error checking nem tx confirmations {}", dto);
         }
     }

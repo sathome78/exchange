@@ -7,6 +7,7 @@ import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,9 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
+    private ExchangeResponseProcessingService exchangeResponseProcessingService;
+
     private final String LAST_ARRAY = "a";
     private final String ASK_ARRAY = "a";
     private final String BID_ARRAY = "b";
@@ -59,7 +63,7 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
                 .forEach((name, currencyPair ) -> {
             String url = "https://api.kraken.com/0/public/Ticker";
             Map<String, String> params = Collections.singletonMap("pair", name);
-            String jsonResponse = OkHttpUtils.sendGetRequest(url, params);
+            String jsonResponse = exchangeResponseProcessingService.sendGetRequest(url, params);
             log.debug(jsonResponse);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);

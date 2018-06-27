@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
-    <btcd-cli4j.version>0.5.8.6</btcd-cli4j.version>
+    <btcd-cli4j.version>0.5.9.15</btcd-cli4j.version>
   </properties>
   <dependencies>
     <dependency>
@@ -25,11 +25,6 @@
       <groupId>kds</groupId>
       <artifactId>Dao</artifactId>
       <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
-      <version>3.9.1</version>
     </dependency>
 
     <dependency>
@@ -115,7 +110,12 @@
     <dependency>
       <groupId>org.web3j</groupId>
       <artifactId>core</artifactId>
-      <version>2.3.1</version>
+      <version>3.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.web3j</groupId>
+      <artifactId>codegen</artifactId>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>
@@ -130,7 +130,7 @@
     <dependency>
       <groupId>nem</groupId>
       <artifactId>nem-core</artifactId>
-      <version>0.6.91-BETA</version>
+      <version>0.6.95-BETA</version>
     </dependency>
     <dependency>
       <groupId>iota</groupId>
@@ -140,18 +140,23 @@
     <dependency>
       <groupId>monero</groupId>
       <artifactId>monero-common</artifactId>
-      <version>1.0</version>
+      <version>1.1</version>
     </dependency>
     <dependency>
       <groupId>monero</groupId>
       <artifactId>monero-core</artifactId>
-      <version>1.0</version>
+      <version>1.1</version>
     </dependency>
     <dependency>
       <groupId>net.minidev</groupId>
       <artifactId>json-smart</artifactId>
       <version>2.3</version>
     </dependency>
+      <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpasyncclient</artifactId>
+          <version>4.1.1</version>
+      </dependency>
   </dependencies>
   <repositories>
     <repository>

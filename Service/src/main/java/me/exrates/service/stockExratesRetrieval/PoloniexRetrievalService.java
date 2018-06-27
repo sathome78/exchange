@@ -22,7 +22,7 @@ public class PoloniexRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        String jsonResponse = OkHttpUtils.sendGetRequest("https://poloniex.com/public", Collections.singletonMap("command", "returnTicker"));
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://poloniex.com/public", Collections.singletonMap("command", "returnTicker"));
         return exchangeResponseProcessingService.extractAllStatsFromMapNode(stockExchange, jsonResponse,
                 (name1, name2) -> name2.concat("_").concat(name1));// IMPORTANT! In POLONIEX API currencies in pairs are inverted - i.e. DASH/BTC looks like BTC_DASH
     }

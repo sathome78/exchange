@@ -1,5 +1,6 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,20 +14,26 @@ import java.math.BigDecimal;
  */
 @Getter @Setter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WalletFormattedDto {
   private Integer id;
   private String name;
+  private BigDecimal totalInput;
+  private BigDecimal totalOutput;
+  private BigDecimal totalSell;
+  private BigDecimal totalBuy;
+  private BigDecimal reserveOrders;
+  private BigDecimal reserveWithdraw;
   private BigDecimal activeBalance;
   private BigDecimal reservedBalance;
-  private String activeBalanceFormatted;
-  private String reservedBalanceFormatted;
-  
+
+  public WalletFormattedDto() {
+  }
+
   public WalletFormattedDto(Wallet wallet) {
     this.id = wallet.getId();
     this.name = wallet.getName();
     this.activeBalance = wallet.getActiveBalance();
     this.reservedBalance = wallet.getReservedBalance();
-    this.activeBalanceFormatted = BigDecimalProcessing.formatNonePoint(this.activeBalance, false);
-    this.reservedBalanceFormatted = BigDecimalProcessing.formatNonePoint(this.reservedBalance, false);
   }
 }

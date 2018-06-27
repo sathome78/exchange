@@ -27,7 +27,7 @@ public class BitstampRetrievalService implements StockExrateRetrievalService {
         stockExchange.getAliasedCurrencyPairs((name1, name2) -> name1.toLowerCase() + name2.toLowerCase())
                 .forEach((currencyPairName, currencyPair) -> {
             String url = "https://www.bitstamp.net/api/v2/ticker/" + currencyPairName + "/";
-            String jsonResponse = OkHttpUtils.sendGetRequest(url);
+            String jsonResponse = exchangeResponseProcessingService.sendGetRequest(url);
             stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
                             stockExchange, currencyPair.getId())) ;
         });

@@ -13,24 +13,6 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Merchants_edr" fileName="${sys:catalina.home}/logs/merchants/merchants_edr.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/merchants_edr_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
-        <RollingFile name="Node_ethereum" fileName="${sys:catalina.home}/logs/merchants/node_ethereum.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/node_ethereum_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
             filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -312,6 +294,96 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="qtum_log" fileName="${sys:catalina.home}/logs/crypto/qtum_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/qtum_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ethereum_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/ethereum_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/ethereum_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ethereum_classic_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/ethereum_classic_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/ethereum_classic_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="etherzero_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/etherzero_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/etherzero_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="callisto_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/callisto_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/callisto_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="bitcoiin2g_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/bitcoiin2g_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/bitcoiin2g_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="eth_tokens_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/eth_tokens_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/eth_tokens_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="monero_log" fileName="${sys:catalina.home}/logs/crypto/monero_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/monero_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="iota_log" fileName="${sys:catalina.home}/logs/crypto/iota_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/iota_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="edc_log" fileName="${sys:catalina.home}/logs/crypto/edc_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/edc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="message_notify" fileName="${sys:catalina.home}/logs/message_notify/notify.log"
                      filePattern="${sys:catalina.home}/logs/crypto/notify_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -349,7 +421,16 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="waves_log" fileName="${sys:catalina.home}/logs/crypto/waves_log.log"
-                     filePattern="${sys:catalina.home}/logs/crypto/waves_log%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/crypto/waves_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="lisk_log" fileName="${sys:catalina.home}/logs/crypto/lisk_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/lisk_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -375,19 +456,20 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="cache_log" fileName="${sys:catalina.home}/logs/general/cache.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/cache_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
-        </Logger>
-        <Logger name="merchant_edr" level="TRACE" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
-            <AppenderRef ref="Merchants_edr"/>
-        </Logger>
-        <Logger name="node_ethereum" level="DEBUG" additivity="false">
-
-            <AppenderRef ref="Node_ethereum"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
@@ -473,7 +555,6 @@
             <AppenderRef ref="exceptions_log"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_ext_log"/>
         </logger>
 
@@ -515,7 +596,6 @@
         </logger>
         <logger name="stellar_log" level="ALL" additivity="false">
             <AppenderRef ref="stellar_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
@@ -527,9 +607,38 @@
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
         </logger>
+        <logger name="qtum_log" level="ALL" additivity="false">
+            <AppenderRef ref="qtum_log"/>
+        </logger>
+        <logger name="ethereum_log" level="ALL" additivity="false">
+            <AppenderRef ref="ethereum_log"/>
+        </logger>
+        <logger name="ethereum_classic_log" level="ALL" additivity="false">
+            <AppenderRef ref="ethereum_classic_log"/>
+        </logger>
+        <logger name="etherzero_log" level="ALL" additivity="false">
+            <AppenderRef ref="etherzero_log"/>
+        </logger>
+        <logger name="callisto_log" level="ALL" additivity="false">
+            <AppenderRef ref="callisto_log"/>
+        </logger>
+        <logger name="bitcoiin2g_log" level="ALL" additivity="false">
+            <AppenderRef ref="bitcoiin2g_log"/>
+        </logger>
+        <logger name="eth_tokens_log" level="DEBUG" additivity="false">
+            <AppenderRef ref="eth_tokens_log"/>
+        </logger>
+        <logger name="monero_log" level="ALL" additivity="false">
+            <AppenderRef ref="monero_log"/>
+        </logger>
+        <logger name="edc_log" level="ALL" additivity="false">
+            <AppenderRef ref="edc_log"/>
+        </logger>
+        <logger name="iota_log" level="ALL" additivity="false">
+            <AppenderRef ref="iota_log"/>
+        </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
             <AppenderRef ref="ws_stomp_log"/>
@@ -542,10 +651,12 @@
         </logger>
         <logger name="message_notify" additivity="false" level="ALL">
             <AppenderRef ref="message_notify"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="waves_log" level="ALL" additivity="false">
             <AppenderRef ref="waves_log"/>
+        </logger>
+        <logger name="lisk_log" level="ALL" additivity="false">
+            <AppenderRef ref="lisk_log"/>
         </logger>
         <logger name="config" level="ALL" additivity="false">
             <AppenderRef ref="config"/>
@@ -557,8 +668,11 @@
         <logger name="test" level="ALL" additivity="false">
             <AppenderRef ref="test_log"/>
         </logger>
+        <logger name="cache" level="ALL" additivity="false">
+            <AppenderRef ref="cache_log"/>
+        </logger>
 
-        <Root level="DEBUG">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>

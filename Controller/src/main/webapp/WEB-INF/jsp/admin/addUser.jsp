@@ -16,22 +16,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+
     <%@include file='links_scripts.jsp' %>
 
-
-
     <%----------%>
-
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
     <%----------%>
-    <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/ga.jsp" %>
 
 </head>
 
 <body>
-
 <%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new admin side_menu">

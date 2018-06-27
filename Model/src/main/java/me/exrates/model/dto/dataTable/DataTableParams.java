@@ -65,6 +65,13 @@ public class DataTableParams {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
+
+        if (columnNames.contains("WITHDRAW_REQUEST.id")) {
+            columnNames = requestParams.entrySet().stream()
+                    .filter(entry -> entry.getKey().matches("^columns(.+)name\\]$"))
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toList());
+        }
         validateColumnNames(columnNames);
         dataTableParams.columns = columnNames;
         return dataTableParams;

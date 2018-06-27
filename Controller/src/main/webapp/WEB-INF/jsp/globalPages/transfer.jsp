@@ -21,6 +21,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
+
+    <%--TOOLS ... --%>
+    <%@include file="../tools/google_head.jsp"%>
+    <%--INTERCOM CHAT--%>
+    <%@include file="../tools/intercom.jsp" %>
+    <%-- ... TOOLS--%>
+    <%@include file="../tools/alexa.jsp" %>
+
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value='/client/js/jquery_1.11.3.min.js'/>" type="text/javascript"></script>
@@ -53,16 +61,13 @@
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
-    <%--TOOLS ... --%>
-    <!-- Google Analytics-->
-    <%--<%@include file="../tools/google.jsp"%>--%>
-    <!-- Yandex.Metrika counter -->
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp" %>
-    <%-- ... TOOLS--%>
-    <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/ga.jsp" %>
+    <%--... Alerts --%>
+    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+    <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
 </head>
 <body>

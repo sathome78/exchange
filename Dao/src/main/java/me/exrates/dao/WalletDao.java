@@ -31,6 +31,10 @@ public interface WalletDao {
 
     MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
 
+    List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
+                                                               List<Integer> withdrawSuccessStatusIds,
+                                                               List<Integer> refillSuccessStatusIds);
+
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale);
 
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale);
@@ -76,4 +80,16 @@ public interface WalletDao {
     List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
+
+    List<UserGroupBalanceDto> getWalletBalancesSummaryByGroups();
+
+    List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList);
+
+    int getWalletIdAndBlock(Integer userId, Integer currencyId);
+
+    List<ExternalWalletsDto> getExternalWallets();
+
+    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+
+    List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

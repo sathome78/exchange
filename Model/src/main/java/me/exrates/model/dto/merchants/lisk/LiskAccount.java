@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LiskAccount {
     private String address;
-    private BigDecimal unconfirmedBalance;
-    private BigDecimal balance;
+    private BigDecimal unconfirmedBalance = BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO;
     private String publicKey;
 }

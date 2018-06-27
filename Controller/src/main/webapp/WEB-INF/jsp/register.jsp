@@ -17,6 +17,12 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <%----------------------------------------%>
+    <%@include file="tools/google_head.jsp"%>
+    <%@include file="tools/alexa.jsp" %>
+    <%--<%@include file="tools/yandex.jsp" %>--%>
+
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
@@ -44,8 +50,6 @@
                 async defer>
         </script>
     </c:if>
-    <%@include file="tools/alexa.jsp" %>
-    <%--<%@include file="tools/yandex.jsp" %>--%>
 
 </head>
 
@@ -61,39 +65,39 @@
             <h4 class=""><loc:message code="register.title"/></h4>
             <hr>
 
-            <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
+            <form:form method="post" action="create" modelAttribute="user" >
                 <%--nickname--%>
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.nickname" var="login"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="login" path="nickname"
+                        <form:input id="login" path="nickname"
                                                 placeholder="${login}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="nickname" class="input-block-wrapper__input"/>
                     </div>
-                    <div class="col-md-11">
-                        <loc:message code="register.loginLabel"/>
-                    </div>
                 </div>
                 <%--email--%>
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.email" var="email"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="email" path="email"
+                        <form:input id="email" path="email"
                                                 placeholder="${email}" type="email"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="email" class="input-block-wrapper__input"/>
                     </div>
+                    <div class="col-md-11">
+                        <loc:message code="register.loginLabel"/>
+                    </div>
                 </div>
                 <%--Password--%>
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.password" var="password"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="pass" path="password"
+                        <form:input id="pass" path="password"
                                                 type="password"
                                                 placeholder="${password}"
                                                 class="form-control input-block-wrapper__input"/>
@@ -106,7 +110,7 @@
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.repeatpassword" var="repassword"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="repass" path="confirmPassword"
+                        <form:input id="repass" path="confirmPassword"
                                                 type="password"
                                                 placeholder="${repassword}"
                                                 class="form-control input-block-wrapper__input"/>
@@ -124,7 +128,7 @@
                     </div>
 
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="parentEmail" path="parentEmail"
+                        <form:input id="parentEmail" path="parentEmail"
                                                 readonly="true"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -158,11 +162,11 @@
                     <button id="register_button" class="login__button" type="submit"><loc:message
                             code="register.submit"/></button>
                 </div>
-            </registrationform:form>
+            </form:form>
         </div>
     </div>
 </main>
-<%@include file='fragments/footer.jsp' %>
+<%@include file='fragments/footer-fixed.jsp' %>
 </body>
 </html>
 

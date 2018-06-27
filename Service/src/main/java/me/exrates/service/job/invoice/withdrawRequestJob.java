@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -92,7 +93,7 @@ public class withdrawRequestJob {
         }
         catch (InsufficientCostsInWalletException e) {
           log.error(ExceptionUtils.getStackTrace(e));
-          withdrawService.rejectError(withdrawRequest.getId(), REJECT_ERROR_TIMEOUT, e.getReason());
+          withdrawService.rejectToReview(withdrawRequest.getId());
           sendEmailsOnInsufficientCosts(withdrawRequest.getCurrencyName());
         }
         catch (InvalidAccountException e) {
@@ -115,17 +116,19 @@ public class withdrawRequestJob {
   
   private void sendEmailsOnInsufficientCosts(String currencyName) {
     String[] notifyEmails = WALLET_NOTIFY_EMAILS.split(",");
+    log.info("EMAILS TO NOTIFY: " + Arrays.toString(notifyEmails));
     for (String emailAddress : notifyEmails) {
       String userLanguage = userService.getPreferedLangByEmail(emailAddress);
-      if (userLanguage != null) {
-        Email email = new Email();
-        email.setTo(emailAddress);
-        Locale locale = new Locale(userLanguage);
-        email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
-        email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
-        sendMailService.sendInfoMail(email);
+      if (userLanguage == null) {
+        userLanguage = "en";
       }
-      
+      Email email = new Email();
+      email.setTo(emailAddress);
+      Locale locale = new Locale(userLanguage);
+      email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
+      email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
+      sendMailService.sendInfoMail(email);
+
     }
   }
 

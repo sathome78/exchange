@@ -5,6 +5,29 @@
 <%--ref stat--%>
 <div class="form-group" style="text-align: left">
     <H6><loc:message code="admin.referralAccruals"/>:</H6>
+    <div class="col-md-4 content" style="float:none;">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th class="left"><loc:message code="admin.referralLevel"/></th>
+                <th class="center"><loc:message code="admin.referralPercent"/></th>
+            </tr>
+            </thead>
+            <tbody>
+            <c:forEach items="${referalPercents}" var="referalPercent">
+                <tr class="currency_permissions__item">
+                    <td class="left">
+                        ${referalPercent.level}
+                    </td>
+                    <td class="center col1">
+                        ${referalPercent.percent}
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+    </div>
+
     <div id="refAccrualsPort">
     </div>
 </div>
@@ -58,6 +81,8 @@
 
 <%--buttons group--%>
 <div class="form-group" style="text-align: left">
+    <button class="blue-box" id="ref-table-init">
+        <loc:message code="admin.datatable.showData"/></button>
     <button id="refExtFilter" class="blue-box"><loc:message code="admin.user.transactions.extendedFilter"/></button>
     <button id="refSearchClearButton" class="blue-box"><loc:message code="admin.reset"/></button>
     <sec:authorize access="<%=AdminController.adminAnyAuthority%>">

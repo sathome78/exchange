@@ -39,6 +39,7 @@ public class RefillRequestCreateDto {
   private Boolean generateNewAddress;
   private Boolean generateAdditionalRefillAddressAvailable;
   private Boolean needToCreateRefillRequestRecord;
+  private Boolean storeSameAddressForParentAndTokens;
   private Locale locale;
   private RefillRequestParam refillRequestParam = new RefillRequestParam();
   private String txHash;
@@ -71,6 +72,7 @@ public class RefillRequestCreateDto {
     this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
     this.generateAdditionalRefillAddressAvailable = creditsOperation.getGenerateAdditionalRefillAddressAvailable();
+    this.storeSameAddressForParentAndTokens = creditsOperation.getStoreSameAddressForParentAndTokens();
     /**/
     this.status = status;
     /**/

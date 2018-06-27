@@ -3,6 +3,7 @@ package me.exrates.controller;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -228,6 +231,27 @@ public class ReportController {
     List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRoleList(startTime, endTime, userRoles);
     return result.stream().map(CurrencyInputOutputSummaryDto::toString)
             .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/totalBalances", method = GET)
+  public String getTotalBalancesReportByRoles(@RequestParam("roles") List<UserRole> userRoles) {
+
+    List<UserRoleTotalBalancesReportDto<UserRole>> result = reportService.getWalletBalancesSummaryByRoles(userRoles);
+    return result.stream().map(UserRoleTotalBalancesReportDto::toString)
+            .collect(Collectors.joining("", UserRoleTotalBalancesReportDto.getTitle(UserRole.class), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/groupTotalBalances", method = GET)
+  public Future<List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>>> getTotalBalancesReportByGroups() {
+    return CompletableFuture.supplyAsync(() -> reportService.getWalletBalancesSummaryByGroups());
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesExternalWallets", method = GET)
+  public Future<List<ExternalWalletsDto>> getBalancesExternalWallets() {
+    return CompletableFuture.supplyAsync(() -> reportService.getBalancesWithExternalWallets());
   }
 
   @ResponseBody

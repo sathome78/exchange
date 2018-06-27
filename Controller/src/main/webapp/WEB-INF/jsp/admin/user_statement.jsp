@@ -15,7 +15,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
     <meta charset="utf-8">
@@ -30,8 +29,6 @@
     <link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/dataTable/adminStatementsDataTable.js"/>"></script>
-    <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/ga.jsp" %>
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>

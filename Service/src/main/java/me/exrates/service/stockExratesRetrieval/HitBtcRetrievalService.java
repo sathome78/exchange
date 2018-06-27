@@ -22,7 +22,7 @@ public class HitBtcRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        String jsonResponse = OkHttpUtils.sendGetRequest("http://api.hitbtc.com/api/1/public/ticker");
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest("http://api.hitbtc.com/api/1/public/ticker");
         return exchangeResponseProcessingService.extractAllStatsFromMapNode(stockExchange, jsonResponse, String::concat);
     }
 

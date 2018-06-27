@@ -91,10 +91,6 @@
                             <div class="confirm-button-wrapper">
                                 <button class="confirm-button" type="submit"><loc:message
                                         code="admin.save"/></button>
-                                <button class="confirm-button" type="reset"
-                                        onclick="javascript:window.location='/settings';">
-                                    <loc:message code="admin.cancel"/>
-                                </button>
                             </div>
                         </form:form>
                     </div>
@@ -169,10 +165,6 @@
                             <div class="confirm-button-wrapper">
                                 <button class="confirm-button" type="submit"><loc:message
                                         code="admin.save"/></button>
-                                <button class="confirm-button" type="reset"
-                                        onclick="javascript:window.location='/settings';">
-                                    <loc:message code="admin.cancel"/>
-                                </button>
                             </div>
                         </form:form>
                     </div>

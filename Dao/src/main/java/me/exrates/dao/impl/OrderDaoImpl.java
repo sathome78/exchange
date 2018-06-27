@@ -20,6 +20,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.OrderRoleInfoForDelete;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,6 +60,8 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     WalletDao walletDao;
 
+
+    @Override
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
                 "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id)" +
@@ -82,6 +85,36 @@ public class OrderDaoImpl implements OrderDao {
             id = 0;
         }
         return id;
+    }
+
+
+    /*USE FOR BOT ONLY!!!*/
+    @Override
+    public void postAcceptedOrderToDB(ExOrder exOrder) {
+        String sql = "INSERT INTO EXORDERS" +
+                "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, " +
+                "   commission_fixed_amount, status_id, order_source_id, date_creation, date_acception, user_acceptor_id, status_modification_date)" +
+                "  VALUES " +
+                "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount," +
+                " :status_id, :order_source_id, :date_creation, :date_acception, :user_acceptor_id, :status_modification_date)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", exOrder.getUserId());
+            put("currency_pair_id", exOrder.getCurrencyPairId());
+            put("operation_type_id", exOrder.getOperationType().type);
+            put("exrate", exOrder.getExRate());
+            put("amount_base", exOrder.getAmountBase());
+            put("amount_convert", exOrder.getAmountConvert());
+            put("commission_id", exOrder.getComissionId());
+            put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
+            put("status_id", OrderStatus.CLOSED.getStatus());
+            put("order_source_id", exOrder.getSourceId());
+            put("user_acceptor_id", exOrder.getUserAcceptorId());
+            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
+            put("date_creation", currentDate);
+            put("date_acception", currentDate);
+            put("status_modification_date", currentDate);
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -628,59 +661,61 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
-        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
+        return getMyOrdersWithState(userId, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
-        String userJoinClause;
-        if(scope == null || scope.isEmpty()) { /*closed*/
-            userFilterClause = " AND CREATOR.email = :email ";
-            userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
-        } else {
-            switch (scope) {
-                case "ALL": /*все сделки*/
-                    userFilterClause = " AND (CREATOR.email = :email OR ACCEPTOR.email = :email) AND (EX2.id IS NULL) ";
-                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id " +
-                            "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id " +
-                            " LEFT JOIN EXORDERS EX2 ON EXORDERS.id = EX2.counter_order_id ";
-                    break;
-                case "ACCEPTED":/*принятые*/
-                    userFilterClause = " AND ACCEPTOR.email = :email ";
-                    userJoinClause = "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
-                    break;
-                default: /*mine - мои ордера*/
-                    userFilterClause = " AND CREATOR.email = :email ";
-                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
-                    break;
-            }
+        String joinClause = "";
+
+        if (scope == null || scope.isEmpty()) {
+            scope = "OTHER";
+        }
+
+        switch (scope) {
+            case "ALL":
+                userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
+                joinClause = " LEFT JOIN EXORDERS EX2 ON EXORDERS.id = EX2.counter_order_id ";
+                break;
+            case "ACCEPTED":
+                userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
+                break;
+            default:
+                userFilterClause = " AND EXORDERS.user_id = :user_id ";
+                break;
         }
 
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
-        String orderClause = "  ORDER BY -EXORDERS.date_acception ASC, EXORDERS.date_creation DESC";
+        List<Integer> operationTypesIds = Arrays.asList(3,4);
+
+        String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
         if (statusIds.size() > 1) {
             orderClause = "  ORDER BY status_modification_date DESC";
         }
-        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name " +
-                "FROM EXORDERS " +
-                userJoinClause +
+        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
+                "  FROM EXORDERS " +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                "  WHERE (EXORDERS.status_id IN (:status_ids))" +
-                "    AND (EXORDERS.operation_type_id = :operation_type_id) " +
-                userFilterClause +
+                "  WHERE (status_id IN (:status_ids))" +
+                "    AND (operation_type_id IN (:operation_type_id))" +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
-                 orderClause +
+                userFilterClause +
+                orderClause +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("email", email);
+        namedParameters.put("user_id", userId);
         namedParameters.put("status_ids", statusIds);
+        if (operationType != null) {
         namedParameters.put("operation_type_id", operationType.getType());
+        } else {
+            namedParameters.put("operation_type_id", operationTypesIds);
+        }
+
         return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -968,14 +1003,20 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, COUNT(EO.id) AS quantity, " +
-                "  SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert FROM EXORDERS EO " +
+        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, OT.id AS operation_type_id, COUNT(EO.id) AS quantity, " +
+                //wolper 19.04.18
+                // MIN is used for performance reason
+                // as an alternative to additional "group by CP.ID"
+                " MIN(CP.id) "+
+                "AS currency__pair_id, SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert " +
+                "FROM EXORDERS EO " +
                 "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                "  JOIN CURRENCY CR ON CP.currency2_id = CR.id " +
                 "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
                 "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
                 "  WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
                 "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s')" +
-                "  GROUP BY CP.name, OT.id ORDER BY CP.name ASC, OT.id ASC";
+                "  GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
@@ -985,10 +1026,14 @@ public class OrderDaoImpl implements OrderDao {
             CurrencyPairTurnoverReportDto dto = new CurrencyPairTurnoverReportDto();
             dto.setOrderNum(row + 1);
             dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            dto.setCurrencyAccountingName(rs.getString("currency_ac_name"));
             dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
             dto.setAmountBase(rs.getBigDecimal("amount_base"));
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setQuantity(rs.getInt("quantity"));
+            //wolper 19.04.2018
+            //currency id added
+            dto.setPairId(rs.getInt("currency__pair_id"));
             return dto;
         });
     }
@@ -1000,17 +1045,23 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, " +
+        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, "+
+                //wolper 19.04.18
+                // MIN is used for performance reason
+                // as an alternative to additional "group by CUR.ID"
+                " MIN(CP.ID)"+
+                " AS currency_pair_id, OT.id AS operation_type_id, " +
                 "       SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert, " +
                 "  SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' AND source_id = EO.id AND operation_type_id != 5 )) " +
                 "    AS commission " +
                 "FROM EXORDERS EO " +
                 "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                "  JOIN CURRENCY CR ON CP.currency2_id = CR.id " +
                 "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
                 "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
                 "WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
                 "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
-                "GROUP BY CP.name, OT.id ORDER BY CP.name ASC, OT.id ASC";
+                "GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
@@ -1020,12 +1071,69 @@ public class OrderDaoImpl implements OrderDao {
             OrdersCommissionSummaryDto dto = new OrdersCommissionSummaryDto();
             dto.setOrderNum(row + 1);
             dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            dto.setCurrencyAccountingName(rs.getString("currency_ac_name"));
             dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
             dto.setAmountBase(rs.getBigDecimal("amount_base"));
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setCommissionAmount(rs.getBigDecimal("commission"));
+            //wolper 19.04.2018
+            //added currency id
+            dto.setPairId(rs.getInt("currency_pair_id"));
             return dto;
         });
     }
+
+    @Override
+    public OrderRoleInfoForDelete getOrderRoleInfo(int orderId) {
+        String sql = "SELECT EO.status_id, CREATOR.roleid AS creator_role, ACCEPTOR.roleid AS acceptor_role, COUNT(TX.id) AS tx_count from EXORDERS EO " +
+                "  JOIN USER CREATOR ON EO.user_id = CREATOR.id " +
+                "  LEFT JOIN USER ACCEPTOR ON EO.user_acceptor_id = ACCEPTOR.id " +
+                // join on source type and source id to use index
+                "  LEFT JOIN TRANSACTION TX ON TX.source_type = 'ORDER' AND TX.source_id = EO.id " +
+                "WHERE EO.id = :order_id;";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
+            Integer statusId = getInteger(rs, "status_id");
+            Integer creatorRoleId = getInteger(rs, "creator_role");
+            Integer acceptorRoleId = getInteger(rs, "acceptor_role");
+            OrderStatus status = statusId == null ? null : OrderStatus.convert(statusId);
+            UserRole creatorRole = creatorRoleId == null ? null : UserRole.convert(creatorRoleId);
+            UserRole acceptorRole = acceptorRoleId == null ? null : UserRole.convert(acceptorRoleId);
+            int txCount = rs.getInt("tx_count");
+            return new OrderRoleInfoForDelete(status, creatorRole, acceptorRole, txCount);
+        });
+    }
+
+    private Integer getInteger(ResultSet rs, String fieldName) throws SQLException {
+        Integer result = rs.getInt(fieldName);
+        if (rs.wasNull()) {
+            result = null;
+        }
+        return result;
+    }
+
+    //wolper 24.04.18
+    //query to get the last rates to exchange to USD
+    @Override
+    public List<RatesUSDForReportDto> getRatesToUSDForReport(){
+        String sql ="SELECT CWE.currency_id as id, CR.name,  IFNULL((SELECT exrate FROM EXORDERS where date_acception=RATES.date AND currency_pair_id=RATES.cp_id  \n" +
+                "ORDER BY id DESC LIMIT 1), rate_usd_additional) AS rate\n" +
+                "FROM\n" +
+                "(SELECT  CURRENCY_PAIR.currency1_id AS id, CURRENCY_PAIR.id AS cp_id, CURRENCY_PAIR.name AS name, MAX(date_acception) AS date FROM EXORDERS \n" +
+                "JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) \n" +
+                "AND (CURRENCY_PAIR.hidden != 1) \n" +
+                "AND CURRENCY_PAIR.name LIKE '%/USD'\n" +
+                "WHERE  status_id = 3  \n" +
+                "GROUP BY currency_pair_id) AS RATES\n" +
+                "right join COMPANY_WALLET_EXTERNAL CWE on (RATES.id = CWE.currency_id)\n" +
+                "join CURRENCY CR on (CWE.currency_id = CR.id);";
+        return namedParameterJdbcTemplate.query(sql, (rs, row) -> {
+            RatesUSDForReportDto dto = new RatesUSDForReportDto();
+            dto.setId(rs.getInt("id"));
+            dto.setCurrencyName(rs.getString("name"));
+            dto.setRate(rs.getBigDecimal("rate"));
+            return dto;
+        });
+    }
+
 
 }

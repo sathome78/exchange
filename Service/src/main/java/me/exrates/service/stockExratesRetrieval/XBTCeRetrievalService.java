@@ -31,7 +31,7 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
         Map<String, CurrencyPair> currencyPairs = stockExchange.getAliasedCurrencyPairs(String::concat);
         String urlBase = "https://cryptottlivewebapi.xbtce.net:8443/api/v1/public/ticker/";
         String urlFilter = currencyPairs.keySet().stream().collect(Collectors.joining(" "));
-        String jsonResponse = OkHttpUtils.sendGetRequest(urlBase + urlFilter);
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest(urlBase + urlFilter);
 
         JsonNode root = exchangeResponseProcessingService.extractNode(jsonResponse);
 

@@ -2,17 +2,27 @@ package me.exrates.service.nem;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
 import org.nem.core.model.Transaction;
+import org.nem.core.model.mosaic.Mosaic;
+import org.nem.core.model.mosaic.MosaicFeeInformationLookup;
+import org.nem.core.model.mosaic.MosaicId;
+import org.nem.core.model.mosaic.MosaicTransferFeeCalculator;
+import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
+import org.nem.core.model.primitive.Quantity;
 import org.nem.core.serialization.DeserializationContext;
 import org.nem.core.serialization.JsonSerializer;
 import org.nem.core.serialization.SimpleAccountLookup;
@@ -45,8 +55,10 @@ public class NemTransactionsService {
     private NemService nemService;
     @Autowired
     private NemNodeService nodeService;
+    @Autowired
+    private MosaicFeeInformationLookup mosaicFeeInformationLookup;
 
-    private TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
+    private TransactionFeeCalculatorAfterFork calculatorAfterFork;
 
     @PostConstruct
     public void init() {
@@ -60,12 +72,12 @@ public class NemTransactionsService {
                 break;
             }
         }
-
+        calculatorAfterFork = new TransactionFeeCalculatorAfterFork(mosaicFeeInformationLookup);
     }
 
     public HashMap<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String privateKey) {
         try {
-            TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
+            TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto, null);
             JsonSerializer serializer = new JsonSerializer();
             RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction, PrivateKey.fromHexString(privateKey));
             announce.serialize(serializer);
@@ -79,12 +91,15 @@ public class NemTransactionsService {
         }
     }
 
-    private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto, Mosaic mosaic) {
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo().replaceAll("-", "").trim()));
         TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
         TransferTransactionAttachment attachment = null;
         try {
             attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes("UTF-8")));
+            if (mosaic != null) {
+                attachment.addMosaic(mosaic);
+            }
         } catch (UnsupportedEncodingException e) {
             log.error("unsupported encoding {}", e);
         }
@@ -131,8 +146,15 @@ public class NemTransactionsService {
                         .accountTo("")
                 .amount(amount.toPlainString())
                 .destinationTag(destinationTag)
-                .build());
-
+                .build(), null);
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
+    }
+
+    BigDecimal countMessageFeeInNem(int divisibility, String message) {
+        if (StringUtils.isEmpty(message)) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal devideRes = BigDecimalProcessing.doAction(new BigDecimal(message.getBytes().length), new BigDecimal(32), ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);
+        return BigDecimalProcessing.doAction(devideRes.add(new BigDecimal(1)), new BigDecimal(0.05), ActionType.MULTIPLY).setScale(divisibility, RoundingMode.HALF_UP);
     }
 }

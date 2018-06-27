@@ -27,7 +27,7 @@ public class BinanceRetrievalService implements StockExrateRetrievalService {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         stockExchange.getAliasedCurrencyPairs(String::concat)
                 .forEach((currencyPairName, currencyPair) -> {
-                    String jsonResponse = OkHttpUtils.sendGetRequest("https://www.binance.com/api/v1/ticker/24hr",
+                    String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://www.binance.com/api/v1/ticker/24hr",
                             Collections.singletonMap("symbol", currencyPairName));
                     stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
                             stockExchange, currencyPair.getId())) ;

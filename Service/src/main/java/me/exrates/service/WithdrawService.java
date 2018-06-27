@@ -67,6 +67,8 @@ public interface WithdrawService {
 
   boolean checkOutputRequestsLimit(int merchantId, String email);
 
+  List<Integer> getWithdrawalStatistic(String startDate, String endDate);
+
   @Transactional(readOnly = true)
   List<WithdrawRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
 

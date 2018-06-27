@@ -16,11 +16,8 @@ var defaultOpts = {
     }
 };
 
-$(function () {
-    mainUser = $('#user-id').val();
-    $pagination = $('#pagination-demo');
-    $pagination.twbsPagination(defaultOpts);
-});
+
+
 
 
 function loadInfo(userId, page, port, action) {
@@ -181,6 +178,11 @@ $( document ).ready(function(){
         lang:'ru',
         defaultDate: new Date(),
         defaultTime: '00:00'
+    });
+    $('#ref-table-init').click(function () {
+        mainUser = $('#user-id').val();
+        $pagination = $('#pagination-demo');
+        $pagination.twbsPagination(defaultOpts);
     });
 
     $('#refSearchButton').on("click", function () {

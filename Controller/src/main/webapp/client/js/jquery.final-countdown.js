@@ -127,7 +127,7 @@
     }
 
     function convertToDeg(degree) {
-        return (Math.PI/180)*degree - (Math.PI/180)*90
+        return (Math.PI/180)*270 - (Math.PI/180)*degree
     }
 
     function dispatchTimer() {

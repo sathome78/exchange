@@ -3,12 +3,14 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
@@ -24,18 +26,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.*;
 
 @Log4j2
 @Service
 @Transactional
-public final class WalletServiceImpl implements WalletService {
+public class WalletServiceImpl implements WalletService {
 
   private static final int decimalPlaces = 9;
 
@@ -55,6 +58,10 @@ public final class WalletServiceImpl implements WalletService {
   private MessageSource messageSource;
   @Autowired
   private UserTransferService userTransferService;
+  @Autowired
+  private CryptoCurrencyBalances cryptoCurrencyBalances;
+  @Autowired
+  private OrderService orderService;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -70,6 +77,18 @@ public final class WalletServiceImpl implements WalletService {
     wallets.forEach(this::balanceRepresentation);
     return wallets;
   }
+
+  @Override
+  public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
+    return walletDao.getAllUserWalletsForAdminDetailed(userId,
+            WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()),
+            WithdrawStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()),
+            RefillStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
+
+
+
+
 
   @Transactional(readOnly = true)
   @Override
@@ -281,36 +300,30 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public TransferDto transferCostsToUser(Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
-                                         Locale locale, int sourceId) {
+                                         BigDecimal commissionAmount, Locale locale, int sourceId) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
-    Commission commission = commissionService
-            .findCommissionByTypeAndRole(OperationType.USER_TRANSFER,
-                    userService.getUserRoleFromDB(fromUserWallet.getUser().getId()));
-    BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
-    BigDecimal totalAmount = amount.add(commissionAmount);
-    log.debug(commission.getValue());
+    BigDecimal inputAmount = BigDecimalProcessing.doAction(amount, commissionAmount, ActionType.SUBTRACT);
     log.debug(commissionAmount.toString());
-    log.debug(totalAmount.toString());
-    if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
+    log.debug(inputAmount.toString());
+    if (inputAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
     }
     Wallet toUserWallet = walletDao.findByUserAndCurrency(toUserId, currencyId);
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+      changeWalletActiveBalance(amount, fromUserWallet, OperationType.OUTPUT,
               TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
-      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+      changeWalletActiveBalance(inputAmount, toUserWallet, OperationType.INPUT,
               TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, sourceId);
     CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.getById(currencyId));
     companyWalletService.deposit(companyWallet, new BigDecimal(0), commissionAmount);
-    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+    String notyAmount = inputAmount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     return TransferDto.builder()
-            .commission(commission)
             .comissionAmount(commissionAmount)
             .notyAmount(notyAmount)
             .walletUserFrom(fromUserWallet)
@@ -327,20 +340,20 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                                    Locale locale, int sourceId) {
+                                    BigDecimal comission, Locale locale, int sourceId) {
     Integer toUserId = userService.getIdByNickname(toUserNickname);
     if (toUserId == 0) {
       throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
     }
-    TransferDto dto = transferCostsToUser(fromUserWalletId, toUserId, amount, locale, sourceId);
+    TransferDto dto = transferCostsToUser(fromUserWalletId, toUserId, amount, comission, locale, sourceId);
     String currencyName = currencyService.getCurrencyName(dto.getCurrencyId());
     String result = messageSource.getMessage("transfer.successful", new Object[]{dto.getNotyAmount(), currencyName, toUserNickname}, locale);
-    sendNotificationsAboutTrnasfer(userId, dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);
+    sendNotificationsAboutTransfer(userId, dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);
     return result;
   }
 
 
-  private void sendNotificationsAboutTrnasfer(int fromUserId, String notyAmount, String currencyName, int toUserId, String toNickName) {
+  private void sendNotificationsAboutTransfer(int fromUserId, String notyAmount, String currencyName, int toUserId, String toNickName) {
     log.debug("from {} to {}", fromUserId, toUserId);
     notificationService.notifyUser(fromUserId, NotificationEvent.IN_OUT, "wallets.transferTitle",
             "transfer.successful", new Object[]{notyAmount, currencyName, toNickName});
@@ -398,4 +411,102 @@ public final class WalletServiceImpl implements WalletService {
     return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
   }
 
+  @Override
+  public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
+    Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
+            .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
+
+
+    return walletDao.getWalletBalancesSummaryByGroups().stream()
+            .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
+
+            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
+                                    .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
+                                            UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
+                                            balancesMapSupplier)), ReportGroupUserRole.class))
+            .sorted(comparing(dto -> dto.getCurId()))
+            .collect(Collectors.toList());
+
+  }
+
+  @Override
+  public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
+    return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
+            .stream()
+            //wolper 19.04.18
+            .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet().stream()
+            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
+                    .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
+            .sorted(comparing(dto -> dto.getCurId()))
+            .collect(Collectors.toList());
+  }
+
+  @Override
+  public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
+    return walletDao.getWalletIdAndBlock(userId, currencyId);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getExternalWallets() {
+
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getExternalWallets();
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+
+      try {
+          w.setMainWalletBalanceUSD(w.getRateUsdAdditional().multiply(w.getMainWalletBalance()));
+      }catch (Exception e){
+          log.error(e);
+      }
+
+      try {
+          w.setTotalWalletsBalance(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance()));
+          w.setTotalWalletsBalanceUSD(w.getRateUsdAdditional().multiply(w.getTotalWalletsBalance()));
+
+      }catch (Exception e){
+          log.error(e);
+      }
+    });
+    return externalWalletsDtos;
+  }
+
+  @Override
+  public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
+     walletDao.updateExternalWallets(externalWalletsDto);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();
+
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+    Map<Integer, RatesUSDForReportDto> ratesList = orderService.getRatesToUSDForReport();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+      w.setTotalWalletsDifference((w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())).subtract(w.getTotalReal()));
+      w.setTotalWalletsDifferenceUSD((ratesList.get(w.getCurrencyId())==null?w.getRateUsdAdditional():ratesList.get(w.getCurrencyId()).getRate()).multiply(w.getTotalWalletsDifference()));
+    });
+
+
+    return externalWalletsDtos;
+  }
 }

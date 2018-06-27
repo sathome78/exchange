@@ -6,9 +6,12 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 import java.util.Locale;
+
+import static me.exrates.model.enums.ActionType.ADD;
 
 /**
  * @author ValkSam
@@ -46,7 +49,7 @@ public class TransferRequestCreateDto {
     this.userEmail = creditsOperation.getUser().getEmail();
     this.userWalletId = creditsOperation.getWallet().getId();
     this.currencyName = creditsOperation.getCurrency().getName();
-    this.commission = creditsOperation.getCommissionAmount();
+    this.commission = BigDecimalProcessing.doAction(creditsOperation.getMerchantCommissionAmount(), creditsOperation.getCommissionAmount(), ADD);;
     this.commissionId = creditsOperation.getCommission().getId();
     this.recipient = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getNickname();
     this.recipientId = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getId();

@@ -43,12 +43,13 @@ function LeftSiderClass() {
             },
             success: function (data) {
                 if (!data) return;
-                if (data.length == 0 || data[0].needRefresh) {
+                if (data.mapWallets.length == 0 || data.mapWallets[0].needRefresh) {
                     var $tmpl = $('#mywallets_table_row').html().replace(/@/g, '%');
                     clearTable($mywalletsTable);
-                    data.forEach(function (e) {
+                    data.mapWallets.forEach(function (e) {
                         $mywalletsTable.append(tmpl($tmpl, e));
                     });
+                    $('#total-sum-usd').html(numbro(data.sumTotalUSD).format('0.00'));
                     blink($mywalletsTable);
                     if (onWalletStatisticRefresh) {
                         onWalletStatisticRefresh();

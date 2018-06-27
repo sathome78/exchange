@@ -160,10 +160,10 @@ public class TransferRequestController {
     Locale locale = localeResolver.resolveLocale(request);
     TransferRequestFlatDto flatDto = dto.get();
     flatDto.setInitiatorEmail(principal.getName());
-    transferService.performTransfer(flatDto, locale, action);
+    TransferDto resDto = transferService.performTransfer(flatDto, locale, action);
     JsonObject result =  new JsonObject();
     result.addProperty("result", messageSource.getMessage("message.receive.voucher" ,
-            new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
+            new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(resDto.getNotyAmount(), locale, 4),
                     currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request)));
     return result.toString();
   }

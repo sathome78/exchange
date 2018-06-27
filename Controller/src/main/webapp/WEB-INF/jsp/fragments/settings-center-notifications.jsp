@@ -16,7 +16,7 @@
             <div class="col-sm-6 content">
                 <c:set var="notificationOptions" value="${notificationOptionsForm.options}"/>
                 <c:if test="${notificationOptions.size() > 0}">
-                    <form:form method="post" action="/settings/2faOptions/submit" modelAttribute="notificationOptionsForm">
+                    <form:form method="post" action="/settings/notificationOptions/submit" modelAttribute="notificationOptionsForm">
                     <table id="notification-options-table" class="table">
                         <thead>
                         <tr>

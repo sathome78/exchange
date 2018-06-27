@@ -21,6 +21,7 @@ import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.IpUtils;
+import me.exrates.service.waves.WavesService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,7 +57,7 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
  * Created by OLEG on 19.08.2016.
  */
 @RestController
-@PropertySource(value = {"classpath:about_us.properties"})
+@PropertySource(value = {"classpath:about_us.properties", "classpath:/mobile.properties"})
 public class MobileEntryController {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
 
@@ -72,6 +73,10 @@ public class MobileEntryController {
     String email;
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
+
+    @Value("${pass.encode.key}")
+    String passEncodeKey;
+
     @Autowired
     private AuthTokenService authTokenService;
 
@@ -526,6 +531,7 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
+
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());
@@ -540,7 +546,7 @@ public class MobileEntryController {
             throw new InvalidEmailException("Invalid email");
         }
         user.setEmail(email);
-        String decodedPassword = decodePassword(password);
+        String decodedPassword = decodePassword(password, passEncodeKey);
         if (!decodedPassword.matches(PASSWORD_REGEX)) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
         }
@@ -731,7 +737,7 @@ public class MobileEntryController {
             throw new MissingCredentialException("Credentials missing");
         }
         String email = body.get("email");
-        String newPass = decodePassword(body.get("password"));
+        String newPass = decodePassword(body.get("password"), passEncodeKey);
         try {
             User user = userService.findByEmail(email);
             if (user.getStatus() == UserStatus.DELETED) {
@@ -824,8 +830,8 @@ public class MobileEntryController {
     }
 
     private void changeUserPasses(String password, String finPass) {
-        String decodedPassword = password == null ? null : decodePassword(password);
-        String decodedFinPass = finPass == null ? null : decodePassword(finPass);
+        String decodedPassword = password == null ? null : decodePassword(password, passEncodeKey);
+        String decodedFinPass = finPass == null ? null : decodePassword(finPass, passEncodeKey);
         if ((decodedPassword != null && !decodedPassword.matches(PASSWORD_REGEX)) ||
                 (decodedFinPass != null && !decodedFinPass.matches(PASSWORD_REGEX))) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
@@ -871,7 +877,7 @@ public class MobileEntryController {
     @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> checkFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
-        String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true));
+        String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true), passEncodeKey);
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(userEmail);
         userService.checkFinPassword(decodedFinPass, user, new Locale(userService.getPreferedLang(user.getId())));
@@ -1029,6 +1035,7 @@ public class MobileEntryController {
         return userService.findNicknamesByPart(part);
 
     }
+
 
 
     /**
@@ -1197,6 +1204,16 @@ public class MobileEntryController {
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         exception.printStackTrace();
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
+    }
+
+    @Autowired
+    private WavesService wavesService;
+
+    @RequestMapping(value = "/test/waves", method = RequestMethod.GET)
+    @ResponseBody
+    public void testWaves() {
+        wavesService.processWavesTransactionsForKnownAddresses();
+
     }
 
 

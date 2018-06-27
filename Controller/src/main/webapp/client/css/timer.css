@@ -22,7 +22,7 @@
     padding-bottom: 100%;
 }
 .text {
-    color: #fff;
+    color: #d2dae7;
     font-size: 30px;
     font-weight: bold;
     margin-top: -30px;
@@ -47,4 +47,9 @@
     .clock-item {
         margin: 0px 30px 30px 30px;
     }
+}
+.alert-technical-work{
+    color:#FF0000;
+    background-color:#ffffff;
+    border-color:#ff8000;
 }

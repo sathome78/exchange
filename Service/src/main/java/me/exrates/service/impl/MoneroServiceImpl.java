@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
-@Log4j2(topic = "merchant")
+@Log4j2(topic = "monero_log")
 @Service
 @PropertySource("classpath:/merchants/monero.properties")
 public class MoneroServiceImpl implements MoneroService {

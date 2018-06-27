@@ -1,10 +1,15 @@
 package me.exrates.service.nem;
 
+import lombok.Synchronized;
+import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.nem.core.model.Account;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by maks on 18.07.2017.
@@ -65,6 +70,9 @@ public interface NemService extends IRefillable, IWithdrawable {
     default String additionalWithdrawFieldName() {
         return "Message";
     }
+
+
+    void processMosaicPayment(List<NemMosaicTransferDto> mosaics, Map<String, String> params);
 
     void checkRecievedTransaction(RefillRequestFlatDto dto) throws RefillRequestAppropriateNotFoundException;
 

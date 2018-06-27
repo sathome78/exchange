@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 
@@ -27,7 +26,7 @@ public class LiskTransaction {
     private Integer confirmations;
 
 
-    public BigDecimal getScaledAmount() {
+    public static BigDecimal scaleAmount(long amount) {
         return BigDecimal.valueOf(amount, LISK_AMOUNT_SCALE);
     }
 

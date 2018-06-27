@@ -39,6 +39,7 @@ var reconnectsCounter = 0;
 var timer;
 
 
+
 var onConnectFail = function () {
     connectedPS = false;
     setTimeout(connectAndReconnect, 5000);
@@ -50,15 +51,13 @@ var onConnect = function() {
 };
 
 function subscribeAll() {
-    if (connectedPS) {
-        subscribeForAlerts();
-        subscribeEvents();
-    }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
     }
     if (connectedPS) {
         subscribeStatistics();
+        subscribeForAlerts();
+        subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
@@ -83,18 +82,17 @@ function connectAndReconnect() {
 }
 
 function subscribeForAlerts() {
-    if (alertsSubscription != undefined) {
-        alertsSubscription.unsubscribe();
+    if (alertsSubscription == undefined) {
+        var lang = $("#language").text().toUpperCase().trim();
+        console.log('lang ' + lang);
+        var headers = {'X-CSRF-TOKEN': csrf};
+        alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
+            var messageBody = JSON.parse(message.body);
+            messageBody.forEach(function (object) {
+                handleAlerts(object);
+            });
+        }, headers);
     }
-    var lang = $("#language").text().toUpperCase().trim();
-    console.log('lang ' + lang);
-    var headers = {'X-CSRF-TOKEN' : csrf};
-    alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function(message) {
-        var messageBody = JSON.parse(message.body);
-        messageBody.forEach(function(object){
-            handleAlerts(object);
-        });
-    }, headers);
 }
 
 
@@ -194,7 +192,6 @@ function handleAlerts(object) {
             break;
         }
         case "UPDATE" : {
-            console.log(object);
             showHideUpdAlert(object);
             break;
         }
@@ -216,11 +213,9 @@ function showHideUpdAlert(object) {
 }
 
 function drawUpdateALert(object) {
-    console.log('draw alert');
     var remain = object.timeRemainSeconds;
         var timeNow = Date.now()/1000;
         var endTime = timeNow + (remain);
-        console.log("now " + timeNow + " end " + endTime);
         $('.countdown').final_countdown({
             start: timeNow,
             end: endTime,
@@ -551,6 +546,11 @@ function showSubPage(subPageId) {
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
+
+    if($("#preferedCurrencyPairName").val()!=""){
+        currencyPairName = $("#preferedCurrencyPairName").val();
+        $("#preferedCurrencyPairName").val("");
+    }
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');
@@ -656,5 +656,14 @@ function doPoll($pollDialog) {
             url: '/survey/saveAsDone?surveyToken=' + surveyToken,
             data: result,
         });
+    }
+
+    function successRegister (event) {
+        if ($('#successRegister').text() != undefined ) {
+            gtag('event', 'sendregister', { 'event_category': 'register', 'event_action': 'sendregister', });
+            yaCounter47624182.reachGoal('sendregister');
+            console.log('it works!');
+            return true;
+        }
     }
 }

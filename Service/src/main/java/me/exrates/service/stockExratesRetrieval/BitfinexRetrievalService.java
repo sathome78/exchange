@@ -28,7 +28,7 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         stockExchange.getAliasedCurrencyPairs((name1, name2) -> name1.toLowerCase() + name2.toLowerCase())
                 .forEach((name, currencyPair)-> {
-            String jsonResponse = OkHttpUtils.sendGetRequest("https://api.bitfinex.com/v1/pubticker/" + name);
+            String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://api.bitfinex.com/v1/pubticker/" + name);
             stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
                             stockExchange, currencyPair.getId())) ;
 

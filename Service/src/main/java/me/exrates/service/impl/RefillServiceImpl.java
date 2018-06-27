@@ -124,6 +124,8 @@ public class RefillServiceImpl implements RefillService {
     try {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
+      request.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
+      request.setStoreSameAddressForParentAndTokens(merchantService.storeSameAddressForParentAndTokens());
       if (merchantService.createdRefillRequestRecordNeeded()) {
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
@@ -147,7 +149,7 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
-          Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(
+          Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(
               request.getMerchantId(),
               request.getCurrencyId(),
               request.getUserId()
@@ -177,6 +179,7 @@ public class RefillServiceImpl implements RefillService {
             ((Map<String, String>) result.get("params")).get("message"),
             request.getLocale());
         result.put("message", notification);
+        result.put("requestId", request.getId());
       } catch (MailException e) {
         log.error(e);
       }
@@ -187,7 +190,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
-    return refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
+    return refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
   @Override
@@ -202,7 +205,7 @@ public class RefillServiceImpl implements RefillService {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
 
-      e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
       /**/
       //TODO: Temporary fix
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
@@ -373,6 +376,15 @@ public class RefillServiceImpl implements RefillService {
         merchantId,
         currencyId,
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
+    return refillRequestDao.findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+            merchantId,
+            currencyId,
+            statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
   @Override
@@ -1069,5 +1081,10 @@ public class RefillServiceImpl implements RefillService {
         p.setAddressFieldName(refillable.additionalRefillFieldName());
       }
     });
+  }
+
+  @Override
+  public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
+    return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
   }
 }

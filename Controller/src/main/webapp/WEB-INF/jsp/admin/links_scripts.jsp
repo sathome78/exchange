@@ -5,14 +5,20 @@
   Time: 13:37
   To change this template use File | Settings | File Templates.
 --%>
+<%@include file="../tools/google_head.jsp"%>
+<%@include file="../tools/alexa.jsp" %>
+<%-- <%@include file="../tools/yandex.jsp" %> --%>
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
@@ -55,7 +61,11 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/changeRefSystemOptions.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
-<%@include file="../tools/alexa.jsp" %>
-<%@include file="../tools/ga.jsp" %>
-<%--
-<%@include file="../tools/yandex.jsp" %>--%>
+
+
+<script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+<link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">

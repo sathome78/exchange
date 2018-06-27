@@ -90,6 +90,7 @@ function makeReportWithPeriodDialog() {
     if (!isDatesValid($form)) {
         return;
     }
+
     $dialog.one('hidden.bs.modal', function (e) {
         var data = "startDate=" + $form.find("#start-date").val() + ' 00:00:00' +
             '&' + "endDate=" + $form.find("#end-date").val() + ' 23:59:59' +
@@ -101,13 +102,21 @@ function makeReportWithPeriodDialog() {
         $loadingDialog.modal({
             backdrop: 'static'
         });
+
+        //wolper 23.04.18
+        //start and end dates form the dialog form
+        var startDate=$form.find("#start-date").val();
+        var endDate=$form.find("#end-date").val();
+        var reprtName="downloadUsersWalletsSummaryInOut.csv";
+
         if (currentId == 'downloadInputOutputSummaryReport') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/InputOutputSummary',
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data);
+                        //wolper 23.04.18
+                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -120,8 +129,9 @@ function makeReportWithPeriodDialog() {
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data.list);
-                        saveToDisk(data.summary);
+                        //wolper 23.04.18
+                        saveToDisk(data.list, extendsReportName(reprtName, startDate, endDate));
+                        saveToDisk(data.summary, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -134,7 +144,8 @@ function makeReportWithPeriodDialog() {
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data);
+                        //wolper 23.04.18
+                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -147,7 +158,8 @@ function makeReportWithPeriodDialog() {
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data);
+                        //wolper 23.04.18
+                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -160,7 +172,8 @@ function makeReportWithPeriodDialog() {
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data);
+                        //wolper 23.04.18
+                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -168,12 +181,15 @@ function makeReportWithPeriodDialog() {
                 }
             );
         }  else if (currentId == 'upload-users-transactions') {
+            //wolper 23.04.18
+            // ??? isn't this branch unreachable
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/downloadTransactions',
                     type: 'GET',
                     data: data,
                     success: function (data) {
-                        saveToDisk(data);
+                        //wolper 23.04.18
+                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
@@ -192,7 +208,9 @@ function makeReportByParams(params) {
                 url: '/2a8fy7b07dxe44/report/downloadTransactions'+"?"+params,
                 type: 'GET',
                 success: function (data) {
-                    saveToDisk(data);
+                    //wolper 23.04.18
+                    var reprtName="downloadUsersWalletsSummaryInOut.csv";
+                    saveToDisk(data, extendsReportName(reprtName));
                 }
             }
         );
@@ -201,15 +219,19 @@ function makeReportByParams(params) {
                 url: '/2a8fy7b07dxe44/report/downloadUserIpInfo' +"?"+params,
                 type: 'GET',
                 success: function (data) {
-                    saveToDisk(data);
+                    //wolper 23.04.18
+                    var reprtName="downloadUsersWalletsSummaryInOut.csv";
+                    saveToDisk(data, extendsReportName(reprtName));
                 }
             }
         );
     }
 }
 
-function saveToDisk(data, name) {
-    var filename = name ? name : "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
+function saveToDisk(data, filename) {
+    //wolper 23.04.18
+    //argument name changed to filename from 'name'
+    //var filename = name ? name : "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
 
     var link = document.createElement('a');
     link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
@@ -236,6 +258,36 @@ function isDatesValid($form) {
         isError = true;
     }
     return !isError;
+}
+
+
+// wolper 23.04.18
+// an adapter which extends the name of report file with requested dates
+// (but without time, time is excluded from picker value)
+// name is a filename to extend
+// start, end - optional arguments for reporting date interval
+function extendsReportName(name, start, end){
+    var baseName    = name.slice(0,-4);
+    var dateNow     = new Date().toLocaleDateString();
+    var dateTimeNow = new Date().toUTCString();
+
+    switch (name){
+        case 'totalBalances.csv':
+            return baseName+'_as_of-'+dateTimeNow+ '.csv';
+
+        case 'inputOutputSummaryWithCommissions.csv':
+        case 'currencyPairsComissions.csv':
+        case 'currencyPairs.csv':
+        case 'currencies.csv':
+            return baseName+'_from-'+start+'_to-'+end+'.csv';
+
+        case 'downloadUsersWalletsSummaryInOut.csv':
+            var role = currentRole?"_"+currentRole:"";
+            if (start && end) return baseName+'_from-'+start+"_to-"+end+"_"+currentRole + ".csv";
+            else return baseName+'_as_of-'+dateNow+ role + ".csv";
+
+        default: return name;
+    }
 }
 
 

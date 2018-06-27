@@ -16,6 +16,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.OrderRoleInfoForDelete;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -37,6 +38,8 @@ public interface OrderDao {
     boolean updateOrder(ExOrder exOrder);
 
     List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
+
+    void postAcceptedOrderToDB(ExOrder exOrder);
 
     List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
@@ -64,11 +67,11 @@ public interface OrderDao {
 
     CommissionsDto getAllCommissions(UserRole userRole);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
@@ -88,4 +91,8 @@ public interface OrderDao {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
+
+    OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
+
+    List<RatesUSDForReportDto> getRatesToUSDForReport();
 }

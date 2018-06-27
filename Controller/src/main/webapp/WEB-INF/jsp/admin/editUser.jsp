@@ -9,14 +9,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
   <title><loc:message code="admin.title"/></title>
   <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+
   <%@include file='links_scripts.jsp' %>
+
   <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
   <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
   <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
@@ -49,16 +50,9 @@
             src="<c:url value='/client/js/admin-balance-change/adminBalanceChange.js'/>"></script>
   </sec:authorize>
 
-
-  <%----------%>
-  <%----------%>
-  <%@include file="../tools/alexa.jsp" %>
-  <%@include file="../tools/ga.jsp" %>
-
 </head>
 
 <body>
-
 <%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new admin side_menu">
@@ -307,9 +301,12 @@
           <div class="col-md-12 content">
             <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
+              <button class="blue-box" id="transactions-table-init">
+                <loc:message code="admin.datatable.showData"/></button>
             <button data-toggle="collapse" class="blue-box" data-target="#transaction-filter">
               <loc:message code="admin.user.transactions.extendedFilter"/></button>
-              <button data-toggle="collapse" class="blue-box" id="download_trans_history" style="margin: 10px 0;">
+
+              <button class="blue-box" id="download_trans_history" style="margin: 10px 0;">
                 <loc:message code="admin.user.transactions.downloadHistory"/></button>
             <div id="transaction-filter" class="collapse">
               <form id="transaction-search-form" class="form_auto_height" method="get">
@@ -442,23 +439,52 @@
         <div id="panel3" class="tab-pane">
           <%--<div class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">--%>
           <%--<div class="row">--%>
-          <div class="col-md-8 content">
+          <div class="col-md-10 content">
             <%--СПИСОК СЧЕТОВ--%>
             <div class="text-center"><h4><loc:message code="admin.wallets"/></h4></div>
-
+              <div class='col-md-12' id="exclude-zero-balances-container">
+                <div class="col-md-1">
+                  <input type='checkbox' id='exclude-zero-balances'>
+                </div>
+                <div class="col-md-11">
+                  <label for="exclude-zero-balances"><loc:message code="userWallets.excludeZero"/></label>
+                </div>
+              </div>
+                <div class="col-md-12">
+                    <button class="blue-box" id="wallets-table-init">
+                        <loc:message code="admin.datatable.showData"/></button>
+                </div>
+                <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
                    class="admin-table table table-hover table-bordered table-striped"
                    style="width:100%">
-              <thead>
-              <tr>
-                <%--RUB--%>
-                <th></th>
-                <%--Активный баланс>--%>
-                <th><loc:message code="mywallets.abalance"/></th>
-                <%--Резерв--%>
-                <th><loc:message code="mywallets.rbalance"/></th>
-              </tr>
-              </thead>
+              <c:choose>
+                <c:when test="${walletsExtendedInfoRequired}">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.reservedonorders"/></th>
+                        <th><loc:message code="mywallets.reservedonwithdraw"/></th>
+                        <th><loc:message code="userWallet.input"/></th>
+                        <th><loc:message code="userWallet.sell"/></th>
+                        <th><loc:message code="userWallet.buy"/></th>
+                        <th><loc:message code="userWallet.output"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:when>
+                <c:otherwise>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:otherwise>
+              </c:choose>
+
             </table>
 
             <sec:authorize access="(hasAuthority('${admin_manualBalanceChange}') && ${manualChangeAllowed})">
@@ -493,7 +519,11 @@
         <%--Orders list form--%>
         <div id="panel4" class="tab-pane">
           <div style="width: 98%">
-            <div style="float: left; display: inline-block">
+              <div class="col-md-12" style="margin-top: 20px">
+                  <button class="blue-box" id="orders-tables-init">
+                      <loc:message code="admin.datatable.showData"/></button>
+              </div>
+            <div class="col-md-12" style="float: left; display: inline-block">
               <button id="myorders-button-deal" class="myorders__button green-box margin-box">
                 <loc:message
                         code="myorders.deal"/></button>
@@ -619,6 +649,8 @@
             <div class="text-center"><h4><loc:message code="admin.comments"/></h4></div>
             <div style="width: 98%">
               <div style="float: left; display: inline-block">
+                  <button class="blue-box" id="comments-table-init">
+                      <loc:message code="admin.datatable.showData"/></button>
                 <button id="comments-button" class="comments__button green-box margin-box">
                   <loc:message
                           code="admin.createComment"/></button>
@@ -635,7 +667,10 @@
                   <div class="modal-body">
                     <input hidden id="commentId">
                     <p><loc:message code="admin.comment"/>:<Br>
-                      <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
+                      <textarea class="form-control" cols="40" rows="3" id="commentText" autofocus></textarea>
+                    <p><span class="checkLengthComment"><loc:message code="admin.checkLengthComment"/>
+                      <span id="checkLengthComment"></span>/<span id="checkMaxLengthComment"></span>
+                    </span>
                     <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
                       <loc:message code="admin.sendMessage"/>
                     <p><span id="checkMessage" style="color: #FF0000; " hidden><loc:message
@@ -740,9 +775,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -751,7 +786,7 @@
                         <td class="left">
                             ${refillPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${none}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -759,7 +794,7 @@
                                  data-checked="${refillPermission.invoiceOperationPermission==none}"
                             <c:out value="${refillDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${view}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -767,7 +802,7 @@
                                  data-checked="${refillPermission.invoiceOperationPermission==view}"
                             <c:out value="${refillDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${write}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -794,9 +829,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -805,7 +840,7 @@
                         <td class="left">
                             ${withdrawPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${none}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -813,7 +848,7 @@
                                  data-checked="${withdrawPermission.invoiceOperationPermission==none}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${view}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -821,7 +856,7 @@
                                  data-checked="${withdrawPermission.invoiceOperationPermission==view}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${write}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -848,9 +883,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -859,7 +894,7 @@
                         <td class="left">
                             ${transferPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${none}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"
@@ -867,7 +902,7 @@
                                  data-checked="${transferPermission.invoiceOperationPermission==none}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${view}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"
@@ -875,7 +910,7 @@
                                  data-checked="${transferPermission.invoiceOperationPermission==view}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${write}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"

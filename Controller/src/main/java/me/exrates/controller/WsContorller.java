@@ -11,6 +11,11 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
+import me.exrates.service.cache.ChartsCache;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -41,6 +46,8 @@ public class WsContorller {
     private UserService userService;
     @Autowired
     private UsersAlertsService usersAlertsService;
+    @Autowired
+    private ChartsCache chartsCache;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -80,7 +87,7 @@ public class WsContorller {
     @SubscribeMapping("/charts/{currencyPairId}/{period}")
     public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
         BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
-        return orderService.getChartData(currencyPairId, backDealInterval);
+        return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")

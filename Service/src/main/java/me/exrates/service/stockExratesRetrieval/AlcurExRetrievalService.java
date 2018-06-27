@@ -21,7 +21,7 @@ public class AlcurExRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        String jsonResponse = OkHttpUtils.sendGetRequest("https://alcurex.com/api/tickerapi");
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://alcurex.com/api/tickerapi");
         return exchangeResponseProcessingService.extractAllStatsFromMapNode(stockExchange, jsonResponse, (name1, name2) -> name1.concat("_").concat(name2));
     }
 

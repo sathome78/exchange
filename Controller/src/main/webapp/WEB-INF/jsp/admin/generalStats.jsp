@@ -26,12 +26,18 @@
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
 
-        <div class="col-md-8 col-sm-offset-1 content admin-container">
+        <div class="col-md-7 content admin-container">
             <div class="text-center"> <h4><loc:message code="admin.generalStats.title"/></h4></div>
 
             <div id="limitsMenu" class="buttons text-center">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.stats"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="reports.balances.buttonTitle"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="reports.balancesWithWallets"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.mailing"/>
@@ -122,13 +128,74 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
-
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="reports.totalBalances"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-total-balances" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
 
                     </div>
 
                 </div>
 
+
                 <div id="panel2" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="reports.totalBalances"/></h4>
+                    </div>
+
+
+                    <div class="col-md-8">
+                        <table id="total-balances-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.id"/></th>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="admin.rate.to.usd"/></th>
+                                <th><loc:message code="admin.stats.allRealUsers"/></th>
+                                <c:forEach items="${roleGroups}" var="roleGroup">
+                                    <th>${roleGroup.name()}</th>
+                                </c:forEach>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div id="panel3" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="reports.balancesWithWallets"/></h4>
+                    </div>
+
+
+                    <div class="col-md-8">
+                        <table id="balances-external-wallets-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.id"/></th>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="admin.stats.allRealUsers"/></th>
+                                <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletDifference"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletDifferenceUSD"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <div id="panel4" class="tab-pane">
                     <div class="col-md-6 col-md-offset-3">
                         <div class="form_full_height_width " style="margin: 50px 0">
 
@@ -169,7 +236,7 @@
             </div>
 
         </div>
-
+    </div>
 
 </main>
 

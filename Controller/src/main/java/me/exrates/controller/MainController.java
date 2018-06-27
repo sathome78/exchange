@@ -139,7 +139,21 @@ public class MainController {
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, ModelMap model, HttpServletRequest request) {
+    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
+
+        Map<String, String> xssErrors = (Map<String, String>) request.getAttribute("xssErrors");
+
+        if (xssErrors != null && !xssErrors.isEmpty()) {
+            for (Map.Entry<String, String> errorsEntry : xssErrors.entrySet()) {
+                result.rejectValue(errorsEntry.getKey(), errorsEntry.getValue());
+            }
+            ModelAndView modelAndView = new ModelAndView("register", "user", user);
+            modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
+
+        }
+
         boolean flag = false;
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -175,7 +189,6 @@ public class MainController {
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
-
         registerFormValidation.validate(user, result, localeResolver.resolveLocale(request));
         user.setPhone("");
         if (result.hasErrors()) {
@@ -215,6 +228,7 @@ public class MainController {
                     e.printStackTrace();
                 }
                 ModelAndView modelAndView = new ModelAndView("redirect:/dashboard?successNoty=" + successNoty);
+                modelAndView.addObject("successRegister");
                 return modelAndView;
             } else return new ModelAndView("DBError", "user", user);
         }
@@ -265,7 +279,7 @@ public class MainController {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
-                }   else if (exceptionClass.equals("PinCodeCheckNeedException")) {
+                } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     model.addObject("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
@@ -292,10 +306,11 @@ public class MainController {
     public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
         Object auth = request.getSession().getAttribute("authentication");
-        if (auth == null) {;
+        if (auth == null) {
+            ;
             return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
         }
-        Authentication authentication = (Authentication)auth;
+        Authentication authentication = (Authentication) auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         String res = secureService.reSendLoginMessage(request, authentication.getName());
         return ResponseEntity.ok()
@@ -427,12 +442,12 @@ public class MainController {
 
         return modelAndView;
     }
-    
+
     @RequestMapping(value = "/utcOffset")
     @ResponseBody
     public Integer getServerUtcOffsetMinutes() {
         return TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60);
     }
-    
+
 
 }

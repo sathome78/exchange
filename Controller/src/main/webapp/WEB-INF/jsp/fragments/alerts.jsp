@@ -1,15 +1,17 @@
+
 <div id="alerts_container">
-    <div class="alert alert-warning" id="tech_alert" style="display: none">
-        <h4 id="tech_alert_text"></h4>
+    <div class="alert alert-technical-work" id="tech_alert" style="display: none">
+        <h4 class="text-center" id="tech_alert_text"></h4>
     </div>
 
-    <div class="alert alert-warning" id="upd_alert" style="display: none; padding-bottom: 0">
-        <h4 id="upd_alert_text"></h4>
-
-        <div class="countdown countdown-container container" style="margin-left: 80%">
+    <div class="alert alert-technical-work" id="upd_alert" style="display: none; padding-bottom: 0">
+        <h4 class="text-center" id="upd_alert_text"></h4>
+        <br>
+        <br>
+        <div class="countdown countdown-container container" style="margin-left: 40%">
 
             <div class="clock row">
-                <h6 style="margin-left: 1%"><loc:message code="message.alert.timerTimeTo"/>:</h6>
+                <h6 style="margin-left: 3%"><loc:message code="message.alert.timerTimeTo"/>:</h6>
                 <!-- hours -->
                 <div class="clock-item clock-hours countdown-time-value col-sm-6 col-md-3">
                     <div class="wrap">
@@ -49,6 +51,4 @@
             </div>
         </div>
     </div>
-
-
 </div>

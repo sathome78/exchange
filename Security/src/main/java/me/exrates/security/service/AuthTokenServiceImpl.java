@@ -45,6 +45,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Value("${token.max.duration}")
     private long TOKEN_MAX_DURATION_TIME;
 
+    @Value("${pass.encode.key}")
+    private String PASS_ENCODE_KEY;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -62,7 +64,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (username == null || encodedPassword == null) {
             throw new MissingCredentialException("Credentials missing");
         }
-        String password = RestApiUtils.decodePassword(encodedPassword);
+        String password = RestApiUtils.decodePassword(encodedPassword, PASS_ENCODE_KEY);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             ApiAuthToken token = createAuthToken(userDetails.getUsername());
@@ -139,6 +141,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     public void deleteExpiredTokens() {
         int deletedQuantity = apiAuthTokenDao.deleteAllExpired(TOKEN_DURATION_TIME);
         logger.info(String.format("%d expired tokens deleted", deletedQuantity));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(UUID.randomUUID().toString());
     }
 
 }

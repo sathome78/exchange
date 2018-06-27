@@ -7,9 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +21,8 @@ public interface WalletService {
     void balanceRepresentation(Wallet wallet);
 
     List<Wallet> getAllWallets(int userId);
+
+    List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId);
 
     /**
      * Return list the user wallets data
@@ -95,12 +95,12 @@ public interface WalletService {
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     @Transactional(rollbackFor = Exception.class)
-    TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount,
+    TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount, BigDecimal comission,
                                     Locale locale, int sourceId);
 
     @Transactional(rollbackFor = Exception.class)
     String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                               Locale locale, int sourceId);
+                               BigDecimal comission, Locale locale, int sourceId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 
@@ -108,4 +108,16 @@ public interface WalletService {
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId);
+
+    List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
+
+    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
+
+    int getWalletIdAndBlock(Integer userId, Integer currencyId);
+
+    List<ExternalWalletsDto> getExternalWallets();
+
+    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+
+    List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

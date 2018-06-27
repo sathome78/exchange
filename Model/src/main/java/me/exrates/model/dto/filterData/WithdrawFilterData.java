@@ -22,6 +22,8 @@ public class WithdrawFilterData extends TableFilterData {
     private List<Integer> merchantIds;
     private String startDate;
     private String endDate;
+    private String startDateStatus;
+    private String endDateStatus;
     private BigDecimal amountFrom;
     private BigDecimal amountTo;
     private BigDecimal commissionAmountFrom;
@@ -39,6 +41,8 @@ public class WithdrawFilterData extends TableFilterData {
                 new FilterDataItem("merchant_ids", "WITHDRAW_REQUEST.merchant_id IN", merchantIds, IN_FORMAT),
                 new FilterDataItem("start_date", "WITHDRAW_REQUEST.date_creation >=", startDate, DATE_FORMAT),
                 new FilterDataItem("end_date", "WITHDRAW_REQUEST.date_creation <=", endDate, DATE_FORMAT),
+                new FilterDataItem("start_date_status", "WITHDRAW_REQUEST.status_modification_date >=", startDateStatus, DATE_FORMAT),
+                new FilterDataItem("end_date_status", "WITHDRAW_REQUEST.status_modification_date <=", endDateStatus, DATE_FORMAT),
                 new FilterDataItem("amount_from", "WITHDRAW_REQUEST.amount >=", amountFrom),
                 new FilterDataItem("amount_to", "WITHDRAW_REQUEST.amount <=", amountTo),
                 new FilterDataItem("commission_amount_from", "WITHDRAW_REQUEST.commission >=", commissionAmountFrom),

@@ -32,7 +32,7 @@ public class NewsDaoImpl implements NewsDao {
     @Override
     @Transactional
     public List<NewsDto> getNewsBriefList(final Integer offset, final Integer limit, Locale locale) {
-        String sql = "SELECT id, title, brief, resource, news_variant " +
+        String sql = "SELECT id, title, brief, date, resource, news_variant " +
                 " FROM NEWS" +
                 " JOIN NEWS_VARIANTS ON (NEWS_VARIANTS.news_id = NEWS.id) " +
                 " AND (NEWS_VARIANTS.news_variant = :news_variant)" +
@@ -49,6 +49,7 @@ public class NewsDaoImpl implements NewsDao {
                 result.setId(rs.getInt("id"));
                 result.setTitle(rs.getString("title"));
                 result.setBrief(rs.getString("brief"));
+                result.setDate(rs.getTimestamp("date").toLocalDateTime().toLocalDate());
                 result.setResource(rs.getString("resource"));
                 result.setVariant(rs.getString("news_variant"));
                 result.setRef(new StringBuilder("/news/")

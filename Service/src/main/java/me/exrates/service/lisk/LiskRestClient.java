@@ -7,6 +7,8 @@ import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import java.util.List;
 
 public interface LiskRestClient {
+    void initClient(String propertySource);
+
     LiskTransaction getTransactionById(String txId);
 
     List<LiskTransaction> getTransactionsByRecipient(String recipientAddress);

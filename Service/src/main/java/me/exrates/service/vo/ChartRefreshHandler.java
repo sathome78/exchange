@@ -2,6 +2,7 @@ package me.exrates.service.vo;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -17,6 +18,8 @@ public class ChartRefreshHandler {
 
     @Autowired
     private StompMessenger stompMessenger;
+    @Autowired
+    private ChartsCache chartsCache;
 
     private int currencyPairId;
 
@@ -41,8 +44,9 @@ public class ChartRefreshHandler {
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
             }
-            SEMAPHORE.release();
+            chartsCache.updateCache(currencyPairId);
             stompMessenger.sendChartData(currencyPairId);
+            SEMAPHORE.release();
         }
 
     }

@@ -23,7 +23,7 @@ public class CexIoRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        String jsonResponse = OkHttpUtils.sendGetRequest("https://cex.io/api/tickers/USD/BTC/EUR/");
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://cex.io/api/tickers/USD/BTC/EUR/");
         JsonNode root = exchangeResponseProcessingService.extractNode(jsonResponse, "data");
         return exchangeResponseProcessingService.extractAllStatsFromArrayNode(stockExchange, root, "pair",
                 (name1, name2) -> name1.concat(":").concat(name2));

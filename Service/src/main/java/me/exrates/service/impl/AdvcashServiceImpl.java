@@ -32,7 +32,6 @@ public class AdvcashServiceImpl implements AdvcashService{
 
     private @Value("${advcash.url}") String url;
     private @Value("${advcash.accountId}") String accountId;
-    private @Value("${advcash.accountPass}") String accountPass;
     private @Value("${advcash.payeeName}") String payeeName;
     private @Value("${advcash.paymentSuccess}") String paymentSuccess;
     private @Value("${advcash.paymentFailure}") String paymentFailure;

@@ -3,7 +3,8 @@
 $(function () {
     var myordersStatusForShow = 'Closed';
 
-    update();
+    $('#orders-tables-init').click(update);
+
 
     function update() {
         updateOrdersSellTableClosed();

@@ -1,3 +1,4 @@
+<%@include file="../tools/google_body.jsp"%>
 <%@ page import="me.exrates.controller.AdminController"%>
 <%@ page import="org.springframework.web.servlet.support.RequestContext" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -58,7 +59,6 @@
                     </li>
 
                     <li id="hello-my-friend"><a class="nav__link" href="">
-                        <loc:message code="dashboard.hello"/>
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>
                 </sec:authorize>
@@ -149,7 +149,9 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <!--
                         <li><a href="#" class="language">AR</a></li>
+                        -->
                     </ul>
                 </li>
                 <sec:authorize access="isAuthenticated()">
@@ -172,6 +174,8 @@
     </div>
 </header>
 
+<%@include file="../fragments/alerts.jsp" %>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 <%--capcha--%>
 <c:if test="${showEntrance && !isAuth && captchaType==\"RECAPTCHA\"}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>

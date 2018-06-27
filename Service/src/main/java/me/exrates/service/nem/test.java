@@ -1,7 +1,13 @@
 package me.exrates.service.nem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.NisNotReadyException;
 import me.exrates.service.exception.NisTransactionException;
@@ -21,9 +27,13 @@ import org.nem.core.crypto.PrivateKey;
 import org.nem.core.crypto.PublicKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
+import org.nem.core.model.mosaic.*;
+import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
+import org.nem.core.model.primitive.Quantity;
+import org.nem.core.model.primitive.Supply;
 import org.nem.core.serialization.*;
 import org.nem.core.time.TimeInstant;
 import org.springframework.http.HttpEntity;
@@ -33,9 +43,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 /**
  * Created by Maks on 22.07.2017.
@@ -44,6 +56,10 @@ public class test {
 
     static RestTemplate restTemplate = new RestTemplate();
     static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+    static TransactionFeeCalculatorAfterFork calculatorAfterFork;
+
+    static Account account = new Account(new KeyPair(PublicKey.fromHexString("242af20803f61142ea5df048898cb3b9e768a6619266ffb48f5b4a09779b9227")));;
 
     static {
         requestFactory.setOutputStreaming(false);
@@ -62,7 +78,7 @@ public class test {
 
 
     public static void main(String[] args) {
-        KeyPair keyPair = new KeyPair(PublicKey
+      /*  KeyPair keyPair = new KeyPair(PublicKey
                 .fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
         Account account1 = new Account(keyPair);
             BigDecimal decimal = new BigDecimal("5.343");
@@ -80,10 +96,55 @@ public class test {
                 PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee"));
         announce.serialize(serializer);
         System.out.println(serializer.getObject());
-        System.out.println(anounceTransaction(serializer.getObject().toJSONString()));
+        System.out.println(anounceTransaction(serializer.getObject().toJSONString()));*/
+
+      /*  countMosaicTxFee(new MosaicIdDto("dim", "coin"), new BigDecimal(0),
+                "8f08fb89fffghfgfgfgfgfggffffff", 10000000000000000L);*/
+        long decimals = 1000000;
+        Quantity levyFee = new Quantity(10);
+        BigDecimal amount = new BigDecimal(103093);
+        long quantity = amount.multiply(BigDecimal.valueOf(decimals)).longValue();
+        double feeFromMosaicInMosaicToken = (quantity * levyFee.getRaw() / 10000D)/decimals;
+        System.out.println(feeFromMosaicInMosaicToken);
+
+/*
+        BigDecimal baseFee = new BigDecimal(2.00);
+        BigDecimal exrate = new BigDecimal(0.018).setScale(4, RoundingMode.HALF_UP);
+        System.out.println(BigDecimalProcessing.doAction(baseFee, exrate, ActionType.DEVIDE));*/
 
 
+    }
 
+
+    static void countMosaicTxFee(MosaicIdDto idDto, BigDecimal amount, String destinationTag, long quantity) {
+        Account reipient = new Account(Address.fromEncoded("NBFMGHYKGFNRPHAZ6FTZKIV7VYW76KCS47WYZTJS"));
+        TimeInstant currentTimeStamp = new TimeInstant(72469921);
+
+        NamespaceId namespaceId = new NamespaceId(idDto.getNamespaceId());
+        MosaicId mosaicId = new MosaicId(namespaceId, idDto.getName());
+        Mosaic mosaic = new Mosaic(mosaicId, Quantity.fromValue(quantity));
+
+        TransferTransactionAttachment attachment = null;
+        try {
+            attachment = new TransferTransactionAttachment(new PlainMessage(destinationTag.getBytes("UTF-8")));
+            attachment.addMosaic(mosaic);
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("unsupported encoding " +  e);
+        }
+        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
+                account, reipient, transformToNemAmount(amount.toString()),  attachment);
+        transaction.setDeadline(currentTimeStamp.addHours(2));
+
+        calculatorAfterFork = new TransactionFeeCalculatorAfterFork(new MosaicFeeInformationLookup() {
+            @Override
+            public MosaicFeeInformation findById(MosaicId mosaicId) {
+                return new MosaicFeeInformation(new Supply(9000000000L), 6);
+            }
+        });
+
+
+        BigDecimal fee  = new BigDecimal(transformToString(calculatorAfterFork.calculateMinimumFee(transaction).getNumMicroNem()));
+        System.out.println(fee.doubleValue());
     }
 
     static JSONObject anounceTransaction(String serializedTransaction) {
@@ -122,7 +183,6 @@ public class test {
 
     private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
                                                           Account account) {
-        TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
         TimeInstant currentTimeStamp = getCurrentTimeStamp();
         TransferTransactionAttachment attachment = null;

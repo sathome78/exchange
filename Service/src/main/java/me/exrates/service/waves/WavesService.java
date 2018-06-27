@@ -40,4 +40,10 @@ public interface WavesService extends IRefillable, IWithdrawable {
         return false;
     }
 
+    @Override
+    default Boolean storeSameAddressForParentAndTokens() {
+        return true;
+    }
+
+    void processWavesTransactionsForKnownAddresses();
 }

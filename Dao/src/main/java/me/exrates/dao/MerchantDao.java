@@ -2,12 +2,9 @@ package me.exrates.dao;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -33,7 +30,9 @@ public interface MerchantDao {
 
   BigDecimal getMinSum(int merchant, int currency);
 
-  List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
+    Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
+
+    List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole, List<String> merchantProcessTypes);
 
@@ -47,7 +46,7 @@ public interface MerchantDao {
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  void setBlockForAll(OperationType operationType, boolean blockStatus);
+  void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus);
 
   void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
@@ -59,9 +58,11 @@ public interface MerchantDao {
 
   List<String> retrieveBtcCoreBasedMerchantNames();
 
-  Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+  Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName);
 
-  List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
+    List<CoreWalletDto> retrieveCoreWallets();
+
+    List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
 
   MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
@@ -70,4 +71,8 @@ public interface MerchantDao {
   boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+
+    Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
+
+    List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }

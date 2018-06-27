@@ -14,7 +14,9 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <script type="text/javascript">
     $(function () {
+        $('#cryptoWalletsMenu').find('ul').hide();
         emphasizeTitles();
+        retrieveCoreWallets();
     });
 
     function emphasizeTitles() {
@@ -28,6 +30,23 @@
 
         });
         $menuItem.children('a').wrapInner('<strong></strong>');
+    }
+
+    function retrieveCoreWallets() {
+        $.get('/2a8fy7b07dxe44/bitcoinWallet/listWallets', function (data) {
+            data.forEach(function (item) {
+                if (item['localizedTitle']) {
+                    var link = '<li><a href="/2a8fy7b07dxe44/bitcoinWallet/' + item['merchantName'] + '">' + item['currencyName'] + ' - ' +
+                        item['localizedTitle'] +'</a></li>';
+                    $('#cryptoWalletsMenu').find('ul').append(link)
+                }
+
+
+            });
+
+            $('#cryptoWalletsMenu').find('ul').show();
+
+        })
     }
 
 
@@ -105,6 +124,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/externalWallets'/>"><loc:message code="admin.externalWallets.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>
@@ -132,15 +152,6 @@
                     <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="cryptoWalletsMenu">
                     <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Bitcoin'/>"><loc:message code="btcWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Bitcoin Cash'/>"><loc:message code="bchWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Litecoin'/>"><loc:message code="ltcWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Dash'/>"><loc:message code="dashWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/ATB'/>"><loc:message code="atbWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Dogecoin'/>"><loc:message code="dogeWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BTG'/>"><loc:message code="btgWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/zcash'/>"><loc:message code="zecWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/B2X'/>"><loc:message code="b2xWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>

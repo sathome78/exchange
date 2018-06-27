@@ -9,10 +9,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -100,7 +97,6 @@ public class TransferServiceImpl implements TransferService {
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       ITransferable transferMerchantService = (ITransferable) merchantService;
-
       request.setIsVoucher(transferMerchantService.isVoucher());
       if (transferMerchantService.recipientUserIsNeeded()) {
         checkTransferToSelf(request.getUserId(), request.getRecipientId(), request.getLocale());
@@ -171,6 +167,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getRecipient(),
               transferRequestCreateDto.getAmount(),
+              transferRequestCreateDto.getCommission(),
               transferRequestCreateDto.getLocale(),
               createdTransferRequestId);
         }
@@ -307,7 +304,7 @@ public class TransferServiceImpl implements TransferService {
 
   @Transactional
   @Override
-  public void performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
+  public TransferDto performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
     checkTransferToSelf(dto.getUserId(), dto.getRecipientId(), locale);
     IMerchantService merchantService = merchantServiceContext.getMerchantService(dto.getMerchantId());
     if (!(merchantService instanceof ITransferable)) {
@@ -322,7 +319,7 @@ public class TransferServiceImpl implements TransferService {
     if (!newStatus.isEndStatus()) {
       throw new TransferRequestAcceptExeption("invalid new status " + newStatus);
     }
-    int walletId = walletService.getWalletId(dto.getUserId(), dto.getCurrencyId());
+    int walletId = walletService.getWalletIdAndBlock(dto.getUserId(), dto.getCurrencyId());
     WalletTransferStatus result = walletService.walletInnerTransfer(
             walletId,
             dto.getAmount(),
@@ -332,8 +329,9 @@ public class TransferServiceImpl implements TransferService {
     if (result != SUCCESS) {
       throw new WithdrawRequestPostException(result.name());
     }
-    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, dto.getId());
+    TransferDto resDto = walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), dto.getCommissionAmount(), locale, dto.getId());
     transferRequestDao.setStatusById(dto.getId(), newStatus);
+    return resDto;
   }
 
   @Override

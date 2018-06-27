@@ -3,7 +3,6 @@
  */
 
 $(function(){
-
     $(".currency_permissions__item").find("input[type=radio]").each(function (i, e) {
         e.checked=($(e).attr("data-checked")=="true");
     });
@@ -39,8 +38,17 @@ $(function(){
             }
         });
     });
-});
 
+    $(".sel_col").on("click", function () {
+         var id = $(this).data('col');
+         var $closestTable = $(this).closest('table');
+         var $childsInputs = $closestTable.find('.col' + id).find('input');
+         if(!$childsInputs.prop('disabled')) {
+             $childsInputs.prop("checked", true).trigger("click");
+         }
+    });
+
+});
 
 
 

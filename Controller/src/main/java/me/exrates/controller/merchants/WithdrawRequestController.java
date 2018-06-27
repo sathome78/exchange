@@ -210,6 +210,16 @@ public class WithdrawRequestController {
     withdrawService.postWithdrawalRequest(id, requesterAdminId, txHash);
   }
 
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/statistic", method = POST)
+  @ResponseBody
+  public List<Integer> statistic(
+          @RequestParam String startDate,
+          @RequestParam String endDate) {
+
+    return withdrawService.getWithdrawalStatistic(startDate, endDate);
+  }
+
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody

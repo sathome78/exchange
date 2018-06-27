@@ -5,10 +5,8 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
@@ -19,6 +17,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -43,6 +42,18 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
   MessageSource messageSource;
+
+  private RowMapper<CoreWalletDto> coreWalletRowMapper = (rs, row) -> {
+    CoreWalletDto dto = new CoreWalletDto();
+    dto.setId(rs.getInt("id"));
+    dto.setCurrencyId(rs.getInt("currency_id"));
+    dto.setMerchantId(rs.getInt("merchant_id"));
+    dto.setCurrencyName(rs.getString("currency_name"));
+    dto.setMerchantName(rs.getString("merchant_name"));
+    dto.setTitleCode(rs.getString("title"));
+
+    return dto;
+  };
 
   @Override
   public Merchant create(Merchant merchant) {
@@ -115,6 +126,45 @@ public class MerchantDaoImpl implements MerchantDao {
     };
     return namedParameterJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
   }
+
+  @Override
+  public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
+    final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+            " MERCHANT_CURRENCY.min_sum, " +
+            " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
+            " MERCHANT_CURRENCY.merchant_fixed_commission " +
+            " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
+            " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+            " WHERE MERCHANT_CURRENCY.merchant_id = :merchant_id AND MERCHANT_CURRENCY.currency_id = :currency_id ";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (resultSet, row) -> {
+        MerchantCurrency merchantCurrency = new MerchantCurrency();
+        merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+        merchantCurrency.setName(resultSet.getString("name"));
+        merchantCurrency.setDescription(resultSet.getString("description"));
+        merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+        merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+        merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+        merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+        merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+        merchantCurrency.setProcessType(resultSet.getString("process_type"));
+        final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                " AND currency_id = :currency_id;";
+        Map<String, Integer> innerParams = new HashMap<String, Integer>();
+        innerParams.put("merchant_id", resultSet.getInt("merchant_id"));
+        innerParams.put("currency_id", resultSet.getInt("currency_id"));
+        merchantCurrency.setListMerchantImage(namedParameterJdbcTemplate.query(sqlInner, innerParams, new BeanPropertyRowMapper<>(MerchantImage.class)));
+        return merchantCurrency;
+      }));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
 
   @Override
   public List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType) {
@@ -303,9 +353,11 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+  public void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus) {
     String blockField = resolveBlockFieldByOperationType(operationType);
-    String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
+    String sql = "UPDATE MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "SET MC." + blockField + " = :block WHERE M.process_type != 'TRANSFER'";
     Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
     namedParameterJdbcTemplate.update(sql, params);
   }
@@ -402,16 +454,29 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
-    String sql = "SELECT CURRENCY.name FROM CURRENCY " +
-            "JOIN CRYPTO_CORE_WALLET core ON CURRENCY.id = core.currency_id " +
-            "JOIN MERCHANT ON MERCHANT.id = core.merchant_id " +
-            "WHERE MERCHANT.name = :merchant_name";
+  public Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName) {
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+            "FROM CRYPTO_CORE_WALLET ccw " +
+            "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
+            "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
+            "WHERE m.name = :merchant_name";
     try {
-      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), String.class));
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), coreWalletRowMapper));
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public List<CoreWalletDto> retrieveCoreWallets() {
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+            "FROM CRYPTO_CORE_WALLET ccw " +
+            "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
+            "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
+            "ORDER BY currency_name ASC;";
+
+    return jdbcTemplate.query(sql, coreWalletRowMapper);
+
   }
 
   @Override
@@ -492,6 +557,42 @@ public class MerchantDaoImpl implements MerchantDao {
       params.put("currency_id", currencyId);
       params.put("subtract_fee", subtractFeeFromAmount);
       namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
+    String sql = "SELECT passphrase FROM CRYPTO_CORE_WALLET WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+            "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+    Map<String, String> params = new HashMap<>();
+    params.put("merchant_name", merchantName);
+    params.put("currency_name", currencyName);
+    try {
+      return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
+    final String sql = "SELECT M.name AS merchant_name, M.id AS merchant_id, CUR.name AS currency_name, CUR.id AS currency_id," +
+            "CUR.max_scale_for_refill, CUR.max_scale_for_withdraw, CUR.max_scale_for_transfer " +
+            " FROM MERCHANT M " +
+            " JOIN MERCHANT_CURRENCY MC ON M.id = MC.merchant_id" +
+            " JOIN CURRENCY CUR ON MC.currency_id = CUR.id" +
+            " WHERE M.tokens_parrent_id = :parent_id";
+    final Map<String, Integer> params = Collections.singletonMap("parent_id", parentId);
+    return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+      MerchantCurrencyBasicInfoDto dto = new MerchantCurrencyBasicInfoDto();
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setMerchantName(rs.getString("merchant_name"));
+      dto.setRefillScale(rs.getInt("max_scale_for_refill"));
+      dto.setWithdrawScale(rs.getInt("max_scale_for_withdraw"));
+      dto.setTransferScale(rs.getInt("max_scale_for_transfer"));
+      return dto;
+    });
   }
 }
 

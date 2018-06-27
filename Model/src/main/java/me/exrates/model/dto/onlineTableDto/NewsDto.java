@@ -1,5 +1,10 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateSerializer;
+
+import java.time.LocalDate;
+
 /**
  * Created by Valk on 27.05.2016.
  */
@@ -7,6 +12,8 @@ public class NewsDto extends OnlineTableDto {
     private Integer id;
     private String title;
     private String brief;
+    @JsonSerialize(using = LocalDateSerializer.class)
+    private LocalDate date;
     private String resource;
     private String variant;
     private String ref;
@@ -56,6 +63,14 @@ public class NewsDto extends OnlineTableDto {
 
     public void setBrief(String brief) {
         this.brief = brief;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 
     public String getResource() {

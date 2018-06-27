@@ -8,9 +8,12 @@ import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -20,7 +23,23 @@ import java.util.function.BiFunction;
 public class ExchangeResponseProcessingServiceImpl implements ExchangeResponseProcessingService {
 
     @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @Override
+    public String sendGetRequest(String url, Map<String, String> params) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+        params.forEach(builder::queryParam);
+        return restTemplate.getForObject(builder.toUriString(), String.class);
+    }
+
+    @Override
+    public String sendGetRequest(String url) {
+        return sendGetRequest(url, Collections.emptyMap());
+    }
+
 
     @Override
     public List<StockExchangeStats> extractAllStatsFromMapNode(StockExchange stockExchange, String jsonResponse, BiFunction<String, String, String> currencyPairTransformer) {

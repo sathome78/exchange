@@ -30,6 +30,8 @@ public class SummaryInOutReportDto {
   private BigDecimal amount;
   private String system;
   private String merchant;
+  //wolper 24.04.18
+  private BigDecimal rateToUSD;
 
   public SummaryInOutReportDto(InvoiceReportDto invoiceReportDto) {
     this.docId = invoiceReportDto.getDocId();
@@ -49,6 +51,7 @@ public class SummaryInOutReportDto {
     this.amount = invoiceReportDto.getAmount();
     this.system = invoiceReportDto.getSystem();
     this.merchant = invoiceReportDto.getMerchant();
+    this.rateToUSD=invoiceReportDto.getRateToUSD();
   }
 
 
@@ -61,6 +64,7 @@ public class SummaryInOutReportDto {
         "Confirmation Out" + ";" +
         "Merchant" + ";" +
         "Currency" + ";" +
+            "rateToUSD" + ";" +
         "Amount" + ";" +
         "doc_id" +
         "\r\n";
@@ -76,6 +80,7 @@ public class SummaryInOutReportDto {
         acceptanceDateOut + ";" +
         merchant + ";" +
         currency + ";" +
+            BigDecimalProcessing.formatNoneComma(rateToUSD, false)+ ";" +
         BigDecimalProcessing.formatNoneComma(amount, false) + ";" +
         docId +
         "\r\n";

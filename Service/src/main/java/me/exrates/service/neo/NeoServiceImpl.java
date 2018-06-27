@@ -161,7 +161,7 @@ public class NeoServiceImpl implements NeoService {
     void scanBlocks() {
         Merchant merchantNeo = merchantService.findByName(neoMerchantName);
         Currency currencyNeo = currencyService.findByName(neoCurrencyName);
-        final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantIdAndParamName(neoMerchantName,
+        final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(neoMerchantName,
                 neoSpecParamName).getParamValue());
         final int blockCount = neoNodeService.getBlockCount();
         Set<String> addresses = refillService.findAllAddresses(merchantNeo.getId(), currencyNeo.getId()).stream().distinct().collect(Collectors.toSet());

@@ -4,9 +4,11 @@ import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.*;
@@ -163,6 +165,11 @@ public class MerchantServiceImpl implements MerchantService {
     return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
             .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
   }
+
+  @Override
+  public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
+    return merchantDao.findByMerchantAndCurrency(merchantId, currencyId);
+  }
   
   @Override
   public List<TransferMerchantApiDto> findTransferMerchants() {
@@ -284,7 +291,7 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   @Transactional
   public void setBlockForAll(OperationType operationType, boolean blockStatus) {
-    merchantDao.setBlockForAll(operationType, blockStatus);
+    merchantDao.setBlockForAllNonTransfer(operationType, blockStatus);
   }
 
   @Override
@@ -350,8 +357,23 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public String retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
-    return merchantDao.retrieveCoreWalletCurrencyNameByMerchant(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
+  public CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale) {
+    CoreWalletDto result = merchantDao.retrieveCoreWalletByMerchantName(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
+    result.localizeTitle(messageSource, locale);
+    return result;
+  }
+
+  @Override
+  public List<CoreWalletDto> retrieveCoreWallets(Locale locale) {
+
+    List<CoreWalletDto> result = merchantDao.retrieveCoreWallets();
+    result.forEach(dto -> dto.localizeTitle(messageSource, locale));
+    return result;
+  }
+
+  @Override
+  public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
+    return merchantDao.getCoreWalletPassword(merchantName, currencyName);
   }
 
   @Override
@@ -426,6 +448,11 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount) {
     merchantDao.setSubtractFeeFromAmount(merchantId, currencyId, subtractFeeFromAmount);
+  }
+
+  @Override
+  public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
+    return merchantDao.findTokenMerchantsByParentId(parentId);
   }
 
 

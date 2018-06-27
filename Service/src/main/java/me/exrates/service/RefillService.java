@@ -133,4 +133,8 @@ public interface RefillService {
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     DataTable<List<RefillRequestAddressShortDto>> getAdressesShortDto(DataTableParams dataTableParams, RefillAddressFilterData filterData);
+
+  List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
+
+  List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId);
 }

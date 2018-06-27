@@ -48,7 +48,7 @@ public interface RefillRequestDao {
 
   Optional<Integer> create(RefillRequestCreateDto request);
 
-  Optional<String> findLastAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+  Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
@@ -124,4 +124,8 @@ public interface RefillRequestDao {
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressFilterData data);
+
+  List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
+
+    List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> collect);
 }

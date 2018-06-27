@@ -211,12 +211,14 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       WithdrawFilterData withdrawFilterData) {
     final String JOINS_FOR_USER =
         " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id ";
+    final String JOINS_CURRENCY_AND_MERCHANT = " JOIN CURRENCY CUR ON (CUR.id=WITHDRAW_REQUEST.currency_id) " +
+            " JOIN MERCHANT MER ON (MER.id=WITHDRAW_REQUEST.merchant_id) ";
     String filter = withdrawFilterData.getSQLFilterClause();
     String searchClause = dataTableParams.getSearchByEmailAndNickClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
             getPermissionClause(requesterUserId) +
-            JOINS_FOR_USER +
+            JOINS_FOR_USER + JOINS_CURRENCY_AND_MERCHANT +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
@@ -435,6 +437,30 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     return jdbcTemplate.query(sql, params, (rs, i) -> {
       return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
     });
+  }
+
+  @Override
+  public List<Integer> getWithdrawalStatistic(String startDate, String endDate) {
+    final String sql = "SELECT (SELECT COUNT(*) FROM WITHDRAW_REQUEST WHERE status_modification_date \n" +
+            "BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')" +
+            " AND status_id IN (8,9)) as manual, \n" +
+            "(SELECT COUNT(*) FROM WITHDRAW_REQUEST WHERE status_modification_date " +
+            "BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')  \n" +
+            " AND status_id IN (10,12)) as auto;";
+
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+    }};
+
+    return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+      List<Integer> list = new LinkedList<>();
+      list.add(rs.getInt("manual"));
+      list.add(rs.getInt("auto"));
+
+      return list;
+    });
+
   }
 
   private String getPermissionClause(Integer requesterUserId) {

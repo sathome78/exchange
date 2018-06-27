@@ -216,12 +216,13 @@ public class RegisterFormValidation implements Validator {
         String statusIncorrect = messageSource.getMessage("login.blocked", null, ru);
 
         int userId = userService.getIdByEmail(user.getEmail());
-        if (userId <= 0) {
+        if (userId != 0) {
+            User findUser = userService.getUserById(userId);
+            if (findUser.getStatus() == UserStatus.DELETED){
+                errors.rejectValue("email", "email.incorrect", statusIncorrect);
+            }
+        } else {
             errors.rejectValue("email", "email.incorrect", emailIncorrect);
-        }
-        User findUser = userService.getUserById(userId);
-        if (findUser.getStatus() == UserStatus.DELETED){
-            errors.rejectValue("email", "email.incorrect", statusIncorrect);
         }
     }
 }

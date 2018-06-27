@@ -44,16 +44,23 @@
                         <loc:message code="admin.withdraw.accepted"/></button>
                     <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.withdraw.declined"/></button>
+                    <button id="withdraw-requests-checking" class="myorders__button yellow-box margin-box">
+                        <loc:message code="admin.withdraw.checking"/></button>
                 </div>
             </div>
 
 
       <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>
-      <div class="col-md-8">
-        <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;"
-                data-target="#withdrawal-request-filter">
+      <div class="col-md-10">
+        <button class="blue-box" style="margin: 10px 0;"
+                id="withdrawal-request-filter_button">
           <loc:message code="admin.user.transactions.extendedFilter"/></button>
-        <div id="withdrawal-request-filter" class="collapse">
+
+        <button class="blue-box" style="margin: 10px 0;"
+                id="withdrawal-statistic_button">
+          <loc:message code="admin.withdrawal.statistic.filter"/></button>
+
+        <div id="withdrawal-request-filter" style="display: none">
           <form id="withdrawal-request-search-form" class="form_full_height_width" method="get">
             <%--ID--%>
             <div class="input-block-wrapper">
@@ -113,6 +120,19 @@
               </div>
 
             </div>
+              <%--DATE_PROCESSING--%>
+              <div class="input-block-wrapper">
+                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="withdrawal.statusModificationDate"/>
+                  </label>
+                </div>
+                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                  <input id="filter-dateProcessing-datetimepicker_start" type="text" name="startDateStatus">
+                  <input id="filter-dateProcessing-datetimepicker_end" type="text" name="endDateStatus">
+                </div>
+
+              </div>
             <%--AMOUNT--%>
             <div class="input-block-wrapper">
               <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -190,6 +210,53 @@
           </form>
 
         </div>
+
+      <div class="col-md-12" id="withdrawal-statistic" style="display: none">
+            <%--DATE--%>
+            <div class="container">
+              <div class="form-group">
+
+                <div class="col-md-4 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="ordersearch.date"/>
+                  </label>
+                </div>
+                <div class="col-md-5 input-block-wrapper__input-wrapper">
+                  <input id="filter_statistic-datetimepicker_start" type="text" name="startDate">
+                  <input id="filter_statistic-datetimepicker_end" type="text" name="endDate">
+                </div>
+                <button class="btn btn-md btn-default pull-left" style="margin-bottom: 10px"
+                        id="filter_statistic_button">
+                  <span class="glyphicon glyphicon-refresh"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="container">
+              <div class="form-group">
+                <label class="control-label col-sm-4" for="manual_withdrawals">
+                  <loc:message code="admin.withdrawal.statistic.manual_withdrawals"/>
+                </label>
+
+                <div class="col-sm-8">
+                  <input id="manual_withdrawals" type="text" name="manual_withdrawals"
+                         style="text-align: center" disabled/>
+                </div>
+              </div>
+            </div>
+            <br/>
+            <div class="container">
+              <div class="form-group">
+                <label class="control-label col-sm-4" for="auto_withdrawals">
+                  <loc:message code="admin.withdrawal.statistic.auto_withdrawals"/>
+                </label>
+
+                <div class="col-sm-8">
+                  <input id="auto_withdrawals" type="text" name="auto_withdrawals"
+                         style="text-align: center" disabled/>
+                </div>
+              </div>
+            </div>
       </div>
 
       <table id="withdrawalTable">

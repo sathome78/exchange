@@ -16,6 +16,7 @@ import java.util.List;
  */
 @Configuration
 public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerConfigurer {
+
     @Autowired
     private UserRoleService userRoleService;
 

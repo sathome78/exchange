@@ -50,6 +50,7 @@ public class WavesRestClientImpl implements WavesRestClient {
     private final String transferCostsEndpoint = "/assets/transfer";
     private final String accountTransactionsEndpoint = "/transactions/address/{address}/limit/{limit}";
     private final String transactionByIdEndpoint = "/transactions/info/{id}";
+    private final String accountBalanceEndpoint = "/addresses/balance/{id}";
 
     @Override
     public String generateNewAddress() {
@@ -111,6 +112,18 @@ public class WavesRestClientImpl implements WavesRestClient {
             log.error(e);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Long getAccountWavesBalance(String account) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", account);
+        Long balance = (Long) restTemplate.exchange(generateBaseUrl() + accountBalanceEndpoint, HttpMethod.GET,
+                new HttpEntity<>(""), new ParameterizedTypeReference<Map<String, Object>>() {}, params).getBody().get("balance");
+        if (balance == null) {
+            throw new WavesRestException("Cannot obtain balance for account " + account);
+        }
+        return balance;
     }
 
 

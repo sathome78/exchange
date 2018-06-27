@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.VoucherAdminTableDto;
@@ -39,7 +40,7 @@ public interface TransferService {
 
   boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail);
 
-  void performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
+  TransferDto performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 
   String getUserEmailByTrnasferId(int id);
 

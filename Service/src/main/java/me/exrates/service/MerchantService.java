@@ -1,9 +1,11 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
@@ -12,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -34,6 +37,8 @@ public interface MerchantService {
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
+
+  Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
 
   List<TransferMerchantApiDto> findTransferMerchants();
 
@@ -65,7 +70,11 @@ public interface MerchantService {
 
   List<String> retrieveBtcCoreBasedMerchantNames();
 
-  String retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+  CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale);
+
+    List<CoreWalletDto> retrieveCoreWallets(Locale locale);
+
+    Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
 
     Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount,
                                                            OperationType type,
@@ -81,4 +90,6 @@ public interface MerchantService {
   boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+
+    List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }

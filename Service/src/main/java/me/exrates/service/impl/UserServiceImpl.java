@@ -127,13 +127,13 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public boolean createUserRest(User user, Locale locale) {
-    if (!ifEmailIsUnique(user.getEmail())) {
-      LOGGER.error("Email already exists!");
-      throw new UniqueEmailConstraintException("Email already exists!");
-    }
     if (!ifNicknameIsUnique(user.getNickname())) {
       LOGGER.error("Nickname already exists!");
       throw new UniqueNicknameConstraintException("Nickname already exists!");
+    }
+    if (!ifEmailIsUnique(user.getEmail())) {
+      LOGGER.error("Email already exists!");
+      throw new UniqueEmailConstraintException("Email already exists!");
     }
     Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp());
     if (result) {
@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
   public int verifyUserEmail(String token) {
     TemporalToken temporalToken = userDao.verifyToken(token);
     //deleting all tokens related with current through userId and tokenType
-    return deleteTokensAndUpdateUser(temporalToken);
+    return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
   }
 
   private int deleteTokensAndUpdateUser(TemporalToken temporalToken) {
@@ -368,6 +368,9 @@ public class UserServiceImpl implements UserService {
 
     Email email = new Email();
     String confirmationUrl = tokenLink + "?token=" + token.getValue() + tempPassId;
+    if (tokenLink.equals("/resetPasswordConfirm")) {
+      confirmationUrl = confirmationUrl + "&email=" + user.getEmail();
+    }
     String rootUrl = "";
     if (!confirmationUrl.contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
@@ -383,7 +386,13 @@ public class UserServiceImpl implements UserService {
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
     email.setTo(user.getEmail());
-    sendMailService.sendMail(email);
+    if (tokenType.equals(TokenType.REGISTRATION)
+            || tokenType.equals(TokenType.CHANGE_PASSWORD)
+            || tokenType.equals(TokenType.CHANGE_FIN_PASSWORD)) {
+      sendMailService.sendMailMandrill(email);
+    }else {
+      sendMailService.sendMail(email);
+    }
   }
 
   @Override

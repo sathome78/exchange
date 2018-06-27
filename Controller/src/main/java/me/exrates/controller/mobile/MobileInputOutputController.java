@@ -592,9 +592,7 @@ public class MobileInputOutputController {
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Merchant merchant = merchantService.findById(requestParamsDto.getMerchant());
-        MerchantCurrency merchantCurrency = merchantService.getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(
-              requestParamsDto.getCurrency()), OperationType.INPUT).stream().filter(item ->
-              item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
+        MerchantCurrency merchantCurrency = merchantService.findByMerchantAndCurrency(merchant.getId(), requestParamsDto.getCurrency())
               .orElseThrow(MerchantInternalException::new);
         MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
         if (merchant.getProcessType() == MerchantProcessType.CRYPTO || merchant.getProcessType() == MerchantProcessType.INVOICE) {

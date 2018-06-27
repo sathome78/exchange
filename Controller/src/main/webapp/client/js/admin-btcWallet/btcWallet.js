@@ -25,10 +25,17 @@ $(function () {
         $newPaymentDiv.attr('id', 'payment_' + currentNum);
         $($newPaymentDiv).find('input[name="amount"]').attr('id', 'amount_' + currentNum).val('');
         $($newPaymentDiv).find('input[name="address"]').attr('id', 'address_' + currentNum).val('');
+        var $removeButton = $('#rm-button-template').find('.rm-button-container').clone();
+        $($newPaymentDiv).find('.rm-button-placeholder').append($removeButton);
         $('#payments').append($newPaymentDiv);
         checkSendBtcFormFields();
     });
 
+    $('#send-btc-form').on('click', '.remove-payment', function (e) {
+        e.preventDefault();
+        $(this).parents('.btcWalletPayment').remove();
+        checkSendBtcFormFields();
+    });
 
     $('#payments').on('input', '.input-amount, .input-address', function () {
         checkSendBtcFormFields();
@@ -62,24 +69,23 @@ $(function () {
             type: 'POST',
             data: $('#password-form').serialize(),
             success: function () {
+                var rawTxEnabled = $('#enable-raw-tx').text() === 'true';
                 $($passwordModal).modal('hide');
-                fillConfirmModal();
-                $($paymentConfirmModal).modal();
+                if (rawTxEnabled) {
+                    prepareRawTx();
+                } else {
+                    fillConfirmModal();
+                    $($paymentConfirmModal).modal();
+                }
             }
         })
     });
 
+
     $('#confirm-btc-submit').click(function () {
         var confirmButton = this;
         $(confirmButton).prop('disabled', true);
-        var data = [];
-        $('.btcWalletPayment').each(function () {
-            data.push({
-                address: $(this).find('input[name="address"]').val(),
-                amount: parseFloat($(this).find('input[name="amount"]').val())
-            });
-        });
-        console.log(data);
+        var data = serializeBtcPayments();
         $loadingDialog.modal({
             backdrop: 'static'
         });
@@ -94,7 +100,7 @@ $(function () {
                 $loadingDialog.modal('hide');
                 $($paymentConfirmModal).modal('hide');
                 resetForm();
-                $('#current-btc-balance').text(data.newBalance);
+                $('#current-btc-balance').text(data['newBalance']);
                 var $btcSendResultModal = $('#btc-send-result-modal');
                 var $btcResultInfoTable = $($btcSendResultModal).find('#btcResultInfoTable').find('tbody');
 
@@ -103,7 +109,7 @@ $(function () {
                 data['results'].forEach(function (e) {
                     $btcResultInfoTable.append(tmpl($tmpl, e));
                 });
-
+                updateTxHistoryTable();
                 $($btcSendResultModal).modal();
 
             },
@@ -115,7 +121,7 @@ $(function () {
     });
     $('#submitChangeFee').click(function (e) {
         e.preventDefault();
-        updateTxFee();
+        updateTxFee($('#input-fee-actual').val());
     });
 
     $('#create-refill').click(function () {
@@ -134,6 +140,42 @@ $(function () {
 
     });
     $('#subtract-fee-from-amount').on('click', 'i', setSubtractFeeStatus);
+
+    $('#submit-raw-tx').click(function () {
+        var confirmButton = this;
+        $(confirmButton).prop('disabled', true);
+        $.ajax(urlBase + 'sendRawTx', {
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json; charset=UTF-8',
+            success: function (data) {
+                resetForm();
+                $('#current-btc-balance').text(data['newBalance']);
+                var $btcSendResultModal = $('#btc-send-result-modal');
+                var $btcResultInfoTable = $($btcSendResultModal).find('#btcResultInfoTable').find('tbody');
+
+                var $tmpl = $('#results-table_row').html().replace(/@/g, '%');
+                clearTable($btcResultInfoTable);
+                data['results'].forEach(function (e) {
+                    $btcResultInfoTable.append(tmpl($tmpl, e));
+                });
+                updateTxHistoryTable();
+                $($btcSendResultModal).modal();
+
+            },
+            complete: function () {
+                $('#btc-prepare-raw-modal').modal('hide');
+                $loadingDialog.modal('hide');
+                $(confirmButton).prop('disabled', false);
+            }
+        })
+    });
+
+    $('#change-fee-raw').click(function () {
+        updateTxFee($('#fee-rate-raw').val()).complete(prepareRawTx);
+    })
 
 });
 
@@ -292,12 +334,15 @@ function retrieveFee() {
     });
     $.get(urlBase + 'actualFee', function (data) {
         $('#input-fee-actual').val(data);
+        $('#fee-rate-raw').val(data);
     })
 }
 
-function updateTxFee() {
-    var data = $('#tx-fee-form').serialize();
-    $.ajax(urlBase + 'setFee', {
+function updateTxFee(feeRate) {
+    var data = {
+        fee: feeRate
+    };
+    return $.ajax(urlBase + 'setFee', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
@@ -371,7 +416,6 @@ function refreshSubtractFeeStatus() {
 function setSubtractFeeStatus() {
     const $subtractFee = $('#subtract-fee-from-amount').find('i');
     const subtractFeeNewValue = !$($subtractFee).hasClass('green') && $($subtractFee).hasClass('red');
-    console.log(subtractFeeNewValue)
     $.ajax(urlBase + 'setSubtractFee', {
         type: 'POST',
         headers: {
@@ -384,4 +428,43 @@ function setSubtractFeeStatus() {
     })
 }
 
+function serializeBtcPayments() {
+    var data = [];
+    $('.btcWalletPayment').each(function () {
+        data.push({
+            address: $(this).find('input[name="address"]').val(),
+            amount: parseFloat($(this).find('input[name="amount"]').val())
+        });
+    });
+    return data;
+}
+
+function prepareRawTx() {
+    var data = serializeBtcPayments();
+    $.ajax(urlBase + 'prepareRawTx', {
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        type: 'POST',
+        contentType: 'application/json; charset=UTF-8',
+        data: JSON.stringify(data),
+        success: function (resp) {
+            var $btcPrepareRawModal = $('#btc-prepare-raw-modal');
+            var $paymentsList = $('#raw-tx-payments').find('ul');
+            var $txHexesDiv = $('#raw-tx-hexes');
+            $($paymentsList).empty();
+            $($txHexesDiv).empty();
+            resp['payments'].forEach(function (item) {
+                $($paymentsList).append('<li>' + item['address'] + ' : ' + item['amount'] + '</li>')
+            });
+
+            $('#fee-rate-raw').val(numbro(resp['feeRate']).format('0.00[000000]'));
+            $('#fee-amount-raw').text(numbro(resp['totalFeeAmount']).format('0.00[000000]'));
+
+            if (!(($($btcPrepareRawModal).data('bs.modal') || {}).isShown)) {
+                $($btcPrepareRawModal).modal();
+            }
+        }
+    })
+}
 

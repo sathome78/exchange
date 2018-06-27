@@ -15,6 +15,8 @@ import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,9 @@ public class ServiceCacheableProxy {
 
   @Autowired
   private NewsDao newsDao;
+
+  @Autowired
+  private Twitter twitter;
 
   @CacheEvict(cacheNames = "currencyPairStatistics", key = "#root.methodName", condition = "#evictCache", beforeInvocation = true)
   @Cacheable(cacheNames = "currencyPairStatistics", key = "#root.methodName")
@@ -88,6 +93,10 @@ public class ServiceCacheableProxy {
     return orderDao.getDataForCandleChart(currencyPair, backDealInterval);
   }
 
+  @Transactional(propagation = Propagation.NEVER)
+  @Cacheable(cacheNames = "twitter", key = "#size")
+  public List<Tweet> getTwitterTimeline(Integer size) {
+    return twitter.timelineOperations().getUserTimeline(size);
+  }
+
 }
-
-

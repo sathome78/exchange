@@ -7,6 +7,7 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
     private String currencyName;
     private String description;
     private String activeBalance;
+    private String totalBalance;
 
     public MyWalletsStatisticsDto() {
         this.needRefresh = true;
@@ -27,7 +28,9 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
 
         if (currencyName != null ? !currencyName.equals(that.currencyName) : that.currencyName != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        return activeBalance != null ? activeBalance.equals(that.activeBalance) : that.activeBalance == null;
+        if (activeBalance != null ? !activeBalance.equals(that.activeBalance) : that.activeBalance != null)
+            return false;
+        return totalBalance != null ? totalBalance.equals(that.totalBalance) : that.totalBalance == null;
     }
 
     @Override
@@ -35,9 +38,11 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
         int result = currencyName != null ? currencyName.hashCode() : 0;
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (activeBalance != null ? activeBalance.hashCode() : 0);
+        result = 31 * result + (totalBalance != null ? totalBalance.hashCode() : 0);
         return result;
     }
-   /*getters setters*/
+
+    /*getters setters*/
 
     public boolean isNeedRefresh() {
         return needRefresh;
@@ -61,6 +66,14 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
 
     public void setActiveBalance(String activeBalance) {
         this.activeBalance = activeBalance;
+    }
+
+    public String getTotalBalance() {
+        return totalBalance;
+    }
+
+    public void setTotalBalance(String totalBalance) {
+        this.totalBalance = totalBalance;
     }
 
     public String getDescription() {

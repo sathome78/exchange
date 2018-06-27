@@ -41,5 +41,10 @@ public interface NeoService extends IRefillable, IWithdrawable {
         return false;
     }
 
+    @Override
+    default Boolean storeSameAddressForParentAndTokens() {
+        return true;
+    }
+
     void scanLastBlocksAndUpdatePayments();
 }

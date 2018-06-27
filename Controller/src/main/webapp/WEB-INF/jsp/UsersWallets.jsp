@@ -17,11 +17,11 @@
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
-  <link href="/client/css/jquery-ui.css" rel='stylesheet' type='text/css'>
 
   <%@include file='admin/links_scripts.jsp' %>
 
+  <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+  <link href="/client/css/jquery-ui.css" rel='stylesheet' type='text/css'>
 
   <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
   <%----------%>

@@ -107,7 +107,6 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FOR_WITHDRAW);
-      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
     }
   },
   TAKEN_FOR_WITHDRAW(15){
@@ -115,6 +114,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
     }
   };
 
@@ -276,7 +276,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
 
   public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
     if (autoEnabled) {
-      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
+      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) < 0) {
         return PUT_FOR_AUTO;
       } else {
         return PUT_FOR_CONFIRM;

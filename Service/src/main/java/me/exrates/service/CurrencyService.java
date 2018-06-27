@@ -38,6 +38,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairs();
 
+    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
+
     CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
@@ -85,4 +87,6 @@ public interface CurrencyService {
   CurrencyPair getCurrencyPairByName(String pairName);
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
+
+  List<CurrencyPair> findPermitedCurrencyPairs();
 }

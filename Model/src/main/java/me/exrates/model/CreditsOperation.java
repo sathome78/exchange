@@ -27,6 +27,7 @@ public class CreditsOperation {
   private final Optional<String> destinationTag;
   private final TransactionSourceType transactionSourceType;
   private Boolean generateAdditionalRefillAddressAvailable;
+  private Boolean storeSameAddressForParentAndTokens;
   private final User recipient;
   private final Wallet recipientWallet;
 
@@ -67,6 +68,7 @@ public class CreditsOperation {
     private Optional<String> destinationTag;
     private TransactionSourceType transactionSourceType;
     private Boolean generateAdditionalRefillAddressAvailable;
+    private Boolean storeSameAddressForParentAndTokens;
     private User recipient;
     private Wallet recipientWallet;
 

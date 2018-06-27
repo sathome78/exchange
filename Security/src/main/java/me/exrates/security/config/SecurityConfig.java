@@ -145,7 +145,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/2a8fy7b07dxe44/commissions/editCommission",
             "/2a8fy7b07dxe44/commissions/editMerchantCommission",
             "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
-            "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+            "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
+            "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
         .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
@@ -236,6 +237,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/news/addNewsVariant").authenticated()
         .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
         .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
+        .antMatchers("/payeer_510814850.txt").permitAll()
         .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
         .antMatchers(GET, "/utcOffset").permitAll()
@@ -244,7 +246,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
         .antMatchers( "/test/**").permitAll()
-        .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
+        .antMatchers("/login", "/register", "/create", "/rest/user/resetPasswordConfirm/**").anonymous()
+        .antMatchers("/resetPasswordConfirm/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers("/forgotPassword/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/login/new_pin_send").anonymous()
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
@@ -285,7 +289,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .logoutSuccessUrl("/")
         .invalidateHttpSession(true)
         .and()
-        .csrf()
+        .csrf().ignoringAntMatchers("/login")
         .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
                 "/public_socket/", "/public_socket/**",
             "/merchants/perfectmoney/payment/status",

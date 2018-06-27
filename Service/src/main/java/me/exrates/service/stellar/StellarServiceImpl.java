@@ -101,7 +101,7 @@ public class StellarServiceImpl implements StellarService {
 
     @Synchronized
     @Override
-    public void onTransactionReceive(TransactionResponse payment, String amount) {
+    public void onTransactionReceive(TransactionResponse payment, String amount, String currencyName, String merchant) {
         log.debug("income transaction {} ", payment.getMemo() + " " + amount);
         if (checkTransactionForDuplicate(payment)) {
             try {
@@ -118,6 +118,8 @@ public class StellarServiceImpl implements StellarService {
             log.warn("memo is null");
             return;
         }
+        paramsMap.put("currency", currencyName);
+        paramsMap.put("merchant", merchant);
         paramsMap.put("address", memo);
         paramsMap.put("amount", amount);
         try {
@@ -182,8 +184,8 @@ public class StellarServiceImpl implements StellarService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName("XLM");
-        Merchant merchant = merchantService.findByName(XLM_MERCHANT);
+        Currency currency = currencyService.findByName(params.get("currency"));
+        Merchant merchant = merchantService.findByName(params.get("merchant"));
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -222,5 +224,10 @@ public class StellarServiceImpl implements StellarService {
                 && Long.valueOf(destinationTag) <= 9007199254740991L)) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }
+    }
+
+    @Override
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
     }
 }

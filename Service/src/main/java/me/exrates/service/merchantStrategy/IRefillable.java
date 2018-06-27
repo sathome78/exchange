@@ -24,6 +24,10 @@ public interface IRefillable extends IMerchantService{
 
   Boolean additionalFieldForRefillIsUsed();
 
+  default Boolean storeSameAddressForParentAndTokens() {
+    return false;
+  };
+
   default String additionalRefillFieldName() {
     return "MEMO";
   };

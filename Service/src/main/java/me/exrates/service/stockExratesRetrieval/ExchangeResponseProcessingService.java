@@ -5,9 +5,14 @@ import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 public interface ExchangeResponseProcessingService {
+    String sendGetRequest(String url, Map<String, String> params);
+
+    String sendGetRequest(String url);
+
     List<StockExchangeStats> extractAllStatsFromMapNode(StockExchange stockExchange, String jsonResponse, BiFunction<String, String, String> currencyPairTransformer);
 
     JsonNode extractNode(String source, String... targetNodes);

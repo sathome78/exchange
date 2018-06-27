@@ -218,7 +218,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   };
 
   private final String SELECT_COUNT =
-      " SELECT STRAIGHT_JOIN COUNT(*)" +
+      " SELECT COUNT(*)" +
           " FROM TRANSACTION "
        //  + " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) "
         ;
@@ -355,7 +355,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
           Integer requesterUserId, List<Integer> userWalletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
-    String selectIdsSql = "SELECT STRAIGHT_JOIN id FROM TRANSACTION ";
+    String selectIdsSql = "SELECT id FROM TRANSACTION ";
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     String trClause = filterData.getTransationTypeClauses();
@@ -702,9 +702,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
             (roleIdList.isEmpty() ? "" :
                 " AND USER.roleid IN (:role_id_list)") +
-            " WHERE " +
-            "   USER.status = " + UserStatus.ACTIVE.getStatus() +
-            "   AND EXISTS (" +
+            " WHERE EXISTS (" +
             "       SELECT * " +
             "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
             "           WHERE (IOP.currency_id=CURRENCY.id " +

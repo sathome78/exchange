@@ -3,7 +3,6 @@ package me.exrates.service.util;
 
 import me.exrates.service.exception.RestRetrievalException;
 import okhttp3.*;
-import okio.Buffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

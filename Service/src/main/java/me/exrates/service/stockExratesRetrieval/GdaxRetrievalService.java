@@ -23,6 +23,9 @@ public class GdaxRetrievalService implements StockExrateRetrievalService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ExchangeResponseProcessingService exchangeResponseProcessingService;
+
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
@@ -31,8 +34,8 @@ public class GdaxRetrievalService implements StockExrateRetrievalService {
                 .forEach((currencyPairName, currencyPair) -> {
             String urlTicker = String.format("https://api.gdax.com/products/%s/ticker", currencyPairName);
             String urlStats = String.format("https://api.gdax.com/products/%s/stats", currencyPairName);
-            String jsonResponseTicker = OkHttpUtils.sendGetRequest(urlTicker);
-            String jsonResponseStats = OkHttpUtils.sendGetRequest(urlStats);
+            String jsonResponseTicker = exchangeResponseProcessingService.sendGetRequest(urlTicker);
+            String jsonResponseStats = exchangeResponseProcessingService.sendGetRequest(urlStats);
             try {
                 JsonNode tickerRoot = objectMapper.readTree(jsonResponseTicker);
                 JsonNode statsRoot = objectMapper.readTree(jsonResponseStats);

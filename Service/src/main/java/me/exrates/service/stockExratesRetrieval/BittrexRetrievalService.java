@@ -27,7 +27,7 @@ public class BittrexRetrievalService implements StockExrateRetrievalService {
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
-        String jsonResponse = OkHttpUtils.sendGetRequest("https://bittrex.com/api/v1.1/public/getmarketsummaries");
+        String jsonResponse = exchangeResponseProcessingService.sendGetRequest("https://bittrex.com/api/v1.1/public/getmarketsummaries");
         JsonNode root = exchangeResponseProcessingService.extractNode(jsonResponse, "result");
         return exchangeResponseProcessingService.extractAllStatsFromArrayNode(stockExchange, root, "MarketName",
                 (name1, name2) -> name2.concat("-").concat(name1));

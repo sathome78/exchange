@@ -168,7 +168,7 @@ public class NeoServiceImplTest {
         when(neoNodeService.getBlockCount()).thenReturn(12346);
         MerchantSpecParamDto merchantSpecParamDto = new MerchantSpecParamDto();
         merchantSpecParamDto.setParamValue("12344");
-        when(specParamsDao.getByMerchantIdAndParamName(anyString(), anyString())).thenReturn(merchantSpecParamDto);
+        when(specParamsDao.getByMerchantNameAndParamName(anyString(), anyString())).thenReturn(merchantSpecParamDto);
         when(refillService.findAllAddresses(merchantNeo.getId(), currencyNeo.getId())).thenReturn(Arrays.asList(TEST_ADDRESS_1, TEST_ADDRESS_2, TEST_ADDRESS_3));
 
         refillRequestFlatDto1 = new RefillRequestFlatDto();
