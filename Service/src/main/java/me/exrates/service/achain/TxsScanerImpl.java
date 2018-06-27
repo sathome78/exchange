@@ -121,7 +121,7 @@ public class TxsScanerImpl implements BlocksScaner {
         JSONArray operations = trx.getJSONArray("operations");
         AchainTransactionType transactionType = determinteTxType(operations);
         JSONObject amountData = trx.getJSONObject("alp_inport_asset");
-        String finalAmount = parseAmount(amountData.getLong("amount"));
+        String finalAmount = parseAmount(amountData.getString("amount"));
         String txHash = tx.getString(0);
         if (transactionType.equals(AchainTransactionType.SIMPLE_TRANSFER)) {
             acceptPayment(recieveAccount, txHash, finalAmount, MERCHANT_NAME, CURRENCY_NAME);
@@ -147,8 +147,8 @@ public class TxsScanerImpl implements BlocksScaner {
         return AchainTransactionType.convert(operation);
     }
 
-    private String parseAmount(Long amount) {
-        Double res = amount/10000d;
+    private String parseAmount(String amount) {
+        Double res = Double.valueOf(amount)/100000d;
         return res.toString();
     }
 
