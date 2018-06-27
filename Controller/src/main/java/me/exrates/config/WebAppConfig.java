@@ -953,6 +953,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TGAME", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mtlServiceImpl")
+    public EthTokenService mtlServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xF433089366899D83a9f26A773D59ec7eCF30355e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTL",
+                "MTL", true, ExConvert.Unit.AIWEI);
+    }
+
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
         List<String> tokensList = new ArrayList<>();
