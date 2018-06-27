@@ -67,6 +67,7 @@ public class NemServiceImpl implements NemService {
 
     private static final BigDecimal maxMosiacQuantity = new BigDecimal("9000000000000000");
     private static final BigDecimal xemMaxQuantity = new BigDecimal("8999999999");
+    private static final List<MosaicIdDto> deniedMosaicsList = new ArrayList<>();
 
     private Merchant merchant;
     private Currency currency;
@@ -74,6 +75,8 @@ public class NemServiceImpl implements NemService {
 
     @PostConstruct
     public void init() {
+        deniedMosaicsList.add(new MosaicIdDto("ts", "warning_dont_accept_stolen_funds"));
+        /*deniedMosaicsList.add(new MosaicIdDto("dim", "coin"));*/
         account = new Account(new KeyPair(PublicKey.fromHexString(publicKey)));
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName(NEM_MERCHANT);
@@ -340,5 +343,10 @@ public class NemServiceImpl implements NemService {
 
     private BigDecimal getExrateForMosaic(int merchantId) {
         return new BigDecimal(specParamsDao.getByMerchantIdAndParamName(merchantId, "exrateToNem").getParamValue());
+    }
+
+    @Override
+    public List<MosaicIdDto> getDeniedMosaicList() {
+        return deniedMosaicsList;
     }
 }

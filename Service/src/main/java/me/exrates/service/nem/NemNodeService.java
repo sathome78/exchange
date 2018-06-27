@@ -38,6 +38,8 @@ public class NemNodeService {
     private final static String pathGetTransaction = "/transaction/get?hash=";
     private final static String pathGetCurrentBlockHeight = "/chain/last-block";
     private final static String pathGetIncomeTransactions = "/account/transfers/incoming?address=%s";
+    private final static String pathGetOwnedMosaics = "/account/mosaic/owned?address=%s";
+    private final static String pathGetAddressByPk = "/account/get/from-public-key?publicKey=%s";
 
 
     @Autowired
@@ -48,7 +50,25 @@ public class NemNodeService {
         return new org.json.JSONObject(response);
     }
 
-    protected TimeInstant getCurrentTimeStamp() {
+    String getAddressByPk(String publicKey) {
+        ResponseEntity<String> response = restTemplate
+                .getForEntity(nisServerRecieve.concat(String.format(pathGetAddressByPk, publicKey)), String.class);
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+            throw new NemTransactionException(response.toString());
+        }
+        return new JSONObject(response.getBody()).getJSONObject("account").getString("address");
+    }
+
+    JSONArray getOwnedMosaics(String address) {
+        ResponseEntity<String> response = restTemplate
+                .getForEntity(nisServerRecieve.concat(String.format(pathGetOwnedMosaics, address)), String.class);
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+            throw new NemTransactionException(response.toString());
+        }
+        return new JSONObject(response.getBody()).getJSONArray("data");
+    }
+
+    TimeInstant getCurrentTimeStamp() {
         try {
             int time = getNodeExtendedInfo().getJSONObject("nisInfo").getInt("currentTime");
             return new TimeInstant(time);
@@ -58,7 +78,7 @@ public class NemNodeService {
         }
     }
 
-    protected JSONObject anounceTransaction(String serializedTransaction) {
+    JSONObject anounceTransaction(String serializedTransaction) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         HttpEntity<String> entity = new HttpEntity<>(serializedTransaction ,headers);
@@ -78,7 +98,7 @@ public class NemNodeService {
         return result;
     }
 
-    protected JSONObject getSingleTransactionByHash(String hash) {
+    JSONObject getSingleTransactionByHash(String hash) {
         ResponseEntity<String> response = restTemplate
                 .getForEntity(nisServerRecieve.concat(pathGetTransaction).concat(hash), String.class);
         if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
@@ -87,7 +107,7 @@ public class NemNodeService {
         return new JSONObject(response.getBody());
     }
 
-    protected JSONArray getIncomeTransactions(String address, String hash) {
+    JSONArray getIncomeTransactions(String address, String hash) {
         String url = nisServerRecieve.concat(String.format(pathGetIncomeTransactions, address));
         if (!StringUtils.isEmpty(hash)) {
             url = url.concat("&hash=").concat(hash);
@@ -100,7 +120,7 @@ public class NemNodeService {
         return new JSONObject(response.getBody()).getJSONArray("data");
     }
 
-    protected long getLastBlockHeight() {
+    long getLastBlockHeight() {
         String response = restTemplate.getForObject(nisServerRecieve.concat(pathGetCurrentBlockHeight), String.class);
         return new org.json.JSONObject(response).getLong("height");
     }
