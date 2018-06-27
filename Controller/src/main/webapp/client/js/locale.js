@@ -6,7 +6,7 @@ function initLocaleSwitcher() {
     $(".language").click(function (e) {
         e.preventDefault();
         var localeName = e.target.textContent.toUpperCase();
-        var localeCode = 'ru';
+        var localeCode = 'en';
         if (localeName == 'EN') {
             localeCode = 'en';
         } else if (localeName == 'RU') {
@@ -15,9 +15,12 @@ function initLocaleSwitcher() {
             localeCode = 'cn';
         } else if (localeName == 'ID') {
             localeCode = 'in';
-        } else if (localeName == 'AR') {
+        }
+        /*
+        else if (localeName == 'AR') {
             localeCode = 'ar';
         }
+        */
 
         var ref = '/dashboard/locale?locale=' + localeCode;
         $.get(ref)

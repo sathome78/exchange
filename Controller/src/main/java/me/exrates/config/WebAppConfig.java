@@ -479,6 +479,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "B2G", "B2G", 12);
     }
 
+    @Bean(name = "golServiceImpl")
+    public EthereumCommonService golService() {
+        return new EthereumCommonServiceImpl("merchants/smartchain.properties",
+                "GOL", "GOL", 12);
+    }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -945,6 +951,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "TGAME",
                 "TGAME", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mtlServiceImpl")
+    public EthTokenService mtlServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xF433089366899D83a9f26A773D59ec7eCF30355e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTL",
+                "MTL", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "egtServiceImpl")

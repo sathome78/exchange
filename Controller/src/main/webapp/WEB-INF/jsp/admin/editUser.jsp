@@ -667,7 +667,10 @@
                   <div class="modal-body">
                     <input hidden id="commentId">
                     <p><loc:message code="admin.comment"/>:<Br>
-                      <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
+                      <textarea class="form-control" cols="40" rows="3" id="commentText" autofocus></textarea>
+                    <p><span class="checkLengthComment"><loc:message code="admin.checkLengthComment"/>
+                      <span id="checkLengthComment"></span>/<span id="checkMaxLengthComment"></span>
+                    </span>
                     <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
                       <loc:message code="admin.sendMessage"/>
                     <p><span id="checkMessage" style="color: #FF0000; " hidden><loc:message

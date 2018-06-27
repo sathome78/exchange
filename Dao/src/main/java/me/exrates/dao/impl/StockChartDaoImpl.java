@@ -4,7 +4,7 @@ import me.exrates.dao.StockChartDao;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.ChartResolutionTimeUnit;
-import me.exrates.model.enums.IntervalType;
+import me.exrates.model.enums.IntervalType2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -30,7 +30,7 @@ public class StockChartDaoImpl implements StockChartDao {
             ChartResolution resolution = new ChartResolution(rs.getInt("res_time_value"),
                     ChartResolutionTimeUnit.valueOf(rs.getString("res_time_unit")));
             return new ChartTimeFrame(resolution, rs.getInt("chart_time_value"),
-                    IntervalType.valueOf(rs.getString("chart_time_unit")) );
+                    IntervalType2.valueOf(rs.getString("chart_time_unit")) );
         });
     }
 

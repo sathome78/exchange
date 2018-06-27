@@ -1,6 +1,7 @@
 package me.exrates.model.vo;
 
-import me.exrates.model.enums.IntervalType;
+import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.enums.IntervalType2;
 import me.exrates.model.exceptions.UnsupportedIntervalFormatException;
 import me.exrates.model.exceptions.UnsupportedIntervalTypeException;
 
@@ -9,25 +10,30 @@ import me.exrates.model.exceptions.UnsupportedIntervalTypeException;
  * stores the interval from current DateTime
  * based on string like "5 DAY"
  */
-public class BackDealInterval {
+public class BackDealInterval2 {
     public Integer intervalValue;
-    public IntervalType intervalType;
+    public IntervalType2 intervalType;
 
-    public BackDealInterval(Integer intervalValue, IntervalType intervalType) {
+    public BackDealInterval2(Integer intervalValue, IntervalType2 intervalType) {
         this.intervalValue = intervalValue;
         this.intervalType = intervalType;
     }
 
     /*constructor*/
-    public BackDealInterval(String intervalString) {
+    public BackDealInterval2(String intervalString) {
         try {
             this.intervalValue = Integer.valueOf(intervalString.split(" ")[0]);
-            this.intervalType = IntervalType.convert(intervalString.split(" ")[1]);
+            this.intervalType = IntervalType2.valueOf(intervalString.split(" ")[1]);
         } catch (UnsupportedIntervalTypeException e) {
             throw e;
         } catch (Exception e) {
             throw new UnsupportedIntervalFormatException(intervalString);
         }
+    }
+
+    public BackDealInterval2(ChartTimeFrame timeFrame) {
+        this.intervalValue = timeFrame.getTimeValue();
+        this.intervalType = timeFrame.getTimeUnit();
     }
     /**/
     public String getInterval(){
@@ -48,7 +54,7 @@ public class BackDealInterval {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        BackDealInterval that = (BackDealInterval) o;
+        BackDealInterval2 that = (BackDealInterval2) o;
 
         if (intervalValue != null ? !intervalValue.equals(that.intervalValue) : that.intervalValue != null)
             return false;

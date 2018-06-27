@@ -12,6 +12,7 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.BackDealInterval2;
 import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -71,6 +72,11 @@ public class WsContorller {
         return "ok";
     }
 
+    @SubscribeMapping("/statistics2")
+    public String subscribeStatistic2() {
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
+    }
+
     @SubscribeMapping("/statistics")
     public String subscribeStatistic() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
@@ -92,6 +98,14 @@ public class WsContorller {
 
     @SubscribeMapping("/charts/{currencyPairId}/{resolution}")
     public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
+        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
+//        Map<String, String> data = chartsCache.getData(currencyPairId);
+        String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
+        return preparedData;
+    }
+
+    @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
+    public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
         ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
 //        Map<String, String> data = chartsCache.getData(currencyPairId);
         String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);

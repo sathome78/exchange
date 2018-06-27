@@ -150,7 +150,7 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics';
+        var path = '/app/statistics2';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
@@ -166,7 +166,7 @@ function subscribeChart() {
     }
     if (currentCurrencyPairId != null && newChartPeriod != null) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
+        var path = '/app/charts2/' + currentCurrencyPairId + '/' + newChartPeriod;
         chartSubscription = client.subscribe(path, function (message) {
             chartPeriod = newChartPeriod;
             var messageBody = JSON.parse(message.body);

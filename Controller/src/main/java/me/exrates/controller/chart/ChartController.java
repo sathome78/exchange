@@ -108,7 +108,7 @@ public class ChartController {
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
+        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);

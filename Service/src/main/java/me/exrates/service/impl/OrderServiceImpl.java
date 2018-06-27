@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -202,10 +203,14 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
     LocalDateTime endTime = LocalDateTime.now();
+    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
+            .plusMinutes(30 * (endTime.getMinute() / 30));
     LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
+    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
+            .plusMinutes(30 * (startTime.getMinute() / 30));
 
     return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
-            startTime, LocalDateTime.now(), timeFrame.getResolution().getTimeValue(),
+            firstHalfHour, lastHalfHour, timeFrame.getResolution().getTimeValue(),
             timeFrame.getResolution().getTimeUnit().name());
   }
 

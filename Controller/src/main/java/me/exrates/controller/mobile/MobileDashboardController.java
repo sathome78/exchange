@@ -443,9 +443,9 @@ public class MobileDashboardController {
                                                                            @RequestParam(value = "intervalValue") Integer intervalValue) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
-        List<CandleChartItemReducedDto> result = /*orderService.getCachedDataForCandle(currencyPair, interval).stream()
+        List<CandleChartItemReducedDto> result = orderService.getDataForCandleChart(currencyPair, interval).stream()
                 .map(CandleChartItemReducedDto::new)
-                .collect(Collectors.toList())*/Collections.emptyList();
+                .collect(Collectors.toList());
         return result;
 
 

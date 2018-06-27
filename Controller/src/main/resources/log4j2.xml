@@ -339,6 +339,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="smartchain_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/smartchain_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/smartchain_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="bitcoiin2g_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/bitcoiin2g_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ethereum/bitcoiin2g_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -632,6 +641,9 @@
         </logger>
         <logger name="bitcoiin2g_log" level="ALL" additivity="false">
             <AppenderRef ref="bitcoiin2g_log"/>
+        </logger>
+        <logger name="smartchain_log" level="ALL" additivity="false">
+            <AppenderRef ref="smartchain_log"/>
         </logger>
         <logger name="eth_tokens_log" level="DEBUG" additivity="false">
             <AppenderRef ref="eth_tokens_log"/>

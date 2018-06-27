@@ -6,9 +6,9 @@ import org.jsoup.safety.Whitelist;
 
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -24,13 +24,16 @@ public class XssRequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
             Map<String, String[]> parameterMap = request.getParameterMap();
+            Map<String,String> errorMap = new HashMap<>();
             parameterMap.forEach((k,v) -> {
                 Stream.of(v).forEach(va -> {
-                    if (!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
-                        throw new RuntimeException("xss detected!");
+                    if (!k.equalsIgnoreCase("creatorEmail")&&!k.equalsIgnoreCase("recipientEmail")&&!k.equalsIgnoreCase("hash")&&
+                            !k.equalsIgnoreCase("password")&&!k.equalsIgnoreCase("confirmPassword")&&!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
+                        errorMap.put(k,"validation.notallowedsymbol");
                     }
                 });
             });
+            request.setAttribute("xssErrors", errorMap);
             chain.doFilter(request, response);
         } catch (RuntimeException e) {
             ((HttpServletResponse)response).sendRedirect("/dashboard");

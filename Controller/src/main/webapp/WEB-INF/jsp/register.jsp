@@ -65,12 +65,12 @@
             <h4 class=""><loc:message code="register.title"/></h4>
             <hr>
 
-            <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
+            <form:form method="post" action="create" modelAttribute="user" >
                 <%--nickname--%>
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.nickname" var="login"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="login" path="nickname"
+                        <form:input id="login" path="nickname"
                                                 placeholder="${login}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -82,7 +82,7 @@
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.email" var="email"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="email" path="email"
+                        <form:input id="email" path="email"
                                                 placeholder="${email}" type="email"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -97,7 +97,7 @@
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.password" var="password"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="pass" path="password"
+                        <form:input id="pass" path="password"
                                                 type="password"
                                                 placeholder="${password}"
                                                 class="form-control input-block-wrapper__input"/>
@@ -110,7 +110,7 @@
                 <div class="input-block-wrapper clearfix">
                     <loc:message code="register.repeatpassword" var="repassword"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="repass" path="confirmPassword"
+                        <form:input id="repass" path="confirmPassword"
                                                 type="password"
                                                 placeholder="${repassword}"
                                                 class="form-control input-block-wrapper__input"/>
@@ -128,7 +128,7 @@
                     </div>
 
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
-                        <registrationform:input id="parentEmail" path="parentEmail"
+                        <form:input id="parentEmail" path="parentEmail"
                                                 readonly="true"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -162,7 +162,7 @@
                     <button id="register_button" class="login__button" type="submit"><loc:message
                             code="register.submit"/></button>
                 </div>
-            </registrationform:form>
+            </form:form>
         </div>
     </div>
 </main>

@@ -108,7 +108,7 @@ public class StompMessengerImpl implements StompMessenger{
         sendMessageToDestination(destination, message);
     }
 
-   /* @Override
+   @Override
     public void sendChartData(final Integer currencyPairId) {
        Map<String, String> data = chartsCache.getData(currencyPairId);
         orderService.getIntervals().forEach(p-> {
@@ -116,7 +116,7 @@ public class StompMessengerImpl implements StompMessenger{
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
             sendMessageToDestination(destination, message);
         });
-    }*/
+    }
 
     @Override
     public void sendChartData(final Integer currencyPairId, String resolution, String data) {
