@@ -706,6 +706,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     function showOrderCreateDialog(data) {
         /**/
         $('#aggree').hide();
+        $('#aggree_check').prop( "checked", false );
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
         $balanceErrorContainer.empty();
