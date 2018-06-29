@@ -969,6 +969,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTL", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "leduServiceImpl")
+    public EthTokenService leduService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5b26c5d0772e5bbac8b3182ae9a13f9bb2d03765");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "LEDU",
+                "LEDU", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "cedexServiceImpl")
+    public EthTokenService cedexService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf4065e4477e91c177ded71a7a6fb5ee07dc46bc9");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CEDEX",
+                "CEDEX", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
         List<String> tokensList = new ArrayList<>();
@@ -977,6 +997,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "EGT",
                 "EGT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "tavittServiceImpl")
+    public EthTokenService tavittService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdd690d8824c00c84d64606ffb12640e932c1af56");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TAVITT",
+                "TAVITT", true, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:
