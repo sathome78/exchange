@@ -155,8 +155,15 @@ function InputOutputClass(currentCurrencyPair) {
         });
 
         $('#inputoutput-table').on('click', 'tr[data-type=Output].in_out_row', function (e) {
-            console.log('click');
-            var id = $(this).data("id");
+           showWithdraw(this);
+        });
+
+        $('#inputoutput-table').on('click', 'tr[data-type=withdraw].in_out_row', function (e) {
+            showWithdraw(this);
+        });
+
+        function showWithdraw(object) {
+            var id = $(object).data("id");
             $.ajax({
                 url: '/withdraw/info?requestId=' + id,
                 type: 'GET',
@@ -165,8 +172,7 @@ function InputOutputClass(currentCurrencyPair) {
                     showWithdrawDialogAfterCreation(data)
                 }
             });
-
-        });
+        }
 
         function showWithdrawDialogAfterCreation(data) {
             $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').show();

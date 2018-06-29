@@ -108,7 +108,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "  UNION " +
         "  (SELECT " +
         "     WR.date_creation, " +
-        "     CUR.name, WR.amount, WR.commission, " +
+        "     CUR.name, WR.amount, WR.commission + WR.merchant_commission, " +
         "     M.name, " +
         "     'WITHDRAW', " +
         "     'withdraw', NULL, " +

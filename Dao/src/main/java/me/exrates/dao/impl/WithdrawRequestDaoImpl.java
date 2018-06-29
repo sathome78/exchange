@@ -484,7 +484,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         withdrawRequestInfoDto.setMerchantComissionAmount(rs.getBigDecimal("merchant_commission"));
         withdrawRequestInfoDto.setUserEmail(rs.getString("email"));
         withdrawRequestInfoDto.setStatusEnum(WithdrawStatusEnum.convert(rs.getInt("status_id")));
-        withdrawRequestInfoDto.setMerchantDescription("description");
+        withdrawRequestInfoDto.setMerchantDescription(rs.getString("description"));
         withdrawRequestInfoDto.setDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
         withdrawRequestInfoDto.setCurrencyName(rs.getString("name"));
         withdrawRequestInfoDto.setMerchantName(rs.getString("merchant_name"));
