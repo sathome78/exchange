@@ -544,8 +544,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $('#dashboard-stop-buy').on('click', stopOrder);
         $('#dashboard-stop-sell').on('click', stopOrder);
         /**/
-        $('#dashboard-buy-accept').on('click', orderBuyAccept);
-        $('#dashboard-sell-accept').on('click', orderSellAccept);
+        $('#dashboard-buy-accept').on('click', orderBuy/*orderBuyAccept*/);
+        $('#dashboard-sell-accept').on('click', orderSell/*orderSellAccept*/);
         /**/
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
@@ -610,10 +610,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         var s;
         s = $('#dashboard-sell-accept').text();
         s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-sell-accept').text(s);
+        /*$('#dashboard-sell-accept').text(s);*/
         s = $('#dashboard-buy-accept').text();
         s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-buy-accept').text(s);
+       /* $('#dashboard-buy-accept').text(s);*/
         if (!acceptedOrderType) {
             $('#dashboard-sell-accept').addClass('hidden');
             $('#dashboard-sell-accept-reset').addClass('hidden');
@@ -691,12 +691,22 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         data.baseType = 'STOP_LIMIT';
         showOrderCreateDialog(data);
     }
+    
+    $('#aggree_check').on('click', function () {
+        if ($('#aggree_check').is(':checked')) {
+            $('#order-create-confirm__submit').attr('disabled', false);
+        } else {
+            $('#order-create-confirm__submit').attr('disabled', true);
+        }
+    });
 
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
         /**/
+        $('#aggree').hide();
+        $('#aggree_check').prop( "checked", false );
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
         $balanceErrorContainer.empty();
@@ -727,6 +737,12 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 $('#order-create-confirm__modal').find('#total').val(data.total);
                 $('#order-create-confirm__modal').find('#commission').val(data.commission);
                 $('#order-create-confirm__modal').find('#totalWithComission').val(data.totalWithComission);
+                if (data.badExrateMessage != undefined && data.badExrateMessage.length > 0) {
+                    var $conatiner = $('#aggree');
+                    $('#aggree_text').html(data.badExrateMessage);
+                    $conatiner.show();
+                    $('#order-create-confirm__submit').attr('disabled', true)
+                }
                 /**/
                 $('#order-create-confirm__modal').modal();
             },
@@ -780,8 +796,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     }
 
     function onCreateOrderSuccess(data) {
-        that.getAndShowSellOrders();
-        that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
         /*that.clearOrdersCreationForm();*/

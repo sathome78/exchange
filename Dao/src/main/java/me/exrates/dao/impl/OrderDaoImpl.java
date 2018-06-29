@@ -207,13 +207,14 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public boolean updateOrder(ExOrder exOrder) {
         String sql = "update EXORDERS set user_acceptor_id=:user_acceptor_id, status_id=:status_id, " +
-                " date_acception=NOW()  " +
+                " date_acception=NOW(), counter_order_id=:counter_order_id  " +
                 " where id = :id";
         Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
+        namedParameters.put("user_acceptor_id", exOrder.getUserAcceptorId() == 0 ? null : String.valueOf(exOrder.getUserAcceptorId()));
         namedParameters.put("status_id", String.valueOf(exOrder.getStatus().getStatus()));
 //        namedParameters.put("date_acception", String.valueOf(exOrder.getDateAcception()));
         namedParameters.put("id", String.valueOf(exOrder.getId()));
+        namedParameters.put("counter_order_id", exOrder.getCounterOrderId() == null ? null : exOrder.getCounterOrderId().toString());
         int result = namedParameterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
     }
@@ -224,7 +225,6 @@ public class OrderDaoImpl implements OrderDao {
                 " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id " +
                 " AND date_acception >= now() - INTERVAL " + backDealInterval.getInterval() +
                 " ORDER BY date_acception";
-
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));

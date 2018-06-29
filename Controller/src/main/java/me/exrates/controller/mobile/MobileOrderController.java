@@ -280,7 +280,7 @@ public class MobileOrderController {
             }
             OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-            Integer createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
+            Integer createdOrderId = orderService.createOrder(orderCreateDto, null, CREATE);
             if (createdOrderId <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
             }
@@ -360,6 +360,7 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      *
      */
+   /*todo - disable orders direct accept, must accept only by creating counter-order */
     @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer acceptOrderList(@RequestBody Map<String, List<Integer>> body) {
 
@@ -373,7 +374,7 @@ public class MobileOrderController {
            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
            int userId = userService.getIdByEmail(userEmail);
            Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-           orderService.acceptOrdersList(userId, ordersList, userLocale);
+           orderService.acceptOrdersList(userId, ordersList, userLocale, null);
        } catch (Exception e) {
            throw e;
        }

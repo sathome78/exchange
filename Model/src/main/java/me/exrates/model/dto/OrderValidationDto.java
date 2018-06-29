@@ -15,4 +15,5 @@ import java.util.Map;
 public class OrderValidationDto {
   private Map<String, Object> errors = new HashMap<>();
   private Map<String, Object[]> errorParams = new HashMap<>();
+  boolean badExrate;
 }

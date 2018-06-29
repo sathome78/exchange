@@ -68,6 +68,8 @@ public class OrderServiceImpl implements OrderService {
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
+  private final BigDecimal RATE_CHECK_DEVIATION_PERCENTS = new BigDecimal(10);
+
   private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
           .map(ChartPeriodsEnum::getBackDealInterval)
           .collect(Collectors.toList());
@@ -397,21 +399,55 @@ public class OrderServiceImpl implements OrderService {
         errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
       }
     }
+    if (!checkNotProfitableExrate(orderCreateDto)) {
+      orderValidationDto.setBadExrate(true);
+    }
     return orderValidationDto;
+  }
+
+  private boolean checkNotProfitableExrate(OrderCreateDto dto) {
+    Optional<BigDecimal> optionalLastRate = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(dto.getCurrencyPair().getId(), dto.getOperationType().getType());
+    BigDecimal lastRate = optionalLastRate.orElse(BigDecimal.ZERO);
+    if (lastRate.equals(BigDecimal.ZERO)) {
+      return true;
+    }
+    if (dto.getOperationType().equals(OperationType.BUY)) {
+      return dto.getExchangeRate().compareTo(lastRate) <= 0;
+    } else if (dto.getOperationType().equals(OperationType.SELL)) {
+      return dto.getExchangeRate().compareTo(lastRate) >= 0;
+    }
+    return true;
   }
 
   @Override
   public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
+    /*presave order to get id, not reserve money*/
+    ExOrder exOrder = new ExOrder(orderCreateDto);
+    Integer orderId = presaveNewOrder(exOrder);
+    /*after that try to autoaccept it*/
+    log.error("presaved order id {}", orderId);
+    orderCreateDto.setOrderId(orderId);
+    exOrder.setId(orderId);
     Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
     if (autoAcceptResult.isPresent()) {
+      /*update status of presaved order here*/
+      exOrder.setStatus(OrderStatus.CLOSED);
+      log.error("update order {}", exOrder);
+      updateOrder(exOrder);
       logger.debug(autoAcceptResult.get());
       return autoAcceptResult.get();
     }
-    Integer orderId = this.createOrder(orderCreateDto, CREATE);
+    /*if not autoaccepted save order here*/
+    this.createOrder(orderCreateDto, orderId, CREATE);
     if (orderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
     return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
+  }
+
+  private int presaveNewOrder(ExOrder dto) {
+    int id = orderDao.createOrder(dto);
+    return id;
   }
 
   @Override
@@ -422,7 +458,7 @@ public class OrderServiceImpl implements OrderService {
         logger.debug(autoAcceptResult.get());
         return autoAcceptResult.get().getCreatedOrderId();
       }
-    Integer orderId = this.createOrder(orderCreateDto, CREATE);
+    Integer orderId = this.createOrder(orderCreateDto, null, CREATE);
     if (orderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
@@ -432,7 +468,7 @@ public class OrderServiceImpl implements OrderService {
   
   @Override
   @Transactional(rollbackFor = {Exception.class})
-  public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action) {
+  public int createOrder(OrderCreateDto orderCreateDto, Integer presavedOrderId, OrderActionEnum action) {
     ProfileData profileData = new ProfileData(200);
     try {
       String description = transactionDescription.get(null, action);
@@ -462,7 +498,11 @@ public class OrderServiceImpl implements OrderService {
             break;
           }
           default: {
-            createdOrderId = orderDao.createOrder(exOrder);
+            if(presavedOrderId != null) {
+              createdOrderId = presavedOrderId;
+            } else {
+              createdOrderId = orderDao.createOrder(exOrder);
+            }
             sourceType = TransactionSourceType.ORDER;
           }
         }
@@ -546,6 +586,7 @@ public class OrderServiceImpl implements OrderService {
       List<ExOrder> ordersForAccept = new ArrayList<>();
       ExOrder orderForPartialAccept = null;
       for (ExOrder order : acceptableOrders) {
+        order.setCounterOrderId(orderCreateDto.getOrderId());
         cumulativeSum = cumulativeSum.add(order.getAmountBase());
         if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
           ordersForAccept.add(order);
@@ -560,14 +601,18 @@ public class OrderServiceImpl implements OrderService {
       OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
       if (ordersForAccept.size() > 0) {
-        acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
+        /*accept orders that can be fully accepted*/
+        acceptOrdersList(orderCreateDto.getUserId(),
+                ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale, orderCreateDto.getOrderId());
         orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
       }
       if (orderForPartialAccept != null) {
+        /*accept order that can't be fully qccepted and must be splitted*/
         BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
         orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
         orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
       } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+        /*create order for the rest of sum*/
         User user = userService.getUserById(orderCreateDto.getUserId());
         profileData.setTime2();
         OrderCreateDto remainderNew = prepareNewOrder(
@@ -575,9 +620,10 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.getOperationType(),
             user.getEmail(),
             orderCreateDto.getAmount().subtract(cumulativeSum),
-            orderCreateDto.getExchangeRate());
+            orderCreateDto.getExchangeRate(),
+            orderCreateDto.getOrderId());
         profileData.setTime3();
-        Integer createdOrderId = createOrder(remainderNew, CREATE);
+        Integer createdOrderId = createOrder(remainderNew, null, CREATE);
         profileData.setTime4();
         orderCreationResultDto.setCreatedOrderId(createdOrderId);
       }
@@ -597,9 +643,9 @@ public class OrderServiceImpl implements OrderService {
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
         orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
-    int acceptedId = createOrder(accepted, CREATE);
-    createOrder(remainder, CREATE_SPLIT);
-    acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
+    int acceptedId = createOrder(accepted, null, CREATE);
+    createOrder(remainder, null, CREATE_SPLIT);
+    acceptOrder(newOrder.getUserId(), acceptedId, locale, false, newOrder.getOrderId());
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
@@ -651,10 +697,10 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Transactional(rollbackFor = {Exception.class})
-  public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale) {
+  public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, Integer orderAcceptedWith) {
     if (orderDao.lockOrdersListForAcception(ordersList)) {
       for (Integer orderId : ordersList) {
-        acceptOrder(userAcceptorId, orderId, locale);
+        acceptOrder(userAcceptorId, orderId, locale, orderAcceptedWith);
       }
     } else {
       throw new OrderAcceptionException(messageSource.getMessage("order.lockerror", null, locale));
@@ -662,8 +708,8 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Transactional(rollbackFor = {Exception.class})
-  private void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
-    acceptOrder(userAcceptorId, orderId, locale, true);
+  private void acceptOrder(int userAcceptorId, int orderId, Locale locale, Integer orderAcceptedWith) {
+    acceptOrder(userAcceptorId, orderId, locale, true, orderAcceptedWith);
 
   }
   
@@ -671,7 +717,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(rollbackFor = {Exception.class})
   public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
     Integer userId = userService.getIdByEmail(acceptorEmail);
-    acceptOrdersList(userId, Collections.singletonList(orderId), locale);
+    acceptOrdersList(userId, Collections.singletonList(orderId), locale, null);
   }
 
 
@@ -679,13 +725,15 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(rollbackFor = {Exception.class})
   public void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale) {
     Integer userId = userService.getIdByEmail(acceptorEmail);
-    acceptOrdersList(userId, orderIds, locale);
+    acceptOrdersList(userId, orderIds, locale, null);
   }
 
 
-  private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
+  private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, Integer counterOrderId) {
     try {
       ExOrder exOrder = this.getOrderById(orderId);
+      /*set id of counter-order*/
+      exOrder.setCounterOrderId(counterOrderId);
 
       checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
 

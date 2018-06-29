@@ -19,6 +19,7 @@ public class OrderCreateSummaryDto {
     private String totalWithComission;
     private String stop;
     private String baseType;
+    private String badExrateMessage;
 
     /*constructors*/
 
@@ -118,6 +119,14 @@ public class OrderCreateSummaryDto {
 
     public void setBaseType(String baseType) {
         this.baseType = baseType;
+    }
+
+    public String getBadExrateMessage() {
+        return badExrateMessage;
+    }
+
+    public void setBadExrateMessage(String badExrateMessage) {
+        this.badExrateMessage = badExrateMessage;
     }
 
     @Override

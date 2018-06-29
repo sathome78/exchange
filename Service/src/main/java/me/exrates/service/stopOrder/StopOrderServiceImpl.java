@@ -81,7 +81,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale) {
-        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+        Integer orderId = orderService.createOrder(orderCreateDto, null, actionEnum);
         if (orderId <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
         }

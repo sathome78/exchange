@@ -100,6 +100,11 @@ public class OrderControllerRest {
             /*protect orderCreateDto*/
                 request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
             }
+            if (orderValidationDto.isBadExrate()) {
+                orderCreateSummaryDto.setBadExrateMessage(messageSource
+                        .getMessage("message.order.badExrate.".concat(orderCreateDto.getOperationType().name()),
+                                null, localeResolver.resolveLocale(request)));
+            }
             return orderCreateSummaryDto;
         } catch (OrderParamsWrongException e) {
             long after = System.currentTimeMillis();
@@ -156,7 +161,7 @@ public class OrderControllerRest {
         }
     }
 
-    @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
+    /*@RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         try {
@@ -180,7 +185,7 @@ public class OrderControllerRest {
             long after = System.currentTimeMillis();
             LOGGER.debug("completed... ms: " + (after - before));
         }
-    }
+    }*/
 
 
     @RequestMapping("/order/submitdelete/{orderId}")
