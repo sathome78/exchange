@@ -10,10 +10,10 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "c:/eth/TAVITT.bin",
-                "c:/eth/TAVITT.abi",
+                "/home/sevak/eth/LEDU.bin",
+                "/home/sevak/eth/LEDU.abi",
                 "-o",
-                "c:/Users/Ajet/IdeaProjects/exrates/Service/src/main/java",
+                "/home/sevak/IdeaProjects/exrates/Service/src/main/java",
                 "-p",
                 "me.exrates.service.ethereum.ethTokensWrappers"});
     }
