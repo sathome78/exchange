@@ -45,6 +45,14 @@ public class StompMessengerImpl implements StompMessenger{
     @Autowired
     private ChartsCache chartsCache;
 
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    @PostConstruct
+    public void init() {
+        scheduler.scheduleAtFixedRate(() ->  registry.findSubscriptions(sub -> true)
+                        .forEach(sub -> System.out.printf("sub: dest %s, user %s")),
+                1, 2, TimeUnit.MINUTES);
+    }
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
