@@ -76,7 +76,7 @@ public class NemServiceImpl implements NemService {
     @PostConstruct
     public void init() {
         deniedMosaicsList.add(new MosaicIdDto("ts", "warning_dont_accept_stolen_funds"));
-        /*deniedMosaicsList.add(new MosaicIdDto("dim", "coin"));*/
+        deniedMosaicsList.add(new MosaicIdDto("dim", "coin"));
         account = new Account(new KeyPair(PublicKey.fromHexString(publicKey)));
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName(NEM_MERCHANT);
