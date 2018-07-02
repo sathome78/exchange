@@ -210,9 +210,6 @@ public interface OrderService {
     @Transactional
     List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
                                                        LocalDateTime startTime, ChartResolution resolution);
-  @Transactional
-  List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                     LocalDateTime startTime, LocalDateTime endTime , ChartResolution resolution);
 
     List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
 
@@ -228,10 +225,7 @@ public interface OrderService {
    */
   List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale);
 
-    @Transactional
-    List<CandleChartItemDto> getDataForCandleChart(int pairId, BackDealInterval interval);
-
-    /**
+  /**
    * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
    *
    * @param currencyPair

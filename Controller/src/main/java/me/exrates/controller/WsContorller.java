@@ -73,6 +73,11 @@ public class WsContorller {
         return "ok";
     }
 
+    @SubscribeMapping("/statisticsNew")
+    public String subscribeStatisticNew() {
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
+    }
+
     @SubscribeMapping("/statistics")
     public String subscribeStatistic() {
         return orderService.getAllCurrenciesStatForRefresh();
