@@ -1386,7 +1386,7 @@ td.blue-white {
     text-align: center;
     border: none;
     margin: 0;
-    opacity: 0.4;
+    opacity: 0.6;
     outline: none;
 }
 
@@ -2409,4 +2409,9 @@ input.copyable:hover{
 #exclude-zero-balances-container {
     font-size: 1.3rem;
     margin: 10px 0;
+}
+
+#user-settings-menu > li.active > a {
+    background-color: #434e60;
+
 }

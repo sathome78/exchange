@@ -634,28 +634,30 @@ public class AdminController {
 
   /*todo move this method from admin controller*/
   @RequestMapping(value = "/settings/uploadFile", method = POST)
-  public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+  public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+                                     RedirectAttributes redirectAttributes,
                                      final Principal principal,
                                      final Locale locale) {
-    final ModelAndView mav = new ModelAndView("globalPages/settings");
+    final RedirectView redirectView = new RedirectView("/settings");
     final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
     final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
-    mav.addObject("user", user);
+    redirectAttributes.addFlashAttribute("user", user);
     if (uploaded.isEmpty()) {
-      mav.addObject("userFiles", userService.findUserDoc(user.getId()));
-      mav.addObject("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
-      return mav;
+      redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+      redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
+      return redirectView;
     }
     try {
       userFilesService.createUserFiles(user.getId(), uploaded);
     } catch (final IOException e) {
       LOG.error(e);
-      mav.addObject("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
-      return mav;
+      redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
+      return redirectView;
     }
-    mav.addObject("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
-    mav.addObject("userFiles", userService.findUserDoc(user.getId()));
-    return mav;
+    redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
+    redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+    redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
+    return redirectView;
   }
 
 
