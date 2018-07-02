@@ -59,9 +59,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-        subscribeChart();
-    }
+    // if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+    //     subscribeChart();
+    // }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -150,7 +150,7 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics2';
+        var path = '/app/statisticsNew';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
@@ -513,10 +513,7 @@ $(function dashdoardInit() {
             keyboard: false
         });
     });
-    $('.chart-controls-bar').on('click', function () {
-        $('.apply-common-tooltip').hide();
 
-    });
     $('#decline_2fa_finally').on('click', function () {
         $2faConfirmModal.modal('hide');
     });

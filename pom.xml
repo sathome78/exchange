@@ -186,6 +186,7 @@
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${servlet-api.version}</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>javax.servlet.jsp.jstl</groupId>
@@ -417,7 +418,6 @@
 			<artifactId>okhttp</artifactId>
 			<version>3.9.1</version>
 		</dependency>
-
 
 	</dependencies>
 

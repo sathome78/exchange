@@ -168,12 +168,6 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional
   @Override
-  public List<CandleChartItemDto> getDataForCandleChart(int pairId, BackDealInterval interval) {
-    return getDataForCandleChart(currencyService.findCurrencyPairById(pairId), interval);
-  }
-
-  @Transactional
-  @Override
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
     return serviceCacheableProxy.getDataForCandleChart(currencyPair, interval);
   }
@@ -194,14 +188,6 @@ public class OrderServiceImpl implements OrderService {
             resolution.getTimeValue(), resolution.getTimeUnit().name());
   }
 
-  @Transactional
-  @Override
-  public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                            LocalDateTime startTime, LocalDateTime endTime,ChartResolution resolution) {
-
-    return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(currencyPairId), startTime, endTime,
-            resolution.getTimeValue(), resolution.getTimeUnit().name());
-  }
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
     LocalDateTime endTime = LocalDateTime.now();
