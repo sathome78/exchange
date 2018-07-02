@@ -1356,6 +1356,17 @@ public class AdminController {
   public String getNewAddress(@PathVariable String merchantName) {
     return getBitcoinServiceByMerchantName(merchantName).getNewAddressForAdmin();
   }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/checkPayments", method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public void sendToMany(@PathVariable String merchantName,
+                                               @RequestParam(required = false) String blockhash) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    walletService.scanForUnprocessedTransactions(blockhash);
+  }
   
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")

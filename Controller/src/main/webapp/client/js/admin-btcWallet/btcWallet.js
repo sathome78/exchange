@@ -175,7 +175,37 @@ $(function () {
 
     $('#change-fee-raw').click(function () {
         updateTxFee($('#fee-rate-raw').val()).complete(prepareRawTx);
-    })
+    });
+
+    $('#check-payments-btn').click(function () {
+        $('#start-block-hash').val('');
+        $('#btc-check-payments-modal').modal();
+    });
+
+    $('#submit-check-payments-btn').click(function () {
+        $('#submit-check-payments-btn').prop('disabled', true);
+        var url = urlBase + 'checkPayments';
+        var data = {
+          blockhash: $('#start-block-hash').val()
+        };
+        $loadingDialog.modal({
+            backdrop: 'static'
+        });
+       $.ajax(url, {
+           headers: {
+               'X-CSRF-Token': $("input[name='_csrf']").val()
+           },
+           type: 'POST',
+           async: false,
+           data: data,
+           complete: function () {
+               $loadingDialog.modal('hide');
+               $('#btc-check-payments-modal').modal('hide');
+               $('#submit-check-payments-btn').prop('disabled', false);
+           }
+       })
+    });
+
 
 });
 
@@ -276,6 +306,14 @@ function updateTxHistoryTable() {
                 },
                 {
                     "data": "address",
+                    "render": function (data) {
+                        var inputValue = data ? data : '';
+                        return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
+                            'class="form-control input-block-wrapper__input">';
+                    }
+                },
+                {
+                    "data": "blockhash",
                     "render": function (data) {
                         var inputValue = data ? data : '';
                         return '<input readonly value="' + inputValue + '" style="width: 130px" ' +

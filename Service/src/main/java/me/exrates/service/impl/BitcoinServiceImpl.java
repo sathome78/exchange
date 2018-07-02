@@ -19,6 +19,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -497,6 +498,20 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
       });
     });
+  }
+
+  @Override
+  public void scanForUnprocessedTransactions(@Nullable String blockHash) {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    bitcoinWalletService.listSinceBlockEx(blockHash, merchant.getId(), currency.getId()).forEach(btcPaymentFlatDto -> {
+      try {
+        processBtcPayment(btcPaymentFlatDto);
+      } catch (Exception e) {
+        log.error(e);
+      }
+    });
+
   }
 
   private void checkForNewTransactions() {

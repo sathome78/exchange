@@ -18,6 +18,7 @@ public class BtcTransactionHistoryDto {
   private String address;
   private String category;
   private String amount;
+  private String blockhash;
   private String fee;
   private Integer confirmations;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
