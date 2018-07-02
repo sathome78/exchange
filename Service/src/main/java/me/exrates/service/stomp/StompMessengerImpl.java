@@ -54,15 +54,6 @@ public class StompMessengerImpl implements StompMessenger{
                 1, 2, TimeUnit.MINUTES);
     }
 
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-    @PostConstruct
-    public void init() {
-        scheduler.scheduleAtFixedRate(() ->  registry.findSubscriptions(sub -> true)
-                        .forEach(sub -> System.out.print("")/*System.out.printf("sub: dest %s, user %s")*/),
-                1, 2, TimeUnit.MINUTES);
-    }
-
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
                                                     .map(ChartPeriodsEnum::getBackDealInterval)
