@@ -442,7 +442,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "hsrServiceImpl")
-    public BitcoinService hcasheService() {
+    public BitcoinService hsrService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HShare", "HSR", 4, 20, true);
     }
