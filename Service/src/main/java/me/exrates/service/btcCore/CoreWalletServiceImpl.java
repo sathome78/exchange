@@ -270,11 +270,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                 BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                 dto.setTxId(payment.getTxId());
                 dto.setAddress(payment.getAddress());
+                dto.setBlockhash(payment.getBlockHash());
                 dto.setCategory(payment.getCategory().getName());
                 dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
                 dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
                 dto.setConfirmations(payment.getConfirmations());
-                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
+                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
                 return dto;
               }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
@@ -282,12 +283,22 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
-  @Override
-  public List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId) {
-    try {
-      return btcdClient.listSinceBlock(blockHash).getPayments().stream()
-              .map(payment -> BtcPaymentFlatDto.builder()
+
+
+    @Override
+    public List<BtcPaymentFlatDto> listSinceBlockEx(@Nullable String blockHash, Integer merchantId, Integer currencyId)  {
+        try {
+            return listSinceBlockExChecked(blockHash, merchantId, currencyId);
+        } catch (Exception e) {
+            log.error(e);
+            throw new BitcoinCoreException(e);
+        }
+    }
+
+    private List<BtcPaymentFlatDto> listSinceBlockExChecked(@Nullable String blockHash, Integer merchantId, Integer currencyId) throws BitcoindException, CommunicationException {
+        SinceBlock sinceBlock = blockHash == null ? btcdClient.listSinceBlock() : btcdClient.listSinceBlock(blockHash);
+        return sinceBlock.getPayments().stream()
+                .map(payment -> BtcPaymentFlatDto.builder()
                         .amount(payment.getAmount())
                         .confirmations(payment.getConfirmations())
                         .merchantId(merchantId)
@@ -296,9 +307,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                         .txId(payment.getTxId())
                         .blockhash(payment.getBlockHash())
                         .build()).collect(Collectors.toList());
+    }
+
+
+
+  @Override
+  public List<BtcPaymentFlatDto> listSinceBlock(@Nullable String blockHash, Integer merchantId, Integer currencyId) {
+    try {
+      return listSinceBlockExChecked(blockHash, merchantId, currencyId);
     } catch (Exception e) {
       log.error(e);
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
   }
   
