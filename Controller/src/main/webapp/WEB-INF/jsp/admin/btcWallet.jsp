@@ -60,6 +60,10 @@
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
                     <div class="text-center"><h4><loc:message code="btcWallet.history.title"/></h4></div>
+                    <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
+                        <button id="check-payments-btn" class="blue-box"><loc:message code="btcWallet.checkPayment.title"/></button>
+                    </sec:authorize>
+
                     <table id="txHistory">
                         <thead>
                         <tr>
@@ -67,6 +71,7 @@
                             <th><loc:message code="btcWallet.history.txid"/></th>
                             <th><loc:message code="btcWallet.history.category"/></th>
                             <th><loc:message code="btcWallet.address"/></th>
+                            <th><loc:message code="btcWallet.blockhash"/></th>
                             <th><loc:message code="btcWallet.history.amount"/></th>
                             <th><loc:message code="btcWallet.history.fee"/></th>
                             <th><loc:message code="btcWallet.history.confirmations"/></th>
@@ -324,6 +329,37 @@
                     <div class="modal-footer">
                         <div class="order-info__button-wrapper">
                             <button id="submit-raw-tx">
+                                <loc:message code="admin.submit"/>
+                            </button>
+                            <button class="order-info__button" data-dismiss="modal">
+                                <loc:message code="admin.cancel"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="btc-check-payments-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <p style="font-size: 1.4rem"><loc:message code="btcWallet.checkPayment.modal.body"/></p>
+                    </div>
+                    <div class="row">
+                        <input class="form-control" id="start-block-hash">
+                    </div>
+
+                </div>
+                    <div class="modal-footer">
+                        <div class="order-info__button-wrapper">
+                            <button id="submit-check-payments-btn">
                                 <loc:message code="admin.submit"/>
                             </button>
                             <button class="order-info__button" data-dismiss="modal">

@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('Smartchain', 'GOL', 2, 'golServiceImpl', 'CRYPTO');
+VALUES ('Goldiam', 'GOL', 2, 'golServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('GOL', 'Smartchain', '0', 8, 8, 8);
+VALUES ('GOL', 'Goldiam', '0', 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='GOL'));
 

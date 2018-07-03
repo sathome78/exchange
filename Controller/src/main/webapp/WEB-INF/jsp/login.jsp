@@ -140,7 +140,7 @@
                             <input type="hidden" name="captchaType" value="${captchaType}"/>
                             <%----%>
                             <div class="col-md-10 login__button-wrapper">
-                                <button class="login__button" type="submit"><loc:message
+                                <button id="login_button" class="login__button" type="submit"><loc:message
                                         code="login.submit"/></button>
                             </div>
                         </form>

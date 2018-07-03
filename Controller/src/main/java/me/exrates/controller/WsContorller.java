@@ -12,8 +12,6 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.model.vo.BackDealInterval2;
-import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;

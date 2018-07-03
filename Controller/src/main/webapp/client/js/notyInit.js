@@ -146,11 +146,9 @@ function getErrorMessage(jqXHR) {
     var errorInfo = $.parseJSON(jqXHR.responseText);
     var notyMessage = errorInfo.cause;
     var detail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
-    if (!detail && !notyMessage) {
-        notyMessage = "";
-    } else {
-        notyMessage = notyMessage + "</br>" + detail;
-    }
+
+    !detail && !notyMessage ? notyMessage = "" : notyMessage = detail;
+
     return notyMessage;
 }
 
