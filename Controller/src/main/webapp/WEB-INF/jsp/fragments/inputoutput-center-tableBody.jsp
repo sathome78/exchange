@@ -21,7 +21,7 @@
     }})()
     @>
 
-      data-type=<@=operationType@> data-id=<@=id@> >
+      data-type='<@=operationType@>' data-id=<@=id@> >
     <td class="center blue-white"><@=datetime@></td>
     <td class="center"><@=currencyName@></td>
     <td class="right"><@=amount@></td>

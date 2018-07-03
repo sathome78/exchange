@@ -140,6 +140,9 @@ function InputOutputClass(currentCurrencyPair) {
             inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
         }
 
+        var currentClicked;
+        var currentClickedTr;
+
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
             /*that.getAndShowInputOutputData();*/
@@ -154,11 +157,27 @@ function InputOutputClass(currentCurrencyPair) {
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
 
+        $('#inputoutput-table').on('click', 'button', function (e) {
+                console.log('click button');
+            })
+            .on('click', function (e) {
+                e.stopPropagation();
+                console.log('click on');
+        });
+
         $('#inputoutput-table').on('click', 'tr[data-type=Output].in_out_row', function (e) {
+            if (currentClicked !== undefined) {
+                currentClicked = undefined;
+                return;
+            }
            showWithdraw(this);
         });
 
         $('#inputoutput-table').on('click', 'tr[data-type=withdraw].in_out_row', function (e) {
+            if (currentClicked !== undefined) {
+                currentClicked = undefined;
+                return;
+            }
             showWithdraw(this);
         });
 
@@ -168,7 +187,6 @@ function InputOutputClass(currentCurrencyPair) {
                 url: '/withdraw/info?requestId=' + id,
                 type: 'GET',
                 success: function (data) {
-                    console.log(data);
                     showWithdrawDialogAfterCreation(data)
                 }
             });
@@ -220,6 +238,7 @@ function InputOutputClass(currentCurrencyPair) {
         }
 
         $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
+            currentClicked = e;
             e.preventDefault();
             var id = $(this).data("id");
             var $modal = $("#confirm-with-info-modal");
