@@ -1206,15 +1206,5 @@ public class MobileEntryController {
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
 
-    @Autowired
-    private WavesService wavesService;
-
-    @RequestMapping(value = "/test/waves", method = RequestMethod.GET)
-    @ResponseBody
-    public void testWaves() {
-        wavesService.processWavesTransactionsForKnownAddresses();
-
-    }
-
 
 }
