@@ -935,7 +935,7 @@ public class RefillServiceImpl implements RefillService {
     payment.setMerchant(merchantId);
     payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
     refillDto.setMerchantId(merchantId);
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail(), locale)
             .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(
             new RefillRequestParamsDto(refillDto),

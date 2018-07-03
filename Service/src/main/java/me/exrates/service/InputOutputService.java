@@ -28,7 +28,7 @@ public interface InputOutputService {
 
     List<Map<String, Object>> generateAndGetButtonsSet(InvoiceStatus status, InvoiceOperationPermission permittedOperation, boolean authorisedUserIsHolder, Locale locale);
 
-  Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
+  Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale);
 
     List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime,
                                                               List<Integer> userRoleIdList);

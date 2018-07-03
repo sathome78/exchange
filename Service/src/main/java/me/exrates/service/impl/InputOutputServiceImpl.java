@@ -15,6 +15,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
@@ -180,7 +181,7 @@ public class InputOutputServiceImpl implements InputOutputService {
 
   @Override
   @Transactional
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale) {
     merchantService.checkMerchantIsBlocked(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
     OperationType operationType = payment.getOperationType();
     BigDecimal amount = valueOf(payment.getSum());
@@ -207,9 +208,13 @@ public class InputOutputServiceImpl implements InputOutputService {
         merchant.getId(), payment.getDestinationTag());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
     User recipient = null;
-    if (!StringUtils.isEmpty(payment.getRecipient())){
-      recipient = userService.getIdByNickname(payment.getRecipient()) > 0 ?
-              userService.findByNickname(payment.getRecipient()) : userService.findByEmail(payment.getRecipient());
+    try {
+      if (!StringUtils.isEmpty(payment.getRecipient())){
+        recipient = userService.getIdByNickname(payment.getRecipient()) > 0 ?
+                userService.findByNickname(payment.getRecipient()) : userService.findByEmail(payment.getRecipient());
+      }
+    }catch (RuntimeException e) {
+      throw new UserNotFoundException(messageSource.getMessage("transfer.nonExistentUser", new Object[]{payment.getRecipient()}, locale));
     }
     Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()

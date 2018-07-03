@@ -103,7 +103,7 @@ public class TransferRequestController {
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
     payment.setRecipient(requestParamsDto.getRecipient());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
         .orElseThrow(InvalidAmountException::new);
     TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     try {

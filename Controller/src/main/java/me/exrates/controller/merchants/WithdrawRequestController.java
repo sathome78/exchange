@@ -93,7 +93,7 @@ public class WithdrawRequestController {
     payment.setSum(requestParamsDto.getSum().doubleValue());
     payment.setDestination(requestParamsDto.getDestination());
     payment.setDestinationTag(requestParamsDto.getDestinationTag());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(),locale)
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
     try {
