@@ -5,7 +5,9 @@ package me.exrates.model.enums;
  */
 public enum AlertType {
 
-    UPDATE("message.alertUpdate", true), TECHNICAL_WORKS("message.alertTechWorks", false);
+    UPDATE("message.alertUpdate", true),
+    TECHNICAL_WORKS("message.alertTechWorks", false),
+    SYSTEM_MESSAGE_TO_USERS("message.alertSystemMessageToUsers", false);
 
     private String messageTmpl;
     private boolean needDateTime;

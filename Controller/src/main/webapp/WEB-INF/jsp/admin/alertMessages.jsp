@@ -69,6 +69,7 @@
                             <button type="submit" id="update_updates" class="blue-box admin-form-submit">
                                 <loc:message code="button.update"/></button>
                         </form>
+
                         <div class="text-center"><h5><loc:message code="admin.alert.aboutTechWorks"/></h5></div>
                         <form id="technicalProblems" method="post" action="/2a8fy7b07dxe44/alerts/update"
                               class="form_full_width form_auto_height" >
@@ -85,6 +86,32 @@
                                 <loc:message code="button.update"/></button>
                         </form>
                     </div>
+
+                    <div class="text-center"><h5>System message for user</h5></div>
+                    <form id="systemMessageForUser" method="post" action="/2a8fy7b07dxe44/alerts/update"
+                          class="form_full_width form_auto_height" >
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                        <div class="col-md-6 input-block-wrapper__label-wrapper">
+                            <label for="enableSystemMessageForUser" class="input-block-wrapper__label"><loc:message code="admin.alarm.active"/></label>
+                        </div>
+                        <div class="col-md-3 input-block-wrapper__input-wrapper">
+                            <input class="input-block-wrapper__input" name="enabled" type="checkbox"
+                                   <c:if test="${sysMessage.enabled}">checked="checked"</c:if> id="enableSystemMessageForUser"/>
+                        </div>
+                        <div class="col-md-3 input-block-wrapper__input-wrapper">
+                            <button id="editorSystemMessageForUser" class="btn btn-warning" type="button">
+                                Editor</button>
+                        </div>
+
+                        <!--Start modal view of editor system message for user-->
+                        <%@include file='../fragments/modal/system_message_modal.jsp' %>
+                        <!--End modal view of editor system message for user-->
+
+                        <input name="alertType" hidden value="${sysMessage.alertType}"/>
+                        <button type="submit" id="updateSystemMessageForUser" class="blue-box admin-form-submit">
+                            <loc:message code="button.update"/></button>
+                    </form>
+                </div>
                 </div>
             </div>
         </div>

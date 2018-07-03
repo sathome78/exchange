@@ -53,6 +53,10 @@ function handleAlerts(object) {
             drawTechAlert(object);
             break;
         }
+        case "SYSTEM_MESSAGE_TO_USERS" : {
+            drawTechAlert(object);
+            break;
+        }
         case "UPDATE" : {
             showHideUpdAlert(object);
             break;

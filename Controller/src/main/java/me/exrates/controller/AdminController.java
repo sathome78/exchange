@@ -1560,6 +1560,7 @@ public class AdminController {
   public String alertsPage(Model model) {
     model.addAttribute("update", alertsService.getAlert(AlertType.UPDATE));
     model.addAttribute("tech", alertsService.getAlert(AlertType.TECHNICAL_WORKS));
+    model.addAttribute("sysMessage", alertsService.getAlert(AlertType.SYSTEM_MESSAGE_TO_USERS));
     return "admin/alertMessages";
   }
   @ResponseBody
