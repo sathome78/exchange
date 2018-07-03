@@ -83,7 +83,6 @@ public class TransferRequestController {
 
   private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
-  @FinPassCheck
   @RequestMapping(value = "/transfer/request/create", method = POST)
   @ResponseBody
   public Map<String, Object> createTransferRequest(
