@@ -42,7 +42,7 @@ public class WavesServiceImplTest {
     private SendMailService sendMailService;
 
     @InjectMocks
-    private WavesServiceImpl wavesService = new WavesServiceImpl();
+    private WavesServiceImpl wavesService = new WavesServiceImpl("WAVES", "Waves", "");
 
     private WavesTransaction wavesTransactionInputWaves;
     private WavesTransaction wavesTransactionInpuToken;

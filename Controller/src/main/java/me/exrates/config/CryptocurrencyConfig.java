@@ -4,6 +4,10 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
+import me.exrates.service.waves.WavesRestClient;
+import me.exrates.service.waves.WavesRestClientImpl;
+import me.exrates.service.waves.WavesService;
+import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -197,6 +201,19 @@ public class CryptocurrencyConfig {
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
+    }
+
+
+    // WAVES-like
+
+    @Bean(name = "wavesServiceImpl")
+    public WavesService wavesService() {
+        return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
+    }
+
+    @Bean(name = "lunesServiceImpl")
+    public WavesService lunesService() {
+        return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
 
 }
