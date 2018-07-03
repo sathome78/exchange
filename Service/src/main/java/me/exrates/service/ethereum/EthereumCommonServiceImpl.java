@@ -266,51 +266,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     }
                 }
 
-                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
-                    log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
-
-                    try {
-                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())){
-
-                            log.info(merchantName + " Block number for review: " + currentBlockNumber.add(new BigInteger("1")));
-                            log.info(merchantName + " Txs counter: " + counter[0]);
-                            log.info(merchantName + " Txs block: " + web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount());
-
-                        }
-
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
-                    counter[0] = 0;
-
-                    List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
-                    pendingTransactions.forEach(transaction ->
-                            {
-                                try {
-                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult()==null){
-                                        return;
-                                    }
-                                    BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
-                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
-                                        provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
-                                        saveLastBlock(ethBlock.getBlockNumber().toString());
-                                        log.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
-                                        log.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
-                                        providedTransactions.add(transaction);
-                                    }
-                                } catch (EthereumException | IOException e) {
-                                    subscribeCreated = false;
-                                    log.error(merchantName + " " + e);
-                                }
-
-                            }
-
-                    );
-                    providedTransactions.forEach(transaction -> pendingTransactions.remove(transaction));
-                }
-
-                currentBlockNumber = ethBlock.getBlockNumber();
-                currentHash[0] = ethBlock.getBlockHash();
 //                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
 
 /*-------------Tokens--------------*/
@@ -357,6 +312,52 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
                     }
                 }
+
+                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
+                    log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
+
+                    try {
+                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())){
+
+                            log.info(merchantName + " Block number for review: " + currentBlockNumber.add(new BigInteger("1")));
+                            log.info(merchantName + " Txs counter: " + counter[0]);
+                            log.info(merchantName + " Txs block: " + web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount());
+
+                        }
+
+                    } catch (Exception e) {
+                        log.error(e);
+                    }
+                    counter[0] = 0;
+
+                    List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
+                    pendingTransactions.forEach(transaction ->
+                            {
+                                try {
+                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult()==null){
+                                        return;
+                                    }
+                                    BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
+                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() >= minConfirmations){
+                                        provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
+                                        saveLastBlock(ethBlock.getBlockNumber().toString());
+                                        log.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
+                                        log.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
+                                        providedTransactions.add(transaction);
+                                    }
+                                } catch (EthereumException | IOException e) {
+                                    subscribeCreated = false;
+                                    log.error(merchantName + " " + e);
+                                }
+
+                            }
+
+                    );
+                    providedTransactions.forEach(transaction -> pendingTransactions.remove(transaction));
+                }
+
+                currentBlockNumber = ethBlock.getBlockNumber();
+                currentHash[0] = ethBlock.getBlockHash();
 
                 });
 
