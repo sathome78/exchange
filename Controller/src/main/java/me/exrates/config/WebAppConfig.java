@@ -444,7 +444,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "hsrServiceImpl")
     public BitcoinService hsrService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
-                "HSR", "HSR", 4, 20, true);
+                "HSR", "HSR", 4, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
