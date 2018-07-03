@@ -969,6 +969,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "LEDU",
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
+    @Bean(name = "adbServiceImpl")
+    public EthTokenService adbService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2baac9330cf9ac479d819195794d79ad0c7616e3");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ADB",
+                "ADB", true, ExConvert.Unit.ETHER);
+    }
 
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
