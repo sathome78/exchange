@@ -486,7 +486,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "cnetServiceImpl")
     public EthereumCommonService cnetService() {
         return new EthereumCommonServiceImpl("merchants/contractnet.properties",
-                "CNET", "CNET", 12);
+                "CNET", "CNET", 0);
     }
 
 //    @Bean(name = "eosServiceImpl")
