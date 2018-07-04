@@ -159,6 +159,12 @@ public class CryptocurrencyConfig {
                 "FGC", "FGC", 4, 20, false, false);
     }
 
+    @Bean(name = "brecoServiceImpl")
+    public BitcoinService brecoService() {
+        return new BitcoinServiceImpl("merchants/breco_wallet.properties",
+                "BRECO", "BRECO", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
