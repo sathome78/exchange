@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.User;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -114,6 +115,19 @@ public class TransferRequestController {
       throw e;
     }
     return transferService.createTransferRequest(transferRequest);
+  }
+
+  @RequestMapping(value = "/transfer/request/checking", method = POST)
+  @ResponseBody
+  public void checkingTransferReception(
+          @RequestParam String recipient,
+          Principal principal, Locale locale,
+          HttpServletRequest servletRequest){
+    User user = userService.findByEmail(principal.getName());
+    if (user.getNickname().equals(recipient) || user.getEmail().equals(recipient)) {
+      throw new InvalidNicknameException(messageSource
+              .getMessage("transfer.selfNickname", null, locale));
+    }
   }
 
   private String getAmountWithCurrency(TransferRequestCreateDto dto) {

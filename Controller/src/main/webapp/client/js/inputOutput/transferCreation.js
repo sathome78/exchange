@@ -110,12 +110,28 @@ $(function transferCreation() {
                 return;
             }
             $transferParamsDialog.one('hidden.bs.modal', function () {
-                performTransfer();
+                checkReception();
             });
             $transferParamsDialog.modal("hide");
         });
         /**/
         $transferParamsDialog.modal();
+    }
+
+    function checkReception() {
+        $.ajax({
+            url: '/transfer/request/checking?recipient='+ recipient,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function () {
+            performTransfer();
+        }).error(function () {
+            $transferParamsDialog.modal("hide");
+        });
     }
 
     /*function showFinPassModal() {
