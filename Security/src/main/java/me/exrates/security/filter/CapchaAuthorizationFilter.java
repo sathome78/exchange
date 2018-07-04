@@ -2,6 +2,7 @@ package me.exrates.security.filter;
 
 import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
@@ -85,7 +86,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                String res = secureServiceImpl.reSendLoginMessage(request, authentication.getName());
+                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), false);
                 throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),

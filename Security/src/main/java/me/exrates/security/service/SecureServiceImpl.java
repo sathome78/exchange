@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
+import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -24,9 +25,6 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Locale;
 
 
@@ -58,18 +56,18 @@ public class SecureServiceImpl implements SecureService {
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                                CapchaAuthorizationFilter filter) {
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
-        String result = reSendLoginMessage(request, authentication.getName());
+        PinDto result = reSendLoginMessage(request, authentication.getName(), false);
         if (result != null) {
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);
             request.getSession().setAttribute(passwordParam, request.getParameter(filter.getPasswordParameter()));
             authentication.setAuthenticated(false);
-            throw new PinCodeCheckNeedException(result);
+            throw new PinCodeCheckNeedException(result.getMessage());
         }
     }
 
     @Override
-    public String reSendLoginMessage(HttpServletRequest request, String userEmail) {
+    public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, boolean forceSend) {
         int userId = userService.getIdByEmail(userEmail);
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
@@ -87,13 +85,16 @@ public class SecureServiceImpl implements SecureService {
             log.debug("noty_setting {}", setting.toString());
             PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
             Locale locale = localeResolver.resolveLocale(request);
-            if (attempsDto.needToSendPin()) {
+            boolean needToSendPin = forceSend ? true : attempsDto.needToSendPin();
+            String message;
+            if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
-                return newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
+                message =  newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
             } else {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
-                return messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
+                message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
+            return new PinDto(message, needToSendPin);
         }
         return null;
     }
@@ -104,27 +105,30 @@ public class SecureServiceImpl implements SecureService {
     public void checkEventAdditionalPin(HttpServletRequest request, String email,
                                         NotificationMessageEventEnum event, String amountCurrency) {
         request.getSession().setAttribute("2fa_".concat(event.name()), new PinAttempsDto());
-        String result = resendEventPin(request, email, event, amountCurrency);
+        PinDto result = resendEventPin(request, email, event, amountCurrency);
         if (result != null) {
-            throw new PinCodeCheckNeedException(result);
+            throw new PinCodeCheckNeedException(result.getMessage());
         }
     }
 
     @Override
-    public String resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
+    public PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
         Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = determineSettings(settingsService.getByUserAndEvent(userId, event), event.isCanBeDisabled(), userId, event);
         if (setting != null) {
             PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
             Locale locale = localeResolver.resolveLocale(request);
-            if (attempsDto.needToSendPin()) {
+            boolean needToSendPin = attempsDto.needToSendPin();
+            String message;
+            if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
-                return newPin.concat(sendPinMessage(email, setting, request, new String[]{amountCurrency}));
+                message =  newPin.concat(sendPinMessage(email, setting, request, new String[]{amountCurrency}));
             } else {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
-                return messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
+                message =  messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
+            return new PinDto(message, needToSendPin);
         }
         return null;
     }
