@@ -62,6 +62,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private Boolean supportInstantSend;
   private Boolean supportSubtractFee;
+  private Boolean supportReferenceLine;
 
   private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
@@ -73,7 +74,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
 
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee) {
+  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -84,6 +85,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
       this.supportSubtractFee = supportSubtractFee;
+      this.supportReferenceLine = supportReferenceLine;
     } catch (Exception e) {
       log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
@@ -373,7 +375,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       unlockWallet(walletPassword, 10);
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
-      result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      if (supportReferenceLine) {
+          result = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+      } else {
+          result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      }
       lockWallet();
       }
       return result;
@@ -440,7 +446,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
           if (supportInstantSend) {
               txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                       "", subtractFeeAddresses);
-          } else {
+          } else if (supportReferenceLine) {
+              txId = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+          }
+
+          else {
               if (supportSubtractFee) {
                   txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
                           "", subtractFeeAddresses);

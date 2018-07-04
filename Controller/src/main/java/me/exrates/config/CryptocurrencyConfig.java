@@ -162,7 +162,8 @@ public class CryptocurrencyConfig {
     @Bean(name = "brecoServiceImpl")
     public BitcoinService brecoService() {
         return new BitcoinServiceImpl("merchants/breco_wallet.properties",
-                "BRECO", "BRECO", 4, 20, false, false);
+                "BRECO", "BRECO", 4, 20, false,
+                false, true, true);
     }
 
     // LISK-like cryptos
