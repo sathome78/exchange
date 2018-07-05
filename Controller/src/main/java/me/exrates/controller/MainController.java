@@ -312,7 +312,7 @@ public class MainController {
         }
         Authentication authentication = (Authentication) auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName());
+        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
