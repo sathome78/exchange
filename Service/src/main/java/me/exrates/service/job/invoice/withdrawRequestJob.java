@@ -69,7 +69,11 @@ public class withdrawRequestJob {
  // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void setInPostingStatus() {
     log.info("before setInPostingStatus()");
-    withdrawService.setAllAvailableInPostingStatus();
+    try {
+      withdrawService.setAllAvailableInPostingStatus();
+    } catch (Exception e) {
+      log.error(ExceptionUtils.getStackTrace(e));
+    }
     log.info("after setInPostingStatus()");
 
   }
