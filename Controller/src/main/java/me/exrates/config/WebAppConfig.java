@@ -1006,14 +1006,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SAT", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "egtServiceImpl")
-    public EthTokenService egtService() {
+    @Bean(name = "engtServiceImpl")
+    public EthTokenService engtService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x5dbac24e98e2a4f43adc0dc82af403fca063ce2c");
         return new EthTokenServiceImpl(
                 tokensList,
-                "EGT",
-                "EGT", true, ExConvert.Unit.ETHER);
+                "ENGT",
+                "ENGT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "tavittServiceImpl")

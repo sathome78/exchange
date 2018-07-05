@@ -76,6 +76,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Boolean supportWalletNotifications;
 
+  private Boolean supportReferenceLine;
+
   private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
 
@@ -96,6 +98,11 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                             Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false);
+  }
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -111,6 +118,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.rawTxEnabled = rawTxEnabled;
       this.supportSubtractFee = supportSubtractFee;
       this.supportWalletNotifications = supportWalletNotifications;
+      this.supportReferenceLine = supportReferenceLine;
     } catch (IOException e) {
       log.error(e);
     }
@@ -133,7 +141,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     if (nodeEnabled) {
-      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee);
+      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee, supportReferenceLine);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
       if (supportWalletNotifications) {
