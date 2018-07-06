@@ -232,7 +232,7 @@ public class CryptocurrencyConfig {
 
     @Bean(name = "lunesServiceImpl")
     public WavesService lunesService() {
-        return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
+        return new WavesServiceImpl("LNS", "LNS", "merchants/lunes.properties");
     }
 
 }
