@@ -2,7 +2,7 @@ INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `se
 VALUES ('NuShares', 'NuShares', 2, 'nsrServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('NSR', 'NuShares', '0', 4, 4, 8);
-use birzha_2;
+
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='NuShares'),
         (SELECT id from CURRENCY WHERE name='NSR'),

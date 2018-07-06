@@ -176,6 +176,12 @@ public class CryptocurrencyConfig {
                 false, true, true);
     }
 
+    @Bean(name = "bclServiceImpl")
+    public BitcoinService bitcoinCleanService() {
+        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
+                "BitcoinClean", "BCL", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 
