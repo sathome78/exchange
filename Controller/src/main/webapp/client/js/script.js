@@ -76,11 +76,11 @@ $(function () {
 
 function checkFill() {
     var email = $('#email').val();
-    var login = $('#login').val();
+    // var login = $('#login').val();
     var pass = $('#pass').val();
     var repass = $('#repass').val();
     var capchaPassed = $('#cpch-field').hasClass('passed');
-    if ((!$('#email')[0] || (email.length != 0) && (login.length != 0)) &&
+    if ((!$('#email')[0] || (email.length != 0) ) &&
         (capchaPassed) && (pass && (pass.length != 0) && (pass === repass))) {
         $("#register_button").prop('disabled', false);
     } else {
