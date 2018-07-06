@@ -159,6 +159,12 @@ public class CryptocurrencyConfig {
                 "FGC", "FGC", 4, 20, false, false);
     }
 
+    @Bean(name = "ftoServiceImpl")
+    public BitcoinService ftoService() {
+        return new BitcoinServiceImpl("merchants/fto_wallet.properties",
+                "FTO", "FTO", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
