@@ -1006,15 +1006,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SAT", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "cedexServiceImpl")
-    public EthTokenService cedexService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xf4065e4477e91c177ded71a7a6fb5ee07dc46bc9");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CEDEX",
-                "CEDEX", true, ExConvert.Unit.ETHER);
-    }
 
     @Bean(name = "engtServiceImpl")
     public EthTokenService engtService() {
