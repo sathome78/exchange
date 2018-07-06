@@ -12,7 +12,7 @@
         <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
         <!-- ... Amcharts Charts -->--%>
     </div>
-    <div id="amcharts-stock_chart_div" style="position: relative; !important; width:100%; height:440px;">
+    <div id="amcharts-stock_chart_div" style="position: relative; !important; width:100%; height:460px;">
     </div>
     <%--<div class="period-menu">--%>
         <%--<div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>--%>

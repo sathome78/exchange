@@ -705,6 +705,7 @@
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">

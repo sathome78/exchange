@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.User;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -43,6 +44,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -116,6 +118,19 @@ public class TransferRequestController {
     return transferService.createTransferRequest(transferRequest);
   }
 
+  @RequestMapping(value = "/transfer/request/checking", method = POST)
+  @ResponseBody
+  public void checkingTransferReception(
+          @RequestParam String recipient,
+          Principal principal, Locale locale,
+          HttpServletRequest servletRequest){
+    User user = userService.findByEmail(principal.getName());
+    if (user.getNickname().equals(recipient) || user.getEmail().equals(recipient)) {
+      throw new InvalidNicknameException(messageSource
+              .getMessage("transfer.selfNickname", null, locale));
+    }
+  }
+
   private String getAmountWithCurrency(TransferRequestCreateDto dto) {
     return new StringJoiner(" ", dto.getAmount().toString(), dto.getCurrencyName()).toString();
   }
@@ -131,7 +146,7 @@ public class TransferRequestController {
       request.getSession().removeAttribute(transferRequestCreateDto);
       return transferService.createTransferRequest((TransferRequestCreateDto)object);
     } else {
-      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+      PinDto res = secureServiceImpl.resendEventPin(request, principal.getName(),
               NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency((TransferRequestCreateDto)object));
       throw new IncorrectPinException(res);
     }
@@ -279,11 +294,12 @@ public class TransferRequestController {
             .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
   }
 
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
   @ExceptionHandler({IncorrectPinException.class})
   @ResponseBody
-  public ErrorInfo incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+  public PinDto incorrectPinExceptionHandler(HttpServletRequest req, HttpServletResponse response, Exception exception) {
+    IncorrectPinException ex = (IncorrectPinException) exception;
+    return ex.getDto();
   }
 
   @ResponseStatus(HttpStatus.ACCEPTED)
