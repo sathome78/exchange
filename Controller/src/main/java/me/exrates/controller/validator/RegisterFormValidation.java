@@ -29,7 +29,7 @@ public class RegisterFormValidation implements Validator {
     private static final String LETTERS_NUMBERS_PATTERN = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=\\S+$).{7,19}$";
     private static final String LETTERS_NUMBERS_SYMBOLS_PATTERN = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=\\S+$)(?=.*[!#$%&'*+/=?`{|}~^-]).{7,19}$";
     private static final String EMAIL_PATTERN = "^[\\w+_.-]+(?:\\.[\\w+_.-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
-    private static final String EMAIL_START_PATTERN = "^[\\w+_.-]+(?:\\.[\\w+_.-]+)*@";
+    private static final String EMAIL_START_PATTERN = "^[\\w+_.-]+(?:\\.[\\w+_.-]+)*$";
 
 
     private Pattern pattern;
