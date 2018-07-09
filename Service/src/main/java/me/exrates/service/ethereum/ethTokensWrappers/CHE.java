@@ -529,9 +529,9 @@ public class CHE extends Contract implements ethTokenERC20 {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             TransferEventResponse typedResponse = new TransferEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse._from = (String) eventValues.getIndexedValues().get(0).getValue();
-            typedResponse._to = (String) eventValues.getIndexedValues().get(1).getValue();
-            typedResponse._value = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.from = (String) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.to = (String) eventValues.getIndexedValues().get(1).getValue();
+            typedResponse.value = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
         }
         return responses;
@@ -596,27 +596,27 @@ public class CHE extends Contract implements ethTokenERC20 {
         public String newOwner;
     }
 
-//    public static class TransferEventResponse {
-//        public Log log;
-//
-//        public String from;
-//
-//        public String to;
-//
-//        public byte[] data;
-//
-//        public BigInteger value;
-//    }
-
     public static class TransferEventResponse {
         public Log log;
 
-        public String _from;
+        public String from;
 
-        public String _to;
+        public String to;
 
-        public BigInteger _value;
+        public byte[] data;
+
+        public BigInteger value;
     }
+
+//    public static class TransferEventResponse {
+//        public Log log;
+//
+//        public String _from;
+//
+//        public String _to;
+//
+//        public BigInteger _value;
+//    }
 
     public static class ApprovalEventResponse {
         public Log log;
