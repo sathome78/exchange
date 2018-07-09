@@ -156,7 +156,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "sabrServiceImpl")
     public BitcoinService sabrService() {
         return new BitcoinServiceImpl("merchants/sabr_wallet.properties",
-                "SABR", "SABR", 4, 20, false);
+                "SABR", "SABR", 4, 20, false, false);
     }
 
     @Bean(name = "ptcServiceImpl")
