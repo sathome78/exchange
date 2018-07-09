@@ -1018,6 +1018,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
+    @Bean(name = "cheServiceImpl")
+    public EthTokenService cheService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x632f62fcf63cb56380ffd27d63afcf5f1349f73f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CHE",
+                "CHE", true, ExConvert.Unit.AIWEI);
+    }
+
     @Bean(name = "engtServiceImpl")
     public EthTokenService engtService() {
         List<String> tokensList = new ArrayList<>();
