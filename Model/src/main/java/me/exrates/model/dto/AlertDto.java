@@ -19,7 +19,8 @@ import java.time.LocalTime;
 @Data
 @Builder(toBuilder = true)
 public class AlertDto {
-
+    private String title;
+    private String language;
     private String text;
     @NotNull
     private String alertType;

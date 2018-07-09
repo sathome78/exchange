@@ -36,7 +36,7 @@ public class OrdersStatisticByPairsCache {
 
     @PostConstruct
     private void init() {
-        update();
+        //update();
         needUpdate.set(false);
         log.info("initialized, {}", cachedList.size());
     }

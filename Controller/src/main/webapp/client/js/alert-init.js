@@ -54,7 +54,7 @@ function handleAlerts(object) {
             break;
         }
         case "SYSTEM_MESSAGE_TO_USERS" : {
-            drawTechAlert(object);
+            drawSysMessageForUsersAlert(object);
             break;
         }
         case "UPDATE" : {
@@ -122,6 +122,21 @@ function drawTechAlert(object) {
     } else {
         $tech_block.hide();
         $tech_text.text('')
+    }
+}
+
+function drawSysMessageForUsersAlert(object) {
+    var $sys_mess_block = $('#sys_message_alert');
+    var $sys_mess_title = $('#sys_message_alert_title');
+    var $sys_mess_text = $('#sys_message_alert_text');
+    if(object.enabled) {
+        $sys_mess_block.show();
+        $sys_mess_title.text(object.title);
+        $sys_mess_text.text(object.text);
+    } else {
+        $sys_mess_block.hide();
+        $sys_mess_title.text('');
+        $sys_mess_text.text('')
     }
 }
 

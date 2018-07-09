@@ -18,6 +18,7 @@ import java.util.Optional;
 
 /**
  * Created by Maks on 13.12.2017.
+ * Updated by Vlad on 09.07.2018 (add type of alert - SYSTEM_MESSAGE_TO_USER)
  */
 @Repository
 public class UserAlertsDaoImpl implements UserAlertsDao {
@@ -37,6 +38,16 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
                 .ifPresent(p->alertDto.setEventStart(p.toLocalDateTime()));
         Optional.ofNullable(rs.getInt("length"))
                 .ifPresent(alertDto::setLenghtOfWorks);
+        return alertDto;
+    };
+
+    private static RowMapper<AlertDto> getAlertsSystemMessageForUsersDtoMapper = (rs, idx) -> {
+        AlertDto alertDto = AlertDto
+                .builder()
+                .title(rs.getString("title"))
+                .language(rs.getString("language"))
+                .text(rs.getString("content"))
+                .build();
         return alertDto;
     };
 
@@ -84,5 +95,22 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
         return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper);
     }
 
+    @Override
+    public AlertDto getAlertSystemMessageToUser(String language){
+        String sql = "SELECT title, language, content FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("language", language);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, getAlertsSystemMessageForUsersDtoMapper);
+    }
+
+    @Override
+    public AlertDto setAlertSystemMessageToUser(String title, String language, String content){
+        String sql = "SELECT title, language, content FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("language", language);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, getAlertsSystemMessageForUsersDtoMapper);
+    };
 
 }

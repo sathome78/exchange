@@ -103,14 +103,13 @@
                                 Editor</button>
                         </div>
 
-                        <!--Start modal view of editor system message for user-->
-                        <%@include file='../fragments/modal/system_message_modal.jsp' %>
-                        <!--End modal view of editor system message for user-->
-
                         <input name="alertType" hidden value="${sysMessage.alertType}"/>
                         <button type="submit" id="updateSystemMessageForUser" class="blue-box admin-form-submit">
                             <loc:message code="button.update"/></button>
                     </form>
+                    <!--Start modal view of editor system message for user-->
+                    <%@include file='../fragments/modal/system_message_modal.jsp' %>
+                    <!--End modal view of editor system message for user-->
                 </div>
                 </div>
             </div>
