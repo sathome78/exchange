@@ -37,7 +37,7 @@ import rx.functions.Func1;
  *
  * <p>Generated with web3j version 3.4.0.
  */
-public class CHE extends Contract implements ethTokenERC20 {
+public class CHE extends Contract implements ethTokenNotERC20 {
     public static final String FUNC_MINTINGFINISHED = "mintingFinished";
     public static final String FUNC_NAME = "name";
     public static final String FUNC_LOADING = "Loading";
