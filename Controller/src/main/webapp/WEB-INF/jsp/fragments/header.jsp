@@ -12,6 +12,7 @@
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -92,10 +93,10 @@
                                 </a>
                                 <div class="dropdown-menu">
                                     <form action="/login" class="dropdown-menu__form" method="post">
-                                        <input name="username" type="email" placeholder=
+                                        <input id="login__name" name="username" type="email" placeholder=
                                             <loc:message code="dashboard.loginText"/>
                                                 class="form_input">
-                                        <input name="password" type="password" placeholder=
+                                        <input id="login__password" name="password" type="password" placeholder=
                                             <loc:message
                                                     code="dashboard.passwordText"/> class="form_input">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -116,7 +117,7 @@
                                         </c:if>
                                         <input type="hidden" name="captchaType" value="${captchaType}"/>
                                             <%----%>
-                                        <button type="submit" class="login_button"><loc:message
+                                        <button id="login_button" type="submit" class="login_button"><loc:message
                                                 code="dashboard.entrance"/></button>
                                         <a href="/forgotPassword" class="white forgot-password"><loc:message
                                                 code="dashboard.forgotPassword"/></a>

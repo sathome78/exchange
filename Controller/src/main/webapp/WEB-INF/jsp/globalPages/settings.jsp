@@ -36,6 +36,7 @@
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
@@ -77,6 +78,9 @@
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="tabIdx">${tabIdx}</span>
+<c:if test="${activeTabId != null}">
+    <span hidden id="activeTabId">${activeTabId}</span>
+</c:if>
 <c:if test="${message!=null}">
     <label class="alert-danger"><loc:message code="${message}"/></label>
 </c:if>

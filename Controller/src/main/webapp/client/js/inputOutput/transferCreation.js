@@ -110,12 +110,28 @@ $(function transferCreation() {
                 return;
             }
             $transferParamsDialog.one('hidden.bs.modal', function () {
-                performTransfer();
+                checkReception();
             });
             $transferParamsDialog.modal("hide");
         });
         /**/
         $transferParamsDialog.modal();
+    }
+
+    function checkReception() {
+        $.ajax({
+            url: '/transfer/request/checking?recipient='+ recipient,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function () {
+            performTransfer();
+        }).error(function () {
+            $transferParamsDialog.modal("hide");
+        });
     }
 
     /*function showFinPassModal() {
@@ -144,6 +160,7 @@ $(function transferCreation() {
     }
 
     function sendRequest(data) {
+        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForTransferCreate,
@@ -205,17 +222,22 @@ $(function transferCreation() {
             },
             type: 'POST',
             contentType: 'application/json'
-        }).success(function (result) {
-            $pinDialogModal.modal("hide");
-            transferSuccess(result)
-        }).error(function (result) {
-            var res = result.responseJSON;
-            if (res.cause == 'IncorrectPinException') {
-                $pinDialogText.text(res.detail);
+        }).success(function (result, textStatus, xhr) {
+            if (xhr.status === 200) {
+                $pinDialogModal.modal("hide");
+                transferSuccess(result)
+            } else {
                 $pinWrong.show();
+                $pinDialogText.text(result.message);
+                if (result.needToSendPin) {
+                    successNoty(result.message)
+                }
             }
+        }).error(function (result) {
+
         }).complete(function () {
             $pinInput.val("");
+            $pinSendButton.prop('disabled', true);
         });
     }
 

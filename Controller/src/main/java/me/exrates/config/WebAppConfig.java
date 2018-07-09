@@ -217,7 +217,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dataSource.setPassword(dbPassword);
         return dataSource;
     }
-    
+
     @Bean(name = "hikariDataSource")
     public DataSource hikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
@@ -442,9 +442,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "hsrServiceImpl")
-    public BitcoinService hsrService() {
+    public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
-                "HSR", "HSR", 4, 20, true);
+                "HSR", "HSR", 4, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
@@ -479,14 +479,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "golServiceImpl")
     public EthereumCommonService golService() {
-        return new EthereumCommonServiceImpl("merchants/smartchain.properties",
+        return new EthereumCommonServiceImpl("merchants/goldiam.properties",
                 "GOL", "GOL", 12);
     }
 
     @Bean(name = "cnetServiceImpl")
     public EthereumCommonService cnetService() {
         return new EthereumCommonServiceImpl("merchants/contractnet.properties",
-                "CNET", "CNET", 12);
+                "CNET", "CNET", 0);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -957,18 +957,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TGAME", true, ExConvert.Unit.ETHER);
     }
 
-
-
-    @Bean(name = "leduServiceImpl")
-    public EthTokenService leduService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x5b26c5d0772e5bbac8b3182ae9a13f9bb2d03765");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "LEDU",
-                "LEDU", true, ExConvert.Unit.AIWEI);
-    }
-
     @Bean(name = "cedexServiceImpl")
     public EthTokenService cedexService() {
         List<String> tokensList = new ArrayList<>();
@@ -989,14 +977,65 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTL", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "egtServiceImpl")
-    public EthTokenService egtService() {
+    @Bean(name = "leduServiceImpl")
+    public EthTokenService leduService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5b26c5d0772e5bbac8b3182ae9a13f9bb2d03765");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "LEDU",
+                "LEDU", true, ExConvert.Unit.AIWEI);
+    }
+    @Bean(name = "adbServiceImpl")
+    public EthTokenService adbService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2baac9330cf9ac479d819195794d79ad0c7616e3");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ADB",
+                "ADB", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "satServiceImpl")
+    public EthTokenService satService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc56b13ebbcffa67cfb7979b900b736b3fb480d78");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SAT",
+                "SAT", true, ExConvert.Unit.AIWEI);
+    }
+
+
+    @Bean(name = "gstServiceImpl")
+    public EthTokenService gstService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x67a9099f0008c35c61c00042cd9fb03684451097");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GST",
+                "GST", false, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "cheServiceImpl")
+    public EthTokenService cheService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x632f62fcf63cb56380ffd27d63afcf5f1349f73f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CHE",
+                "CHE", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "engtServiceImpl")
+    public EthTokenService engtService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x5dbac24e98e2a4f43adc0dc82af403fca063ce2c");
         return new EthTokenServiceImpl(
                 tokensList,
-                "EGT",
-                "EGT", true, ExConvert.Unit.ETHER);
+                "ENGT",
+                "ENGT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "tavittServiceImpl")

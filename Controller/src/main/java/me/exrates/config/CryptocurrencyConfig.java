@@ -4,6 +4,10 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
+import me.exrates.service.waves.WavesRestClient;
+import me.exrates.service.waves.WavesRestClientImpl;
+import me.exrates.service.waves.WavesService;
+import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -165,6 +169,25 @@ public class CryptocurrencyConfig {
                 "Perfectcoin", "PTC", 4, 20, false, false);
     }
 
+    @Bean(name = "brecoServiceImpl")
+    public BitcoinService brecoService() {
+        return new BitcoinServiceImpl("merchants/breco_wallet.properties",
+                "BRECO", "BRECO", 4, 20, false,
+                false, true, true);
+    }
+
+    @Bean(name = "bclServiceImpl")
+    public BitcoinService bitcoinCleanService() {
+        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
+                "BitcoinClean", "BCL", 4, 20, false);
+    }
+
+    @Bean(name = "ftoServiceImpl")
+    public BitcoinService ftoService() {
+        return new BitcoinServiceImpl("merchants/fto_wallet.properties",
+                "FTO", "FTO", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
@@ -203,6 +226,19 @@ public class CryptocurrencyConfig {
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
+    }
+
+
+    // WAVES-like
+
+    @Bean(name = "wavesServiceImpl")
+    public WavesService wavesService() {
+        return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
+    }
+
+    @Bean(name = "lunesServiceImpl")
+    public WavesService lunesService() {
+        return new WavesServiceImpl("LNS", "LNS", "merchants/lunes.properties");
     }
 
 }

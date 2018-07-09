@@ -1,5 +1,6 @@
 package me.exrates.model.dto.merchants.btc;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,13 +19,17 @@ public class CoreWalletDto {
     private int currencyId;
     private String merchantName;
     private String currencyName;
+    private String currencyDescription;
     private String titleCode;
     private String localizedTitle = "";
+
+    @JsonIgnore
+    private String TITLE_CODE_UNIVERSAL = "admin.btcWallet.title";
 
 
     public void localizeTitle(MessageSource messageSource, Locale locale) {
         try {
-            this.localizedTitle = messageSource.getMessage(titleCode, null, locale);
+            this.localizedTitle = messageSource.getMessage(TITLE_CODE_UNIVERSAL, new Object[]{currencyDescription}, locale);
         } catch (NoSuchMessageException e) {
             log.error(e);
         }

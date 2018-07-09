@@ -3,6 +3,7 @@ package me.exrates.controller.validator;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -17,22 +18,27 @@ import java.util.regex.Pattern;
 @Component
 public class RegisterFormValidation implements Validator {
 
-    @Autowired
-    UserService userService;
+    private static final String PASS_FIELD_NAME = "password";
+    private static final String NICKNAME_FIELD_NAME = "nickname";
+    private static final String EMAIL_FIELD_NAME = "email";
+    private static final String NICKNAME_VALIDATION_REG_EXP = "^[a-zA-Z][_A-Za-z0-9\\-_]{2,20}$";
+    private static final String MOBILE_PATTERN = "[0-9]{12}";
+    private static final String PASS_PATTERN = "^[a-zA-Z0-9][\\w!#$%&'*+/=?`{|}~^-]{7,19}$";
+    private static final String NUMBER_SYMBOLS_PATTERN = "^(?=.*[0-9])(?=.*[!#$%&'*+/=?`{|}~^-])(?=\\S+$).{7,19}$";
+    private static final String LETTERS_SYMBOLS_PATTERN = "^(?=.*[a-zA-Z])(?=.*[!#$%&'*+/=?`{|}~^-])(?=\\S+$).{7,19}$";
+    private static final String LETTERS_NUMBERS_PATTERN = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=\\S+$).{7,19}$";
+    private static final String LETTERS_NUMBERS_SYMBOLS_PATTERN = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=\\S+$)(?=.*[!#$%&'*+/=?`{|}~^-]).{7,19}$";
+    private static final String EMAIL_PATTERN = "^[\\w+_.-]+(?:\\.[\\w+_.-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+    private static final String EMAIL_START_PATTERN = "^[\\w+_.-]+(?:\\.[\\w+_.-]+)*$";
 
 
     private Pattern pattern;
     private Matcher matcher;
-
-    private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-            + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-    String ID_PATTERN = "[0-9]+";
-    String STRING_PATTERN = "[a-zA-Z]+";
-    String MOBILE_PATTERN = "[0-9]{12}";
-    private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
-    private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_]+";
-//    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
+
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     MessageSource messageSource;
@@ -49,54 +55,9 @@ public class RegisterFormValidation implements Validator {
 
     public void validate(Object target, Errors errors) {
         User user = (User) target;
-        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, ru);
-        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, ru);
-        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, ru);
-        String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
-        String emailExists = messageSource.getMessage("validation.emailexists", null, ru);
-        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-        String notReadRules = messageSource.getMessage("validation.notreadrules", null, ru);
         String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, ru);
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
-                nicknameRequired);
-
-        if (!user.getNickname().matches(NICKNAME_PATTERN)) {
-            errors.rejectValue("nickname", "login.latinonly");
-            errors.rejectValue("nickname", "login.symbonly");
-            errors.rejectValue("nickname", "login.notdigit");
-            return;
-        }
-
-        if (user.getNickname().length() > 40) {
-            errors.rejectValue("nickname", "nickname.exceed", nicknameExceed);
-        }
-
-
-        if (!userService.ifNicknameIsUnique(user.getNickname())) {
-            errors.rejectValue("nickname", "nickname.incorrect", nicknameExists);
-        }
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
-                "required.email", emailRequired);
-
-        if (!(user.getEmail() != null && user.getEmail().isEmpty())) {
-            pattern = Pattern.compile(EMAIL_PATTERN);
-            matcher = pattern.matcher(user.getEmail());
-            if (!matcher.matches()) {
-                errors.rejectValue("email", "email.incorrect", emailIncorrect);
-            }
-        }
-        if (!userService.ifEmailIsUnique(user.getEmail())) {
-            errors.rejectValue("email", "email.exists", emailExists);
-        }
-//		  ValidationUtils.rejectIfEmptyOrWhitespace(errors, "phone",  
-//		    "required.phone", "Phone is required.");  
-//		  
-        // phone number validation
+        validateEmail(errors, user.getEmail());
 
         if (user.getPhone() != null && !user.getPhone().isEmpty()) {
             pattern = Pattern.compile(MOBILE_PATTERN);
@@ -107,22 +68,62 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                "required.password", passwordRequired);
+        validatePassword(errors, user);
+
+    }
+
+    private void validatePassword(Errors errors, User user) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, PASS_FIELD_NAME,
+                "validation.passwordrequired");
 
         if (!user.getPassword().equals(user.getConfirmPassword())) {
-            errors.rejectValue("confirmPassword", "password.mismatch",
-                    passwordMismatch);
+            errors.rejectValue("confirmPassword", "validation.passwordmismatch");
         }
 
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
+        if (StringUtils.isBlank(user.getPassword()) || !isValidPassword(user.getPassword())) {
+            errors.rejectValue(PASS_FIELD_NAME, "validation.passwordincorrect");
+        }
+    }
+
+    /**
+     *
+     * Password can consist of letters and numbers, letters and symbols, numbers and symbols and all of them
+     *
+     * @param password
+     * @return true if password matches all statements
+     */
+    private boolean isValidPassword(String password) {
+        return password.matches(NUMBER_SYMBOLS_PATTERN) || password.matches(LETTERS_NUMBERS_PATTERN) || password.matches(LETTERS_SYMBOLS_PATTERN) || password.matches(LETTERS_NUMBERS_SYMBOLS_PATTERN);
+    }
+
+    private void validateEmail(Errors errors, String email) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, EMAIL_FIELD_NAME,
+                "validation.emailrequired");
+
+        if (!email.substring(0, email.indexOf('@')).matches(EMAIL_START_PATTERN)) {
+            errors.rejectValue(EMAIL_FIELD_NAME, "validation.emailrequirements");
         }
 
+        if (!email.matches(EMAIL_PATTERN)) {
+            errors.rejectValue(EMAIL_FIELD_NAME, "validation.emailincorrect");
+        }
+
+        if (!userService.ifEmailIsUnique(email)) {
+            errors.rejectValue(EMAIL_FIELD_NAME, "validation.emailexists");
+        }
+    }
+
+
+    private void validateNickname(Errors errors, String nickname) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, NICKNAME_FIELD_NAME, "validation.nicknamerequired");
+
+        if (!nickname.matches(NICKNAME_VALIDATION_REG_EXP)) {
+            errors.rejectValue(NICKNAME_FIELD_NAME, "validation.nicknamerequirements");
+        }
+
+        if (!userService.ifNicknameIsUnique(nickname)) {
+            errors.rejectValue(NICKNAME_FIELD_NAME, "validation.nicknameexists");
+        }
     }
 
     public void validateEditUser(Object target, Errors errors, Locale ru) {
@@ -133,14 +134,14 @@ public class RegisterFormValidation implements Validator {
         String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
         String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, EMAIL_FIELD_NAME,
                 "required.email", emailRequired);
 
         if (!(user.getEmail() != null && user.getEmail().isEmpty())) {
             pattern = Pattern.compile(EMAIL_PATTERN);
             matcher = pattern.matcher(user.getEmail());
             if (!matcher.matches()) {
-                errors.rejectValue("email", "email.incorrect", emailIncorrect);
+                errors.rejectValue(EMAIL_FIELD_NAME, "email.incorrect", emailIncorrect);
             }
         }
 
@@ -155,10 +156,10 @@ public class RegisterFormValidation implements Validator {
         }
 
         if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
+            pattern = Pattern.compile(PASS_PATTERN);
             matcher = pattern.matcher(user.getPassword());
             if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+                errors.rejectValue(PASS_FIELD_NAME, "password.incorrect", passwordIncorrect);
             }
         }
     }
@@ -170,7 +171,7 @@ public class RegisterFormValidation implements Validator {
         String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
         String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, PASS_FIELD_NAME,
                 "required.password", passwordRequired);
 
         if (!user.getPassword().equals(user.getConfirmPassword())) {
@@ -179,10 +180,10 @@ public class RegisterFormValidation implements Validator {
         }
 
         if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
+            pattern = Pattern.compile(PASS_PATTERN);
             matcher = pattern.matcher(user.getPassword());
             if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+                errors.rejectValue(PASS_FIELD_NAME, "password.incorrect", passwordIncorrect);
             }
         }
     }
@@ -203,7 +204,7 @@ public class RegisterFormValidation implements Validator {
         }
 
         if (!(user.getFinpassword() != null && user.getFinpassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
+            pattern = Pattern.compile(PASS_PATTERN);
             matcher = pattern.matcher(user.getFinpassword());
             if (!matcher.matches()) {
                 errors.rejectValue("finpassword", "password.incorrect", passwordIncorrect);
@@ -218,11 +219,11 @@ public class RegisterFormValidation implements Validator {
         int userId = userService.getIdByEmail(user.getEmail());
         if (userId != 0) {
             User findUser = userService.getUserById(userId);
-            if (findUser.getStatus() == UserStatus.DELETED){
-                errors.rejectValue("email", "email.incorrect", statusIncorrect);
+            if (findUser.getStatus() == UserStatus.DELETED) {
+                errors.rejectValue(EMAIL_FIELD_NAME, "email.incorrect", statusIncorrect);
             }
         } else {
-            errors.rejectValue("email", "email.incorrect", emailIncorrect);
+            errors.rejectValue(EMAIL_FIELD_NAME, "email.incorrect", emailIncorrect);
         }
     }
 }

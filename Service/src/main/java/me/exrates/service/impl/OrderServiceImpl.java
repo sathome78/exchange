@@ -191,14 +191,14 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
     LocalDateTime endTime = LocalDateTime.now();
-    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
-            .plusMinutes(30 * (endTime.getMinute() / 30));
+//    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
+//            .plusMinutes(30 * (endTime.getMinute() / 30));
     LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
-            .plusMinutes(30 * (startTime.getMinute() / 30));
+//    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
+//            .plusMinutes(30 * (startTime.getMinute() / 30));
 
     return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
-            firstHalfHour, lastHalfHour, timeFrame.getResolution().getTimeValue(),
+            startTime, endTime, timeFrame.getResolution().getTimeValue(),
             timeFrame.getResolution().getTimeUnit().name());
   }
 

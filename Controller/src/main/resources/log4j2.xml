@@ -339,8 +339,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="smartchain_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/smartchain_log.log"
-                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/smartchain_log%d_%i.log" append="true">
+        <RollingFile name="goldiam_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/goldiam_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/goldiam_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -654,8 +654,8 @@
         <logger name="contractnet_log" level="ALL" additivity="false">
             <AppenderRef ref="contractnet_log"/>
         </logger>
-        <logger name="smartchain_log" level="ALL" additivity="false">
-            <AppenderRef ref="smartchain_log"/>
+        <logger name="goldiam_log" level="ALL" additivity="false">
+            <AppenderRef ref="goldiam_log"/>
         </logger>
         <logger name="eth_tokens_log" level="DEBUG" additivity="false">
             <AppenderRef ref="eth_tokens_log"/>
@@ -705,6 +705,7 @@
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">

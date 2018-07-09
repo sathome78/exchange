@@ -203,11 +203,16 @@ header li {
 
 .login_button {
     background-color: #b9c4d8;
-    color: #434e60;
+    color: #fff;
     padding: 10px 20px;
     margin: 10px;
     margin-left: 0px;
-    border: none;
+    border: 1px solid #fff;
+}
+
+.login_button:disabled{
+    color: #fff;
+    border: 1px solid #b9c4d8;
 }
 
 .inline-block {
@@ -1386,7 +1391,7 @@ td.blue-white {
     text-align: center;
     border: none;
     margin: 0;
-    opacity: 0.4;
+    opacity: 0.6;
     outline: none;
 }
 
@@ -2020,11 +2025,11 @@ input[type=email], .dropdown-menu__form,
 #merchant-commissions-table tr:hover {
     cursor: pointer;
 }
-#register_button {
+#register_button, #login_button {
     background: #525f74;
 }
 
-#register_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
+#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 
@@ -2409,4 +2414,9 @@ input.copyable:hover{
 #exclude-zero-balances-container {
     font-size: 1.3rem;
     margin: 10px 0;
+}
+
+#user-settings-menu > li.active > a {
+    background-color: #434e60;
+
 }

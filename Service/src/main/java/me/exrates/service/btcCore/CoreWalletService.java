@@ -16,7 +16,7 @@ import java.util.Optional;
  * Created by OLEG on 14.03.2017.
  */
 public interface CoreWalletService {
-  void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee);
+  void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine);
   
   void initBtcdDaemon(boolean zmqEnabled);
   
@@ -35,8 +35,10 @@ public interface CoreWalletService {
   List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
   
   List<BtcTransactionHistoryDto> listAllTransactions();
-  
-  List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
+
+    List<BtcPaymentFlatDto> listSinceBlockEx(@Nullable String blockHash, Integer merchantId, Integer currencyId);
+
+    List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
   
   BigDecimal estimateFee(int blockCount);
   

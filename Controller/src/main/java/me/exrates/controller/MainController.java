@@ -140,12 +140,12 @@ public class MainController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
-
+        boolean flag = false;
+        String captchaType = request.getParameter("captchaType");
         Map<String, String> xssErrors = (Map<String, String>) request.getAttribute("xssErrors");
-
-        if (xssErrors != null && !xssErrors.isEmpty()) {
+        if ( xssErrors.size() != 0 ){
             for (Map.Entry<String, String> errorsEntry : xssErrors.entrySet()) {
-                result.rejectValue(errorsEntry.getKey(), errorsEntry.getValue());
+                result.rejectValue(errorsEntry.getKey(),errorsEntry.getValue());
             }
             ModelAndView modelAndView = new ModelAndView("register", "user", user);
             modelAndView.addObject("cpch", "");
@@ -153,9 +153,6 @@ public class MainController {
             return modelAndView;
 
         }
-
-        boolean flag = false;
-        String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
             case "BOTDETECT": {
                 String captchaId = request.getParameter("captchaId");
@@ -312,7 +309,7 @@ public class MainController {
         }
         Authentication authentication = (Authentication) auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName());
+        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);

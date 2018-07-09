@@ -2,7 +2,7 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair,) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
