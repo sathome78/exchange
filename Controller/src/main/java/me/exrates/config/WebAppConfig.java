@@ -1025,7 +1025,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "CHE",
-                "CHE", true, ExConvert.Unit.AIWEI);
+                "CHE", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "engtServiceImpl")
