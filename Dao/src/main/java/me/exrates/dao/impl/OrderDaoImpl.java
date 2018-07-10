@@ -1168,7 +1168,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<RatesUSDForReportDto> getRatesToUSDForReport(){
 
-        String sqlBtc ="SELECT @btc_rate:=EX.exrate AS exrate\n" +
+        String sqlBtc ="SELECT EX.exrate AS exrate\n" +
                 " FROM EXORDERS EX\n" +
                 "INNER JOIN\n" +
                 "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
@@ -1186,7 +1186,7 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         String sqlEtc =
-                "SELECT @eth_rate:=EX.exrate AS exrate\n" +
+                "SELECT EX.exrate AS exrate\n" +
                 " FROM EXORDERS EX\n" +
                 "INNER JOIN\n" +
                 "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
