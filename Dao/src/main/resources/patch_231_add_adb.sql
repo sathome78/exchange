@@ -1,14 +1,14 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('AdBank', 'ADB', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('ADB', 'ADB', '0', 8, 8, 8);
+VALUES ('ADB', 'AdBank', 1, 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ADB'));
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
   VALUES ((SELECT id from MERCHANT WHERE name='ADB'),
           (SELECT id from CURRENCY WHERE name='ADB'),
-          0.00000001);
+          0.00000001, TRUE, TRUE);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='ADB')
 , '/client/img/merchants/ADB.png', 'ADB', (SELECT id from CURRENCY WHERE name='ADB'));
@@ -22,7 +22,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'ADB'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'USD'), 'ADB/USD', 170, 0, 'ADB/USD');
+VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'USD'), 'ADB/USD', 170, 1, 'ADB/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -30,7 +30,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN ORDER_TYPE OT where CP.name='ADB/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'BTC'), 'ADB/BTC', 160, 0, 'BTC', 'ADB/BTC');
+VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'BTC'), 'ADB/BTC', 160, 1, 'BTC', 'ADB/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -38,7 +38,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='ADB/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'ETH'), 'ADB/ETH', 160, 0, 'ETH', 'ADB/ETH');
+VALUES((select id from CURRENCY where name = 'ADB'), (select id from CURRENCY where name = 'ETH'), 'ADB/ETH', 160, 1, 'ETH', 'ADB/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
