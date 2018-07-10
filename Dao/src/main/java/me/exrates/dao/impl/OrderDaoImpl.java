@@ -1167,18 +1167,66 @@ public class OrderDaoImpl implements OrderDao {
     //query to get the last rates to exchange to USD
     @Override
     public List<RatesUSDForReportDto> getRatesToUSDForReport(){
-        String sql ="SELECT CWE.currency_id as id, CR.name,  IFNULL((SELECT exrate FROM EXORDERS where date_acception=RATES.date AND currency_pair_id=RATES.cp_id  \n" +
-                "ORDER BY id DESC LIMIT 1), rate_usd_additional) AS rate\n" +
-                "FROM\n" +
-                "(SELECT  CURRENCY_PAIR.currency1_id AS id, CURRENCY_PAIR.id AS cp_id, CURRENCY_PAIR.name AS name, MAX(date_acception) AS date FROM EXORDERS \n" +
-                "JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) \n" +
-                "AND (CURRENCY_PAIR.hidden != 1) \n" +
-                "AND CURRENCY_PAIR.name LIKE '%/USD'\n" +
-                "WHERE  status_id = 3  \n" +
-                "GROUP BY currency_pair_id) AS RATES\n" +
-                "right join COMPANY_WALLET_EXTERNAL CWE on (RATES.id = CWE.currency_id)\n" +
+
+        String sqlBtc ="SELECT @btc_rate:=EX.exrate AS exrate\n" +
+                " FROM EXORDERS EX\n" +
+                "INNER JOIN\n" +
+                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
+                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
+                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
+                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
+                "AND (CP.name LIKE '%BTC/USD')\n" +
+                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;\n";
+
+            int btc;
+        try {
+            btc = namedParameterJdbcTemplate.queryForObject(sqlBtc, new HashMap<>(), Integer.class);
+        } catch (EmptyResultDataAccessException e) {
+            btc = 0;
+        }
+
+        String sqlEtc =
+                "SELECT @eth_rate:=EX.exrate AS exrate\n" +
+                " FROM EXORDERS EX\n" +
+                "INNER JOIN\n" +
+                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
+                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
+                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
+                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
+                "AND (CP.name LIKE '%ETH/USD')\n" +
+                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
+
+        int eth;
+        try {
+            eth = namedParameterJdbcTemplate.queryForObject(sqlEtc, new HashMap<>(), Integer.class);
+        } catch (EmptyResultDataAccessException e) {
+            eth = 0;
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("btc", btc);
+        params.put("eth", eth);
+
+        String sql =
+                " select CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
+                "(select id, \n" +
+                "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
+                "when name LIKE '%/ETH' then exrate*:eth \n" +
+                "when name LIKE '%/USD' then exrate end) as rate\n" +
+                "\n" +
+                "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate \n" +
+                " FROM EXORDERS EX\n" +
+                "INNER JOIN\n" +
+                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
+                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
+                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
+                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
+                "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')\n" +
+                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY\n" +
+                "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
                 "join CURRENCY CR on (CWE.currency_id = CR.id);";
-        return namedParameterJdbcTemplate.query(sql, (rs, row) -> {
+
+        return namedParameterJdbcTemplate.query(sql, params,  (rs, row) -> {
             RatesUSDForReportDto dto = new RatesUSDForReportDto();
             dto.setId(rs.getInt("id"));
             dto.setCurrencyName(rs.getString("name"));
