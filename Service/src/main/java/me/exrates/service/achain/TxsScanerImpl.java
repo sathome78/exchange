@@ -50,26 +50,30 @@ public class TxsScanerImpl implements BlocksScaner {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleWithFixedDelay(this::scan, 0, 2, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::scan, 1, 2, TimeUnit.MINUTES);
     }
 
     @Override
     public void scan() {
-        log.info("achain scan tx's");
-        /*check is node synced*/
-        if (!nodeService.getSyncState()) {
-            log.debug("achain not synced");
-            return;
-        }
-        Long lastProcessedBlock = loadLastBlock();
-        /*scan to the pred-last block*/
-        Long endBlock = nodeService.getBlockCount() - 1;
-        log.info("achain end block {}, last block {}", endBlock, lastProcessedBlock);
-        while (lastProcessedBlock < endBlock) {
-            lastProcessedBlock++;
-            JSONArray transactions =  nodeService.getBlockTransactions(lastProcessedBlock);
-            checkTransactionsArray(transactions);
-            saveLastBlock(lastProcessedBlock);
+        try {
+            log.info("achain scan tx's");
+            /*check is node synced*/
+            if (!nodeService.getSyncState()) {
+                log.debug("achain not synced");
+                return;
+            }
+            Long lastProcessedBlock = loadLastBlock();
+            /*scan to the pred-last block*/
+            Long endBlock = nodeService.getBlockCount() - 1;
+            log.info("achain end block {}, last block {}", endBlock, lastProcessedBlock);
+            while (lastProcessedBlock < endBlock) {
+                lastProcessedBlock++;
+                JSONArray transactions =  nodeService.getBlockTransactions(lastProcessedBlock);
+                checkTransactionsArray(transactions);
+                saveLastBlock(lastProcessedBlock);
+            }
+        } catch (Exception e) {
+            log.error(e);
         }
     }
 
