@@ -131,17 +131,34 @@ function drawSysMessageForUsersAlert(object) {
     var $sys_mess_text = $('#sys_message_alert_text');
     if(object.enabled) {
         $sys_mess_block.show();
-        $sys_mess_title.text(object.title);
-        $sys_mess_text.text(object.text);
+        $sys_mess_title.html(object.title);
+        $sys_mess_text.html(object.text);
     } else {
         $sys_mess_block.hide();
-        $sys_mess_title.text('');
-        $sys_mess_text.text('')
+        $sys_mess_title.html('');
+        $sys_mess_text.html('');
     }
 }
 
+/**
+ * Show text via click on title of system message
+ */
+$(function () {
+    var acc = document.getElementsByClassName("accordion");
+    var i;
 
-
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight){
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    }
+});
 
 $(function alertInit() {
     sessionId = $('#session').text();

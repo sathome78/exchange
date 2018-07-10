@@ -45,8 +45,8 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
         AlertDto alertDto = AlertDto
                 .builder()
                 .title(rs.getString("title"))
-                .language(rs.getString("language"))
                 .text(rs.getString("content"))
+                .language(rs.getString("language"))
                 .build();
         return alertDto;
     };
@@ -97,7 +97,7 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
 
     @Override
     public AlertDto getAlertSystemMessageToUser(String language){
-        String sql = "SELECT title, language, content FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
+        String sql = "SELECT title, content, language FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("language", language);
         }};
@@ -105,12 +105,14 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
     }
 
     @Override
-    public AlertDto setAlertSystemMessageToUser(String title, String language, String content){
-        String sql = "SELECT title, language, content FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
+    public void setAlertSystemMessageToUser(AlertDto alertDto){
+        String sql = "UPDATE SERVICE_ALERTS_SYSTEM_MESSAGE SASM SET SASM.title = :title, SASM.content= :content WHERE SASM.language = :language";
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("language", language);
+            put("title", alertDto.getTitle());
+            put("content", alertDto.getText());
+            put("language", alertDto.getLanguage());
         }};
-        return jdbcTemplate.queryForObject(sql, params, getAlertsSystemMessageForUsersDtoMapper);
+        jdbcTemplate.update(sql, params);
     };
 
 }

@@ -70,8 +70,8 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(),
                             new String[]{p.getLenghtOfWorks().toString()}, locale));
                 } else if(alertType.equals(AlertType.SYSTEM_MESSAGE_TO_USERS)){
-                    p.setTitle(userAlertsDao.getAlertSystemMessageToUser(locale.toString()).getTitle());
-                    p.setText(userAlertsDao.getAlertSystemMessageToUser(locale.toString()).getText());
+                    p.setTitle(getAlertSystemMessageToUser(locale.toString()).getTitle());
+                    p.setText(getAlertSystemMessageToUser(locale.toString()).getText());
                 } else {
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(), null, locale));
                 }
@@ -80,9 +80,19 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
     }
 
     @Override
+    public AlertDto getAlertSystemMessageToUser(String language){
+        return userAlertsDao.getAlertSystemMessageToUser(language);
+    }
+
+    @Override
     @Transactional
     public AlertDto getAlert(AlertType alertType) {
         return userAlertsDao.getAlert(alertType.name());
+    }
+
+    @Override
+    public void setAlertSystemMessageToUser(AlertDto alertDto){
+        userAlertsDao.setAlertSystemMessageToUser(alertDto);
     }
 
     @Transactional

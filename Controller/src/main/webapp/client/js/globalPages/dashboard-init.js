@@ -191,6 +191,10 @@ function handleAlerts(object) {
             drawTechAlert(object);
             break;
         }
+        case "SYSTEM_MESSAGE_TO_USERS" : {
+            drawSysMessageForUsersAlert(object);
+            break;
+        }
         case "UPDATE" : {
             showHideUpdAlert(object);
             break;
@@ -256,6 +260,21 @@ function drawTechAlert(object) {
     } else {
         $tech_block.hide();
         $tech_text.text('')
+    }
+}
+
+function drawSysMessageForUsersAlert(object) {
+    var $sys_mess_block = $('#sys_message_alert');
+    var $sys_mess_title = $('#sys_message_alert_title');
+    var $sys_mess_text = $('#sys_message_alert_text');
+    if(object.enabled) {
+        $sys_mess_block.show();
+        $sys_mess_title.html(object.title);
+        $sys_mess_text.html(object.text);
+    } else {
+        $sys_mess_block.hide();
+        $sys_mess_title.html('');
+        $sys_mess_text.html('');
     }
 }
 
@@ -667,3 +686,23 @@ function doPoll($pollDialog) {
         }
     }
 }
+
+/**
+ * Show text via click on title of system message
+ */
+$(function () {
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight){
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    }
+});

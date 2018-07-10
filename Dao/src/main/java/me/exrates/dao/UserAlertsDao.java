@@ -29,10 +29,7 @@ public interface UserAlertsDao {
     /**
      * Method for type of alert "SYSTEM_MESSAGE_TO_USER".
      * Set alert system message for a user with a specific locale.
-     * @param title
-     * @param language
-     * @param content
-     * @return AlertDto
+     * @param alertDto
      */
-    AlertDto setAlertSystemMessageToUser(String title, String language, String content);
+    void setAlertSystemMessageToUser(AlertDto alertDto);
 }

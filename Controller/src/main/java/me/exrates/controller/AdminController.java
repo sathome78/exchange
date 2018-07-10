@@ -1563,12 +1563,6 @@ public class AdminController {
     model.addAttribute("sysMessage", alertsService.getAlert(AlertType.SYSTEM_MESSAGE_TO_USERS));
     return "admin/alertMessages";
   }
-  @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/getSubtractFeeStatus", method = GET)
-  public Boolean getSubtractFeeFromAmount(@PathVariable String merchantName) {
-    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
-    return walletService.getSubtractFeeFromAmount();
-  }
 
   @AdminLoggable
   @PostMapping(value = "/2a8fy7b07dxe44/alerts/update")
@@ -1576,6 +1570,28 @@ public class AdminController {
     alertsService.updateAction(alertDto);
     return "redirect:/2a8fy7b07dxe44/alerts";
   }
+
+  @AdminLoggable
+  @PostMapping(value = "/2a8fy7b07dxe44/alerts/sysmessage/update")
+  public String setAlertSystemMessageToUser(AlertDto alertDto) {
+    alertsService.setAlertSystemMessageToUser(alertDto);
+    return "redirect:/2a8fy7b07dxe44/alerts";
+  }
+
+  @AdminLoggable
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/alerts/sysmessage", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public AlertDto getUserComments(@RequestParam String language) {
+    return alertsService.getAlertSystemMessageToUser(language);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/getSubtractFeeStatus", method = GET)
+  public Boolean getSubtractFeeFromAmount(@PathVariable String merchantName) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    return walletService.getSubtractFeeFromAmount();
+  }
+
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setSubtractFee", method = POST)
   public void setSubtractFeeFromAmount(@PathVariable String merchantName,
