@@ -15,6 +15,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -47,6 +48,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     private CyclicBarrier barrier = new CyclicBarrier(99999);
 
     private ReentrantLock timerLock = new ReentrantLock();
+    private Condition myCondition = lock.newCondition();
 
     /*constructor*/
     public ChartCacheUnit(Integer currencyPairId,
@@ -72,7 +74,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
             log.debug("update data {} {}", currencyPairId, timeFrame);
             updateCache(cachedData != null );
         }
-        log.debug("return data {} {}", currencyPairId, timeFrame);
+        log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
     }
 
@@ -141,21 +143,25 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         }
     }
 
+    private LocalDateTime lastLock;
+
     private void updateCache(boolean appendLastEntriesOnly) {
         log.debug("try update cahce {} {}", currencyPairId, timeFrame);
-        try {
-            if (lock.tryLock(5, TimeUnit.SECONDS)) {
-                log.debug("lock was unlocked {} {}", currencyPairId, timeFrame);
-                try {
-                    performUpdate(appendLastEntriesOnly);
-                    log.debug("end update cache {} {}", currencyPairId, timeFrame);
-                } finally {
-                    lock.unlock();
-                    barrier.reset();
-                }
-            } else if (cachedData == null) {
+        if (tryLockWithTimeout()) {
+            lastLock = LocalDateTime.now();
+            log.debug("lock was unlocked {} {}", currencyPairId, timeFrame);
+            try {
                 performUpdate(appendLastEntriesOnly);
-            } else {
+                log.debug("end update cache {} {}", currencyPairId, timeFrame);
+                barrier.reset();
+            } finally {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
+        } else {
+            if (cachedData == null) {
+                performUpdate(appendLastEntriesOnly);
                 log.debug("wait update data {} {}", currencyPairId, timeFrame);
                 try {
                     barrier.await(10, TimeUnit.SECONDS);
@@ -163,9 +169,17 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                     log.warn(e);
                 }
             }
-        } catch (InterruptedException e) {
-            log.error(e);
         }
+    }
+
+    private synchronized boolean tryLockWithTimeout() {
+        if (lock.tryLock()) {
+            return true;
+        } else if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
+           lock = new ReentrantLock();
+           return lock.tryLock();
+        }
+        return false;
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
