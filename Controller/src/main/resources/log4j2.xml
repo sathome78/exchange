@@ -682,6 +682,7 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">
