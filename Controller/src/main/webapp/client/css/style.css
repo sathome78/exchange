@@ -2420,3 +2420,7 @@ input.copyable:hover{
     background-color: #434e60;
 
 }
+
+#btcResultInfoTable td:first-child {
+    width: 300px;
+}

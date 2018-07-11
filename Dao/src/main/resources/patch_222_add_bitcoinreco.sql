@@ -1,7 +1,10 @@
+ALTER TABLE withdraw_request MODIFY wallet VARCHAR(128) NOT NULL;
+
+
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('BRECO', 'BRECO', 2, 'brecoServiceImpl', 'CRYPTO');
+VALUES ('BitcoinReco', 'BRECO', 2, 'brecoServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('BRECO', 'BRECO', 1, 8, 8, 8);
+VALUES ('BRECO', 'BitcoinReco', 1, 8, 8, 8);
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='BRECO'));
 
 
