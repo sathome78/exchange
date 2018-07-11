@@ -87,7 +87,7 @@
                         </form>
                     </div>
 
-                    <div class="text-center"><h5>System message for user</h5></div>
+                    <div class="text-center"><h5><loc:message code="admin.alert.aboutSystemMessage"/></h5></div>
                     <form id="systemMessageForUser" method="post" action="/2a8fy7b07dxe44/alerts/update"
                           class="form_full_width form_auto_height" >
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -100,7 +100,7 @@
                         </div>
                         <div class="col-md-3 input-block-wrapper__input-wrapper">
                             <button id="editorSystemMessageForUser" class="btn btn-warning" type="button">
-                                Editor</button>
+                                <loc:message code="message.alertSystemMessage.callEditor"/></button>
                         </div>
 
                         <input name="alertType" hidden value="${sysMessage.alertType}"/>

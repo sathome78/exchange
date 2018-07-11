@@ -55,14 +55,14 @@
 }
 
 /* Style the buttons that are used to open and close the accordion panel */
-.accordion {
-    background-color: #eee;
-    color: #444;
+#sys_message_alert_title.accordion {
+    background-color: #f8ebcf;
+    color: #b48728;
     cursor: pointer;
     padding: 18px;
     width: 100%;
     text-align: left;
-    border: none;
+    border: 1px solid #f8ebcf;
     outline: none;
     transition: 0.4s;
     font-size: 14px;
@@ -70,20 +70,23 @@
 }
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .accordion:hover {
+#sys_message_alert_title.active, #sys_message_alert_title.accordion:hover {
     background-color: #ccc;
 }
 
 /* Style the accordion panel. Note: hidden by default */
-.panel {
+#sys_message_alert_text_div.panel-for-alert-system-message {
     padding: 0 18px;
     background-color: white;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
+    border-left: 1px solid #f8ebcf;
+    border-right: 1px solid #f8ebcf;
+    border-bottom: 1px solid #f8ebcf;
 }
 
-.accordion:after {
+#sys_message_alert_title.accordion:after {
     content: '\02795'; /* Unicode character for "plus" sign (+) */
     font-size: 14px;
     color: #777;
@@ -91,6 +94,6 @@
     margin-left: 5px;
 }
 
-.active:after {
+#sys_message_alert_title.active:after {
     content: "\2796"; /* Unicode character for "minus" sign (-) */
 }

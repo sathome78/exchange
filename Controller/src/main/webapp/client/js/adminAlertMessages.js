@@ -42,8 +42,6 @@ $(document).ready(function () {
 });
 
 $(function () {
-    $('#block-for-title').on('click', showSystemMessage);
-
     $('#editorSystemMessageForUser').on('click', callEditorSystemMessageForUser);
     $('#editorSystemMessageForUser').on('click', getInfoWhenCallModalViewForEditingSysMessage);
 
@@ -52,26 +50,6 @@ $(function () {
     initTinyMce();
 
     $('#system-alert-message-update').on('click', sendUpdateSystemMessageToUser);
-});
-
-/**
- * Show text via click on title of system message
- */
-$(function () {
-    var acc = document.getElementsByClassName("accordion");
-    var i;
-
-    for (i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var panel = this.nextElementSibling;
-            if (panel.style.maxHeight){
-                panel.style.maxHeight = null;
-            } else {
-                panel.style.maxHeight = panel.scrollHeight + "px";
-            }
-        });
-    }
 });
 
 /**

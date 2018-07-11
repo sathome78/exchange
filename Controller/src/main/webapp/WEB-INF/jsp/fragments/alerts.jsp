@@ -4,13 +4,6 @@
         <h4 class="text-center" id="tech_alert_text"></h4>
     </div>
 
-    <div class="alert-system-message" id="sys_message_alert" style="display: none">
-        <button class="accordion" id="sys_message_alert_title"></button>
-        <div class="panel">
-            <h5 id="sys_message_alert_text"></h5>
-        </div>
-    </div>
-
     <div class="alert alert-technical-work" id="upd_alert" style="display: none; padding-bottom: 0">
         <h4 class="text-center" id="upd_alert_text"></h4>
         <br>
@@ -56,6 +49,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="alert-system-message" id="sys_message_alert" style="display: none">
+        <button class="accordion" id="sys_message_alert_title"></button>
+        <div class="panel-for-alert-system-message" id="sys_message_alert_text_div">
+            <h5 id="sys_message_alert_text"></h5>
         </div>
     </div>
 </div>
