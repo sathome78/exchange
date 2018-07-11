@@ -2421,6 +2421,10 @@ input.copyable:hover{
 
 }
 
+#btcResultInfoTable td {
+    word-break: break-all;
+}
+
 #btcResultInfoTable td:first-child {
     width: 300px;
 }
