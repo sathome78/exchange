@@ -145,6 +145,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
     private LocalDateTime lastLock;
 
+
     private void updateCache(boolean appendLastEntriesOnly) {
         log.debug("try update cahce {} {}", currencyPairId, timeFrame);
         if (tryLockWithTimeout()) {
@@ -160,15 +161,16 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }
             }
         } else {
-            if (cachedData == null) {
-                performUpdate(appendLastEntriesOnly);
                 log.debug("wait update data {} {}", currencyPairId, timeFrame);
                 try {
-                    barrier.await(10, TimeUnit.SECONDS);
+                    barrier.await(40, TimeUnit.SECONDS);
+                    if (cachedData == null) {
+                        /*тут рекурсия получается, но без данных трэд не уйдет*/
+                        updateCache(appendLastEntriesOnly);
+                    }
                 } catch (Exception e) {
                     log.warn(e);
                 }
-            }
         }
     }
 
@@ -178,8 +180,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         } else if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
            lock = new ReentrantLock();
            return lock.tryLock();
-        }
-        return false;
+        } else return false;
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
