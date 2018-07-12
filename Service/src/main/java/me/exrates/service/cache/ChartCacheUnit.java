@@ -8,6 +8,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.events.ChartCacheUpdateEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -72,7 +73,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         log.debug("getting data {} {}", currencyPairId, timeFrame);
         if (cachedData == null || isUpdateCasheRequired()) {
             log.debug("update data {} {}", currencyPairId, timeFrame);
-            updateCache(cachedData != null );
+            updateCache(cachedData != null);
         }
         log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
@@ -94,7 +95,8 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     private boolean isTimeForUpdate() {
         return lastUpdateDate == null || lastUpdateDate.plusSeconds(minUpdateIntervalSeconds).compareTo(LocalDateTime.now()) <= 0;
     }
-//    @Override
+
+    //    @Override
 //    public void setNeedToUpdate() {
 //        log.debug("setting update data {} {}", currencyPairId, timeFrame);
 //        if (!lazyUpdate) {
@@ -130,10 +132,10 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                            log.debug("execute task update data {} {}", currencyPairId, timeFrame);
-                            timerLock = new ReentrantLock();
-                            updateCache(true);
-                            eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
+                        log.debug("execute task update data {} {}", currencyPairId, timeFrame);
+                        timerLock = new ReentrantLock();
+                        updateCache(true);
+                        eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 
@@ -161,31 +163,33 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }
             }
         } else {
-                log.debug("wait update data {} {}", currencyPairId, timeFrame);
-                try {
-                    barrier.await(40, TimeUnit.SECONDS);
-                    if (cachedData == null) {
-                        /*тут рекурсия получается, но без данных трэд не уйдет*/
-                        updateCache(appendLastEntriesOnly);
-                    }
-                } catch (Exception e) {
-                    log.warn(e);
+            log.debug("wait update data {} {}", currencyPairId, timeFrame);
+            try {
+                barrier.await(40, TimeUnit.SECONDS);
+                if (cachedData == null) {
+                    /*тут рекурсия получается, но без данных трэд не уйдет*/
+//                    updateCache(appendLastEntriesOnly);
                 }
+            } catch (Exception e) {
+                log.warn(e + " : " + currencyPairId + " - " + timeFrame);
+            }
         }
     }
 
     private synchronized boolean tryLockWithTimeout() {
         if (lock.tryLock()) {
             return true;
-        } else if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
-           lock = new ReentrantLock();
-           return lock.tryLock();
-        } else return false;
+        }
+        if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
+            lock = new ReentrantLock();
+            return lock.tryLock();
+        }
+        return false;
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
         log.debug("update cahce {} {}", currencyPairId, timeFrame);
-        if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
+        if (appendLastEntriesOnly && !CollectionUtils.isEmpty(cachedData)) {
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);
             LocalDateTime lastBarStartTime = lastBar.getBeginPeriod();
             List<CandleChartItemDto> newData = orderService.getLastDataForCandleChart(currencyPairId, lastBarStartTime, timeFrame.getResolution());
