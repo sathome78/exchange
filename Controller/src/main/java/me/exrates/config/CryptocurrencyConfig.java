@@ -188,6 +188,12 @@ public class CryptocurrencyConfig {
                 "FTO", "FTO", 4, 20, false, false);
     }
 
+    @Bean(name = "bclServiceImpl")
+    public BitcoinService bitcoinCleanService() {
+        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
+                "BitcoinClean", "BCL", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 

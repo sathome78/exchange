@@ -137,7 +137,13 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public boolean ifEnoughMoney(int walletId, BigDecimal amountForCheck) {
     BigDecimal balance = getWalletABalance(walletId);
-    return balance.compareTo(amountForCheck) >= 0;
+    boolean result = balance.compareTo(amountForCheck) >= 0;
+    if (!result) {
+      log.error(String.format("Not enough wallet money: wallet id %s, actual amount %s but needed %s", walletId,
+              BigDecimalProcessing.formatNonePoint(balance, false),
+              BigDecimalProcessing.formatNonePoint(amountForCheck, false)));
+    }
+    return result;
   }
 
   @Transactional(propagation = Propagation.NESTED)

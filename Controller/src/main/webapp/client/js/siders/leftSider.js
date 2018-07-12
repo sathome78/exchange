@@ -55,6 +55,8 @@ function LeftSiderClass() {
                         onWalletStatisticRefresh();
                     }
                 }
+                setMyWalletsFilter();
+                excludeZero();
                 clearTimeout(timeOutIdForStatisticsForMyWallets);
                 timeOutIdForStatisticsForMyWallets = setTimeout(function () {
                     that.getStatisticsForMyWallets(true);
@@ -105,6 +107,12 @@ function LeftSiderClass() {
         $('#pair-filter').on('keyup', function (e) {
             setPairFilter();
         });
+        $('#my-wallets-filter').on('keyup', function (e) {
+            setMyWalletsFilter();
+        });
+        $('#exclude-zero-statbalances').change(function() {
+            excludeZero();
+        });
         generateReferral();
     })();
 
@@ -119,6 +127,31 @@ function LeftSiderClass() {
             }
         })
     }
+
+    function setMyWalletsFilter() {
+        var str = $('#my-wallets-filter').val().toUpperCase();
+        $('#mywallets_table').find('td:first-child').each(function (idx) {
+            var currency = $(this).text().toUpperCase();
+            if (!currency || currency.indexOf(str) != -1) {
+                $(this).parent().removeClass('hidden');
+            } else {
+                $(this).parent().addClass('hidden');
+            }
+        })
+    }
+
+    function excludeZero() {
+        var excludeZeroes = $('#exclude-zero-statbalances').prop('checked');
+        $('#mywallets_table').find('td:nth-child(2)').each(function (idx) {
+            var currency = $(this).text();
+            if (excludeZeroes && currency === '0.00000') {
+                $(this).parent().addClass('hidden');
+            } else {
+                $(this).parent().removeClass('hidden');
+            }
+        })
+    }
+
 
     function generateReferral() {
         $.ajax('/generateReferral', {
