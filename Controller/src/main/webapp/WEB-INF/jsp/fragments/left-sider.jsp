@@ -22,6 +22,16 @@
             </div>
         </div>
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
+        &#160;
+            <span class="glyphicon glyphicon-search"></span>
+            <input id="my-wallets-filter" size="20%"
+                   placeholder=<loc:message code="currency.search"/>>
+        <div class="parent">
+            <div class="total_usd_child">
+                <label for="exclude-zero-statbalances"><loc:message code="userWallets.excludeZero"/></label>
+            </div>
+            <input type='checkbox' id='exclude-zero-statbalances'>
+        </div>
         <hr class="under_h4">
         <div class="parent">
             <div class="total_usd_child">

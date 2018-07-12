@@ -754,6 +754,9 @@ public class WalletDaoImpl implements WalletDao {
     BigDecimal newActiveBalance = BigDecimalProcessing.doAction(wallet.getActiveBalance(), amount, ActionType.ADD);
     BigDecimal newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.SUBTRACT);
     if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+      log.error(String.format("Negative balance: active %s, reserved %s ",
+              BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
+              BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
       return WalletTransferStatus.CAUSED_NEGATIVE_BALANCE;
     }
         /**/
@@ -845,6 +848,9 @@ public class WalletDaoImpl implements WalletDao {
       newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.ADD);
     }
     if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+      log.error(String.format("Negative balance: active %s, reserved %s ",
+              BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
+              BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
       return WalletTransferStatus.CAUSED_NEGATIVE_BALANCE;
     }
         /**/

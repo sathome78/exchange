@@ -7,16 +7,20 @@
 <div id="balance-page" data-menuitemid="menu-mywallets" class="balance center-frame-container hidden">
     <h4 class="h4_green"><loc:message code="mywallets.title"/></h4>
     <a class="btn btn-default pull-right" id="voucher_reedem_dialog_button"><loc:message code="voucher.enter.code"/></a>
-
+    <input size="30%" type="text" id="myInputTextField" onkeyup="mySearchFunction()" placeholder="Search for currency..">
+    &#160; &#160;&#160;
+    <input type='checkbox' id='exclude-zero-mybalances'>
+    <label for="exclude-zero-mybalances"><loc:message code="userWallets.excludeZero"/></label>
     <table id="balance-table" class="balance__table">
         <tbody>
         <tr>
-            <th colspan="2" class="left blue-white"><loc:message code="mywallets.currency"/></th>
-            <th class="right blue-white"><loc:message code="mywallets.balance"/></th>
-            <th class="right blue-white"><loc:message code="mywallets.onconfirmation"/></th>
-            <th class="right blue-white"><loc:message code="mywallets.rbalance"/></th>
-            <th class="right blue-white"><loc:message code="mywallets.reservedonorders"/></th>
-            <th class="right blue-white"><loc:message code="mywallets.reservedonwithdraw"/></th>
+            <th class="left blue-white"><a href="#" class="white"><loc:message code="mywallets.currency"/></a></th>
+            <th class="blue-white"></th>
+            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.balance"/></a></th>
+            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.onconfirmation"/></a></th>
+            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.rbalance"/></a></th>
+            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.reservedonorders"/></a></th>
+            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.reservedonwithdraw"/></a></th>
             <th class="right blue-white"></th>
         </tr>
         <script type="text/template" id="balance-table_row">
