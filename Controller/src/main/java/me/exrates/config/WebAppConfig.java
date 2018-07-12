@@ -1028,16 +1028,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-    @Bean(name = "cheServiceImpl")
-    public EthTokenService cheService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x632f62fcf63cb56380ffd27d63afcf5f1349f73f");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CHE",
-                "CHE", false, ExConvert.Unit.AIWEI);
-    }
-
     @Bean(name = "daccServiceImpl")
     public EthTokenService daccService() {
         List<String> tokensList = new ArrayList<>();
