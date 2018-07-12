@@ -102,7 +102,7 @@ function sendUpdateSystemMessageToUser() {
             "language":language
         },
         success: function () {
-            successNoty('System message for users update successfully.');
+            successNoty('System message for users updated successfully.');
             $("#alert-sys-mess-update-modal").modal('hide');
         },
         error: function (err) {
