@@ -79,11 +79,12 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
     }
 
     @Override
-    public Iterator<Api.GetTransactionsResponse> getTransactions(int lastBlock) {
+    public Iterator<Api.GetTransactionsResponse> getTransactions(int startBlock, int endBlockHeight) {
         WalletServiceGrpc.WalletServiceBlockingStub stub = WalletServiceGrpc.newBlockingStub(getChannel());
         return stub.getTransactions(Api.GetTransactionsRequest
                 .newBuilder()
-                .setStartingBlockHeight(lastBlock)
+                .setStartingBlockHeight(startBlock)
+                .setEndingBlockHeight(endBlockHeight)
                 .build());
     }
 

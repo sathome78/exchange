@@ -41,14 +41,20 @@ public class TxServiceImpl implements TxService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 10, 180, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
     }
 
 
     @Override
     public void checkTransactions() {
         log.debug("decred check txs");
-        Iterator<Api.GetTransactionsResponse> response = decredGrpcService.getTransactions(Integer.valueOf(Objects.requireNonNull(loadLastBlock())));
+        int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 2;
+        int firstBlockToScan = Integer.valueOf(loadLastBlock() + 1);
+        log.debug("first block {}, last block {}", firstBlockToScan, lastBlockToScan);
+        if (firstBlockToScan >= lastBlockToScan) {
+            return;
+        }
+        Iterator<Api.GetTransactionsResponse> response = decredGrpcService.getTransactions(firstBlockToScan, lastBlockToScan);
         log.debug("response has next {}",response.hasNext());
         while (response.hasNext())
         {

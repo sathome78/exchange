@@ -32,7 +32,7 @@ public class GrpcService {
             try {
                 ClassLoader loader = GrpcService.class.getClassLoader();
                 InputStream streamCert = loader.getResourceAsStream("ca.crt");
-                channel = NettyChannelBuilder.forAddress("localhost", 9111)
+                channel = NettyChannelBuilder.forAddress("172.31.0.148", 9111)
                         .sslContext(GrpcSslContexts
                                 .forClient()
                                 .trustManager(streamCert)
