@@ -41,43 +41,47 @@ public class TxServiceImpl implements TxService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
     }
 
 
     @Override
     public void checkTransactions() {
-        log.debug("decred check txs");
-        int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 2;
-        int firstBlockToScan = Integer.valueOf(loadLastBlock() + 1);
-        log.debug("first block {}, last block {}", firstBlockToScan, lastBlockToScan);
-        if (firstBlockToScan >= lastBlockToScan) {
-            return;
-        }
-        Iterator<Api.GetTransactionsResponse> response = decredGrpcService.getTransactions(firstBlockToScan, lastBlockToScan);
-        log.debug("response has next {}",response.hasNext());
-        while (response.hasNext())
-        {
-            Api.GetTransactionsResponse txResp = response.next();
-            log.debug("tx response {}", txResp.hasMinedTransactions());
-            List<Api.TransactionDetails> transactionDetails = txResp.getMinedTransactions().getTransactionsList();
-            Api.BlockDetails blockDetails = txResp.getMinedTransactions();
-            Integer block = blockDetails.getHeight();
-            saveLastHash(block.toString());
-            transactionDetails.forEach(tr-> {
-                log.debug("income tx {}", tr);
-                Api.TransactionDetails.TransactionType transactionType = tr.getTransactionType();
-               if (transactionType.equals(Api.TransactionDetails.TransactionType.REGULAR)) {
-                   ByteString hash = tr.getHash();
-                   tr.getCreditsList().forEach(dl -> {
-                       String address = dl.getAddress();
-                       long amount = dl.getAmount();
-                       if (decredService.getAddresses().contains(address)) {
-                           tryToRefill(address, hash.toByteArray(), amount);
-                       }
-                   });
-               }
-            });
+        try {
+            log.debug("decred check txs");
+            int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 2;
+            int firstBlockToScan = Integer.valueOf(loadLastBlock() + 1);
+            log.debug("first block {}, last block {}", firstBlockToScan, lastBlockToScan);
+            if (firstBlockToScan >= lastBlockToScan) {
+                return;
+            }
+            Iterator<Api.GetTransactionsResponse> response = decredGrpcService.getTransactions(firstBlockToScan, lastBlockToScan);
+            log.debug("response has next {}",response.hasNext());
+            while (response.hasNext())
+            {
+                Api.GetTransactionsResponse txResp = response.next();
+                log.debug("tx response {}", txResp.hasMinedTransactions());
+                List<Api.TransactionDetails> transactionDetails = txResp.getMinedTransactions().getTransactionsList();
+                Api.BlockDetails blockDetails = txResp.getMinedTransactions();
+                Integer block = blockDetails.getHeight();
+                saveLastHash(block.toString());
+                transactionDetails.forEach(tr-> {
+                    log.debug("income tx {}", tr);
+                    Api.TransactionDetails.TransactionType transactionType = tr.getTransactionType();
+                   if (transactionType.equals(Api.TransactionDetails.TransactionType.REGULAR)) {
+                       ByteString hash = tr.getHash();
+                       tr.getCreditsList().forEach(dl -> {
+                           String address = dl.getAddress();
+                           long amount = dl.getAmount();
+                           if (decredService.getAddresses().contains(address)) {
+                               tryToRefill(address, hash.toByteArray(), amount);
+                           }
+                       });
+                   }
+                });
+            }
+        } catch (NumberFormatException e) {
+            log.error(e);
         }
     }
 
