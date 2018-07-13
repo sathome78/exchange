@@ -519,6 +519,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         log.error(e);
       }
     });
+    try {
+      onIncomingBlock(bitcoinWalletService.getBlockByHash(bitcoinWalletService.getLastBlockHash()));
+    } catch (Exception e) {
+      log.error(e);
+    }
 
   }
 
