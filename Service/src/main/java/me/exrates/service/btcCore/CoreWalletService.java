@@ -67,4 +67,6 @@ public interface CoreWalletService {
     String getTxIdByHex(String hex);
 
   String getLastBlockHash();
+
+  BtcBlockDto getBlockByHash(String blockHash);
 }

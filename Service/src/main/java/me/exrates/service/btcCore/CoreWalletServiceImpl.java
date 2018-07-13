@@ -621,6 +621,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       }
   }
 
+  @Override
+  public BtcBlockDto getBlockByHash(String blockHash) {
+      try {
+          Block block = btcdClient.getBlock(blockHash);
+          return new BtcBlockDto(block.getHash(), block.getHeight(), block.getTime());
+      } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+          throw new BitcoinCoreException(e);
+      }
+  }
+
   @PreDestroy
   private void shutDown() {
     outputUnlockingExecutor.shutdown();

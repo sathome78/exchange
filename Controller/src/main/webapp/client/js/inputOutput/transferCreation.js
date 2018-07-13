@@ -109,6 +109,7 @@ $(function transferCreation() {
             if (!checkTransferParamsEnter(recipient)) {
                 return;
             }
+
             $transferParamsDialog.one('hidden.bs.modal', function () {
                 checkReception();
             });
@@ -117,6 +118,20 @@ $(function transferCreation() {
         /**/
         $transferParamsDialog.modal();
     }
+
+    /*function showFinPassModal() {
+     $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
+     e.preventDefault();
+     var finPassword = $finPasswordDialog.find("#finpassword").val();
+     $finPasswordDialog.one("hidden.bs.modal", function () {
+     performTransfer(finPassword);
+     });
+     $finPasswordDialog.modal("hide");
+     });
+     $finPasswordDialog.modal({
+     backdrop: 'static'
+     });
+     }*/
 
     function checkReception() {
         $.ajax({
@@ -134,20 +149,6 @@ $(function transferCreation() {
         });
     }
 
-    /*function showFinPassModal() {
-        $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
-            e.preventDefault();
-            var finPassword = $finPasswordDialog.find("#finpassword").val();
-            $finPasswordDialog.one("hidden.bs.modal", function () {
-                performTransfer(finPassword);
-            });
-            $finPasswordDialog.modal("hide");
-        });
-        $finPasswordDialog.modal({
-            backdrop: 'static'
-        });
-    }*/
-
     function performTransfer() {
         var data = {
             currency: currency,
@@ -160,7 +161,6 @@ $(function transferCreation() {
     }
 
     function sendRequest(data) {
-        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForTransferCreate,
@@ -280,5 +280,3 @@ $(function transferCreation() {
     }
 
 });
-
-

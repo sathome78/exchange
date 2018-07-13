@@ -216,6 +216,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     }catch (RuntimeException e) {
       throw new UserNotFoundException(messageSource.getMessage("transfer.nonExistentUser", new Object[]{payment.getRecipient()}, locale));
     }
+
     Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .initialAmount(commissionData.getAmount())
