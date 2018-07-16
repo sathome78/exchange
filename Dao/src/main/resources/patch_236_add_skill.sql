@@ -22,7 +22,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'SKILL'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'USD'), 'SKILL/USD', 170, 1, 'SKILL/USD');
+VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'USD'), 'SKILL/USD', 170, 0, 'SKILL/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -30,7 +30,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN ORDER_TYPE OT where CP.name='SKILL/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'BTC'), 'SKILL/BTC', 160, 1, 'BTC', 'SKILL/BTC');
+VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'BTC'), 'SKILL/BTC', 160, 0, 'BTC', 'SKILL/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -38,7 +38,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='SKILL/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'ETH'), 'SKILL/ETH', 160, 1, 'ETH', 'SKILL/ETH');
+VALUES((select id from CURRENCY where name = 'SKILL'), (select id from CURRENCY where name = 'ETH'), 'SKILL/ETH', 160, 0, 'ETH', 'SKILL/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
