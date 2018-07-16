@@ -882,7 +882,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "SPD",
-                "SPD", true, ExConvert.Unit.ETHER);
+                "SPD", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "mtcServiceImpl")
