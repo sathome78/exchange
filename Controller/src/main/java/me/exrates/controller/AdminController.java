@@ -1365,8 +1365,9 @@ public class AdminController {
           consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void sendToMany(@PathVariable String merchantName,
+  public void checkPayments(@PathVariable String merchantName,
                                                @RequestParam(required = false) String blockhash) {
+    LOG.info("Checking payments for hash " + blockhash);
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
     walletService.scanForUnprocessedTransactions(blockhash);
   }
