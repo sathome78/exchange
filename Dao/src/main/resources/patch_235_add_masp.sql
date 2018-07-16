@@ -22,7 +22,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'MASP'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'USD'), 'MASP/USD', 170, 1, 'MASP/USD');
+VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'USD'), 'MASP/USD', 170, 0, 'MASP/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -30,7 +30,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN ORDER_TYPE OT where CP.name='MASP/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'BTC'), 'MASP/BTC', 160, 1, 'BTC', 'MASP/BTC');
+VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'BTC'), 'MASP/BTC', 160, 0, 'BTC', 'MASP/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -38,7 +38,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='MASP/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'ETH'), 'MASP/ETH', 160, 1, 'ETH', 'MASP/ETH');
+VALUES((select id from CURRENCY where name = 'MASP'), (select id from CURRENCY where name = 'ETH'), 'MASP/ETH', 160, 0, 'ETH', 'MASP/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
