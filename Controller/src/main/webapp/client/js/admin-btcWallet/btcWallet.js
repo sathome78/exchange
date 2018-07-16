@@ -184,6 +184,7 @@ $(function () {
 
     $('#submit-check-payments-btn').click(function () {
         console.log('Start checking');
+        $('#btc-check-payments-modal').modal('hide');
         $('#submit-check-payments-btn').prop('disabled', true);
         var url = urlBase + 'checkPayments';
         var data = {
@@ -204,7 +205,6 @@ $(function () {
            complete: function () {
                console.log('request completed');
                $loadingDialog.modal('hide');
-               $('#btc-check-payments-modal').modal('hide');
                $('#submit-check-payments-btn').prop('disabled', false);
            }
        })
