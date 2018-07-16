@@ -200,7 +200,6 @@ $(function () {
                'X-CSRF-Token': $("input[name='_csrf']").val()
            },
            type: 'POST',
-           async: false,
            data: data,
            complete: function () {
                console.log('request completed');
