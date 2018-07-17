@@ -195,12 +195,6 @@ public class CryptocurrencyConfig {
                 "EQL", "EQL", 4, 20, false);
     }
 
-    @Bean(name = "ftoServiceImpl")
-    public BitcoinService ftoService() {
-        return new BitcoinServiceImpl("merchants/fto_wallet.properties",
-                "FTO", "FTO", 4, 20, false, false);
-    }
-
     // LISK-like cryptos
 
 
