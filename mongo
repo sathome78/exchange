@@ -1,0 +1,149 @@
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --dbpath d:\mongo\data
+
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\3.6\mongod.cfg"
+
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\3.6\mongod.cfg" --install
+
+net start MongoDB, net stop MongoDB
+
+"C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
+
+"C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe" birzha -u admin -p jjsdfhe76_7345hs --host ec2-52-14-105-249.us-east-2.compute.amazonaws.com --port 27017
+
+atlas:
+L:maxweb11110@gmail.com
+p:1D7Ab546D2_
+
+testsInstance:
+L:exrates_dev
+P:slBzg0bYLmMoTsWc
+L:exrates_admin
+P:FKYqnBsapaN1zVMb
+
+
+
+db.transaction.explain().aggregate([
+   {$match: {user_wallet_id:{$in:[20,24,21,22,23,43,2913,3424,5053,6391,10057,49920,59220,
+                                  205751,257720,274103,307199,324822,341732,369771
+                              ]},
+            }
+   },
+   {$lookup:
+         {from: "user_1",
+           let: { user: "$user_id" , currency: "$currency_id", o_type: "$operation_type_id"},
+           pipeline: [
+              { $match:
+                 { $expr:
+                    {
+                      $and: [{$eq: [ "$$user", "$user_id" ]},
+                        { $eq: [ "$$currency", "$cur" ] },
+                        { $eq: [ "$$o_type", "$op" ] }
+                       ]
+                    }
+                 }
+              },
+           ],
+           as: "stockdata"
+         }
+    },
+    {$group:{
+              _id : { id: "$_id", stockdata: "$stockdata"},
+
+            }
+    },
+    { $filter: { input: "q0", as: q0Filtered, cond: {$eq:1} } }
+
+
+    {$limit: 5}
+])
+
+
+db.transaction.aggregate([
+   {$match: {user_wallet_id:{$in:[69,188,6405]}}},
+   {$lookup:
+         {from: "user_1",
+           let: { user: "$user_id" , currency: "$currency_id", o_type: "$operation_type_id"},
+           pipeline: [
+              { $match:
+                 { $expr:
+                    {
+                      $and: [{$eq: [ "$$user", "$user_id" ]},
+                        { $eq: [ "$$currency", "$cur" ] },
+                        { $eq: [ "$$o_type", "$op" ] }
+                       ]
+                    }
+                 }
+              },
+           ],
+           as: "stockdata"
+         }
+    },
+    {$match: {stockdata:{$size:1}}}
+]).pretty()
+
+
+db.transaction.aggregate([
+     {$match:
+       {$and : {permission.permittedCurrency:{$in:[12,13]}}
+               {source_type:{$in:['REFILL', 'WITHDRAW']}
+       }
+
+      },
+   {$lookup:
+         {from: "user",
+           localField: "user_id",
+           foreignField: "_id",
+           as: "roles"
+         }
+    },
+    {
+       $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$roles", 0 ] }, "$$ROOT" ] } }
+    }
+]).pretty()
+
+db.transaction.aggregate([
+     {$match:
+       {$and : [{source_type:{$eq:'REFILL'}},
+                {status_id:{$eq:1}}
+               ]
+       }
+
+      },
+      {$lookup:
+               {from: "user",
+                 localField: "user_id",
+                 foreignField: "_id",
+                 as: "roles"
+               }
+      },
+      {$replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$roles", 0 ] }, "$$ROOT" ] } }
+      },
+      {$group:{
+                _id: {role: "$role_id", currency_name: "$currency_name", currency_id : "$permission.permittedCurrency"},
+                totalAmount: { $sum: "$amount" }
+               }
+      }
+]).pretty()
+
+db.transaction.aggregate([
+     {$match:
+       {$and : [{source_type:{$eq:'REFILL'}},
+                {status_id:{$eq:1}}
+               ]
+       }
+
+      },
+         {$lookup:
+                    {from: "user",
+                      localField: "user_id",
+                      foreignField: "_id",
+                      as: "role"
+                    }
+           },
+      { $unwind : "$role" },
+      {$group:{
+                      _id: {role: "$role.role_id", currency_name: "$currency_name", currency_id : "$permission.permittedCurrency"},
+                      totalAmount: { $sum: "$amount" }
+                     }
+            }
+]).pretty()

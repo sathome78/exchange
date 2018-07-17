@@ -1,10 +1,10 @@
 INSERT INTO MERCHANT (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
+
 VALUES ('Futuro Coin', 'FTO', 2, 'ftoServiceImpl', 'CRYPTO');
 INSERT INTO CURRENCY (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('FTO', 'Futuro Coin', 0, 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='FTO'));
-
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='FTO'),
@@ -76,3 +76,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, title_code, passphrase)
 VALUES ((SELECT id from MERCHANT WHERE name='FTO'), (select id from CURRENCY where name='FTO'), 'ftoWallet.title', 'ZvfaxJuN7gzQUpzQhabmHrekhars7h8abhkB');
+

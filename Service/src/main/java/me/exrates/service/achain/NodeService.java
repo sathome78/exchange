@@ -2,6 +2,7 @@ package me.exrates.service.achain;
 
 import me.exrates.model.dto.achain.TransactionDTO;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -22,4 +23,5 @@ public interface NodeService {
 
     JSONArray getBlockTransactions(long blockNum);
 
+    JSONObject getPrettyContractTransaction(String innerHash);
 }

@@ -9,6 +9,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,7 @@ public class test {
        /* String result =
                 sdkHttpClient.post(nodeUrl, rpcUser, "blockchain_get_transaction",
                         "d6ef0fc8628ec1e63837d7c327fb1619ddff7768");*/
-        /*String result =
+     /*   String result =
                 sdkHttpClient.post(nodeUrl, rpcUser, "wallet_get_transaction", "b67b2fd708295f446daa0d093e6b0e5c6be01e43");*/
        /* String result =
                 sdkHttpClient.post(nodeUrl, rpcUser, "wallet_account_transaction_history",
@@ -39,9 +40,18 @@ public class test {
                         "ACT5yMzxAE6TmGa2gT8UCvKXiFa1XwydgK8C2dvuYYrVEqkhKspWs");
         System.out.println(result1);
        String result = sdkHttpClient.post(nodeUrl,
-               rpcUser,"blockchain_get_block_count", new JSONArray());
+               rpcUser,"blockchain_get_block_count", new JSONArray());*/
 
         /*System.out.println(result);*/
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.put("5b1c942e4a9771cb9be596df6a2fe1678e9b156c");
+        System.out.println("request");
+        String resultSignee =
+                sdkHttpClient
+                        .post(nodeUrl, rpcUser, "blockchain_get_pretty_contract_transaction", jsonArray);
+        System.out.println(resultSignee);
+        JSONObject resultJson2 = new JSONObject(resultSignee).getJSONObject("result");
+        System.out.println(resultJson2.getString("orig_trx_id"));
     }
 
 

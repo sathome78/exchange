@@ -89,6 +89,18 @@ public class NodeServiceImpl implements NodeService {
         return transactions.getJSONArray("result");
     }
 
+    @Override
+    public JSONObject getPrettyContractTransaction(String innerHash) {
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.put(innerHash);
+        log.info("getPretty|[result_trx_id={}]",
+                innerHash);
+        String result =
+                httpClient
+                        .post(nodeUrl, rpcUser, "blockchain_get_pretty_contract_transaction", jsonArray);
+        return new JSONObject(result);
+    }
+
    /* @Override
     public List<TransactionDTO> getTransactionsList(String account, String asset, Integer limit, String startBlock, String endBlock) {
         log.info("NodeServiceImpl|getTransactionsList [{}, {}, {}, {}]", account, asset, limit, startBlock, endBlock);

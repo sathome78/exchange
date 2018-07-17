@@ -107,9 +107,9 @@ public class TxsScanerImpl implements BlocksScaner {
                         AchainContract contract =
                                 Preconditions.checkNotNull(tokenContext.getByContractId(contractId));
                         recieveAccount = fullAddress.replace(nodeService.getMainAccountAddress(), "");
-                        String txHash = tx.getString(0);
+                        String txInnerHash = tx.getString(0);
+                        String txHash = getContractTxId(txInnerHash);
                         acceptPayment(recieveAccount, txHash, args[1], contract.getMerchantName(), contract.getCurencyName());
-
                     }
                 }
             } catch (Exception e) {
@@ -149,6 +149,16 @@ public class TxsScanerImpl implements BlocksScaner {
             }
         }
         return AchainTransactionType.convert(operation);
+    }
+
+    private String getContractTxId(String innerHash) {
+        try {
+            JSONObject res = nodeService.getPrettyContractTransaction(innerHash);
+            JSONObject resultJson2 = res.getJSONObject("result");
+            return resultJson2.getString("orig_trx_id");
+        } catch (Exception e) {
+            return innerHash;
+        }
     }
 
     private String parseAmount(Double amount) {

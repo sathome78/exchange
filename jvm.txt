@@ -1,0 +1,7 @@
+java -XX:+PrintFlagsFinal -version
+
+jstat -gc [pid]
+
+https://docs.oracle.com/javase/7/docs/technotes/tools/share/jstat.html
+
+SHOW ENGINE INNODB STATUS
