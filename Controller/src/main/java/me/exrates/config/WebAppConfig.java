@@ -1068,6 +1068,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "UMT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "maspServiceImpl")
+    public EthTokenService maspService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xce958ecf2c752c74973e89674faa30404b15a498");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MASP",
+                "MASP", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "skillServiceImpl")
+    public EthTokenService skillService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x417d6feeae8b2fcb73d14d64be7f192e49431978");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SKILL",
+                "SKILL", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
