@@ -134,7 +134,7 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     }
 
     private void addNewPairToMap(Map<Integer, ConcurrentSkipListSet<StopOrderSummaryDto>> map, Integer currencyPairId) {
-        map.put(currencyPairId, new ConcurrentSkipListSet<StopOrderSummaryDto>());
+        map.put(currencyPairId, new ConcurrentSkipListSet<StopOrderSummaryDto>(comparator));
     }
 
 

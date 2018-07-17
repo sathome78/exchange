@@ -282,9 +282,9 @@ function handleEventsMessage(data) {
         var registered = $('#hello-my-friend')[0];
         var noty = '';
         if (data.redirect.url && registered) {
-            noty = "?errorNoty=" + data.redirect.successQR;
+            window.location = data.redirect.url;
+            /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-        window.location = data.redirect.url + noty;
     }
 
 }

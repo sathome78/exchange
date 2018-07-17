@@ -61,10 +61,10 @@ public class SystemEventsHandler {
         HttpServletRequest request = (HttpServletRequest)qrLoginEvent.getSource();
         HashMap hashMap = new HashMap<String, HashMap<String, String>>() {{
             put("redirect", new HashMap<String, String>() {{
-                put("url", "/dashboard");
-                put("successQR", messageSource
+                put("url", "/dashboard?qrLogin");
+              /*  put("successQR", messageSource
                         .getMessage("dashboard.qrLogin.successful", null,
-                                localeResolver.resolveLocale(request)));
+                                localeResolver.resolveLocale(request)));*/
             }});
         }};
         try {

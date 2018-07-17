@@ -95,13 +95,19 @@ public class EntryController {
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -153,13 +159,19 @@ public class EntryController {
 
     @RequestMapping(value = {"/tradingview"})
     public ModelAndView tradingview(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
