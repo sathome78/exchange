@@ -133,7 +133,7 @@
                                 <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.userIncomeByCurrency"/></label>
                             </div>
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-report-on-user-revenues" class="blue-box">
+                                <button id="download-report-user-income-by-currency" class="blue-box">
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>

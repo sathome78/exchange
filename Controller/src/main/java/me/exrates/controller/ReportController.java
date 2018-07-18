@@ -219,6 +219,19 @@ public class ReportController {
             .collect(Collectors.joining("", InputOutputCommissionSummaryDto.getTitle(), ""));
   }
 
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/userIncomeByCurrency", method = GET)
+  public String getUserIncomeByCurrency(@RequestParam("startTime") String startTimeString,
+                                                     @RequestParam("endTime") String endTimeString,
+                                                     @RequestParam("roles") List<UserRole> userRoles) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<InputOutputCommissionSummaryDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
+    return result.stream().map(InputOutputCommissionSummaryDto::toString)
+            .collect(Collectors.joining("", InputOutputCommissionSummaryDto.getTitle(), ""));
+  }
+
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
