@@ -202,10 +202,10 @@ $(function refillCreation() {
                 },
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(data)
             }).success(function (result) {
                 if (!result || !result['redirectionUrl']) {
-                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
+                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['params']['qr'] + "'/>" : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
                     notifications.getNotifications();
                 } else {
