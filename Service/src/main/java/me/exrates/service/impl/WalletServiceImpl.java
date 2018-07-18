@@ -326,8 +326,6 @@ public class WalletServiceImpl implements WalletService {
               TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
       changeWalletActiveBalance(inputAmount, toUserWallet, OperationType.INPUT,
               TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, sourceId);
-    CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.getById(currencyId));
-    companyWalletService.deposit(companyWallet, new BigDecimal(0), commissionAmount);
     String notyAmount = inputAmount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     return TransferDto.builder()
             .comissionAmount(commissionAmount)
