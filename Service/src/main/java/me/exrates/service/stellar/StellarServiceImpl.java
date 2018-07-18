@@ -228,6 +228,20 @@ public class StellarServiceImpl implements StellarService {
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
-        return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
+        Merchant merchant = merchantService.findById(merchantId);
+        switch (merchant.getName()) {
+            case "Stellar" : {
+                return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
+            }
+            case "SLT" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
+            case "VNT" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
+            default:
+                return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
+        }
+
     }
 }
