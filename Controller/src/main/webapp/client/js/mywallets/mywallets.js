@@ -58,7 +58,7 @@ function MyWalletsClass() {
         });
     };
     /*=====================================================*/
-    (function init() {
+    (function init(cpData) {
         that.getAndShowMyWalletsData();
         $('#balance-table').on('mouseleave', function (e) {
             hideConfirmationDetailTooltip();

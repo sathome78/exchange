@@ -2,7 +2,7 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
@@ -57,18 +57,20 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
         var $template = $('.selectors_template');
-        var url = '/dashboard/createPairSelectorMenu';
+        var $tmpl1 = $template.html().replace(/@/g, '%');
+        $currencyList.append(tmpl($tmpl1, {keys : Object.keys(cpData), data: Object.values(cpData), currentCurrencyPair: that.currentCurrencyPair}));
+        setButtonTitle();
+
+        /*var url = '/dashboard/createPairSelectorMenu';
         $.ajax({
             url: url,
             type: 'GET',
             success: function (data) {
                 if (!data) return;
-                /**/
-                 var $tmpl1 = $template.html().replace(/@/g, '%');
-                $currencyList.append(tmpl($tmpl1, {keys : Object.keys(data), data: Object.values(data), currentCurrencyPair: that.currentCurrencyPair}));
-                setButtonTitle();
+                /!**!/
+
             }
-        });
+        });*/
     };
 
     function setButtonTitle() {

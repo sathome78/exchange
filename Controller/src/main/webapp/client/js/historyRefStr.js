@@ -132,11 +132,11 @@ function addCheckboxes(data) {
     container.html($.tmpl("currencies", data));
 }
 
-function RefStructureClass(currentCurrencyPair) {
+function RefStructureClass(currentCurrencyPair, cpData) {
     if (RefStructureClass.__instance) {
         return RefStructureClass.__instance;
     } else if (this === window) {
-        return new RefStructureClass(currentCurrencyPair);
+        return new RefStructureClass(currentCurrencyPair, cpData);
     }
     MyReferralClass.__instance = this;
     var that = this;
@@ -149,7 +149,9 @@ function RefStructureClass(currentCurrencyPair) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        myreferralCurrencyPairSelector.syncState();
+        if (myreferralCurrencyPairSelector) {
+            myreferralCurrencyPairSelector.syncState();
+        }
     };
 
     this.updateAndShowAll = function () {
@@ -160,10 +162,11 @@ function RefStructureClass(currentCurrencyPair) {
     };
 
 
-    (function init(currentCurrencyPair)  {
-        myreferralCurrencyPairSelector = new CurrencyPairSelectorClass('myreferral-currency-pair-selector', currentCurrencyPair);
-        myreferralCurrencyPairSelector.init(onCurrencyPairChange);
-
+    (function init(currentCurrencyPair, cpData)  {
+        if (currentCurrencyPair) {
+            myreferralCurrencyPairSelector = new CurrencyPairSelectorClass('myreferral-currency-pair-selector', currentCurrencyPair, cpData);
+            myreferralCurrencyPairSelector.init(onCurrencyPairChange);
+        }
         $.datetimepicker.setDateFormatter({
             parseDate: function (date, format) {
                 var d = moment(date, format);
@@ -223,7 +226,7 @@ function RefStructureClass(currentCurrencyPair) {
             $('.currency_check').prop('checked', true);
         });
 
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 }
 
 

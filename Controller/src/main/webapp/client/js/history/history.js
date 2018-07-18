@@ -2,11 +2,11 @@
  * Created by Valk on 06.06.2016.
  */
 
-function MyHistoryClass(currentCurrencyPair) {
+function MyHistoryClass(currentCurrencyPair, cpData) {
     if (MyHistoryClass.__instance) {
         return MyHistoryClass.__instance;
     } else if (this === window) {
-        return new MyHistoryClass(currentCurrencyPair);
+        return new MyHistoryClass(currentCurrencyPair, cpData);
     }
     MyHistoryClass.__instance = this;
     /**/
@@ -95,11 +95,11 @@ function MyHistoryClass(currentCurrencyPair) {
     };
 
     /*=====================================================*/
-    (function init (currentCurrencyPair) {
-        myOrders = new MyOrdersClass(currentCurrencyPair);
-        myReferral = new MyReferralClass(currentCurrencyPair);
-        inputOutput = new InputOutputClass(currentCurrencyPair);
-        myReferralStrucure = new RefStructureClass(currentCurrencyPair);
+    (function init (currentCurrencyPair, cpData) {
+        myOrders = new MyOrdersClass(currentCurrencyPair, cpData);
+        myReferral = new MyReferralClass();
+        inputOutput = new InputOutputClass();
+        myReferralStrucure = new RefStructureClass();
         /**/
         $('#myhistory-button-orders').addClass('active');
         /**/
@@ -138,6 +138,6 @@ function MyHistoryClass(currentCurrencyPair) {
         $myHistoryActivePage = $myordersContainer;
         showMyHistoryPage($myHistoryActivePage);
        /* that.updateAndShowAll();*/
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 
 }
