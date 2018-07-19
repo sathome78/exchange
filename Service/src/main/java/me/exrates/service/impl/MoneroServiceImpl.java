@@ -167,10 +167,10 @@ public class MoneroServiceImpl implements MoneroService {
         ADDRESSES = refillService.findAllAddresses(merchant.getId(), currency.getId());
 
         if (MODE.equals("main")){
-            log.info("Monero starting...");
+            log.info(merchantName + " starting...");
             try {
                 wallet = new MoneroWalletRpc(HOST, Integer.parseInt(PORT), LOGIN, PASSWORD);
-                log.info("Monero started");
+                log.info(merchantName + " started");
                 scheduler.scheduleAtFixedRate(new Runnable() {
                     public void run() {
                         checkIncomingTransactions();
@@ -180,13 +180,13 @@ public class MoneroServiceImpl implements MoneroService {
                 log.error(e);
             }
         }else {
-            log.info("Monero test mode...");
+            log.info(merchantName + " test mode...");
         }
     }
 
     private void checkIncomingTransactions(){
         try {
-            log.info("Checking Monero transactions...");
+            log.info(merchantName + ": Checking transactions...");
             log.info(new java.util.Date());
             HashMap<String,String> mapAddresses = new HashMap<>();
             Set<String> payments = new HashSet<>();
@@ -238,8 +238,8 @@ public class MoneroServiceImpl implements MoneroService {
 
     @PreDestroy
     private void shutdown() {
-        log.debug("Destroying Monero");
+        log.debug("Destroying " + merchantName);
         scheduler.shutdown();
-        log.debug("Monero destroyed");
+        log.debug("Destroyed " + merchantName);
     }
 }
