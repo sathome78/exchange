@@ -2,11 +2,13 @@ INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `se
 VALUES ('SABR', 'SABR', 2, 'sabrServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('SABR', 'SABR', '0', 8, 8, 8);
-use birzha_2;
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
+
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='SABR'));
+
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
 VALUES ((SELECT id from MERCHANT WHERE name='SABR'),
         (SELECT id from CURRENCY WHERE name='SABR'),
-        0.00000001, TRUE, TRUE);
+        0.00000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='SABR')
   , '/client/img/merchants/sabr.png', 'SABR', (SELECT id from CURRENCY WHERE name='SABR'));
@@ -69,3 +71,6 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('SABR/USD', 'SABR/BTC', 'SABR/ETH'));
+
+INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, title_code, passphrase)
+VALUES ((SELECT id from MERCHANT WHERE name='SABR'), (select id from CURRENCY where name='SABR'), 'sabrWallet.title', 'edDQ78byLJStHCMuCLqC8NUEExVrMCQP5xze');

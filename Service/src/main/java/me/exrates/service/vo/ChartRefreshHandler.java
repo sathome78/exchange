@@ -48,7 +48,8 @@ public class ChartRefreshHandler {
             }
             chartsCache.updateCache(currencyPairId);
             stompMessenger.sendChartData(currencyPairId);
-            chartsCacheManager.onUpdateEvent(currencyPairId);
+            /*todo cnew chart*/
+           /* chartsCacheManager.onUpdateEvent(currencyPairId);*/
             SEMAPHORE.release();
         }
 
