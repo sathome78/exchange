@@ -16,6 +16,7 @@ import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.nodes_observe.NodeStateControl;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +49,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
-public class StellarServiceImpl implements StellarService {
+public class StellarServiceImpl implements StellarService, NodeStateControl {
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;
     private @Value("${stellar.account.name}")String ACCOUNT_NAME;
@@ -229,5 +230,25 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
         return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public Map<String, Long> getPollingPeriods() {
+        return null;
+    }
+
+    @Override
+    public boolean isNodeInWork() {
+        return true;
+    }
+
+    @Override
+    public boolean isNodeWorkCorrect() {
+        return false;
+    }
+
+    @Override
+    public String nodeName() {
+        return "STELLAR";
     }
 }
