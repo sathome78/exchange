@@ -26,6 +26,7 @@ import wallet.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -40,8 +41,6 @@ import java.util.concurrent.TimeUnit;
  * Created by ajet
  */
 @Log4j2(topic = "monero_log")
-@Service
-@PropertySource("classpath:/merchants/monero.properties")
 public class MoneroServiceImpl implements MoneroService {
 
     private MoneroWallet wallet;
@@ -58,11 +57,11 @@ public class MoneroServiceImpl implements MoneroService {
     @Autowired
     private CurrencyService currencyService;
 
-    private @Value("${monero.host}")String HOST;
-    private @Value("${monero.port}")String PORT;
-    private @Value("${monero.login}")String LOGIN;
-    private @Value("${monero.password}")String PASSWORD;
-    private @Value("${monero.mode}")String MODE;
+    private String HOST;
+    private String PORT;
+    private String LOGIN;
+    private String PASSWORD;
+    private String MODE;
 
     private static List<String> ADDRESSES = new ArrayList<>();
 
@@ -70,9 +69,38 @@ public class MoneroServiceImpl implements MoneroService {
 
     private Currency currency;
 
+    private String merchantName;
+
+    private String currencyName;
+
+    private Integer minConfirmations;
+
+    private Integer decimals;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
+
+    public MoneroServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer decimals) {
+
+        Properties props = new Properties();
+
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.HOST = props.getProperty("monero.host");
+            this.PORT = props.getProperty("monero.port");
+            this.LOGIN = props.getProperty("monero.login");
+            this.PASSWORD = props.getProperty("monero.password");
+            this.MODE = props.getProperty("monero.mode");
+            this.merchantName = merchantName;
+            this.currencyName = currencyName;
+            this.minConfirmations = minConfirmations;
+            this.decimals = decimals;
+        } catch (IOException e) {
+            log.error(e);
+        }
+
+    }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -133,8 +161,8 @@ public class MoneroServiceImpl implements MoneroService {
     @PostConstruct
     public void init(){
 
-        currency = currencyService.findByName("XMR");
-        merchant = merchantService.findByName("Monero");
+        currency = currencyService.findByName(currencyName);
+        merchant = merchantService.findByName(merchantName);
 
         ADDRESSES = refillService.findAllAddresses(merchant.getId(), currency.getId());
 
@@ -184,11 +212,11 @@ public class MoneroServiceImpl implements MoneroService {
                         }
                         int confirmations = wallet.getHeight() - transaction.getHeight();
                         log.info("confirmations:" + confirmations);
-                        if (confirmations < 10){
+                        if (confirmations < minConfirmations){
                             continue;
                         }
 
-                        Double amount = transaction.getPayments().get(0).getAmount().doubleValue()/ Math.pow(10.0D, (double)12);
+                        Double amount = transaction.getPayments().get(0).getAmount().doubleValue()/ Math.pow(10.0D, (double)decimals);
 
                         Map<String, String> mapPayment = new HashMap<>();
                         mapPayment.put("address", integratedAddress);
