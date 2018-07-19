@@ -171,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
     return serviceCacheableProxy.getDataForCandleChart(currencyPair, interval);
   }
 
+
   @Transactional
   @Override
   public List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame) {
