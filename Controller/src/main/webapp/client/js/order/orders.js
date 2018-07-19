@@ -2,11 +2,11 @@
  * Created by Valk on 06.06.2016.
  */
 
-function OrdersClass(currentCurrencyPair) {
+function OrdersClass(currentCurrencyPair, cpData) {
     if (OrdersClass.__instance) {
         return OrdersClass.__instance;
     } else if (this === window) {
-        return new OrdersClass(currentCurrencyPair);
+        return new OrdersClass(currentCurrencyPair, cpData);
     }
     OrdersClass.__instance = this;
     /**/
@@ -323,8 +323,8 @@ function OrdersClass(currentCurrencyPair) {
     };
 
     /*=====================================================*/
-    (function init(currentCurrencyPair) {
-        ordersCurrencyPairSelector = new CurrencyPairSelectorClass('orders-currency-pair-selector', currentCurrencyPair);
+    (function init(currentCurrencyPair, cpData) {
+        ordersCurrencyPairSelector = new CurrencyPairSelectorClass('orders-currency-pair-selector', currentCurrencyPair, cpData);
         ordersCurrencyPairSelector.init(onCurrencyPairChange);
         /**/
         /*        syncTableParams(tableSellId, tableSellPageSize, function (data) {
@@ -369,7 +369,7 @@ function OrdersClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowStopOrdersData()(true, null, 'FORWARD');
         });
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 
     /*PREPARE DATA FOR MODAL DIALOG FOR DELETING ORDER ... */
     function submitOrderDeleting() {

@@ -2,11 +2,11 @@
  * Created by Valk on 06.06.2016.
  */
 
-function MyOrdersClass(currentCurrencyPair) {
+function MyOrdersClass(currentCurrencyPair, cpData) {
     if (MyOrdersClass.__instance) {
         return MyOrdersClass.__instance;
     } else if (this === window) {
-        return new MyOrdersClass(currentCurrencyPair);
+        return new MyOrdersClass(currentCurrencyPair, cpData);
     }
     MyOrdersClass.__instance = this;
     /**/
@@ -347,8 +347,8 @@ function MyOrdersClass(currentCurrencyPair) {
         })
     }
     /*=====================================================*/
-    (function init (currentCurrencyPair) {
-        myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair);
+    (function init (currentCurrencyPair, cpData) {
+        myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair, cpData);
         myordersCurrencyPairSelector.init(onCurrencyPairChange);
         myordersStatusForShow = 'CLOSED';
         myOrdersScope = 'ALL';
@@ -423,5 +423,5 @@ function MyOrdersClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowMyStopOrdersData(true, null, 'FORWARD');
         });
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 }

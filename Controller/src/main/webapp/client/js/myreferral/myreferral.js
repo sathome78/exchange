@@ -2,11 +2,11 @@
  * Created by Valk on 27.06.2016.
  */
 
-function MyReferralClass(currentCurrencyPair) {
+function MyReferralClass(currentCurrencyPair, cpData) {
     if (MyReferralClass.__instance) {
         return MyReferralClass.__instance;
     } else if (this === window) {
-        return new MyReferralClass(currentCurrencyPair);
+        return new MyReferralClass(currentCurrencyPair, cpData);
     }
     MyReferralClass.__instance = this;
     /**/
@@ -26,7 +26,9 @@ function MyReferralClass(currentCurrencyPair) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        myreferralCurrencyPairSelector.syncState();
+        if (myreferralCurrencyPairSelector) {
+            myreferralCurrencyPairSelector.syncState();
+        }
     };
 
     this.updateAndShowAll = function (refreshIfNeeded) {
@@ -81,9 +83,11 @@ function MyReferralClass(currentCurrencyPair) {
     };
 
     /*=====================================================*/
-    (function init(currentCurrencyPair) {
-        myreferralCurrencyPairSelector = new CurrencyPairSelectorClass('myreferral-currency-pair-selector', currentCurrencyPair);
-        myreferralCurrencyPairSelector.init(onCurrencyPairChange);
+    (function init(currentCurrencyPair, cpData) {
+        if (currentCurrencyPair) {
+            myreferralCurrencyPairSelector = new CurrencyPairSelectorClass('myreferral-currency-pair-selector', currentCurrencyPair, cpData);
+            myreferralCurrencyPairSelector.init(onCurrencyPairChange);
+        }
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
             /*that.getAndShowMyReferralData();*/
@@ -97,5 +101,5 @@ function MyReferralClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowMyReferralData(true, null, 'FORWARD');
         });
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 }

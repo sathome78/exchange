@@ -2,11 +2,11 @@
  * Created by Valk on 27.06.2016.
  */
 
-function InputOutputClass(currentCurrencyPair) {
+function InputOutputClass(currentCurrencyPair, cpData) {
     if (InputOutputClass.__instance) {
         return InputOutputClass.__instance;
     } else if (this === window) {
-        return new InputOutputClass(currentCurrencyPair);
+        return new InputOutputClass(currentCurrencyPair, cpData);
     }
     InputOutputClass.__instance = this;
     /**/
@@ -59,7 +59,9 @@ function InputOutputClass(currentCurrencyPair) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        inputoutputCurrencyPairSelector.syncState();
+        if (inputoutputCurrencyPairSelector) {
+            inputoutputCurrencyPairSelector.syncState();
+        }
     };
 
     this.updateAndShowAll = function (refreshIfNeeded) {
@@ -134,9 +136,10 @@ function InputOutputClass(currentCurrencyPair) {
 
 
     /*=====================================================*/
-    (function init(currentCurrencyPair) {
+    (function init(currentCurrencyPair, cpData) {
+        console.log(cpData);
         if (currentCurrencyPair) {
-            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair);
+            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair, cpData);
             inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
         }
 
@@ -349,7 +352,7 @@ function InputOutputClass(currentCurrencyPair) {
             initUnconfirmedRefillHistoryTable();
         }
 
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 
     function fillUnconfirmedRefillsTable($unconfirmedRefillsTable, data) {
         var $tmpl = $('#unconfirmed-refills-table-row').html().replace(/@/g, '%');

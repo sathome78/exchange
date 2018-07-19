@@ -2,11 +2,11 @@
  * Created by Valk on 27.06.2016.
  */
 
-function MyStatementsClass(currentCurrencyPair) {
+function MyStatementsClass(currentCurrencyPair, cpData) {
     if (MyStatementsClass.__instance) {
         return MyStatementsClass.__instance;
     } else if (this === window) {
-        return new MyStatementsClass(currentCurrencyPair);
+        return new MyStatementsClass(currentCurrencyPair, cpData);
     }
     MyStatementsClass.__instance = this;
     /**/
@@ -87,9 +87,11 @@ function MyStatementsClass(currentCurrencyPair) {
     };
 
     /*=====================================================*/
-    (function init(currentCurrencyPair) {
-        mystatementsCurrencyPairSelector = new CurrencyPairSelectorClass('mystatement-currency-pair-selector', currentCurrencyPair);
-        mystatementsCurrencyPairSelector.init(onCurrencyPairChange);
+    (function init(currentCurrencyPair, cpData) {
+        if(currentCurrencyPair) {
+            mystatementsCurrencyPairSelector = new CurrencyPairSelectorClass('mystatement-currency-pair-selector', currentCurrencyPair, cpData);
+            mystatementsCurrencyPairSelector.init(onCurrencyPairChange);
+        }
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
             //NOP
@@ -147,5 +149,5 @@ function MyStatementsClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowMyStatementsData(true, null, 'FORWARD');
         });
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 }
