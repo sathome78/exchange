@@ -829,11 +829,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "iprServiceImpl")
     public EthTokenService iprService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x12f3b110ccee3cf4dcf253ada18ef3f1f0568d56");
+        tokensList.add("0x069bc4608a8764924ab991cb9eb6d6b6caad74c8");
         return new EthTokenServiceImpl(
                 tokensList,
                 "IPR",
-                "IPR", false, ExConvert.Unit.ETHER);
+                "IPR", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "casServiceImpl")
