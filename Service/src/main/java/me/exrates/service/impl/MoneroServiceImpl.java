@@ -63,7 +63,7 @@ public class MoneroServiceImpl implements MoneroService {
     private String PASSWORD;
     private String MODE;
 
-    private static List<String> ADDRESSES = new ArrayList<>();
+    private List<String> ADDRESSES = new ArrayList<>();
 
     private Merchant merchant;
 
