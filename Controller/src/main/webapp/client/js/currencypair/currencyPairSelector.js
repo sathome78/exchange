@@ -9,7 +9,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
 
     var previousValue;
 
-    this.init = function () {
+    this.init = function (onChangeHandler) {
         that.$currencyPairSelector.on('click', '.currency-pair-selector__menu-item', function (e) {
             e.preventDefault();
             var $item = $(this);
@@ -29,12 +29,13 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
                 $item.addClass('active');
                 that.currentCurrencyPair = $item.text().trim();
                 setButtonTitle();
+                onChangeHandler(data.currencyPair);
             });
         });
         that.getAndShowCurrencySelector();
     };
 
-    this.syncState = function () {
+    this.syncState = function (onChangeHandler) {
         syncCurrentParams(null, null, null, null, null, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
@@ -48,6 +49,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
             $item.addClass('active');
             that.currentCurrencyPair = $item.text();
             setButtonTitle();
+            onChangeHandler(data.currencyPair);
         });
     };
 
