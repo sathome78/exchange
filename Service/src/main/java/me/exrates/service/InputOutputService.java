@@ -5,6 +5,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
@@ -35,4 +36,7 @@ public interface InputOutputService {
 
     List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                List<Integer> userRoleIdList);
+
+  List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime,
+                                                                  List<Integer> userRoleIdList);
 }

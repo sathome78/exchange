@@ -3,6 +3,7 @@ package me.exrates.controller;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.ReportService;
@@ -220,16 +221,16 @@ public class ReportController {
   }
 
   @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/userIncomeByCurrency", method = GET)
-  public String getUserIncomeByCurrency(@RequestParam("startTime") String startTimeString,
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryByUsers", method = GET)
+  public String getInputOutputSummaryByUsers(@RequestParam("startTime") String startTimeString,
                                                      @RequestParam("endTime") String endTimeString,
                                                      @RequestParam("roles") List<UserRole> userRoles) {
     String dateTimePattern = "yyyy-MM-dd_HH:mm";
     LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
     LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-    List<InputOutputCommissionSummaryDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
-    return result.stream().map(InputOutputCommissionSummaryDto::toString)
-            .collect(Collectors.joining("", InputOutputCommissionSummaryDto.getTitle(), ""));
+    List<InputOutputSummaryByUsersDto> result = reportService.getInputOutputSummaryByUsers(startTime, endTime, userRoles);
+    return result.stream().map(InputOutputSummaryByUsersDto::toString)
+            .collect(Collectors.joining("", InputOutputSummaryByUsersDto.getTitle(), ""));
   }
 
 

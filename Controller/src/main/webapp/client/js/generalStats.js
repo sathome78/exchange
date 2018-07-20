@@ -68,7 +68,7 @@ $(function () {
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
     $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
     $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
-    $('#download-report-user-income-by-currency').click(getUserIncomeByCurrency);
+    $('#download-input-output-summary-by-users').click(getInputOutputSummaryByUsers);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
     $('#download-total-balances').click(getTotalBalancesForRoles);
@@ -328,10 +328,10 @@ function getInputOutputSummaryWithCommissions() {
     })
 }
 
-function getUserIncomeByCurrency() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/userIncomeByCurrency?' + getTimeParams() + '&' + getRoleParams();
+function getInputOutputSummaryByUsers() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryByUsers?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data,  extendsReportName('userIncomeByCurrency.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+        saveToDisk(data,  extendsReportName('inputOutputSummaryByUsers.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 

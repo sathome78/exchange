@@ -7,6 +7,7 @@ import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -248,6 +249,12 @@ public class InputOutputServiceImpl implements InputOutputService {
   public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                     List<Integer> userRoleIdList) {
     return inputOutputDao.getInputOutputSummaryWithCommissions(startTime, endTime, userRoleIdList);
+  }
+
+  @Override
+  public List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime,
+                                                                         List<Integer> userRoleIdList) {
+    return inputOutputDao.getInputOutputSummaryByUsers(startTime, endTime, userRoleIdList);
   }
 
 }

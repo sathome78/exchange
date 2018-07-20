@@ -9,6 +9,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -342,6 +343,16 @@ public class ReportServiceImpl implements ReportService {
     return report;
   }
 
+  @Override
+  public List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime,
+                                                                                 List<UserRole> roleList) {
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+    List<InputOutputSummaryByUsersDto> report = inputOutputService.getInputOutputSummaryByUsers(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+    Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
+    report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurrencyId())==null?BigDecimal.ZERO:rates.get(s.getCurrencyId()).getRate()));
+    return report;
+  }
 
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
