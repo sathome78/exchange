@@ -15,7 +15,8 @@ public enum UserRole implements RealCheckableRole {
   VIP_USER(7),
   TRADER(8),
   FIN_OPERATOR(9),
-  BOT_TRADER(10, false, false);
+  BOT_TRADER(10, false, false),
+  ICO_MARKET_MAKER(11);
 
   private final int role;
 
