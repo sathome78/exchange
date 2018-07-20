@@ -4,6 +4,7 @@ import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -399,6 +400,41 @@ public class InputOutputDaoImpl implements InputOutputDao {
       //wolper 19.04.18
       //currency id added
       dto.setCurId(rs.getInt("currency_id"));
+      return dto;
+    });
+  }
+
+  @Override
+  public List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+    String sql = "SELECT US.id AS user_id, US.email, MIN(CUR.ID) as currency_id, CUR.name AS currency_name, (SUM(refill)-SUM(withdraw)) AS balanceInHand "+
+            "FROM (SELECT U.id AS user_id, U.email AS email, TX.currency_id, TX.amount AS refill, 0 AS withdraw FROM TRANSACTION TX "+
+            "JOIN WALLET W ON TX.user_wallet_id = W.id JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "WHERE TX.operation_type_id = 1 AND TX.source_type = 'REFILL' " +
+            "AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+            "UNION ALL " +
+            "SELECT U.id, U.email, TX.currency_id, 0 AS refill, TX.amount AS withdraw FROM TRANSACTION TX " +
+            "JOIN WALLET W ON TX.user_wallet_id = W.id " +
+            "JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "WHERE TX.operation_type_id = 2 AND TX.source_type = 'WITHDRAW' " +
+            "AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s')) AGGR " +
+            "RIGHT JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
+            "LEFT JOIN USER US ON AGGR.user_id = US.id " +
+            "GROUP BY US.id, currency_name ORDER BY US.id, currency_id ASC";
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("start_time", Timestamp.valueOf(startTime));
+    params.put("end_time", Timestamp.valueOf(endTime));
+    params.put("user_roles", userRoleIdList);
+
+    return jdbcTemplate.query(sql, params, (rs, row) -> {
+      InputOutputSummaryByUsersDto dto = new InputOutputSummaryByUsersDto();
+      dto.setUserId(rs.getInt("user_id"));
+      dto.setUserEmail(rs.getString("email"));
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setBalanceInHand(rs.getBigDecimal("balanceInHand"));
       return dto;
     });
   }

@@ -276,6 +276,7 @@ function extendsReportName(name, start, end){
             return baseName+'_as_of-'+dateTimeNow+ '.csv';
 
         case 'inputOutputSummaryWithCommissions.csv':
+        case 'inputOutputSummaryByUsers.csv':
         case 'currencyPairsComissions.csv':
         case 'currencyPairs.csv':
         case 'currencies.csv':

@@ -68,6 +68,7 @@ $(function () {
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
     $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
     $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
+    $('#download-input-output-summary-by-users').click(getInputOutputSummaryByUsers);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
     $('#download-total-balances').click(getTotalBalancesForRoles);
@@ -325,7 +326,13 @@ function getInputOutputSummaryWithCommissions() {
     $.get(fullUrl, function (data) {
         saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
+}
 
+function getInputOutputSummaryByUsers() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryByUsers?' + getTimeParams() + '&' + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data,  extendsReportName('inputOutputSummaryByUsers.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+    })
 }
 
 function getTimeParams() {

@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 
@@ -41,6 +42,9 @@ public interface ReportService {
 
     List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                List<UserRole> roleList);
+
+  List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime,
+                                                                  List<UserRole> roleList);
 
     List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
 
