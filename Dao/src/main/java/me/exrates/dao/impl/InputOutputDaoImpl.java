@@ -406,7 +406,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
   @Override
   public List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-    String sql = "SELECT US.id AS user_id, US.email, MIN(CUR.ID) as currency_id, CUR.name AS currency_name, SUM(refill) as input, SUM(withdraw) as output "+
+    String sql = "SELECT US.id AS user_id, US.email, MIN(CUR.ID) as currency_id, CUR.name AS currency_name, (SUM(refill)-SUM(withdraw)) as balanceInHand "+
             "FROM (SELECT U.id AS user_id, U.email AS email, TX.currency_id, TX.amount AS refill, 0 AS withdraw FROM TRANSACTION TX "+
             "JOIN WALLET W ON TX.user_wallet_id = W.id JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
             "WHERE TX.operation_type_id = 1 AND TX.source_type = 'REFILL' " +
@@ -434,7 +434,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setUserEmail(rs.getString("email"));
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
-      dto.setBalanceInHand(rs.getBigDecimal("input").subtract(rs.getBigDecimal("output")));
+      dto.setBalanceInHand(rs.getBigDecimal("balanceInHand"));
       return dto;
     });
   }

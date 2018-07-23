@@ -329,7 +329,7 @@ function getInputOutputSummaryWithCommissions() {
 }
 
 function getInputOutputSummaryByUsers() {
-    var fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryByUsers?' + getTimeParams() + '&' + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryByUsers?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data,  extendsReportName('inputOutputSummaryByUsers.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
