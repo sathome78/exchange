@@ -434,10 +434,10 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setUserEmail(rs.getString("email"));
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
-      BigDecimal input = rs.getBigDecimal("input");
-      BigDecimal output = rs.getBigDecimal("output");
-      BigDecimal balanceInHand = input.subtract(output);
-      dto.setBalanceInHand(balanceInHand);
+
+      BigDecimal input = rs.getBigDecimal("input") == null ? BigDecimal.ZERO : rs.getBigDecimal("input");
+      BigDecimal output = rs.getBigDecimal("output") == null ? BigDecimal.ZERO : rs.getBigDecimal("output");
+      dto.setBalanceInHand(input.subtract(output));
       return dto;
     });
   }
