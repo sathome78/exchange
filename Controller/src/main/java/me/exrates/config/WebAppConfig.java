@@ -833,7 +833,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "IPR",
-                "IPR", true, ExConvert.Unit.ETHER);
+                "IPR", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "casServiceImpl")
@@ -1098,6 +1098,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "STOR",
                 "STOR", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "quintServiceImpl")
+    public EthTokenService quintService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x45b73654e464945a268032cdcb8d551fe8b733ca");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "QUiNT",
+                "QUiNT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ttcServiceImpl")
+    public EthTokenService ttcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TTC",
+                "TTC", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
