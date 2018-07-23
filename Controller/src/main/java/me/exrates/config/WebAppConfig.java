@@ -1100,6 +1100,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "STOR", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "quintServiceImpl")
+    public EthTokenService quintService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x45b73654e464945a268032cdcb8d551fe8b733ca");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "QUiNT",
+                "QUiNT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
