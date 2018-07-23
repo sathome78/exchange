@@ -833,7 +833,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "IPR",
-                "IPR", true, ExConvert.Unit.ETHER);
+                "IPR", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "casServiceImpl")
