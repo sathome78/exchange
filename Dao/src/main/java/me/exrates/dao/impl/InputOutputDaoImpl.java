@@ -434,9 +434,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setUserEmail(rs.getString("email"));
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
-      dto.setInput(rs.getBigDecimal("input"));
-      dto.setOutput(rs.getBigDecimal("output"));
-      dto.setBalanceInHand(dto.getInput().subtract(dto.getOutput()));
+      dto.setBalanceInHand(rs.getBigDecimal("input").subtract(rs.getBigDecimal("output")));
       return dto;
     });
   }
