@@ -18,8 +18,6 @@ public class InputOutputSummaryByUsersDto {
     private String userEmail;
     private int currencyId;
     private String currencyName;
-    private BigDecimal input;
-    private BigDecimal output;
     private BigDecimal balanceInHand;
     private BigDecimal rateToUSD;
 
