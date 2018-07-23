@@ -1185,7 +1185,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SLT",
         SLT_EMMITER);
     }
-    @Bean(name = "sltStellarService")
+
+    @Bean(name = "vntStellarService")
     public StellarAsset vntStellarService() {
         return new StellarAsset("VNT",
                 "VNT",

@@ -58,12 +58,12 @@ public interface StellarService extends IRefillable, IWithdrawable {
 
     @Override
     default String additionalRefillFieldName() {
-        return "MEMO-ID";
+        return "MEMO-TEXT";
     }
 
     @Override
     default String additionalWithdrawFieldName() {
-        return "MEMO-ID";
+        return "MEMO-TEXT";
     }
 
     @Override
