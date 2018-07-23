@@ -148,8 +148,9 @@ public class StellarServiceImpl implements StellarService {
                 new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
         DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
-            put("address",  myFormatter.format(destinationTag));
+            put("address",  String.valueOf(destinationTag));
             put("message", message);
+            put("qr", ACCOUNT_NAME);
         }};
     }
 
