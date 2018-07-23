@@ -51,8 +51,11 @@ public class StellarReceivePaymentsService {
 
     @PostConstruct
     public void init() {
+        log.debug("url {}", SEVER_URL);
         server = new Server(SEVER_URL);
+        log.debug("account_name {}", ACCOUNT_NAME);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
+        log.debug("account {}", account);
         scheduler.scheduleAtFixedRate(this::checkEventSource, 20, 120, TimeUnit.SECONDS);
     }
 
