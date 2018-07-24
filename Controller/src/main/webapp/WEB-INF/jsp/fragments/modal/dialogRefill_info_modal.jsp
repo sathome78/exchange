@@ -53,11 +53,11 @@
                         </tr>
                         <tr>
                             <td><loc:message code="refill.address"/></td>
-                            <td id="info-address"></td>
+                            <td id="info-address" class="word-wrap-break-work"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="refill.merchantTransactionId"/></td>
-                            <td id="info-merchant-transaction-id"></td>
+                            <td id="info-merchant-transaction-id" class="word-wrap-break-work"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="merchants.invoiceDetails.remark"/></td>
