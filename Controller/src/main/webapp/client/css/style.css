@@ -2215,6 +2215,7 @@ input[type=email], .dropdown-menu__form,
     margin-top: 20px;
     vertical-align: middle;
 }
+
 .access-denied-header {
     margin-bottom: 20px;
 }
@@ -2222,6 +2223,17 @@ input[type=email], .dropdown-menu__form,
 .access-denied-header + p {
     font-size: 2rem;
     margin-bottom: 30px;
+}
+
+#error-message-title {
+    font-size: 25px;
+    font-weight: bold;
+    margin-top: 20px;
+    vertical-align: middle;
+}
+
+#error-redirect-button {
+    margin-bottom: 15px;
 }
 
 #merchant-options-table td {

@@ -8,6 +8,24 @@
         <listener-class>se.jiderhamn.classloader.leak.prevention.ClassLoaderLeakPreventorListener</listener-class>
     </listener>
 
+    <!-- This will catch Http 404 error -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/jsp/errorPages/404.jsp</location>
+    </error-page>
+
+    <!-- This will catch Http 500 error -->
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/jsp/errorPages/500.jsp</location>
+    </error-page>
+
+    <!-- This will catch any exception
+    <error-page>
+        <location>/WEB-INF/jsp/errorPages/generalErrorPage.jsp</location>
+    </error-page>
+    -->
+
     <servlet>
         <servlet-name>BotDetect Captcha</servlet-name>
         <servlet-class>com.captcha.botdetect.web.servlet.CaptchaServlet</servlet-class>

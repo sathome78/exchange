@@ -61,8 +61,6 @@ public class GlobalControllerExceptionHandler {
     public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
-    
-    
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
