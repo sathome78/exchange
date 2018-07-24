@@ -1033,7 +1033,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     @Bean(name = "daccServiceImpl")
     public EthTokenService daccService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x97f14d1bd27da413136d78b0899b3b468505b363");
+        tokensList.add("0xf8c595d070d104377f58715ce2e6c93e49a87f3c");
         return new EthTokenServiceImpl(
                 tokensList,
                 "DACC",
