@@ -343,24 +343,23 @@
                   </div>
 
                 </div>
-                <%--MERCHANT--%>
-                <div class="input-block-wrapper">
-                  <div class="col-md-3 input-block-wrapper__label-wrapper">
-                    <label class="input-block-wrapper__label">
-                      <loc:message code="withdrawal.merchant"/>
-                    </label>
+                  <%--CURRENCY--%>
+                  <div class="input-block-wrapper">
+                    <div class="col-md-3 input-block-wrapper__label-wrapper">
+                      <label class="input-block-wrapper__label">
+                        <loc:message code="transaction.currency"/>
+                      </label>
+                    </div>
+                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                      <ul class="checkbox-grid">
+                        <c:forEach items="${currencies}" var="currency">
+                          <li>
+                            <input type="checkbox" name="currencies" value="${currency.id}"><span>${currency.name}</span>
+                          </li>
+                        </c:forEach>
+                      </ul>
+                    </div>
                   </div>
-                  <div class="col-md-9 input-block-wrapper__input-wrapper">
-                    <ul class="checkbox-grid">
-                      <c:forEach items="${merchants}" var="merchant">
-                        <li><input type="checkbox" name="merchants" value="${merchant.id}"><span>${merchant.name}</span>
-                        </li>
-                      </c:forEach>
-                    </ul>
-
-                  </div>
-
-                </div>
                 <%--TIME--%>
                 <div class="input-block-wrapper">
                   <div class="col-md-3 input-block-wrapper__label-wrapper">
