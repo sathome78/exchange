@@ -194,6 +194,12 @@ public class CryptocurrencyConfig {
                 "EQL", "EQL", 4, 20, false);
     }
 
+    @Bean(name = "lbtcServiceImpl")
+    public BitcoinService lbtcService() {
+        return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
+                "LBTC", "LBTC", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 
