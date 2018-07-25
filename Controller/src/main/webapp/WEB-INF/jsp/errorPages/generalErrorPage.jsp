@@ -44,7 +44,7 @@
         <div class="col-md-4 col-md-offset-4 content">
             <div class="white-box text-center">
                 <div class="access-denied-header">
-                    <img id="access-denied-img" src="<c:url value='/client/img/404-error.png'/>">
+                    <img id="access-denied-img" src="<c:url value='/client/img/general-error.png'/>">
                     <span id="error-message-title"><loc:message code="error.http.message.title" /></span>
                     <p><h4><loc:message code="error.message.http.status" /> <%=response.getStatus()%></h4></p>
                 </div>
