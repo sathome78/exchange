@@ -63,4 +63,13 @@ public class MaterialsController {
         }
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        exception.printStackTrace();
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
 }
