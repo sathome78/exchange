@@ -2,11 +2,11 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
+function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
-        return new TradingClass();
+        return new TradingClass(cpData);
     }
     TradingClass.__instance = this;
     /**/
@@ -338,9 +338,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
+    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
-        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, true);
+        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData, true);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
         try {
             chart = new ChartGoogleClass();
@@ -400,7 +400,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         /**/
        /* switchCreateOrAcceptButtons();*/
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
+    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
