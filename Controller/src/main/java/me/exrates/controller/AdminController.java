@@ -1700,6 +1700,15 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
 
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(Exception.class)
+  @ResponseBody
+  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    LOG.error(exception);
+    exception.printStackTrace();
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
     public static void main(String[] args) {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
     }
