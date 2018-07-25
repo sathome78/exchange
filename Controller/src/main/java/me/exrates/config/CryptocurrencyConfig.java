@@ -151,22 +151,22 @@ public class CryptocurrencyConfig {
                 "NYC", "NYC", 4, 20, false, false);
     }
 
+    @Bean(name = "ptcServiceImpl")
+    public BitcoinService ptcService() {
+        return new BitcoinServiceImpl("merchants/perfectcoin_wallet.properties",
+                "Perfectcoin", "PTC", 4, 20, false, false);
+    }
+
     @Bean(name = "fgcServiceImpl")
     public BitcoinService fgcService() {
         return new BitcoinServiceImpl("merchants/fgc_wallet.properties",
                 "FGC", "FGC", 4, 20, false, false);
     }
 
-    @Bean(name = "sabrServiceImpl")
-    public BitcoinService sabrService() {
-        return new BitcoinServiceImpl("merchants/sabr_wallet.properties",
-                "SABR", "SABR", 4, 20, false, false);
-    }
-
-    @Bean(name = "ptcServiceImpl")
-    public BitcoinService ptcService() {
-        return new BitcoinServiceImpl("merchants/perfectcoin_wallet.properties",
-                "Perfectcoin", "PTC", 4, 20, false, false);
+    @Bean(name = "bclServiceImpl")
+    public BitcoinService bitcoinCleanService() {
+        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
+                "BitcoinClean", "BCL", 4, 20, false);
     }
 
     @Bean(name = "brecoServiceImpl")
@@ -176,17 +176,16 @@ public class CryptocurrencyConfig {
                 false, true, true);
     }
 
-    @Bean(name = "bclServiceImpl")
-    public BitcoinService bitcoinCleanService() {
-        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
-                "BitcoinClean", "BCL", 4, 20, false);
-    }
-
-
     @Bean(name = "ftoServiceImpl")
     public BitcoinService ftoService() {
         return new BitcoinServiceImpl("merchants/fto_wallet.properties",
                 "FTO", "FTO", 4, 20, false, false);
+    }
+
+    @Bean(name = "sabrServiceImpl")
+    public BitcoinService sabrService() {
+        return new BitcoinServiceImpl("merchants/sabr_wallet.properties",
+                "SABR", "SABR", 4, 20, false, false);
     }
 
     @Bean(name = "eqlServiceImpl")
@@ -195,6 +194,11 @@ public class CryptocurrencyConfig {
                 "EQL", "EQL", 4, 20, false);
     }
 
+    @Bean(name = "lbtcServiceImpl")
+    public BitcoinService lbtcService() {
+        return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
+                "LBTC", "LBTC", 4, 20, false);
+    }
 
     // LISK-like cryptos
 
