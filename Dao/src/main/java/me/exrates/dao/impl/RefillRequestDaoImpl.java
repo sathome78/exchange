@@ -884,7 +884,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String sql = "SELECT " +
         " (SELECT COUNT(*) FROM REFILL_REQUEST REQUEST " +
         " JOIN USER ON(USER.id = REQUEST.user_id) " +
-        " WHERE USER.email = :email and REQUEST.currency_id = currency_id " +
+        " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
         " and DATE(REQUEST.date_creation) = CURDATE()) <  " +
         " " +
         "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
