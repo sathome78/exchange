@@ -1677,23 +1677,6 @@ public class AdminController {
   }
 
 
-
-
-
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-  @ExceptionHandler(OrderDeletingException.class)
-  @ResponseBody
-  public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler(NoPermissionForOperationException.class)
-  @ResponseBody
-  public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-  
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
           OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
@@ -1717,18 +1700,8 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
 
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
-  @ResponseBody
-  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    LOG.error(exception);
-    exception.printStackTrace();
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
     public static void main(String[] args) {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
     }
-
 
 }

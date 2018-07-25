@@ -309,12 +309,4 @@ public class TransferRequestController {
     return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
-  @ResponseBody
-  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    log.error(ExceptionUtils.getStackTrace(exception));
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
 }

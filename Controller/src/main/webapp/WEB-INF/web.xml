@@ -14,17 +14,12 @@
         <location>/WEB-INF/jsp/errorPages/404.jsp</location>
     </error-page>
 
-    <!-- This will catch Http 500 error -->
+    <!-- This will catch Http 500 error | It's config for insurance |
+    This error status catch by controller advice and other controllers-->
     <error-page>
         <error-code>500</error-code>
         <location>/WEB-INF/jsp/errorPages/500.jsp</location>
     </error-page>
-
-    <!-- This will catch any exception
-    <error-page>
-        <location>/WEB-INF/jsp/errorPages/generalErrorPage.jsp</location>
-    </error-page>
-    -->
 
     <servlet>
         <servlet-name>BotDetect Captcha</servlet-name>

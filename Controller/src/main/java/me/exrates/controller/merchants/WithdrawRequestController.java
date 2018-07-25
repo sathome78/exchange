@@ -305,15 +305,12 @@ public class WithdrawRequestController {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
+  @ExceptionHandler(MerchantException.class)
   @ResponseBody
-  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    if (exception instanceof MerchantException) {
-      return new ErrorInfo(req.getRequestURL(), exception,
-              messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
-    }
+  public ErrorInfo merchantExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(ExceptionUtils.getStackTrace(exception));
-    return new ErrorInfo(req.getRequestURL(), exception);
+    return new ErrorInfo(req.getRequestURL(), exception,
+              messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
   }
 
 }

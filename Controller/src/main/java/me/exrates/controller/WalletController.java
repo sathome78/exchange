@@ -73,12 +73,5 @@ public class WalletController {
     public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
     }
-    
-    
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ErrorInfo commonErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
+
 }
