@@ -2,11 +2,10 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData, ico) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
-
     var previousValue;
 
     this.init = function (onChangeHandler) {
@@ -32,7 +31,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
                 onChangeHandler(data.currencyPair);
             });
         });
-        that.getAndShowCurrencySelector();
+        that.getAndShowCurrencySelector(ico);
     };
 
     this.syncState = function (onChangeHandler) {
@@ -53,7 +52,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
         });
     };
 
-    this.getAndShowCurrencySelector = function () {
+    this.getAndShowCurrencySelector = function (ico) {
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
         var $template = $('.selectors_template');

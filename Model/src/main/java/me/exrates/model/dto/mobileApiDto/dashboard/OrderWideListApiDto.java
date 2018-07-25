@@ -46,7 +46,7 @@ public class OrderWideListApiDto {
     public OrderWideListApiDto(OrderWideListDto dto, Locale locale) {
         this.id = dto.getId();
         this.userId = dto.getUserId();
-        this.operationType = dto.getOperationType();
+        this.operationType = dto.getOperationTypeEnum();
         this.exExchangeRate = BigDecimalProcessing.parseLocale(dto.getExExchangeRate(), locale, 2);
         this.amountBase = BigDecimalProcessing.parseLocale(dto.getAmountBase(), locale, 2);
         this.amountConvert = BigDecimalProcessing.parseLocale(dto.getAmountConvert(), locale, 2);

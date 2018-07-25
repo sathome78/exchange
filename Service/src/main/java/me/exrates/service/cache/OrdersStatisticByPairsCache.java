@@ -5,6 +5,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class OrdersStatisticByPairsCache {
 
     @PostConstruct
     private void init() {
-        allPairs = currencyDao.getAllCurrencyPairs();
+        allPairs = currencyDao.getAllCurrencyPairs(CurrencyPairType.ALL);
         update();
         needUpdate.set(false);
         log.info("initialized, {}", cachedList.size());

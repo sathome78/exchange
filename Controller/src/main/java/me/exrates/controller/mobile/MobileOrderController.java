@@ -221,6 +221,7 @@ public class MobileOrderController {
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+        orderCreateDto.setOrderBaseType(activeCurrencyPair.getPairType().getOrderBaseType());
         LOGGER.debug("Order prepared" + orderCreateDto);
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
         Map<String, Object> errors = orderValidationDto.getErrors();

@@ -153,7 +153,10 @@ public class StompMessengerImpl implements StompMessenger{
     @Synchronized
     @Override
     public void sendStatisticMessage(List<Integer> currenciesIds) {
-       sendMessageToDestination("/app/statistics", orderService.getSomeCurrencyStatForRefresh(currenciesIds));
+        Map<RefreshObjectsEnum, String> result =  orderService.getSomeCurrencyStatForRefresh(currenciesIds);
+        result.forEach((k,v) -> {
+            sendMessageToDestination("/app/statistics/".concat(k.getSubscribeChannel()), v);
+        });
     }
 
     @Override
@@ -163,7 +166,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendAlerts(final String message, final String lang) {
-       log.debug("lang to send {}", lang);
+        log.debug("lang to send {}", lang);
         sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 

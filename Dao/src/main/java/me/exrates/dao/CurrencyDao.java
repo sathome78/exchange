@@ -8,10 +8,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,7 +35,7 @@ public interface CurrencyDao {
 
   void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
 
-  List<CurrencyPair> getAllCurrencyPairs();
+  List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
   CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
@@ -74,5 +71,4 @@ public interface CurrencyDao {
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
   List<CurrencyPair> findPermitedCurrencyPairs();
-
 }

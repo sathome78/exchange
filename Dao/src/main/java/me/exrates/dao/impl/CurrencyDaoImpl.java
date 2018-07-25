@@ -9,10 +9,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +34,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     CurrencyPair currencyPair = new CurrencyPair();
     currencyPair.setId(rs.getInt("id"));
     currencyPair.setName(rs.getString("name"));
+    currencyPair.setPairType(CurrencyPairType.valueOf(rs.getString("type")));
       /**/
     Currency currency1 = new Currency();
     currency1.setId(rs.getInt("currency1_id"));
@@ -182,22 +180,24 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
-  public List<CurrencyPair> getAllCurrencyPairs() {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market,  " +
+  public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
+    String typeClause = "";
+    if (type != null && type != CurrencyPairType.ALL) {
+      typeClause = " AND type =:pairType ";
+    }
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR " +
-        " WHERE hidden IS NOT TRUE " +
+        " WHERE hidden IS NOT TRUE " + typeClause +
         " ORDER BY -pair_order DESC";
-
-    List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, currencyPairRowMapper);
-
-    return currencyPairList;
+    return jdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
   }
+
 
   @Override
   public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market,  " +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
@@ -209,7 +209,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair findCurrencyPairById(int currencyPairId) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, " +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
@@ -220,7 +220,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair findCurrencyPairByName(String currencyPairName) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, " +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
             "(select name from CURRENCY where id = currency2_id) as currency2_name " +
             " FROM CURRENCY_PAIR WHERE name = :currencyPairName";
@@ -316,7 +316,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair findCurrencyPairByOrderId(int orderId) {
-    String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, " +
+    String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, type," +
             "CURRENCY_PAIR.market, " +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
@@ -391,7 +391,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
-    String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, " +
+    String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, CP.type, " +
             "             (select name from CURRENCY where id = currency1_id) as currency1_name, " +
             "        (select name from CURRENCY where id = currency2_id) as currency2_name, " +
             "  LIM_SELL.min_rate AS min_rate_sell, LIM_SELL.max_rate AS max_rate_sell, LIM_SELL.min_amount AS min_amount_sell, LIM_SELL.max_amount AS max_amount_sell, " +
@@ -461,7 +461,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPair> findPermitedCurrencyPairs(){
-    String sql = "SELECT id, currency1_id, currency2_id, name, market,  \n" +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type, \n" +
             "        (select name from CURRENCY where id = currency1_id) as currency1_name, \n" +
             "        (select name from CURRENCY where id = currency2_id) as currency2_name \n" +
             "         FROM CURRENCY_PAIR \n" +

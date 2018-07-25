@@ -60,12 +60,12 @@ public class withdrawRequestJob {
 
   private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-  @PostConstruct
+  /*@PostConstruct
   private void initSchedule() {
     scheduler.scheduleAtFixedRate(this::setInPostingStatus, 1, 60, TimeUnit.SECONDS);
     scheduler.scheduleAtFixedRate(this::postWithdraw, 1, 60, TimeUnit.SECONDS);
   }
-
+*/
  // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void setInPostingStatus() {
     log.info("before setInPostingStatus()");

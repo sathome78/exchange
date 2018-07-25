@@ -102,13 +102,13 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public List<CurrencyPair> getAllCurrencyPairs() {
-    return currencyDao.getAllCurrencyPairs();
+  public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
+    return currencyDao.getAllCurrencyPairs(type);
   }
 
   @Override
-  public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder() {
-    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs();
+  public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
+    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs(type);
     result.sort(Comparator.comparing(CurrencyPair::getName));
     return result;
   }

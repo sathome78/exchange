@@ -184,7 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
         .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/registrationConfirm/**",
+                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ico_dashboard/**", "/registrationConfirm/**",
             "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
         .antMatchers(POST, "/merchants/withdrawal/request/accept",
             "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
@@ -255,7 +255,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
+        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
         /*user withdraw action ...*/
         .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/

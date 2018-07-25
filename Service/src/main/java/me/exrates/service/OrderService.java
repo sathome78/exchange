@@ -31,7 +31,7 @@ import java.util.Optional;
 public interface OrderService {
 
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx();
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
 
@@ -343,11 +343,11 @@ public interface OrderService {
 
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
-  String getAllCurrenciesStatForRefresh();
+  String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum);
 
   String getAllCurrenciesStatForRefreshForAllPairs();
 
-  String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+  Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);

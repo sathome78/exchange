@@ -162,6 +162,7 @@ public class AdminController {
   public static String traderAuthority;
   public static String botAuthority;
 
+
   @PostConstruct
   private void init() {
     traderAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.TRADER);
@@ -178,7 +179,7 @@ public class AdminController {
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
   public ModelAndView admin() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("enable_2fa", userService.isGlobal2FaActive());
     model.addObject("post_url", "/2a8fy7b07dxe44/set2fa");
@@ -206,7 +207,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
   public ModelAndView orderDeletion() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.values()));
@@ -219,7 +220,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/removeStopOrder", method = GET)
   public ModelAndView stopOrderDeletion() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.OPENED, OrderStatus.CLOSED, OrderStatus.CANCELLED, OrderStatus.INPROCESS));
@@ -486,7 +487,7 @@ public class AdminController {
     model.addObject("user", user);
     model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
-    model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+    model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     model.setViewName("admin/editUser");
     model.addObject("userFiles", userService.findUserDoc(id));
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
@@ -1251,7 +1252,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
   public ModelAndView candleChartTable() {
-    return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+    return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
@@ -1416,7 +1417,7 @@ public class AdminController {
     botService.retrieveBotFromDB().ifPresent(bot -> {
       modelAndView.addObject("bot", bot);
       modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
-      modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+      modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     });
     return modelAndView;
   }

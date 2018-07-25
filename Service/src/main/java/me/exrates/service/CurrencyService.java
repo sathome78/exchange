@@ -36,11 +36,11 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    List<CurrencyPair> getAllCurrencyPairs();
+    List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
-    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
-    CurrencyPair findCurrencyPairById(int currencyPairId);
+  CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
 

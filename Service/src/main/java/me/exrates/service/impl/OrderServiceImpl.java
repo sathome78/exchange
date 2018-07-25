@@ -41,16 +41,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -238,10 +239,24 @@ public class OrderServiceImpl implements OrderService {
       }
     return result;
   }
+
    @Transactional(readOnly = true)
    @Override
-   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
-     return this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
+      List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+      switch (refreshObjectsEnum) {
+          case ICO_CURRENCIES_STATISTIC: {
+              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
+              break;
+          }
+          case MAIN_CURRENCIES_STATISTIC: {
+              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
+              break;
+          }
+          default: {
+          }
+      }
+     return dto;
    }
 
     @Transactional(readOnly = true)
@@ -344,6 +359,14 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
+
+    if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+      throw new RuntimeException("unsupported type of order");
+    }
+    if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
+      validateIcoOrder(errors, errorParams, orderCreateDto);
+    }
+
     if (orderCreateDto.getAmount() != null) {
       if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
         String key1 = "amount_" + errors.size();
@@ -390,6 +413,23 @@ public class OrderServiceImpl implements OrderService {
       orderValidationDto.setBadExrate(true);
     }
     return orderValidationDto;
+  }
+
+  private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
+    if (orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+      throw new RuntimeException("unsupported type of order");
+    }
+    if (orderCreateDto.getOperationType() == OperationType.SELL) {
+      SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+              .stream()
+              .filter(p-> p.getAuthority().equals(UserRole.ICO_MARKET_MAKER.name())).findAny().orElseThrow(()-> new RuntimeException("not allowed"));
+    }
+    if (orderCreateDto.getOperationType() == OperationType.BUY) {
+      Optional<BigDecimal> lastRate = orderDao.getLowestOpenOrderPriceByCurrencyPairAndOperationType(orderCreateDto.getCurrencyPair().getId(), OperationType.SELL.type);
+      if (!lastRate.isPresent() || orderCreateDto.getExchangeRate().compareTo(lastRate.get()) < 0) {
+        errors.put("exrate_" + errors.size(), "order_ico.no_orders_for_rate");
+      }
+    }
   }
 
   private boolean checkNotProfitableExrate(OrderCreateDto dto) {
@@ -474,8 +514,9 @@ public class OrderServiceImpl implements OrderService {
         ExOrder exOrder = new ExOrder(orderCreateDto);
         OrderBaseType orderBaseType = orderCreateDto.getOrderBaseType();
         if (orderBaseType == null) {
-          orderBaseType = OrderBaseType.LIMIT;
-          exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+          CurrencyPairType type = exOrder.getCurrencyPair().getPairType();
+          orderBaseType = type == CurrencyPairType.ICO ? OrderBaseType.ICO : OrderBaseType.LIMIT;
+          exOrder.setOrderBaseType(orderBaseType);
         }
         TransactionSourceType sourceType;
         switch (orderBaseType) {
@@ -483,6 +524,11 @@ public class OrderServiceImpl implements OrderService {
             createdOrderId = stopOrderService.createOrder(exOrder);
             sourceType = TransactionSourceType.STOP_ORDER;
             break;
+          }
+          case ICO: {
+            if (orderCreateDto.getOperationType() == OperationType.BUY) {
+              return 0;
+            }
           }
           default: {
             if(presavedOrderId != null) {
@@ -553,7 +599,6 @@ public class OrderServiceImpl implements OrderService {
     }
     successMessage.append("\"}");
     return Optional.of(successMessage.toString());
-
   }
 
   @Override
@@ -563,7 +608,7 @@ public class OrderServiceImpl implements OrderService {
     try {
       boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
       List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-          OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole());
+          OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());
       profileData.setTime1();
       logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
       if (acceptableOrders.isEmpty()) {
@@ -594,12 +639,10 @@ public class OrderServiceImpl implements OrderService {
         orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
       }
       if (orderForPartialAccept != null) {
-        /*accept order that can't be fully qccepted and must be splitted*/
         BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
         orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
         orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
-      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
-        /*create order for the rest of sum*/
+      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
         User user = userService.getUserById(orderCreateDto.getUserId());
         profileData.setTime2();
         OrderCreateDto remainderNew = prepareNewOrder(
@@ -640,6 +683,7 @@ public class OrderServiceImpl implements OrderService {
             orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});*/
     return amountForPartialAccept;
   }
+
 
   @Transactional(readOnly = true)
   @Override
@@ -1043,7 +1087,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
     final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
     result.addAll(currencyPairList.stream()
         .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
             && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
@@ -1635,9 +1679,9 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public String getAllCurrenciesStatForRefresh() {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(),
-                                                      RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
+  public String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum) {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(refreshObjectsEnum),
+                                                      refreshObjectsEnum.name());
     try {
       return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
     } catch (JsonProcessingException e) {
@@ -1659,15 +1703,33 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public String getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.getStatForSomeCurrencies(currencyIds),
-            RefreshObjectsEnum.CURRENCY_STATISTIC.name());
-    try {
-      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
-    } catch (JsonProcessingException e) {
-      log.error(e);
-      return null;
+  public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+    System.out.println("curencies for refresh size " + currencyIds.size());
+    List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
+    List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
+    List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
+    Map<RefreshObjectsEnum, String> res = new HashMap<>();
+    if (!icos.isEmpty()) {
+      OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
+      res.put(RefreshObjectsEnum.ICO_CURRENCY_STATISTIC, new JSONArray(){{
+        try {
+          put(objectMapper.writeValueAsString(wrapper));
+        } catch (JsonProcessingException e) {
+          logger.error(e);
+        }
+      }}.toString());
     }
+    if (!mains.isEmpty()) {
+      OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
+      res.put(RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC, new JSONArray(){{
+        try {
+          put(objectMapper.writeValueAsString(wrapper));
+        } catch (JsonProcessingException e) {
+          log.error(e);
+        }
+      }}.toString());
+    }
+    return res;
   }
 
   @Override
