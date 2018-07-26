@@ -256,15 +256,21 @@ public class OrderDaoImpl implements OrderDao {
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
 
         int resolution = resolutionValue;
-        if (resolution == 240 || resolution == 720 || !"MINUTE".equals(resolutionType)) {
+        if ( resolution == 720 || !"MINUTE".equals(resolutionType)) {
             startTime = startTime.with(LocalTime.MIN);
-//            endTime = endTime.with(LocalTime.MIN);
+
+        }
+        if (resolution == 240 ) {
+            long hourDifference = (startTime.getHour() % 4) * 60 + startTime.getMinute();
+            startTime = startTime.minusMinutes(hourDifference);
+            startTime = startTime.truncatedTo(ChronoUnit.HOURS)
+                    .plusMinutes(60 * (startTime.getMinute() / 60));
         }
 
         LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+                .minusMinutes(resolution * (startTime.getMinute() / resolution));
         LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+                .minusMinutes(resolution * (startTime.getMinute() / resolution));
 
         String startTimeString = start.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String endTimeString = end.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));

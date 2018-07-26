@@ -128,7 +128,19 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         if (!lazyUpdate) {
             log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
             if (timerLock.tryLock()) {
-                timerLock.lock();
+//                timerLock.lock();
+//
+//                final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
+//                final ScheduledFuture<?> handler = scheduler.schedule(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                log.debug("execute task update data {} {}", currencyPairId, timeFrame);
+//                                timerLock = new ReentrantLock();
+//                                updateCache(true);
+//                                eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
+//                            }
+//                        },getMinUpdateIntervalSeconds() * 1000,  TimeUnit.MILLISECONDS);
+
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
@@ -140,6 +152,15 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }, getMinUpdateIntervalSeconds() * 1000);
 
             }
+//            try {
+//                System.out.println(handler.get());
+//                scheduler.awaitTermination(40,TimeUnit.SECONDS);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            } catch (ExecutionException e) {
+//                e.printStackTrace();
+//            }
+
         } else {
             needToUpdate.set(true);
         }
