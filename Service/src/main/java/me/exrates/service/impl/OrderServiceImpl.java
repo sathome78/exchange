@@ -359,14 +359,11 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
-
-    if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
-      throw new RuntimeException("unsupported type of order");
-    }
+    /*------------------*/
     if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
       validateIcoOrder(errors, errorParams, orderCreateDto);
     }
-
+    /*------------------*/
     if (orderCreateDto.getAmount() != null) {
       if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
         String key1 = "amount_" + errors.size();

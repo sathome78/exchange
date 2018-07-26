@@ -274,7 +274,7 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public List<CurrencyPair> findPermitedCurrencyPairs(){
-    return currencyDao.findPermitedCurrencyPairs();
+  public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType){
+    return currencyDao.findPermitedCurrencyPairs(currencyPairType);
   }
 }

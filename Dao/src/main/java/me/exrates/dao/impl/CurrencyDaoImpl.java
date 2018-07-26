@@ -460,16 +460,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
-  public List<CurrencyPair> findPermitedCurrencyPairs(){
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, type, \n" +
-            "        (select name from CURRENCY where id = currency1_id) as currency1_name, \n" +
-            "        (select name from CURRENCY where id = currency2_id) as currency2_name \n" +
-            "         FROM CURRENCY_PAIR \n" +
-            "         WHERE hidden IS NOT TRUE AND permitted_link IS TRUE";
-
-    List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, currencyPairRowMapper);
-
-    return currencyPairList;
+  public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType){
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+            "        (select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "        (select name from CURRENCY where id = currency2_id) as currency2_name " +
+            "         FROM CURRENCY_PAIR " +
+            "         WHERE hidden IS NOT TRUE AND permitted_link IS TRUE ";
+    if (currencyPairType != CurrencyPairType.ALL) {
+        sql = sql.concat(" AND type =:type");
+    }
+    return jdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()),currencyPairRowMapper);
 
   }
 }
