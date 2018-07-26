@@ -272,9 +272,8 @@ public class OrderDaoImpl implements OrderDao {
 
         int resolution = resolutionValue;
         if (resolution == 240 || resolution == 720 || !"MINUTE".equals(resolutionType)) {
-            resolution = 60;
             startTime = startTime.with(LocalTime.MIN);
-            endTime = endTime.with(LocalTime.MIN);
+//            endTime = endTime.with(LocalTime.MIN);
         }
 
         LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)

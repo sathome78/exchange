@@ -49,9 +49,12 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
             // debug: true, // uncomment this line to see Library errors and warnings in the console
             allow_symbol_change: true,
             autosize: true,
+            // height:'30%',
+            //     width:'100%',
             symbol: currencyPair,
-            timezone: 240,
+            timezone: 'UTC',
             interval: '30',
+            height:'440px',
             container_id: "amcharts-stock_chart_div",
             //	BEWARE: no trailing slash is expected in feed URL
             datafeed: datafeed,
@@ -72,6 +75,7 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
 
         widget.onChartReady(function () {
             stockChart = widget.activeChart();
+            stockChart.activeChart().setChartType(4)
         });
 
     }

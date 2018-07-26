@@ -10,9 +10,9 @@ import java.util.Arrays;
 public enum IntervalType2 {
     HOUR(ChronoUnit.HOURS, 10L, true, "H"),
     DAY(ChronoUnit.DAYS, 300L, false, "D"),
-    WEAK(ChronoUnit.WEEKS, 2100L, false, "W"),
-    YEAR(ChronoUnit.YEARS, 86400L, false, "Y"),
-    MONTH(ChronoUnit.MONTHS, 3600L, false, "M");
+    WEAK(ChronoUnit.WEEKS, 2100L, true, "W"),
+    MONTH(ChronoUnit.MONTHS, 3600L, true, "M"),
+    YEAR(ChronoUnit.YEARS, 86400L, false, "Y");
 
     private TemporalUnit correspondingTimeUnit;
 
