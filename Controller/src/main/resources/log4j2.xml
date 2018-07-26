@@ -384,6 +384,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="ditcoin_log" fileName="${sys:catalina.home}/logs/crypto/ditcoin_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ditcoin_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="iota_log" fileName="${sys:catalina.home}/logs/crypto/iota_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/iota_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -545,6 +554,9 @@
         <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
             <AppenderRef ref="SessionLog"/>
         </Logger>
+        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="DEBUG" additivity="false">
+            <AppenderRef ref="SessionLog"/>
+        </Logger>
         <Logger name="mobileAPI" level="DEBUG" additivity="false">
             <AppenderRef ref="MobileAPILog"/>
         </Logger>
@@ -672,6 +684,9 @@
         <logger name="monero_log" level="ALL" additivity="false">
             <AppenderRef ref="monero_log"/>
         </logger>
+        <logger name="ditcoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="ditcoin_log"/>
+        </logger>
         <logger name="edc_log" level="ALL" additivity="false">
             <AppenderRef ref="edc_log"/>
         </logger>
@@ -711,6 +726,7 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="decred" level="ALL" additivity="false">
             <AppenderRef ref="decred"/>

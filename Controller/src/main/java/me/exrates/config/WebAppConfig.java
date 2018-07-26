@@ -1029,7 +1029,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "GST", false, ExConvert.Unit.ETHER);
     }
 
-
     @Bean(name = "daccServiceImpl")
     public EthTokenService daccService() {
         List<String> tokensList = new ArrayList<>();
@@ -1090,6 +1089,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SKILL", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ttcServiceImpl")
+    public EthTokenService ttcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TTC",
+                "TTC", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "storServiceImpl")
     public EthTokenService storService() {
         List<String> tokensList = new ArrayList<>();
@@ -1108,16 +1117,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 tokensList,
                 "QUiNT",
                 "QUiNT", true, ExConvert.Unit.ETHER);
-    }
-
-    @Bean(name = "ttcServiceImpl")
-    public EthTokenService ttcService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "TTC",
-                "TTC", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
@@ -1144,12 +1143,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Monero", "XMR", 10, 12);
     }
 
-   /* TODO temporary disable
    @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
-    }*/
+    }
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")

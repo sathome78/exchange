@@ -1700,6 +1700,30 @@ public class AdminController {
   public ErrorInfo bindExceptionHandler(HttpServletRequest req, BindException ex) {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(InvalidNumberParamException.class)
+  @ResponseBody
+  public ErrorInfo invalidNumberParamExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(NoRequestedBeansFoundException.class)
+  @ResponseBody
+  public ErrorInfo noRequestedBeansFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(IllegalStateException.class)
+  @ResponseBody
+  public ErrorInfo illegalStateExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
   
     public static void main(String[] args) {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
