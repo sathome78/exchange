@@ -54,6 +54,7 @@ public class OrderDaoImpl implements OrderDao {
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
 
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public static final int MINUTES_PER_HOUR = 60;
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -271,15 +272,21 @@ public class OrderDaoImpl implements OrderDao {
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
 
         int resolution = resolutionValue;
-        if (resolution == 240 || resolution == 720 || !"MINUTE".equals(resolutionType)) {
+        if ( resolution == 720 || !"MINUTE".equals(resolutionType)) {
             startTime = startTime.with(LocalTime.MIN);
-//            endTime = endTime.with(LocalTime.MIN);
+
+        }
+        if (resolution == 240 ) {
+            long hourDifference = (startTime.getHour() % 4) * MINUTES_PER_HOUR + startTime.getMinute();
+            startTime = startTime.minusMinutes(hourDifference);
+            startTime = startTime.truncatedTo(ChronoUnit.HOURS)
+                    .plusMinutes(MINUTES_PER_HOUR * (startTime.getMinute() / MINUTES_PER_HOUR));
         }
 
         LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+                .minusMinutes(resolution * (startTime.getMinute() / resolution));
         LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+                .minusMinutes(resolution * (startTime.getMinute() / resolution));
 
         String startTimeString = start.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String endTimeString = end.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
