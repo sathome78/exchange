@@ -309,4 +309,36 @@ public class TransferRequestController {
     return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(IllegalOperationTypeException.class)
+  @ResponseBody
+  public ErrorInfo illegalOperationTypeExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseBody
+  public ErrorInfo illegalArgumentExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(InvalidNicknameException.class)
+  @ResponseBody
+  public ErrorInfo invalidNicknameExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(RuntimeException.class)
+  @ResponseBody
+  public ErrorInfo runtimeExceptionExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
 }

@@ -249,7 +249,7 @@ public class WithdrawRequestController {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
   @ExceptionHandler({
       RequestLimitExceededException.class
   })
