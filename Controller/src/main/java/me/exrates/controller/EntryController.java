@@ -18,12 +18,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +30,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -40,14 +37,12 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -152,7 +147,7 @@ public class EntryController {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null){
-            currencyService.findPermitedCurrencyPairs().stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
                     .filter(p->p.getPairType() == CurrencyPairType.MAIN)
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
@@ -171,6 +166,11 @@ public class EntryController {
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.ICO);
+        if (currencyPairs.isEmpty()) {
+            model.setViewName("redirect:/dashboard");
+            return model;
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -214,7 +214,7 @@ public class EntryController {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null){
-            currencyService.findPermitedCurrencyPairs().stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
                     .filter(p->p.getPairType() == CurrencyPairType.ICO)
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
@@ -283,7 +283,7 @@ public class EntryController {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null){
-            currencyService.findPermitedCurrencyPairs().stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));

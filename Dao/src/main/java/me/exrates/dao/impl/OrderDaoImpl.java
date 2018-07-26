@@ -516,7 +516,7 @@ public class OrderDaoImpl implements OrderDao {
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
         String sql =
                 " SELECT  " +
-                        "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception,  " +
+                        "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception, EXORDERS.base_type, " +
                         "     ORDER_STATUS.name AS order_status_name,  " +
                         "     CURRENCY_PAIR.name as currency_pair_name,  " +
                         "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
@@ -564,11 +564,12 @@ public class OrderDaoImpl implements OrderDao {
                 @Override
                 public OrderInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     OrderInfoDto orderInfoDto = new OrderInfoDto();
+                    OrderBaseType orderBaseType = OrderBaseType.valueOf(rs.getString("base_type"));
                     orderInfoDto.setId(rs.getInt("id"));
                     orderInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
                     orderInfoDto.setDateAcception(rs.getTimestamp("date_acception") == null ? null : rs.getTimestamp("date_acception").toLocalDateTime());
                     orderInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                    orderInfoDto.setOrderTypeName(rs.getString("order_type_name"));
+                    orderInfoDto.setOrderTypeName(rs.getString("order_type_name").concat(" ").concat(orderBaseType.name()));
                     orderInfoDto.setOrderStatusName(rs.getString("order_status_name"));
                     orderInfoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
                     orderInfoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
@@ -916,7 +917,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
         String sqlSelect = " SELECT  " +
-                "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, " +
+                "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, EXORDERS.base_type, " +
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
                 "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
                 "     EXORDERS.exrate, EXORDERS.amount_base, " +
@@ -944,10 +945,11 @@ public class OrderDaoImpl implements OrderDao {
 
         List<OrderBasicInfoDto> infoDtoList = namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
             OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
+            OrderBaseType baseType = OrderBaseType.convert(rs.getString("base_type"));
             infoDto.setId(rs.getInt("id"));
             infoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
             infoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            infoDto.setOrderTypeName(rs.getString("order_type_name"));
+            infoDto.setOrderTypeName(rs.getString("order_type_name").concat(" ").concat(baseType.name()));
             infoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
             infoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
             infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));

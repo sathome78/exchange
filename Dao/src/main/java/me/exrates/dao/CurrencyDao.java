@@ -70,5 +70,5 @@ public interface CurrencyDao {
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-  List<CurrencyPair> findPermitedCurrencyPairs();
+  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
 }
