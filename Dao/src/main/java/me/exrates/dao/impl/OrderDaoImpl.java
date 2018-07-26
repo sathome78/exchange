@@ -54,6 +54,7 @@ public class OrderDaoImpl implements OrderDao {
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
 
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final int MINUTES_PER_HOUR = 60;
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -261,10 +262,10 @@ public class OrderDaoImpl implements OrderDao {
 
         }
         if (resolution == 240 ) {
-            long hourDifference = (startTime.getHour() % 4) * 60 + startTime.getMinute();
+            long hourDifference = (startTime.getHour() % 4) * MINUTES_PER_HOUR + startTime.getMinute();
             startTime = startTime.minusMinutes(hourDifference);
             startTime = startTime.truncatedTo(ChronoUnit.HOURS)
-                    .plusMinutes(60 * (startTime.getMinute() / 60));
+                    .minusMinutes(MINUTES_PER_HOUR * (startTime.getMinute() / MINUTES_PER_HOUR));
         }
 
         LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
