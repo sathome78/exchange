@@ -13,7 +13,7 @@ public class TokenWrappersGenerator {
                 "/home/yagi/crypto/eth/TTC.bin",
                 "/home/yagi/crypto/eth/TTC.abi",
                 "-o",
-                "/home/yagi/workspace/becomeJavaSenior/exrates/Service/src/main/java",
+                "/home/artyom/IdeaProjects/exrates/Service/src/main/java",
                 "-p",
                 "me.exrates.service.ethereum.ethTokensWrappers"});
     }

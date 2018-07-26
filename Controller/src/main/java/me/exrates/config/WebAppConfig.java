@@ -1029,7 +1029,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "GST", false, ExConvert.Unit.ETHER);
     }
 
-
     @Bean(name = "daccServiceImpl")
     public EthTokenService daccService() {
         List<String> tokensList = new ArrayList<>();
@@ -1082,6 +1081,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     @Bean(name = "skillServiceImpl")
     public EthTokenService skillService() {
+<<<<<<< HEAD
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x417d6feeae8b2fcb73d14d64be7f192e49431978");
         return new EthTokenServiceImpl(
@@ -1112,12 +1112,39 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     @Bean(name = "ttcServiceImpl")
     public EthTokenService ttcService() {
+=======
+>>>>>>> EX-499_fix_bugs_with_errors
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
         return new EthTokenServiceImpl(
                 tokensList,
+<<<<<<< HEAD
                 "TTC",
                 "TTC", true, ExConvert.Unit.ETHER);
+=======
+                "SKILL",
+                "SKILL", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "storServiceImpl")
+    public EthTokenService storService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa3ceac0aac5c5d868973e546ce4731ba90e873c2");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "STOR",
+                "STOR", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "quintServiceImpl")
+    public EthTokenService quintService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x45b73654e464945a268032cdcb8d551fe8b733ca");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "QUiNT",
+                "QUiNT", true, ExConvert.Unit.ETHER);
+>>>>>>> EX-499_fix_bugs_with_errors
     }
 
     //    Qtum tokens:
@@ -1144,12 +1171,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Monero", "XMR", 10, 12);
     }
 
-   /* TODO temporary disable
    @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
-    }*/
+    }
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")

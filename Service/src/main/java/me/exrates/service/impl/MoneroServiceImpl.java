@@ -16,6 +16,8 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -40,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
-@Log4j2(topic = "monero_log")
 public class MoneroServiceImpl implements MoneroService {
 
     private MoneroWallet wallet;
@@ -81,6 +82,8 @@ public class MoneroServiceImpl implements MoneroService {
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
 
+    private Logger log;
+
     public MoneroServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer decimals) {
 
         Properties props = new Properties();
@@ -96,6 +99,7 @@ public class MoneroServiceImpl implements MoneroService {
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
             this.decimals = decimals;
+            this.log = LogManager.getLogger(props.getProperty("monero.log"));
         } catch (IOException e) {
             log.error(e);
         }
