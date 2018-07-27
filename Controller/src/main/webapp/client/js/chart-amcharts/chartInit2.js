@@ -1,6 +1,6 @@
 
 
-function ChartAmchartsClass2(currencyPair, subscribeCallback) {
+function ChartAmchartsClass2(currencyPair) {
 
     if (ChartAmchartsClass2.__instance) {
         return ChartAmchartsClass2.__instance;
@@ -52,7 +52,7 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
             // height:'30%',
             //     width:'100%',
             symbol: currencyPair,
-            timezone: 'UTC',
+            // timezone: 'UTC',
             interval: '30',
             height:'440px',
             container_id: "amcharts-stock_chart_div",
@@ -75,7 +75,7 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
 
         widget.onChartReady(function () {
             stockChart = widget.activeChart();
-            stockChart.activeChart().setChartType(4)
+            // stockChart.activeChart().setTimezone("Etc/UTC")
         });
 
     }

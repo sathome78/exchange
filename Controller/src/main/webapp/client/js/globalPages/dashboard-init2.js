@@ -59,9 +59,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    // if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-    //     subscribeChart();
-    // }
+    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+        subscribeChart();
+    }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -150,9 +150,11 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statisticsNew';
+        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
+        console.log("subscribe statistics ");
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
+            console.log(messageBody);
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));
             });
@@ -261,11 +263,11 @@ function drawTechAlert(object) {
 
 function handleStatisticMessages(object) {
     switch (object.type){
-        case "CURRENCIES_STATISTIC" : {
+        case "MAIN_CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
             break;
         }
-        case "CURRENCY_STATISTIC" : {
+        case "MAIN_CURRENCY_STATISTIC" : {
             object.data.forEach(function(object){
                 leftSider.updateStatisticsForCurrency(object);
             });
@@ -282,9 +284,9 @@ function handleEventsMessage(data) {
         var registered = $('#hello-my-friend')[0];
         var noty = '';
         if (data.redirect.url && registered) {
-            noty = "?errorNoty=" + data.redirect.successQR;
+            window.location = data.redirect.url;
+            /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-        window.location = data.redirect.url + noty;
     }
 
 }
@@ -420,8 +422,8 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-
-        $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
+    //TODO temporary disabled
+    //    $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
@@ -440,7 +442,7 @@ $(function dashdoardInit() {
                 }
             });
             trading.fillOrderCreationFormFields();
-            });
+        });
         $('#currency_table_wrapper, #mywallets_table_wrapper').mCustomScrollbar({
             theme: "dark",
             axis: "yx",
@@ -457,19 +459,28 @@ $(function dashdoardInit() {
             live: true
         });
 
-
+        console.log("sync db");
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart);
-            newChartResolution = data.period;
-            leftSider = new LeftSiderClass();
-            leftSider.setOnWalletsRefresh(function () {
-                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+            var url = '/dashboard/createPairSelectorMenu';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (cpData) {
+                    if (!cpData) return;
+                    trading = new TradingClass( data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
+                    newChartPeriod = data.period;
+                    leftSider = new LeftSiderClass();
+                    leftSider.setOnWalletsRefresh(function () {
+                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+                    });
+                    myWallets = new MyWalletsClass();
+                    myStatements = new MyStatementsClass();
+                    myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
+                    orders = new OrdersClass(data.currencyPair.name, cpData);
+                    /**/
+                }
             });
-            myWallets = new MyWalletsClass();
-            myStatements = new MyStatementsClass();
-            myHistory = new MyHistoryClass(data.currencyPair.name);
-            orders = new OrdersClass(data.currencyPair.name);
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
