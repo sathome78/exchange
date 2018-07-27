@@ -1,5 +1,3 @@
-
-
 function ChartAmchartsClass2(currencyPair) {
 
     if (ChartAmchartsClass2.__instance) {
