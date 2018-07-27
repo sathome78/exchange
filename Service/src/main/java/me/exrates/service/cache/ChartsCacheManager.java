@@ -40,20 +40,19 @@ public class ChartsCacheManager {
 
     private Map<Integer, Map<String, ChartCacheUnit>> cacheMap = new ConcurrentHashMap<>();
 
-    /*todo new chart*/
-    /*@Async
+    @Async
     public void onUpdateEvent(int pairId) {
         log.debug("trigger update for {}", pairId);
         List<ChartTimeFrame> allIntervals = orderService.getChartTimeFrames();
         allIntervals.forEach(p -> setNeedUpdate(pairId, p));
-        List<ChartTimeFrame> subscribedTimeFrames = stompMessenger.getSubscribedTimeFramesForCurrencyPair(pairId);
+        /*List<ChartTimeFrame> subscribedTimeFrames = stompMessenger.getSubscribedTimeFramesForCurrencyPair(pairId);
         subscribedTimeFrames.forEach(i -> {
             log.debug("subscribed intervals {}", i.getResolution());
             String data = getPreparedData(pairId, i, true);
             log.debug("subscribed intervals {}", i.getResolution());
             stompMessenger.sendChartData(pairId, i.getResolution().toString(), data);
-        });
-    }*/
+        });*/
+    }
 
 
     private void setNeedUpdate(Integer pairId, ChartTimeFrame timeFrame) {
@@ -70,6 +69,7 @@ public class ChartsCacheManager {
     public List<CandleChartItemDto> getData(Integer pairId, ChartTimeFrame timeFrame, boolean lastOnly) {
         log.debug("get data for {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
+        System.out.println("cache unit " + cacheUnit);
         return lastOnly ? cacheUnit.getLastData() : cacheUnit.getData();
     }
 
@@ -79,7 +79,6 @@ public class ChartsCacheManager {
 
     private ChartsCacheInterface getRequiredCache(Integer pairId, ChartTimeFrame timeFrame) {
         return cacheMap.computeIfAbsent(pairId, p -> {
-
             Map<String, ChartCacheUnit> map = new ConcurrentHashMap<>();
             orderService.getChartTimeFrames().forEach(i->{
                 map.put(i.getResolution().toString(), new ChartCacheUnit(pairId,
@@ -93,8 +92,7 @@ public class ChartsCacheManager {
     }
 
 
-    /*todo new chart*/
-    /*@Async
+    @Async
     @EventListener
     void handleChartUpdate(ChartCacheUpdateEvent event) {
         List<CandleChartItemDto> data = (List<CandleChartItemDto>)event.getSource();
@@ -102,7 +100,7 @@ public class ChartsCacheManager {
         stompMessenger.sendChartData(event.getPairId(),
                 event.getTimeFrame().getResolution().toString(),
                 dataToSend);
-    }*/
+    }
 
     private String prepareDataToSend(List<CandleChartItemDto> data, Integer currencyPairId, final ChartTimeFrame backDealInterval) {
         List<CandleDto> resultData = data.stream().map(CandleDto::new).collect(Collectors.toList());

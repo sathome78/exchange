@@ -131,10 +131,11 @@ public class ChartController {
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
-
+        System.out.println("Update chart data");
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
+        System.out.println("End update chart data");
         return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
 
     }

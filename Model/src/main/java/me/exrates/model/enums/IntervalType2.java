@@ -8,11 +8,11 @@ import java.util.Arrays;
  * Created by Valk on 27.04.2016.
  */
 public enum IntervalType2 {
-    HOUR(ChronoUnit.HOURS, 10L, true, "H"),
-    DAY(ChronoUnit.DAYS, 300L, false, "D"),
-    WEAK(ChronoUnit.WEEKS, 2100L, true, "W"),
-    MONTH(ChronoUnit.MONTHS, 3600L, true, "M"),
-    YEAR(ChronoUnit.YEARS, 86400L, false, "Y");
+    HOUR(ChronoUnit.HOURS, 3L, true, "H"),
+    DAY(ChronoUnit.DAYS, 5L, true, "D"),
+    WEAK(ChronoUnit.WEEKS, 20L, true, "W"),
+    YEAR(ChronoUnit.YEARS, 86400L, true, "Y"),
+    MONTH(ChronoUnit.MONTHS, 3600L, true, "M");
 
     private TemporalUnit correspondingTimeUnit;
 
