@@ -1701,27 +1701,12 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
 
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(InvalidNumberParamException.class)
-  @ResponseBody
-  public ErrorInfo invalidNumberParamExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(NoRequestedBeansFoundException.class)
+  @ExceptionHandler(Exception.class)
   @ResponseBody
-  public ErrorInfo noRequestedBeansFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(IllegalStateException.class)
-  @ResponseBody
-  public ErrorInfo illegalStateExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
+  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    LOG.error(exception);
+    exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
   

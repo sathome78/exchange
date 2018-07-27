@@ -150,4 +150,12 @@ public class WithdrawRequestAdminController {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(Exception.class)
+  @ResponseBody
+  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    log.error(ExceptionUtils.getStackTrace(exception));
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
 }
