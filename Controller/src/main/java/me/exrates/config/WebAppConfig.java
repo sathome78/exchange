@@ -414,10 +414,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
 
-    @Bean
+    /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
-    }
+    }*/
 
 
     @Bean
