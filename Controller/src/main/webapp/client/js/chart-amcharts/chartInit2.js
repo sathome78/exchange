@@ -1,6 +1,6 @@
 
 
-function ChartAmchartsClass2(currencyPair, subscribeCallback) {
+function ChartAmchartsClass2(currencyPair) {
 
     if (ChartAmchartsClass2.__instance) {
         return ChartAmchartsClass2.__instance;
