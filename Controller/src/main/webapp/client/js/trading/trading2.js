@@ -1,7 +1,6 @@
 /**
  * Created by Valk on 02.06.2016.
  */
-
 function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
