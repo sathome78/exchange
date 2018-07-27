@@ -272,24 +272,25 @@ public class OrderDaoImpl implements OrderDao {
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
 
         int resolution = resolutionValue;
-        if ( resolution == 720 || !"MINUTE".equals(resolutionType)) {
-            startTime = startTime.with(LocalTime.MIN);
-
-        }
-        if (resolution == 240 ) {
-            long hourDifference = (startTime.getHour() % 4) * MINUTES_PER_HOUR + startTime.getMinute();
-            startTime = startTime.minusMinutes(hourDifference);
-            startTime = startTime.truncatedTo(ChronoUnit.HOURS)
-                    .plusMinutes(MINUTES_PER_HOUR * (startTime.getMinute() / MINUTES_PER_HOUR));
-        }
-
-        LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
-                .minusMinutes(resolution * (startTime.getMinute() / resolution));
-        LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
-                .minusMinutes(resolution * (startTime.getMinute() / resolution));
-
-        String startTimeString = start.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endTimeString = end.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+//        if ( resolution == 720 || !"MINUTE".equals(resolutionType)) {
+//            startTime = startTime.with(LocalTime.MIN);
+//
+//        }
+//        if (resolution == 240 ) {
+//            long hourDifference = (startTime.getHour() % 4) * MINUTES_PER_HOUR + startTime.getMinute();
+//            startTime = startTime.minusMinutes(hourDifference);
+////            startTime = startTime.truncatedTo(ChronoUnit.HOURS)
+////                    .plusMinutes(MINUTES_PER_HOUR * (startTime.getMinute() / MINUTES_PER_HOUR));
+//        }
+//
+//        LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
+//                .minusMinutes(resolution * (startTime.getMinute() / resolution));
+//        LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
+//                .minusMinutes(resolution * (startTime.getMinute() / resolution));
+        String startTimeString = startTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endTimeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+//        String startTimeString = start.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+//        String endTimeString = end.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String sql = "{call GET_DATA_FOR_CANDLE_RANGE(" +
                 "STR_TO_DATE(:start_point, '%Y-%m-%d %H:%i:%s'), " +
                 "STR_TO_DATE(:end_point, '%Y-%m-%d %H:%i:%s'), " +

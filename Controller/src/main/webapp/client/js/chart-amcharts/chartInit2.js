@@ -52,7 +52,7 @@ function ChartAmchartsClass2(currencyPair) {
             // height:'30%',
             //     width:'100%',
             symbol: currencyPair,
-            timezone: 'UTC',
+            // timezone: 'UTC',
             interval: '30',
             height:'440px',
             container_id: "amcharts-stock_chart_div",
@@ -75,7 +75,7 @@ function ChartAmchartsClass2(currencyPair) {
 
         widget.onChartReady(function () {
             stockChart = widget.activeChart();
-            stockChart.activeChart().setChartType(4)
+            // stockChart.activeChart().setTimezone("Etc/UTC")
         });
 
     }
