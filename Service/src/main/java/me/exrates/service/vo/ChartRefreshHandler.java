@@ -27,7 +27,7 @@ public class ChartRefreshHandler {
 
     private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
-    private static final int LATENCY = 8000;
+    private static final int LATENCY = 1000;
 
 
     private ChartRefreshHandler(int currencyPairId) {
@@ -40,15 +40,18 @@ public class ChartRefreshHandler {
     }
 
     public void onAcceptOrderEvent() {
-        if (SEMAPHORE.tryAcquire()) {
-            try {
-                Thread.sleep(LATENCY);
-            } catch (InterruptedException e) {
-                log.error("interrupted ", e);
+        try {
+            if (SEMAPHORE.tryAcquire()) {
+                try {
+                    Thread.sleep(LATENCY);
+                } catch (InterruptedException e) {
+                    log.error("interrupted ", e);
+                }
+                chartsCache.updateCache(currencyPairId);
+                chartsCacheManager.onUpdateEvent(currencyPairId);
+                stompMessenger.sendChartData(currencyPairId);
             }
-            chartsCache.updateCache(currencyPairId);
-            stompMessenger.sendChartData(currencyPairId);
-            chartsCacheManager.onUpdateEvent(currencyPairId);
+        } finally {
             SEMAPHORE.release();
         }
 

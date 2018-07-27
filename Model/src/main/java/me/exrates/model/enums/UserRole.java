@@ -44,8 +44,8 @@ public enum UserRole implements RealCheckableRole {
   public static UserRole convert(int id) {
     return Arrays.stream(UserRole.class.getEnumConstants())
         .filter(e -> e.role == id)
-        .findAny()
-        .orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)));
+        .findAny().orElse(USER)
+        /*.orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)))*/;
   }
 
 
