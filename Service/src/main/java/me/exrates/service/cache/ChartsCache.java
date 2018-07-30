@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @PropertySource("classpath:cache.properties")
 @Log4j2(topic = "cache")
 @Component
-public class ChartsCache {
+public class  ChartsCache {
 
     private @Value("${pairs_lazy_load}")boolean lazyLoad;
 

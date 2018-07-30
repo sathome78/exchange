@@ -1672,6 +1672,18 @@ public class AdminController {
     return merchantService.retrieveCoreWallets(locale);
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/nodes_state_control")
+  public String nodesControl() {
+    return "admin/nodes_state";
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/nodes_state_control/getNodesInfo")
+  public DataTable<List<NodesInfoDto>> nodesControlData() {
+    /*get data here*/
+    return null;
+  }
+
 
 
 
