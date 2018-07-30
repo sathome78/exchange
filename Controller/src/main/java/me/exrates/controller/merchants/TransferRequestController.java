@@ -94,6 +94,9 @@ public class TransferRequestController {
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
+    if (!transferService.checkTransferRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.TransferRequestsLimit", null, locale));
+    }
     if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
       throw new IllegalArgumentException(messageSource.getMessage(
               "message.only.latin.symblos", null, locale));
