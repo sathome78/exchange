@@ -163,6 +163,23 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
   }
 
   @Override
+  public boolean checkTransferRequestsLimit(int currencyId, String email) {
+    String sql = "SELECT " +
+            " (SELECT COUNT(*) FROM TRANSFER_REQUEST REQUEST " +
+            " JOIN USER ON(USER.id = REQUEST.user_id) " +
+            " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
+            " and DATE(REQUEST.date_creation) = CURDATE()) <  " +
+            " " +
+            "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
+            " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id) " +
+            " WHERE USER.email = :email AND operation_type_id = 9 AND currency_id = :currency_id) ;";
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("currency_id", currencyId);
+    params.put("email", email);
+    return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+  }
+
+  @Override
   public List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId) {
     String sql = "SELECT TRANSFER_REQUEST.* " +
         " FROM TRANSFER_REQUEST " +

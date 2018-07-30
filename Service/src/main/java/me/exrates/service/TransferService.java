@@ -40,6 +40,8 @@ public interface TransferService {
 
   boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail);
 
+  boolean checkTransferRequestsLimit(int currencyId, String email);
+
   TransferDto performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 
   String getUserEmailByTrnasferId(int id);
