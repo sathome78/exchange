@@ -237,6 +237,36 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
+  public List<UserOperationAuthorityOption> getUserOperationAuthorityOption(Integer userId) {
+    String sql = "SELECT UPA.user_operation_id, UPA.enabled " +
+            "FROM USER_OPERATION_AUTHORITY UPA " +
+            "JOIN USER_OPERATION UO ON UO.id = UPA.user_operation_id " +
+            "WHERE user_id = :user_id";
+    Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+    return namedParameterJdbcTemplate.query(sql, params, ((rs, rowNum) -> {
+      UserOperationAuthorityOption option = new UserOperationAuthorityOption();
+      option.setUserOperationAuthority(UserOperationAuthority.convert(rs.getInt("user_operation_id")));
+      option.setEnabled(rs.getBoolean("enabled"));
+      return option;
+    }));
+  }
+
+  @Override
+  public void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId) {
+    String sql = "UPDATE USER_OPERATION_AUTHORITY SET enabled = :enabled WHERE user_id = :user_id " +
+            "AND user_operation_id = :user_operation_id";
+    Map<String, Object>[] batchValues = options.stream().map(option -> {
+      Map<String, Object> optionValues = new HashMap<String, Object>() {{
+        put("user_operation_id", option.getUserOperationAuthority().getOperationId());
+        put("user_id", userId);
+        put("enabled", option.getEnabled());
+      }};
+      return optionValues;
+    }).collect(Collectors.toList()).toArray(new Map[options.size()]);
+    namedParameterJdbcTemplate.batchUpdate(sql, batchValues);
+  }
+
+  @Override
   public boolean createAdminAuthoritiesForUser(Integer userId, UserRole role) {
     String sql = "INSERT INTO USER_ADMIN_AUTHORITY SELECT :user_id, admin_authority_id, enabled " +
         "FROM ADMIN_AUTHORITY_ROLE_DEFAULTS " +

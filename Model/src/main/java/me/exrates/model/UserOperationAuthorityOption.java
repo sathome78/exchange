@@ -1,0 +1,34 @@
+package me.exrates.model;
+
+import lombok.Getter;
+import lombok.Setter;
+import me.exrates.model.enums.UserOperationAuthority;
+import me.exrates.model.exceptions.UnsupportedAuthorityException;
+import org.springframework.context.MessageSource;
+
+import java.util.Arrays;
+import java.util.Locale;
+
+/**
+ * @author Vlad Dziubak
+ * Date: 30.07.2018
+ */
+@Getter @Setter
+public class UserOperationAuthorityOption {
+    private UserOperationAuthority userOperationAuthority;
+    private Boolean enabled;
+
+    private String userOperationAuthorityLocalized;
+
+    public void localize(MessageSource messageSource, Locale locale) {
+        userOperationAuthorityLocalized = userOperationAuthority.toString(messageSource, locale);
+    }
+
+    @Override
+    public String toString() {
+        return "UserOperationAuthorityOption{" +
+                ", userOperationAuthority=" + userOperationAuthority +
+                ", enabled=" + enabled +
+                '}';
+    }
+}

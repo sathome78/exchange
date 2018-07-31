@@ -22,6 +22,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
@@ -498,7 +499,11 @@ public class AdminController {
     AuthorityOptionsForm form = new AuthorityOptionsForm();
     form.setUserId(id);
     form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+    UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
+    userOperationForm.setUserId(id);
+    userOperationForm.setOptions(userService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
+    model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
     model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
@@ -1100,6 +1105,25 @@ public class AdminController {
         .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
         .findFirst()
         .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
+    return redirectView;
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/editUserOperationTypeAuthorities/submit", method = RequestMethod.POST)
+  public RedirectView editUserOperationTypeAuthorities(@ModelAttribute UserOperationAuthorityOptionsForm userOperationAuthorityOptionsForm, Principal principal,
+                                      RedirectAttributes redirectAttributes) {
+    RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + userOperationAuthorityOptionsForm.getUserId());
+    try {
+      userService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+      return redirectView;
+    }
+    String updatedUserEmail = userService.getUserById(userOperationAuthorityOptionsForm.getUserId()).getEmail();
+    sessionRegistry.getAllPrincipals().stream()
+            .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+            .findFirst()
+            .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
     return redirectView;
   }
 

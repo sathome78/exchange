@@ -2190,6 +2190,13 @@ input[type=email], .dropdown-menu__form,
     font-size: 1.5rem;
 }
 
+#user-authoritiesTable {
+    background-color: #FFF;
+}
+#user-authoritiesTable td {
+    font-size: 1.5rem;
+}
+
 #manualBalanceChangeForm .form-item {
     display: inline-block;
     margin: 5px 10px;

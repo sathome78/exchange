@@ -44,7 +44,7 @@ public class OrdersStatisticByPairsCache {
     @PostConstruct
     private void init() {
         allPairs = currencyDao.getAllCurrencyPairs();
-        update();
+//        update();
         needUpdate.set(false);
         log.info("initialized, {}", cachedList.size());
     }

@@ -38,6 +38,10 @@ public interface UserDao {
 
   List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
 
+  List<UserOperationAuthorityOption> getUserOperationAuthorityOption(Integer userId);
+
+  void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId);
+
   boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
 
   boolean hasAdminAuthorities(Integer userId);
