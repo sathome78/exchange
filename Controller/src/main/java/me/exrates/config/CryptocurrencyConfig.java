@@ -194,6 +194,12 @@ public class CryptocurrencyConfig {
                 "EQL", "EQL", 4, 20, false);
     }
 
+    @Bean(name = "brbServiceImpl")
+    public BitcoinService brbService() {
+        return new BitcoinServiceImpl("merchants/brb_wallet.properties",
+                "BRB", "BRB", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
