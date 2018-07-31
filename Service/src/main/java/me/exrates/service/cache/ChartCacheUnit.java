@@ -75,6 +75,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
             System.out.println("need to update data");
             log.debug("update data {} {}", currencyPairId, timeFrame);
             updateCache(cachedData != null );
+            System.out.println("end update data");
         }
         log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
@@ -98,8 +99,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         System.out.println("min interval "  + minUpdateIntervalSeconds);
         return lastUpdateDate == null || lastUpdateDate.plusSeconds(minUpdateIntervalSeconds).compareTo(LocalDateTime.now()) <= 0;
     }
-
-    //    @Override
+//    @Override
 //    public void setNeedToUpdate() {
 //        log.debug("setting update data {} {}", currencyPairId, timeFrame);
 //        if (!lazyUpdate) {

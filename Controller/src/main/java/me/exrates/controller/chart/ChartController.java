@@ -41,7 +41,6 @@ public class ChartController {
         this.currencyService = currencyService;
     }
 
-    /*todo new cache*/
     @OnlineMethod
     @RequestMapping(value = "/dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData(

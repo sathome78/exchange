@@ -24,7 +24,8 @@ function RightSiderClass() {
     (function init() {
         that.newsList = new NewsClass($newsLoadingImg);
         $.get('/utcOffset', function (data) {
-            currentTime = moment().utcOffset(data);
+            currentTime = moment().utcOffset("UTC");
+
 
                     setInterval(function () {
                 $('#current-datetime').text(currentTime.format('YYYY-MM-DD HH:mm:ss'));

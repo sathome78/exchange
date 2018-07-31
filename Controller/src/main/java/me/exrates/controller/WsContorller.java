@@ -98,13 +98,12 @@ public class WsContorller {
         return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
     }
 
-    /*todo new chart*/
-   /* @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
+    @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
     public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
         ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
         String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
         return preparedData;
-    }*/
+    }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")
     public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
