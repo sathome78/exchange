@@ -105,6 +105,7 @@ public class CommonMerchantsController {
       Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
       modelAndView.addObject("wallet", wallet);
       modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
+      modelAndView.addObject("checkingBalance", wallet.getActiveBalance().compareTo(BigDecimal.ZERO) != 0);
       Payment payment = new Payment();
       payment.setOperationType(operationType);
       modelAndView.addObject("payment", payment);
@@ -138,6 +139,7 @@ public class CommonMerchantsController {
       Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
       modelAndView.addObject("wallet", wallet);
       modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
+      modelAndView.addObject("checkingBalance", wallet.getActiveBalance().compareTo(BigDecimal.ZERO) != 0);
       Payment payment = new Payment();
       payment.setOperationType(operationType);
       modelAndView.addObject("payment", payment);
