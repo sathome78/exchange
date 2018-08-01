@@ -2,9 +2,11 @@ package me.exrates.controller.merchants;
 
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,9 @@ public class CommonMerchantsController {
   private UserService userService;
 
   @Autowired
+  private UserOperationService userOperationService;
+
+  @Autowired
   private CommissionService commissionService;
 
   @Autowired
@@ -81,6 +86,8 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, principal.getName());
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.INPUT);
+      modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
       modelAndView.addObject("isAmountInputNeeded", merchantCurrencyData.size() > 0
@@ -116,6 +123,8 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.OUTPUT);
+      modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
       return modelAndView;
@@ -149,6 +158,8 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       transferService.retrieveAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRANSFER);
+      modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
      /* List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
       modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);*/
       List<String> warningCodeList = currencyService.getWarningsByTopic(TRANSFER_CURRENCY_WARNING);

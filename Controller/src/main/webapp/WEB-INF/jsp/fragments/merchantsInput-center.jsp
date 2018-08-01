@@ -10,7 +10,7 @@
     </c:if>
   </label>
   <c:choose>
-    <c:when test="${empty merchantCurrencyData}">
+    <c:when test="${empty merchantCurrencyData || accessToOperationForUser eq false}">
       <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable"/></p>
     </c:when>
     <c:otherwise>
