@@ -2029,7 +2029,7 @@ input[type=email], .dropdown-menu__form,
     background: #525f74;
 }
 
-#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled, #userOperationSubmitButton {
+#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled, #userOperationSubmitButton:disabled {
     background: #b9c4d8;
 }
 
