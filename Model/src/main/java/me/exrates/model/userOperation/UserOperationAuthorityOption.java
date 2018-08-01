@@ -1,12 +1,10 @@
-package me.exrates.model;
+package me.exrates.model.userOperation;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.enums.UserOperationAuthority;
-import me.exrates.model.exceptions.UnsupportedAuthorityException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.springframework.context.MessageSource;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 /**

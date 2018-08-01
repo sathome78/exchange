@@ -2,7 +2,7 @@ package me.exrates.model.form;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 
 import java.util.List;
 

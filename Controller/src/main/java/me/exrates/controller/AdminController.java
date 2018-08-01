@@ -34,6 +34,7 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -106,6 +107,8 @@ public class AdminController {
   private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
+  @Autowired
+  private UserOperationService userOperationService;
   @Autowired
   private LocaleResolver localeResolver;
   @Autowired
@@ -501,7 +504,7 @@ public class AdminController {
     form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
     UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
     userOperationForm.setUserId(id);
-    userOperationForm.setOptions(userService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
+    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
     model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
     model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
@@ -1114,7 +1117,7 @@ public class AdminController {
                                       RedirectAttributes redirectAttributes) {
     RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + userOperationAuthorityOptionsForm.getUserId());
     try {
-      userService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
+      userOperationService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
       return redirectView;

@@ -8,6 +8,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -37,10 +38,6 @@ public interface UserDao {
   List<String> getUserRoleAndAuthorities(String email);
 
   List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
-
-  List<UserOperationAuthorityOption> getUserOperationAuthorityOption(Integer userId);
-
-  void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId);
 
   boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
 

@@ -8,7 +8,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.form.UserOperationAuthorityOptionsForm;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,10 +166,6 @@ public interface UserService {
   List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
 
   void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
-
-  List<UserOperationAuthorityOption> getUserOperationAuthorityOptions(Integer userId, Locale locale);
-
-  void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId, String currentUserEmail);
 
   List<String> findNicknamesByPart(String part);
 

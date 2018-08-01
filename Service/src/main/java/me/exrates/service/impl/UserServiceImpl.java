@@ -9,7 +9,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.form.UserOperationAuthorityOptionsForm;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -641,24 +641,6 @@ public class UserServiceImpl implements UserService {
       throw new ForbiddenOperationException("Status modification not permitted");
     }
     userDao.updateAdminAuthorities(options, userId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserOperationAuthorityOption> getUserOperationAuthorityOptions(Integer userId, Locale locale) {
-    return userDao.getUserOperationAuthorityOption(userId).stream()
-            .peek(option -> option.localize(messageSource, locale))
-            .collect(Collectors.toList());
-  }
-
-  @Override
-  public void updateUserOperationAuthority(List<UserOperationAuthorityOption> options, Integer userId, String currentUserEmail) {
-    UserRole currentUserRole = userDao.getUserRoles(currentUserEmail);
-    UserRole updatedUserRole = userDao.getUserRoleById(userId);
-    if (currentUserRole != UserRole.ADMINISTRATOR && updatedUserRole == UserRole.ADMINISTRATOR) {
-      throw new ForbiddenOperationException("Status modification not permitted");
-    }
-    userDao.updateUserOperationAuthority(options, userId);
   }
 
   @Override

@@ -1,4 +1,4 @@
-package me.exrates.model.enums;
+package me.exrates.model.userOperation.enums;
 
 import me.exrates.model.exceptions.UnsupportedAuthorityException;
 import org.springframework.context.MessageSource;
