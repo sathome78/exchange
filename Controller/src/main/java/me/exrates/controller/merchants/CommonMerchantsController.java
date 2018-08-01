@@ -86,7 +86,7 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, principal.getName());
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
-      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.findByEmail(principal.getName()).getId(), UserOperationAuthority.INPUT);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.INPUT);
       modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
@@ -123,7 +123,7 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
-      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.findByEmail(principal.getName()).getId(), UserOperationAuthority.OUTPUT);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.OUTPUT);
       modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
@@ -158,7 +158,7 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       transferService.retrieveAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
-      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.findByEmail(principal.getName()).getId(), UserOperationAuthority.TRANSFER);
+      boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRANSFER);
       modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
      /* List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
       modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);*/

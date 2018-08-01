@@ -14,9 +14,11 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -56,6 +58,9 @@ public class OrderControllerRest {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    private UserOperationService userOperationService;
 
     @Autowired
     MessageSource messageSource;
@@ -120,6 +125,10 @@ public class OrderControllerRest {
     public String recordOrderToDB(HttpServletRequest request) {
         ProfileData profileData = new ProfileData(200);
         long before = System.currentTimeMillis();
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(request.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
+        }
         /*restore protected orderCreateDto*/
         OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
         try {
@@ -159,6 +168,10 @@ public class OrderControllerRest {
     @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.INPUT);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
+        }
         try {
             List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
             try {
