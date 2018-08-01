@@ -95,13 +95,15 @@
               <loc:message code="admin.referral"/>
             </button>
           </sec:authorize>
+
           <%--Access for operation | START--%>
           <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
-            <button class="adminForm-toggler red-box">
+            <button class="adminForm-toggler yellow-box">
               Access
             </button>
           </sec:authorize>
           <%--Access for operation | END--%>
+
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
             <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
               <button class="adminForm-toggler red-box">
