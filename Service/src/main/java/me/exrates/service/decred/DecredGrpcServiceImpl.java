@@ -3,6 +3,7 @@ package me.exrates.service.decred;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslProvider;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.net.ssl.HttpsURLConnection;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +36,7 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
     @PostConstruct
     private void init() {
         try {
+            HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
             connect();
         } catch (Exception e) {
             log.error("error connect to dcrwallet");
@@ -54,7 +57,7 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
             channel = NettyChannelBuilder.forAddress(host, Integer.valueOf(port))
                     .sslContext(GrpcSslContexts
                         .forClient()
-                        .trustManager(stream)
+                        .trustManager(stream).clientAuth(ClientAuth.OPTIONAL)
                         .build())
                     .build();
         } catch (Exception e) {
