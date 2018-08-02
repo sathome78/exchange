@@ -31,10 +31,14 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
 
     private ManagedChannel channel = null;
 
-    /*@PostConstruct
+    @PostConstruct
     private void init() {
-        connect();
-    }*/
+        try {
+            connect();
+        } catch (Exception e) {
+            log.error("error connect to dcrwallet");
+        }
+    }
 
     private ManagedChannel getChannel() {
         checkConnect();
