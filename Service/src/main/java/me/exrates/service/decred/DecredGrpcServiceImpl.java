@@ -57,7 +57,7 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
             channel = NettyChannelBuilder.forAddress(host, Integer.valueOf(port))
                     .sslContext(GrpcSslContexts
                         .forClient()
-                        .trustManager(stream).clientAuth(ClientAuth.OPTIONAL)
+                        .trustManager(stream)
                         .build())
                     .build();
         } catch (Exception e) {
