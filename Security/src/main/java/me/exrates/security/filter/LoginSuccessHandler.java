@@ -56,6 +56,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
+            request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
