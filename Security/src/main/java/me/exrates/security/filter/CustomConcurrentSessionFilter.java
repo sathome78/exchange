@@ -89,11 +89,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        // headers test angular
-//        response.setHeader("Access-Control-Allow-Origin", angularProperties.get("angularAllowedOrigin"));
-        response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Exrates-Rest-Token");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
 
         HttpSession session = request.getSession(false);
         if (session != null) {
@@ -119,20 +114,20 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                 }
                 else {
                     if(isSessionExpired(session)) {
-                        JsonObject object = sessionParamsService.getSessionEndString(request);
+                        /*JsonObject object = sessionParamsService.getSessionEndString(request);*/
                         if (isAjax(request)) {
-                            response.setStatus(419); PrintWriter writer = response.getWriter();
+                            response.setStatus(419);
+                            /*PrintWriter writer = response.getWriter();
                             writer.print(object.toString());
-                            writer.close();
+                            writer.close();*/
                         } else {
-                            response.sendRedirect(object.getAsJsonPrimitive("url").getAsString()
-                                    .concat("?errorNoty=")
-                                    .concat(URLEncoder.encode(object.getAsJsonPrimitive("msg").getAsString(), "UTF-8")));
+                            response.sendRedirect("/dashboard?sessionEnd");
                         }
                         doLogout(request, response);
                         return;
                     } else if (isRefreshNeeded(request)) {
                         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
+                        System.out.println("last request" + session.getAttribute(sessionLastRequestParamName));;
                     }
                     // Non-expired - update last request date/time
                     sessionRegistry.refreshLastRequest(info.getSessionId());
@@ -147,6 +142,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
                 .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
+            System.out.println("refresh on time");
             return true;
         }
         return false;
@@ -160,6 +156,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     private boolean isPathForSessionRefresh(HttpServletRequest request) {
         String path = request.getServletPath();
+        System.out.println("path " + path);
         boolean needRefresh;
         needRefresh = !onlineMethods
                 .stream()

@@ -349,7 +349,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             $('#amount-stop').val(initialAmountString);
             calculateFieldsForStop();
             that.fillOrderBalance(currencyPairName);
-
+      
 
 
         });

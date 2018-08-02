@@ -701,6 +701,14 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         }
     });
 
+    $('#aggree_check').on('click', function () {
+        if ($('#aggree_check').is(':checked')) {
+            $('#order-create-confirm__submit').attr('disabled', false);
+        } else {
+            $('#order-create-confirm__submit').attr('disabled', true);
+        }
+    });
+
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
 
     /*MODAL DIALOG FOR CREATION ORDER ... */

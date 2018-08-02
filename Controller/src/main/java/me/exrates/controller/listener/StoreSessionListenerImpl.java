@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by OLEG on 11.10.2016.
  */
 @Log4j2
-public class StoreSessionListenerImpl implements StoreSessionListener {
+public class StoreSessionListenerImpl /*implements StoreSessionListener*/ {
 
-    private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
+    /*private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
 
 
     @Override
@@ -42,6 +42,6 @@ public class StoreSessionListenerImpl implements StoreSessionListener {
         HttpSession session = event.getSession();
         session.setMaxInactiveInterval(0);
         sessionStorage.put(session.getId(), session);
-    }
+    }*/
 
 }

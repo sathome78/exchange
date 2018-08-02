@@ -31,8 +31,8 @@ $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
             if (jqXHR.status == 419 || jqXHR.status == '419') {
                 /*session end*/
-                var resp = JSON.parse(jqXHR.responseText);
-                window.location.replace(resp.url + '?errorNoty=' + resp.msg);
+               /* var resp = JSON.parse(jqXHR.responseText);*/
+                window.location.replace('/dashboard?sessionEnd');
             } else {
                 failNoty(jqXHR);
             }
@@ -41,7 +41,7 @@ $(function () {
         //Show error message on page load - if massage was passed to page
         +function showErrorNotyOnEntry() {
             var msg = $('#errorNoty').html();
-            /*if (!msg) {
+           /* if (!msg) {
                 msg = getParameterByName('errorNoty');
             }*/
             if (!msg){

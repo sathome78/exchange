@@ -58,8 +58,8 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                           ApplicationEventPublisher eventPublisher) {
         this.currencyPairId = currencyPairId;
         this.timeFrame = timeFrame;
-        this.minUpdateIntervalSeconds = timeFrame.getTimeUnit().getChartRefreshInterval();
-        this.lazyUpdate = timeFrame.getTimeUnit().isChartLazyUpdate();
+        this.minUpdateIntervalSeconds = timeFrame.getResolution().getTimeUnit().getRefreshDelaySeconds();
+        this.lazyUpdate = /*timeFrame.getTimeUnit().isChartLazyUpdate();*/ true;
         this.eventPublisher = eventPublisher;
         this.orderService = orderService;
         cachedData = null;
@@ -72,14 +72,17 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     public List<CandleChartItemDto> getData() {
         log.debug("getting data {} {}", currencyPairId, timeFrame);
         if (cachedData == null || isUpdateCasheRequired()) {
+            System.out.println("need to update data");
             log.debug("update data {} {}", currencyPairId, timeFrame);
-            updateCache(cachedData != null);
+            updateCache(cachedData != null );
+            System.out.println("end update data");
         }
         log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
     }
 
     private boolean isUpdateCasheRequired() {
+        System.out.println("is time for update " + isTimeForUpdate());
         return needToUpdate.get() && isTimeForUpdate() && lazyUpdate;
     }
 
@@ -93,10 +96,10 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private boolean isTimeForUpdate() {
+        System.out.println("min interval "  + minUpdateIntervalSeconds);
         return lastUpdateDate == null || lastUpdateDate.plusSeconds(minUpdateIntervalSeconds).compareTo(LocalDateTime.now()) <= 0;
     }
-
-    //    @Override
+//    @Override
 //    public void setNeedToUpdate() {
 //        log.debug("setting update data {} {}", currencyPairId, timeFrame);
 //        if (!lazyUpdate) {
@@ -128,39 +131,18 @@ public class ChartCacheUnit implements ChartsCacheInterface {
         if (!lazyUpdate) {
             log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
             if (timerLock.tryLock()) {
-//                timerLock.lock();
-//
-//                final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
-//                final ScheduledFuture<?> handler = scheduler.schedule(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                log.debug("execute task update data {} {}", currencyPairId, timeFrame);
-//                                timerLock = new ReentrantLock();
-//                                updateCache(true);
-//                                eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
-//                            }
-//                        },getMinUpdateIntervalSeconds() * 1000,  TimeUnit.MILLISECONDS);
-
+                timerLock.lock();
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        log.debug("execute task update data {} {}", currencyPairId, timeFrame);
-                        timerLock = new ReentrantLock();
-                        updateCache(true);
-                        eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
+                            log.debug("execute task update data {} {}", currencyPairId, timeFrame);
+                            timerLock = new ReentrantLock();
+                            updateCache(true);
+                            eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 
             }
-//            try {
-//                System.out.println(handler.get());
-//                scheduler.awaitTermination(40,TimeUnit.SECONDS);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            }
-
         } else {
             needToUpdate.set(true);
         }
@@ -184,39 +166,55 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }
             }
         } else {
-            log.debug("wait update data {} {}", currencyPairId, timeFrame);
-            try {
-                barrier.await(40, TimeUnit.SECONDS);
-                if (cachedData == null) {
-                    /*тут рекурсия получается, но без данных трэд не уйдет*/
-//                    updateCache(appendLastEntriesOnly);
+                log.debug("wait update data {} {}", currencyPairId, timeFrame);
+                try {
+                    barrier.await(30, TimeUnit.SECONDS);
+                    /*if (cachedData == null) {
+                        *//*тут рекурсия получается, но без данных трэд не уйдет*//*
+                        updateCache(appendLastEntriesOnly);
+                    }*/
+                } catch (Exception e) {
+                    log.warn(e);
                 }
-            } catch (Exception e) {
-                log.warn(e + " : " + currencyPairId + " - " + timeFrame);
-            }
         }
     }
 
     private synchronized boolean tryLockWithTimeout() {
         if (lock.tryLock()) {
             return true;
-        }
-        if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
-            lock = new ReentrantLock();
-            return lock.tryLock();
-        }
-        return false;
+        } else if (lastLock.plusSeconds(40).compareTo(LocalDateTime.now()) <= 0) {
+           lock = new ReentrantLock();
+           return lock.tryLock();
+        } else return false;
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
         log.debug("update cahce {} {}", currencyPairId, timeFrame);
-        if (appendLastEntriesOnly && !CollectionUtils.isEmpty(cachedData)) {
+        if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
+            System.out.println("cache data before update");
+            cachedData.forEach(System.out::println);
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);
             LocalDateTime lastBarStartTime = lastBar.getBeginPeriod();
+            System.out.println("DB start getting data orderService.getLastDataForCandleChart ");
             List<CandleChartItemDto> newData = orderService.getLastDataForCandleChart(currencyPairId, lastBarStartTime, timeFrame.getResolution());
+            System.out.println("DB  end getting data orderService.getLastDataForCandleChart ");
+            System.out.println("new data ");
+            newData.forEach(System.out::println);
             cachedData.addAll(newData);
+            System.out.println("cache data after update");
+            cachedData.forEach(System.out::println);
         } else {
+            System.out.println("DB all start getting data orderService.getDataForCandleChart ");
+            System.out.println("cache data before update");
+            if (cachedData != null) {
+                cachedData.forEach(System.out::println);
+            } else {
+                System.out.println("null");
+            }
             setCachedData(orderService.getDataForCandleChart(currencyPairId, timeFrame));
+            System.out.println("cache data after update");
+            cachedData.forEach(System.out::println);
+            System.out.println("DB all end getting data orderService.getDataForCandleChart ");
         }
         lastUpdateDate = LocalDateTime.now();
         needToUpdate.set(false);

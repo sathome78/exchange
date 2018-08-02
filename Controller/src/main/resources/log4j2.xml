@@ -726,7 +726,6 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="decred" level="ALL" additivity="false">
             <AppenderRef ref="decred"/>

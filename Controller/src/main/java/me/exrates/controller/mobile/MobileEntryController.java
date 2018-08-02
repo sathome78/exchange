@@ -15,10 +15,7 @@ import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.InvalidNicknameException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.waves.WavesService;
@@ -90,8 +87,10 @@ public class MobileEntryController {
     @Autowired
     private ApiService apiService;
 
+    /*TODO temporary disable
+
     @Autowired
-    private StoreSessionListener storeSessionListener;
+    private StoreSessionListener storeSessionListener;*/
 
     @Autowired
     private IpBlockingService ipBlockingService;
@@ -1061,6 +1060,7 @@ public class MobileEntryController {
      */
     @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> authenticateQR(@RequestBody Map<String, String> params, @RequestHeader("Exrates-Rest-Token") String token) {
+        /*TODO temporary disable
         logger.debug(params);
         String sessionId = params.get("sessionId");
         logger.debug(sessionId);
@@ -1070,7 +1070,8 @@ public class MobileEntryController {
         synchronized (mutex) {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);*/
+        throw new NotImplimentedMethod("NOT IMPLEMENTED");
     }
 
 

@@ -41,8 +41,7 @@ public class ChartController {
         this.currencyService = currencyService;
     }
 
-    /*todo new cache*/
-    /*@OnlineMethod
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData(
             @QueryParam("symbol") String symbol,
@@ -131,10 +130,11 @@ public class ChartController {
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
-
+        System.out.println("Update chart data");
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
+        System.out.println("End update chart data");
         return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
 
     }
@@ -188,11 +188,11 @@ public class ChartController {
                 .build();
     }
 
-    *//**
+    /**
      * Returns configurations for chart graphic
      *
      * @return
-     *//*
+     */
     private JsonObject getConfig() {
 
         return Json.createObjectBuilder()
@@ -299,5 +299,5 @@ public class ChartController {
         response.put("l", l);
         response.put("c", c);
         response.put("v", v);
-    }*/
+    }
 }
