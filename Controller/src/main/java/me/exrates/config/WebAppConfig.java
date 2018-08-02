@@ -490,6 +490,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "CNET", "CNET", 0);
     }
 
+    @Bean(name = "ntyServiceImpl")
+    public EthereumCommonService ntyService() {
+        return new EthereumCommonServiceImpl("merchants/nexty.properties",
+                "NTY", "NTY", 12);
+    }
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -1088,15 +1093,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SKILL", false, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "ttcServiceImpl")
-    public EthTokenService ttcService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "TTC",
-                "TTC", true, ExConvert.Unit.ETHER);
-    }
 
     @Bean(name = "storServiceImpl")
     public EthTokenService storService() {
@@ -1117,7 +1113,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "QUiNT",
                 "QUiNT", true, ExConvert.Unit.ETHER);
     }
-
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
@@ -1202,12 +1197,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO");
     }
 
-
     @Bean("vexaniumContract")
     public AchainContract achainContractService() {
         return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
     }
-
 
 
     @Bean

@@ -26,7 +26,8 @@ function RightSiderClass() {
         $.get('/utcOffset', function (data) {
             currentTime = moment().utcOffset("UTC");
 
-            setInterval(function () {
+
+                    setInterval(function () {
                 $('#current-datetime').text(currentTime.format('YYYY-MM-DD HH:mm:ss'));
                 currentTime.add(1, 's');
             }, 1000)

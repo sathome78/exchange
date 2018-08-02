@@ -22,6 +22,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
@@ -33,6 +34,7 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -105,6 +107,8 @@ public class AdminController {
   private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
+  @Autowired
+  private UserOperationService userOperationService;
   @Autowired
   private LocaleResolver localeResolver;
   @Autowired
@@ -499,7 +503,11 @@ public class AdminController {
     AuthorityOptionsForm form = new AuthorityOptionsForm();
     form.setUserId(id);
     form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+    UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
+    userOperationForm.setUserId(id);
+    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
+    model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
     model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
@@ -1108,6 +1116,25 @@ public class AdminController {
   }
 
   @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/editUserOperationTypeAuthorities/submit", method = RequestMethod.POST)
+  public RedirectView editUserOperationTypeAuthorities(@ModelAttribute UserOperationAuthorityOptionsForm userOperationAuthorityOptionsForm, Principal principal,
+                                      RedirectAttributes redirectAttributes) {
+    RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + userOperationAuthorityOptionsForm.getUserId());
+    try {
+      userOperationService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+      return redirectView;
+    }
+    String updatedUserEmail = userService.getUserById(userOperationAuthorityOptionsForm.getUserId()).getEmail();
+    sessionRegistry.getAllPrincipals().stream()
+            .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+            .findFirst()
+            .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
+    return redirectView;
+  }
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
@@ -1701,27 +1728,12 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
 
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(InvalidNumberParamException.class)
-  @ResponseBody
-  public ErrorInfo invalidNumberParamExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(NoRequestedBeansFoundException.class)
+  @ExceptionHandler(Exception.class)
   @ResponseBody
-  public ErrorInfo noRequestedBeansFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(IllegalStateException.class)
-  @ResponseBody
-  public ErrorInfo illegalStateExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
+  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    LOG.error(exception);
+    exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
   

@@ -7,7 +7,7 @@
                 <h4 class="modal-title"><loc:message code="refill.infoModal.title"/></h4>
             </div>
             <div class="modal-body">
-                <div class="well">
+                <div class="well" style="overflow:auto; width:auto;">
                     <table id="refillInfoTable" class="table">
                         <tbody>
                         <tr>
@@ -53,11 +53,11 @@
                         </tr>
                         <tr>
                             <td><loc:message code="refill.address"/></td>
-                            <td id="info-address" class="word-wrap-break-work"></td>
+                            <td id="info-address"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="refill.merchantTransactionId"/></td>
-                            <td id="info-merchant-transaction-id" class="word-wrap-break-work"></td>
+                            <td id="info-merchant-transaction-id"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="merchants.invoiceDetails.remark"/></td>

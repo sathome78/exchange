@@ -10,7 +10,7 @@
     </label>
   </c:if>
   <c:choose>
-    <c:when test="${empty merchantCurrencyData}">
+    <c:when test="${empty merchantCurrencyData || accessToOperationForUser eq false}">
       <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable"/></p>
     </c:when>
     <c:otherwise>
@@ -35,6 +35,7 @@
             </div>
           </div>
           <div class="input-block-wrapper clearfix">
+            <c:if test="${checkingBalance}">
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
               <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
             </div>
@@ -57,6 +58,7 @@
                 </strong>
               </div>
             </div>
+            </c:if>
           </div>
           <b hidden id="buttonMessage"><loc:message code="merchants.withdraw"/></b>
           <div id="merchantList">

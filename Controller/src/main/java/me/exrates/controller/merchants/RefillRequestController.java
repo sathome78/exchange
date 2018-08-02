@@ -250,27 +250,14 @@ public class RefillRequestController {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(MerchantException.class)
+  @ExceptionHandler(Exception.class)
   @ResponseBody
-  public ErrorInfo merchantExceptionHandler(HttpServletRequest req, Exception exception) {
+  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
     log.error(ExceptionUtils.getStackTrace(exception));
-    return new ErrorInfo(req.getRequestURL(), exception,
+    if (exception instanceof MerchantException) {
+      return new ErrorInfo(req.getRequestURL(), exception,
               messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
-  }
-
-  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-  @ExceptionHandler(RequestLimitExceededException.class)
-  @ResponseBody
-  public ErrorInfo requestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(IllegalOperationTypeException.class)
-  @ResponseBody
-  public ErrorInfo illegalOperationTypeExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
+    }
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
