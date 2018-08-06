@@ -198,7 +198,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     @PostConstruct
     public void init() {
-        log.debug("initNem");
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
@@ -491,6 +490,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "CNET", "CNET", 0);
     }
 
+    @Bean(name = "ntyServiceImpl")
+    public EthereumCommonService ntyService() {
+        return new EthereumCommonServiceImpl("merchants/nexty.properties",
+                "NTY", "NTY", 12);
+    }
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -1089,15 +1093,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SKILL", false, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "ttcServiceImpl")
-    public EthTokenService ttcService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "TTC",
-                "TTC", true, ExConvert.Unit.ETHER);
-    }
 
     @Bean(name = "storServiceImpl")
     public EthTokenService storService() {
@@ -1192,6 +1187,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TERN",
                 "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C");
     }
+
 
     @Bean(name = "vntStellarService")
     public StellarAsset vntStellarService() {

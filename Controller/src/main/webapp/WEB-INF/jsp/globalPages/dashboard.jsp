@@ -127,6 +127,7 @@
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>
 <c:if test="${successRegister}"><span hidden id="successRegister"></span></c:if>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>

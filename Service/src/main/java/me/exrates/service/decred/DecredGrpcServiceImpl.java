@@ -3,12 +3,14 @@ package me.exrates.service.decred;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslProvider;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.decred.rpc.WalletServiceGrpc;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -17,7 +19,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.net.ssl.HttpsURLConnection;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
@@ -28,13 +34,19 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
 
     private @Value("${decred.host}")String host;
     private @Value("${decred.port}")String port;
+    private @Value("${decred.cert.path}")String path;
 
     private ManagedChannel channel = null;
 
-    /*@PostConstruct
+    @PostConstruct
     private void init() {
-        connect();
-    }*/
+        try {
+            HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
+            connect();
+        } catch (Exception e) {
+            log.error("error connect to dcrwallet");
+        }
+    }
 
     private ManagedChannel getChannel() {
         checkConnect();
@@ -44,8 +56,12 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
     private void connect() {
         log.debug("connect");
         try {
-            ClassLoader loader = this.getClass().getClassLoader();
-            InputStream stream = loader.getResourceAsStream("ca.crt");
+            File initialFile = new File(path);
+            InputStream streamFirst = new FileInputStream(initialFile);
+            log.debug("stream size {}", streamFirst.available());
+            String cert = IOUtils.toString(streamFirst, "UTF-8");
+            log.debug(cert);
+            InputStream stream = new FileInputStream(initialFile);
             log.debug("stream size {}", stream.available());
             channel = NettyChannelBuilder.forAddress(host, Integer.valueOf(port))
                     .sslContext(GrpcSslContexts

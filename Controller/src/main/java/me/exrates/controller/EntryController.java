@@ -92,6 +92,7 @@ public class EntryController {
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
             @RequestParam(required = false) String qrLogin,
+            @RequestParam(required = false) String sessionEnd,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
@@ -103,6 +104,9 @@ public class EntryController {
             successNoty = messageSource
                     .getMessage("dashboard.qrLogin.successful", null,
                             localeResolver.resolveLocale(request));
+        }
+        if (sessionEnd != null) {
+            errorNoty = messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request));
         }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
