@@ -67,7 +67,9 @@ public class OrdersStatisticByPairsCache {
         try {
             log.info("try update cache");
             log.info("update cache");
+            log.debug("updateCache method starttime {}", LocalDateTime.now());
             this.cachedList = orderDao.getOrderStatisticByPairs();
+            log.debug("updateCache method endtime {}", LocalDateTime.now());
             needUpdate.set(false);
         } finally {
             semaphore.release();
@@ -98,7 +100,7 @@ public class OrdersStatisticByPairsCache {
                 barrier.reset();
             } else {
                 try {
-                    barrier.await(10, TimeUnit.SECONDS);
+                    barrier.await(4, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     barrier.reset();
                 }
@@ -114,13 +116,14 @@ public class OrdersStatisticByPairsCache {
     }
 
     private void checkCache() {
+        log.info("check cache");
         if (needUpdate.get()) {
             if (semaphore.tryAcquire()) {
                 updateCache();
                 barrier.reset();
             } else {
                 try {
-                    barrier.await(10, TimeUnit.SECONDS);
+                    barrier.await(4, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     barrier.reset();
                 }
