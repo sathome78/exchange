@@ -7,6 +7,7 @@ $(document).ready(function () {
 });
 
 
+
 function updateNodesDataTable() {
     var $notificatorsTable = $('#nodes-table');
     var url = '/2a8fy7b07dxe44/nodes_state_control/getNodesInfo';
@@ -15,35 +16,35 @@ function updateNodesDataTable() {
         notificatorsDataTable.ajax.url(url).load();
     } else {
         notificatorsDataTable = $($notificatorsTable).DataTable({
-            "ajax": {
-                "url": url,
-                "dataSrc": ""
-            },
-            "bFilter": false,
-            "paging": false,
-            "order": [],
-            "bLengthChange": false,
-            "bPaginate": false,
-            "bInfo": false,
+            "responsive": true,
+            "serverSide": false,
+            "ajax": url,
+            "stateSave": true,
+            "paging": true,
+            "cache": false,
+            "deferRender": true,
             "columns": [
                 {
                     "data": "nodeName"
                 },
                 {
-                    "data": "isNodeWork",
+                    "data": "nodeWork",
                     "render": function (data, type, row) {
                         return data;
                     }
                 },
 
                 {
-                    "data": "isNodeWorkCorrect",
+                    "data": "nodeWorkCorrect",
                     "render": function (data, type, row) {
                         return data;
                     }
                 },
                 {
-                    "data": "lastPollingTime"
+                    "data": "lastPollingTime",
+                    "render": function (data, type, row) {
+                        return data;
+                    }
                 }
             ]
         });

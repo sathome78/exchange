@@ -29,6 +29,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.nodes_observe.StatesHolder;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
@@ -151,6 +152,8 @@ public class AdminController {
   private NotificationsSettingsService notificationsSettingsService;
   @Autowired
   private UsersAlertsService alertsService;
+  @Autowired
+  private StatesHolder statesHolder;
 
 
   @Autowired
@@ -1678,14 +1681,11 @@ public class AdminController {
   }
 
   @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/nodes_state_control/getNodesInfo")
-  public DataTable<List<NodesInfoDto>> nodesControlData() {
-    /*get data here*/
-    return null;
+  @RequestMapping(value = "/2a8fy7b07dxe44/nodes_state_control/getNodesInfo",  method = RequestMethod.GET)
+  public DataTable<List<NodesInfoDto>> nodesControlData(@RequestParam Map<String, String> params) {
+    List<NodesInfoDto> statesList = statesHolder.getNodesCurrentStates();
+    return new DataTable<>(statesList.size(), statesList.size(), statesList.size(), statesList);
   }
-
-
-
 
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

@@ -51,6 +51,16 @@ public class DataTable<E> {
         this.error = error;
     }
 
+    public DataTable() {
+    }
+
+    public DataTable(int draw, int recordsTotal, int recordsFiltered, E data) {
+        this.draw = draw;
+        this.recordsTotal = recordsTotal;
+        this.recordsFiltered = recordsFiltered;
+        this.data = data;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
