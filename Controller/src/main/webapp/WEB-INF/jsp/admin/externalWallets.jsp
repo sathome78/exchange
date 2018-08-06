@@ -27,7 +27,17 @@
             <div class="text-center"><h4><loc:message code="admin.externalWallets.title"/></h4></div>
             <div class="tab-content">
                 <div class="col-md-12 text-center">
-
+                    <table id="spec-min-usd" class="dataTable no-footer">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <br>
+                <div class="col-md-12 text-center">
                     <table id="external-wallets-table">
                         <thead>
                         <tr>
@@ -100,7 +110,39 @@
         </div>
     </div>
 </div>
+<div id="editMinSumModal" class="modal fade">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
 
+                <h4 class="modal-title"><loc:message code="myorders.edit"/></h4>
+
+            </div>
+            <div class="modal-body">
+                <form id="edit-specSum-form" class="form_full_width form_auto_height">
+                    <input type="hidden" name="paramName">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="specSumForUsd" class="input-block-wrapper__label"><loc:message
+                                    code="admin.spec.value"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="specSumForUsd" name="specSumForUsd" class="input-block-wrapper__input" type="number" min="0">
+                        </div>
+                    </div>
+
+                    <button id="submitSpecSum" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var minValueUsd = '<loc:message code="merchants.min.specValue.usd"/>';
+    var minCommissionUsd = '<loc:message code="merchants.min.specCommission.usd"/>';
+</script>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

@@ -1070,6 +1070,13 @@ public class AdminController {
   }
 
   @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/minusd", method = RequestMethod.GET)
+  @ResponseBody
+  public List<MerchantSpecParamDto> minSpecValuesForUsd() {
+    return walletService.getMinValuesForUsd();
+  }
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<ExternalWalletsDto> retrieveExternalWallets() {
@@ -1093,6 +1100,14 @@ public class AdminController {
     externalWalletsDto.setRateUsdAdditional(rateUsdAdditional);
 
     walletService.updateExternalWallets(externalWalletsDto);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/editMinSum", method = RequestMethod.POST)
+  @ResponseBody
+  public ResponseEntity<Void> submitMinSpecSum(@RequestParam String paramName, @RequestParam BigDecimal specSumForUsd) {
+    boolean result =  walletService.updateMinSpecValueForUsd(paramName, specSumForUsd.toString());
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

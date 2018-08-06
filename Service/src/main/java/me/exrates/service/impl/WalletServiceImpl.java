@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
@@ -62,6 +63,8 @@ public class WalletServiceImpl implements WalletService {
   private CryptoCurrencyBalances cryptoCurrencyBalances;
   @Autowired
   private OrderService orderService;
+  @Autowired
+  private MerchantSpecParamsDao specParamsDao;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -510,5 +513,18 @@ public class WalletServiceImpl implements WalletService {
 
 
     return externalWalletsDtos;
+  }
+
+  @Override
+  public List<MerchantSpecParamDto> getMinValuesForUsd(){
+    List<MerchantSpecParamDto> result = new ArrayList<>();
+    result.add(specParamsDao.getByMerchantIdAndParamName(2, "min_sum_usd"));
+    result.add(specParamsDao.getByMerchantIdAndParamName(2, "min_commission_usd"));
+
+    return result;
+  }
+
+  public boolean updateMinSpecValueForUsd(String paramName, String paramValue){
+    return specParamsDao.updateParam("Perfect Money", paramName, paramValue);
   }
 }

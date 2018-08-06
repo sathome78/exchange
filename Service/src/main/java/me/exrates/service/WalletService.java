@@ -120,4 +120,8 @@ public interface WalletService {
     void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
 
     List<ExternalWalletsDto> getBalancesWithExternalWallets();
+
+    List<MerchantSpecParamDto> getMinValuesForUsd();
+
+    boolean updateMinSpecValueForUsd(String paramName, String paramValue);
 }
