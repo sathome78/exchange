@@ -41,7 +41,6 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
     @PostConstruct
     private void init() {
         try {
-            HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
             connect();
         } catch (Exception e) {
             log.error("error connect to dcrwallet");
@@ -70,9 +69,8 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
                         .build())
                     .build();
         } catch (Exception e) {
-            System.out.println(e);
             log.error(e);
-            throw new RuntimeException(e);
+            /*throw new RuntimeException(e);*/
         }
         log.debug("channel created");
     }
