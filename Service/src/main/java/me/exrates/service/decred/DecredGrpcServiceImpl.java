@@ -70,7 +70,7 @@ public class DecredGrpcServiceImpl implements DecredGrpcService{
                     .build();
         } catch (Exception e) {
             log.error(e);
-            /*throw new RuntimeException(e);*/
+            throw new RuntimeException(e);
         }
         log.debug("channel created");
     }
