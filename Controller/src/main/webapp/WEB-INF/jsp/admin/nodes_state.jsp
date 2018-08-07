@@ -18,9 +18,9 @@
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-6 col-md-offset-2 admin-container">
-
             <div class="text-center"><h4><loc:message code="admin.nodesStateControl"/></h4></div>
             <div class="tab-content">
+                <p><a id="update_button" class="btn btn-default"><loc:message code="admin.reload_table"/></a></p>
                 <div id="panel1" class="tab-pane active">
                     <div class="col-sm-6">
                         <table id="nodes-table">
@@ -29,7 +29,8 @@
                                 <th><loc:message code="admin.nodeName"/></th>
                                 <th><loc:message code="admin.nodeIsWork"/></th>
                                 <th><loc:message code="admin.nodeIsWorkCorrect"/></th>
-                                <th><loc:message code="admin.lastPollingTime "/></th>
+                                <th><loc:message code="admin.balance"/></th>
+                                <th><loc:message code="admin.lastPollingTime"/></th>
                             </tr>
                             </thead>
                         </table>

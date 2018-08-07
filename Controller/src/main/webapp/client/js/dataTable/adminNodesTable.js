@@ -4,6 +4,10 @@ var notificatorsDataTable;
 
 $(document).ready(function () {
     updateNodesDataTable();
+
+    $('#update_button').on('click', function () {
+        updateNodesDataTable();
+    })
 });
 
 
@@ -30,12 +34,25 @@ function updateNodesDataTable() {
                 {
                     "data": "nodeWork",
                     "render": function (data, type, row) {
-                        return data;
+                        if (data) {
+                            return '<span style="color: green">OK</span>';
+                        } else {
+                            return '<span style="color: red">ERROR</span>';
+                        }
                     }
                 },
-
                 {
                     "data": "nodeWorkCorrect",
+                    "render": function (data, type, row) {
+                        if (data) {
+                            return '<span style="color: green">OK</span>';
+                        } else {
+                            return '<span style="color: red">ERROR</span>';
+                        }
+                    }
+                },
+                {
+                    "data": "walletBalance",
                     "render": function (data, type, row) {
                         return data;
                     }

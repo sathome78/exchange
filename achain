@@ -27,3 +27,36 @@ ACTfpTzidw5dusAkC4FEhy7CATPTJoo2khH79157826142205298415611293524368
 ACT54nD2uNstDg3AYfGJJ9g8ZxiC4RPs7EAG 90473921969849506759825736887144
 
 ACT54nD2uNstDg3AYfGJJ9g8ZxiC4RPs7EAG 96748112526971911649842446966868
+
+
+
+ 【SDKHttpClient】｜POST end URL:[http://172.31.14.101:8078/rpc][jso
+nArray={"jsonrpc":"2.0","params":[3265670],"id":"749","method":"blockchain_get_block_transactions"}]
+,Response results[response=200][result={"id":"749","result":[["15a69e9b38b736176b340268604721dc77b16
+0c1",{"trx":{"expiration":"2018-08-06T17:21:07","alp_account":"","alp_inport_asset":{"amount":0,"ass
+et_id":0},"operations":[{"type":"transaction_op_type","data":{"trx":{"expiration":"2018-08-06T17:21:
+07","alp_account":"","alp_inport_asset":{"amount":0,"asset_id":0},"operations":[{"type":"call_contra
+ct_op_type","data":{"caller":"ACT7SSCgnmWbtgZbUz34kDCidFBLUgQcMdncPxRUJVYgTxKzoaHhk","balances":[["A
+CTFWJv1w8GxeS63BdPt3TQSFEX3BQcqgCYd",11000]],"contract":"ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx","cost
+limit":{"amount":10000,"asset_id":0},"transaction_fee":{"amount":1000,"asset_id":0},"method":"transf
+er_to","args":" ACT2Jqvi9mJUfbJNvtmxpK8jmaZZNBtK9Spj00412443061098752666088895302464|3526.00333"}}],
+"result_trx_type":"origin_transaction","result_trx_id":"0000000000000000000000000000000000000000","s
+ignatures":["1f52a36c136e1cd8d9d697fe9587ad759be7d6839c68f6c560574b22d72da4d8d151d7324b87d7ff73a2e30
+28e1a1869cfc1467854633b3e81b146d1621e389a17"]}}},{"type":"on_call_success_op_type","data":{}},{"type
+":"event_op_type","data":{"id":"ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx","event_type":"transfer_to_succ
+ess","event_param":"ACTFaKDVAfH9tqBDpFqtyo7NgmCEbqphGhJK:4987197254246,ACT2Jqvi9mJUfbJNvtmxpK8jmaZZN
+BtK9Spj:91586690867,7877,1533572460","is_truncated":false}},{"type":"storage_op_type","data":{"contr
+act_id":"ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx","contract_change_storages":[["balances",{"storage_bef
+ore":{"storage_type":"storage_value_int_table","storage_data":"0224414354324a717669396d4a5566624a4e7
+6746d78704b386a6d615a5a4e42744b3953706a26bef93d150000002441435446614b4456416648397471424470467174796
+f374e676d43456271706847684a4b732b234189040000"},"storage_after":{"storage_type":"storage_value_int_t
+able","storage_data":"0224414354324a717669396d4a5566624a4e76746d78704b386a6d615a5a4e42744b3953706a33
+fffd52150000002441435446614b4456416648397471424470467174796f374e676d43456271706847684a4b66ea1e2c8904
+0000"}}],["transfer_version",{"storage_before":{"storage_type":"storage_value_int","storage_data":"c
+41e000000000000"},"storage_after":{"storage_type":"storage_value_int","storage_data":"c51e0000000000
+00"}}]]}},{"type":"balances_withdraw_op_type","data":{"balances":[["ACTFWJv1w8GxeS63BdPt3TQSFEX3BQcq
+gCYd",2023]]}}],"result_trx_type":"complete_result_transaction","result_trx_id":"15a69e9b38b736176b3
+40268604721dc77b160c1","signatures":[]},"signed_keys":[],"deposits":[],"withdraws":[[0,2023]],"yield
+":[],"deltas":[[5,[[0,-2023]]]],"required_fees":{"amount":1000,"asset_id":0},"alt_fees_paid":{"amoun
+t":0,"asset_id":0},"balance":[[0,2023]],"delegate_vote_deltas":[],"imessage_length":0,"skipexec":tru
+e,"chain_location":{"block_num":3265670,"trx_num":0}}]]}]!

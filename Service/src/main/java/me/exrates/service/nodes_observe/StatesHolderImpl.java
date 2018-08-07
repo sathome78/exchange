@@ -7,6 +7,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,9 +42,10 @@ public class StatesHolderImpl implements StatesHolder {
 
     private NodesInfoDto makeRandomDto() {
         NodesInfoDto nodesInfoDto = new NodesInfoDto();
-        nodesInfoDto.setNodeName(RandomStringUtils.random(10));
+        nodesInfoDto.setNodeName(RandomStringUtils.randomAlphabetic(10));
         nodesInfoDto.setNodeWork(Math.random() < 0.5);
         nodesInfoDto.setNodeWorkCorrect(Math.random() < 0.5);
+        nodesInfoDto.setWalletBalance(String.valueOf(Math.random()));
         nodesInfoDto.setLastPollingTime(LocalDateTime.now());
         return nodesInfoDto;
     }
