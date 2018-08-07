@@ -41,7 +41,7 @@ public class TxServiceImpl implements TxService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleWithFixedDelay(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
     }
 
 
