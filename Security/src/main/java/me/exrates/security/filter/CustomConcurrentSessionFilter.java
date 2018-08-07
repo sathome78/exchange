@@ -127,7 +127,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                         return;
                     } else if (isRefreshNeeded(request)) {
                         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
-                        System.out.println("last request" + session.getAttribute(sessionLastRequestParamName));;
                     }
                     // Non-expired - update last request date/time
                     sessionRegistry.refreshLastRequest(info.getSessionId());
@@ -142,7 +141,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
                 .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
-            System.out.println("refresh on time");
             return true;
         }
         return false;
@@ -156,7 +154,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     private boolean isPathForSessionRefresh(HttpServletRequest request) {
         String path = request.getServletPath();
-        System.out.println("path " + path);
         boolean needRefresh;
         needRefresh = !onlineMethods
                 .stream()
