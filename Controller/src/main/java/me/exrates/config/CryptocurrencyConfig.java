@@ -199,7 +199,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
                 "LBTC", "LBTC", 4, 20, false);
     }
-
+    
     @Bean(name = "brbServiceImpl")
     public BitcoinService brbService() {
         return new BitcoinServiceImpl("merchants/brb_wallet.properties",
