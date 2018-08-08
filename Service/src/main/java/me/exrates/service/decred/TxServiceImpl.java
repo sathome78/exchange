@@ -49,8 +49,8 @@ public class TxServiceImpl implements TxService {
     public void checkTransactions() {
         try {
             log.debug("decred check txs");
-            int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 2;
-            int firstBlockToScan = Integer.valueOf(loadLastBlock() + 1);
+            int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 3;
+            int firstBlockToScan = Integer.valueOf(loadLastBlock()) + 1;
             log.debug("first block {}, last block {}", firstBlockToScan, lastBlockToScan);
             if (firstBlockToScan >= lastBlockToScan) {
                 return;
@@ -117,6 +117,6 @@ public class TxServiceImpl implements TxService {
 
     private String loadLastBlock() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_HASH_PARAM);
-        return specParamsDto == null ? null : specParamsDto.getParamValue();
+        return specParamsDto == null ? "0" : specParamsDto.getParamValue();
     }
 }
