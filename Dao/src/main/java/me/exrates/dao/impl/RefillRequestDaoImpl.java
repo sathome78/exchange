@@ -881,15 +881,18 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public boolean checkInputRequests(int currencyId, String email) {
+    /*
+    REQUEST.status_id (from REFIL_REQUEST table): 8 - DECLINED_ADMIN, 11 - REVOKED_USER, 12 - EXPIRED
+     */
     String sql = "SELECT " +
         " (SELECT COUNT(*) FROM REFILL_REQUEST REQUEST " +
         " JOIN USER ON(USER.id = REQUEST.user_id) " +
         " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
-        " and DATE(REQUEST.date_creation) = CURDATE()) <  " +
+        " and DATE(REQUEST.date_creation) = CURDATE() AND NOT REQUEST.status_id IN (8, 11, 12)) <  " +
         " " +
         "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
         " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id) " +
-        " WHERE USER.email = :email AND operation_type_id = 1 AND currency_id = :currency_id) ;";
+        " WHERE USER.email = :email AND operation_type_id = 1 AND currency_id = :currency_id);";
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currency_id", currencyId);
     params.put("email", email);
