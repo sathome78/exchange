@@ -379,11 +379,14 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
   @Override
   public boolean checkOutputRequests(int currencyId, String email) {
+    /*
+    REQUEST.status_id (from WITHDRAW_REQUEST table): 7 - REVOKED_USER, 8 - DECLINED_ADMIN, 12 - EXPIRED
+     */
     String sql = "SELECT " +
         " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
         " JOIN USER ON(USER.id = REQUEST.user_id) " +
         " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
-        " and DATE(REQUEST.date_creation) = CURDATE()) <  " +
+        " and DATE(REQUEST.date_creation) = CURDATE() AND NOT REQUEST.status_id IN (7, 8, 12)) <  " +
         " " +
         "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
         " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
