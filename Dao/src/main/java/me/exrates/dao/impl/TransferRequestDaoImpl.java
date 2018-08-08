@@ -164,11 +164,14 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
 
   @Override
   public boolean checkTransferRequestsLimit(int currencyId, String email) {
+    /*
+    REQUEST.status_id (from TRANSFER_REQUEST table): 3 - REVOKED, 5 - REVOKED_ADMIN
+     */
     String sql = "SELECT " +
             " (SELECT COUNT(*) FROM TRANSFER_REQUEST REQUEST " +
             " JOIN USER ON(USER.id = REQUEST.user_id) " +
             " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
-            " and DATE(REQUEST.date_creation) = CURDATE()) <  " +
+            " and DATE(REQUEST.date_creation) = CURDATE() AND NOT REQUEST.status_id IN (3, 5)) <  " +
             " " +
             "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
             " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id) " +
