@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.ChatMessage;
+import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface ChatDao {
     void persist(ChatLang lang, Set<ChatMessage> message);
 
     void delete(ChatLang lang, ChatMessage message);
+
+    List<ChatHistoryDto> getChatHistory(ChatLang chatLang);
 }

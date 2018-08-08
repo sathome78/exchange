@@ -1,10 +1,12 @@
 
 var ws; //web-socket connection
+var chatLanguage;
 
 function connect(chatLang) {
     if (ws!=null) {
         ws.close();
     }
+
     ws = new SockJS('/chat-' + chatLang);
     ws.onmessage = function (message) {
         const messageObj = JSON.parse(message['data']);
@@ -72,6 +74,7 @@ function loadChatHistory(lang) {
 }
 
 function changeChatLocale(lang) {
+    chatLanguage = lang;
     if (lang === 'ar') {
         $('#new_mess').find('input[name="body"]').addClass('right-to-left');
     } else {
@@ -86,7 +89,21 @@ function changeChatLocale(lang) {
 
 
 $(function () {
+    var listLang = $("#language").text().toLowerCase().trim();
+    changeChatLocale(listLang == 'id' ? 'in' : listLang);
+    var bchat = document.getElementById('bchat'+(listLang == 'id' ? 'in' : listLang));
+    bchat.className += " active";
 
+    var btnContainer = document.getElementById("chatLangButtons");
+    var btns = btnContainer.getElementsByClassName("btna");
+// Loop through the buttons and add the active class to the current/clicked button
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener("click", function() {
+            var current = btnContainer.getElementsByClassName("active");
+            current[0].className = current[0].className.replace(" active", "");
+            this.className += " active";
+        });
+    }
     initScrollbar();
 
     $('.chat-locales>a:first-child').click(); // Connect to websocket and load chat history

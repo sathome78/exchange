@@ -1,0 +1,12 @@
+#chatLangButtons .btna {
+    border: none;
+    outline: none;
+    padding: 3px 4px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#chatLangButtons .active, #chatLangButtons .btna:hover{
+    background-color: #666;
+    color: white;
+}
