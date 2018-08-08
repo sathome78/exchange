@@ -402,6 +402,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="sumokoin_log" fileName="${sys:catalina.home}/logs/crypto/sumokoin_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/sumokoin_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="iota_log" fileName="${sys:catalina.home}/logs/crypto/iota_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/iota_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -698,6 +707,9 @@
         </logger>
         <logger name="ditcoin_log" level="ALL" additivity="false">
             <AppenderRef ref="ditcoin_log"/>
+        </logger>
+        <logger name="sumokoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="sumokoin_log"/>
         </logger>
         <logger name="edc_log" level="ALL" additivity="false">
             <AppenderRef ref="edc_log"/>

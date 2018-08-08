@@ -1144,6 +1144,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "DIT", "DIT", 10, 8);
     }
 
+    @Bean(name = "sumoServiceImpl")
+    public MoneroService sumoService() {
+        return new MoneroServiceImpl("merchants/sumokoin.properties",
+                "SUMO", "SUMO", 10, 9);
+    }
+
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
     public XemMosaicService dimCoinService() {

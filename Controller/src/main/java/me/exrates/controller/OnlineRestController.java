@@ -727,7 +727,7 @@ public class OnlineRestController {
     String cacheKey = "myWalletsData" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
+    List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(cacheData, email, Locale.ENGLISH);
     return result;
   }
 
