@@ -1123,7 +1123,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthTokenServiceImpl(
                 tokensList,
                 "BFG",
-                "BFG", true, ExConvert.Unit.AIWEI);
+                "BFG", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "jetServiceImpl")
