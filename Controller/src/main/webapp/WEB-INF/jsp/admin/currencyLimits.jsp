@@ -59,8 +59,10 @@
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
-                                <th></th>
+                                <th>id</th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
+                                <th><loc:message code="admin.currencyLimits.usdDailyRate"/> </th>
+                                <th><loc:message code="admin.currencyLimits.calcMinAmount"/> </th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                             <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
                         </tr>

@@ -111,10 +111,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType) {
-    String sql = "SELECT DISTINCT CURRENCY_LIMIT.currency_id, CURRENCY.name, " +
+    String sql = "SELECT DISTINCT CURRENCY_LIMIT.currency_id, CURRENCY.name, CWE.rate_usd_additional as usd_additional, " +
+            " (MP.param_value/CWE.rate_usd_additional) as calc_min_sum, " +
         "CURRENCY_LIMIT.min_sum, CURRENCY_LIMIT.max_sum, CURRENCY_LIMIT.max_daily_request " +
         "FROM CURRENCY_LIMIT " +
         "JOIN CURRENCY ON CURRENCY_LIMIT.currency_id = CURRENCY.id " +
+        "LEFT JOIN COMPANY_WALLET_EXTERNAL CWE ON CWE.currency_id = CURRENCY.id " +
+        "JOIN MERCHANT_SPEC_PARAMETERS MP ON MP.param_name = 'min_sum_usd'  " +
         "WHERE user_role_id IN(:role_ids) AND CURRENCY_LIMIT.operation_type_id = :operation_type_id";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("role_ids", roleIds);
@@ -127,6 +130,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
       currency.setId(rs.getInt("currency_id"));
       currency.setName(rs.getString("name"));
       currencyLimit.setCurrency(currency);
+      currencyLimit.setRateUsdAdditional(rs.getBigDecimal("usd_additional") == null ? BigDecimal.ZERO
+              : rs.getBigDecimal("usd_additional"));
+      currencyLimit.setCalcMinSum(rs.getBigDecimal("calc_min_sum") == null ? BigDecimal.ZERO
+              : rs.getBigDecimal("calc_min_sum"));
       currencyLimit.setMinSum(rs.getBigDecimal("min_sum"));
       currencyLimit.setMaxSum(rs.getBigDecimal("max_sum"));
       currencyLimit.setMaxDailyRequest(rs.getInt("max_daily_request"));
