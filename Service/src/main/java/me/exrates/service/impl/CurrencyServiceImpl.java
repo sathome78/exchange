@@ -9,6 +9,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
@@ -269,6 +270,11 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
+  public Integer findCurrencyPairIdByName(String pairName) {
+    return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> new CurrencyPairNotFoundException(pairName));
+  }
+
+  @Override
   public List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType) {
     return currencyDao.findAllCurrenciesByProcessType(processType);
   }
@@ -276,5 +282,10 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Override
   public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType){
     return currencyDao.findPermitedCurrencyPairs(currencyPairType);
+  }
+
+  @Override
+  public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
+    return currencyDao.findActiveCurrencyPairs();
   }
 }

@@ -2449,3 +2449,33 @@ input.copyable:hover{
     width: 100%;
     word-wrap: break-word;
 }
+
+.apidoc_methods_container {
+    margin-left: 4%;
+}
+.apidoc_table td{
+    font-size: 1.3rem;
+}
+.apidoc_table td:first-child {
+    width: 150px;
+    padding-right: 10px;
+}
+
+#tokens-table-wrapper, #generate-button-wrapper {
+    margin: 20px 5px;
+}
+
+#api-tokens-table i {
+    font-size: 1.8rem;
+    margin: 0 5px;
+}
+
+.method-group-title {
+    font-size: 2rem;
+    margin: 30px 0;
+}
+
+#api-method-doc {
+    background-color: #ffffff;
+    padding: 0 20px;
+}

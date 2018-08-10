@@ -8,6 +8,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
@@ -86,7 +87,11 @@ public interface CurrencyService {
 
   CurrencyPair getCurrencyPairByName(String pairName);
 
+  Integer findCurrencyPairIdByName(String pairName);
+
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
   List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType ico);
+
+    List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 }

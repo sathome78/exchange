@@ -6,7 +6,11 @@ import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
+import me.exrates.model.enums.OrderHistoryPeriod;
+import me.exrates.model.enums.OrderType;
 import me.exrates.model.form.FeedbackMessageForm;
+import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
+import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -47,9 +51,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -447,5 +450,21 @@ public class MainController {
         return TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60);
     }
 
+
+    @RequestMapping(value = "/api_docs", method = RequestMethod.GET)
+    public ModelAndView apiDocs(HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs", "captchaType", CAPTCHA_TYPE);
+        String baseUrl = String.join("", request.getScheme(), "://", request.getServerName(), "/openapi/v1");
+        modelAndView.addObject("baseUrl", baseUrl);
+        modelAndView.addObject("orderTypeValues", Arrays.asList(OrderType.values()));
+        modelAndView.addObject("periodValues", Arrays.stream(OrderHistoryPeriod.values())
+                .map(OrderHistoryPeriod::toUrlValue).collect(Collectors.toList()));
+        Map<OpenApiMethodGroup, List<OpenApiMethodDoc>> methodGroups = Arrays.stream(OpenApiMethodDoc.values())
+                .collect(Collectors.groupingBy(OpenApiMethodDoc::getMethodGroup));
+        modelAndView.addObject("publicMethodsInfo", methodGroups.get(OpenApiMethodGroup.PUBLIC));
+        modelAndView.addObject("userMethodsInfo", methodGroups.get(OpenApiMethodGroup.USER_INFO));
+        modelAndView.addObject("orderMethodsInfo", methodGroups.get(OpenApiMethodGroup.ORDERS));
+        return modelAndView;
+    }
 
 }

@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('Blocform', 'BFG', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
+VALUES ('Blocform Global', 'BFG', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('BFG', 'Blocform', 0, 8, 8, 8);
+VALUES ('BFG', 'Blocform Global', 0, 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='BFG'));
 

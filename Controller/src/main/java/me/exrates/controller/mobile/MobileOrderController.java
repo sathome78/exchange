@@ -1,13 +1,13 @@
 package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.controller.exception.OrderParamsWrongException;
-import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
 import me.exrates.service.*;
@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.*;
 
-import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;

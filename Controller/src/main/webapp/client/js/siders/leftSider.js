@@ -30,6 +30,10 @@ function LeftSiderClass(type) {
             }, refreshIntervalForStatisticsForMyWallets);
             return;
         }
+        $mvFilter = $('#my-wallets-filter');
+        if($mvFilter.val() === undefined || $mvFilter.val().length > 0 ) {
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForMyWallets');
         }

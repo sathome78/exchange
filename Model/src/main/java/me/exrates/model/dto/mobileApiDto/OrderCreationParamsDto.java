@@ -18,6 +18,16 @@ public class OrderCreationParamsDto {
     @NotNull
     private BigDecimal rate;
 
+    public OrderCreationParamsDto() {
+    }
+
+    public OrderCreationParamsDto(Integer currencyPairId, OperationType orderType, BigDecimal amount, BigDecimal rate) {
+        this.currencyPairId = currencyPairId;
+        this.orderType = orderType;
+        this.amount = amount;
+        this.rate = rate;
+    }
+
     public Integer getCurrencyPairId() {
         return currencyPairId;
     }

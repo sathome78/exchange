@@ -528,10 +528,18 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="open_api_log" fileName="${sys:catalina.home}/logs/open_api/open_api_log.log"
+                     filePattern="${sys:catalina.home}/logs/open_api/open_api_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
@@ -611,13 +619,11 @@
         </Logger>
         <Logger name="refill" level="DEBUG" additivity="false">
             <AppenderRef ref="refill_log"/>
-            <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="transfer" level="DEBUG" additivity="false">
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_log"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
@@ -756,6 +762,9 @@
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
+        </logger>
+        <logger name="open_api" level="ALL" additivity="false">
+            <AppenderRef ref="open_api_log"/>
         </logger>
 
         <Root level="INFO">

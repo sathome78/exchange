@@ -10,16 +10,22 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.dto.openAPI.OpenOrderDto;
+import me.exrates.model.dto.openAPI.OrderBookItem;
+import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -61,7 +67,17 @@ public interface OrderService {
   @Transactional
     void postBotOrderToDb(OrderCreateDto orderCreateDto);
 
-    Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+  @Transactional
+  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale);
+
+  @Transactional
+    OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);
+
+  @Transactional
+  OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
+                                                   BigDecimal amount, BigDecimal exrate, String userEmail);
+
+  Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
   Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -96,6 +112,9 @@ public interface OrderService {
    */
   boolean setStatus(int orderId, OrderStatus status);
 
+  @Transactional
+  void acceptOrder(String userEmail, Integer orderId);
+
   /**
    * Accepts the list of orders
    * The method <b>acceptOrdersList</b> is used to accept each orders from <b>ordersList</b>
@@ -117,7 +136,7 @@ public interface OrderService {
    * - TransactionPersistException
    * - OrderAcceptionException
    *
-   * @param acceptorEmail  is ID of acceptor-user
+   * @param acceptorEmail  is email of acceptor-user
    * @param orderId is ID of order that must be accepted
    * @param locale  is current locale. Used to generate messages
    */
@@ -127,7 +146,10 @@ public interface OrderService {
 
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
 
-    /**
+  @Transactional
+  void cancelOrder(Integer orderId, String currentUserEmail);
+
+  /**
    * Cancels the order and set status "CANCELLED"
    * Only order with status "OPENED" can be cancelled
    * This method for cancel order by creator-user
@@ -160,7 +182,11 @@ public interface OrderService {
 
   List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
 
-  /**
+    List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
+
+    List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
+
+    /**
    * Returns detailed info about the order, including info from related transactions
    *
    * @param orderId is ID the order
@@ -362,4 +388,15 @@ public interface OrderService {
   Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
 
   Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
+
+    Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
+
+  List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period);
+
+    List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
+
+    List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
+                                             @Nullable Integer limit, @Nullable Integer offset);
+
+    List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
 }

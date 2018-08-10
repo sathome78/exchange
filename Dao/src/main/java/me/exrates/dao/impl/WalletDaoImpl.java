@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
@@ -158,7 +159,7 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
     String typeClause = "";
     final String sql =
         " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
@@ -200,6 +201,20 @@ public class WalletDaoImpl implements WalletDao {
       myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
       myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
       return myWalletsStatisticsDto;
+    });
+  }
+
+  @Override
+  public List<WalletBalanceDto> getBalancesForUser(String userEmail) {
+    String sql = "SELECT CUR.name AS currency_name, W.active_balance, W.reserved_balance FROM WALLET W " +
+            " JOIN CURRENCY CUR ON W.currency_id = CUR.id " +
+            " WHERE W.user_id = (SELECT id FROM USER WHERE email = :email)";
+    return jdbcTemplate.query(sql, Collections.singletonMap("email", userEmail), (rs, rowNum) -> {
+      WalletBalanceDto dto = new WalletBalanceDto();
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setActiveBalance(rs.getBigDecimal("active_balance"));
+      dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      return dto;
     });
   }
 

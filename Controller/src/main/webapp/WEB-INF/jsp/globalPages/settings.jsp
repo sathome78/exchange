@@ -33,7 +33,11 @@
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-    <%----------%>
+    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
@@ -56,6 +60,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/jquery.dataTables.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/settings/api-settings.js'/>"></script>
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
 </head>

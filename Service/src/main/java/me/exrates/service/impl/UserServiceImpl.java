@@ -744,4 +744,13 @@ public class UserServiceImpl implements UserService {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @Override
+  public String getUserEmailFromSecurityContext() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null) {
+      throw new AuthenticationNotAvailableException();
+    }
+    return auth.getName();
+  }
+
 }

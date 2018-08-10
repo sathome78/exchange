@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
@@ -83,7 +84,9 @@ public interface WalletService {
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
 
     @Transactional(readOnly = true)
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);
+
+    List<WalletBalanceDto> getBalancesForUser();
 
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
