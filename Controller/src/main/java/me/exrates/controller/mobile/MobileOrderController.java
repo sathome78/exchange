@@ -3,6 +3,7 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
@@ -280,7 +281,7 @@ public class MobileOrderController {
             }
             OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-            Integer createdOrderId = orderService.createOrder(orderCreateDto, null, CREATE);
+            Integer createdOrderId = orderService.createOrder(orderCreateDto, null, OrderActionEnum.CREATE);
             if (createdOrderId <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
             }

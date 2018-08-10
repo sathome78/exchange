@@ -626,7 +626,7 @@ public class OrderServiceImpl implements OrderService {
     }
     OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-    Integer createdOrderId = createOrder(orderCreateDto, CREATE);
+    Integer createdOrderId = createOrder(orderCreateDto, null, CREATE);
     if (createdOrderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
@@ -806,26 +806,20 @@ public class OrderServiceImpl implements OrderService {
   public void acceptOrder(String userEmail, Integer orderId) {
     Locale locale = userService.getUserLocaleForMobile(userEmail);
     Integer userId = userService.getIdByEmail(userEmail);
-    acceptOrdersList(userId, Collections.singletonList(orderId), locale);
+    acceptOrdersList(userId, Collections.singletonList(orderId), locale, null);
   }
 
   @Transactional(rollbackFor = {Exception.class})
   public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, Integer orderAcceptedWith) {
     if (orderDao.lockOrdersListForAcception(ordersList)) {
       for (Integer orderId : ordersList) {
-        acceptOrder(userAcceptorId, orderId, locale, orderAcceptedWith);
+        acceptOrder(userAcceptorId, orderId, locale, true, orderAcceptedWith);
       }
     } else {
       throw new OrderAcceptionException(messageSource.getMessage("order.lockerror", null, locale));
     }
   }
 
-  @Transactional(rollbackFor = {Exception.class})
-  void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
-    acceptOrder(userAcceptorId, orderId, locale, true);
-
-  }
-  
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
