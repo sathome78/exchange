@@ -38,9 +38,11 @@ $(document).ready(function () {
         var rowData = commissionsDataTable.row(this).data();
         var operationType = rowData.operationType;
         var commissionValue = parseFloat(rowData.value);
+        var commissionUnitValue = parseFloat(rowData.unitValue);
         $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
         $('#operationType').val(operationType);
         $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
+        $($commissionForm).find('input[name="commissionUnitValue"]').val(commissionUnitValue);
         $('#editCommissionModal').modal();
     });
 
@@ -215,6 +217,9 @@ function updateCommissionsDataTable() {
                 },
                 {
                     "data": "value"
+                },
+                {
+                    "data": "unitValue"
                 }
             ]
         });
@@ -232,7 +237,6 @@ function submitCommission() {
         data: formData,
         success: function () {
             updateCommissionsDataTable();
-
             $('#editCommissionModal').modal('hide');
         },
         error: function (error) {

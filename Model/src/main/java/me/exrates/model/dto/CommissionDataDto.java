@@ -23,6 +23,7 @@ public class CommissionDataDto {
   /**/
   Commission companyCommission;
   BigDecimal companyCommissionRate;
+  BigDecimal companyCommissionUnitRate;
   String companyCommissionUnit;
   BigDecimal companyCommissionAmount;
   /**/

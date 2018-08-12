@@ -54,6 +54,7 @@
                             <tr>
                                 <th><loc:message code="admin.commissions.operationType"/> </th>
                                 <th><loc:message code="admin.commissions.value"/></th>
+                                <th><loc:message code="admin.spec.value"/></th>
                             </tr>
                             </thead>
                         </table>
@@ -131,6 +132,14 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="commissionValue" name="commissionValue" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="commissionUnitValue" class="input-block-wrapper__label"><loc:message code="admin.spec.value"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="commissionUnitValue" name="commissionUnitValue" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <button id="submitCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>

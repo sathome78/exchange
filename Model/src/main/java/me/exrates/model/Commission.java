@@ -17,6 +17,7 @@ public class Commission {
     private int id;
     private OperationType operationType;
     private BigDecimal value;
+    private BigDecimal unitValue;
     private Date dateOfChange;
     private UserRole userRole;
 

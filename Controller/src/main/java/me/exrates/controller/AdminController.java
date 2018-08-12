@@ -1195,14 +1195,17 @@ public class AdminController {
 
   }
 
+
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editCommission", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
                                              @RequestParam("userRole") String role,
-                                             @RequestParam("commissionValue") BigDecimal value) {
-    LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
-    commissionService.updateCommission(operationType, role, value);
+                                             @RequestParam("commissionValue") BigDecimal value,
+                                             @RequestParam("commissionUnitValue") BigDecimal unitValue
+                                             ) {
+    LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value + ", unitValue = " + unitValue);
+    commissionService.updateCommission(operationType, role, value, unitValue);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

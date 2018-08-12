@@ -27,6 +27,7 @@ public class CommissionDaoImpl implements CommissionDao {
 		commission.setId(resultSet.getInt("id"));
 		commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
 		commission.setValue(resultSet.getBigDecimal("value"));
+		commission.setUnitValue(resultSet.getBigDecimal("unit_value"));
 		return commission;
 	};
 
@@ -36,7 +37,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public Commission getCommission(OperationType operationType, UserRole userRole) {
-		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value, COMMISSION.unit_value " +
 				"FROM COMMISSION " +
 				"WHERE operation_type = :operation_type AND user_role = :role_id";
 		final HashMap<String,Integer> params = new HashMap<>();
@@ -47,7 +48,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public Commission getCommission(OperationType operationType, Integer userId) {
-		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value, COMMISSION.unit_value " +
 				"FROM COMMISSION " +
 				"JOIN USER ON USER.id = :user_id " +
 				"WHERE operation_type = :operation_type AND user_role = USER.roleid";
@@ -59,7 +60,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public Commission getDefaultCommission(OperationType operationType) {
-		final String sql = "SELECT id, operation_type, date, value " +
+		final String sql = "SELECT id, operation_type, date, value, unit_value " +
 				"FROM COMMISSION " +
 				"WHERE operation_type = :operation_type AND user_role = 4;";
 		final HashMap<String,Integer> params = new HashMap<>();
@@ -132,7 +133,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public List<CommissionShortEditDto> getEditableCommissionsByRoles(List<Integer> roleIds, Locale locale) {
-		final String sql = "SELECT DISTINCT COMMISSION.operation_type, COMMISSION.value " +
+		final String sql = "SELECT DISTINCT COMMISSION.operation_type, COMMISSION.value, COMMISSION.unit_value " +
 				"FROM COMMISSION " +
 				"JOIN USER_ROLE ON COMMISSION.user_role = USER_ROLE.id " +
 				"WHERE COMMISSION.user_role IN(:roles) AND COMMISSION.operation_type NOT IN (5, 6, 7, 8) " +
@@ -144,6 +145,7 @@ public class CommissionDaoImpl implements CommissionDao {
 			commission.setOperationType(operationType);
 			commission.setOperationTypeLocalized(operationType.toString(messageSource, locale));
 			commission.setValue(resultSet.getBigDecimal("value"));
+			commission.setUnitValue(resultSet.getBigDecimal("unit_value"));
 			return commission;
 		});
 	}
@@ -161,13 +163,14 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
-	public void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value) {
-		final String sql = "UPDATE COMMISSION SET value = :value, date = NOW() " +
+	public void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value, BigDecimal unitValue) {
+		final String sql = "UPDATE COMMISSION SET value = :value, unit_value = :unit_value, date = NOW() " +
 				"where operation_type = :operation_type AND user_role IN (:user_roles)";
 		Map<String, Object> params = new HashMap<String, Object>() {{
 			put("operation_type", operationType.getType());
 			put("user_roles", roleIds);
 			put("value", value);
+			put("unit_value", unitValue);
 		}};
 		jdbcTemplate.update(sql, params);
 	}
@@ -204,7 +207,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public Commission getCommissionById(Integer commissionId) {
-		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value, COMMISSION.unit_value " +
 				" FROM COMMISSION " +
 				" WHERE id = :id";
 		final HashMap<String,Integer> params = new HashMap<>();
