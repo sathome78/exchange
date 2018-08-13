@@ -382,7 +382,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   @Override
-  //@Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
+  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
   public void backupWallet() {
     bitcoinWalletService.backupWallet(backupFolder);
   }
