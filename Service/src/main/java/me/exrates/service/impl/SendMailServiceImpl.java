@@ -69,10 +69,10 @@ public class SendMailServiceImpl implements SendMailService{
 	public void sendMailMandrill(Email email){
 		supportMailExecutors.execute(() -> {
 			try {
-				sendMail(email, MANDRILL_EMAIL, mandrillMailSender);
+				sendMail(email, INFO_EMAIL, infoMailSender);
 			} catch (Exception e) {
 				logger.error(e);
-				sendMail(email, INFO_EMAIL, infoMailSender);
+				sendMail(email, SUPPORT_EMAIL, supportMailSender);
 			}
 		});
 	}
