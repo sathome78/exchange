@@ -17,6 +17,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,6 +51,9 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserSessionService userSessionService;
 
   @Autowired
   private SendMailService sendMailService;
@@ -323,18 +327,27 @@ public class UserServiceImpl implements UserService {
 
   @Transactional(rollbackFor = Exception.class)
   public boolean update(UpdateUserDto user, boolean resetPassword, Locale locale) {
+    /*
     boolean changePassword = user.getPassword() != null && !user.getPassword().isEmpty();
+    */
     boolean changeFinPassword = user.getFinpassword() != null && !user.getFinpassword().isEmpty();
+    /*
     if (changePassword) {
       user.setStatus(UserStatus.REGISTERED);
     }
+    */
+    /*
+    ...
+        if (changePassword) {
+            sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
+        }
+    ...
+     */
     if (userDao.update(user)) {
       User u = new User();
       u.setId(user.getId());
       u.setEmail(user.getEmail());
-      if (changePassword) {
-        sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
-      } else if (changeFinPassword) {
+      if (changeFinPassword) {
         sendEmailWithToken(u, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
       } else if (resetPassword) {
         sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
@@ -505,6 +518,9 @@ public class UserServiceImpl implements UserService {
       }
       userDao.updateUserPasswordFromTemporary(tempPassId);
       removeTemporaryPassword(tempPassId);
+
+      userSessionService.invalidateUserSessionExceptSpecific(userDao.getUserById(dto.getUserId()).getEmail(), null);
+
       return deleteTokensAndUpdateUser(temporalToken) > 0;
     }
     removeTemporaryPassword(tempPassId);

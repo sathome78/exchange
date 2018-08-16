@@ -267,3 +267,126 @@ function SettingsClass() {
     });
 
 }
+
+$(function () {
+    const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
+    const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+    const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+
+    const fieldContainsSpace = new RegExp("\\s");
+
+    if (document.getElementById("change-password-button")) {
+        checkPasswordFieldsOnFillInUserSettings();
+    }
+
+    if (document.getElementById("user-password")) {
+        checkOldPasswordField();
+    }
+
+    if (document.getElementById("user-password") && document.getElementById("user-confirmpassword")) {
+        checkOldPasswordAndNewPasswordField();
+    }
+
+    $('#user-confirmpassword').keyup(debounce(function(){
+        /**
+         * Start validation for password confirm
+         */
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+
+        if (pass && (pass === repass)) {
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        }
+        else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+        /**
+         * End validation for password confirm
+         */
+
+        $('#new_password_wrong').css('display', 'none');
+        $('#new_password_required').css('display', 'none');
+
+        if(!pass) {
+            $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+            $('#new_password_required').css('display', 'block');
+            $("#change-password-button").prop('disabled', true);
+            checkPasswordFieldsOnFillInUserSettings();
+            return;
+        }
+        if ((passwordPatternLettersAndNumbers.test(pass) || passwordPatternLettersAndCharacters.test(pass)
+            || passwordPatternLettersAndNumbersAndCharacters.test(pass)) && !fieldContainsSpace.test(pass)) {
+            $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
+            $("#change-password-button").prop('disabled', false);
+            checkPasswordFieldsOnFillInUserSettings();
+        } else {
+            $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+            $('#new_password_wrong').css('display', 'block');
+            $("#change-password-button").prop('disabled', true);
+            checkPasswordFieldsOnFillInUserSettings();
+        }
+    },100));
+
+    $("#confirmNewPassword").keyup(function () {
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+        if (repass && (pass === repass)) {
+                $('.repass').css("display", "block");
+                $('.repass-error').css("display", "none");
+            } else {
+                $('.repass-error').css("display", "block");
+                $('.repass').css("display", "none");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+    });
+
+    $('#user-password').keyup(checkOldPasswordField);
+    $('#user-password, #user-confirmpassword').keyup(checkOldPasswordAndNewPasswordField);
+    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
+
+});
+
+/**
+ * Check password fields on fill for change password by user in user settings.
+ */
+function checkPasswordFieldsOnFillInUserSettings() {
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+    var confirmNewPassword = $('#confirmNewPassword').val();
+    if (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword)) {
+        $("#change-password-button").prop('disabled', false);
+    } else {
+        $("#change-password-button").prop('disabled', true);
+    }
+}
+
+/**
+ * Remove disabled from buttons newPassword, when old password field fill.
+ */
+function checkOldPasswordField(){
+    var password = $('#user-password').val();
+
+    if (password) {
+        $("#user-confirmpassword").prop('readonly', false);
+    } else {
+        $("#user-confirmpassword").prop('readonly', true);
+    }
+}
+
+/**
+ * Remove disabled from button confirmNewPassword, when old password and new password fields fill.
+ */
+function checkOldPasswordAndNewPasswordField(){
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+
+    if (password && newPassword) {
+        $("#confirmNewPassword").prop('readonly', false);
+    } else {
+        $("#confirmNewPassword").prop('readonly', true);
+    }
+}
+

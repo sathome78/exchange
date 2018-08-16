@@ -260,6 +260,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/updatePassword", "/createPassword").permitAll()
         .antMatchers(POST, "/createPasswordConfirm").permitAll()
         .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
+        .antMatchers(POST, "/settings/changePassword/submit").authenticated()
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
