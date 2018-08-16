@@ -16,6 +16,7 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
@@ -99,7 +100,8 @@ import java.util.stream.Collectors;
     "classpath:/angular.properties",
     "classpath:/twitter.properties",
     "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties"})
+    "classpath:/merchants/stellar.properties",
+    "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter{
 
@@ -185,6 +187,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     private String twitterAccessToken;
     @Value("${twitter.accessTokenSecret}")
     private String twitterAccessTokenSecret;
+
+    @Value("${geetest.captchaId}")
+    private String gtCaptchaId;
+    @Value("${geetest.privateKey}")
+    private String gtPrivateKey;
+    @Value("${geetest.newFailback}")
+    private String gtNewFailback;
 
 
     @PostConstruct
@@ -1136,6 +1145,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "JET", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "patServiceImpl")
+    public EthTokenService patService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xF3b3Cad094B89392fcE5faFD40bC03b80F2Bc624");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PAT",
+                "PAT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1307,6 +1326,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 twitterConsumerSecret,
                 twitterAccessToken,
                 twitterAccessTokenSecret);
+    }
+
+    @Bean
+    public GeetestLib geetest() {
+        return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
     }
 
 }

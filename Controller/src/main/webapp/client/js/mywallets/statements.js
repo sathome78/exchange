@@ -90,7 +90,7 @@ function MyStatementsClass(currentCurrencyPair, cpData) {
     (function init(currentCurrencyPair, cpData) {
         if(currentCurrencyPair) {
             mystatementsCurrencyPairSelector = new CurrencyPairSelectorClass('mystatement-currency-pair-selector', currentCurrencyPair, cpData);
-            mystatementsCurrencyPairSelector.init(onCurrencyPairChange);
+            mystatementsCurrencyPairSelector.init(onCurrencyPairChange, 'ALL');
         }
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {

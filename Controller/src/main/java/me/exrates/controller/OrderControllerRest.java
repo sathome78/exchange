@@ -77,6 +77,7 @@ public class OrderControllerRest {
                                                 BigDecimal amount,
                                                 BigDecimal rate,
                                                 OrderBaseType baseType,
+                                                String currencyPair,
                                                 @RequestParam(value = "stop", required = false) BigDecimal stop,
                                                 HttpServletRequest request) {
         long before = System.currentTimeMillis();
@@ -85,8 +86,12 @@ public class OrderControllerRest {
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             if (baseType == null) baseType = OrderBaseType.LIMIT;
-            CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
+           /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
+            CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair);
+            if (activeCurrencyPair == null) {
+                throw new RuntimeException("Wrong currency pair");
+            }
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/

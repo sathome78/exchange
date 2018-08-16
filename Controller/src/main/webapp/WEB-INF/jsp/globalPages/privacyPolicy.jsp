@@ -45,6 +45,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
+    <%@include file="../tools/newCapchaScripts.jsp" %>
 
 </head>
 <body>

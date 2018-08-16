@@ -63,6 +63,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/jquery.dataTables.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/settings/api-settings.js'/>"></script>
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
     <script type="text/javascript">
         $(function () {
             $('#return-btn').click(function () {

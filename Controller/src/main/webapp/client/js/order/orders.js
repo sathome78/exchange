@@ -34,7 +34,7 @@ function OrdersClass(currentCurrencyPair, cpData) {
 
     /**/
     this.syncCurrencyPairSelector = function () {
-        ordersCurrencyPairSelector.syncState(function (pairHasChanged) {
+        ordersCurrencyPairSelector.syncState('ALL', function (pairHasChanged) {
             if (pairHasChanged) {
                 that.updateAndShowAll(false, 1, null);
                 that.getAndShowMySellAndBuyOrdersData();
@@ -325,7 +325,7 @@ function OrdersClass(currentCurrencyPair, cpData) {
     /*=====================================================*/
     (function init(currentCurrencyPair, cpData) {
         ordersCurrencyPairSelector = new CurrencyPairSelectorClass('orders-currency-pair-selector', currentCurrencyPair, cpData);
-        ordersCurrencyPairSelector.init(onCurrencyPairChange);
+        ordersCurrencyPairSelector.init(onCurrencyPairChange, 'ALL');
         /**/
         /*        syncTableParams(tableSellId, tableSellPageSize, function (data) {
          that.getAndShowSellOrdersData();

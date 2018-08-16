@@ -36,15 +36,10 @@ function toJson(a) {
 }
 
 function formatNewMessage(o) {
-    var deletionButton = '';
-    if ($("a[href='/2a8fy7b07dxe44']").length > 0 || $("a[href='/2a8fy7b07dxe44/removeOrder']").length > 0) {
-        deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
-            '<span class="glyphicon glyphicon-remove"></span></button>';
-    }
     var dateTime = o['time'].split(/[\s.]+/);
     var previousDate = $('.chat_message .message_date').last().text();
     var hidden = previousDate === dateTime[0] ? ' invisible' : '';
-    return '<div class="chat_message">' + deletionButton +
+    return '<div class="chat_message">' +
         '<p class="message_date text-center ' + hidden + '">' + dateTime[0] + '</p><span class="message_id invisible">' + o['id'] +
         '</span> <span class="user_id invisible">' + o['userId'] + '</span> <p class="nickname">' + o['nickname']  +
          '<span class="message_time text-muted">' + dateTime[1] + '</span>' +
@@ -54,12 +49,8 @@ function formatNewMessage(o) {
 
 function appendNewMessage(messageObj) {
     const newMessage = formatNewMessage(messageObj);
-
-    $('#chat .mCSB_container').append(newMessage);
-
-     scrollChat();
-
-    $('#new_mess').find('input[name="body"]').val('');
+    $(newMessage).appendTo($('#chat').find('.mCSB_container')).trigger('newMessage');
+    scrollChat();
 }
 
 function loadChatHistory(lang) {
@@ -68,12 +59,13 @@ function loadChatHistory(lang) {
         data: 'lang=' + lang
     }).done(function (data) {
         for (var i = data.length - 1; i >=0; i--) {
-            $('#chat .mCSB_container').append(formatNewMessage(data[i]));
+            $('#chat').find('.mCSB_container').append(formatNewMessage(data[i]));
         }
         scrollChat();
         if (lang === 'ar') {
             $('#chat').find('.chat_message p').addClass('right-to-left')
         }
+        $('#chatLangButtons').trigger('historyLoaded')
     }).fail(function(e){
         console.log(e)
     })
@@ -85,7 +77,7 @@ function changeChatLocale(lang) {
     } else {
         $('#new_mess').find('input[name="body"]').removeClass('right-to-left');
     }
-    $('#chat .mCSB_container').empty();
+    $('#chat').find('.mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
 
     connect(lang);
@@ -101,13 +93,14 @@ $(function () {
 
     $('#new_mess').submit(function (e) {
         e.preventDefault();
-        const o = toJson($(this).serializeArray());
+        const payload = toJson($(this).serializeArray());
+        $('#new_mess').find('input[name="body"]').val('');
         $.ajax('/chat/new-message', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             method: 'POST',
-            data: $(this).serializeArray()
+            data: payload
         }).done(function (e) {
             /*NOP*/
         }).fail(function (e) {
@@ -130,33 +123,6 @@ function scrollChat() {
     $('#chat').mCustomScrollbar("scrollTo", "bottom", {
         scrollInertia:0
     });
-}
-
-
-
-function deleteMessage(event) {
-    var $chat_message = $(this).parent();
-
-
-    var message = {
-        id: parseInt($chat_message.find('.message_id').text()),
-        userId: parseInt($chat_message.find('.user_id').text()),
-        body: $chat_message.find('.message_body').text(),
-        nickname: $chat_message.find('.nickname').text(),
-        lang: $('#new_mess').find('input[name="lang"]').val()
-    };
-    $.ajax('/2a8fy7b07dxe44/chat/deleteMessage', {
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        method: 'POST',
-        data: message,
-        dataType: "text"
-    }).done(function () {
-      //
-    }).fail(function(e){
-        console.log(e)
-    })
 }
 
 function removeMessageFromChatHistory(id) {

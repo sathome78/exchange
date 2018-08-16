@@ -60,7 +60,9 @@ function InputOutputClass(currentCurrencyPair, cpData) {
 
     this.syncCurrencyPairSelector = function () {
         if (inputoutputCurrencyPairSelector) {
-            inputoutputCurrencyPairSelector.syncState();
+            inputoutputCurrencyPairSelector.syncState('ALL', function () {
+                that.updateAndShowAll(currentCurrencyPair);
+            });
         }
     };
 
@@ -139,7 +141,7 @@ function InputOutputClass(currentCurrencyPair, cpData) {
     (function init(currentCurrencyPair, cpData) {
         if (currentCurrencyPair) {
             inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair, cpData);
-            inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
+            inputoutputCurrencyPairSelector.init(onCurrencyPairChange(), 'ALL');
         }
 
         var currentClicked;

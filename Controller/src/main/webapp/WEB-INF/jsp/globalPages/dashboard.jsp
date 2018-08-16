@@ -91,6 +91,8 @@
 
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
+
 
 </head>
 <body>

@@ -42,14 +42,14 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     @PostConstruct
     private void init() {
-        if (Stream.of("exrates_test_bot", "exrates_local_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
+       /* if (!"exrates_local_test_bot".equals(botName) || !"exrates_test_bot".equals(botName)) {
             TelegramBotsApi botsApi = new TelegramBotsApi();
             try {
                 botsApi.registerBot(this);
             } catch (TelegramApiException e) {
                 log.error("error while initialize bot {}", e);
             }
-        }
+        }*/
     }
 
     public void sendMessage(Long chatId, String text) {

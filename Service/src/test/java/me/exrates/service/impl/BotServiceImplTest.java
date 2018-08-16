@@ -2,10 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderActionEnum;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.PriceGrowthDirection;
+import me.exrates.model.enums.*;
 import me.exrates.service.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -122,8 +119,8 @@ public class BotServiceImplTest {
 
         when(botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), 1, OrderType.SELL))
                 .thenReturn(Optional.of(testSettings));
-        when(orderService.prepareNewOrder(any(), any(), anyString(), any(), any())).thenCallRealMethod();
-        when(orderService.createOrder(any(), any(), eq(OrderActionEnum.CREATE))).thenReturn(111);
+        when(orderService.prepareNewOrder(any(), any(), anyString(), any(), any(), any())).thenCallRealMethod();
+        when(orderService.createOrder(any(), eq(OrderActionEnum.CREATE))).thenReturn(111);
 
     }
 
@@ -140,7 +137,7 @@ public class BotServiceImplTest {
         ArgumentCaptor<BigDecimal> rateCaptor = ArgumentCaptor.forClass(BigDecimal.class);
         botService.runOrderCreation(1, OrderType.SELL);
         verify(orderService, timeout(totalTimeout).times(ordersPerSequence))
-                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture());
+                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture(), any());
         verify(botDao, never()).updatePriceGrowthDirection(eq(testSettings.getId()), any(PriceGrowthDirection.class));
         List<BigDecimal> allRates = rateCaptor.getAllValues();
         assertEquals(ordersPerSequence, allRates.size());
@@ -159,7 +156,7 @@ public class BotServiceImplTest {
         BigDecimal endPrice = startPrice.add(testSettings.getPriceStep().multiply(new BigDecimal(ordersPerSequence)));
         botService.runOrderCreation(1, OrderType.SELL);
         verify(orderService, timeout(totalTimeout).times(ordersPerSequence))
-                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture());
+                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture(), any());
         verify(botDao, never()).updatePriceGrowthDirection(eq(testSettings.getId()), any(PriceGrowthDirection.class));
         List<BigDecimal> allRates = rateCaptor.getAllValues();
         assertEquals(ordersPerSequence, allRates.size());
@@ -176,7 +173,7 @@ public class BotServiceImplTest {
         long totalTimeout = ordersPerSequence * testSettings.getBotLaunchSettings().getCreateTimeoutInSeconds() * 1000;
         botService.runOrderCreation(1, OrderType.SELL);
         verify(orderService, timeout(totalTimeout).times(ordersPerSequence))
-                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture());
+                .prepareNewOrder(any(), any(), anyString(), any(), rateCaptor.capture(), any());
         verify(botDao).updatePriceGrowthDirection(testSettings.getId(), PriceGrowthDirection.DOWN);
         List<BigDecimal> allRates = rateCaptor.getAllValues();
         assertEquals(ordersPerSequence, allRates.size());

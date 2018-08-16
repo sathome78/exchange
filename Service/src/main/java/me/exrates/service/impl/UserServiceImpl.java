@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -107,14 +109,19 @@ public class UserServiceImpl implements UserService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public boolean create(User user, Locale locale) {
+  public boolean create(User user, Locale locale, String source) {
     Boolean flag = false;
     if (this.ifEmailIsUnique(user.getEmail())) {
       if (this.ifNicknameIsUnique(user.getNickname())) {
         if (userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp())) {
           int user_id = this.getIdByEmail(user.getEmail());
           user.setId(user_id);
-          sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+          if (source != null && !source.isEmpty()) {
+            String view = "view=" + source;
+            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale, null, view);
+          } else {
+            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+          }
           flag = true;
         }
       }
@@ -161,15 +168,7 @@ public class UserServiceImpl implements UserService {
       //deleting of appropriate jobs
       tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
             /**/
-      User user = new User();
-      user.setId(temporalToken.getUserId());
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CHANGE_PASSWORD) {
-        user.setStatus(UserStatus.ACTIVE);
-        if (!userDao.updateUserStatus(user)) return 0;
-      }
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
+      if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
         if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
           return 0;
         }
@@ -218,6 +217,11 @@ public class UserServiceImpl implements UserService {
   @Override
   public int getIdByNickname(String nickname) {
     return userDao.getIdByNickname(nickname);
+  }
+
+  @Override
+  public boolean setNickname(User user) {
+    return userDao.setNickname(user);
   }
 
   @Override
@@ -349,10 +353,9 @@ public class UserServiceImpl implements UserService {
     sendEmailWithToken(user, tokenType, tokenLink, emailSubject, emailText, locale, null);
   }
 
-
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String tempPass) {
+  public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String tempPass, String... params) {
     TemporalToken token = new TemporalToken();
     token.setUserId(user.getId());
     token.setValue(generateRegistrationToken());
@@ -366,20 +369,25 @@ public class UserServiceImpl implements UserService {
     }
 
     Email email = new Email();
-    String confirmationUrl = tokenLink + "?token=" + token.getValue() + tempPassId;
+    StringBuilder confirmationUrl = new StringBuilder(tokenLink + "?token=" + token.getValue() + tempPassId);
     if (tokenLink.equals("/resetPasswordConfirm")) {
-      confirmationUrl = confirmationUrl + "&email=" + user.getEmail();
+      confirmationUrl.append("&email=").append(user.getEmail());
     }
     String rootUrl = "";
-    if (!confirmationUrl.contains("//")) {
+    if (!confirmationUrl.toString().contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
           ":" + request.getServerPort();
+    }
+    if (params != null) {
+      for (String patram : params) {
+        confirmationUrl.append("&").append(patram);
+      }
     }
     email.setMessage(
         messageSource.getMessage(emailText, null, locale) +
             " <a href='" +
             rootUrl +
-            confirmationUrl +
+            confirmationUrl.toString() +
             "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
@@ -709,6 +717,16 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
+    int userId = getIdByEmail(email);
+    NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
+    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
+      setting = NotificationsUserSetting.builder()
+              .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+              .userId(userId)
+              .notificationMessageEventEnum(event)
+              .build();
+    }
+
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -742,6 +760,16 @@ public class UserServiceImpl implements UserService {
   @Override
   public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
+  }
+
+
+  private boolean isValidLong(String code) {
+    try {
+      Long.parseLong(code);
+    } catch (final NumberFormatException e) {
+      return false;
+    }
+    return true;
   }
 
   @Override

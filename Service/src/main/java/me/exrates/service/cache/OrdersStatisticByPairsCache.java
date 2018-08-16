@@ -100,7 +100,7 @@ public class OrdersStatisticByPairsCache {
                 barrier.reset();
             } else {
                 try {
-                    barrier.await(4, TimeUnit.SECONDS);
+                    barrier.await(10, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     barrier.reset();
                 }
@@ -123,7 +123,7 @@ public class OrdersStatisticByPairsCache {
                 barrier.reset();
             } else {
                 try {
-                    barrier.await(4, TimeUnit.SECONDS);
+                    barrier.await(10, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     barrier.reset();
                 }

@@ -126,7 +126,14 @@
       <%--Current user and email--%>
       <div>
         <h5><b>
-          ${user.nickname}, ${user.email}
+          <c:choose>
+            <c:when test="${empty user.nickname}">
+              ${user.email}
+            </c:when>
+            <c:otherwise>
+              ${user.nickname}, ${user.email}
+            </c:otherwise>
+          </c:choose>
       </div>
       <div id="u_email" hidden>${user.email}</div>
       <%--контейнер для данных пользователей--%>

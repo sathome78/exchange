@@ -479,6 +479,7 @@ $(function dashdoardInit() {
                     myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
                     orders = new OrdersClass(data.currencyPair.name, cpData);
                     /**/
+                    connectAndReconnect();
                 }
             });
             showSubPage($('#startup-subPage-id').text().trim());
@@ -532,7 +533,6 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    connectAndReconnect();
 });
 
 

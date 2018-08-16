@@ -165,7 +165,7 @@ function RefStructureClass(currentCurrencyPair, cpData) {
     (function init(currentCurrencyPair, cpData)  {
         if (currentCurrencyPair) {
             myreferralCurrencyPairSelector = new CurrencyPairSelectorClass('myreferral-currency-pair-selector', currentCurrencyPair, cpData);
-            myreferralCurrencyPairSelector.init(onCurrencyPairChange);
+            myreferralCurrencyPairSelector.init(onCurrencyPairChange, 'ALL');
         }
         $.datetimepicker.setDateFormatter({
             parseDate: function (date, format) {

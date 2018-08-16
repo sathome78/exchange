@@ -24,7 +24,7 @@
     <div>
         <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
 
-        <div class="chat-locales">
+        <div id="chatLangButtons" class="chat-locales">
             <a href="javascript:void(0)" onclick="changeChatLocale('en')">EN</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('cn')">CN</a>
@@ -49,7 +49,7 @@
             <c:otherwise>
                 <form id="new_mess" method="POST">
                     <input type="text" name="body" class="message_text"
-                           placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+                           placeholder='<loc:message code="dashboard.onlinechatenter"/>' autocomplete="off">
                     <input type="hidden" name="lang" value="EN"/>
                     <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
 
@@ -77,3 +77,6 @@
 
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
+<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+    <script src="<c:url value="/client/js/admin/admin.chat.js"/>"></script>
+</sec:authorize>

@@ -49,7 +49,7 @@
             <c:otherwise>
                 <form id="new_mess" method="POST">
                     <input type="text" name="body" class="message_text"
-                           placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+                           placeholder='<loc:message code="dashboard.onlinechatenter"/>' autocomplete="off">
                     <input type="hidden" name="lang" value="EN"/>
                     <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
 

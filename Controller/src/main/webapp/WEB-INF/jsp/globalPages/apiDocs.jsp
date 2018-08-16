@@ -44,6 +44,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%@include file="../tools/google_head.jsp"%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/newCapchaScripts.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 </head>
 <body>

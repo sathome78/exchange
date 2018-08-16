@@ -1,15 +1,16 @@
 package me.exrates.security.filter;
 
-import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
-import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.UserService;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 
 /**
  * Created by Valk on 31.03.16.
@@ -49,6 +51,9 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 
     @Autowired
     private IpBlockingService ipBlockingService;
+
+    @Autowired
+    private GeetestLib geetest;
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
@@ -86,36 +91,67 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), false);
+                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), true);
                 throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),
                     String.valueOf(session.getAttribute(passwordParam)),request, response);
         } else {
-            String captchaType = request.getParameter("captchaType");
-            if (captchaType == null) {
-                throw new NotVerifiedCaptchaError( messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+//            String captchaType = request.getParameter("captchaType");
+//            if (captchaType == null) {
+//                throw new NotVerifiedCaptchaError( messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+//            }
+//            switch (captchaType) {
+//                case "BOTDETECT": {
+//                    String captchaId = request.getParameter("captchaId");
+//                    Captcha captcha = Captcha.load(request, captchaId);
+//                    String captchaCode = request.getParameter("captchaCode");
+//                    if (!captcha.validate(captchaCode)) {
+//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
+//                    }
+//                    break;
+//                }
+//                case "RECAPTCHA": {
+//                    String recapchaResponse = request.getParameter("g-recaptcha-response");
+//                    if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
+//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
+//                    }
+//                    break;
+//                }
+//            }
+
+            String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+            String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+            String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
+            int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+            String userid = (String)request.getSession().getAttribute("userid");
+
+            HashMap<String, String> param = new HashMap<>();
+            param.put("user_id", userid);
+
+            int gtResult = 0;
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+
+            if (gt_server_status_code == 1) {
+                gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
+                logger.error(gtResult);
+            } else {
+                logger.error("failback:use your own server captcha validate");
+                gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
+                logger.error(gtResult);
+                throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
-            switch (captchaType) {
-                case "BOTDETECT": {
-                    String captchaId = request.getParameter("captchaId");
-                    Captcha captcha = Captcha.load(request, captchaId);
-                    String captchaCode = request.getParameter("captchaCode");
-                    if (!captcha.validate(captchaCode)) {
-                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-                    }
-                    break;
-                }
-                case "RECAPTCHA": {
-                    String recapchaResponse = request.getParameter("g-recaptcha-response");
-                    if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
-                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-                    }
-                    break;
-                }
+
+            if (gtResult != 1) {
+                logger.error(gtResult);
+                throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
+        }
+        if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
+            throw new UnconfirmedUserException(userService.findByEmail(request.getParameter("username")).getEmail());
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);

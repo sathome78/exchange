@@ -2,13 +2,14 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData, ico) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
+
     var previousValue;
 
-    this.init = function (onChangeHandler) {
+    this.init = function (onChangeHandler, pairType) {
         that.$currencyPairSelector.on('click', '.currency-pair-selector__menu-item', function (e) {
             e.preventDefault();
             var $item = $(this);
@@ -21,7 +22,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
             trading.clearOrdersCreationForm();
             trading.resetOrdersListForAccept();
             var newCurrentCurrencyPairName = showAllPairs ? null : $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, null, pairType, function (data) {
                 $('.currency-pair-selector__menu-item.active').each(function() {
                     $(this).removeClass('active');
                 });
@@ -31,11 +32,11 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
                 onChangeHandler(data.currencyPair);
             });
         });
-        that.getAndShowCurrencySelector(ico);
+        that.getAndShowCurrencySelector();
     };
 
-    this.syncState = function (onChangeHandler) {
-        syncCurrentParams(null, null, null, null, null, function (data) {
+    this.syncState = function (pairType, onChangeHandler) {
+        syncCurrentParams(null, null, null, null, null, pairType, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
                 $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item.all-pairs-item');
@@ -52,24 +53,17 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
         });
     };
 
-    this.getAndShowCurrencySelector = function (ico) {
+    this.getAndShowCurrencySelector = function () {
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
         var $template = $('.selectors_template');
         var $tmpl1 = $template.html().replace(/@/g, '%');
-        $currencyList.append(tmpl($tmpl1, {keys : Object.keys(cpData), data: Object.values(cpData), currentCurrencyPair: that.currentCurrencyPair}));
+        $currencyList.append(tmpl($tmpl1, {
+                keys: Object.keys(cpData),
+                data: Object.values(cpData),
+                currentCurrencyPair: that.currentCurrencyPair
+        }));
         setButtonTitle();
-
-        /*var url = '/dashboard/createPairSelectorMenu';
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (data) {
-                if (!data) return;
-                /!**!/
-
-            }
-        });*/
     };
 
     function setButtonTitle() {

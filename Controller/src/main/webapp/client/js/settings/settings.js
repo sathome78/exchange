@@ -30,8 +30,17 @@ function SettingsClass() {
         if (!that.tabIdx) {
             that.tabIdx = 0;
         }
-        /*setActiveSwitcher();*/
-        /*switchPassTab();*/
+
+        var $activeTabIdSpan = $('#activeTabId');
+        if ($($activeTabIdSpan).length > 0) {
+            var $settingsMenu = $('#user-settings-menu');
+            $($settingsMenu).find('li:active').removeClass('active');
+            var $activeLink =  $($settingsMenu).find('a[href=#' + $($activeTabIdSpan).text() +  ']')
+            $($activeLink).click();
+        }
+
+       /* setActiveSwitcher();
+        switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -44,8 +53,8 @@ function SettingsClass() {
    /* function setActiveSwitcher(){
         $('.orderForm-toggler').removeClass('active');
         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-    }
-*/
+    }*/
+
     /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
         $('#'+tabId).siblings().removeClass('active');
@@ -219,6 +228,8 @@ function SettingsClass() {
             }
         });
     });
+
+
 
     $('#telegram_pay_button').on('click', function() {
         $.ajax({

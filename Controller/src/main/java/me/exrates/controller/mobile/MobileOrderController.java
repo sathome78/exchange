@@ -11,6 +11,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
@@ -219,16 +220,7 @@ public class MobileOrderController {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
-                userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
-        orderCreateDto.setOrderBaseType(activeCurrencyPair.getPairType().getOrderBaseType());
-        LOGGER.debug("Order prepared" + orderCreateDto);
-        OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
-        Map<String, Object> errors = orderValidationDto.getErrors();
-        if (!errors.isEmpty()) {
-            errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), userLocale));
-            throw new OrderParamsWrongException(errors.toString());
-        }
+        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale, activeCurrencyPair.getPairType().getOrderBaseType());
         UUID orderKey = UUID.randomUUID();
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());

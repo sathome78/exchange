@@ -47,16 +47,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import javax.swing.text.html.Option;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.swing.text.html.Option;
+
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -316,12 +315,12 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
-    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null);
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
+    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
   }
   
   @Override
-  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId) {
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
     Currency spendCurrency = null;
     if (orderType == OperationType.SELL) {
       spendCurrency = activeCurrencyPair.getCurrency1();
@@ -338,6 +337,12 @@ public class OrderServiceImpl implements OrderService {
     orderCreateDto.setUserId(walletsAndCommissions.getUserId());
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
     orderCreateDto.setSourceId(sourceId);
+    orderCreateDto.setOrderBaseType(baseType);
+    /*todo get 0 comission values from db*/
+    if (baseType == OrderBaseType.ICO) {
+      walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
+      walletsAndCommissions.setCommissionId(24);
+    }
     if (orderType == OperationType.SELL) {
       orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
       orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
@@ -601,10 +606,10 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   @Transactional
-  public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale) {
+  public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType) {
     CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
     OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
-            userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+            userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
     log.debug("Order prepared" + orderCreateDto);
     OrderValidationDto orderValidationDto = validateOrder(orderCreateDto);
     Map<String, Object> errors = orderValidationDto.getErrors();
@@ -643,8 +648,11 @@ public class OrderServiceImpl implements OrderService {
       synchronized (restOrderCreationLock) {
           log.info(String.format("Start creating order: %s %s amount %s rate %s", currencyPairName, orderType.name(), amount, exrate));
           Locale locale = userService.getUserLocaleForMobile(userEmail);
-          Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
-          OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPairId, orderType, amount, exrate), userEmail, locale);
+          CurrencyPair currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
+          if (currencyPair.getPairType() != CurrencyPairType.MAIN) {
+            throw new NotCreatableOrderException("This pair available only through website");
+          }
+          OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPair.getId(), orderType, amount, exrate), userEmail, locale, OrderBaseType.LIMIT);
           return createPreparedOrderRest(orderCreateDto, locale);
       }
   }
@@ -706,32 +714,33 @@ public class OrderServiceImpl implements OrderService {
               }
               OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-      if (ordersForAccept.size() > 0) {
-        /*accept orders that can be fully accepted*/acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale, orderCreateDto.getOrderId());
-        orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
-      }
-      if (orderForPartialAccept != null) {
-        BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
-        orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
-        orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
-      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0&& orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
-        User user = userService.getUserById(orderCreateDto.getUserId());
-        profileData.setTime2();
-        OrderCreateDto remainderNew = prepareNewOrder(
-            orderCreateDto.getCurrencyPair(),
-            orderCreateDto.getOperationType(),
-            user.getEmail(),
-            orderCreateDto.getAmount().subtract(cumulativeSum),
-            orderCreateDto.getExchangeRate(),
-        orderCreateDto.getOrderId());profileData.setTime3();
-        Integer createdOrderId = createOrder(remainderNew, null,CREATE);
-        profileData.setTime4();
-        orderCreationResultDto.setCreatedOrderId(createdOrderId);
-      }
-      return Optional.of(orderCreationResultDto);
-    } finally {
-      profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
-    }
+              if (ordersForAccept.size() > 0) {
+                  acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
+                  orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
+              }
+              if (orderForPartialAccept != null) {
+                  BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+                  orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+                  orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
+              } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+                  User user = userService.getUserById(orderCreateDto.getUserId());
+                  profileData.setTime2();
+                  OrderCreateDto remainderNew = prepareNewOrder(
+                          orderCreateDto.getCurrencyPair(),
+                          orderCreateDto.getOperationType(),
+                          user.getEmail(),
+                          orderCreateDto.getAmount().subtract(cumulativeSum),
+                          orderCreateDto.getExchangeRate(),
+                          orderCreateDto.getOrderBaseType());
+                  profileData.setTime3();
+                  Integer createdOrderId = createOrder(remainderNew, CREATE);
+                  profileData.setTime4();
+                  orderCreationResultDto.setCreatedOrderId(createdOrderId);
+              }
+              return Optional.of(orderCreationResultDto);
+          } finally {
+              profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
+          }
   }
 
   }
@@ -742,13 +751,14 @@ public class OrderServiceImpl implements OrderService {
     BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
     OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
-    int acceptedId = createOrder(accepted, null, CREATE);
-    createOrder(remainder, null, CREATE_SPLIT);
-    acceptOrder(newOrder.getUserId(), acceptedId, locale, false, newOrder.getOrderId());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
+    int acceptedId = createOrder(accepted, CREATE);
+    createOrder(remainder, CREATE_SPLIT);
+    acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
+>>>>>>> add_eth_PAT
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",

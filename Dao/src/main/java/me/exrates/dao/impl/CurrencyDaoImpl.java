@@ -10,6 +10,10 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -221,6 +225,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
         " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
+    return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+  }
+
+  @Override
+  public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPairName) {
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+            "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+            " FROM CURRENCY_PAIR WHERE name = :currencyPairName AND hidden IS NOT TRUE ";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("currencyPairName", String.valueOf(currencyPairName));
     return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
   }
 
@@ -476,7 +491,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
         sql = sql.concat(" AND type =:type");
     }
     return jdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()),currencyPairRowMapper);
+  }
 
+
+
+  @Override
+  public boolean isCurrencyIco(Integer currencyId) {
+    String sql = "SELECT id " +
+            "         FROM CURRENCY_PAIR " +
+            "         WHERE hidden IS NOT TRUE AND type = 'ICO' AND currency1_id =:currency_id ";
+    return !jdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
   }
 
   @Override

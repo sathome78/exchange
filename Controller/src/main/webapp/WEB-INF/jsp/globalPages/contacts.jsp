@@ -49,6 +49,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
 
 </head>
 <body>

@@ -68,7 +68,7 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        myordersCurrencyPairSelector.syncState(function (pairHasChanged) {
+        myordersCurrencyPairSelector.syncState('ALL', function (pairHasChanged) {
             if (pairHasChanged) {
                 that.updateAndShowAll(false, 1, null);
                 that.getAndShowMySellAndBuyOrdersData();
@@ -349,7 +349,7 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
     /*=====================================================*/
     (function init (currentCurrencyPair, cpData) {
         myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair, cpData);
-        myordersCurrencyPairSelector.init(onCurrencyPairChange);
+        myordersCurrencyPairSelector.init(onCurrencyPairChange, 'ALL');
         myordersStatusForShow = 'CLOSED';
         myOrdersScope = 'ALL';
         $('#myorders-button-deal').addClass('active');

@@ -54,6 +54,9 @@ public class CurrencyPair {
                 ", name='" + name + '\'' +
                 ", currency1=" + currency1 +
                 ", currency2=" + currency2 +
+                ", market='" + market + '\'' +
+                ", marketName='" + marketName + '\'' +
+                ", pairType=" + pairType +
                 '}';
     }
 

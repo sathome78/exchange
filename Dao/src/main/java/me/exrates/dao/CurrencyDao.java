@@ -9,6 +9,10 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.*;
 
 import java.math.BigDecimal;
@@ -72,8 +76,14 @@ public interface CurrencyDao {
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-    List<CurrencyPairInfoItem> findActiveCurrencyPairs();
+  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
+
+  CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+  boolean isCurrencyIco(Integer currencyId);
+
+  List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 
   Optional<Integer> findOpenCurrencyPairIdByName(String pairName);
-  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
+
 }

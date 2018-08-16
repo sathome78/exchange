@@ -209,7 +209,6 @@ $(function transferCreation() {
             }
 
             $transferParamsDialog.one('hidden.bs.modal', function () {
-
                 checkReception();
             });
             $transferParamsDialog.modal("hide");
@@ -261,6 +260,10 @@ $(function transferCreation() {
     }
 
     function sendRequest(data) {
+<<<<<<< HEAD
+=======
+        $pinWrong.hide();
+>>>>>>> add_eth_PAT
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForTransferCreate,

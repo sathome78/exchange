@@ -12,6 +12,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     var that = this;
     var chart = null;
     var orderRoleFilter = null;
+    var currentPair = currentCurrencyPair;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -47,6 +48,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
         that.getChart().switchCurrencyPair();
+        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
@@ -54,7 +56,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     };
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.syncState('MAIN', onCurrencyPairChange);
 
     };
 
@@ -502,8 +504,8 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     (function init(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
-        chart = new ChartAmchartsClass2(currentCurrencyPair);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        chart = new ChartAmchartsClass2(currentCurrencyPair, chartSubscribeCallback);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange);
         } catch (e) {
@@ -685,6 +687,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair = currentPair;
         /**/
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');

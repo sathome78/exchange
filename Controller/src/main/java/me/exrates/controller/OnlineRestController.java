@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
@@ -11,6 +12,7 @@ import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stopOrder.StopOrderService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -441,35 +443,10 @@ public class OnlineRestController {
       @RequestParam(required = false) String chart,
       @RequestParam(required = false) Boolean showAllPairs,
       @RequestParam(required = false) Boolean orderRoleFilterEnabled,
-      @RequestParam(defaultValue = "MAIN") CurrencyPairType currencyPairType,
+      @RequestParam(defaultValue = "ALL") CurrencyPairType currencyPairType,
       HttpServletRequest request) {
-    System.out.println("cp type" + currencyPairType);
-    CurrencyPair currencyPair = null;
-    if (currencyPairName == null) {
-      if (request.getSession().getAttribute("currentCurrencyPair") == null) {
-        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(currencyPairType);
-        if (!currencyPairs.isEmpty()) {
-          currencyPair = currencyPairs.get(0);
-        }
-      } else {
-        currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-      }
-    } else {
-      List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(currencyPairType);
-      if (!currencyPairs.isEmpty()) {
-        currencyPair = currencyPairs
-                .stream()
-                .filter(e -> e.getName().equals(currencyPairName))
-                .findFirst()
-                .orElse(currencyService.getCurrencyPairByName(currencyPairType == CurrencyPairType.MAIN ? "BTC/USD" : currencyPairs.get(0).getName()));
-      }
-    }
-    if (currencyPair != null && currencyPair.getPairType() != currencyPairType) {
-      List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(currencyPairType);
-      if (!currencyPairs.isEmpty()) {
-        currencyPair = currencyPairs.get(0);
-      }
-    }
+    CurrencyPair currencyPair = getPairFormSessionOrRequest(request, currencyPairName, currencyPairType);
+    currencyPair = resolveCurrentOrDefaultPairForType(currencyPair, currencyPairType);
     request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         /**/
     if (showAllPairs == null) {
@@ -519,6 +496,50 @@ public class OnlineRestController {
     currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
     currentParams.setOrderRoleFilterEnabled(((Boolean) request.getSession().getAttribute("orderRoleFilterEnabled")));
     return currentParams;
+  }
+
+  private CurrencyPair getPairFormSessionOrRequest(HttpServletRequest request, String currencyPairName, CurrencyPairType type) {
+    CurrencyPair currencyPair = null;
+    if (StringUtils.isEmpty(currencyPairName)) {
+      if (request.getSession().getAttribute("currentCurrencyPair") != null) {
+        currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+      }
+    } else {
+      List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(type);
+      if (!currencyPairs.isEmpty()) {
+        currencyPair = currencyPairs
+                .stream()
+                .filter(e -> e.getName().equalsIgnoreCase(currencyPairName))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Unsupported pair"));
+      }
+    }
+    return currencyPair;
+  }
+
+  private CurrencyPair resolveCurrentOrDefaultPairForType(CurrencyPair currencyPair, CurrencyPairType type) {
+    if (currencyPair != null && type != CurrencyPairType.ALL && currencyPair.getPairType() != type) {
+      currencyPair = null;
+    }
+    if (currencyPair == null) {
+      switch (type) {
+        case MAIN : {}
+        case ALL: {
+          currencyPair = currencyService.getCurrencyPairByName("BTC/USD");
+          break;
+        }
+        case ICO:{
+          List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(type);
+          if (currencyPairs.isEmpty()) {
+            throw new RuntimeException("no pairs for thios type");
+          } else {
+            currencyPair = currencyPairs.get(0);
+          }
+          break;
+        }
+      }
+    }
+    return currencyPair;
   }
 
 
@@ -589,13 +610,16 @@ public class OnlineRestController {
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "ico", required = false) Boolean ico,   HttpServletRequest request) {
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "pairs", defaultValue = "MAIN") String pairType,   HttpServletRequest request) {
     Locale locale = localeResolver.resolveLocale(request);
-    List<CurrencyPair> list;
-    if (ico != null && ico) {
-      list = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ICO);
-    } else {
-      list = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN);
+    CurrencyPairType cpType = Preconditions.checkNotNull(CurrencyPairType.valueOf(pairType));
+    List<CurrencyPair> list = currencyService.getAllCurrencyPairsInAlphabeticOrder(cpType);
+    if (cpType == CurrencyPairType.ALL) {
+      list.forEach(p->{
+        if (p.getPairType() == CurrencyPairType.ICO) {
+          p.setMarket(CurrencyPairType.ICO.name());
+        }
+      });
     }
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
     return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));

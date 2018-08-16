@@ -65,6 +65,7 @@ public class SendMailServiceImpl implements SendMailService{
 		});
 	}
 
+	/*todo: move to mandrill*/
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void sendMailMandrill(Email email){
 		supportMailExecutors.execute(() -> {

@@ -13,6 +13,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     var that = this;
     var chart = null;
     var orderRoleFilter = null;
+    var currentPair = currentCurrencyPair;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -32,6 +33,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     var $totalForSellInput = $('#totalForSell');
     var $exchangeRateSellInput = $('#exchangeRateSell');
     var $amountSellInput = $('#amountSell');
+    var executed = false;
     /**/
     var showLog = false;
     /**/
@@ -47,6 +49,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
+        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
@@ -54,7 +57,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState();
+        dashboardCurrencyPairSelector.syncState('ICO', function () {
+        });
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
@@ -174,24 +178,34 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
 
+
     this.fillOrderCreationFormFields = function () {
         $(document).one("ajaxStop", function () {
-            var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
-            var initialAmount = 1;
-            var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
-            $('#amountBuy').val(initialAmountString);
-            var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
-            $('#exchangeRateBuy').val(lastBuyExrate);
-            calculateFieldsForBuy();
-            $('#amountSell').val(initialAmountString);
-            var lastSellExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
-            $('#exchangeRateSell').val(lastSellExrate);
-            calculateFieldsForSell();
-            that.fillOrderBalance(currencyPairName);
-
-
+           that.fillTradeForms();
         });
     };
+
+    this.fillTradeFormsOnes = function() {
+        if (!executed) {
+            executed = true;
+            this.fillTradeForms();
+        }
+    };
+
+    this.fillTradeForms = function() {
+        var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
+        var initialAmount = 1;
+        var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
+        $('#amountBuy').val(initialAmountString);
+        var lastBuyExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
+        $('#exchangeRateBuy').val(lastBuyExrate);
+        calculateFieldsForBuy();
+        $('#amountSell').val(initialAmountString);
+        var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
+        $('#exchangeRateSell').val(lastSellExrate);
+        calculateFieldsForSell();
+        that.fillOrderBalance(currencyPairName);
+    }
 
     this.fillOrderBalance = function (currencyPairName) {
         if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0
@@ -243,18 +257,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     function getOrderCommissions() {
-        var url = '/dashboard/orderCommissions';
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (data) {
-                if (!data) return;
-                that.commissionSell = data.sellCommission;
-                that.commissionBuy = data.buyCommission;
-                calculateFieldsForBuy();
-                calculateFieldsForSell();
-            }
-        });
+        that.commissionSell = 0;
+        that.commissionBuy = 0;
+        calculateFieldsForBuy();
+        calculateFieldsForSell();
     }
 
     function calculateFieldsForStop() {
@@ -340,14 +346,13 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     /*=========================================================*/
     (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
-        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData, true);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         try {
             chart = new ChartGoogleClass();
         } catch (e) {
         }
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
+            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, 'ICO');
         } catch (e) {
         }
         if (chart) {
@@ -485,6 +490,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair = currentPair;
         /**/
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');

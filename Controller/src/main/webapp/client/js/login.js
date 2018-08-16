@@ -19,6 +19,17 @@ $(function () {
        }
     }
 
+    $sendAgainButton.on('click', function(e) {
+        var $this = $(this);
+
+        $this.addClass('disabled');
+
+        // разблокировка
+        setTimeout(function() {
+            $this.removeClass('disabled');
+        }, 15*1000);
+    });
+
     $sendAgainButton.on('click', function () {
         $.ajax('/login/new_pin_send', {
             headers: {
