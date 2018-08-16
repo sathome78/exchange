@@ -2,8 +2,6 @@ package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
@@ -267,17 +265,7 @@ public class MobileOrderController {
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         try {
             OrderCreateDto orderCreateDto = removeOrderCreateDtoByKey(body);
-            Optional<OrderCreationResultDto> autoAcceptResult = orderService.autoAcceptOrders(orderCreateDto, userLocale);
-            if (autoAcceptResult.isPresent()) {
-                return new ResponseEntity<>(autoAcceptResult.get(), CREATED);
-            }
-            OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-
-            Integer createdOrderId = orderService.createOrder(orderCreateDto, null, OrderActionEnum.CREATE);
-            if (createdOrderId <= 0) {
-                throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
-            }
-            orderCreationResultDto.setCreatedOrderId(createdOrderId);
+            OrderCreationResultDto orderCreationResultDto = orderService.createPreparedOrderRest(orderCreateDto, userLocale);
             return new ResponseEntity<>(orderCreationResultDto, CREATED);
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, userLocale));
@@ -353,26 +341,25 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      *
      */
-   /*todo - disable orders direct accept, must accept only by creating counter-order */
     @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer acceptOrderList(@RequestBody Map<String, List<Integer>> body) {
 
 
-       List<Integer> ordersList = body.get("orderIdsList");
+        List<Integer> ordersList = body.get("orderIdsList");
         if (ordersList == null) {
             throw new OrderParamsWrongException("Field \"orderIdsList\" is missing!");
         }
 
-       try {
-           String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-           int userId = userService.getIdByEmail(userEmail);
-           Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-           orderService.acceptOrdersList(userId, ordersList, userLocale, null);
-       } catch (Exception e) {
-           throw e;
-       }
+        try {
+            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            int userId = userService.getIdByEmail(userEmail);
+            Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+            orderService.acceptOrdersList(userId, ordersList, userLocale);
+        } catch (Exception e) {
+            throw e;
+        }
 
-       return ordersList.size();
+        return ordersList.size();
 
     }
 
@@ -412,10 +399,10 @@ public class MobileOrderController {
         if (orderCreateDto == null) {
             throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, userLocale));
         }
-            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
-                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
-            }
-            return true;
+        if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
+            throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+        }
+        return true;
     }
 
 

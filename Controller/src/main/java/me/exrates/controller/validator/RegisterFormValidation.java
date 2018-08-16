@@ -39,7 +39,6 @@ public class RegisterFormValidation implements Validator {
             + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
     String ID_PATTERN = "[0-9]+";
     String STRING_PATTERN = "[a-zA-Z]+";
-    String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
 //    private static final Locale ru = new Locale("ru");

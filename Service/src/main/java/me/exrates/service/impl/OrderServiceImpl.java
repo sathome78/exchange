@@ -47,15 +47,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.swing.text.html.Option;
-
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -75,11 +76,6 @@ public class OrderServiceImpl implements OrderService {
   private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
-  private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
-
-  private final BigDecimal RATE_CHECK_DEVIATION_PERCENTS = new BigDecimal(10);
-
   private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
           .map(ChartPeriodsEnum::getBackDealInterval)
           .collect(Collectors.toList());
@@ -91,8 +87,8 @@ public class OrderServiceImpl implements OrderService {
   private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
   private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
 
-    private final Object autoAcceptLock = new Object();
-    private final Object restOrderCreationLock = new Object();
+  private final Object autoAcceptLock = new Object();
+  private final Object restOrderCreationLock = new Object();
 
 
   @Autowired
@@ -191,6 +187,7 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getDataForAreaChart(currencyPair, interval);
   }
 
+
   @Transactional
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
@@ -241,75 +238,75 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
-      Boolean evictEhCache = cacheData.getForceUpdate() && false;
-      List<ExOrderStatisticsShortByPairsDto> result = serviceCacheableProxy.getOrdersStatisticByPairs(evictEhCache);
-      if (Cache.checkCache(cacheData, result)) {
-        result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
-          add(new ExOrderStatisticsShortByPairsDto(false));
-        }};
-      } else {
-        result = result.stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
-        result.forEach(e -> {
-                  BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-                  BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-                  e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-                  e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-                  BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-                  e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-                }
-        );
-      }
+    Boolean evictEhCache = cacheData.getForceUpdate() && false;
+    List<ExOrderStatisticsShortByPairsDto> result = serviceCacheableProxy.getOrdersStatisticByPairs(evictEhCache);
+    if (Cache.checkCache(cacheData, result)) {
+      result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
+        add(new ExOrderStatisticsShortByPairsDto(false));
+      }};
+    } else {
+      result = result.stream()
+              .map(ExOrderStatisticsShortByPairsDto::new)
+              .collect(toList());
+      result.forEach(e -> {
+                BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+                BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+                e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+                e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+                BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+                e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+              }
+      );
+    }
     return result;
   }
 
-   @Transactional(readOnly = true)
-   @Override
-   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-      List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
-      switch (refreshObjectsEnum) {
-          case ICO_CURRENCIES_STATISTIC: {
-              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
-              break;
-          }
-          case MAIN_CURRENCIES_STATISTIC: {
-              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
-              break;
-          }
-          default: {
-          }
+  @Transactional(readOnly = true)
+  @Override
+  public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
+    List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+    switch (refreshObjectsEnum) {
+      case ICO_CURRENCIES_STATISTIC: {
+        dto = dto.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
+        break;
       }
-     return dto;
-   }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
-      List<ExOrderStatisticsShortByPairsDto> dto = orderDao.getOrderStatisticForSomePairs(pairsIds);
-      Locale locale = Locale.ENGLISH;
-      dto.forEach(e -> {
-        BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-        BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-        e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-        e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-        BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-        e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-      });  return dto;
+      case MAIN_CURRENCIES_STATISTIC: {
+        dto = dto.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
+        break;
+      }
+      default: {
+      }
     }
+    return dto;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
+    List<ExOrderStatisticsShortByPairsDto> dto = orderDao.getOrderStatisticForSomePairs(pairsIds);
+    Locale locale = Locale.ENGLISH;
+    dto.forEach(e -> {
+      BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+      BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+      e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+      e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+      BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+      e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+    });  return dto;
+  }
 
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
     List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
     result.forEach(e -> {
-          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-          BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-        }
+              BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+              BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+              e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+              e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+              BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+              e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+            }
     );
     return result;
   }
@@ -318,7 +315,7 @@ public class OrderServiceImpl implements OrderService {
   public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
     return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
   }
-  
+
   @Override
   public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
     Currency spendCurrency = null;
@@ -328,7 +325,7 @@ public class OrderServiceImpl implements OrderService {
       spendCurrency = activeCurrencyPair.getCurrency2();
     }
     WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, orderType);
-        /**/
+    /**/
     OrderCreateDto orderCreateDto = new OrderCreateDto();
     orderCreateDto.setOperationType(orderType);
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
@@ -354,7 +351,7 @@ public class OrderServiceImpl implements OrderService {
       orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
       orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
     }
-        /**/
+    /**/
     orderCreateDto.calculateAmounts();
     return orderCreateDto;
   }
@@ -428,16 +425,13 @@ public class OrderServiceImpl implements OrderService {
         errors.put(key, "order.maxrate");
         errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxRate(), false)});
       }
-      
+
     }
     if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
       boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
       if (!ifEnoughMoney) {
         errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
       }
-    }
-    if (!checkNotProfitableExrate(orderCreateDto)) {
-      orderValidationDto.setBadExrate(true);
     }
     return orderValidationDto;
   }
@@ -459,70 +453,39 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
-  private boolean checkNotProfitableExrate(OrderCreateDto dto) {
-    Optional<BigDecimal> optionalLastRate = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(dto.getCurrencyPair().getId(), dto.getOperationType().getType());
-    BigDecimal lastRate = optionalLastRate.orElse(BigDecimal.ZERO);
-    if (lastRate.equals(BigDecimal.ZERO)) {
-      return true;
-    }
-    if (dto.getOperationType().equals(OperationType.BUY)) {
-      return dto.getExchangeRate().compareTo(lastRate) <= 0;
-    } else if (dto.getOperationType().equals(OperationType.SELL)) {
-      return dto.getExchangeRate().compareTo(lastRate) >= 0;
-    }
-    return true;
-  }
-
   @Override
   public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
-    /*presave order to get id, not reserve money*/
-    ExOrder exOrder = new ExOrder(orderCreateDto);
-    Integer orderId = presaveNewOrder(exOrder);
-    /*after that try to autoaccept it*/
-    log.error("presaved order id {}", orderId);
-    orderCreateDto.setOrderId(orderId);
-    exOrder.setId(orderId);
     Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
     if (autoAcceptResult.isPresent()) {
-      /*update status of presaved order here*/
-      exOrder.setStatus(OrderStatus.CLOSED);
-      log.error("update order {}", exOrder);
-      updateOrder(exOrder);
       logger.debug(autoAcceptResult.get());
       return autoAcceptResult.get();
     }
-    /*if not autoaccepted save order here*/
-    this.createOrder(orderCreateDto, orderId, CREATE);
+    Integer orderId = this.createOrder(orderCreateDto, CREATE);
     if (orderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
     return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
   }
 
-  private int presaveNewOrder(ExOrder dto) {
-    int id = orderDao.createOrder(dto);
-    return id;
-  }
-
   @Override
   @Transactional
   public Integer createOrderByStopOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
-      Optional<OrderCreationResultDto> autoAcceptResult = this.autoAcceptOrders(orderCreateDto, locale);
-      if (autoAcceptResult.isPresent()) {
-        logger.debug(autoAcceptResult.get());
-        return autoAcceptResult.get().getCreatedOrderId();
-      }
-    Integer orderId = this.createOrder(orderCreateDto, null, CREATE);
+    Optional<OrderCreationResultDto> autoAcceptResult = this.autoAcceptOrders(orderCreateDto, locale);
+    if (autoAcceptResult.isPresent()) {
+      logger.debug(autoAcceptResult.get());
+      return autoAcceptResult.get().getCreatedOrderId();
+    }
+    Integer orderId = this.createOrder(orderCreateDto, CREATE);
     if (orderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
     return orderId;
   }
-  
-  
+
+
   @Override
   @Transactional(rollbackFor = {Exception.class})
-  public int createOrder(OrderCreateDto orderCreateDto, Integer presavedOrderId, OrderActionEnum action) {
+  public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action) {
     ProfileData profileData = new ProfileData(200);
     try {
       String description = transactionDescription.get(null, action);
@@ -558,11 +521,7 @@ public class OrderServiceImpl implements OrderService {
             }
           }
           default: {
-            if(presavedOrderId != null) {
-              createdOrderId = presavedOrderId;
-            } else {
-              createdOrderId = orderDao.createOrder(exOrder);
-            }
+            createdOrderId = orderDao.createOrder(exOrder);
             sourceType = TransactionSourceType.ORDER;
           }
         }
@@ -631,7 +590,7 @@ public class OrderServiceImpl implements OrderService {
     }
     OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-    Integer createdOrderId = createOrder(orderCreateDto, null, CREATE);
+    Integer createdOrderId = createOrder(orderCreateDto, CREATE);
     if (createdOrderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
@@ -645,16 +604,16 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   public OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
                                                           BigDecimal amount, BigDecimal exrate, String userEmail) {
-      synchronized (restOrderCreationLock) {
-          log.info(String.format("Start creating order: %s %s amount %s rate %s", currencyPairName, orderType.name(), amount, exrate));
-          Locale locale = userService.getUserLocaleForMobile(userEmail);
-          CurrencyPair currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
-          if (currencyPair.getPairType() != CurrencyPairType.MAIN) {
-            throw new NotCreatableOrderException("This pair available only through website");
-          }
-          OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPair.getId(), orderType, amount, exrate), userEmail, locale, OrderBaseType.LIMIT);
-          return createPreparedOrderRest(orderCreateDto, locale);
+    synchronized (restOrderCreationLock) {
+      log.info(String.format("Start creating order: %s %s amount %s rate %s", currencyPairName, orderType.name(), amount, exrate));
+      Locale locale = userService.getUserLocaleForMobile(userEmail);
+      CurrencyPair currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
+      if (currencyPair.getPairType() != CurrencyPairType.MAIN) {
+        throw new NotCreatableOrderException("This pair available only through website");
       }
+      OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPair.getId(), orderType, amount, exrate), userEmail, locale, OrderBaseType.LIMIT);
+      return createPreparedOrderRest(orderCreateDto, locale);
+    }
   }
 
 
@@ -669,11 +628,11 @@ public class OrderServiceImpl implements OrderService {
     StringBuilder successMessage = new StringBuilder("{\"result\":\"");
     if (orderCreationResultDto.getAutoAcceptedQuantity() != null && orderCreationResultDto.getAutoAcceptedQuantity() > 0) {
       successMessage.append(messageSource.getMessage("order.acceptsuccess",
-          new Integer[]{orderCreationResultDto.getAutoAcceptedQuantity()}, locale)).append("; ");
+              new Integer[]{orderCreationResultDto.getAutoAcceptedQuantity()}, locale)).append("; ");
     }
     if (orderCreationResultDto.getPartiallyAcceptedAmount() != null) {
       successMessage.append(messageSource.getMessage("orders.partialAccept.success", new Object[]{orderCreationResultDto.getPartiallyAcceptedAmount(),
-          orderCreationResultDto.getPartiallyAcceptedOrderFullAmount(), orderCreateDto.getCurrencyPair().getCurrency1().getName()}, locale));
+              orderCreationResultDto.getPartiallyAcceptedOrderFullAmount(), orderCreateDto.getCurrencyPair().getCurrency1().getName()}, locale));
     }
     if (orderCreationResultDto.getCreatedOrderId() != null) {
       successMessage.append(messageSource.getMessage("createdorder.text", null, locale));
@@ -685,63 +644,62 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
-      synchronized (autoAcceptLock) {
-          ProfileData profileData = new ProfileData(200);
-          try {
-              boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
-              List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-                      OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());
-              profileData.setTime1();
-              logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
-              if (acceptableOrders.isEmpty()) {
-                  return Optional.empty();
-              }
-              BigDecimal cumulativeSum = BigDecimal.ZERO;
-              List<ExOrder> ordersForAccept = new ArrayList<>();
-              ExOrder orderForPartialAccept = null;
-              for (ExOrder order : acceptableOrders) {
-        order.setCounterOrderId(orderCreateDto.getOrderId());
-                  cumulativeSum = cumulativeSum.add(order.getAmountBase());
-                  if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
-                      ordersForAccept.add(order);
-                  } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
-                      ordersForAccept.add(order);
-                      break;
-                  } else {
-                      orderForPartialAccept = order;
-                      break;
-                  }
-              }
-              OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-
-              if (ordersForAccept.size() > 0) {
-                  acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
-                  orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
-              }
-              if (orderForPartialAccept != null) {
-                  BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
-                  orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
-                  orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
-              } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
-                  User user = userService.getUserById(orderCreateDto.getUserId());
-                  profileData.setTime2();
-                  OrderCreateDto remainderNew = prepareNewOrder(
-                          orderCreateDto.getCurrencyPair(),
-                          orderCreateDto.getOperationType(),
-                          user.getEmail(),
-                          orderCreateDto.getAmount().subtract(cumulativeSum),
-                          orderCreateDto.getExchangeRate(),
-                          orderCreateDto.getOrderBaseType());
-                  profileData.setTime3();
-                  Integer createdOrderId = createOrder(remainderNew, CREATE);
-                  profileData.setTime4();
-                  orderCreationResultDto.setCreatedOrderId(createdOrderId);
-              }
-              return Optional.of(orderCreationResultDto);
-          } finally {
-              profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
+    synchronized (autoAcceptLock) {
+      ProfileData profileData = new ProfileData(200);
+      try {
+        boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
+        List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
+                OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());
+        profileData.setTime1();
+        logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
+        if (acceptableOrders.isEmpty()) {
+          return Optional.empty();
+        }
+        BigDecimal cumulativeSum = BigDecimal.ZERO;
+        List<ExOrder> ordersForAccept = new ArrayList<>();
+        ExOrder orderForPartialAccept = null;
+        for (ExOrder order : acceptableOrders) {
+          cumulativeSum = cumulativeSum.add(order.getAmountBase());
+          if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+            ordersForAccept.add(order);
+          } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
+            ordersForAccept.add(order);
+            break;
+          } else {
+            orderForPartialAccept = order;
+            break;
           }
-  }
+        }
+        OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
+
+        if (ordersForAccept.size() > 0) {
+          acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
+          orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
+        }
+        if (orderForPartialAccept != null) {
+          BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+          orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+          orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
+        } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+          User user = userService.getUserById(orderCreateDto.getUserId());
+          profileData.setTime2();
+          OrderCreateDto remainderNew = prepareNewOrder(
+                  orderCreateDto.getCurrencyPair(),
+                  orderCreateDto.getOperationType(),
+                  user.getEmail(),
+                  orderCreateDto.getAmount().subtract(cumulativeSum),
+                  orderCreateDto.getExchangeRate(),
+                  orderCreateDto.getOrderBaseType());
+          profileData.setTime3();
+          Integer createdOrderId = createOrder(remainderNew, CREATE);
+          profileData.setTime4();
+          orderCreationResultDto.setCreatedOrderId(createdOrderId);
+        }
+        return Optional.of(orderCreationResultDto);
+      } finally {
+        profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
+      }
+    }
 
   }
 
@@ -750,15 +708,14 @@ public class OrderServiceImpl implements OrderService {
     deleteOrderForPartialAccept(orderForPartialAccept.getId());
     BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
     OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-        userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
+            userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
+            orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-        userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
+            userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
+            orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
     int acceptedId = createOrder(accepted, CREATE);
     createOrder(remainder, CREATE_SPLIT);
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
->>>>>>> add_eth_PAT
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
@@ -816,25 +773,31 @@ public class OrderServiceImpl implements OrderService {
   public void acceptOrder(String userEmail, Integer orderId) {
     Locale locale = userService.getUserLocaleForMobile(userEmail);
     Integer userId = userService.getIdByEmail(userEmail);
-    acceptOrdersList(userId, Collections.singletonList(orderId), locale, null);
+    acceptOrdersList(userId, Collections.singletonList(orderId), locale);
   }
 
   @Transactional(rollbackFor = {Exception.class})
-  public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, Integer orderAcceptedWith) {
+  public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale) {
     if (orderDao.lockOrdersListForAcception(ordersList)) {
       for (Integer orderId : ordersList) {
-        acceptOrder(userAcceptorId, orderId, locale, true, orderAcceptedWith);
+        acceptOrder(userAcceptorId, orderId, locale);
       }
     } else {
       throw new OrderAcceptionException(messageSource.getMessage("order.lockerror", null, locale));
     }
   }
 
+  @Transactional(rollbackFor = {Exception.class})
+  void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
+    acceptOrder(userAcceptorId, orderId, locale, true);
+
+  }
+
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
     Integer userId = userService.getIdByEmail(acceptorEmail);
-    acceptOrdersList(userId, Collections.singletonList(orderId), locale, null);
+    acceptOrdersList(userId, Collections.singletonList(orderId), locale);
   }
 
 
@@ -842,15 +805,13 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(rollbackFor = {Exception.class})
   public void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale) {
     Integer userId = userService.getIdByEmail(acceptorEmail);
-    acceptOrdersList(userId, orderIds, locale, null);
+    acceptOrdersList(userId, orderIds, locale);
   }
 
 
-  private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, Integer counterOrderId) {
+  private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
     try {
       ExOrder exOrder = this.getOrderById(orderId);
-      /*set id of counter-order*/
-      exOrder.setCounterOrderId(counterOrderId);
 
       checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
 
@@ -895,12 +856,12 @@ public class OrderServiceImpl implements OrderService {
           walletsForOrderAcceptionDto.setUserAcceptorInWalletId(createdWalletId);
         }
       }
-            /**/
-            /*calculate convert currency amount for creator - simply take stored amount from order*/
+      /**/
+      /*calculate convert currency amount for creator - simply take stored amount from order*/
       BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
       Commission comissionForCreator = new Commission();
       comissionForCreator.setId(exOrder.getComissionId());
-            /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
+      /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
       OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
       Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
       BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
@@ -911,7 +872,7 @@ public class OrderServiceImpl implements OrderService {
       } else {
         amountWithComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), amountComissionForAcceptor, ActionType.ADD);
       }
-            /*determine the IN and OUT amounts for creator and acceptor*/
+      /*determine the IN and OUT amounts for creator and acceptor*/
       BigDecimal creatorForOutAmount = null;
       BigDecimal creatorForInAmount = null;
       BigDecimal acceptorForOutAmount = null;
@@ -925,7 +886,7 @@ public class OrderServiceImpl implements OrderService {
         commissionForCreatorInWallet = BigDecimal.ZERO;
         commissionForAcceptorOutWallet = BigDecimal.ZERO;
         commissionForAcceptorInWallet = amountComissionForAcceptor;
-                /**/
+        /**/
         creatorForOutAmount = amountWithComissionForCreator;
         creatorForInAmount = exOrder.getAmountBase();
         acceptorForOutAmount = exOrder.getAmountBase();
@@ -936,7 +897,7 @@ public class OrderServiceImpl implements OrderService {
         commissionForCreatorInWallet = exOrder.getCommissionFixedAmount();
         commissionForAcceptorOutWallet = amountComissionForAcceptor;
         commissionForAcceptorInWallet = BigDecimal.ZERO;
-                /**/
+        /**/
         creatorForOutAmount = exOrder.getAmountBase();
         creatorForInAmount = amountWithComissionForCreator;
         acceptorForOutAmount = amountWithComissionForAcceptor;
@@ -945,15 +906,15 @@ public class OrderServiceImpl implements OrderService {
       WalletOperationData walletOperationData;
       WalletTransferStatus walletTransferStatus;
       String exceptionMessage = "";
-            /**/
-            /*for creator OUT*/
+      /**/
+      /*for creator OUT*/
       walletOperationData = new WalletOperationData();
       walletService.walletInnerTransfer(
-          walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
-          creatorForOutAmount,
-          TransactionSourceType.ORDER,
-          exOrder.getId(),
-          descriptionForCreator);
+              walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
+              creatorForOutAmount,
+              TransactionSourceType.ORDER,
+              exOrder.getId(),
+              descriptionForCreator);
       walletOperationData.setOperationType(OperationType.OUTPUT);
       walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
       walletOperationData.setAmount(creatorForOutAmount);
@@ -971,7 +932,7 @@ public class OrderServiceImpl implements OrderService {
         }
         throw new OrderAcceptionException(exceptionMessage);
       }
-             /*for acceptor OUT*/
+      /*for acceptor OUT*/
       walletOperationData = new WalletOperationData();
       walletOperationData.setOperationType(OperationType.OUTPUT);
       walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
@@ -990,7 +951,7 @@ public class OrderServiceImpl implements OrderService {
         }
         throw new OrderAcceptionException(exceptionMessage);
       }
-            /*for creator IN*/
+      /*for creator IN*/
       walletOperationData = new WalletOperationData();
       walletOperationData.setOperationType(OperationType.INPUT);
       walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
@@ -1007,7 +968,7 @@ public class OrderServiceImpl implements OrderService {
         throw new OrderAcceptionException(exceptionMessage);
       }
 
-            /*for acceptor IN*/
+      /*for acceptor IN*/
       walletOperationData = new WalletOperationData();
       walletOperationData.setOperationType(OperationType.INPUT);
       walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
@@ -1023,18 +984,18 @@ public class OrderServiceImpl implements OrderService {
         exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
         throw new OrderAcceptionException(exceptionMessage);
       }
-            /**/
+      /**/
       CompanyWallet companyWallet = new CompanyWallet();
       companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
       companyWallet.setBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertBalance());
       companyWallet.setCommissionBalance(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvertCommissionBalance());
       companyWalletService.deposit(companyWallet, new BigDecimal(0), exOrder.getCommissionFixedAmount().add(amountComissionForAcceptor));
-            /**/
+      /**/
       exOrder.setStatus(OrderStatus.CLOSED);
       exOrder.setDateAcception(LocalDateTime.now());
       exOrder.setUserAcceptorId(userAcceptorId);
       final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
-          .getCurrency2();
+              .getCurrency2();
 
       /** TODO: 6/7/16 Temporarily disable the referral program
        * referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
@@ -1052,7 +1013,7 @@ public class OrderServiceImpl implements OrderService {
             "acceptorder.message", new Object[]{exOrder.getId()});
       }*/
 
-    /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
+      /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
       /*action for refresh orders*/
       eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
     } catch (Exception e) {
@@ -1130,19 +1091,19 @@ public class OrderServiceImpl implements OrderService {
   public boolean cancellOrder(ExOrder exOrder, Locale locale) {
     try {
       WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
-          exOrder.getId(),
-          exOrder.getOperationType());
+              exOrder.getId(),
+              exOrder.getOperationType());
       OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
       if (currentStatus != OrderStatus.OPENED) {
         throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
       }
       String description = transactionDescription.get(currentStatus, CANCEL);
       WalletTransferStatus transferResult = walletService.walletInnerTransfer(
-          walletsForOrderCancelDto.getWalletId(),
-          walletsForOrderCancelDto.getReservedAmount(),
-          TransactionSourceType.ORDER,
-          exOrder.getId(),
-          description);
+              walletsForOrderCancelDto.getWalletId(),
+              walletsForOrderCancelDto.getReservedAmount(),
+              TransactionSourceType.ORDER,
+              exOrder.getId(),
+              description);
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
@@ -1186,10 +1147,10 @@ public class OrderServiceImpl implements OrderService {
     final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
     result.addAll(currencyPairList.stream()
-        .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
-            && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
-        .map(CoinmarketApiDto::new)
-        .collect(toList()));
+            .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
+                    && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
+            .map(CoinmarketApiDto::new)
+            .collect(toList()));
     return result;
   }
 
@@ -1232,8 +1193,8 @@ public class OrderServiceImpl implements OrderService {
     UserRole userRole = userService.getUserRoleFromSecurityContext();
     if (orderCreatorRole.getRole() == UserRole.TRADER.getRole() &&
             userRoleService.getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum.ADMIN).contains(userRole.getRole())) {
-        dto.setNotification(messageSource.getMessage("admin.orders.accept.warning", null, locale));
-        dto.setAcceptable(true);
+      dto.setNotification(messageSource.getMessage("admin.orders.accept.warning", null, locale));
+      dto.setAcceptable(true);
     } else if (userRole.getRole() == UserRole.TRADER.getRole() && orderCreatorRole.getRole() != UserRole.TRADER.getRole()) {
       dto.setAcceptable(false);
       dto.setNotification(messageSource.getMessage("admin.orders.cantaccept", null, locale));
@@ -1266,7 +1227,7 @@ public class OrderServiceImpl implements OrderService {
       throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
     }
     notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-        "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
+            "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
     return (Integer) result;
   }
 
@@ -1295,11 +1256,11 @@ public class OrderServiceImpl implements OrderService {
                                                                  Integer limit, CurrencyPair currencyPair, Locale locale) {
     Boolean evictEhCache = cacheData.getForceUpdate() && false;
     List<OrderAcceptedHistoryDto> result = serviceCacheableProxy.getOrderAcceptedForPeriod(
-        email,
-        backDealInterval,
-        limit,
-        currencyPair,
-        evictEhCache);
+            email,
+            backDealInterval,
+            limit,
+            currencyPair,
+            evictEhCache);
     result = new ArrayList<>(result);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderAcceptedHistoryDto>() {{
@@ -1307,8 +1268,8 @@ public class OrderServiceImpl implements OrderService {
       }};
     } else {
       result = result.stream()
-          .map(OrderAcceptedHistoryDto::new)
-          .collect(toList());
+              .map(OrderAcceptedHistoryDto::new)
+              .collect(toList());
       result.forEach(e -> {
         e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1324,12 +1285,12 @@ public class OrderServiceImpl implements OrderService {
                                                                    Integer limit, CurrencyPair currencyPair, Locale locale) {
     List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
     result = result.stream()
-              .map(OrderAcceptedHistoryDto::new)
-              .collect(toList());
-      result.forEach(e -> {
-        e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
-        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
-      });
+            .map(OrderAcceptedHistoryDto::new)
+            .collect(toList());
+    result.forEach(e -> {
+      e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
+      e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+    });
     return result;
   }
 
@@ -1360,13 +1321,13 @@ public class OrderServiceImpl implements OrderService {
       }};
     } else {
       result = result.stream()
-          .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+              .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
                 @Override
                 public int compare(OrderListDto o1, OrderListDto o2) {
                   return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
                 }
               })
-          .collect(toList());
+              .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1382,18 +1343,18 @@ public class OrderServiceImpl implements OrderService {
     List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
     result = new ArrayList<>(result);
     result = result.stream()
-              .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                @Override
-                public int compare(OrderListDto o1, OrderListDto o2) {
-                  return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
-                }
-              })
-              .collect(toList());
-      result.forEach(e -> {
-        e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
-        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
-        e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
-      });
+            .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+              @Override
+              public int compare(OrderListDto o1, OrderListDto o2) {
+                return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+              }
+            })
+            .collect(toList());
+    result.forEach(e -> {
+      e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
+      e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+      e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
+    });
     return result;
   }
 
@@ -1432,13 +1393,13 @@ public class OrderServiceImpl implements OrderService {
       }};
     } else {
       result = result.stream()
-          .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+              .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
                 @Override
                 public int compare(OrderListDto o1, OrderListDto o2) {
                   return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
                 }
               })
-          .collect(toList());
+              .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1486,17 +1447,17 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-    @Override
-    @Transactional
-    public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
+  @Override
+  @Transactional
+  public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
 
-        PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(adminOrderFilterData, dataTableParams, locale);
-        DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
-        output.setData(searchResult.getData());
-        output.setRecordsTotal(searchResult.getTotal());
-        output.setRecordsFiltered(searchResult.getFiltered());
-        return output;
-    }
+    PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(adminOrderFilterData, dataTableParams, locale);
+    DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
+    output.setData(searchResult.getData());
+    output.setRecordsTotal(searchResult.getTotal());
+    output.setRecordsFiltered(searchResult.getFiltered());
+    return output;
+  }
 
   @Transactional(readOnly = true)
   @Override
@@ -1579,7 +1540,7 @@ public class OrderServiceImpl implements OrderService {
     if (!setStatus(orderId, newOrderStatus)){
       return OrderDeleteStatus.ORDER_UPDATE_ERROR;
     }
-     /**/
+    /**/
     for (OrderDetailDto orderDetailDto : list) {
       if (currentOrderStatus == OrderStatus.CLOSED) {
         if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
@@ -1618,32 +1579,32 @@ public class OrderServiceImpl implements OrderService {
         log.debug("rows after refs {}", processedRows);
         /**/
         if (!transactionService.setStatusById(
-            orderDetailDto.getTransactionId(),
-            TransactionStatus.DELETED.getStatus())) {
+                orderDetailDto.getTransactionId(),
+                TransactionStatus.DELETED.getStatus())) {
           return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
         }
         /**/
         processedRows++;
       } else if (currentOrderStatus == OrderStatus.OPENED) {
         WalletTransferStatus walletTransferStatus = walletService.walletInnerTransfer(
-            orderDetailDto.getOrderCreatorReservedWalletId(),
-            orderDetailDto.getOrderCreatorReservedAmount(),
-            TransactionSourceType.ORDER,
-            orderId,
-            description);
+                orderDetailDto.getOrderCreatorReservedWalletId(),
+                orderDetailDto.getOrderCreatorReservedAmount(),
+                TransactionSourceType.ORDER,
+                orderId,
+                description);
         if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
           return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
         }
         /**/
         if (!transactionService.setStatusById(
-            orderDetailDto.getTransactionId(),
-            TransactionStatus.DELETED.getStatus())) {
+                orderDetailDto.getTransactionId(),
+                TransactionStatus.DELETED.getStatus())) {
           return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
         }
       }
     }
     if (currentOrderStatus.equals(OrderStatus.OPENED)) {
-        eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
+      eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
     }
     return processedRows;
   }
@@ -1761,13 +1722,13 @@ public class OrderServiceImpl implements OrderService {
     CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
     List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
     ArrayList<List> arrayListMain = new ArrayList<>();
-        /*in first row return backDealInterval - to synchronize period menu with it*/
+    /*in first row return backDealInterval - to synchronize period menu with it*/
     arrayListMain.add(new ArrayList<Object>() {{
       add(backDealInterval);
     }});
     for (CandleChartItemDto candle : rows) {
       ArrayList<Object> arrayList = new ArrayList<>();
-                /*values*/
+      /*values*/
       arrayList.add(candle.getBeginDate().toString());
       arrayList.add(candle.getEndDate().toString());
       arrayList.add(candle.getOpenRate());
@@ -1789,7 +1750,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum) {
     OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(refreshObjectsEnum),
-                                                      refreshObjectsEnum.name());
+            refreshObjectsEnum.name());
     try {
       return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
     } catch (JsonProcessingException e) {
@@ -1920,16 +1881,16 @@ public class OrderServiceImpl implements OrderService {
 
   }
 
-    @Override
-    public List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
-                                                    @Nullable Integer limit, @Nullable Integer offset) {
-        Integer userId = userService.getIdByEmail(userService.getUserEmailFromSecurityContext());
-        Integer currencyPairId = currencyPairName == null ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
-        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
-        int queryOffset = offset == null ? 0 : offset;
-        return orderDao.getUserOrdersHistory(userId, currencyPairId, queryLimit, queryOffset);
+  @Override
+  public List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
+                                                  @Nullable Integer limit, @Nullable Integer offset) {
+    Integer userId = userService.getIdByEmail(userService.getUserEmailFromSecurityContext());
+    Integer currencyPairId = currencyPairName == null ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
+    int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
+    int queryOffset = offset == null ? 0 : offset;
+    return orderDao.getUserOrdersHistory(userId, currencyPairId, queryLimit, queryOffset);
 
-    }
+  }
 
   @Override
   public List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType) {
@@ -1937,5 +1898,4 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getOpenOrders(currencyPairId, orderType);
   }
 }
-
 

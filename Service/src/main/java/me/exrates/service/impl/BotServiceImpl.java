@@ -111,13 +111,13 @@ public class BotServiceImpl implements BotService {
                         try {
                             Thread.sleep(botTrader.getAcceptDelayInMillis());
                             log.debug("Accepting order: {}", exOrder);
-                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH, null);
+                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
                             email.setMessage("Insufficient costs on bot account");
                             email.setSubject(e.getMessage());
                             email.setTo(errorEmail);
-             //               sendMailService.sendInfoMail(email);
+                            //               sendMailService.sendInfoMail(email);
                             log.warn(e.getMessage());
                         } catch (OrderAcceptionException e) {
                             log.warn(e.getMessage());
@@ -221,7 +221,7 @@ public class BotServiceImpl implements BotService {
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate, OrderBaseType.LIMIT);
         log.debug("Prepared order: {}", orderCreateDto);
-       // orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+        // orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
         orderService.postBotOrderToDb(orderCreateDto);
 
     }
@@ -265,10 +265,10 @@ public class BotServiceImpl implements BotService {
 
     private JobDetail createJobDetail(Integer currencyPairId, OrderType orderType) {
         return JobBuilder.newJob(BotCreateOrderJob.class)
-                    .withIdentity(getJobName(currencyPairId, orderType))
-                    .usingJobData("currencyPairId", currencyPairId)
-                    .usingJobData("orderType", orderType.name())
-                    .build();
+                .withIdentity(getJobName(currencyPairId, orderType))
+                .usingJobData("currencyPairId", currencyPairId)
+                .usingJobData("orderType", orderType.name())
+                .build();
     }
 
     private Trigger createTrigger(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) {
@@ -284,14 +284,14 @@ public class BotServiceImpl implements BotService {
 
     private Trigger createTrigger(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds, JobDetail jobDetail) {
         return TriggerBuilder.newTrigger()
-                    .withIdentity(getTriggerName(currencyPairId, orderType))
-                    .forJob(jobDetail)
-                    .startNow()
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(intervalInSeconds)
-                            .withMisfireHandlingInstructionNowWithRemainingCount()
-                            .repeatForever())
-                    .build();
+                .withIdentity(getTriggerName(currencyPairId, orderType))
+                .forJob(jobDetail)
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(intervalInSeconds)
+                        .withMisfireHandlingInstructionNowWithRemainingCount()
+                        .repeatForever())
+                .build();
     }
 
     private String getJobName(Integer currencyPairId, OrderType orderType) {

@@ -37,16 +37,16 @@ import java.util.Optional;
 public interface OrderService {
 
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
+  List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
-    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
+  List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
+  List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
   OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
-  
+
   OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
-  
+
   OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
   @Transactional
@@ -62,16 +62,16 @@ public interface OrderService {
    * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
    * @return generated ID of the newly created order, or 0 if order was not be created
    */
-  int createOrder(OrderCreateDto order, Integer presavedOrderId, OrderActionEnum action);
+  int createOrder(OrderCreateDto order, OrderActionEnum action);
 
   @Transactional
-    void postBotOrderToDb(OrderCreateDto orderCreateDto);
+  void postBotOrderToDb(OrderCreateDto orderCreateDto);
 
   @Transactional
   OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType);
 
   @Transactional
-    OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);
+  OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);
 
   @Transactional
   OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
@@ -85,10 +85,10 @@ public interface OrderService {
    * TODO ADD JAVADOC
    */
   List<OrderWideListDto> getMyOrdersWithState(
-      CacheData cacheData,
-      String email, CurrencyPair currencyPair, OrderStatus status,
-      OperationType operationType,
-      String scope, Integer offset, Integer limit, Locale locale);
+          CacheData cacheData,
+          String email, CurrencyPair currencyPair, OrderStatus status,
+          OperationType operationType,
+          String scope, Integer offset, Integer limit, Locale locale);
 
   /**
    * TODO ADD JAVADOC
@@ -125,7 +125,7 @@ public interface OrderService {
    * @param ordersList     is list the ID of order that must be accepted
    * @param locale         is current locale. Used to generate messages
    */
-  void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, Integer counterOrderId);
+  void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale);
 
   /**
    * Accepts the order
@@ -141,10 +141,10 @@ public interface OrderService {
    * @param locale  is current locale. Used to generate messages
    */
   /*void acceptOrder(int userId, int orderId, Locale locale);*/
-  
+
   void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
 
-    void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
+  void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
 
   @Transactional
   void cancelOrder(Integer orderId, String currentUserEmail);
@@ -182,11 +182,11 @@ public interface OrderService {
 
   List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
 
-    List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
+  List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
 
-    List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
+  List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
 
-    /**
+  /**
    * Returns detailed info about the order, including info from related transactions
    *
    * @param orderId is ID the order
@@ -194,12 +194,12 @@ public interface OrderService {
    */
   OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
-    @Transactional
-    AdminOrderInfoDto getAdminOrderInfo(int orderId, Locale locale);
+  @Transactional
+  AdminOrderInfoDto getAdminOrderInfo(int orderId, Locale locale);
 
-    void deleteManyOrdersByAdmin(List<Integer> orderIds);
+  void deleteManyOrdersByAdmin(List<Integer> orderIds);
 
-    Object deleteOrderByAdmin(int orderId);
+  Object deleteOrderByAdmin(int orderId);
 
   Object deleteOrderForPartialAccept(int orderId);
 
@@ -215,7 +215,7 @@ public interface OrderService {
    */
   Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
-    List<BackDealInterval> getIntervals();
+  List<BackDealInterval> getIntervals();
 
   List<ChartTimeFrame> getChartTimeFrames();
 
@@ -230,16 +230,16 @@ public interface OrderService {
    */
   ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
-    @Transactional
-    List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
+  @Transactional
+  List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
 
-    @Transactional
-    List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                       LocalDateTime startTime, ChartResolution resolution);
+  @Transactional
+  List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                     LocalDateTime startTime, ChartResolution resolution);
 
-    List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
+  List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
 
-    @Transactional
+  @Transactional
   List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
 
   /**
@@ -304,8 +304,8 @@ public interface OrderService {
    */
   List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
-    @Transactional(readOnly = true)
-    List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole);
+  @Transactional(readOnly = true)
+  List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole);
 
   @Transactional(readOnly = true)
   List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole);
@@ -360,10 +360,10 @@ public interface OrderService {
 
   String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
-    @Transactional(readOnly = true)
-    String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
+  @Transactional(readOnly = true)
+  String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
 
-    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+  Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
@@ -375,11 +375,11 @@ public interface OrderService {
 
   Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
-    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                         List<Integer> userRoleIdList);
+  List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                       List<Integer> userRoleIdList);
 
-    List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                         List<Integer> userRoleIdList);
+  List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                       List<Integer> userRoleIdList);
 
   /**
    * wolper 24.04.18
@@ -389,14 +389,14 @@ public interface OrderService {
 
   Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
 
-    Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
+  Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
   List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period);
 
-    List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
+  List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 
-    List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
-                                             @Nullable Integer limit, @Nullable Integer offset);
+  List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
+                                           @Nullable Integer limit, @Nullable Integer offset);
 
-    List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
+  List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
 }
