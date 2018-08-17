@@ -274,7 +274,6 @@ function SettingsClass() {
             success: function (data) {
                 successNoty(data.message)
             }, error: function (data) {
-                console.log(data);
                 errorNoty(data.responseJSON.message);
             }, complete : function () {
                 $('#user-confirmpassword').val('');

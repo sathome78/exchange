@@ -160,9 +160,9 @@ public class AdminController {
   private NotificationsSettingsService notificationsSettingsService;
   @Autowired
   private UsersAlertsService alertsService;
-
   @Autowired
   private UserSessionService userSessionService;
+
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -688,7 +688,6 @@ public class AdminController {
             updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
             userService.update(updateUserDto, localeResolver.resolveLocale(request));
             message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
-
             userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
           } else {
               response.setStatus(500);
@@ -698,28 +697,6 @@ public class AdminController {
     return new JSONObject(){{put("message", message);}}.toString();
   }
 
-  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
-  public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
-    user.setStatus(user.getUserStatus());
-    registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 1);
-    } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setFinpassword(user.getFinpassword());
-      updateUserDto.setEmail(principal.getName()); //need for send the email
-      userService.update(updateUserDto, localeResolver.resolveLocale(request));
-
-      final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));
-      redir.addFlashAttribute("msg", message);
-      model.setViewName("redirect:/settings");
-    }
-
-    return model;
-  }*/
 
   /*
     //todo move this method from admin controller
@@ -759,28 +736,6 @@ public class AdminController {
     return model;
   }
   */
-
-  /*@RequestMapping(value = "/changeFinPasswordConfirm")
-  public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
-    try {
-      request.setCharacterEncoding("utf-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ModelAndView model = new ModelAndView();
-    try {
-      if (userService.verifyUserEmail(token) != 0) {
-        model.addObject("successNoty", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
-      } else {
-        model.addObject("errorNoty", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
-      }
-      model.setViewName("redirect:/dashboard");
-    } catch (Exception e) {
-      model.setViewName("DBError");
-      e.printStackTrace();
-    }
-    return model;
-  }*/
 
   /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changeNickname/submit", method = POST)
