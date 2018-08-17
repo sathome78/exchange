@@ -266,4 +266,21 @@ function SettingsClass() {
         });
     });
 
+    $('#password-change-button').on('click', function () {
+        $.ajax({
+            url: '/settings/changePassword/submit',
+            type: 'POST',
+            data: $('#settings-user-password-form').serialize(),
+            success: function (data) {
+                successNoty(data.message)
+            }, error: function (data) {
+                console.log(data);
+                errorNoty(data.responseJSON.message);
+            }, complete : function () {
+                $('#user-confirmpassword').val('');
+                $('#user-password').val('');
+            }
+        });
+    })
+
 }

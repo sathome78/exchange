@@ -23,9 +23,7 @@
                 <div class="tab-content">
                     <%--change main passwod--%>
                     <div <%--class="tab-pane"--%> id="tab__mainpass">
-                        <form:form class="form-horizontal" id="settings-user-form"
-                                   action="/settings/changePassword/submit"
-                                   method="post" modelAttribute="user">
+                        <form:form class="form-horizontal" id="settings-user-password-form" modelAttribute="user">
                             <form:input path="id" type="hidden" class="form-control" id="user-id"/>
                             <form:input path="role" type="hidden" class="form-control" id="user-role"/>
                             <form:input path="userStatus" type="hidden" class="form-control"
@@ -89,85 +87,11 @@
                             <h5><loc:message code="admin.changePasswordSendEmail"/></h5>
                             <%----%>
                             <div class="confirm-button-wrapper">
-                                <button class="confirm-button" type="submit"><loc:message
-                                        code="admin.save"/></button>
+                                <a id="password-change-button" class="btn confirm-button"><loc:message
+                                        code="admin.save"/></a>
                             </div>
                         </form:form>
                     </div>
-                    <%--change fin passwod--%>
-                    <%--<div class="tab-pane" id="tab__finpass">
-                        <form:form class="form-horizontal" id="settings-userFin-form"
-                                   action="/settings/changeFinPassword/submit"
-                                   method="post" modelAttribute="user">
-                            <form:input path="id" type="hidden" class="form-control" id="userFin-id"/>
-                            <form:input path="role" type="hidden" class="form-control"
-                                        id="userFin-role"/>
-                            <form:input path="userStatus" type="hidden" class="form-control"
-                                        id="userFin-status"/>
-                            &lt;%&ndash;&ndash;%&gt;
-                            <div class="input-block-wrapper clearfix">
-                                <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                    <label for="userFin-name"
-                                           class="input-block-wrapper__label"><loc:message
-                                            code="admin.login"/></label>
-                                </div>
-                                <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                    <form:input path="nickname" class="form-control input-block-wrapper__input"
-                                                id="userFin-name"
-                                                readonly="true"/>
-                                </div>
-                            </div>
-                            <div class="input-block-wrapper clearfix">
-                                <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                    <label for="userFin-email" class="input-block-wrapper__label"><loc:message
-                                            code="admin.email"/></label>
-                                </div>
-                                <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                    <form:input path="email" class="form-control input-block-wrapper__input"
-                                                id="userFin-email" readonly="true"/>
-                                    <form:errors path="email" class="input-block-wrapper__input"
-                                                 style="color:red"/>
-                                </div>
-                            </div>
-                            <div class="input-block-wrapper clearfix">
-                                <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                    <label for="userFin-password" path="finpassword"
-                                           class="input-block-wrapper__label"><loc:message
-                                            code="admin.finPassword"/></label>
-                                </div>
-                                <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                    <form:password path="finpassword"
-                                                   class="form-control input-block-wrapper__input"
-                                                   id="userFin-password"/>
-                                </div>
-                                <div class="col-md-12 input-block-wrapper__error-wrapper">
-                                    <form:errors path="finpassword" class="input-block-wrapper__input"/>
-                                </div>
-                            </div>
-                            <div class="input-block-wrapper clearfix">
-                                <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                    <label for="userFin-confirmpassword" path="confirmpassword"
-                                           class="input-block-wrapper__label"><loc:message
-                                            code="admin.confirmpassword"/></label>
-                                </div>
-                                <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                    <form:password path="confirmFinPassword"
-                                                   class="form-control input-block-wrapper__input"
-                                                   id="userFin-confirmpassword"/>
-                                </div>
-                                <div class="col-md-12 input-block-wrapper__error-wrapper">
-                                    <form:errors path="confirmFinPassword" class="input-block-wrapper__input"/>
-                                </div>
-                            </div>
-                            &lt;%&ndash;&ndash;%&gt;
-                            <h5><loc:message code="admin.changePasswordSendEmail"/></h5>
-                            &lt;%&ndash;&ndash;%&gt;
-                            <div class="confirm-button-wrapper">
-                                <button class="confirm-button" type="submit"><loc:message
-                                        code="admin.save"/></button>
-                            </div>
-                        </form:form>
-                    </div>--%>
                 </div>
             </div>
         </div>

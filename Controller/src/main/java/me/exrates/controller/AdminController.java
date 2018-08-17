@@ -40,6 +40,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -674,27 +675,25 @@ public class AdminController {
 
 
   /*todo move this method from admin controller*/
-  @RequestMapping(value = "settings/changePassword/submit", method = POST)
-  public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, Principal principal, HttpServletRequest request) {
+  @ResponseBody
+  @RequestMapping(value = "settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
+                                       Principal principal, HttpServletRequest request, HttpServletResponse response) {
     user.setStatus(user.getUserStatus());
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 0);
+        response.setStatus(500);
+        List<String> errorMessages = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+        return new JSONObject(){{put("message", errorMessages);}}.toString();
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setPassword(user.getPassword());
       updateUserDto.setEmail(principal.getName()); //need for send the email
       userService.update(updateUserDto, localeResolver.resolveLocale(request));
       new SecurityContextLogoutHandler().logout(request, null, null);
-      model.setViewName("redirect:/dashboard");
     }
-
-    model.addObject("user", user);
-
-    return model;
+    final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));
+    return new JSONObject(){{put("message", message);}}.toString();
   }
 
   /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
