@@ -70,10 +70,10 @@
                                         <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
                                     </div>
                                     <div id="new_password_wrong" class='field__error' style="display:none">
-                                        Password cannot be less than 8 and more than 20 characters long and should contain of letters (a-z), numbers (0-9) and/or any combination of @*%!#^!&$<> characters
+                                        <loc:message code="validation.message.password.wrong"/>
                                     </div>
                                     <div id="new_password_required" class='field__error' style="display:none">
-                                        Password is required
+                                        <loc:message code="validation.message.password.required"/>
                                     </div>
                                 </div>
                                 <loc:message code="user.settings.label.confirmNewPassword" var="confirmNewPassword"/>
