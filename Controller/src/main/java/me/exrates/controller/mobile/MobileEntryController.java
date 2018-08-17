@@ -17,6 +17,7 @@ import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.waves.WavesService;
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.WebUtils;
 
@@ -73,6 +75,9 @@ public class MobileEntryController {
 
     @Value("${pass.encode.key}")
     String passEncodeKey;
+
+    @Autowired
+    private UserSessionService userSessionService;
 
     @Autowired
     private AuthTokenService authTokenService;
@@ -843,6 +848,8 @@ public class MobileEntryController {
         updateUserDto.setFinpassword(decodedFinPass);
         updateUserDto.setEmail(user.getEmail()); //need for send the email
         userService.updateUserSettings(updateUserDto);
+
+        userSessionService.invalidateUserSessionExceptSpecific(userEmail, RequestContextHolder.currentRequestAttributes().getSessionId());
     }
 
 
