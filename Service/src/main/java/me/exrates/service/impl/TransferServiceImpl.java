@@ -302,6 +302,12 @@ public class TransferServiceImpl implements TransferService {
     return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(userEmail));
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public boolean checkTransferRequestsLimit(int currencyId, String email) {
+    return transferRequestDao.checkTransferRequestsLimit(currencyId, email);
+  }
+
   @Transactional
   @Override
   public TransferDto performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
