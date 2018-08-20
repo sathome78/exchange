@@ -421,7 +421,7 @@ public class UserServiceImpl implements UserService {
     UserAgentAnalyzer uaa = UserAgentAnalyzer
             .newBuilder()
             .hideMatcherLoadStats()
-            .withCache(10000)
+            .withoutCache()
             .build();
 
 
