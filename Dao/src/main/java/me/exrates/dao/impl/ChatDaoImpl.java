@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
+import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -9,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.stereotype.Repository;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,5 +62,21 @@ public class ChatDaoImpl implements ChatDao {
         namedParameters.put("id", message.getId());
         jdbcTemplate.update(sql, namedParameters);
 
+    }
+
+    @Override
+    public List<ChatHistoryDto> getChatHistory(ChatLang chatLang) {
+        final String sql = "SELECT c.id, c.body, c.message_time, USER.email FROM CHAT_" + chatLang.val +
+                " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.id DESC";
+
+        return jdbcTemplate.query(sql,  (resultSet, i) -> {
+            final ChatHistoryDto historyDto = new ChatHistoryDto();
+            historyDto.setEmail(resultSet.getString("email"));
+            historyDto.setBody(resultSet.getString("body"));
+            historyDto.setMessageTime(resultSet.getTimestamp("message_time") != null ?
+                    resultSet.getTimestamp("message_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : " ");
+            return historyDto;
+        });
     }
 }
