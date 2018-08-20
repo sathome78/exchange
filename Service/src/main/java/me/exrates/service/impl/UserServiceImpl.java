@@ -446,11 +446,7 @@ public class UserServiceImpl implements UserService {
     StringBuilder confirmationUrl =
             new StringBuilder("/newDeviceConfirm?token=" + token.getValue()+"&device="+encodedOS +"&var="+encodedTime);
 
-    String rootUrl = "";
-    if (!confirmationUrl.toString().contains("//")) {
-      rootUrl = request.getScheme() + "://" + request.getServerName() +
-              ":" + request.getServerPort();
-    }
+    String rootUrl = "http://dev2.exrates.tech";
 
     email.setMessage(
             messageSource.getMessage(emailText, new Object[]{deviceInfo}, locale) +
