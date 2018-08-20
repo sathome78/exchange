@@ -232,6 +232,7 @@ $(function transferCreation() {
      }*/
 
     function checkReception() {
+        recipient = recipientUserIsNeeded ? recipient : '';
         $.ajax({
             url: '/transfer/request/checking?recipient='+ recipient,
             async: true,
