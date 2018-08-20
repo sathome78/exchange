@@ -203,6 +203,9 @@ public interface UserService {
 
   Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+  String getUserEmailFromSecurityContext();
 
-    String getUserEmailFromSecurityContext();
+  String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
+
+  boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail);
 }

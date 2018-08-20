@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
-/*@Log4j2(topic = "message_notify")
+@Log4j2(topic = "message_notify")
 @Component
 public class Google2faNotificatorServiceImpl implements NotificatorService {
 
@@ -27,4 +27,4 @@ public class Google2faNotificatorServiceImpl implements NotificatorService {
     public NotificationTypeEnum getNotificationType() {
         return NotificationTypeEnum.GOOGLE2FA;
     }
-}*/
+}

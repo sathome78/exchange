@@ -21,6 +21,10 @@
                                 <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
                                 <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
                                     <th>
+                                        <c:if test="${notificatorHead.id == 4}">
+                                        <a class="btn btn-default" id="subscribe_GOOGLE_AUTHENTICATOR">
+                                        <loc:message code="message.info"/></a>
+                                        </c:if>
                                         <c:if test="${notificatorHead.needSubscribe}">
                                             <c:choose>
                                                 <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null

@@ -9,7 +9,8 @@ import java.util.Arrays;
  */
 public enum NotificationTypeEnum {
 
-    EMAIL(1, false, null), SMS(2, true, "message_price"), TELEGRAM(3, true, "subscribe_price");
+    EMAIL(1, false, null), SMS(2, true, "message_price"), TELEGRAM(3, true, "subscribe_price"),
+    GOOGLE2FA(4,false, null);
 
     private int code;
     private String priceColumn;

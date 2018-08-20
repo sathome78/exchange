@@ -22,6 +22,7 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -90,6 +91,9 @@ public class UserServiceImpl implements UserService {
   }
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+  public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+  public static String APP_NAME = "Exrates";
 
   private final int USER_FILES_THRESHOLD = 3;
 
@@ -734,6 +738,10 @@ public class UserServiceImpl implements UserService {
               .build();
     }
 
+      if (setting.getNotificatorId() == 4) {
+          return checkGoogle2faVerifyCode(pin, email);
+      }
+
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -747,6 +755,16 @@ public class UserServiceImpl implements UserService {
     return setting != null && setting.getNotificatorId() != null;
   }
 
+  @Override
+  @Transactional
+  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+  }
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
@@ -787,5 +805,16 @@ public class UserServiceImpl implements UserService {
     }
     return auth.getName();
   }
+
+    @Override
+    public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
+        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
+        final Totp totp = new Totp(google2faSecret);
+        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+            System.out.println("WTF?!@!!!!");
+            throw new IncorrectSmsPinException();
+        }
+        return true;
+    }
 
 }
