@@ -15,6 +15,9 @@
                             <form:form class="form-horizontal" id="settings-user-password-form"
                                         modelAttribute="user">
                                 <form:input path="id" type="hidden" class="form-control" id="user-id"/>
+                                <form:input path="role" type="hidden" class="form-control" id="user-role"/>
+                                <form:input path="userStatus" type="hidden" class="form-control"
+                                            id="user-status"/>
                                 <div class="input-block-wrapper clearfix">
                                     <div class="col-md-4 input-block-wrapper__label-wrapper">
                                         <label for="user-name" class="input-block-wrapper__label">
@@ -89,8 +92,8 @@
                                     <span class="col-md-1 repass-error red"><i class="glyphicon glyphicon-remove"></i></span>
                                 </div>
                                 <div class="confirm-button-wrapper" style="text-align: center;">
-                                    <a id="password-change-button" class="btn confirm-button"><loc:message
-                                            code="admin.save"/></a>
+                                    <button id="password-change-button" class="btn btn-primary btn-block" disabled>
+                                        <loc:message code="admin.save"/>
                                     </button>
                                 </div>
                             </form:form>
