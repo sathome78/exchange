@@ -280,7 +280,10 @@ function extendsReportName(name, start, end){
         case 'currencyPairs.csv':
         case 'currencies.csv':
             return baseName+'_from-'+start+'_to-'+end+'.csv';
-
+        case 'userActivities.csv':
+            return baseName+'_from-'+start+'_to-'+end+'.csv';
+        case 'userTotalCommission.csv':
+            return baseName+'_from-'+start+'_to-'+end+'.csv';
         case 'downloadUsersWalletsSummaryInOut.csv':
             var role = currentRole?"_"+currentRole:"";
             if (start && end) return baseName+'_from-'+start+"_to-"+end+"_"+currentRole + ".csv";

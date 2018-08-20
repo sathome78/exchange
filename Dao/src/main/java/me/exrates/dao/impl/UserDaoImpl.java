@@ -264,6 +264,19 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
+  public boolean createUserEntryDay(Integer userId, LocalDateTime entryDate) {
+    String sql = "INSERT INTO USER_ENTRY_DAYS SELECT :user_id, :entry_date " +
+            " FROM USER_ENTRY_DAYS ud " +
+            " WHERE ud.user_id = :user_id AND " +
+            " DATE_FORMAT(ud.entry_date, '%Y-%m-%d') = DATE_FORMAT(:entry_date, '%Y-%m-%d') "+
+            " HAVING count(*) = 0";
+    Map<String, Object> params = new HashMap<>();
+    params.put("user_id", userId);
+    params.put("entry_date", Timestamp.valueOf(entryDate));
+    return namedParameterJdbcTemplate.update(sql, params) > 0;
+  }
+
+  @Override
   public boolean hasAdminAuthorities(Integer userId) {
     String sql = "SELECT COUNT(*) FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id ";
     Map<String, Integer> params = Collections.singletonMap("user_id", userId);

@@ -234,6 +234,32 @@ public class ReportController {
   }
 
   @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/userActivities", method = GET)
+  public String getUserActivities(@RequestParam("startTime") String startTimeString,
+                             @RequestParam("endTime") String endTimeString,
+                             @RequestParam("roles") List<UserRole> userRoles) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<UserActivitiesInPeriodDto> result = reportService.getUserActivitiesInPeriod(startTime, endTime, userRoles);
+    return result.stream().map(UserActivitiesInPeriodDto::toString)
+            .collect(Collectors.joining("", UserActivitiesInPeriodDto.getTitle(), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/userTotalCommission", method = GET)
+  public String getUserTotalCommission(@RequestParam("startTime") String startTimeString,
+                                  @RequestParam("endTime") String endTimeString,
+                                  @RequestParam("roles") List<UserRole> userRoles) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<UserTotalCommissionDto> result = reportService.getUserTotalCommissionInPeriod(startTime, endTime, userRoles);
+    return result.stream().map(UserTotalCommissionDto::toString)
+            .collect(Collectors.joining("", UserTotalCommissionDto.getTitle(), ""));
+  }
+
+  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/totalBalances", method = GET)
   public String getTotalBalancesReportByRoles(@RequestParam("roles") List<UserRole> userRoles) {
 

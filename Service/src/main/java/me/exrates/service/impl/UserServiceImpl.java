@@ -325,6 +325,16 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional(rollbackFor = Exception.class)
+  public boolean updateUserEntryDay(String userEmail) {
+    Integer userId = userDao.getIdByEmail(userEmail);
+    if (userId != null){
+      return userDao.createUserEntryDay(userId, LocalDateTime.now());
+    }
+    return false;
+  }
+
+  @Override
+  @Transactional(rollbackFor = Exception.class)
   public boolean updateUserSettings(UpdateUserDto user) {
     return userDao.update(user);
   }

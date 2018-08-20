@@ -118,4 +118,8 @@ public interface OrderDao {
     List<UserOrdersDto> getUserOpenOrders(Integer userId, Integer currencyPairId);
 
     List<UserOrdersDto> getUserOrdersHistory(Integer userId, @Nullable Integer currencyPairId, int limit, int offset);
+
+    List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
+
+    List<UserTotalCommissionDto> getUserTotalCommissionForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 }

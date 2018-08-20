@@ -137,7 +137,24 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
-
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="reports.userActivities"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-user-activities" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="reports.totalCommision"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-user-total-commision" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

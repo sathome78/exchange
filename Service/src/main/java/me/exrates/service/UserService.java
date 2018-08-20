@@ -75,6 +75,8 @@ public interface UserService {
 
   boolean updateUserByAdmin(UpdateUserDto user);
 
+  boolean updateUserEntryDay(String userEmail);
+
   @Transactional(rollbackFor = Exception.class)
   boolean updateUserSettings(UpdateUserDto user);
 

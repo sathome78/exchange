@@ -688,6 +688,7 @@ public class MobileEntryController {
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
         ipBlockingService.processLoginSuccess(ipAddress);
+        userService.updateUserEntryDay(user.getEmail());
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
 

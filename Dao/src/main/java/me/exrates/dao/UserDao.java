@@ -42,6 +42,8 @@ public interface UserDao {
 
   boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
 
+  boolean createUserEntryDay(Integer userId, LocalDateTime entryDate);
+
   boolean hasAdminAuthorities(Integer userId);
 
   void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);

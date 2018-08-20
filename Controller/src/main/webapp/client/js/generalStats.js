@@ -71,6 +71,8 @@ $(function () {
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
     $('#download-total-balances').click(getTotalBalancesForRoles);
+    $('#download-user-activities').click(getUserActivities);
+    $('#download-user-total-commision').click(getUserTotalCommission);
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -326,6 +328,19 @@ function getInputOutputSummaryWithCommissions() {
         saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
+}
+
+function getUserActivities() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/userActivities?' + getTimeParams() + '&' + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data, extendsReportName('userActivities.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+    })
+}
+function getUserTotalCommission() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/userTotalCommission?'+ getTimeParams() + '&' + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data, extendsReportName('userTotalCommission.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+    })
 }
 
 function getTimeParams() {

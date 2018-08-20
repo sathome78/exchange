@@ -478,6 +478,20 @@ public class ReportServiceImpl implements ReportService {
     return walletService.getBalancesWithExternalWallets();
   }
 
+  @Override
+  public List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    Preconditions.checkArgument(!userRoles.isEmpty(), "At least one role must be specified");
+    return orderService.getUserAtivityInOrdersForReport(startTime, endTime, userRoles.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<UserTotalCommissionDto> getUserTotalCommissionInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    Preconditions.checkArgument(!userRoles.isEmpty(), "At least one role must be specified");
+    return orderService.getUserTotalCommissionForReport(startTime, endTime, userRoles.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
 
   private void rescheduleMailJob(LocalTime newMailTime) {
     try {
