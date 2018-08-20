@@ -1499,6 +1499,8 @@ td.blue-white {
     margin: 10px 0;
 }
 
+.buttonHolder{ text-align: center; }
+
 .modal-form-dialog #uploadFile.file-choice__input {
     color: #969faf;
     font-weight: 300;

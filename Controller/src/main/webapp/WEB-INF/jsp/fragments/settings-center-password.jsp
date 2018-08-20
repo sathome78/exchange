@@ -24,7 +24,7 @@
                                             <loc:message code="admin.login"/>
                                         </label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <div class="col-md-7 input-block-wrapper__input-wrapper">
                                         <form:input path="nickname" class="form-control input-block-wrapper__input"
                                                     id="user-name" readonly="true"/>
                                     </div>
@@ -35,7 +35,7 @@
                                             <loc:message code="admin.email"/>
                                         </label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <div class="col-md-7 input-block-wrapper__input-wrapper">
                                         <form:input path="email" class="form-control input-block-wrapper__input"
                                                     id="user-email" readonly="true"/>
                                         <form:errors path="email" class="form-control input-block-wrapper__input"
@@ -49,7 +49,7 @@
                                             ${oldPassword}
                                         </label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <div class="col-md-7 input-block-wrapper__input-wrapper">
                                         <form:password path="password" class="form-control input-block-wrapper__input"
                                                        id="user-password" placeholder="${oldPassword}"/>
                                     </div>
@@ -64,7 +64,7 @@
                                             ${newPassword}
                                         </label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <div class="col-md-7 input-block-wrapper__input-wrapper">
                                         <form:password path="confirmPassword" class="form-control input-block-wrapper__input"
                                                        id="user-confirmpassword" placeholder="${newPassword}"/>
                                     </div>
@@ -91,8 +91,8 @@
                                     <span class="col-md-1 repass green"><i class="glyphicon glyphicon-ok"></i></span>
                                     <span class="col-md-1 repass-error red"><i class="glyphicon glyphicon-remove"></i></span>
                                 </div>
-                                <div class="confirm-button-wrapper" style="text-align: center;">
-                                    <button id="password-change-button" class="btn btn-primary btn-block" disabled>
+                                <div class="confirm-button-wrapper buttonHolder">
+                                    <button id="password-change-button" class="btn btn-primary" disabled>
                                         <loc:message code="admin.save"/>
                                     </button>
                                 </div>
