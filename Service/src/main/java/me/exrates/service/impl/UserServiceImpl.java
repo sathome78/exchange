@@ -19,6 +19,8 @@ import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
+import nl.basjes.parse.useragent.*;
+import nl.basjes.parse.useragent.UserAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -159,6 +162,7 @@ public class UserServiceImpl implements UserService {
    */
   @Transactional(rollbackFor = Exception.class)
   public int verifyUserEmail(String token) {
+    System.out.println(" token  -  "+token);
     TemporalToken temporalToken = userDao.verifyToken(token);
     //deleting all tokens related with current through userId and tokenType
     return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
@@ -392,7 +396,6 @@ public class UserServiceImpl implements UserService {
             "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-
     email.setTo(user.getEmail());
     if (tokenType.equals(TokenType.REGISTRATION)
             || tokenType.equals(TokenType.CHANGE_PASSWORD)
@@ -402,6 +405,71 @@ public class UserServiceImpl implements UserService {
       sendMailService.sendMail(email);
     }
   }
+
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean sendEmailForNewDevice(String userEmail, String userAgent) {
+
+    User user = userDao.findByEmail(userEmail);
+    if (user == null) {
+      return false;
+    }
+
+    LocalDateTime date = LocalDateTime.now();
+    String time = String.valueOf(date.getLong(ChronoField.MINUTE_OF_DAY));
+    String encodedTime = Base64.getEncoder().withoutPadding().encodeToString(time.getBytes());
+    UserAgentAnalyzer uaa = UserAgentAnalyzer
+            .newBuilder()
+            .hideMatcherLoadStats()
+            .withCache(10000)
+            .build();
+
+
+    UserAgent agent =  uaa.parse(userAgent);
+
+    String operSystemInfo = agent.getValue("OperatingSystemNameVersion") + agent.getValue("DeviceCpuBits");
+    String encodedOS = Base64.getEncoder().withoutPadding().encodeToString(operSystemInfo.getBytes());
+    String deviceInfo = agent.getValue("DeviceClass") + " " +agent.getValue("AgentNameVersionMajor") +
+                                                           "  (" + agent.getValue("OperatingSystemNameVersion")+")";
+    TemporalToken token = new TemporalToken();
+    token.setUserId(user.getId());
+    token.setValue(generateRegistrationToken());
+    token.setTokenType(TokenType.CONFIRM_NEW_OS);
+    token.setCheckIp(user.getIp());
+    System.out.println("user.getIp() "+user.getIp());
+    createTemporalToken(token);
+
+    Locale locale = getUserLocaleForMobile(userEmail);
+    String emailSubject = "emailsubmitNewDevice.subject";
+    String emailText = "user.authorize.newDeviceEmailText";
+    Email email = new Email();
+    StringBuilder confirmationUrl =
+            new StringBuilder("/newDeviceConfirm?token=" + token.getValue()+"&device="+encodedOS +"&var="+encodedTime);
+
+    String rootUrl = "";
+    try {
+      if (!confirmationUrl.toString().contains("//")) {
+        rootUrl = request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort();
+      }
+    }catch (Exception e){
+      System.out.println(e);
+    }
+
+
+    email.setMessage(
+            messageSource.getMessage(emailText, new Object[]{deviceInfo}, locale) +
+                    " <a href='" +
+                    rootUrl +
+                    confirmationUrl.toString() +
+                    "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+    );
+    email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+    email.setTo(user.getEmail());
+    sendMailService.sendMailMandrill(email);
+    return true;
+  }
+
 
   @Override
   public void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale) {
@@ -783,4 +851,24 @@ public class UserServiceImpl implements UserService {
     return auth.getName();
   }
 
+  @Override
+  @Transactional
+  public boolean checkOperSystem(String email, String userAgent) {
+    int userId = userDao.getIdByEmail(email);
+    UserAgentAnalyzer uaa = UserAgentAnalyzer
+            .newBuilder()
+            .hideMatcherLoadStats()
+            .withoutCache()
+            .build();
+
+    UserAgent agent =  uaa.parse(userAgent);
+    String operSystemInfo = agent.getValue("OperatingSystemNameVersion") + agent.getValue("DeviceCpuBits");
+    return 0 != userDao.checkOperSystem(userId, operSystemInfo);
+  }
+
+  @Override
+  public boolean setNewOperSystem(String email, String operSystem) {
+    int userId = userDao.getIdByEmail(email);
+    return userDao.setNewOperSystem(userId, operSystem);
+  }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 /**
@@ -155,8 +156,14 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
+        if (!userService.checkOperSystem(authentication.getName(), request.getHeader("User-agent"))){
+            userService.sendEmailForNewDevice(authentication.getName(), request.getHeader("User-agent"));
+            throw new UnconfirmedUserException("Check your email");
+        }
         /*-------------------*/
         secureServiceImpl.checkLoginAuth(request, authentication, this);
+
+
         /* old impl
         User principal = (User) authentication.getPrincipal();
         if (userService.isGlobal2FaActive() || userService.getUse2Fa(principal.getUsername())) {

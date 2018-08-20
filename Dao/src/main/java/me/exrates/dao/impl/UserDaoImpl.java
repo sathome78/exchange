@@ -798,6 +798,30 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
 
+  public int checkOperSystem(Integer id, String operSystem) {
+    String sql = "SELECT user_id FROM USER_OPER_SYSTEMS WHERE user_id=:id " +
+                 " AND operating_system=:operating_system ";
+    Map<String, Object> namedParameters = new HashMap<>();
+    namedParameters.put("id", id);
+    namedParameters.put("operating_system", operSystem);
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  public boolean setNewOperSystem(Integer id, String operSystem) {
+    String sql = "INSERT INTO USER_OPER_SYSTEMS (user_id, operating_system) VALUES (:user_id, :operating_system) ";
+    Map<String, Object> namedParameters = new HashMap<>();
+    namedParameters.put("user_id", id);
+    namedParameters.put("operating_system", operSystem);
+    try {
+      return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    } catch (EmptyResultDataAccessException e) {
+      return false;
+    }
+  }
 
   @Override
   public boolean tempDeleteUser(int id) {

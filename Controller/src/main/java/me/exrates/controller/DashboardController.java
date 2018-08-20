@@ -38,6 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.*;
 
 @Controller
@@ -168,6 +170,57 @@ public class DashboardController {
       model.addObject("user", user);
     return model;
   }
+
+    @RequestMapping(value = "/newDeviceConfirm")
+    public ModelAndView newDeviceConfirm(@RequestParam("token") String token,
+                                         @RequestParam("device") String device,
+                                         @RequestParam("var") String var,
+                                         RedirectAttributes attr, HttpServletRequest request) {
+        ModelAndView model = new ModelAndView();
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        long currentMinutesOfDay = currentDateTime.getLong(ChronoField.MINUTE_OF_DAY);
+        try {
+            int userId = userService.verifyUserEmail(token);
+            byte[] decodedUserDeviceBytes = Base64.getDecoder().decode(device);
+            byte[] decodedDateTime = Base64.getDecoder().decode(var);
+            String userDevice = new String(decodedUserDeviceBytes);
+            long dateTimeInMinutes = Long.parseLong(new String(decodedDateTime));
+
+            long difference = currentMinutesOfDay - dateTimeInMinutes;
+
+            if (userId != 0){
+                User user = userService.getUserById(userId);
+
+                if (difference < 0) {
+                    if((difference + 1440) < 30) {
+                        userService.setNewOperSystem(user.getEmail(), userDevice);
+                        attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+                        attr.addFlashAttribute("user", user);
+                    } else {
+                        attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                    }
+                } else if (difference < 30){
+                    userService.setNewOperSystem(user.getEmail(), userDevice);
+                    attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("user", user);
+                } else if(difference == 0){
+                    userService.setNewOperSystem(user.getEmail(), userDevice);
+                    attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("user", user);
+                } else {
+                    attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                }
+            } else {
+                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+            }
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+
+        model.setViewName("redirect:/dashboard");
+        return model;
+    }
 
   @RequestMapping(value = "/resetPasswordConfirm")
   public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {

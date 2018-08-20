@@ -91,6 +91,8 @@ public interface UserService {
   @Transactional(rollbackFor = Exception.class)
   void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
 
+  boolean sendEmailForNewDevice(String userEmail, String userAgent);
+
   void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
   boolean createTemporalToken(TemporalToken token);
@@ -205,4 +207,10 @@ public interface UserService {
 
 
     String getUserEmailFromSecurityContext();
+
+  boolean checkOperSystem(String email, String userAgent);
+
+  boolean setNewOperSystem(String email, String operSystem);
+
+
 }

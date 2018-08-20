@@ -178,4 +178,7 @@ public interface UserDao {
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+    int checkOperSystem(Integer id, String operSystem);
+
+    boolean setNewOperSystem(Integer id, String operSystem);
 }
