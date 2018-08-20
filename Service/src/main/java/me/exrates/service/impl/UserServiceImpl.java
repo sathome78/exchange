@@ -447,15 +447,10 @@ public class UserServiceImpl implements UserService {
             new StringBuilder("/newDeviceConfirm?token=" + token.getValue()+"&device="+encodedOS +"&var="+encodedTime);
 
     String rootUrl = "";
-    try {
-      if (!confirmationUrl.toString().contains("//")) {
-        rootUrl = request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort();
-      }
-    }catch (Exception e){
-      System.out.println(e);
+    if (!confirmationUrl.toString().contains("//")) {
+      rootUrl = request.getScheme() + "://" + request.getServerName() +
+              ":" + request.getServerPort();
     }
-
 
     email.setMessage(
             messageSource.getMessage(emailText, new Object[]{deviceInfo}, locale) +
