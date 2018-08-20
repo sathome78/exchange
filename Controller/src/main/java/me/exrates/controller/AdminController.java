@@ -685,7 +685,7 @@ public class AdminController {
 
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setPassword(user.getConfirmPassword());
-            updateUserDto.setStatus(user.getUserStatus());
+            updateUserDto.setStatus(UserStatus.ACTIVE);
             updateUserDto.setRole(user.getRole());
             updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
             userService.update(updateUserDto, localeResolver.resolveLocale(request));

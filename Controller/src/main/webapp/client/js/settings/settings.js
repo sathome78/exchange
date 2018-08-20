@@ -268,8 +268,6 @@ function SettingsClass() {
 
 }
 
-var passwordButton = document.getElementById('password-change-button');
-
 $(function () {
     const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
     const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
@@ -291,8 +289,11 @@ $(function () {
                 $('#user-confirmpassword').val('');
                 $('#user-password').val('');
                 $('#confirmNewPassword').val('');
-                $('#user-confirmpassword').attr('disabled', true);
-                $('#confirmNewPassword').attr('disabled', true);
+                $('#user-confirmpassword').attr('readonly', true);
+                $('#confirmNewPassword').attr('readonly', true);
+                $('.repass').css("display", "none");
+                $('.repass-error').css("display", "none");
+                $('#password-change-button').attr('disabled', true);
             }
         });
     });
