@@ -1,8 +1,103 @@
 /**
  * Created by ValkSam
  */
+var leftSider;
+var socket_url = '/public_socket';
+var socket;
+var client;
+var connectedPS = false;
+var currencyPairStatisticSubscription;
+var reconnectsCounter = 0;
+
+
 
 $(function transferCreation() {
+
+    leftSider = new LeftSiderClass();
+
+    var onConnectFail = function () {
+    connectedPS = false;
+    setTimeout(connectAndReconnect, 5000);
+};
+
+    var onConnect = function() {
+        connectedPS = true;
+        subscribeAll();
+    };
+
+
+    function subscribeAll() {
+        if (connectedPS) {
+            subscribeStatistics();
+        }
+
+    }
+
+    function subscribeStatistics() {
+        if (currencyPairStatisticSubscription == undefined) {
+            var headers = {'X-CSRF-TOKEN': csrf};
+            var path = '/app/statisticsNew';
+            currencyPairStatisticSubscription = client.subscribe(path, function (message) {
+                var messageBody = JSON.parse(message.body);
+                messageBody.forEach(function(object){
+                    handleStatisticMessages(JSON.parse(object));
+                });
+            }, headers);
+        }
+    }
+
+
+    function connectAndReconnect() {
+        reconnectsCounter ++;
+        console.log("try to reconnect OUR " + reconnectsCounter);
+        if (reconnectsCounter > 5) {
+            location.reload()
+        }
+        socket = new SockJS(socket_url);
+        client = Stomp.over(socket);
+        client.debug = null;
+        var headers = {'X-CSRF-TOKEN' : csrf};
+        client.connect(headers, onConnect, onConnectFail);
+    }
+
+
+    function handleStatisticMessages(object) {
+        switch (object.type){
+            case "CURRENCIES_STATISTIC" : {
+                leftSider.updateStatisticsForAllCurrencies(object.data);
+                break;
+            }
+            case "CURRENCY_STATISTIC" : {
+                object.data.forEach(function(object){
+                    leftSider.updateStatisticsForCurrency(object);
+                });
+
+                break;
+            }
+        }
+
+
+    }
+
+/*    function updateStatisticsForAllCurrencies (data) {
+        var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
+        clearTable($currencyTable);
+        data.forEach(function (e) {
+            $currencyTable.append(tmpl($tmpl, e));
+        });
+        blink($('#currency_table'));
+        setPairFilter();
+    };
+
+    function updateStatisticsForCurrency (data) {
+        var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
+        var sel = 'stat_' + data.currencyPairName;
+        var $row = $(document.getElementById(sel));
+        $row.replaceWith(tmpl($tmpl, data));
+        blink($row);
+        setPairFilter();
+    };*/
+
     const $container = $("#merchants-transfer-center");
     const operationType = $container.find("#operationType").html();
     const $transferParamsDialog = $container.find('#dialog-transfer-creation');
@@ -36,6 +131,9 @@ $(function transferCreation() {
     var commissionMerchantAmount;
     var totalAmount;
     var isVoucher;
+
+    connectAndReconnect();
+    subscribeAll();
 
     $container.find(".start-transfer").on('click', function () {
         startTransfer(this);

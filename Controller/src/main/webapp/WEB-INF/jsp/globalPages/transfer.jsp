@@ -61,6 +61,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/globalPages/news-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%--... Alerts --%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>

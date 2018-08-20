@@ -22,6 +22,7 @@ function RightSiderClass() {
     }
     /*===========================================================*/
     (function init() {
+        console.log('RightSiderClass');
         that.newsList = new NewsClass($newsLoadingImg);
         $.get('/utcOffset', function (data) {
             currentTime = moment().utcOffset("UTC");
