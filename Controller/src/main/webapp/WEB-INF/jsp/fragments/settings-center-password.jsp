@@ -93,11 +93,13 @@
                                     <span class="col-md-1 repass green"><i class="glyphicon glyphicon-ok"></i></span>
                                     <span class="col-md-1 repass-error red"><i class="glyphicon glyphicon-remove"></i></span>
                                 </div>
-                                <div class="confirm-button-wrapper buttonHolder">
-                                    <button id="password-change-button" class="btn btn-primary" disabled>
+                                <div class="col-md-4 input-block-wrapper__label-wrapper"></div>
+                                <div class="col-md-7 input-block-wrapper__input-wrapper confirm-button-wrapper">
+                                    <button id="password-change-button" class="btn btn-primary" style="width:100px" disabled>
                                         <loc:message code="admin.save"/>
                                     </button>
                                 </div>
+                                <br/>
                             </form:form>
                         </div>
                 </div>
