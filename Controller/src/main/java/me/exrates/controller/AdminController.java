@@ -32,6 +32,7 @@ import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -40,6 +41,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,13 +50,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -69,7 +73,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -109,6 +112,8 @@ public class AdminController {
   private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
+  @Autowired
+  private UserDetailsService userDetailsService;
   @Autowired
   private LocaleResolver localeResolver;
   @Autowired
@@ -155,6 +160,8 @@ public class AdminController {
   private NotificationsSettingsService notificationsSettingsService;
   @Autowired
   private UsersAlertsService alertsService;
+  @Autowired
+  private UserSessionService userSessionService;
 
 
   @Autowired
@@ -270,11 +277,11 @@ public class AdminController {
     } catch (IOException e) {
       LOG.error(e);
       return new ResponseEntity<>(singletonMap("error",
-          messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+              messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
     }
     userService.deleteUserFile(fileId);
     return new ResponseEntity<>(singletonMap("success",
-        messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
+            messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
   }
 
 
@@ -295,11 +302,11 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Future<DataTable<List<OperationViewDto>>> getUserTransactions(
-      AdminTransactionsFilterData filterData,
-      @RequestParam Integer id,
-      @RequestParam Map<String, String> params,
-      Principal principal,
-      HttpServletRequest request) {
+          AdminTransactionsFilterData filterData,
+          @RequestParam Integer id,
+          @RequestParam Map<String, String> params,
+          Principal principal,
+          HttpServletRequest request) {
     filterData.initFilterItems();
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
@@ -340,20 +347,20 @@ public class AdminController {
     } catch (Exception e) {
       LOG.error(e);
       return new ResponseEntity<>(singletonMap("error",
-          messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+              messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
     }
 
     return new ResponseEntity<>(singletonMap("success",
-        messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
+            messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
   }
 
   @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/editUserComment", method = POST)
   public ResponseEntity<Map<String, String>> editUserComment(final @RequestParam("commentId") int commentId,
-                                                               @RequestParam String newComment, @RequestParam String email,
+                                                             @RequestParam String newComment, @RequestParam String email,
                                                              @RequestParam boolean sendMessage, Principal principal,
-                                                               final Locale locale) {
+                                                             final Locale locale) {
     try {
       userService.editUserComment(commentId, newComment,email, sendMessage, principal.getName());
     } catch (Exception e) {
@@ -374,17 +381,17 @@ public class AdminController {
     } catch (Exception e) {
       LOG.error(e);
       return new ResponseEntity<>(singletonMap("error",
-          messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+              messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
     }
     return new ResponseEntity<>(singletonMap("success",
-        messageSource.getMessage("admin.successCommentDelete", null, locale)), OK);
+            messageSource.getMessage("admin.successCommentDelete", null, locale)), OK);
   }
 
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Future<List<OrderWideListDto>> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
-                                              final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
+                                                      final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
     CurrencyPair currencyPair;
     if (currencyPairId != 0) {
@@ -395,51 +402,51 @@ public class AdminController {
     String email = userService.getUserById(id).getEmail();
     Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
 
-      return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
+    return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
   }
 
-    private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
-        List<OrderWideListDto> result = new ArrayList<>();
-        switch (tableType) {
-          case "ordersBuyClosed":
-            List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
-            result = ordersBuyClosed;
-            break;
-          case "ordersSellClosed":
-            List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
-            result = ordersSellClosed;
-            break;
-          case "ordersBuyOpened":
-            List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
-            result = ordersBuyOpened;
-            break;
-          case "ordersSellOpened":
-            List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
-            result = ordersSellOpened;
-            break;
-          case "ordersBuyCancelled":
-            List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
-            result = ordersBuyCancelled;
-            break;
-          case "ordersSellCancelled":
-            List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
-            result = ordersSellCancelled;
-            break;
-          case "stopOrdersCancelled":
-            List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
-            result = stopOrdersCancelled ;
-            break;
-          case "stopOrdersClosed":
-            List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
-            result = stopOrdersClosed ;
-            break;
-          case "stopOrdersOpened":
-            List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, locale);
-            result = stopOrdersOpened;
-            break;
-        }
-        return result;
+  private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
+    List<OrderWideListDto> result = new ArrayList<>();
+    switch (tableType) {
+      case "ordersBuyClosed":
+        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
+        result = ordersBuyClosed;
+        break;
+      case "ordersSellClosed":
+        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
+        result = ordersSellClosed;
+        break;
+      case "ordersBuyOpened":
+        List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
+        result = ordersBuyOpened;
+        break;
+      case "ordersSellOpened":
+        List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
+        result = ordersSellOpened;
+        break;
+      case "ordersBuyCancelled":
+        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
+        result = ordersBuyCancelled;
+        break;
+      case "ordersSellCancelled":
+        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
+        result = ordersSellCancelled;
+        break;
+      case "stopOrdersCancelled":
+        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
+        result = stopOrdersCancelled ;
+        break;
+      case "stopOrdersClosed":
+        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
+        result = stopOrdersClosed ;
+        break;
+      case "stopOrdersOpened":
+        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, locale);
+        result = stopOrdersOpened;
+        break;
     }
+    return result;
+  }
 
   @RequestMapping("/2a8fy7b07dxe44/addUser")
   public ModelAndView addUser(HttpSession httpSession) {
@@ -506,7 +513,7 @@ public class AdminController {
     merchantList.sort(Comparator.comparing(Merchant::getName));
     model.addObject("merchants", merchantList);
     Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-        .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+            .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
     AuthorityOptionsForm form = new AuthorityOptionsForm();
     form.setUserId(user.getId());
     form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
@@ -577,15 +584,15 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
   public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
-        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
-        try {
-            userService.setGlobal2FaActive(use2fa);
-        } catch (Exception e) {
-            log.error(e);
-            response.setStatus(400);
-            return "error";
-        }
-        return "ok";
+    boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+    try {
+      userService.setGlobal2FaActive(use2fa);
+    } catch (Exception e) {
+      log.error(e);
+      response.setStatus(400);
+      return "error";
+    }
+    return "ok";
   }
 
   @AdminLoggable
@@ -600,7 +607,7 @@ public class AdminController {
     if (user.getFinpassword() == null) {
       user.setFinpassword("");
     }
-        /**/
+    /**/
     registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
       model.setViewName("admin/editUser");
@@ -619,29 +626,17 @@ public class AdminController {
       updateUserDto.setStatus(user.getUserStatus());
       userService.updateUserByAdmin(updateUserDto);
       if (updateUserDto.getStatus() == UserStatus.DELETED) {
-        invalidateUserSession(updateUserDto.getEmail());
+        userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
       } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
         notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
       }
 
       model.setViewName("redirect:/2a8fy7b07dxe44");
     }
-        /**/
+    /**/
     model.addObject("user", user);
-        /**/
+    /**/
     return model;
-  }
-
-  private void invalidateUserSession(String userEmail) {
-    Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
-        .filter(principalObj -> {
-          UserDetails principal = (UserDetails) principalObj;
-          return userEmail.equals(principal.getUsername());
-        })
-        .findFirst();
-    if (updatedUser.isPresent()) {
-      sessionRegistry.getAllSessions(updatedUser.get(), false).forEach(SessionInformation::expireNow);
-    }
   }
 
   /*todo move this method from admin controller*/
@@ -672,57 +667,43 @@ public class AdminController {
     return redirectView;
   }
 
-
   /*todo move this method from admin controller*/
-  @RequestMapping(value = "settings/changePassword/submit", method = POST)
-  public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, Principal principal, HttpServletRequest request) {
-    user.setStatus(user.getUserStatus());
+  @ResponseBody
+  @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
+                                       Principal principal, HttpServletRequest request, HttpServletResponse response) {
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+
+    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    User userPrincipal = userService.findByEmail(principal.getName());
+    Object message;
     if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 0);
+      response.setStatus(500);
+      message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
     } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setEmail(principal.getName()); //need for send the email
-      userService.update(updateUserDto, localeResolver.resolveLocale(request));
-      new SecurityContextLogoutHandler().logout(request, null, null);
-      model.setViewName("redirect:/dashboard");
+      if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
+
+        UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+        updateUserDto.setPassword(user.getConfirmPassword());
+        updateUserDto.setStatus(UserStatus.ACTIVE);
+        updateUserDto.setRole(user.getRole());
+        updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
+        userService.update(updateUserDto, localeResolver.resolveLocale(request));
+        message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
+        userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
+      } else {
+        response.setStatus(500);
+        message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
+      }
     }
-
-    model.addObject("user", user);
-
-    return model;
+    return new JSONObject(){{put("message", message);}}.toString();
   }
 
-  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
-  public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
-    user.setStatus(user.getUserStatus());
-    registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 1);
-    } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setFinpassword(user.getFinpassword());
-      updateUserDto.setEmail(principal.getName()); //need for send the email
-      userService.update(updateUserDto, localeResolver.resolveLocale(request));
 
-      final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));
-      redir.addFlashAttribute("msg", message);
-      model.setViewName("redirect:/settings");
-    }
-
-    return model;
-  }*/
-
-  /*todo move this method from admin controller*/
-  @RequestMapping(value = "/changePasswordConfirm")
-  public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
+  /*
+    //todo move this method from admin controller
+    @RequestMapping(value = "/changePasswordConfirm")
+  public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
     try {
       request.setCharacterEncoding("utf-8");
     } catch (UnsupportedEncodingException e) {
@@ -731,9 +712,20 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     try {
       if (userService.verifyUserEmail(token) != 0) {
-        model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
+        User userUpdate = userService.findByEmail(user.getEmail());
+        UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+        updateUserDto.setEmail(userUpdate.getEmail());
+        updateUserDto.setPassword(userUpdate.getPassword());
+        updateUserDto.setStatus(UserStatus.ACTIVE);
+        userService.updateUserByAdmin(updateUserDto);
+        Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
+        org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                updateUserDto.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        attr.addFlashAttribute("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
       } else {
-        model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
+        attr.addFlashAttribute("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
       }
       model.setViewName("redirect:/dashboard");
     } catch (Exception e) {
@@ -742,28 +734,7 @@ public class AdminController {
     }
     return model;
   }
-
-  /*@RequestMapping(value = "/changeFinPasswordConfirm")
-  public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
-    try {
-      request.setCharacterEncoding("utf-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ModelAndView model = new ModelAndView();
-    try {
-      if (userService.verifyUserEmail(token) != 0) {
-        model.addObject("successNoty", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
-      } else {
-        model.addObject("errorNoty", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
-      }
-      model.setViewName("redirect:/dashboard");
-    } catch (Exception e) {
-      model.setViewName("DBError");
-      e.printStackTrace();
-    }
-    return model;
-  }*/
+  */
 
   /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changeNickname/submit", method = POST)
@@ -868,7 +839,7 @@ public class AdminController {
       adminOrderFilterData.initFilterItems();
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
       DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
-          localeResolver.resolveLocale(request));
+              localeResolver.resolveLocale(request));
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);
@@ -889,7 +860,7 @@ public class AdminController {
       adminOrderFilterData.initFilterItems();
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
       DataTable<List<OrderBasicInfoDto>> orderInfo = stopOrderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
-          localeResolver.resolveLocale(request));
+              localeResolver.resolveLocale(request));
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);
@@ -938,8 +909,8 @@ public class AdminController {
   private List<UserWalletSummaryDto> getSublistForRole(List<UserWalletSummaryDto> fullResult, String role) {
     List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(role);
     List<UserWalletSummaryDto> roleFiltered = fullResult.stream()
-        .filter(e -> realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
-        .collect(Collectors.toList());
+            .filter(e -> realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
+            .collect(Collectors.toList());
     List<UserWalletSummaryDto> result = new ArrayList<>();
     for (UserWalletSummaryDto item : roleFiltered) {
       if (!result.contains(item)) {
@@ -995,39 +966,14 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
   @ResponseBody
   public List<UserSessionDto> retrieveUserSessionInfo() {
-    List<UserSessionDto> result = null;
-    try {
-      Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
-          .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-          .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
-            UserDetails user = (UserDetails) sessionInformation.getPrincipal();
-            return user.getUsername();
-          }));
-      log.debug("USsize ", + usersSessions.size());
-      Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
-          .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
-      log.debug("USinfosize ", + userSessionInfo.size());
-      result = usersSessions.entrySet().stream()
-          .map(entry -> {
-            UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
-            return dto;
-          }).collect(Collectors.toList());
-    } catch (Exception e) {
-      log.error("session_error {}", e);
-    }
-    return result;
+    return userSessionService.retrieveUserSessionInfo();
   }
 
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/expireSession", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
-    SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
-    if (sessionInfo == null) {
-      return new ResponseEntity<>("Sesion not found", HttpStatus.NOT_FOUND);
-    }
-    sessionInfo.expireNow();
-    return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
+    return userSessionService.expireSession(sessionId);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
@@ -1072,12 +1018,12 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
   public void editCurrencyPairLimit(@RequestParam int currencyPairId,
-                                                    @RequestParam OrderType orderType,
-                                                    @RequestParam String roleName,
-                                                    @RequestParam BigDecimal minRate,
-                                                    @RequestParam BigDecimal maxRate,
-                                                    @RequestParam BigDecimal minAmount,
-                                                    @RequestParam BigDecimal maxAmount) {
+                                    @RequestParam OrderType orderType,
+                                    @RequestParam String roleName,
+                                    @RequestParam BigDecimal minRate,
+                                    @RequestParam BigDecimal maxRate,
+                                    @RequestParam BigDecimal minAmount,
+                                    @RequestParam BigDecimal maxAmount) {
     validateDecimalLimitValues(minAmount, maxAmount);
     validateDecimalLimitValues(minRate, maxRate);
     currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount);
@@ -1113,10 +1059,10 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
-                                                @RequestParam BigDecimal mainWalletBalance,
-                                                @RequestParam BigDecimal reservedWalletBalance,
-                                                @RequestParam BigDecimal coldWalletBalance,
-                                                @RequestParam BigDecimal rateUsdAdditional) {
+                                                    @RequestParam BigDecimal mainWalletBalance,
+                                                    @RequestParam BigDecimal reservedWalletBalance,
+                                                    @RequestParam BigDecimal coldWalletBalance,
+                                                    @RequestParam BigDecimal rateUsdAdditional) {
 
     ExternalWalletsDto externalWalletsDto = new ExternalWalletsDto();
     externalWalletsDto.setCurrencyId(currencyId);
@@ -1150,9 +1096,9 @@ public class AdminController {
     }
     String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
     sessionRegistry.getAllPrincipals().stream()
-        .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
-        .findFirst()
-        .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
+            .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+            .findFirst()
+            .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
     return redirectView;
   }
 
@@ -1227,7 +1173,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw", method = RequestMethod.POST)
   @ResponseBody
   public void toggleSubtractMerchantCommissionForWithdraw(@RequestParam Integer merchantId, @RequestParam Integer currencyId,
-                                                                          @RequestParam Boolean subtractMerchantCommissionForWithdraw) {
+                                                          @RequestParam Boolean subtractMerchantCommissionForWithdraw) {
     merchantService.toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractMerchantCommissionForWithdraw);
   }
 
@@ -1279,14 +1225,14 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Map<String, List<String>> getPhrases(
-      @PathVariable String topic,
-      @RequestParam String email) {
+          @PathVariable String topic,
+          @RequestParam String email) {
     String lang = userService.getPreferedLangByEmail(email);
     Locale userLocale = Locale.forLanguageTag(StringUtils.isEmpty(lang) ? "EN" : lang);
     UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
     List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
-        .map(e -> messageSource.getMessage(e, null, userLocale))
-        .collect(Collectors.toList());
+            .map(e -> messageSource.getMessage(e, null, userLocale))
+            .collect(Collectors.toList());
     return new HashMap<String, List<String>>() {{
       put("lang", Arrays.asList(userLocale.getLanguage()));
       put("list", phrases);
@@ -1297,9 +1243,9 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyPermissions/submit", method = RequestMethod.POST, consumes = "application/json")
   @ResponseBody
   public void editCurrencyPermissions(
-      @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
-      HttpSession httpSession,
-      Principal principal) {
+          @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
+          HttpSession httpSession,
+          Principal principal) {
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 
@@ -1327,7 +1273,7 @@ public class AdminController {
     }
     return (BitcoinService) merchantService;
   }
-  
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
   public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
@@ -1341,19 +1287,19 @@ public class AdminController {
     modelAndView.addObject("rawTxEnabled", bitcoinService.isRawTxEnabled());
     return modelAndView;
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
   @ResponseBody
   public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
     return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)
   @ResponseBody
   public String getEstimatedFee(@PathVariable String merchantName) {
     return getBitcoinServiceByMerchantName(merchantName).getEstimatedFeeString();
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/actualFee", method = RequestMethod.GET)
   @ResponseBody
   public BigDecimal getActualFee(@PathVariable String merchantName) {
@@ -1387,16 +1333,16 @@ public class AdminController {
     responseDto.setNewBalance(walletService.getWalletInfo().getBalance());
     return responseDto;
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/details", method = RequestMethod.GET,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public Map<String, RefillRequestBtcInfoDto> getTransactionDetails(@PathVariable String merchantName,
-                                        @RequestParam("currency") String currencyName,
-                                        @RequestParam String hash,
-                                        @RequestParam String address) {
-   Optional<RefillRequestBtcInfoDto> dtoResult = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, hash,
-           merchantName, currencyName);
+                                                                    @RequestParam("currency") String currencyName,
+                                                                    @RequestParam String hash,
+                                                                    @RequestParam String address) {
+    Optional<RefillRequestBtcInfoDto> dtoResult = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, hash,
+            merchantName, currencyName);
     return dtoResult.isPresent() ? Collections.singletonMap("result", dtoResult.get()) : Collections.EMPTY_MAP;
   }
 
@@ -1420,11 +1366,11 @@ public class AdminController {
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void checkPayments(@PathVariable String merchantName,
-                                               @RequestParam(required = false) String blockhash) {
+                            @RequestParam(required = false) String blockhash) {
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
     walletService.scanForUnprocessedTransactions(blockhash);
   }
-  
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody
@@ -1444,9 +1390,9 @@ public class AdminController {
                                             HttpServletResponse response) throws IOException {
     response.setContentType("text/csv");
     String reportName =
-        "referrals-"
-            .concat(userService.getEmailById(profitUser))
-            .concat(".csv");
+            "referrals-"
+                    .concat(userService.getEmailById(profitUser))
+                    .concat(".csv");
     response.setHeader("Content-disposition", "attachment;filename=" + reportName);
     List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
     OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
@@ -1663,7 +1609,7 @@ public class AdminController {
   @ResponseBody
   @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses/table")
   public DataTable<List<RefillRequestAddressShortDto>> getRefillAddressesTable(RefillAddressFilterData filterData,
-                                                                                @RequestParam Map<String, String> params) {
+                                                                               @RequestParam Map<String, String> params) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     filterData.initFilterItems();
     return refillService.getAdressesShortDto(dataTableParams, filterData);
@@ -1682,15 +1628,15 @@ public class AdminController {
       throw new InvalidBtcPaymentDataException("Only unique addresses allowed in single payment!");
     }*/
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
-      HttpSession session = request.getSession();
-      List<BtcPreparedTransactionDto> preparedTransactions = (List<BtcPreparedTransactionDto>) session.getAttribute("PREPARED_RAW_TXES");
-      BtcAdminPreparedTxDto result;
+    HttpSession session = request.getSession();
+    List<BtcPreparedTransactionDto> preparedTransactions = (List<BtcPreparedTransactionDto>) session.getAttribute("PREPARED_RAW_TXES");
+    BtcAdminPreparedTxDto result;
 
-      if (preparedTransactions != null) {
-          result = walletService.updateRawTransactions(preparedTransactions);
-      } else {
-          result = walletService.prepareRawTransactions(payments);
-      }
+    if (preparedTransactions != null) {
+      result = walletService.updateRawTransactions(preparedTransactions);
+    } else {
+      result = walletService.prepareRawTransactions(payments);
+    }
     final Object mutex = WebUtils.getSessionMutex(session);
     synchronized (mutex) {
       session.setAttribute("PREPARED_RAW_TXES", result.getPreparedTransactions());
@@ -1762,8 +1708,8 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
-    public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
-    }
+  public static void main(String[] args) {
+    System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
 
 }

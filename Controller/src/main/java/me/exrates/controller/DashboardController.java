@@ -9,7 +9,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;
-import me.exrates.service.util.IpUtils;
+import me.exrates.service.session.UserSessionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +20,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -35,8 +34,6 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
@@ -77,6 +74,9 @@ public class DashboardController {
 
   @Autowired
   LocaleResolver localeResolver;
+
+  @Autowired
+  private UserSessionService userSessionService;
 
   @Autowired
   VerifyReCaptchaSec verifyReCaptcha;
@@ -229,14 +229,12 @@ public class DashboardController {
       int userId = userService.verifyUserEmail(token);
       if (userId != 0){
           User user = userService.getUserById(userId);
+
           attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
                   null, localeResolver.resolveLocale(request)));
           attr.addFlashAttribute("user", user);
-          model.setViewName("redirect:/passwordRecovery");
 
-          user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
-          user.setStatus(UserStatus.REGISTERED);
-          user.setPassword(null);
+          model.setViewName("redirect:/passwordRecovery");
       } else {
           if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
               attr.addFlashAttribute("userEmail", email);
@@ -262,11 +260,11 @@ public class DashboardController {
       modelAndView.addObject("captchaType", CAPTCHA_TYPE);
       return modelAndView;
     } else {
+      User userUpdate = userService.findByEmail(user.getEmail());
       ModelAndView model = new ModelAndView();
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+      UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
       updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setRole(UserRole.USER);
-      updateUserDto.setStatus(UserStatus.ACTIVE);
+
       userService.updateUserByAdmin(updateUserDto);
 
       Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
@@ -282,6 +280,8 @@ public class DashboardController {
               );
       Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
       SecurityContextHolder.getContext().setAuthentication(auth);
+
+      userSessionService.invalidateUserSessionExceptSpecific(user.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
 
       attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
       model.setViewName("redirect:/dashboard");
