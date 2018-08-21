@@ -18,6 +18,7 @@ import java.util.Optional;
 
 /**
  * Created by Maks on 13.12.2017.
+ * Updated by Vlad on 09.07.2018 (add type of alert - SYSTEM_MESSAGE_TO_USER)
  */
 @Repository
 public class UserAlertsDaoImpl implements UserAlertsDao {
@@ -37,6 +38,16 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
                 .ifPresent(p->alertDto.setEventStart(p.toLocalDateTime()));
         Optional.ofNullable(rs.getInt("length"))
                 .ifPresent(alertDto::setLenghtOfWorks);
+        return alertDto;
+    };
+
+    private static RowMapper<AlertDto> getAlertsSystemMessageForUsersDtoMapper = (rs, idx) -> {
+        AlertDto alertDto = AlertDto
+                .builder()
+                .title(rs.getString("title"))
+                .text(rs.getString("content"))
+                .language(rs.getString("language"))
+                .build();
         return alertDto;
     };
 
@@ -84,5 +95,24 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
         return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper);
     }
 
+    @Override
+    public AlertDto getAlertSystemMessageToUser(String language){
+        String sql = "SELECT title, content, language FROM SERVICE_ALERTS_SYSTEM_MESSAGE SASM WHERE SASM.language = :language";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("language", language);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, getAlertsSystemMessageForUsersDtoMapper);
+    }
+
+    @Override
+    public void setAlertSystemMessageToUser(AlertDto alertDto){
+        String sql = "UPDATE SERVICE_ALERTS_SYSTEM_MESSAGE SASM SET SASM.title = :title, SASM.content= :content WHERE SASM.language = :language";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("title", alertDto.getTitle());
+            put("content", alertDto.getText());
+            put("language", alertDto.getLanguage());
+        }};
+        jdbcTemplate.update(sql, params);
+    };
 
 }

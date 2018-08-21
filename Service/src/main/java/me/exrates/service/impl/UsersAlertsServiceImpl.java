@@ -19,6 +19,7 @@ import java.util.Locale;
 
 /**
  * Created by Maks on 13.12.2017.
+ * Updated by Vlad on 09.07.2018 (add type of alert - SYSTEM_MESSAGE_TO_USER)
  */
 @Log4j2
 @Service
@@ -68,6 +69,9 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
                     }
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(),
                             new String[]{p.getLenghtOfWorks().toString()}, locale));
+                } else if(alertType.equals(AlertType.SYSTEM_MESSAGE_TO_USERS)){
+                    p.setTitle(getAlertSystemMessageToUser(locale.toString()).getTitle());
+                    p.setText(getAlertSystemMessageToUser(locale.toString()).getText());
                 } else {
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(), null, locale));
                 }
@@ -76,9 +80,19 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
     }
 
     @Override
+    public AlertDto getAlertSystemMessageToUser(String language){
+        return userAlertsDao.getAlertSystemMessageToUser(language);
+    }
+
+    @Override
     @Transactional
     public AlertDto getAlert(AlertType alertType) {
         return userAlertsDao.getAlert(alertType.name());
+    }
+
+    @Override
+    public void setAlertSystemMessageToUser(AlertDto alertDto){
+        userAlertsDao.setAlertSystemMessageToUser(alertDto);
     }
 
     @Transactional

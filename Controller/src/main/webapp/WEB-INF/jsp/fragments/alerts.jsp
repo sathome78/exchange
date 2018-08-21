@@ -51,4 +51,11 @@
             </div>
         </div>
     </div>
+
+    <div class="alert-system-message" id="sys_message_alert" style="display: none">
+        <button class="accordion" id="sys_message_alert_title"></button>
+        <div class="panel-for-alert-system-message" id="sys_message_alert_text_div">
+            <h5 id="sys_message_alert_text"></h5>
+        </div>
+    </div>
 </div>
