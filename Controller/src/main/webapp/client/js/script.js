@@ -38,8 +38,6 @@ $(function () {
         /*document.getElementById("register_button").disabled = true;*/
     }
 
-
-
     $("#repass").keyup(function () {
         var pass = $('#pass').val();
         var repass = $('#repass').val();
@@ -74,10 +72,8 @@ $(function () {
 
     $('#login, #email').keyup(checkFill)
 
-
-
-
 });
+
 function checkFill() {
     var email = $('#email').val();
     var login = $('#login').val();
@@ -89,6 +85,28 @@ function checkFill() {
         $("#register_button").prop('disabled', false);
     } else {
         $("#register_button").prop('disabled', true);
+    }
+}
+
+$(function () {
+    /*Activates submit button if all field filled correct (email, password, captcha) on login page (/login)
+    and on /dashboard page for login model panel
+     * */
+    if (document.getElementById("login_button")) {
+        checkFillOnLoginPage();
+    }
+    $('#login__name, #login__password, #captchaCode').keyup(checkFillOnLoginPage)
+});
+
+function checkFillOnLoginPage() {
+    var email = $('#login__name').val();
+    var password = $('#login__password').val();
+    var captchaCode = $('#captchaCode').val();
+
+    if (email && password && captchaCode) {
+        $("#login_button").prop('disabled', false);
+    } else {
+        $("#login_button").prop('disabled', true);
     }
 }
 

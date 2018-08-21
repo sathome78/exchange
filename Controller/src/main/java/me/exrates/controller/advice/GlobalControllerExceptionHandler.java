@@ -8,6 +8,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -23,8 +24,8 @@ import java.util.List;
 import java.util.Locale;
 
 
-@ControllerAdvice
 @Log4j2
+@ControllerAdvice
 public class GlobalControllerExceptionHandler {
 
     private final MessageSource messageSource;
@@ -61,15 +62,13 @@ public class GlobalControllerExceptionHandler {
     public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
-    
-    
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        log.error(exception);
+    public ModelAndView OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        log.error("URL: "+req.getRequestURL()+" | Exception "+exception);
         exception.printStackTrace();
-        return new ErrorInfo(req.getRequestURL(), exception);
+        return new ModelAndView("errorPages/generalErrorPage");
     }
 }

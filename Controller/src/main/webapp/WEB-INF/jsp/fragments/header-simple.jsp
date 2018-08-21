@@ -13,6 +13,8 @@
 <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 
+
+
 <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
@@ -59,7 +61,6 @@
                     </li>
 
                     <li id="hello-my-friend"><a class="nav__link" href="">
-                        <loc:message code="dashboard.hello"/>
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>
                 </sec:authorize>
@@ -150,7 +151,9 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <!--
                         <li><a href="#" class="language">AR</a></li>
+                        -->
                     </ul>
                 </li>
                 <sec:authorize access="isAuthenticated()">
@@ -173,6 +176,8 @@
     </div>
 </header>
 
+<%@include file="../fragments/alerts.jsp" %>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 <%--capcha--%>
 <c:if test="${showEntrance && !isAuth && captchaType==\"RECAPTCHA\"}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>

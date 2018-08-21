@@ -2,6 +2,7 @@ package me.exrates.service.cache;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -45,7 +46,7 @@ public class ChartsCache {
     @PostConstruct
     public void init() {
         if (!lazyLoad) {
-            List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs();
+            List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
             pairs.forEach(p -> {
                 log.debug("start initialize cache for {}", p.getName());
                 updateCache(p.getId());

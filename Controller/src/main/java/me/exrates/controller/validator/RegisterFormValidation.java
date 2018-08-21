@@ -30,7 +30,7 @@ public class RegisterFormValidation implements Validator {
     String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
-    private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_]+";
+    private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
 //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
@@ -125,6 +125,87 @@ public class RegisterFormValidation implements Validator {
 
     }
 
+    public void validate(String nickname, String email, String password, Errors errors, Locale ru) {
+        this.ru = ru;
+
+        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, ru);
+        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, ru);
+        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, ru);
+        String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
+        String emailExists = messageSource.getMessage("validation.emailexists", null, ru);
+        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
+
+        if (nickname != null) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
+                    nicknameRequired);
+
+            if (!nickname.matches(NICKNAME_PATTERN)) {
+                errors.rejectValue("nickname", "login.latinonly");
+                errors.rejectValue("nickname", "login.symbonly");
+                errors.rejectValue("nickname", "login.notdigit");
+                return;
+            }
+
+            if (nickname.length() > 40) {
+                errors.rejectValue("nickname", "nickname.exceed", nicknameExceed);
+            }
+
+
+            if (!userService.ifNicknameIsUnique(nickname)) {
+                errors.rejectValue("nickname", "nickname.incorrect", nicknameExists);
+            }
+        }
+
+        if (email != null) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
+                    "required.email", emailRequired);
+
+            pattern = Pattern.compile(EMAIL_PATTERN);
+            matcher = pattern.matcher(email);
+            if (!matcher.matches()) {
+                errors.rejectValue("email", "email.incorrect", emailIncorrect);
+            }
+
+            if (!userService.ifEmailIsUnique(email)) {
+                errors.rejectValue("email", "email.exists", emailExists);
+            }
+        }
+
+        if (password != null) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
+                    "required.password", passwordRequired);
+
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(password);
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }
+    }
+
+    public void validateNickname(Object target, Errors errors, Locale locale) {
+        User user = (User) target;
+        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, locale);
+        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, locale);
+        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, locale);
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
+                nicknameRequired);
+        if (!user.getNickname().matches(NICKNAME_PATTERN)) {
+            errors.rejectValue("nickname", "login.latinonly");
+            errors.rejectValue("nickname", "login.symbonly");
+            errors.rejectValue("nickname", "login.notdigit");
+            return;
+        }
+        if (user.getNickname().length() > 40) {
+            errors.rejectValue("nickname", "nickname.exceed", nicknameExceed);
+        }
+        if (!userService.ifNicknameIsUnique(user.getNickname())) {
+            errors.rejectValue("nickname", "nickname.incorrect", nicknameExists);
+        }
+    }
+
     public void validateEditUser(Object target, Errors errors, Locale ru) {
         User user = (User) target;
         String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
@@ -173,10 +254,10 @@ public class RegisterFormValidation implements Validator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
                 "required.password", passwordRequired);
 
-        if (!user.getPassword().equals(user.getConfirmPassword())) {
-            errors.rejectValue("confirmPassword", "password.mismatch",
-                    passwordMismatch);
-        }
+//        if (!user.getPassword().equals(user.getConfirmPassword())) {
+//            errors.rejectValue("confirmPassword", "password.mismatch",
+//                    passwordMismatch);
+//        }
 
         if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
             pattern = Pattern.compile(PASSWORD_PATTERN);
@@ -216,12 +297,13 @@ public class RegisterFormValidation implements Validator {
         String statusIncorrect = messageSource.getMessage("login.blocked", null, ru);
 
         int userId = userService.getIdByEmail(user.getEmail());
-        if (userId <= 0) {
+        if (userId != 0) {
+            User findUser = userService.getUserById(userId);
+            if (findUser.getStatus() == UserStatus.DELETED){
+                errors.rejectValue("email", "email.incorrect", statusIncorrect);
+            }
+        } else {
             errors.rejectValue("email", "email.incorrect", emailIncorrect);
-        }
-        User findUser = userService.getUserById(userId);
-        if (findUser.getStatus() == UserStatus.DELETED){
-            errors.rejectValue("email", "email.incorrect", statusIncorrect);
         }
     }
 }

@@ -12,6 +12,7 @@ import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -24,6 +25,14 @@ public interface UserService {
   int getIdByEmail(String email);
 
   int getIdByNickname(String nickname);
+
+  /**
+   * Stores preferred locale for user in DB
+   *
+   * @param user
+   * @return "true" if data saved successfully, or "false" if none
+   */
+  boolean setNickname(User user);
 
   User findByEmail(String email);
 
@@ -43,7 +52,7 @@ public interface UserService {
 
     List<String> getLocalesList();
 
-    boolean create(User user, Locale locale);
+    boolean create(User user, Locale locale, String source);
 
   boolean ifNicknameIsUnique(String nickname);
 
@@ -80,7 +89,7 @@ public interface UserService {
   boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
   @Transactional(rollbackFor = Exception.class)
-  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass);
+  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
 
   void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
@@ -193,4 +202,7 @@ public interface UserService {
     List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
 
   Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+
+    String getUserEmailFromSecurityContext();
 }

@@ -124,6 +124,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/externalWallets'/>"><loc:message code="admin.externalWallets.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>
@@ -146,7 +147,7 @@
 
         <li>
             <%--crypto wallets--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                 <a href="#cryptoWalletsMenu"  data-toggle="collapse">
                     <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="cryptoWalletsMenu">

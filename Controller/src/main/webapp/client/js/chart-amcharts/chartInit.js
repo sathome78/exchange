@@ -2,7 +2,7 @@
  * Created by Valk on 09.05.2016.
  */
 
-function ChartAmchartsClass(type, period, $loadingImg) {
+function ChartAmchartsClass(type, period, $loadingImg, pairsType) {
     if ($('.amcharts-graphics').css('display') == 'none') {
         throw new Error('Amcharts chart is switched off');
     }
@@ -18,6 +18,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
     this.chartType = null;
 
     var stockChart;
+    var cpType;
 
     this.drawChart = function (data) {
         switch (that.chartType) {
@@ -30,13 +31,14 @@ function ChartAmchartsClass(type, period, $loadingImg) {
     };
 
     /*==========================================*/
-    (function init(type, period, $loadingImg) {
+    (function init(type, period, $loadingImg, pairsType) {
+        cpType = pairsType;
         stockChart = new StockChartAmchartsClass($loadingImg);
         that.chartType = type;
         $('.period-menu__item').on('click', setPeriod);
         $('.chart-type-menu__item').on('click', setChart);
         syncButtonToPeriod(period);
-    })(type, period, $loadingImg);
+    })(type, period, $loadingImg, pairsType);
 
     function setPeriod() {
         stockChart.$loadingImg.removeClass('hidden');
@@ -69,7 +71,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
                 break;
             }
         }
-        syncCurrentParams(null, period, null, null, null, function (data) {
+        syncCurrentParams(null, period, null, null, null, cpType, function (data) {
             $(button).siblings().removeClass('active');
             $(button).toggleClass('active');
             trading.getAndShowStatisticsForCurrency();

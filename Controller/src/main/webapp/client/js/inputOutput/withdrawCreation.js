@@ -155,7 +155,7 @@ $(function withdrawCreation() {
         }
         if (merchantIsSimpleInvoice) {
             $withdrawParamsDialog.find("#merchant-commission-warning").hide();
-            showFinPassModal();
+            performWithdraw();
         } else {
             $withdrawParamsDialog.find("#merchant-commission-warning").hide();
             $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
@@ -170,7 +170,7 @@ $(function withdrawCreation() {
                     return;
                 }
                 $withdrawParamsDialog.one('hidden.bs.modal', function () {
-                    showFinPassModal();
+                    performWithdraw();
                 });
                 $withdrawParamsDialog.modal("hide");
             });
@@ -179,7 +179,7 @@ $(function withdrawCreation() {
         }
     }
 
-    function showFinPassModal() {
+    /*function showFinPassModal() {
         $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
             e.preventDefault();
             var finPassword = $finPasswordDialog.find("#finpassword").val();
@@ -191,9 +191,9 @@ $(function withdrawCreation() {
         $finPasswordDialog.modal({
             backdrop: 'static'
         });
-    }
+    }*/
 
-    function performWithdraw(finPassword) {
+    function performWithdraw() {
         var data = {
             currency: currency,
             merchant: merchant,
@@ -219,19 +219,20 @@ $(function withdrawCreation() {
                     data.destination = $withdrawDetailedParamsDialog.find("#user-account").val();
                     data.userFullName = $withdrawDetailedParamsDialog.find("#user-full-name").val();
                     data.remark = $withdrawDetailedParamsDialog.find("#remark").val();
-                    sendRequest(data, finPassword);
+                    sendRequest(data);
                 }
             });
             showWithdrawDetailDialog();
         } else {
-            sendRequest(data, finPassword);
+            sendRequest(data);
         }
     }
 
-    function sendRequest(data, finPassword) {
+    function sendRequest(data) {
+        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
-                url: urlForWithdrawCreate + '?finpassword=' + finPassword,
+                url: urlForWithdrawCreate,
                 async: true,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -293,17 +294,22 @@ $(function withdrawCreation() {
             },
             type: 'POST',
             contentType: 'application/json'
-        }).success(function (result) {
-            $pinDialogModal.modal("hide");
-            withdrawSuccess(result)
-        }).error(function (result) {
-            var res = result.responseJSON;
-            if (res.cause == 'IncorrectPinException') {
-                $pinDialogText.text(res.detail);
+        }).success(function (result, textStatus, xhr) {
+            if (xhr.status === 200) {
+                $pinDialogModal.modal("hide");
+                withdrawSuccess(result)
+            } else {
                 $pinWrong.show();
+                $pinDialogText.text(result.message);
+                if (result.needToSendPin) {
+                    successNoty(result.message)
+                }
             }
+        }).error(function (result) {
+
         }).complete(function () {
             $pinInput.val("");
+            $pinSendButton.prop('disabled', true);
         });
     }
 

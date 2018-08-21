@@ -34,6 +34,7 @@ public class RatesHolderImpl implements RatesHolder {
 
     @PostConstruct
     public void init() {
+
     }
 
     @Override

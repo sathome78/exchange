@@ -6,7 +6,7 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by ajet on
@@ -60,7 +60,7 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
 
     Web3j getWeb3j();
 
-    List<String> getAccounts();
+    Set<String> getAccounts();
 
     void saveLastBlock(String block);
 

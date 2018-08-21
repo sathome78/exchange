@@ -162,7 +162,12 @@ public class CommissionServiceImpl implements CommissionService {
       Integer merchantId, String destinationTag) {
     Map<String, String> result = new HashMap<>();
     Boolean specMerchantComissionCount = false;
-    Commission companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
+    Commission companyCommission;
+    if (type == OperationType.OUTPUT && currencyService.isIco(currencyId)) {
+      companyCommission = Commission.zeroComission();
+    } else {
+      companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
+    }
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
     Merchant merchant = merchantService.findById(merchantId);

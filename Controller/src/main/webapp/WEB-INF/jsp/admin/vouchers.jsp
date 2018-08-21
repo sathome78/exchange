@@ -45,8 +45,13 @@
                   <loc:message code="transaction.id"/>
                 </label>
               </div>
-              <div class="col-md-9 input-block-wrapper__input-wrapper">
+              <div class="col-md-2 input-block-wrapper__input-wrapper">
                 <input type="number" id="filter-id" name="voucherId">
+              </div>
+              <div class="col-md-7 input-block-wrapper__label-wrapper">
+                <span id="errorValueForTransactionId" class="input-block-wrapper__label" style="color: #FF0000;" hidden>
+                  <loc:message code="transaction.id.error.message.for.user"/>
+                </span>
               </div>
             </div>
             <%--CURRENCY--%>

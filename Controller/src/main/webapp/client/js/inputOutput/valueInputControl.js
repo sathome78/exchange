@@ -71,7 +71,7 @@ $(function () {
         .on('input', function (e) {
             const minSumNotyId = $(this).data("min-sum-noty-id");
             const buttonId = $(this).data("submit-button-id");
-            const currency = $(this).data("currency-name").trim();
+            /*const currency = $(this).data("currency-name").trim();*/
             const maxAmount = parseFloat($(this).data("max-amount"));
             const minAmount = parseFloat($(this).data("min-amount"));
             const balance = parseFloat($(this).data("balance"));
@@ -79,7 +79,8 @@ $(function () {
             var val = $(this).val();
             var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
             var result = val.match(regx);
-            var maxSum = (currency === 'IDR') ? 999999999999.99 : 999999.99;
+            /*var maxSum = (currency === 'IDR') ? 999999999999.99 : 999999.99;*/
+            var maxSum = 999999.99;
             if (!result || result[0] != val) {
                 $(this).val('');
             }

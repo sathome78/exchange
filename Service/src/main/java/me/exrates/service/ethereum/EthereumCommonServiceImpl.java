@@ -2,6 +2,7 @@ package me.exrates.service.ethereum;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -59,7 +60,6 @@ import java.util.function.BiFunction;
  * Created by ajet
  */
 //@Service
-@Log4j2(topic = "ethereum_log")
 public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
@@ -93,9 +93,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private String mainAddress;
 
-    private final List<String> accounts = new ArrayList<>();
+    private final Set<String> accounts = new HashSet<>();
 
-    private final List<String> pendingTransactions = new ArrayList<>();
+    private final Set<String> pendingTransactions = new HashSet<>();
 
     private Web3j web3j;
 
@@ -141,6 +141,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
+    private Logger log;
+
     private BigDecimal ethComissionPrice = new BigDecimal(0.0003);
     private BigDecimal ethComissionTokeWithdraw = new BigDecimal(0.003);
 
@@ -154,7 +156,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     @Override
-    public List<String> getAccounts() {
+    public Set<String> getAccounts() {
         return accounts;
     }
 
@@ -215,6 +217,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
+            this.log = LogManager.getLogger(props.getProperty("ethereum.log"));
             if (merchantName.equals("Ethereum")){
                 this.withdrawNodeUrl = props.getProperty("ethereum.withdraw.url");
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
@@ -234,8 +237,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @PostConstruct
     void start() {
-
         merchantId = merchantService.findByName(merchantName).getId();
+
+        log.info("start " + merchantName);
 
         web3j = Web3j.build(new HttpService(url));
         web3jForEthWithdr = Web3j.build(new HttpService(withdrawNodeUrl));
@@ -255,6 +259,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 log.error(e);
             }
         }, 4, 20, TimeUnit.MINUTES);
+
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
@@ -266,13 +271,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }
             }
         }, 1, 24, TimeUnit.HOURS);
+
         checkerScheduler.scheduleWithFixedDelay(() -> {
             if (needToCheckTokens) {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
             }
         }, 5, 5, TimeUnit.MINUTES);
     }
-
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -496,51 +501,33 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
+            final int[] counter = {0};
+            final String[] currentHash = new String[1];
+            currentHash[0] = "";
+
             observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
             subscription = observable.subscribe(ethBlock -> {
                 if (merchantName.equals("Ethereum")) {
                     if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
+                        counter[0]++;
                         return;
                     }
                 }
 
-                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
-                    log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
-
-                    List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
-                    pendingTransactions.forEach(transaction ->
-                            {
-                                try {
-                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult()==null){
-                                        return;
-                                    }
-                                    BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
-                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
-                                        provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
-                                        saveLastBlock(ethBlock.getBlockNumber().toString());
-                                        log.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
-                                        log.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
-                                        providedTransactions.add(transaction);
-                                    }
-                                } catch (EthereumException | IOException e) {
-                                    subscribeCreated = false;
-                                    log.error(merchantName + " " + e);
-                                }
-
-                            }
-
-                    );
-                    providedTransactions.forEach(transaction -> pendingTransactions.remove(transaction));
-                }
-
-                currentBlockNumber = ethBlock.getBlockNumber();
 //                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
 
 /*-------------Tokens--------------*/
                 if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
                 }
+
+                if (ethBlock.getTo() != null && ethBlock.getInput().contains("0xb61d27f6")
+                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34,74))){
+                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34,74)).tokenTransaction(ethBlock);
+                }
 /*---------------------------------*/
+
+                counter[0]++;
 
                 String recipient = ethBlock.getTo();
 
@@ -574,6 +561,52 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     }
                 }
 
+                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
+                    log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
+
+                    try {
+                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())){
+
+                            log.info(merchantName + " Block number for review: " + currentBlockNumber.add(new BigInteger("1")));
+                            log.info(merchantName + " Txs counter: " + counter[0]);
+                            log.info(merchantName + " Txs block: " + web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount());
+
+                        }
+
+                    } catch (Exception e) {
+                        log.error(e);
+                    }
+                    counter[0] = 0;
+
+                    List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
+                    pendingTransactions.forEach(transaction ->
+                            {
+                                try {
+                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult()==null){
+                                        return;
+                                    }
+                                    BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
+                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() >= minConfirmations){
+                                        provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
+                                        saveLastBlock(ethBlock.getBlockNumber().toString());
+                                        log.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
+                                        log.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
+                                        providedTransactions.add(transaction);
+                                    }
+                                } catch (EthereumException | IOException e) {
+                                    subscribeCreated = false;
+                                    log.error(merchantName + " " + e);
+                                }
+
+                            }
+
+                    );
+                    providedTransactions.forEach(transaction -> pendingTransactions.remove(transaction));
+                }
+
+                currentBlockNumber = ethBlock.getBlockNumber();
+                currentHash[0] = ethBlock.getBlockHash();
+
                 });
 
         } catch (Exception e) {
@@ -586,7 +619,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
         try {
             web3j.netVersion().send();
-            if (subscribeCreated == false){
+            if (subscription == null || subscribeCreated == false || subscription.isUnsubscribed()){
                 createSubscribe();
             }
             subscribeCreated = true;

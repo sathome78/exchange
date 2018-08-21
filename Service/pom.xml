@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
-    <btcd-cli4j.version>0.5.9.14</btcd-cli4j.version>
+    <btcd-cli4j.version>0.5.9.17</btcd-cli4j.version>
   </properties>
   <dependencies>
     <dependency>
@@ -110,12 +110,12 @@
     <dependency>
       <groupId>org.web3j</groupId>
       <artifactId>core</artifactId>
-      <version>3.3.1</version>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>org.web3j</groupId>
       <artifactId>codegen</artifactId>
-      <version>3.3.1</version>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>
@@ -140,12 +140,12 @@
     <dependency>
       <groupId>monero</groupId>
       <artifactId>monero-common</artifactId>
-      <version>1.0</version>
+      <version>1.2</version>
     </dependency>
     <dependency>
       <groupId>monero</groupId>
       <artifactId>monero-core</artifactId>
-      <version>1.0</version>
+      <version>1.2</version>
     </dependency>
     <dependency>
       <groupId>net.minidev</groupId>

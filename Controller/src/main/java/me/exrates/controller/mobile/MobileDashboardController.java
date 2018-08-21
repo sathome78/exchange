@@ -7,6 +7,7 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.*;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
@@ -310,7 +311,7 @@ public class MobileDashboardController {
     public GeneralInfoDto getGeneralInfo(@RequestParam(required = false) Integer currencyId) {
         GeneralInfoDto result = new GeneralInfoDto();
         result.setCommissions(orderService.getAllCommissions());
-        result.setCurrencyPairs(currencyService.findCurrencyPairsWithLimitsForUser());
+        result.setCurrencyPairs(currencyService.findCurrencyPairsWithLimitsForUser().stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(Collectors.toList()));
         List<Integer> currencyIds = currencyId == null ? Collections.EMPTY_LIST : Collections.singletonList(currencyId);
         result.setTransferLimits(currencyService.retrieveMinTransferLimits(currencyIds));
         result.setMerchants(merchantService.findNonTransferMerchantCurrencies(currencyId));
@@ -374,7 +375,7 @@ public class MobileDashboardController {
      */
     @RequestMapping(value = "/currencyPairs", method = GET)
     public List<CurrencyPairWithLimitsDto> getCurrencyPairs() {
-        return currencyService.findCurrencyPairsWithLimitsForUser();
+        return currencyService.findCurrencyPairsWithLimitsForUser().stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(Collectors.toList());
 
     }
 

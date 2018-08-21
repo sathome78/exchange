@@ -1,7 +1,18 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 
-<footer>
+<style>
+    .d_footer
+    {
+        position: relative;
+        bottom:0px;
+        width:100%;
+        text-align:center;
+        padding-top:5px;
+        padding-bottom:5px;
+    }
+</style>
+<footer class="d_footer" draggable: true>
     <div class="container">
         <div class="row">
             <span class="footer_link"><loc:message code="dashboard.allRightsReserved"/></span>
@@ -10,6 +21,7 @@
             <span class="footer_link"><a href="<c:url value="/contacts"/>"><loc:message code="dashboard.contactsAndSupport"/></a></span>
             <span class="footer_link"><a href="<c:url value="/aboutUs"/>"><loc:message code="dashboard.aboutUs"/></a></span>
             <span class="footer_link"><a href="<c:url value="/partners"/>"><loc:message code="partners.title"/></a></span>
+            <span class="footer_link"><a href="<c:url value="/api_docs"/>"><loc:message code="apiDoc.title"/></a></span>
         </div>
     </div>
 </footer>

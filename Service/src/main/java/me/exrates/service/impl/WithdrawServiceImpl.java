@@ -204,6 +204,7 @@ public class WithdrawServiceImpl implements WithdrawService {
           IWithdrawable merchantService = (IWithdrawable) merchant;
           e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
           e.setFixedComissionByAdmin(merchantService.fixedComissionSetsByAdmin());
+          e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
@@ -558,7 +559,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         throw new WithdrawRequestAlreadyPostedException(withdrawRequest.toString());
       }
       InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
-                withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+          withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
       WithdrawStatusEnum newStatus = requesterAdminId == null ?
           (WithdrawStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
@@ -651,6 +652,23 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   public List<Integer> getWithdrawalStatistic(String startDate, String endDate) {
     return withdrawRequestDao.getWithdrawalStatistic(startDate, endDate);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public WithdrawRequestInfoDto getWithdrawalInfo(Integer id, Locale locale) {
+    WithdrawRequestInfoDto infoDto = withdrawRequestDao.findWithdrawInfo(id);
+    String notificationMessageCode = "merchants.withdrawNotification.".concat(infoDto.getStatusEnum().name());
+    final Object[] messageParams = {
+            infoDto.getRequestId(),
+            infoDto.getMerchantDescription(),
+            infoDto.getDelaySeconds()
+    };
+    final String notification = messageSource
+            .getMessage(notificationMessageCode, messageParams, locale);
+    infoDto.setMessage(notification);
+    infoDto.calculateFinalAmount();
+    return infoDto;
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

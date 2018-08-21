@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maks on 20.07.2017.
@@ -46,14 +48,16 @@ public class NemJobs {
 
 
     private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
     public void init() {
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName("NEM");
+       /* scheduler.scheduleAtFixedRate(this::checkWithdrawals, 1, 5, TimeUnit.MINUTES);*/
+        scheduler.scheduleAtFixedRate(this::checkReffils, 1, 5, TimeUnit.MINUTES);
     }
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
     private void checkWithdrawals() {
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),
                 Collections.singletonList(WithdrawStatusEnum.ON_BCH_EXAM.getCode()));
@@ -76,8 +80,8 @@ public class NemJobs {
         }
     }
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 4)
-    public void checkReffils() {
+
+    private void checkReffils() {
         log.debug("check reffils");
         List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         if (dtos != null && !dtos.isEmpty()) {

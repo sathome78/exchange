@@ -249,6 +249,12 @@ public class ReportController {
   }
 
   @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesExternalWallets", method = GET)
+  public Future<List<ExternalWalletsDto>> getBalancesExternalWallets() {
+    return CompletableFuture.supplyAsync(() -> reportService.getBalancesWithExternalWallets());
+  }
+
+  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/time", method = GET)
   public String getMailingTime() {
     return reportService.retrieveReportMailingTime();

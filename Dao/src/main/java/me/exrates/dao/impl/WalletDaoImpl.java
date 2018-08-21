@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
@@ -158,15 +159,16 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
+    String typeClause = "";
     final String sql =
-        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance " +
+        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 " +
+            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 " + typeClause +
             " ORDER BY active_balance DESC, CURRENCY.name ASC ";
-    final Map<String, String> params = new HashMap<String, String>() {{
+    final Map<String, Object> params = new HashMap() {{
       put("email", email);
     }};
     return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
@@ -174,7 +176,45 @@ public class WalletDaoImpl implements WalletDao {
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
       myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
+      myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
       return myWalletsStatisticsDto;
+    });
+  }
+
+  @Override
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds) {
+    final String sql =
+            " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
+                    " FROM USER " +
+                    "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
+                    "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                    " WHERE USER.email = :email  AND CURRENCY.hidden != 1 AND  CURRENCY.id IN (:currencies) " +
+                    " ORDER BY active_balance DESC, CURRENCY.name ASC ";
+    final Map<String, Object> params = new HashMap() {{
+      put("email", email);
+      put("currencies", currencyIds);
+    }};
+    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+      MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
+      myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
+      myWalletsStatisticsDto.setDescription(rs.getString("description"));
+      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
+      myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
+      return myWalletsStatisticsDto;
+    });
+  }
+
+  @Override
+  public List<WalletBalanceDto> getBalancesForUser(String userEmail) {
+    String sql = "SELECT CUR.name AS currency_name, W.active_balance, W.reserved_balance FROM WALLET W " +
+            " JOIN CURRENCY CUR ON W.currency_id = CUR.id " +
+            " WHERE W.user_id = (SELECT id FROM USER WHERE email = :email)";
+    return jdbcTemplate.query(sql, Collections.singletonMap("email", userEmail), (rs, rowNum) -> {
+      WalletBalanceDto dto = new WalletBalanceDto();
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setActiveBalance(rs.getBigDecimal("active_balance"));
+      dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      return dto;
     });
   }
 
@@ -753,6 +793,9 @@ public class WalletDaoImpl implements WalletDao {
     BigDecimal newActiveBalance = BigDecimalProcessing.doAction(wallet.getActiveBalance(), amount, ActionType.ADD);
     BigDecimal newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.SUBTRACT);
     if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+      log.error(String.format("Negative balance: active %s, reserved %s ",
+              BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
+              BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
       return WalletTransferStatus.CAUSED_NEGATIVE_BALANCE;
     }
         /**/
@@ -844,6 +887,9 @@ public class WalletDaoImpl implements WalletDao {
       newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.ADD);
     }
     if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+      log.error(String.format("Negative balance: active %s, reserved %s ",
+              BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
+              BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
       return WalletTransferStatus.CAUSED_NEGATIVE_BALANCE;
     }
         /**/
@@ -1112,7 +1158,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<UserGroupBalanceDto> getWalletBalancesSummaryByGroups() {
-      String sql = "SELECT CUR.name AS currency_name, AGR.feature_name, AGR.total_balance FROM ( " +
+      String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, AGR.feature_name, AGR.total_balance FROM ( " +
               "  SELECT STRAIGHT_JOIN W.currency_id, URGF.name AS feature_name, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance " +
               "  FROM WALLET W " +
               "    JOIN USER U ON U.id = W.user_id " +
@@ -1120,10 +1166,11 @@ public class WalletDaoImpl implements WalletDao {
               "    JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id " +
               "  GROUP BY W.currency_id, URGF.name " +
               "  ) AGR " +
-              "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id " +
-              "  ORDER BY CUR.name";
+              "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id AND CUR.hidden = 0" +
+              "  ORDER BY currency_id";
       return jdbcTemplate.query(sql, Collections.emptyMap(), (rs, row) -> {
         UserGroupBalanceDto dto = new UserGroupBalanceDto();
+        dto.setCurId(rs.getInt("currency_id"));
         dto.setCurrency(rs.getString("currency_name"));
         dto.setReportGroupUserRole(ReportGroupUserRole.valueOf(rs.getString("feature_name")));
         dto.setTotalBalance(rs.getBigDecimal("total_balance"));
@@ -1133,7 +1180,7 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList) {
-    String sql = "SELECT CUR.name AS currency_name, UR.name AS role_name, AGR.total_balance FROM ( " +
+    String sql = "SELECT CUR.name AS currency_name, CUR.id AS currency_id, UR.name AS role_name, AGR.total_balance FROM ( " +
             "     SELECT STRAIGHT_JOIN W.currency_id, U.roleid AS role_id, " +
             "     (SUM(W.active_balance) + SUM(W.reserved_balance)) AS total_balance " +
             "      FROM WALLET W " +
@@ -1141,14 +1188,85 @@ public class WalletDaoImpl implements WalletDao {
             "     WHERE U.roleid IN (:role_list) " +
             "      GROUP BY W.currency_id, U.roleid " +
             "      ) AGR " +
-            "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id " +
+            "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id  AND CUR.hidden = 0" +
             "  JOIN USER_ROLE UR ON AGR.role_id = UR.id " +
-            "  ORDER BY CUR.name";
+            "  ORDER BY currency_id";
     return jdbcTemplate.query(sql, Collections.singletonMap("role_list", roleIdsList), (rs, row) -> {
       UserRoleBalanceDto dto = new UserRoleBalanceDto();
       dto.setCurrency(rs.getString("currency_name"));
       dto.setUserRole(UserRole.valueOf(rs.getString("role_name")));
       dto.setTotalBalance(rs.getBigDecimal("total_balance"));
+      //wolper 19.04.18
+      //currency id added
+      dto.setCurId(rs.getInt("currency_id"));
+      return dto;
+    });
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getExternalWallets() {
+    String sql = "SELECT COMPANY_WALLET_EXTERNAL." +
+            "currency_id, CURRENCY.name as currency_name, main_wallet_balance, reserve_wallet_balance, " +
+            " cold_wallet_balance, rate_usd_additional, IFNULL(MC.merchant_id, 0) as merchant_id FROM COMPANY_WALLET_EXTERNAL\n" +
+            " join CURRENCY on (COMPANY_WALLET_EXTERNAL.currency_id = CURRENCY.id AND CURRENCY.hidden = 0) " +
+            "LEFT JOIN \n" +
+            "(SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY\n" +
+            "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
+            "where process_type = 'CRYPTO') as MC on MC.currency_id = CURRENCY.id " +
+            "order by currency_id;";
+    return jdbcTemplate.query(sql, (rs, row) -> {
+      ExternalWalletsDto dto = new ExternalWalletsDto();
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setRateUsdAdditional(rs.getBigDecimal("rate_usd_additional"));
+      dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
+      dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
+      dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
+      return dto;
+    });
+  }
+
+  @Override
+  public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
+    final String sql = "UPDATE COMPANY_WALLET_EXTERNAL SET main_wallet_balance = :mainWalletBalance, reserve_wallet_balance = :reserveWalletBalance" +
+            ", cold_wallet_balance = :coldWalletBalance, rate_usd_additional = :rateUsdAdditional WHERE currency_id = :currencyId";
+    final Map<String, Object> params = new HashMap<String, Object>() {
+      {
+        put("currencyId", externalWalletsDto.getCurrencyId());
+        put("mainWalletBalance", externalWalletsDto.getMainWalletBalance());
+        put("reserveWalletBalance", externalWalletsDto.getReservedWalletBalance());
+        put("coldWalletBalance", externalWalletsDto.getColdWalletBalance());
+        put("rateUsdAdditional", externalWalletsDto.getRateUsdAdditional());
+      }
+    };
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
+    String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, rate_usd_additional, AGR.total_balance, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id \n" +
+            "FROM (   SELECT STRAIGHT_JOIN W.currency_id, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance   \n" +
+            "FROM WALLET W     JOIN USER U ON U.id = W.user_id     JOIN USER_ROLE UR ON U.roleid = UR.id     \n" +
+            "JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id AND UR.user_role_report_group_feature_id IN (1,2)   GROUP BY W.currency_id   ) AGR   \n" +
+            "JOIN CURRENCY CUR ON AGR.currency_id = CUR.id AND CUR.hidden = 0 \n" +
+            "JOIN COMPANY_WALLET_EXTERNAL CWE ON CUR.id = CWE.currency_id\n" +
+            "LEFT JOIN \n" +
+            "(SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY\n" +
+            "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
+            "where process_type = 'CRYPTO') as MC on MC.currency_id = CUR.id\n" +
+            "  ORDER BY currency_id";
+    return jdbcTemplate.query(sql, (rs, row) -> {
+      ExternalWalletsDto dto = new ExternalWalletsDto();
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setRateUsdAdditional(rs.getBigDecimal("rate_usd_additional"));
+      dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
+      dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
+      dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
+      dto.setTotalReal(rs.getBigDecimal("total_balance"));
+
       return dto;
     });
   }

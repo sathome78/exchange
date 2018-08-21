@@ -79,6 +79,7 @@ public class ReportServiceImpl implements ReportService {
   @Autowired
   Scheduler reportScheduler;
 
+
   private final String MAIL_JOB_NAME = "REPORT_MAIL_JOB";
   private final String MAIL_TRIGGER_NAME = "REPORT_MAIL_TRIGGER";
 
@@ -127,6 +128,10 @@ public class ReportServiceImpl implements ReportService {
           .map(InvoiceReportDto::new)
           .collect(Collectors.toList()));
     }
+    //wolper 24.04.18
+    Map<String, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReportByCurName();
+    result.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurrency())==null?BigDecimal.ZERO:rates.get(s.getCurrency()).getRate()));
+    //
     return result.stream()
         .sorted((a, b) -> a.getCreationDate().compareTo(b.getCreationDate()))
         .collect(Collectors.toList());
@@ -287,7 +292,12 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
         List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
-        return getCurrencyTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
+        List<CurrencyInputOutputSummaryDto> report = getCurrencyTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
+        //wolper 24.04.19
+        Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
+        report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+        //
+        return report;
     }
 
   @Override
@@ -310,27 +320,48 @@ public class ReportServiceImpl implements ReportService {
   public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                             List<UserRole> roleList) {
     Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-    return inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
+    List<CurrencyInputOutputSummaryDto> report = inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
+    //wolper 24.04.19
+    Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
+    //
+    report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+    return report;
   }
 
   @Override
   public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                             List<UserRole> roleList) {
     Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-    return inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
+    List<InputOutputCommissionSummaryDto> report = inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
+    //wolper 24.04.19
+    Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
+    report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+    //
+    return report;
   }
+
 
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
-    return walletService.getWalletBalancesSummaryByRoles(roles);
+    List<UserRoleTotalBalancesReportDto<UserRole>> report = walletService.getWalletBalancesSummaryByRoles(roles);
+    //wolper 24.04.18
+    Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
+    report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+    //
+    return report;
   }
 
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
-    return walletService.getWalletBalancesSummaryByGroups();
+    List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report =  walletService.getWalletBalancesSummaryByGroups();
+    //wolper 24.04.18
+    Map<Integer, RatesUSDForReportDto> ratesList = orderService.getRatesToUSDForReport();
+    report.stream().forEach(s-> s.setRateToUSD(ratesList.get(s.getCurId())==null?BigDecimal.ZERO:ratesList.get(s.getCurId()).getRate()));
+    //
+    return report;
   }
 
 
@@ -442,6 +473,12 @@ public class ReportServiceImpl implements ReportService {
       });
   }
 
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
+    return walletService.getBalancesWithExternalWallets();
+  }
+
+
   private void rescheduleMailJob(LocalTime newMailTime) {
     try {
       TriggerKey triggerKey = TriggerKey.triggerKey(MAIL_TRIGGER_NAME);
@@ -484,22 +521,5 @@ public class ReportServiceImpl implements ReportService {
   private LocalTime parseTime(String timeString) {
     return LocalTime.from(DateTimeFormatter.ofPattern("HH:mm").parse(timeString));
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

@@ -4,20 +4,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.chart.ChartResolution;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.dto.openAPI.OpenOrderDto;
+import me.exrates.model.dto.openAPI.OrderBookItem;
+import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -29,15 +37,15 @@ import java.util.Optional;
 public interface OrderService {
 
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx();
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
 
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
-  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
+  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
   
-  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId);
+  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
   
   OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
@@ -55,6 +63,19 @@ public interface OrderService {
    * @return generated ID of the newly created order, or 0 if order was not be created
    */
   int createOrder(OrderCreateDto order, OrderActionEnum action);
+
+  @Transactional
+    void postBotOrderToDb(OrderCreateDto orderCreateDto);
+
+  @Transactional
+  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType);
+
+  @Transactional
+    OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);
+
+  @Transactional
+  OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
+                                                   BigDecimal amount, BigDecimal exrate, String userEmail);
 
   Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -91,6 +112,9 @@ public interface OrderService {
    */
   boolean setStatus(int orderId, OrderStatus status);
 
+  @Transactional
+  void acceptOrder(String userEmail, Integer orderId);
+
   /**
    * Accepts the list of orders
    * The method <b>acceptOrdersList</b> is used to accept each orders from <b>ordersList</b>
@@ -112,7 +136,7 @@ public interface OrderService {
    * - TransactionPersistException
    * - OrderAcceptionException
    *
-   * @param userId  is ID of acceptor-user
+   * @param acceptorEmail  is email of acceptor-user
    * @param orderId is ID of order that must be accepted
    * @param locale  is current locale. Used to generate messages
    */
@@ -122,7 +146,10 @@ public interface OrderService {
 
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
 
-    /**
+  @Transactional
+  void cancelOrder(Integer orderId, String currentUserEmail);
+
+  /**
    * Cancels the order and set status "CANCELLED"
    * Only order with status "OPENED" can be cancelled
    * This method for cancel order by creator-user
@@ -155,7 +182,11 @@ public interface OrderService {
 
   List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
 
-  /**
+    List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName);
+
+    List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName);
+
+    /**
    * Returns detailed info about the order, including info from related transactions
    *
    * @param orderId is ID the order
@@ -186,7 +217,9 @@ public interface OrderService {
 
     List<BackDealInterval> getIntervals();
 
-    /**
+  List<ChartTimeFrame> getChartTimeFrames();
+
+  /**
    * Returns object that contains data with statistics of orders for currencyPair.
    * Statistics formed by data for certain period: from current moment to <i></>backDealInterval</i> back
    *
@@ -197,7 +230,16 @@ public interface OrderService {
    */
   ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
 
-  @Transactional
+    @Transactional
+    List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame);
+
+    @Transactional
+    List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
+                                                       LocalDateTime startTime, ChartResolution resolution);
+
+    List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame);
+
+    @Transactional
   List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
 
   /**
@@ -299,7 +341,7 @@ public interface OrderService {
                                                          Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                              OperationType operationType,
+                                              OperationType operationType, String scope,
                                               Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
@@ -327,13 +369,34 @@ public interface OrderService {
 
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
-  String getAllCurrenciesStatForRefresh();
+  String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum);
 
-  String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+  String getAllCurrenciesStatForRefreshForAllPairs();
+
+  Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
+
+  /**
+   * wolper 24.04.18
+   *  Returns the list of the latest exchange rates for each currency to USD
+   */
+  Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
+
+  Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
+
+    Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
+
+  List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period);
+
+    List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
+
+    List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
+                                             @Nullable Integer limit, @Nullable Integer offset);
+
+    List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
 }

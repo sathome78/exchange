@@ -169,6 +169,9 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime3();
+      /*if (merchantService.concatAdditionalToMainAddress()) {
+        ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
+      }*/
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
@@ -179,6 +182,7 @@ public class RefillServiceImpl implements RefillService {
             ((Map<String, String>) result.get("params")).get("message"),
             request.getLocale());
         result.put("message", notification);
+        result.put("requestId", request.getId());
       } catch (MailException e) {
         log.error(e);
       }
@@ -216,6 +220,9 @@ public class RefillServiceImpl implements RefillService {
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
+      }
+      if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
+        e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
       }
     });
     return merchantCurrencies;
@@ -928,7 +935,7 @@ public class RefillServiceImpl implements RefillService {
     payment.setMerchant(merchantId);
     payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
     refillDto.setMerchantId(merchantId);
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail(), locale)
             .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(
             new RefillRequestParamsDto(refillDto),

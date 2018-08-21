@@ -2,17 +2,18 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
+function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
-        return new TradingClass();
+        return new TradingClass(cpData);
     }
     TradingClass.__instance = this;
     /**/
     var that = this;
     var chart = null;
     var orderRoleFilter = null;
+    var currentPair = currentCurrencyPair;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -43,10 +44,11 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.ROUND_SCALE = 9;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
-    function onCurrencyPairChange() {
+    function onCurrencyPairChange(data) {
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
+        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
@@ -54,7 +56,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState();
+        dashboardCurrencyPairSelector.syncState('MAIN', function () {
+        });
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
@@ -497,16 +500,16 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
+    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
-        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
         try {
             chart = new ChartGoogleClass();
         } catch (e) {
         }
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
+            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, "MAIN");
         } catch (e) {
         }
         if (chart) {
@@ -544,8 +547,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $('#dashboard-stop-buy').on('click', stopOrder);
         $('#dashboard-stop-sell').on('click', stopOrder);
         /**/
-        $('#dashboard-buy-accept').on('click', orderBuyAccept);
-        $('#dashboard-sell-accept').on('click', orderSellAccept);
+        $('#dashboard-buy-accept').on('click', orderBuy/*orderBuyAccept*/);
+        $('#dashboard-sell-accept').on('click', orderSell/*orderSellAccept*/);
         /**/
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
@@ -562,7 +565,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
+    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
@@ -610,10 +613,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         var s;
         s = $('#dashboard-sell-accept').text();
         s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-sell-accept').text(s);
+        /*$('#dashboard-sell-accept').text(s);*/
         s = $('#dashboard-buy-accept').text();
         s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-buy-accept').text(s);
+       /* $('#dashboard-buy-accept').text(s);*/
         if (!acceptedOrderType) {
             $('#dashboard-sell-accept').addClass('hidden');
             $('#dashboard-sell-accept-reset').addClass('hidden');
@@ -692,11 +695,22 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         showOrderCreateDialog(data);
     }
 
+    $('#aggree_check').on('click', function () {
+        if ($('#aggree_check').is(':checked')) {
+            $('#order-create-confirm__submit').attr('disabled', false);
+        } else {
+            $('#order-create-confirm__submit').attr('disabled', true);
+        }
+    });
+
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair = currentPair;
         /**/
+        $('#aggree').hide();
+        $('#aggree_check').prop( "checked", false );
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
         $balanceErrorContainer.empty();
@@ -727,6 +741,12 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 $('#order-create-confirm__modal').find('#total').val(data.total);
                 $('#order-create-confirm__modal').find('#commission').val(data.commission);
                 $('#order-create-confirm__modal').find('#totalWithComission').val(data.totalWithComission);
+                if (data.badExrateMessage != undefined && data.badExrateMessage.length > 0) {
+                    var $conatiner = $('#aggree');
+                    $('#aggree_text').html(data.badExrateMessage);
+                    $conatiner.show();
+                    $('#order-create-confirm__submit').attr('disabled', true)
+                }
                 /**/
                 $('#order-create-confirm__modal').modal();
             },
@@ -780,8 +800,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     }
 
     function onCreateOrderSuccess(data) {
-        that.getAndShowSellOrders();
-        that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
         /*that.clearOrdersCreationForm();*/

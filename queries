@@ -1,0 +1,61 @@
+SELECT U.email, U.regdate FROM USER U
+WHERE U.regdate >= STR_TO_DATE('2017-11-01 00:00:00', '%Y-%m-%d %H:%i:%s')
+AND U.status IN (2, 4)
+
+SELECT SUM(EX.amount_base), CP.name, count(EX.id)  FROM EXORDERS EX
+  JOIN USER U ON U.id = EX.user_id
+  JOIN CURRENCY_PAIR CP ON EX.currency_pair_id = CP.id
+WHERE EX.status_id=3 AND U.roleid IN (4) AND CP.hidden=0
+      AND EX.date_creation >= STR_TO_DATE('2017-11-01 00:00:00', '%Y-%m-%d %H:%i:%s')
+GROUP BY EX.currency_pair_id
+
+
+SELECT * FROM USER_IP WHERE  INSTR(`ip`, '172.68.46.168') > 0
+
+email='smart8ghost@gmail.com' or id IN(2969,3729, 14031,14686,16140,20130,20172,21907,24573,24574,26494,41321,41333,41336,41374,41408,44719 )
+
+sudo mysqldump -P 3306 -h birzha.cedlveyttji9.us-east-2.rds.amazonaws.com -u exrates -p birzha > /data/mysql_dumps/dump_2018_04_06.sql
+
+*************delete currency after patch apply***************
+DELETE FROM bot_trading_settings
+WHERE bot_launch_settings_id IN (SELECT id FROM bot_launch_settings WHERE currency_pair_id in (123,124,125,126,127,128));
+DELETE FROM bot_launch_settings WHERE currency_pair_id IN (123,124,125,126,127,128);
+DELETE FROM currency_pair_limit WHERE currency_pair_id IN (123,124,125,126,127,128);
+DELETE FROM merchant_currency WHERE currency_id = 58;
+DELETE FROM merchant_image WHERE currency_id = 58;
+DELETE FROM wallet WHERE currency_id = 58;
+DELETE FROM company_wallet WHERE currency_id = 58;
+DELETE FROM currency_limit WHERE currency_id = 58;
+
+
+оптимизации:
+убрать varchar из таблиц где все значения числовые
+добавить order by null если есть group by;
+
+партиционирование:
+alter table `transactions` PARTITION BY RANGE(UNIX_TIMESTAMP(datetime) ) (
+ PARTITION p_old VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2017-06-01 00:00:00'); ) ,
+ PARTITION p2017_1 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2017-09-01 00:00:00'); ) ,
+ PARTITION p2017_2 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2017-11-01 00:00:00'); ) ,
+ PARTITION p2017_3 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2017-12-01 00:00:00'); ) ,
+ PARTITION p2017_4 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2018-01-01 00:00:00'); ) ,
+ PARTITION p2017_4 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2018-02-01 00:00:00'); ) ,
+ PARTITION p2017_4 VALUES LESS THAN (SELECT UNIX_TIMESTAMP('2018-03-01 00:00:00'); ) ,
+ PARTITION pMAXVALUE VALUES LESS THAN (MAXVALUE)
+);
+
+alter table `transaction` PARTITION BY RANGE(UNIX_TIMESTAMP(datetime) ) (
+PARTITION p_old VALUES LESS THAN (1496264400) ,
+PARTITION p2017_1 VALUES LESS THAN (1504213200) ,
+PARTITION p2017_2 VALUES LESS THAN (1509487200) ,
+PARTITION p2017_3 VALUES LESS THAN (1512079200) ,
+PARTITION p2018_1 VALUES LESS THAN (1514757600) ,
+PARTITION p2018_2 VALUES LESS THAN (1517436000) ,
+PARTITION p2018_3 VALUES LESS THAN (1519855200)
+);
+
+SELECT TX.*, CU.name FROM TRANSACTION TX
+JOIN WALLET W ON W.id = TX.user_wallet_id
+JOIN USER U ON U.id = W.user_id
+JOIN CURRENCY CU on CU.id = W.currency_id
+WHERE U.email = 'olenatrademail@gmail.com'

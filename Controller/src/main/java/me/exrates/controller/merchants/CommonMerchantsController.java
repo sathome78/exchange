@@ -114,6 +114,7 @@ public class CommonMerchantsController {
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+      System.out.println("currencies " + merchantCurrencyData.size());
       withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);

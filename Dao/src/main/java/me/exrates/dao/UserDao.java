@@ -18,6 +18,8 @@ public interface UserDao {
 
   int getIdByNickname(String nickname);
 
+  boolean setNickname(User user);
+
   boolean create(User user);
 
   void createUserDoc(int userId, List<Path> paths);
@@ -92,6 +94,12 @@ public interface UserDao {
 
   boolean deleteTemporalToken(TemporalToken token);
 
+  /**
+   * Delete all tokens for user with concrete TokenType.
+   * Uses in "Send again" in registration.
+   * @param token (TemporalToken)
+   * @return boolean (false/true)
+   */
   boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
 
   List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
@@ -169,4 +177,5 @@ public interface UserDao {
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
 }

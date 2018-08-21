@@ -28,8 +28,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 @Log4j2(topic = "waves_log")
-@Service("wavesServiceImpl")
-// @PropertySource("classpath:/merchants/waves.properties")
 public class WavesServiceImpl implements WavesService {
 
     @Autowired
@@ -67,11 +65,22 @@ public class WavesServiceImpl implements WavesService {
     private Map<String, MerchantCurrencyBasicInfoDto> tokenMerchantCurrencyMap;
 
 
+    private String currencyBaseName;
+    private String merchantBaseName;
+    private String propertySource;
+
     private Currency currencyBase;
     private Merchant merchantBase;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ExecutorService sendFeePool = Executors.newSingleThreadExecutor();
+
+
+    public WavesServiceImpl(String currencyBaseName, String merchantBaseName, String propertySource) {
+        this.currencyBaseName = currencyBaseName;
+        this.merchantBaseName = merchantBaseName;
+        this.propertySource = propertySource;
+    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -89,11 +98,12 @@ public class WavesServiceImpl implements WavesService {
     private void init() {
         Properties props = new Properties();
         try {
-            props.load(getClass().getClassLoader().getResourceAsStream("merchants/waves.properties"));
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
             this.minConfirmations = Integer.parseInt(props.getProperty("waves.min.confirmations"));
             this.mainAccount = props.getProperty("waves.main.account");
             this.feeAccount = props.getProperty("waves.fee.account");
             this.notifyEmail = props.getProperty("waves.notify.email");
+            restClient.init(props);
             initAssets(props);
             long processFixedDelay = Long.parseLong(props.getProperty("waves.process.delay"));
 
@@ -117,7 +127,7 @@ public class WavesServiceImpl implements WavesService {
         processWavesPayment(wavesTransaction, blockHeight);
     }
 
-    private void processWavesPayment(WavesTransaction transaction, int lastBlockHeight/*, Integer merchantId, Integer currencyId*/) {
+    private void processWavesPayment(WavesTransaction transaction, int lastBlockHeight) {
         log.debug("Processing tx: " + transaction);
         int merchantId;
         int currencyId;
@@ -216,7 +226,7 @@ public class WavesServiceImpl implements WavesService {
     @Override
     public void processWavesTransactionsForKnownAddresses() {
         try {
-            log.debug("Start checking WAVES transactions");
+            log.debug("Start checking {} transactions", currencyBaseName);
 
             int blockHeight = restClient.getCurrentBlockHeight();
 
@@ -335,8 +345,8 @@ public class WavesServiceImpl implements WavesService {
     }
 
     void initAssets(Properties wavesProps) {
-        currencyBase = currencyService.findByName("WAVES");
-        merchantBase = merchantService.findByName("Waves");
+        currencyBase = currencyService.findByName(currencyBaseName);
+        merchantBase = merchantService.findByName(merchantBaseName);
         List<MerchantCurrencyBasicInfoDto> tokenMerchants = merchantService.findTokenMerchantsByParentId(merchantBase.getId());
         Map<String, MerchantCurrencyBasicInfoDto> tokenMap = new HashMap<>();
         for (MerchantCurrencyBasicInfoDto tokenMerchant : tokenMerchants) {

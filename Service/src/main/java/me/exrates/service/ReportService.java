@@ -60,5 +60,7 @@ public interface ReportService {
 
   void updateReportMailingTime(String newMailTimeString);
 
-    void sendReportMail();
+  void sendReportMail();
+
+  List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

@@ -6,7 +6,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
-import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -19,17 +18,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "lisk_log")
 public class LiskServiceImpl implements LiskService {
@@ -44,11 +43,12 @@ public class LiskServiceImpl implements LiskService {
     @Autowired
     private MerchantService merchantService;
 
-    @Autowired
     private LiskRestClient liskRestClient;
 
     @Autowired
     private MessageSource messageSource;
+
+    private LiskSpecialMethodService liskSpecialMethodService;
 
     private final String merchantName;
     private final String currencyName;
@@ -57,8 +57,12 @@ public class LiskServiceImpl implements LiskService {
     private String mainSecret;
     private Integer minConfirmations;
 
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    public LiskServiceImpl(String merchantName, String currencyName, String propertySource) {
+
+    public LiskServiceImpl(LiskRestClient liskRestClient, LiskSpecialMethodService liskSpecialMethodService, String merchantName, String currencyName, String propertySource) {
+        this.liskRestClient = liskRestClient;
+        this.liskSpecialMethodService = liskSpecialMethodService;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.propertySource = propertySource;
@@ -77,6 +81,12 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 1L, 30L, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    private void shutdown() {
+        scheduler.shutdown();
     }
 
     @Override
@@ -180,7 +190,6 @@ public class LiskServiceImpl implements LiskService {
 
 
     @Override
-    @Scheduled(initialDelay = 1000, fixedDelay = 30 * 60 * 1000)
     public void processTransactionsForKnownAddresses() {
         log.info("Start checking {} transactions", currencyName);
         Currency currency = currencyService.findByName(currencyName);
@@ -254,11 +263,7 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
-        LiskSendTxDto dto = new LiskSendTxDto();
-        dto.setSecret(secret);
-        dto.setAmount(amount);
-        dto.setRecipientId(recipientId);
-        return liskRestClient.sendTransaction(dto);
+        return liskSpecialMethodService.sendTransaction(secret, amount, recipientId);
     }
 
     @Override
@@ -270,7 +275,7 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public LiskAccount createNewLiskAccount(String secret) {
-       return liskRestClient.createAccount(secret);
+       return liskSpecialMethodService.createAccount(secret);
     }
 
     @Override

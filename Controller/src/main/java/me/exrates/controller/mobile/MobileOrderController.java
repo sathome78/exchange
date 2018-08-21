@@ -1,15 +1,15 @@
 package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.controller.exception.OrderParamsWrongException;
-import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.CurrencyPair;
+import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.*;
 
-import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -219,15 +218,7 @@ public class MobileOrderController {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
-                userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
-        LOGGER.debug("Order prepared" + orderCreateDto);
-        OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
-        Map<String, Object> errors = orderValidationDto.getErrors();
-        if (!errors.isEmpty()) {
-            errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), userLocale));
-            throw new OrderParamsWrongException(errors.toString());
-        }
+        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale, activeCurrencyPair.getPairType().getOrderBaseType());
         UUID orderKey = UUID.randomUUID();
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());
@@ -274,17 +265,7 @@ public class MobileOrderController {
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         try {
             OrderCreateDto orderCreateDto = removeOrderCreateDtoByKey(body);
-            Optional<OrderCreationResultDto> autoAcceptResult = orderService.autoAcceptOrders(orderCreateDto, userLocale);
-            if (autoAcceptResult.isPresent()) {
-                return new ResponseEntity<>(autoAcceptResult.get(), CREATED);
-            }
-            OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-
-            Integer createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
-            if (createdOrderId <= 0) {
-                throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
-            }
-            orderCreationResultDto.setCreatedOrderId(createdOrderId);
+            OrderCreationResultDto orderCreationResultDto = orderService.createPreparedOrderRest(orderCreateDto, userLocale);
             return new ResponseEntity<>(orderCreationResultDto, CREATED);
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, userLocale));

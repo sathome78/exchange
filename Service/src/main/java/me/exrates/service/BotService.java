@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface BotService {
-    @TransactionalEventListener
-    void onOrderCreated(CreateOrderEvent event);
 
     void acceptAfterDelay(ExOrder exOrder);
 

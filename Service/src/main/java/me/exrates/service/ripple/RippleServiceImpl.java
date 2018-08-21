@@ -53,12 +53,12 @@ public class RippleServiceImpl implements RippleService {
   private static final String DESTINATION_TAG_ERR_MSG = "message.ripple.tagError";
 
 
-  /*method for admin manual check transaction by hash*/
+  /*method for admin manual check transaction by hash*//*
   @Override
   public void manualCheckNotReceivedTransaction(String hash) {
     JSONObject response = rippledNodeService.getTransaction(hash);
     onTransactionReceive(response);
-  }
+  }*/
 
 
   /*return: true if tx validated; false if not validated but validation in process,
@@ -69,17 +69,15 @@ public class RippleServiceImpl implements RippleService {
   }
 
   @Override
-  public void onTransactionReceive(JSONObject transaction) {
-    log.debug("income transaction {} ", transaction.toString());
+  public void onTransactionReceive(String hash, Integer destinationTag, String amount) {
     Map<String, String> paramsMap = new HashMap<>();
-    paramsMap.put("hash", transaction.getString("hash"));
-    Integer destinationTag = transaction.getInt("DestinationTag");
+    paramsMap.put("hash", hash);
     paramsMap.put("address", String.valueOf(destinationTag));
-    paramsMap.put("amount", transaction.getString("Amount"));
+    paramsMap.put("amount", amount);
     try {
       this.processPayment(paramsMap);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      log.error("xrp refill address not found {}", transaction.toString());
+      log.error("xrp refill address not found {}", destinationTag);
     }
   }
 

@@ -47,7 +47,7 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
         Map<String, Object> map = new HashMap<>();
         map.put("notificators", notificatorsService.getAllNotificators());
         map.put("events", Arrays.asList(NotificationMessageEventEnum.values()));
-        map.put("settings", getSettingsMap(userId));
+        map.put("settings", setDefaultSettings(userId, getSettingsMap(userId)));
         map.put("subscriptions", notificatorsService.getSubscriptions(userId));
         return map;
     }
@@ -62,6 +62,18 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
         return settingsMap;
     }
 
-
+    private Map<Integer, NotificationsUserSetting> setDefaultSettings(int userId, Map<Integer, NotificationsUserSetting> map) {
+        Arrays.asList(NotificationMessageEventEnum.values()).forEach(p -> {
+            NotificationsUserSetting setting = map.get(p.getCode());
+                    if ((setting == null || setting.getNotificatorId() == null) && !p.isCanBeDisabled())
+                    map.put(p.getCode(), NotificationsUserSetting.builder()
+                            .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+                            .userId(userId)
+                            .notificationMessageEventEnum(p)
+                            .build());
+                }
+        );
+        return map;
+    }
 
 }

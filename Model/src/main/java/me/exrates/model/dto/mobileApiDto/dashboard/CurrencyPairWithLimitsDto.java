@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.enums.CurrencyPairType;
 
 import java.math.BigDecimal;
 
@@ -26,6 +27,7 @@ public class CurrencyPairWithLimitsDto {
   private BigDecimal maxAmountSell;
   private BigDecimal minAmountBuy;
   private BigDecimal maxAmountBuy;
+  private CurrencyPairType type;
 
   public CurrencyPairWithLimitsDto(CurrencyPair currencyPair, BigDecimal minRateSell,
                                    BigDecimal maxRateSell, BigDecimal minRateBuy, BigDecimal maxRateBuy, BigDecimal minAmountSell,
@@ -42,5 +44,6 @@ public class CurrencyPairWithLimitsDto {
     this.maxAmountSell = maxAmountSell;
     this.minAmountBuy = minAmountBuy;
     this.maxAmountBuy = maxAmountBuy;
+    this.type = currencyPair.getPairType();
   }
 }

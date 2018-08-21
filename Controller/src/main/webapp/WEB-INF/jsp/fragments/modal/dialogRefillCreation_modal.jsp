@@ -12,7 +12,7 @@
           <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
           <div class="paymentInfo">
             <p><loc:message code="merchants.modalInputHeader"/></p>
-            <p><loc:message code="merchants.modalInputCommissionMerchant"/></p>
+            <p id="payment-info-commission-merchant"><loc:message code="merchants.modalInputCommissionMerchant"/></p>
             <p><loc:message code="merchants.modalInputCommission"/></p>
             <p><loc:message code="merchants.modalInputFinalSum"/></p>
           </div>
@@ -46,8 +46,17 @@
           <button class="btn btn-danger btn-md" type="button" data-dismiss="modal"><loc:message
                   code="merchants.dismiss"/></button>
         </div>
+          <div id='simple-invoice-btns-wrapper' class="add__money__btns" style="display: none">
+              <div class="pull-left">
+                  <button id="request-confirm-btn" class="btn btn-primary btn-md" type="button"><loc:message
+                          code="refill.invoice.paid"/></button>
+                  <button id="request-revoke-btn" class="btn btn-danger btn-md" type="button"><loc:message
+                          code="merchants.invoice.revoke"/></button>
+              </div>
+          </div>
+
         <div id="response-money-operation-btns-wrapper">
-          <button class="btn btn-danger btn-md" type="button" data-dismiss="modal"><loc:message
+          <button id="dialog-refill-creation-close" class="btn btn-danger btn-md" type="button" data-dismiss="modal"><loc:message
                   code="merchants.close"/></button>
         </div>
       </div>

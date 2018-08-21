@@ -57,4 +57,6 @@ public interface WithdrawRequestDao {
     List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 
     List<Integer> getWithdrawalStatistic(String startDate, String endDate);
+
+    WithdrawRequestInfoDto findWithdrawInfo(Integer id);
 }

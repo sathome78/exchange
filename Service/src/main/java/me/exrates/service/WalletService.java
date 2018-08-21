@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
@@ -31,7 +32,7 @@ public interface WalletService {
      */
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type);
 
     int getWalletId(int userId, int currencyId);
 
@@ -83,7 +84,9 @@ public interface WalletService {
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
 
     @Transactional(readOnly = true)
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);
+
+    List<WalletBalanceDto> getBalancesForUser();
 
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
@@ -99,7 +102,7 @@ public interface WalletService {
                                     Locale locale, int sourceId);
 
     @Transactional(rollbackFor = Exception.class)
-    String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
+    String transferCostsToUser(Integer userId, Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
                                BigDecimal comission, Locale locale, int sourceId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
@@ -114,4 +117,10 @@ public interface WalletService {
     List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
+
+    List<ExternalWalletsDto> getExternalWallets();
+
+    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+
+    List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

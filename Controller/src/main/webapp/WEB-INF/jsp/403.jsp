@@ -17,6 +17,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
+
+    <%----------------------------------------%>
+    <%@include file="tools/google_head.jsp"%>
+    <%@include file="tools/alexa.jsp" %>
+    <%--<%@include file="tools/yandex.jsp" %>--%>
+
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
@@ -30,8 +36,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
 
-    <%@include file="tools/alexa.jsp" %>
-    <%--<%@include file="tools/yandex.jsp" %>--%>
 </head>
 <body>
 <%@include file="fragments/header-simple.jsp" %>
@@ -63,6 +67,6 @@
 
 
 
-<%@include file='fragments/footer.jsp' %>
+<%@include file='fragments/footer-fixed.jsp' %>
 </body>
 </html>

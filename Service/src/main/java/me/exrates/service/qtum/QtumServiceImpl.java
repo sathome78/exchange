@@ -81,7 +81,7 @@ public class QtumServiceImpl implements QtumService {
                 log.error(e);
             }
 
-        }, 5L, 90L, TimeUnit.MINUTES);
+        }, 5L, 25L, TimeUnit.MINUTES);
 
         scheduler.scheduleAtFixedRate(() -> {
             try {

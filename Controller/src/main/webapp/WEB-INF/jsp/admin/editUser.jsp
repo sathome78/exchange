@@ -9,14 +9,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
   <title><loc:message code="admin.title"/></title>
   <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+
   <%@include file='links_scripts.jsp' %>
+
   <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
   <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
   <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
@@ -117,7 +118,14 @@
       <%--Current user and email--%>
       <div>
         <h5><b>
-          ${user.nickname}, ${user.email}
+          <c:choose>
+            <c:when test="${empty user.nickname}">
+              ${user.email}
+            </c:when>
+            <c:otherwise>
+              ${user.nickname}, ${user.email}
+            </c:otherwise>
+          </c:choose>
       </div>
       <div id="u_email" hidden>${user.email}</div>
       <%--контейнер для данных пользователей--%>
@@ -666,7 +674,10 @@
                   <div class="modal-body">
                     <input hidden id="commentId">
                     <p><loc:message code="admin.comment"/>:<Br>
-                      <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
+                      <textarea class="form-control" cols="40" rows="3" id="commentText" autofocus></textarea>
+                    <p><span class="checkLengthComment"><loc:message code="admin.checkLengthComment"/>
+                      <span id="checkLengthComment"></span>/<span id="checkMaxLengthComment"></span>
+                    </span>
                     <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
                       <loc:message code="admin.sendMessage"/>
                     <p><span id="checkMessage" style="color: #FF0000; " hidden><loc:message

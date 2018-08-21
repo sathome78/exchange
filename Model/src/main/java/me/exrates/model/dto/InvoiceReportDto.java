@@ -35,6 +35,8 @@ public class InvoiceReportDto {
   private String operation;
   private String merchant;
   private InvoiceStatus statusEnum;
+  //wolper 24.04.18
+  private BigDecimal rateToUSD;
 
 
   public InvoiceReportDto(TransactionFlatForReportDto transactionFlatForReportDto) {
@@ -105,6 +107,7 @@ public class InvoiceReportDto {
   public static String getTitle() {
     return "doc id" + ";" +
         "Currency" + ";" +
+            "rateToUSD" + ";" +
         "Creation date" + ";" +
         "Email" + ";" +
         "Recipient bank / Blockchain address" + ";" +
@@ -123,6 +126,7 @@ public class InvoiceReportDto {
   public String toString() {
     return docId + ";" +
         currency + ";" +
+            BigDecimalProcessing.formatNoneComma(rateToUSD, false) + ";" +
         creationDate + ";" +
         userEmail + ";" +
         recipientBank + ";" +

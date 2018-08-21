@@ -58,7 +58,7 @@ public class YandexMoneyRestController {
                 -> new MerchantInternalException(messageSource.getMessage("merchants.authRejected", null, userLocale)));
 
         final CreditsOperation creditsOperation = inputOutputService
-                .prepareCreditsOperation(payment, email)
+                .prepareCreditsOperation(payment, email, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);
         if (!requestPayment.isPresent()) {

@@ -31,8 +31,8 @@ $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
             if (jqXHR.status == 419 || jqXHR.status == '419') {
                 /*session end*/
-                var resp = JSON.parse(jqXHR.responseText);
-                window.location.replace(resp.url + '?errorNoty=' + resp.msg);
+               /* var resp = JSON.parse(jqXHR.responseText);*/
+                window.location.replace('/dashboard?sessionEnd');
             } else {
                 failNoty(jqXHR);
             }
@@ -41,9 +41,9 @@ $(function () {
         //Show error message on page load - if massage was passed to page
         +function showErrorNotyOnEntry() {
             var msg = $('#errorNoty').html();
-            if (!msg) {
+           /* if (!msg) {
                 msg = getParameterByName('errorNoty');
-            }
+            }*/
             if (!msg){
                 msg = errorFromCookie();
                 deleteCookie(ERROR_NOTY_NAME);
@@ -56,9 +56,9 @@ $(function () {
         //Show success message on page load - if massage was passed to page
         +function showSuccessNotyOnEntry() {
             var msg = $('#successNoty').html();
-            if (!msg) {
+            /*if (!msg) {
                 msg = getParameterByName(SUCCESS_NOTY_NAME);
-            }
+            }*/
             if (!msg){
                 msg = successFromCookie();
                 deleteCookie(SUCCESS_NOTY_NAME);
@@ -146,11 +146,9 @@ function getErrorMessage(jqXHR) {
     var errorInfo = $.parseJSON(jqXHR.responseText);
     var notyMessage = errorInfo.cause;
     var detail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
-    if (!detail && !notyMessage) {
-        notyMessage = "";
-    } else {
-        notyMessage = notyMessage + "</br>" + detail;
-    }
+
+    !detail && !notyMessage ? notyMessage = "" : notyMessage = detail;
+
     return notyMessage;
 }
 

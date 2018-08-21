@@ -79,11 +79,6 @@
             <version>1.3.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.captcha</groupId>
-            <artifactId>botdetect-jsp20</artifactId>
-            <version>4.0.alpha5</version>
-        </dependency>
     </dependencies>
 
     <repositories>
@@ -98,6 +93,7 @@
         <profile>
             <id>dev</id>
             <build>
+
                 <finalName>ROOT</finalName>
                 <plugins>
                     <plugin>
@@ -161,6 +157,7 @@
                                     <includes>
                                         <include>*/*.properties</include>
                                         <include>*.properties</include>
+
                                     </includes>
                                     <targetPath>WEB-INF/classes</targetPath>
                                 </resource>

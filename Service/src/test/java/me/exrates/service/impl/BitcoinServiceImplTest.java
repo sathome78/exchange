@@ -70,7 +70,7 @@ public class BitcoinServiceImplTest {
     private RefillRequestFlatDto refillRequestFlatDto2;
 
     @InjectMocks
-    private BitcoinServiceImpl bitcoinService = new BitcoinServiceImpl("123", true,"Bitcoin", "BTC", 4);
+    private BitcoinServiceImpl bitcoinService = new BitcoinServiceImpl(true,"Bitcoin", "BTC", 4);
 
 
 
@@ -92,6 +92,8 @@ public class BitcoinServiceImplTest {
 
         when(currencyService.findByName("BTC")).thenReturn(currency);
         when(merchantService.findByName("Bitcoin")).thenReturn(merchant);
+
+        when(merchantService.getCoreWalletPassword("Bitcoin", "BTC")).thenReturn(Optional.of("pass123"));
 
         when(bitcoinWalletService.getNewAddress(anyString()))
                 .thenReturn(TEST_ADDRESS_1)

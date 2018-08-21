@@ -203,11 +203,16 @@ header li {
 
 .login_button {
     background-color: #b9c4d8;
-    color: #434e60;
+    color: #fff;
     padding: 10px 20px;
     margin: 10px;
     margin-left: 0px;
-    border: none;
+    border: 1px solid #fff;
+}
+
+.login_button:disabled{
+    color: #fff;
+    border: 1px solid #b9c4d8;
 }
 
 .inline-block {
@@ -438,10 +443,13 @@ th, td {
 .mywallets_table td:first-child span {
     font-size: 0.9rem;
 }
+
+.mywallets_table td:nth-child(2) {
+    vertical-align: middle;
+}
 .mywallets_table td:last-child {
     vertical-align: middle;
 }
-
 
 .currency_table td:first-child {
     cursor: pointer;
@@ -454,6 +462,7 @@ th, td {
 
 /*my*/
 .mywallets_table th:last-child,
+.mywallets_table th:nth-child(2),
 .currency_table th:nth-child(2),
 .currency_table th:last-child {
     text-align: center;
@@ -488,6 +497,14 @@ th, td {
     float: right;
 }
 
+.total_usd_child
+{
+    display: inline-block;
+    width: 45%;
+    font-weight: 300;
+    color: #63a20a;
+
+}
 /**********************************
 			Main Content
 ***********************************/
@@ -710,7 +727,8 @@ td.blue-white {
 
 .blue-box,
 .red-box,
-.green-box {
+.green-box,
+.yellow-box {
     background-color: #5c6a80;
     color: #fff;
     padding: 5px 25px;
@@ -749,6 +767,10 @@ td.blue-white {
 
 .red-box {
     background-color: #c65857;
+}
+
+.yellow-box {
+    background-color: #e0d560;
 }
 
 .green-box {
@@ -1369,7 +1391,7 @@ td.blue-white {
     text-align: center;
     border: none;
     margin: 0;
-    opacity: 0.4;
+    opacity: 0.6;
     outline: none;
 }
 
@@ -1435,13 +1457,24 @@ td.blue-white {
 }
 
 .input-block-wrapper__error-wrapper {
-    text-align: right;
+    text-align: left;
     color: rgba(232, 0, 0, 0.93);
     overflow: hidden;
     margin: 0;
     line-height: 20px;
     font-size: 1rem;
     padding: 0 15px 0 0;
+}
+
+.input-block-wrapper__error-wrapper_forgot {
+    text-align: left;
+    color: rgba(232, 0, 0, 0.93);
+    overflow: hidden;
+    margin: 0;
+    line-height: 20px;
+    font-size: 1rem;
+    /*padding: 0 15px 0 0;*/
+    padding: 0px 0 15px 15px;
 }
 
 .modal-form-dialog
@@ -1568,6 +1601,9 @@ form span.repass,  form span.repass-error{
 .footer_link {
     margin: 0 10px;
 }
+
+
+
 
 /********************************
             NEWS
@@ -1984,15 +2020,16 @@ input[type=email], .dropdown-menu__form,
 }
 
 #currency-limits-table tr:hover,
+#external-wallets-table tr:hover,
 #commissions-table tr:hover,
 #merchant-commissions-table tr:hover {
     cursor: pointer;
 }
-#register_button {
+#register_button, #login_button {
     background: #525f74;
 }
 
-#register_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
+#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 
@@ -2178,6 +2215,7 @@ input[type=email], .dropdown-menu__form,
     margin-top: 20px;
     vertical-align: middle;
 }
+
 .access-denied-header {
     margin-bottom: 20px;
 }
@@ -2185,6 +2223,17 @@ input[type=email], .dropdown-menu__form,
 .access-denied-header + p {
     font-size: 2rem;
     margin-bottom: 30px;
+}
+
+#error-message-title {
+    font-size: 25px;
+    font-weight: bold;
+    margin-top: 20px;
+    vertical-align: middle;
+}
+
+#error-redirect-button {
+    margin-bottom: 15px;
 }
 
 #merchant-options-table td {
@@ -2377,4 +2426,44 @@ input.copyable:hover{
 #exclude-zero-balances-container {
     font-size: 1.3rem;
     margin: 10px 0;
+}
+
+#user-settings-menu > li.active > a {
+    background-color: #434e60;
+
+}
+
+#btcResultInfoTable td:first-child {
+    word-break: break-all;
+    width: 350px;
+}
+
+.apidoc_methods_container {
+    margin-left: 4%;
+}
+.apidoc_table td{
+    font-size: 1.3rem;
+}
+.apidoc_table td:first-child {
+    width: 150px;
+    padding-right: 10px;
+}
+
+#tokens-table-wrapper, #generate-button-wrapper {
+    margin: 20px 5px;
+}
+
+#api-tokens-table i {
+    font-size: 1.8rem;
+    margin: 0 5px;
+}
+
+.method-group-title {
+    font-size: 2rem;
+    margin: 30px 0;
+}
+
+#api-method-doc {
+    background-color: #ffffff;
+    padding: 0 20px;
 }

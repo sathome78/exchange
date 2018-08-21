@@ -21,7 +21,7 @@
                         <thead>
                         <tr>
                             <th></th>
-                            <th><loc:message code="notification.options.sendNotification"/></th>
+                            <%--<th><loc:message code="notification.options.sendNotification"/></th>--%>
                             <th><loc:message code="notification.options.sendEmail"/></th>
                         </tr>
                         </thead>
@@ -29,7 +29,7 @@
                         <c:forEach items="${notificationOptions}" var="notificationOption" varStatus="optStatus">
                             <tr>
                                 <td>${notificationOption.eventLocalized}</td>
-                                <td><form:checkbox path="options[${optStatus.index}].sendNotification" value="${notificationOption.sendNotification}"/></td>
+                                <%--<td><form:checkbox path="options[${optStatus.index}].sendNotification" value="${notificationOption.sendNotification}"/></td>--%>
                                 <td><form:checkbox path="options[${optStatus.index}].sendEmail" value="${notificationOption.sendEmail}"/></td>
                                 <td hidden><form:input path="options[${optStatus.index}].event" value="${notificationOption.event}"/></td>
                                 <td hidden><form:input path="options[${optStatus.index}].userId" value="${notificationOption.userId}"/></td>

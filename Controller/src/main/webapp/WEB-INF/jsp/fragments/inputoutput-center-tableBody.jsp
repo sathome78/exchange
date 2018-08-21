@@ -12,7 +12,16 @@
   <th class="col-2 center blue-white"></th>
 </tr>
 <script type="text/template" id="${table_row_id}">
-  <tr>
+  <tr class="in_out_row"
+    <@=
+    (function(){
+    if (operationType == 'Output' || operationType == 'withdraw') {
+    return
+    'style="cursor: pointer"'
+    }})()
+    @>
+
+      data-type='<@=operationType@>' data-id=<@=id@> >
     <td class="center blue-white"><@=datetime@></td>
     <td class="center"><@=currencyName@></td>
     <td class="right"><@=amount@></td>
@@ -34,4 +43,5 @@
   </tr>
 </script>
 </tbody>
+<%@include file="modal/dialogWithdrawInfoModal.jsp" %>
 

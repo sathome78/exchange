@@ -202,7 +202,6 @@ function NewsClass($loadingImg) {
             $('#news-archive-modal').modal();
         });
 
-
         $('#add-news-button').on('click', that.addNews);
         $('#variantEd').val($('#language').text().trim().toLowerCase());
         $('#variantEd').change(function () {

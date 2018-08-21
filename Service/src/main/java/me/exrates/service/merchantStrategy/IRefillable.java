@@ -35,4 +35,6 @@ public interface IRefillable extends IMerchantService{
   default Integer minConfirmationsRefill() {
     return null;
   };
+
+  default boolean concatAdditionalToMainAddress() { return false; }
 }

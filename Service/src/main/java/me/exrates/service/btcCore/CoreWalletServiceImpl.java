@@ -62,6 +62,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private Boolean supportInstantSend;
   private Boolean supportSubtractFee;
+  private Boolean supportReferenceLine;
 
   private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
@@ -73,7 +74,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
 
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee) {
+  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -84,6 +85,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
       this.supportSubtractFee = supportSubtractFee;
+      this.supportReferenceLine = supportReferenceLine;
     } catch (Exception e) {
       log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
@@ -268,11 +270,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                 BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                 dto.setTxId(payment.getTxId());
                 dto.setAddress(payment.getAddress());
+                dto.setBlockhash(payment.getBlockHash());
                 dto.setCategory(payment.getCategory().getName());
                 dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
                 dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
                 dto.setConfirmations(payment.getConfirmations());
-                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
+                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
                 return dto;
               }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
@@ -280,12 +283,22 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
-  @Override
-  public List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId) {
-    try {
-      return btcdClient.listSinceBlock(blockHash).getPayments().stream()
-              .map(payment -> BtcPaymentFlatDto.builder()
+
+
+    @Override
+    public List<BtcPaymentFlatDto> listSinceBlockEx(@Nullable String blockHash, Integer merchantId, Integer currencyId)  {
+        try {
+            return listSinceBlockExChecked(blockHash, merchantId, currencyId);
+        } catch (Exception e) {
+            log.error(e);
+            throw new BitcoinCoreException(e);
+        }
+    }
+
+    private List<BtcPaymentFlatDto> listSinceBlockExChecked(@Nullable String blockHash, Integer merchantId, Integer currencyId) throws BitcoindException, CommunicationException {
+        SinceBlock sinceBlock = blockHash == null ? btcdClient.listSinceBlock() : btcdClient.listSinceBlock(blockHash);
+        return sinceBlock.getPayments().stream()
+                .map(payment -> BtcPaymentFlatDto.builder()
                         .amount(payment.getAmount())
                         .confirmations(payment.getConfirmations())
                         .merchantId(merchantId)
@@ -294,9 +307,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                         .txId(payment.getTxId())
                         .blockhash(payment.getBlockHash())
                         .build()).collect(Collectors.toList());
+    }
+
+
+
+  @Override
+  public List<BtcPaymentFlatDto> listSinceBlock(@Nullable String blockHash, Integer merchantId, Integer currencyId) {
+    try {
+      return listSinceBlockExChecked(blockHash, merchantId, currencyId);
     } catch (Exception e) {
       log.error(e);
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
   }
   
@@ -368,12 +389,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   public String sendToAddressAuto(String address, BigDecimal amount, String walletPassword) {
     
     try {
-      unlockWallet(walletPassword, 1);
+        String result;
+      synchronized (SENDING_LOCK) {
+      unlockWallet(walletPassword, 10);
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
-      String result;
-      synchronized (SENDING_LOCK) {
-        result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      if (supportReferenceLine) {
+          result = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+      } else {
+          result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      }
+      lockWallet();
       }
       return result;
     } catch (BitcoindException e) {
@@ -407,6 +433,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         }
     }
 
+    private void lockWallet() {
+        try {
+            Long unlockedUntil = getUnlockedUntil();
+            if (unlockedUntil != null && unlockedUntil != 0) {
+                btcdClient.walletLock();
+            }
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
+
     private Long getUnlockedUntil() throws BitcoindException, CommunicationException {
         try {
             return btcdClient.getInfo().getUnlockedUntil();
@@ -428,7 +465,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
           if (supportInstantSend) {
               txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                       "", subtractFeeAddresses);
-          } else {
+          } else if (supportReferenceLine) {
+              txId = btcdClient.sendMany("", payments, "", MIN_CONFIRMATIONS_FOR_SPENDING);
+          }
+
+          else {
               if (supportSubtractFee) {
                   txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
                           "", subtractFeeAddresses);
@@ -563,6 +604,32 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     } catch (BitcoindException | CommunicationException e) {
       throw new BitcoinCoreException("Cannot decode tx " + hex, e);
     }
+  }
+
+  @Override
+  public String getLastBlockHash() {
+      try {
+          return btcdClient.getBestBlockHash();
+      } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+          try {
+              return btcdClient.getBlockHash(btcdClient.getBlockCount());
+          } catch (BitcoindException | CommunicationException e1) {
+              log.error(e1);
+          }
+          throw new BitcoinCoreException(e);
+      }
+  }
+
+  @Override
+  public BtcBlockDto getBlockByHash(String blockHash) {
+      try {
+          Block block = btcdClient.getBlock(blockHash);
+          return new BtcBlockDto(block.getHash(), block.getHeight(), block.getTime());
+      } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+          throw new BitcoinCoreException(e);
+      }
   }
 
   @PreDestroy

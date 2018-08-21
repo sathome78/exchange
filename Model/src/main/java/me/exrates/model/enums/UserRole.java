@@ -15,7 +15,8 @@ public enum UserRole implements RealCheckableRole {
   VIP_USER(7),
   TRADER(8),
   FIN_OPERATOR(9),
-  BOT_TRADER(10, false, false);
+  BOT_TRADER(10, false, false),
+  ICO_MARKET_MAKER(11);
 
   private final int role;
 
@@ -44,8 +45,8 @@ public enum UserRole implements RealCheckableRole {
   public static UserRole convert(int id) {
     return Arrays.stream(UserRole.class.getEnumConstants())
         .filter(e -> e.role == id)
-        .findAny()
-        .orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)));
+        .findAny().orElse(USER)
+        /*.orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)))*/;
   }
 
 

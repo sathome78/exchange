@@ -15,10 +15,7 @@ import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.InvalidNicknameException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.waves.WavesService;
@@ -90,8 +87,10 @@ public class MobileEntryController {
     @Autowired
     private ApiService apiService;
 
+    /*TODO temporary disable
+
     @Autowired
-    private StoreSessionListener storeSessionListener;
+    private StoreSessionListener storeSessionListener;*/
 
     @Autowired
     private IpBlockingService ipBlockingService;
@@ -531,6 +530,7 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
+
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());
@@ -1060,6 +1060,7 @@ public class MobileEntryController {
      */
     @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> authenticateQR(@RequestBody Map<String, String> params, @RequestHeader("Exrates-Rest-Token") String token) {
+        /*TODO temporary disable
         logger.debug(params);
         String sessionId = params.get("sessionId");
         logger.debug(sessionId);
@@ -1069,7 +1070,8 @@ public class MobileEntryController {
         synchronized (mutex) {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);*/
+        throw new NotImplimentedMethod("NOT IMPLEMENTED");
     }
 
 
@@ -1203,16 +1205,6 @@ public class MobileEntryController {
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         exception.printStackTrace();
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
-    }
-
-    @Autowired
-    private WavesService wavesService;
-
-    @RequestMapping(value = "/test/waves", method = RequestMethod.GET)
-    @ResponseBody
-    public void testWaves() {
-        wavesService.processWavesTransactionsForKnownAddresses();
-
     }
 
 

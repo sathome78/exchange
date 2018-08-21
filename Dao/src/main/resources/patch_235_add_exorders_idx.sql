@@ -1,0 +1,1 @@
+CREATE INDEX exorders__idx_user_cur_pair_status ON EXORDERS (user_id, currency_pair_id, status_id);

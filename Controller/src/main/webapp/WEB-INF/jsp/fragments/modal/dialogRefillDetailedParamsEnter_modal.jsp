@@ -3,7 +3,7 @@
   var $dialog;
   $(function () {
     $dialog = $("#dialog-refill-detailed-params-enter");
-    $(".credits-operation-enter__item").on("change input", function (event) {
+    $($dialog).find(".credits-operation-enter__item").on("change input", function (event) {
       var $elem = $(event.currentTarget);
       var checkResult = checkField($elem);
       if (checkResult) {
@@ -36,7 +36,7 @@
   }
 
   function checkAllFields() {
-    result = true;
+    var result = true;
     [].forEach.call($dialog.find(".credits-operation-enter__item"), function (item) {
       result = checkField($(item)) && result;
     });

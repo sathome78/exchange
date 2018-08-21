@@ -26,7 +26,7 @@ public class EDCController {
   @Autowired
   private EDCService edcService;
 
-  private final Logger LOG = LogManager.getLogger("merchant");
+  private final Logger LOG = LogManager.getLogger("edc_log");
 
   @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
   public ResponseEntity<Void> statusPayment(@RequestBody Map<String, Object> paramsObject) throws RefillRequestAppropriateNotFoundException {

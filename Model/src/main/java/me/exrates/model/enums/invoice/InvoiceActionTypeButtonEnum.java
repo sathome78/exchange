@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public enum InvoiceActionTypeButtonEnum {
   CONFIRM_USER_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
+    getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "unconfirmed-refills-table"});
   }},
   CONFIRM_ADMIN_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
@@ -22,7 +22,7 @@ public enum InvoiceActionTypeButtonEnum {
   }},
   /*---*/
   REVOKE_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "transfer-table"});
+    getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "transfer-table", "unconfirmed-refills-table"});
   }},
   SHOW_CODE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});

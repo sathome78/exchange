@@ -5,7 +5,9 @@ import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
+import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -22,8 +24,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maks on 21.07.2017.
@@ -58,9 +64,15 @@ public class NemRecieveTransactionsService {
 
     private @Value("${nem.address}")String address;
 
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Scheduled(initialDelay = 1000, fixedRate = 1000 * 60 * 4)
-    public void checkTransactions() {
+    @PostConstruct
+    private void init() {
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 1, 5, TimeUnit.MINUTES);
+    }
+
+
+    public synchronized void checkTransactions() {
         log.debug("starting check nem income payments");
         String lastHash = loadLastHash();
         String pagingHash = null;
@@ -74,7 +86,7 @@ public class NemRecieveTransactionsService {
         for (int i = 0; transactions.opt(i) != null; i++) {
             JSONObject transactionData = transactions.getJSONObject(i);
             Map<String, String> params = extractParams(transactionData);
-
+            log.info("transaction {}", transactionData);
             String trHash = params.get("hash");
             if (trHash.equals(lastHash)) {
                 return null;
@@ -82,21 +94,27 @@ public class NemRecieveTransactionsService {
             if (i == 0 && pagingHash == null) {
                 saveLastHash(trHash);
             }
+            saveLastHash(trHash);
             log.debug("mosaics {}", params.get("mosaics"));
-            double amountD = Double.valueOf(params.get("amount"));
+            Double amountD = Double.valueOf(params.get("amount"));
             log.debug("amountD {}", amountD);
-            if (amountD == 0) {
+            if (amountD.equals(0d)) {
                 continue;
             }
-            if (params.get("mosaics") != null && amountD != 1) {
+            if (params.get("mosaics") != null) {
+                if (!amountD.equals(1d)) {
+                    continue;
+                }
                 try {
                     List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
+                    checkOwnedMosaics(params.get("signer"));
                     nemService.processMosaicPayment(mosaics, params);
                 } catch (Exception e) {
                     log.error("nem mosaic refill process error {} {}", e, transactionData.toString());
                 }
             } else {
                 try {
+                    checkOwnedMosaics(params.get("signer"));
                     nemService.processPayment(params);
                 } catch (RefillRequestAppropriateNotFoundException e) {
                     log.error("nem refill address not found {}", transactionData.toString());
@@ -109,6 +127,25 @@ public class NemRecieveTransactionsService {
             }
         }
         return null;
+    }
+
+    private void checkOwnedMosaics(String publicKey) {
+        try {
+            String address = nodeService.getAddressByPk(publicKey);
+            JSONArray array = nodeService.getOwnedMosaics(address);
+            array.forEach(p -> {
+                JSONObject object = ((JSONObject) p).getJSONObject("mosaicId");
+                MosaicIdDto idDto = new MosaicIdDto(object.getString("namespaceId"), object.getString("name"));
+                if (nemService.getDeniedMosaicList().contains(idDto)) {
+                    log.warn("sender contains denied mosaic!!! {} ", idDto);
+                    throw new NemTransactionException("sender contains denied mosaic " + idDto);
+                }
+            });
+        } catch (NemTransactionException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("can't check owned mosaics");
+        }
     }
 
     private List<NemMosaicTransferDto> getMosaicPayments(Map<String, String> params) throws IOException {
@@ -149,6 +186,7 @@ public class NemRecieveTransactionsService {
         paramsMap.put("amount", transactionsService.transformToString(transaction.getLong("amount")));
         paramsMap.put("transaction", transactionMetaPair.toString());
         paramsMap.put("mosaics", transaction.optString("mosaics", null));
+        paramsMap.put("signer", transaction.getString("signer"));
         return paramsMap;
     }
 

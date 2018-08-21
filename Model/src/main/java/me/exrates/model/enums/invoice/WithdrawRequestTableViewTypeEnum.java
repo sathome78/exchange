@@ -13,28 +13,29 @@ import static me.exrates.model.enums.invoice.WithdrawStatusEnum.*;
  */
 public enum WithdrawRequestTableViewTypeEnum {
 
-  ALL,
-  FOR_WORK(WAITING_MANUAL_POSTING, IN_WORK_OF_ADMIN, WAITING_CONFIRMATION, WAITING_REVIEWING, TAKEN_FOR_WITHDRAW),
-  FOR_MANUAL(WAITING_MANUAL_POSTING, IN_WORK_OF_ADMIN, WAITING_CONFIRMATION, WAITING_REVIEWING, TAKEN_FOR_WITHDRAW),
-  FOR_CONFIRM(WAITING_CONFIRMATION),
-  AUTO_PROCESSING(WAITING_AUTO_POSTING, WAITING_CONFIRMED_POSTING),
-  POSTED(POSTED_AUTO, POSTED_MANUAL),
-  DECLINED(DECLINED_ADMIN, DECLINED_ERROR);
+    ALL,
+    FOR_WORK(WAITING_MANUAL_POSTING, IN_WORK_OF_ADMIN, WAITING_CONFIRMATION),
+    FOR_MANUAL(WAITING_MANUAL_POSTING, IN_WORK_OF_ADMIN, WAITING_CONFIRMATION),
+    FOR_CONFIRM(WAITING_CONFIRMATION),
+    AUTO_PROCESSING(WAITING_AUTO_POSTING, WAITING_CONFIRMED_POSTING),
+    POSTED(POSTED_AUTO, POSTED_MANUAL),
+    DECLINED(DECLINED_ADMIN, DECLINED_ERROR),
+    FOR_CHECKING(WAITING_REVIEWING, TAKEN_FOR_WITHDRAW);
 
-  private List<WithdrawStatusEnum> withdrawStatusList = new ArrayList<>();
+    private List<WithdrawStatusEnum> withdrawStatusList = new ArrayList<>();
 
-  WithdrawRequestTableViewTypeEnum(WithdrawStatusEnum... withdrawStatusEnum) {
-    withdrawStatusList.addAll(Arrays.asList(withdrawStatusEnum));
-  }
+    WithdrawRequestTableViewTypeEnum(WithdrawStatusEnum... withdrawStatusEnum) {
+        withdrawStatusList.addAll(Arrays.asList(withdrawStatusEnum));
+    }
 
-  public List<WithdrawStatusEnum> getWithdrawStatusList() {
-    return withdrawStatusList;
-  }
+    public static WithdrawRequestTableViewTypeEnum convert(String name) {
+        return Arrays.stream(WithdrawRequestTableViewTypeEnum.class.getEnumConstants())
+                .filter(e -> e.name().equals(name))
+                .findAny()
+                .orElseThrow(() -> new UnsupportedWithdrawRequestTableViewTypeNameException(name));
+    }
 
-  public static WithdrawRequestTableViewTypeEnum convert(String name) {
-    return Arrays.stream(WithdrawRequestTableViewTypeEnum.class.getEnumConstants())
-        .filter(e -> e.name().equals(name))
-        .findAny()
-        .orElseThrow(() -> new UnsupportedWithdrawRequestTableViewTypeNameException(name));
-  }
+    public List<WithdrawStatusEnum> getWithdrawStatusList() {
+        return withdrawStatusList;
+    }
 }

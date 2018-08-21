@@ -14,11 +14,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
+
+    <%--TOOLS ... --%>
+    <%@include file="../tools/google_head.jsp"%>
+    <%@include file="../tools/alexa.jsp" %>
+    <%--ZOPIM CHAT--%>
+    <%--<%@include file="../tools/zopim.jsp" %>--%>
+    <%--INTERCOM CHAT--%>
+    <%@include file="../tools/intercom.jsp" %>
+    <%-- ... TOOLS--%>
+
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
     <script src="<c:url value="/client/js/polyfill/polyfill.js"/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <%--<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">--%>
@@ -29,6 +40,7 @@
     <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
@@ -45,6 +57,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/refillConfirmationDialog.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/inputOutput/inputOutput.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
@@ -78,13 +91,9 @@
 
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
 
-    <%--TOOLS ... --%>
-    <%@include file="../tools/google_head.jsp"%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/zopim.jsp" %>
-    <%-- ... TOOLS--%>
+
 </head>
 <body>
 
@@ -120,6 +129,7 @@
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>
 <c:if test="${successRegister}"><span hidden id="successRegister"></span></c:if>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>

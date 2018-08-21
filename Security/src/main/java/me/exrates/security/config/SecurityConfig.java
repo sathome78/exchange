@@ -145,7 +145,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/2a8fy7b07dxe44/commissions/editCommission",
             "/2a8fy7b07dxe44/commissions/editMerchantCommission",
             "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
-            "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+            "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
+            "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
         .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
@@ -171,7 +172,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             /*admin report ... */
         .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
             /*... admin report */
-        .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.TRADER.name())
+        .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
         .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
@@ -183,7 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
         .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
+                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ico_dashboard/**", "/registrationConfirm/**",
             "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
         .antMatchers(POST, "/merchants/withdrawal/request/accept",
             "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
@@ -225,6 +226,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
         .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
         .antMatchers(GET, "/public/**").permitAll()
+        .antMatchers("/info/public/**").permitAll()
+        .antMatchers(GET, "/openapi/v1/public/**").permitAll()
         .antMatchers(GET, "/favicon.ico").permitAll()
         .antMatchers(GET, "/news/**").permitAll()
         .antMatchers(GET, "/pageMaterials/**").permitAll()
@@ -237,20 +240,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
         .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
         .antMatchers("/payeer_510814850.txt").permitAll()
-        .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners").permitAll()
+        .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners", "/api_docs").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
         .antMatchers(GET, "/utcOffset").permitAll()
         .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
+        .antMatchers( "/gt/**").permitAll()
         .antMatchers( "/test/**").permitAll()
-        .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
+        .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
+        .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
+        .antMatchers("/resetPasswordConfirm/**").permitAll()
+        .antMatchers("/forgotPassword/**").permitAll()
+        .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+        .antMatchers("/passwordRecovery").permitAll()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
-        .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
+        .antMatchers("/updatePassword", "/createPassword").permitAll()
+        .antMatchers(POST, "/createPasswordConfirm").permitAll()
+        .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
+        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
         /*user withdraw action ...*/
         .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/

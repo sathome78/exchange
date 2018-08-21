@@ -120,6 +120,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
         if (!this.islifeTypeActive(params.getSessionLifeTypeId())) {
             params.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
         }
+        System.out.println("time " + params.getSessionTimeMinutes());
         session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
         session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());

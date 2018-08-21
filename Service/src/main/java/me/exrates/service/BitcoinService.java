@@ -10,6 +10,7 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -85,7 +86,9 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
 
     List<BtcPaymentResultDetailedDto> sendRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions);
 
-  String getNewAddressForAdmin();
+    void scanForUnprocessedTransactions(@Nullable String blockHash);
+
+    String getNewAddressForAdmin();
 
     void setSubtractFeeFromAmount(boolean subtractFeeFromAmount);
 

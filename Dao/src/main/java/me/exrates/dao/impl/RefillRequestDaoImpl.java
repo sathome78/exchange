@@ -626,7 +626,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             "   merchant_id = :merchant_id " +
             "   AND currency_id = :currency_id" +
             "   AND status_modification_date <= DATE_SUB(:now_date, INTERVAL " + intervalHours + " HOUR ) " +
-            "   AND status_id IN (:istatus_id_list)" +
+            "   AND status_id IN (:status_id_list)" +
             " FOR UPDATE"; //FOR UPDATE Important!
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("merchant_id", merchantId);

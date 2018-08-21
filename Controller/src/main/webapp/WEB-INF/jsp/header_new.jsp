@@ -34,7 +34,7 @@
                         <li>
                             <a href="/" class="navabr__link active"><loc:message code="dashboard.general"/></a>
                         </li>
-                        <li><a href=""><loc:message code="dashboard.hello"/> <strong><sec:authentication
+                        <li><a href=""><strong><sec:authentication
                                 property="principal.username"/></strong></a></li>
 
                     </sec:authorize>

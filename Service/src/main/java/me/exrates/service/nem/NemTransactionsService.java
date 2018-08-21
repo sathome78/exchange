@@ -150,16 +150,11 @@ public class NemTransactionsService {
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }
 
-    BigDecimal countMosaicTxFeeForTagInXem(XemMosaicService mosaicService, String destinationTag, long quantity) {
-        if (StringUtils.isEmpty(destinationTag)) {
+    BigDecimal countMessageFeeInNem(int divisibility, String message) {
+        if (StringUtils.isEmpty(message)) {
             return BigDecimal.ZERO;
         }
-        Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
-                .accountTo("")
-                .amount(BigDecimal.ZERO.toString())
-                .destinationTag(destinationTag)
-                .build(), null);
-        return BigDecimalProcessing.doAction(new BigDecimal(transformToString(transaction.getFee().getNumMicroNem())),
-                new BigDecimal(1.95), ActionType.SUBTRACT);
+        BigDecimal devideRes = BigDecimalProcessing.doAction(new BigDecimal(message.getBytes().length), new BigDecimal(32), ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);
+        return BigDecimalProcessing.doAction(devideRes.add(new BigDecimal(1)), new BigDecimal(0.05), ActionType.MULTIPLY).setScale(divisibility, RoundingMode.HALF_UP);
     }
 }

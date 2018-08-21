@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -8,8 +9,7 @@ import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
-import me.exrates.service.exception.BtcPaymentNotFoundException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +19,15 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -39,12 +43,14 @@ public class BitcoinServiceImpl implements BitcoinService {
   private CurrencyService currencyService;
   @Autowired
   private MerchantService merchantService;
+
+  @Autowired
+  private MerchantSpecParamsDao merchantSpecParamsDao;
+
   @Autowired
   private MessageSource messageSource;
   @Autowired
   private CoreWalletService bitcoinWalletService;
-
-  private String walletPassword;
 
   private String backupFolder;
 
@@ -68,6 +74,14 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Boolean supportSubtractFee;
 
+  private Boolean supportWalletNotifications;
+
+  private Boolean supportReferenceLine;
+
+  private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
+
+
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
@@ -79,10 +93,19 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                             Boolean rawTxEnabled, Boolean supportSubtractFee) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
+  }
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false);
+  }
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
-      this.walletPassword = props.getProperty("wallet.password");
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
       this.nodeEnabled = Boolean.valueOf(props.getProperty("node.isEnabled"));
@@ -94,6 +117,8 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.blockTargetForFee = blockTargetForFee;
       this.rawTxEnabled = rawTxEnabled;
       this.supportSubtractFee = supportSubtractFee;
+      this.supportWalletNotifications = supportWalletNotifications;
+      this.supportReferenceLine = supportReferenceLine;
     } catch (IOException e) {
       log.error(e);
     }
@@ -104,8 +129,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     return rawTxEnabled;
   }
 
-  public BitcoinServiceImpl(String walletPassword, Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
-    this.walletPassword = walletPassword;
+  public BitcoinServiceImpl(Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
     this.zmqEnabled = zmqEnabled;
     this.merchantName = merchantName;
     this.currencyName = currencyName;
@@ -117,13 +141,18 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     if (nodeEnabled) {
-      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee);
+      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee, supportReferenceLine);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
-      bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+      if (supportWalletNotifications) {
+        bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+      } else {
+        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+      }
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
+//      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
       examineMissingPaymentsOnStartup();
     }
 
@@ -134,8 +163,14 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Transactional
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
+    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, getCoreWalletPassword());
     return Collections.singletonMap("hash", txId);
+  }
+
+  private String getCoreWalletPassword() {
+    return merchantService.getCoreWalletPassword(merchantName, currencyName)
+            .orElseThrow(() -> new CoreWalletPasswordNotFoundException(String.format("pass not found for merchant %s currency %s", merchantName, currencyName)));
+
   }
 
   @Override
@@ -173,7 +208,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private String address() {
     boolean isFreshAddress = false;
-    String address = bitcoinWalletService.getNewAddress(walletPassword);
+    String address = bitcoinWalletService.getNewAddress(getCoreWalletPassword());
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
 //    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
@@ -239,7 +274,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                       .merchantTransactionId(btcPaymentFlatDto.getTxId()).build()));
       if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < minConfirmations) {
         try {
-          log.debug("put on bch exam {}", btcPaymentFlatDto );
+          log.info("put on bch exam {}", btcPaymentFlatDto );
           refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
                   .requestId(requestId)
                   .merchantId(btcPaymentFlatDto.getMerchantId())
@@ -370,7 +405,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String getEstimatedFeeString() {
     BigDecimal feeRate = estimateFee();
-    if (feeRate.equals(BigDecimal.valueOf(-1L))) {
+    if (feeRate.compareTo(BigDecimal.ZERO) < 0) {
       return "N/A";
     }
     return BigDecimalProcessing.formatNonePoint(feeRate, true);
@@ -388,6 +423,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Override
   public void submitWalletPassword(String password) {
+    String storedPassword = getCoreWalletPassword();
+    if (password == null || !password.equals(storedPassword)) {
+      throw new IncorrectCoreWalletPasswordException("Incorrect password: " + password);
+    }
     bitcoinWalletService.submitWalletPassword(password);
   }
   
@@ -470,8 +509,57 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
 
   @Override
+  public void scanForUnprocessedTransactions(@Nullable String blockHash) {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    bitcoinWalletService.listSinceBlockEx(blockHash, merchant.getId(), currency.getId()).forEach(btcPaymentFlatDto -> {
+      try {
+        processBtcPayment(btcPaymentFlatDto);
+      } catch (Exception e) {
+        log.error(e);
+      }
+    });
+    try {
+      onIncomingBlock(bitcoinWalletService.getBlockByHash(bitcoinWalletService.getLastBlockHash()));
+    } catch (Exception e) {
+      log.error(e);
+    }
+
+  }
+
+  private void checkForNewTransactions() {
+    log.info("Start checking new {} transactions: ", currencyName);
+    try {
+      Merchant merchant = merchantService.findByName(merchantName);
+      Currency currency = currencyService.findByName(currencyName);
+      String blockParamName = "lastBlock";
+      MerchantSpecParamDto lastBlockParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), blockParamName);
+      if (lastBlockParam == null) {
+        throw new MerchantSpecParamNotFoundException(String.format("merchant %s, currency %s, param %s", merchant.getName(), currency.getName(),
+                blockParamName));
+      }
+      String currentBlockHash = bitcoinWalletService.getLastBlockHash();
+      List<BtcPaymentFlatDto> payments = bitcoinWalletService.listSinceBlock(lastBlockParam.getParamValue(), merchant.getId(), currency.getId());
+      payments.forEach(btcPaymentFlatDto -> {
+        try {
+          log.info("Processing tx {}", btcPaymentFlatDto);
+          processBtcPayment(btcPaymentFlatDto);
+        } catch (Exception e) {
+          log.error(e);
+        }
+      });
+      merchantSpecParamsDao.updateParam(merchantName, blockParamName, currentBlockHash);
+    } catch (Exception e) {
+      log.error(e);
+    }
+
+  }
+
+
+
+  @Override
   public String getNewAddressForAdmin() {
-    return bitcoinWalletService.getNewAddress(walletPassword);
+    return bitcoinWalletService.getNewAddress(getCoreWalletPassword());
   }
 
   @Override
@@ -492,6 +580,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PreDestroy
   public void shutdown() {
     bitcoinWalletService.shutdown();
+    newTxCheckerScheduler.shutdown();
   }
 
 }

@@ -5,8 +5,11 @@ import me.exrates.model.dto.merchants.waves.WavesTransaction;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 public interface WavesRestClient {
+    void init(Properties props);
+
     String generateNewAddress();
 
     Integer getCurrentBlockHeight();

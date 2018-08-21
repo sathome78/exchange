@@ -451,7 +451,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> acceptVoucher(@RequestBody Map<String, String> params) {
         String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
         String userEmail = getAuthenticatedUserEmail();
@@ -521,7 +521,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    // TODO temporary disable
+    // @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
 
 
@@ -535,7 +536,7 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
@@ -657,7 +658,7 @@ public class MobileInputOutputController {
         payment.setCurrency(requestParamsDto.getCurrency());
         payment.setMerchant(requestParamsDto.getMerchant());
         payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         return new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
     }
@@ -824,7 +825,7 @@ public class MobileInputOutputController {
 
 
 
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
@@ -888,7 +889,7 @@ public class MobileInputOutputController {
         payment.setSum(requestParamsDto.getSum() == null ? 0 :requestParamsDto.getSum().doubleValue());
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
         RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
@@ -946,7 +947,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    // TODO temporary disable
+    // @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public TransferResponseDto submitTransfer(@RequestBody TransferRequestParamsDto requestParamsDto) {
         requestParamsDto.setOperationType(USER_TRANSFER);
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -957,7 +959,7 @@ public class MobileInputOutputController {
         payment.setMerchant(requestParamsDto.getMerchant());
         payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
         payment.setRecipient(requestParamsDto.getRecipient());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
         Map<String, Object> result = transferService.createTransferRequest(request);

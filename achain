@@ -1,0 +1,29 @@
+"D:\work\Achain\Achain\Achain-c" --rpcuser admin --rpcpassword 123456 --httpdendpoint 127.0.0.1:8078 --server --data-dir D:\work\achain_data\achain
+
+
+./Achain --rpcuser admin --rpcpassword 123456 --httpdendpoint 0.0.0.0:8078 --server --data-dir /opt/.achain
+account newone pk
+5HyEg4s25twHDMpjovMxhWUC3vJ3nDWxqLz3oDwM3SAjfwfBdDy
+
+
+ACT69UvH9k3tC4F3SLeUR2pjL7GWc6DCr88qe168cf2c385349bcaa9f559a3ff29852
+ACT69UvH9k3tC4F3SLeUR2pjL7GWc6DCr88q
+ACT69UvH9k3tC4F3SLeUR2pjL7GWc6DCr88q43tergery546346534twerqwti76i674 (+32 symbols to the main address)
+
+ "operations" -> "type": "call_contract_op_type" - транзакция по контракту
+                       : "withdraw_op_type" - ранзакция по act
+
+ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx
+CON9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx
+
+ACTM4VAvnpshAvxg1Zgh2TdcDuZggNzbf1pgffffffffffffffffffffffffffffffff
+
+act refill
+ACTfpTzidw5dusAkC4FEhy7CATPTJoo2khH84134096044656625134190446631022
+vex refill
+ACTfpTzidw5dusAkC4FEhy7CATPTJoo2khH79157826142205298415611293524368
+
+
+ACT54nD2uNstDg3AYfGJJ9g8ZxiC4RPs7EAG 90473921969849506759825736887144
+
+ACT54nD2uNstDg3AYfGJJ9g8ZxiC4RPs7EAG 96748112526971911649842446966868

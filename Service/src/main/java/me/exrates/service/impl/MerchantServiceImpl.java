@@ -302,7 +302,7 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   @Transactional
   public void setBlockForAll(OperationType operationType, boolean blockStatus) {
-    merchantDao.setBlockForAll(operationType, blockStatus);
+    merchantDao.setBlockForAllNonTransfer(operationType, blockStatus);
   }
 
   @Override
@@ -368,8 +368,10 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public String retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
-    return merchantDao.retrieveCoreWalletCurrencyNameByMerchant(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
+  public CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale) {
+    CoreWalletDto result = merchantDao.retrieveCoreWalletByMerchantName(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
+    result.localizeTitle(messageSource, locale);
+    return result;
   }
 
   @Override
@@ -378,6 +380,11 @@ public class MerchantServiceImpl implements MerchantService {
     List<CoreWalletDto> result = merchantDao.retrieveCoreWallets();
     result.forEach(dto -> dto.localizeTitle(messageSource, locale));
     return result;
+  }
+
+  @Override
+  public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
+    return merchantDao.getCoreWalletPassword(merchantName, currencyName);
   }
 
   @Override

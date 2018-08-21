@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,6 +11,7 @@ public class CurrencyPair {
     private Currency currency2;
     private String market;
     private String marketName;
+    private CurrencyPairType pairType;
 
     /*constructors*/
     public CurrencyPair() {
@@ -52,6 +54,9 @@ public class CurrencyPair {
                 ", name='" + name + '\'' +
                 ", currency1=" + currency1 +
                 ", currency2=" + currency2 +
+                ", market='" + market + '\'' +
+                ", marketName='" + marketName + '\'' +
+                ", pairType=" + pairType +
                 '}';
     }
 
@@ -102,5 +107,13 @@ public class CurrencyPair {
 
     public void setMarketName(String marketName) {
         this.marketName = marketName;
+    }
+
+    public CurrencyPairType getPairType() {
+        return pairType;
+    }
+
+    public void setPairType(CurrencyPairType pairType) {
+        this.pairType = pairType;
     }
 }

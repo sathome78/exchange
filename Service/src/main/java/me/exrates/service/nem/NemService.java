@@ -1,6 +1,7 @@
 package me.exrates.service.nem;
 
 import lombok.Synchronized;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -87,4 +88,6 @@ public interface NemService extends IRefillable, IWithdrawable {
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
         return true;
     }
+
+    List<MosaicIdDto> getDeniedMosaicList();
 }

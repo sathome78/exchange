@@ -46,7 +46,7 @@ public interface MerchantDao {
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  void setBlockForAll(OperationType operationType, boolean blockStatus);
+  void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus);
 
   void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
@@ -58,7 +58,7 @@ public interface MerchantDao {
 
   List<String> retrieveBtcCoreBasedMerchantNames();
 
-  Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+  Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName);
 
     List<CoreWalletDto> retrieveCoreWallets();
 
@@ -71,6 +71,8 @@ public interface MerchantDao {
   boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+
+    Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }

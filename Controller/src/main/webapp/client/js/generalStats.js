@@ -5,6 +5,7 @@ $(function () {
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
     const $balancesTable = $('#total-balances-table');
+    const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
     const timeFormat = 'HH:mm';
@@ -14,6 +15,7 @@ $(function () {
 
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
+    var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
 
 
 
@@ -33,7 +35,7 @@ $(function () {
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
         lang:'ru',
-        defaultDate: new Date(),
+        defaultDate: moment().subtract(1, 'days').toDate(),
         defaultTime: '00:00'
     });
     $($datetimepickerEnd).datetimepicker({
@@ -53,7 +55,7 @@ $(function () {
     });
 
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
-    $($datetimepickerStart).val(moment($($datetimepickerEnd).datetimepicker('getValue')).subtract(1, 'days').format(datetimeFormat));
+    $($datetimepickerStart).val(moment($($datetimepickerStart).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
     refreshUsersNumber();
     refreshMailingTime();
@@ -131,7 +133,19 @@ $(function () {
             "order": [],
             "columns": [
                 {
+                    data: 'curId'
+                },
+                {
                     data: 'currency'
+                },
+                {
+                    data: 'rateToUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'totalReal'
@@ -147,7 +161,114 @@ $(function () {
         };
 
        $($balancesTable).find('th').filter(function (index) {
-            return index > 1
+            return index > 3
+        }).map(function(){
+            return $.trim($(this).text());
+        }).get().forEach(function (item) {
+            options['columns'].push({
+                data: 'balances.' + item,
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        return numbroWithCommas(data);
+                    }
+                    return data;
+                }
+            });
+        });
+        balancesDataTable = $($balancesTable).DataTable(options);
+
+
+    }
+
+    if ($.fn.dataTable.isDataTable('#balances-external-wallets-table')) {
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable();
+        balancesExternalWalletsDataTable.ajax.reload();
+    } else {
+        var options = {
+            "ajax": {
+                "url": balancesExternalWalletsUrl,
+                "dataSrc": ""
+            },
+            "paging": false,
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            dom: "<'row pull-left' B>t",
+            "order": [],
+            "columns": [
+                {
+                    data: 'currencyId'
+                },
+                {
+                    data: 'currencyName'
+                },
+                {
+                    data: 'totalReal',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'mainWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'reservedWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'coldWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'totalWalletsDifference',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'totalWalletsDifferenceUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                }
+
+            ],
+            buttons: [{
+                extend: 'csv',
+                text: 'CSV',
+                fieldSeparator: ';',
+                bom:true,
+                charset: 'UTF8'
+            }]
+        };
+
+        $($balancesExternalWalletsTable).find('th').filter(function (index) {
+            return index > 7
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {
@@ -155,8 +276,8 @@ $(function () {
                 data: 'balances.' + item
             });
         });
-        balancesDataTable = $($balancesTable).DataTable(options);
 
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
     }
 
@@ -173,21 +294,21 @@ function refreshUsersNumber() {
 function getCurrencyPairsTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencyPairs.csv')
+        saveToDisk(data, extendsReportName('currencyPairs.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getCurrencyPairsComissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencyPairsComissions.csv')
+        saveToDisk(data, extendsReportName('currencyPairsComissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getCurrenciesTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencies.csv')
+        saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
 }
@@ -195,14 +316,14 @@ function getCurrenciesTurnover() {
 function getTotalBalancesForRoles() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'totalBalances.csv')
+        saveToDisk(data, extendsReportName('totalBalances.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getInputOutputSummaryWithCommissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'inputOutputSummaryWithCommissions.csv')
+        saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
 }
@@ -309,3 +430,22 @@ function deleteSubscriberEmail(email, datatable) {
 }
 
 
+
+function getStartDateFromPicker() {
+   return getDateFromPicker($('#datetimepicker_start'))
+}
+
+
+function getEndDateFromPicker() {
+    return getDateFromPicker($('#datetimepicker_end'))
+}
+
+function getDateFromPicker($datepicker) {
+    var date = $($datepicker).datetimepicker('getValue');
+    return moment(date).format('YYYY-MM-DD HH-mm');
+}
+
+function numbroWithCommas(value) {
+
+    return numbro(value).format('0.00[000000]').toString().replace(/\./g, ',');
+}

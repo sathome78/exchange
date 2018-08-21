@@ -8,6 +8,9 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 @Getter @Setter
@@ -22,5 +25,14 @@ public class Commission {
 
     public Commission(int id) {
         this.id = id;
+    }
+
+    public static Commission zeroComission() {
+        Commission commission = new Commission();
+        commission.setId(24);
+        commission.setOperationType(OperationType.OUTPUT);
+        commission.setValue(BigDecimal.ZERO);
+        commission.setDateOfChange(new Date());
+        return commission;
     }
 }

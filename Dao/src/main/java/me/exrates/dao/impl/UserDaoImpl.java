@@ -11,7 +11,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -114,6 +113,16 @@ public class UserDaoImpl implements UserDao {
     }
   }
 
+  @Override
+  public boolean setNickname( User user) {
+    String sql = "UPDATE USER SET nickname=:nickname WHERE id = :id";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("id", String.valueOf(user.getId()));
+    namedParameters.put("nickname", user.getNickname());
+    int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+    return result > 0;
+  }
+
   public boolean create(User user) {
     String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
         "values(:nickname,:email,:password,:phone,:status,:roleid)";
@@ -123,9 +132,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    String hashedPassword = passwordEncoder.encode(user.getPassword());
-    namedParameters.put("password", hashedPassword);
+    if (user.getPassword() != null) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      String hashedPassword = passwordEncoder.encode(user.getPassword());
+      namedParameters.put("password", hashedPassword);
+    } else {
+      namedParameters.put("password", user.getPassword());
+    }
     String phone = user.getPhone();
     if (user.getPhone() != null && user.getPhone().equals("")) {
       phone = null;
@@ -1045,7 +1058,5 @@ public class UserDaoImpl implements UserDao {
     params.put("end_time", Timestamp.valueOf(endTime));
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
-
-
 
 }

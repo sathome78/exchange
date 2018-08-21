@@ -109,8 +109,9 @@ $(function transferCreation() {
             if (!checkTransferParamsEnter(recipient)) {
                 return;
             }
+
             $transferParamsDialog.one('hidden.bs.modal', function () {
-                showFinPassModal();
+                checkReception();
             });
             $transferParamsDialog.modal("hide");
         });
@@ -118,35 +119,52 @@ $(function transferCreation() {
         $transferParamsDialog.modal();
     }
 
-    function showFinPassModal() {
-        $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
-            e.preventDefault();
-            var finPassword = $finPasswordDialog.find("#finpassword").val();
-            $finPasswordDialog.one("hidden.bs.modal", function () {
-                performTransfer(finPassword);
-            });
-            $finPasswordDialog.modal("hide");
-        });
-        $finPasswordDialog.modal({
-            backdrop: 'static'
+    /*function showFinPassModal() {
+     $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
+     e.preventDefault();
+     var finPassword = $finPasswordDialog.find("#finpassword").val();
+     $finPasswordDialog.one("hidden.bs.modal", function () {
+     performTransfer(finPassword);
+     });
+     $finPasswordDialog.modal("hide");
+     });
+     $finPasswordDialog.modal({
+     backdrop: 'static'
+     });
+     }*/
+
+    function checkReception() {
+        $.ajax({
+            url: '/transfer/request/checking?recipient='+ recipient,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function () {
+            performTransfer();
+        }).error(function () {
+            $transferParamsDialog.modal("hide");
         });
     }
 
-    function performTransfer(finPassword) {
+    function performTransfer() {
         var data = {
             currency: currency,
             merchant: merchant,
             sum: amount,
-            recipient: recipient,
-            operationType: operationType,
+            recipient: recipientUserIsNeeded ? recipient : '',
+            operationType: operationType
         };
-        sendRequest(data, finPassword);
+        sendRequest(data);
     }
 
-    function sendRequest(data, finPassword) {
+    function sendRequest(data) {
+        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
-                url: urlForTransferCreate + '?finpassword=' + finPassword,
+                url: urlForTransferCreate,
                 async: true,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -205,17 +223,22 @@ $(function transferCreation() {
             },
             type: 'POST',
             contentType: 'application/json'
-        }).success(function (result) {
-            $pinDialogModal.modal("hide");
-            transferSuccess(result)
-        }).error(function (result) {
-            var res = result.responseJSON;
-            if (res.cause == 'IncorrectPinException') {
-                $pinDialogText.text(res.detail);
+        }).success(function (result, textStatus, xhr) {
+            if (xhr.status === 200) {
+                $pinDialogModal.modal("hide");
+                transferSuccess(result)
+            } else {
                 $pinWrong.show();
+                $pinDialogText.text(result.message);
+                if (result.needToSendPin) {
+                    successNoty(result.message)
+                }
             }
+        }).error(function (result) {
+
         }).complete(function () {
             $pinInput.val("");
+            $pinSendButton.prop('disabled', true);
         });
     }
 
@@ -258,5 +281,3 @@ $(function transferCreation() {
     }
 
 });
-
-

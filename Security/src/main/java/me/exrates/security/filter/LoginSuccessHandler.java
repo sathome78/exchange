@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.ServletException;
@@ -50,9 +52,11 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        super.setAlwaysUseDefaultTargetUrl(false);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
+            request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
@@ -76,9 +80,12 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
             ipBlockingService.processLoginSuccess(ip);
+            String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
+            request.getSession().removeAttribute("lastPageBeforeLogin");
+            if (!StringUtils.isEmpty(lastPage)) {
+                super.setDefaultTargetUrl(lastPage);
+            }
             super.onAuthenticationSuccess(request, response, authentication);
-
-
         } catch (Exception e) {
             log.error(e);
             authentication.setAuthenticated(false);
