@@ -18,6 +18,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,6 +48,9 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserSessionService userSessionService;
 
   @Autowired
   private SendMailService sendMailService;
@@ -85,6 +87,9 @@ public class UserServiceImpl implements UserService {
   }
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+  public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+  public static String APP_NAME = "Exrates";
 
   private final int USER_FILES_THRESHOLD = 3;
 
@@ -167,7 +172,7 @@ public class UserServiceImpl implements UserService {
     if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
       //deleting of appropriate jobs
       tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
-            /**/
+      /**/
       if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
         if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
           return 0;
@@ -178,8 +183,8 @@ public class UserServiceImpl implements UserService {
   }
 
   /*
-  * for checking if there are open tokens of concrete type for the user
-  * */
+   * for checking if there are open tokens of concrete type for the user
+   * */
   public List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType) {
     return userDao.getTokenByUserAndType(user.getId(), tokenType);
   }
@@ -189,8 +194,8 @@ public class UserServiceImpl implements UserService {
   }
 
   /*
-  * deletes only concrete token
-  * */
+   * deletes only concrete token
+   * */
   @Transactional(rollbackFor = Exception.class)
   public boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException {
     boolean result = false;
@@ -307,7 +312,7 @@ public class UserServiceImpl implements UserService {
         return userDao.removeUserAuthorities(user.getId());
       }
       if (!hasAdminAuthorities && user.getRole() != null &&
-          user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+              user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
         return userDao.createAdminAuthoritiesForUser(user.getId(), user.getRole());
       }
     }
@@ -324,15 +329,13 @@ public class UserServiceImpl implements UserService {
   public boolean update(UpdateUserDto user, boolean resetPassword, Locale locale) {
     boolean changePassword = user.getPassword() != null && !user.getPassword().isEmpty();
     boolean changeFinPassword = user.getFinpassword() != null && !user.getFinpassword().isEmpty();
-    if (changePassword) {
-      user.setStatus(UserStatus.REGISTERED);
-    }
+
     if (userDao.update(user)) {
       User u = new User();
       u.setId(user.getId());
       u.setEmail(user.getEmail());
       if (changePassword) {
-        sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
+        sendUnfamiliarIpNotificationEmail(u, "admin.changePasswordTitle", "user.settings.changePassword.successful", locale);
       } else if (changeFinPassword) {
         sendEmailWithToken(u, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
       } else if (resetPassword) {
@@ -376,7 +379,7 @@ public class UserServiceImpl implements UserService {
     String rootUrl = "";
     if (!confirmationUrl.toString().contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
-          ":" + request.getServerPort();
+              ":" + request.getServerPort();
     }
     if (params != null) {
       for (String patram : params) {
@@ -384,11 +387,11 @@ public class UserServiceImpl implements UserService {
       }
     }
     email.setMessage(
-        messageSource.getMessage(emailText, null, locale) +
-            " <a href='" +
-            rootUrl +
-            confirmationUrl.toString() +
-            "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
+            messageSource.getMessage(emailText, null, locale) +
+                    " <a href='" +
+                    rootUrl +
+                    confirmationUrl.toString() +
+                    "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
@@ -504,6 +507,9 @@ public class UserServiceImpl implements UserService {
       }
       userDao.updateUserPasswordFromTemporary(tempPassId);
       removeTemporaryPassword(tempPassId);
+
+      userSessionService.invalidateUserSessionExceptSpecific(userDao.getUserById(dto.getUserId()).getEmail(), null);
+
       return deleteTokensAndUpdateUser(temporalToken) > 0;
     }
     removeTemporaryPassword(tempPassId);
@@ -597,7 +603,7 @@ public class UserServiceImpl implements UserService {
 
     if (comment.isMessageSent()) {
       notificationService.notifyUser(user.getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
-          "admin.subjectCommentMessage", new Object[]{": " + newComment});
+              "admin.subjectCommentMessage", new Object[]{": " + newComment});
     }
 
     return success;
@@ -628,17 +634,17 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale) {
     return userDao.getAuthorityOptionsForUser(userId).stream()
-        .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
-        .peek(option -> option.localize(messageSource, locale))
-        .collect(Collectors.toList());
+            .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
+            .peek(option -> option.localize(messageSource, locale))
+            .collect(Collectors.toList());
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId) {
     return userDao.getAuthorityOptionsForUser(userId).stream()
-        .filter(AdminAuthorityOption::getEnabled)
-        .collect(Collectors.toList());
+            .filter(AdminAuthorityOption::getEnabled)
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -663,9 +669,9 @@ public class UserServiceImpl implements UserService {
   public UserRole getUserRoleFromSecurityContext() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String grantedAuthority = authentication.getAuthorities().
-        stream().map(GrantedAuthority::getAuthority)
-        .filter(USER_ROLES::contains)
-        .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
+            stream().map(GrantedAuthority::getAuthority)
+            .filter(USER_ROLES::contains)
+            .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
     LOGGER.debug("Granted authority: " + grantedAuthority);
     return UserRole.valueOf(grantedAuthority);
   }
@@ -675,18 +681,18 @@ public class UserServiceImpl implements UserService {
   public void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList) {
     Integer userId = userCurrencyOperationPermissionDtoList.get(0).getUserId();
     userDao.setCurrencyPermissionsByUserId(
-        userId,
-        userCurrencyOperationPermissionDtoList.stream()
-            .filter(e -> e.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
-            .collect(Collectors.toList()));
+            userId,
+            userCurrencyOperationPermissionDtoList.stream()
+                    .filter(e -> e.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+                    .collect(Collectors.toList()));
   }
 
   @Override
   @Transactional(readOnly = true)
   public InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
-      Integer userId,
-      Integer currencyId,
-      InvoiceOperationDirection invoiceOperationDirection) {
+          Integer userId,
+          Integer currencyId,
+          InvoiceOperationDirection invoiceOperationDirection) {
     return userDao.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(userId, currencyId, invoiceOperationDirection);
   }
 
@@ -739,7 +745,6 @@ public class UserServiceImpl implements UserService {
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
     return setting != null && setting.getNotificatorId() != null;
   }
-
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {

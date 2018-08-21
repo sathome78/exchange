@@ -32,6 +32,7 @@ import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -40,6 +41,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,13 +50,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -69,7 +73,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -109,6 +112,8 @@ public class AdminController {
     private UserSecureService userSecureService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserDetailsService userDetailsService;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
@@ -155,6 +160,8 @@ public class AdminController {
     private NotificationsSettingsService notificationsSettingsService;
     @Autowired
     private UsersAlertsService alertsService;
+    @Autowired
+    private UserSessionService userSessionService;
 
 
     @Autowired
@@ -619,7 +626,7 @@ public class AdminController {
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
-                invalidateUserSession(updateUserDto.getEmail());
+                userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
             } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
                 notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
             }
@@ -630,18 +637,6 @@ public class AdminController {
         model.addObject("user", user);
         /**/
         return model;
-    }
-
-    private void invalidateUserSession(String userEmail) {
-        Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
-                .filter(principalObj -> {
-                    UserDetails principal = (UserDetails) principalObj;
-                    return userEmail.equals(principal.getUsername());
-                })
-                .findFirst();
-        if (updatedUser.isPresent()) {
-            sessionRegistry.getAllSessions(updatedUser.get(), false).forEach(SessionInformation::expireNow);
-        }
     }
 
     /*todo move this method from admin controller*/
@@ -672,77 +667,43 @@ public class AdminController {
         return redirectView;
     }
 
-
     /*todo move this method from admin controller*/
-    @RequestMapping(value = "settings/changePassword/submit", method = POST)
-    public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                               ModelAndView model, Principal principal, HttpServletRequest request) {
-        user.setStatus(user.getUserStatus());
+    @ResponseBody
+    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
+                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        User userPrincipal = userService.findByEmail(principal.getName());
+        Object message;
         if (result.hasErrors()) {
-            model.setViewName("globalPages/settings");
-            model.addObject("sectionid", "passwords-changing");
-            model.addObject("tabIdx", 0);
+            response.setStatus(500);
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
         } else {
-            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-            updateUserDto.setPassword(user.getPassword());
-            updateUserDto.setEmail(principal.getName()); //need for send the email
-            userService.update(updateUserDto, localeResolver.resolveLocale(request));
-            new SecurityContextLogoutHandler().logout(request, null, null);
-            model.setViewName("redirect:/dashboard");
-        }
+            if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
 
-        model.addObject("user", user);
-
-        return model;
-    }
-
-  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
-  public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
-    user.setStatus(user.getUserStatus());
-    registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 1);
-    } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setFinpassword(user.getFinpassword());
-      updateUserDto.setEmail(principal.getName()); //need for send the email
-      userService.update(updateUserDto, localeResolver.resolveLocale(request));
-      final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));
-      redir.addFlashAttribute("msg", message);
-      model.setViewName("redirect:/settings");
-    }
-    return model;
-  }*/
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "/changePasswordConfirm")
-    public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
-        try {
-            request.setCharacterEncoding("utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        ModelAndView model = new ModelAndView();
-        try {
-            if (userService.verifyUserEmail(token) != 0) {
-                model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
+                UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+                updateUserDto.setPassword(user.getConfirmPassword());
+                updateUserDto.setStatus(UserStatus.ACTIVE);
+                updateUserDto.setRole(user.getRole());
+                updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
+                userService.update(updateUserDto, localeResolver.resolveLocale(request));
+                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
+                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
             } else {
-                model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
+                response.setStatus(500);
+                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
             }
-            model.setViewName("redirect:/dashboard");
-        } catch (Exception e) {
-            model.setViewName("DBError");
-            e.printStackTrace();
         }
-        return model;
+        return new JSONObject(){{put("message", message);}}.toString();
     }
 
-  /*@RequestMapping(value = "/changeFinPasswordConfirm")
-  public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
+
+  /*
+    //todo move this method from admin controller
+    @RequestMapping(value = "/changePasswordConfirm")
+  public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
     try {
       request.setCharacterEncoding("utf-8");
     } catch (UnsupportedEncodingException e) {
@@ -751,9 +712,20 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     try {
       if (userService.verifyUserEmail(token) != 0) {
-        model.addObject("successNoty", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
+        User userUpdate = userService.findByEmail(user.getEmail());
+        UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+        updateUserDto.setEmail(userUpdate.getEmail());
+        updateUserDto.setPassword(userUpdate.getPassword());
+        updateUserDto.setStatus(UserStatus.ACTIVE);
+        userService.updateUserByAdmin(updateUserDto);
+        Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
+        org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                updateUserDto.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        attr.addFlashAttribute("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
       } else {
-        model.addObject("errorNoty", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
+        attr.addFlashAttribute("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
       }
       model.setViewName("redirect:/dashboard");
     } catch (Exception e) {
@@ -761,7 +733,8 @@ public class AdminController {
       e.printStackTrace();
     }
     return model;
-  }*/
+  }
+  */
 
     /*todo move this method from admin controller*/
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
@@ -993,39 +966,14 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
     @ResponseBody
     public List<UserSessionDto> retrieveUserSessionInfo() {
-        List<UserSessionDto> result = null;
-        try {
-            Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
-                    .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-                    .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
-                        UserDetails user = (UserDetails) sessionInformation.getPrincipal();
-                        return user.getUsername();
-                    }));
-            log.debug("USsize ", + usersSessions.size());
-            Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
-                    .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
-            log.debug("USinfosize ", + userSessionInfo.size());
-            result = usersSessions.entrySet().stream()
-                    .map(entry -> {
-                        UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
-                        return dto;
-                    }).collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("session_error {}", e);
-        }
-        return result;
+        return userSessionService.retrieveUserSessionInfo();
     }
 
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/expireSession", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
-        SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
-        if (sessionInfo == null) {
-            return new ResponseEntity<>("Sesion not found", HttpStatus.NOT_FOUND);
-        }
-        sessionInfo.expireNow();
-        return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
+        return userSessionService.expireSession(sessionId);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)

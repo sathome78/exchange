@@ -71,4 +71,5 @@ public class GlobalControllerExceptionHandler {
         exception.printStackTrace();
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+
 }
