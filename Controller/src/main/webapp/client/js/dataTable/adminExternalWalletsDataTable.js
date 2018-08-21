@@ -2,11 +2,15 @@
  * Created by OLEG on 23.09.2016.
  */
 var externalWalletsDataTable;
+var specMinUsdDataTable;
 $(document).ready(function () {
 
     var $externalWalletsTable = $('#external-wallets-table');
     var $editExternalWalletsForm = $('#edit-external-wallets-form');
+    var $specMinUsdTable = $('#spec-min-usd');
+    var $commissionForm = $('#edit-specSum-form');
 
+    updateSpecMinUsdTable();
     updateExternalWalletsTable();
     $($externalWalletsTable).find('tbody').on('click', 'tr', function () {
         var rowData = externalWalletsDataTable.row(this).data();
@@ -25,13 +29,69 @@ $(document).ready(function () {
         $('#editBalanceModal').modal();
     });
 
+    $($specMinUsdTable).on('click', 'tr', function () {
+        var rowData = specMinUsdDataTable.row(this).data();
+        var paramName = rowData.paramName;
+        var specSumForUsd = parseFloat(rowData.paramValue);
+        $($commissionForm).find('input[name="paramName"]').val(paramName);
+        $($commissionForm).find('input[name="specSumForUsd"]').val(specSumForUsd);
+        $('#editMinSumModal').modal();
+    });
+
 
     $('#submitNewBalance').click(function(e) {
         e.preventDefault();
         submitNewBalance()
     });
 
+    $('#submitSpecSum').click(function(e) {
+        e.preventDefault();
+        submitSpecSum()
+    });
+
 });
+
+function updateSpecMinUsdTable() {
+    var $specMinUsdTable = $('#spec-min-usd');
+    var url = '/2a8fy7b07dxe44/externalWallets/minusd';
+    if ($.fn.dataTable.isDataTable('#spec-min-usd')) {
+        specMinUsdDataTable = $($specMinUsdTable).DataTable();
+        specMinUsdDataTable.ajax.url(url).load();
+    } else {
+        specMinUsdDataTable = $($specMinUsdTable).DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "paging": false,
+            "bSort": false,
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columnDefs": [ {
+                "targets": [ 0, 1],
+                "orderable": false
+            } ],
+            "searching": false,
+            "columns": [
+                {
+                    "data":"paramName",
+                    "render": function (data, type, row) {
+                           if(data == 'min_sum_usd'){
+                               return '<label class="table-button-block__button">' + minValueUsd + '</label>'
+                           } else if (data == 'min_commission_usd'){
+                               return '<label class="table-button-block__button">' + minCommissionUsd + '</label>'
+                           }
+
+                    }
+                },
+                {
+                    "data": "paramValue"
+                }
+            ]
+        });
+    }
+}
 
 function updateExternalWalletsTable() {
     var $externalWalletsTable = $('#external-wallets-table');
@@ -152,3 +212,23 @@ function submitNewBalance() {
     });
 }
 
+function submitSpecSum() {
+    var formData =  $('#edit-specSum-form').serialize();
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/externalWallets/editMinSum',
+        type: 'POST',
+        data: formData,
+        success: function () {
+            updateSpecMinUsdTable();
+
+            $('#editMinSumModal').modal('hide');
+        },
+        error: function (error) {
+            $('#editMinSumModal').modal('hide');
+            console.log(error);
+        }
+    });
+}
