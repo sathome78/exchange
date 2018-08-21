@@ -1130,10 +1130,10 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT us.email as user_email, "+
-                      " (select min(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as start_date, " +
-                      " (select max(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as last_date, " +
-                      " count(ud.entry_date) as entries" +
+        String sql = "SELECT us.email as user_email, " +
+                " (select min(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as start_date, " +
+                " (select max(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as last_date, " +
+                " count(ud.entry_date) as entries" +
                 " FROM USER us " +
                 " JOIN USER_ENTRY_DAYS ud ON us.id = ud.user_id " +
                 " WHERE us.roleid IN (:user_roles) " +
@@ -1143,6 +1143,20 @@ public class OrderDaoImpl implements OrderDao {
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", userRoleIdList);
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserActivitiesInPeriodDto dto = new UserActivitiesInPeriodDto();
+            dto.setRefillNum(row + 1);
+            dto.setUserEmail(rs.getString("user_email"));
+            dto.setStartDate(rs.getTimestamp("start_date") != null ?
+                    rs.getTimestamp("start_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : " ");
+            dto.setLastDate(rs.getTimestamp("last_date") != null ?
+                    rs.getTimestamp("last_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : " ");
+            dto.setEntries(rs.getBigDecimal("entries"));
+            return dto;
+        });
+    }
 
     /*maybe add index
     * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
@@ -1407,26 +1421,6 @@ public class OrderDaoImpl implements OrderDao {
         return namedParameterJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
-
-
-
-
-
-
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
-            UserActivitiesInPeriodDto dto = new UserActivitiesInPeriodDto();
-            dto.setRefillNum(row + 1);
-            dto.setUserEmail(rs.getString("user_email"));
-            dto.setStartDate(rs.getTimestamp("start_date") != null ?
-                    rs.getTimestamp("start_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                    : " ");
-            dto.setLastDate(rs.getTimestamp("last_date") != null ?
-                    rs.getTimestamp("last_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                    : " ");
-            dto.setEntries(rs.getBigDecimal("entries"));
-            return dto;
-        });
-    }
 
     @Override
     public List<UserTotalCommissionDto> getUserTotalCommissionForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
