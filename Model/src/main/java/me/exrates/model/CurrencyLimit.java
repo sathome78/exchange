@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 public class CurrencyLimit {
     private Currency currency;
     private OperationType operationType;
+    private BigDecimal rateUsdAdditional;
+    private BigDecimal calcMinSum;
     private BigDecimal minSum;
     private BigDecimal maxSum;
     private Integer maxDailyRequest;
@@ -28,6 +30,22 @@ public class CurrencyLimit {
 
     public void setOperationType(OperationType operationType) {
         this.operationType = operationType;
+    }
+
+    public BigDecimal getRateUsdAdditional() {
+        return rateUsdAdditional;
+    }
+
+    public void setRateUsdAdditional(BigDecimal rateUsdAdditional) {
+        this.rateUsdAdditional = rateUsdAdditional;
+    }
+
+    public BigDecimal getCalcMinSum() {
+        return calcMinSum;
+    }
+
+    public void setCalcMinSum(BigDecimal calcMinSum) {
+        this.calcMinSum = calcMinSum;
     }
 
     public BigDecimal getMinSum() {
@@ -59,6 +77,8 @@ public class CurrencyLimit {
         return "CurrencyLimit{" +
                 "currency=" + currency +
                 ", operationType=" + operationType +
+                ", rateUsdAdditional=" + rateUsdAdditional +
+                ", calcMinSum=" + calcMinSum +
                 ", minSum=" + minSum +
                 ", maxSum=" + maxSum +
                 ", maxDailyRequest=" + maxDailyRequest +
