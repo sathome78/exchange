@@ -22,6 +22,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
@@ -34,6 +35,7 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -113,7 +115,7 @@ public class AdminController {
     @Autowired
     private UserService userService;
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserOperationService userOperationService;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
@@ -517,7 +519,11 @@ public class AdminController {
         AuthorityOptionsForm form = new AuthorityOptionsForm();
         form.setUserId(user.getId());
         form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
+        UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
+        userOperationForm.setUserId(id);
+        userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
+        model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
         model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
         model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
