@@ -1158,7 +1158,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     @Bean(name = "patServiceImpl")
     public EthTokenService patService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xF3b3Cad094B89392fcE5faFD40bC03b80F2Bc624");
+        tokensList.add("0xf3b3cad094b89392fce5fafd40bc03b80f2bc624");
         return new EthTokenServiceImpl(
                 tokensList,
                 "PAT",
