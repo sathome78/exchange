@@ -9,6 +9,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -715,7 +716,6 @@ public class UserServiceImpl implements UserService {
       throw new ForbiddenOperationException("Status modification not permitted");
     }
     userDao.updateAdminAuthorities(options, userId);
-
   }
 
   @Override
