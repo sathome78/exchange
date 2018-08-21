@@ -7,7 +7,7 @@
                 <h4 class="modal-title"><loc:message code="refill.infoModal.title"/></h4>
             </div>
             <div class="modal-body">
-                <div class="well">
+                <div class="well" style="overflow:auto; width:auto;">
                     <table id="refillInfoTable" class="table">
                         <tbody>
                         <tr>
