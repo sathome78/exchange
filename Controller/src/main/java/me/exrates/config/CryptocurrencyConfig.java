@@ -205,7 +205,6 @@ public class CryptocurrencyConfig {
                 "BRB", "BRB", 4, 20, false, false);
     }
 
-
     @Bean(name = "rizServiceImpl")
     public BitcoinService rizService() {
         return new BitcoinServiceImpl("merchants/riz_wallet.properties",
