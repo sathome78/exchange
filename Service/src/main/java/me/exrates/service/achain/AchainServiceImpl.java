@@ -111,7 +111,7 @@ public class AchainServiceImpl implements AchainService {
     }
 
     @Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId, Integer currencyId) {
         log.debug("comission merchant {}", merchantId);
         Merchant merchant = merchantService.findById(merchantId);
         if (merchant.getName().equals(MERCHANT_NAME)) {

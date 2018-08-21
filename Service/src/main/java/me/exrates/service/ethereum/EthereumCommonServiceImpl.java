@@ -40,7 +40,9 @@ import rx.Subscription;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -219,10 +221,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
                 this.transferAccPublicKey = props.getProperty("ethereum.transferAccPublicKey");
-                this.withdrawAccAddress = props.getProperty("ethereum.withdrawAccAddress");
-                this.withdrawAccPrivateKey = props.getProperty("ethereum.withdrawAccPrivateKey");
-                this.withdrawAccPublicKey = props.getProperty("ethereum.withdrawAccPublicKey");
                 this.needToCheckTokens = true;
+                File initialFile = new File(props.getProperty("ethereum.withdrawAccPropsPath"));
+                Properties withdrProps = new Properties();
+                withdrProps.load(new FileInputStream(initialFile));
+                this.withdrawAccAddress = withdrProps.getProperty("ethereum.withdrawAccAddress");
+                this.withdrawAccPrivateKey = withdrProps.getProperty("ethereum.withdrawAccPrivateKey");
+                this.withdrawAccPublicKey = withdrProps.getProperty("ethereum.withdrawAccPublicKey");
                 credentialsWithdrawAcc = Credentials.create(new ECKeyPair(new BigInteger(withdrawAccPrivateKey),
                         new BigInteger(withdrawAccPublicKey)));
             }
@@ -453,7 +458,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         TransactionReceipt receipt = null;
         Instant start = Instant.now();
         do {
-            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(10)) > 0) {
+            if (Duration.between(start, Instant.now()).compareTo(Duration.ofMinutes(7)) > 0) {
                 throw new RuntimeException("timeout execution");
             }
             try {
