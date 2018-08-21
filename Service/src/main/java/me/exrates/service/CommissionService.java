@@ -28,7 +28,7 @@ public interface CommissionService {
 
   void updateCommission(Integer id, BigDecimal value);
 
-  void updateCommission(OperationType operationType, String roleName, BigDecimal value);
+  void updateCommission(OperationType operationType, String roleName, BigDecimal value, BigDecimal unitValue);
 
   void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
 

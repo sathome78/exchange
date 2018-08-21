@@ -13,6 +13,7 @@ public class CommissionShortEditDto {
     private OperationType operationType;
     private String operationTypeLocalized;
     private BigDecimal value;
+    private BigDecimal unitValue;
 
     public OperationType getOperationType() {
         return operationType;
@@ -36,5 +37,13 @@ public class CommissionShortEditDto {
 
     public void setValue(BigDecimal value) {
         this.value = value;
+    }
+
+    public BigDecimal getUnitValue() {
+        return unitValue;
+    }
+
+    public void setUnitValue(BigDecimal unitValue) {
+        this.unitValue = unitValue;
     }
 }
