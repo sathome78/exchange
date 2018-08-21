@@ -1145,7 +1145,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "JET", true, ExConvert.Unit.ETHER);
     }
 
-<<<<<<< HEAD
     @Bean(name = "mtvServiceImpl")
     public EthTokenService mtvService() {
         List<String> tokensList = new ArrayList<>();
