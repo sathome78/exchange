@@ -10,8 +10,8 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "/home/yagi/crypto/eth/PAT.bin",
-                "/home/yagi/crypto/eth/PAT.abi",
+                "/home/yagi/crypto/eth/KWATT.bin",
+                "/home/yagi/crypto/eth/KWATT.abi",
                 "-o",
                 "/Users/exrates/Vlad/exrates/Service/src/main/java",
                 "-p",
