@@ -2467,3 +2467,8 @@ input.copyable:hover{
     background-color: #ffffff;
     padding: 0 20px;
 }
+
+.word-wrap-break-work{
+    width: 100%;
+    word-wrap: break-word;
+}
