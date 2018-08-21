@@ -1,16 +1,12 @@
 package me.exrates.service.ethereum;
 
 import lombok.Synchronized;
-import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.AtomicBigInteger;
 import me.exrates.service.*;
 import me.exrates.service.ethereum.ethTokensWrappers.EthToken;
@@ -19,6 +15,8 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +28,6 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
-import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
@@ -54,7 +51,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
 
 /**
  * Created by ajet
@@ -201,8 +197,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private AtomicBigInteger lastNonce = new AtomicBigInteger(BigInteger.ZERO);
 
-    private Semaphore tokensWithdrawSemaphore = new Semaphore(1, true);
-    private Semaphore ethWithdrawSemaphore = new Semaphore(1, true);
+    private Semaphore tokensWithdrawSemaphore = new Semaphore(2, true);
+    private Semaphore ethWithdrawSemaphore = new Semaphore(2, true);
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
