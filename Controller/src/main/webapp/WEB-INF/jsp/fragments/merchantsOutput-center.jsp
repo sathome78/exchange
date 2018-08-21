@@ -83,6 +83,9 @@
                         <c:when test="${merchantCurrency.specMerchantComission}">
                           <loc:message code="message.comission.fixed"/>
                         </c:when>
+                          <c:when test="${merchantCurrency.fixedComissionByAdmin}">
+                              <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}${currency.getName()}</span>
+                          </c:when>
                         <c:otherwise>
                           <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
                         </c:otherwise>

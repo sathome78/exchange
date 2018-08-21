@@ -29,5 +29,6 @@ public class MerchantCurrencyOptionsDto {
     private Integer withdrawAutoDelaySeconds;
     private BigDecimal withdrawAutoThresholdAmount;
     private Boolean isMerchantCommissionSubtractedForWithdraw;
+    private Boolean merchantFixedComission;
 
 }

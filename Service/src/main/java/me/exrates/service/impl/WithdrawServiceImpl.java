@@ -203,11 +203,13 @@ public class WithdrawServiceImpl implements WithdrawService {
       if (merchant instanceof IWithdrawable) {
           IWithdrawable merchantService = (IWithdrawable) merchant;
           e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+          e.setFixedComissionByAdmin(merchantService.fixedComissionSetsByAdmin());
           e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
               e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
+              e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           }
       }
     });
@@ -384,6 +386,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     withdrawRequestDao.setHolderById(requestId, requesterAdminId);
   }
 
+
   @Override
   @Transactional
   public void rejectError(int requestId, long timeoutInMinutes, String reasonCode) {
@@ -445,21 +448,23 @@ public class WithdrawServiceImpl implements WithdrawService {
     BigDecimal finalAmount = dto.getResultAmount();
     log.debug("Final amount: " + BigDecimalProcessing.formatNoneComma(finalAmount, false));
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
-        .currency(withdrawRequest.getCurrencyName())
-        .amount(finalAmount.toString())
-        .accountTo(withdrawRequest.getWallet())
-        .destinationTag(withdrawRequest.getDestinationTag())
-        .build();
+            .requestId(withdrawRequest.getId())
+            .currency(withdrawRequest.getCurrencyName())
+            .amount(finalAmount.toString())
+            .accountTo(withdrawRequest.getWallet())
+            .destinationTag(withdrawRequest.getDestinationTag())
+            .build();
     log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
     try {
       log.debug("before post");
-      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
+      WithdrawRequestFlatDto withdrawRequestResult =
+              postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
       log.debug("before withdraw {}", merchantService.getClass().getName());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       log.debug("withdrawed");
-      if (transactionParams != null) {
-            withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
-        }
+       if (transactionParams != null){
+          withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+      }
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
        try {
@@ -679,6 +684,12 @@ public class WithdrawServiceImpl implements WithdrawService {
         .build();
     return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, paramsValue);
   }
+
+  @Override
+  public void setHash(int requestId, String hash) {
+    withdrawRequestDao.setHashAndParamsById(requestId, Collections.singletonMap("hash", hash));
+  }
+
 
   private String sendWithdrawalNotification(
       WithdrawRequest withdrawRequest,

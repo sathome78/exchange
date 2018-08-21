@@ -116,7 +116,8 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
       schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
     }
-  };
+  }
+  ;
 
   final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
 
@@ -151,7 +152,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     for (WithdrawStatusEnum status : WithdrawStatusEnum.class.getEnumConstants()) {
       status.initSchema(status.schemaMap);
     }
-    /*check schemaMap*/
+   /*check schemaMap*/
     getBeginState();
   }
 

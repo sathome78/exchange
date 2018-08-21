@@ -20,6 +20,10 @@ public interface EthTokenService {
 
     EthTokenServiceImpl.TransferEventResponse extractData(List<String> topics, String data);
 
+    boolean isERC20();
+
+    ExConvert.Unit getUnit();
+
     default Integer currencyId(){
         return null;
     }

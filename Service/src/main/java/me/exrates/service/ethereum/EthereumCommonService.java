@@ -39,17 +39,22 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     }
 
     @Override
-    default Boolean withdrawTransferringConfirmNeeded() {
-        return false;
-    }
-
-    @Override
     default Boolean additionalFieldForRefillIsUsed() {
         return false;
     }
 
     @Override
     default Boolean storeSameAddressForParentAndTokens() {
+        return true;
+    }
+
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
+    }
+
+    @Override
+    default boolean fixedComissionSetsByAdmin() {
         return true;
     }
 
@@ -62,6 +67,8 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     String loadLastBlock();
 
     String getMainAddress();
+
+    String getWithdrawAddress();
 
     Credentials getCredentialsMain();
 

@@ -33,4 +33,5 @@ public class MerchantCurrency {
     private Boolean recipientUserIsNeeded;
     private Boolean comissionDependsOnDestinationTag;
     private Boolean specMerchantComission;
+    private Boolean fixedComissionByAdmin;
 }

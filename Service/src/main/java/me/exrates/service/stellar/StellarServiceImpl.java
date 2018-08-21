@@ -231,7 +231,7 @@ public class StellarServiceImpl implements StellarService {
     }
 
     @Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId, Integer currencyId) {
         Merchant merchant = merchantService.findById(merchantId);
         switch (merchant.getName()) {
             case "Stellar" : {
