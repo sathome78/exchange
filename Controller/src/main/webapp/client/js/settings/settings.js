@@ -40,8 +40,8 @@ function SettingsClass() {
         }
 
 
-       /* setActiveSwitcher();
-        switchPassTab();*/
+        /* setActiveSwitcher();
+         switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -51,10 +51,10 @@ function SettingsClass() {
         checkSmsNumber();
     })();
 
-   /* function setActiveSwitcher(){
-        $('.orderForm-toggler').removeClass('active');
-        $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-    }*/
+    /* function setActiveSwitcher(){
+         $('.orderForm-toggler').removeClass('active');
+         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
+     }*/
 
     /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
@@ -64,8 +64,8 @@ function SettingsClass() {
         blink($('#passwords-changing').find('[for="userFin-password"]'));
     }*/
 
-   $('#sessionTime').on('change keyup', function() {
-       console.log('change');
+    $('#sessionTime').on('change keyup', function() {
+        console.log('change');
         var value = $(this).val(); // get the current value of the input field.
         var sendButton = $('#submitSessionOptionsButton');
         if (!value || isNaN(value)) {
@@ -90,7 +90,7 @@ function SettingsClass() {
     }
 
     $('#subscribe_SMS').on('click', function() {
-       connectOrReconnect();
+        connectOrReconnect();
     });
 
     $('#reconnect_SMS').on('click', function() {
@@ -107,15 +107,15 @@ function SettingsClass() {
         $smsNumberError.text('');
         var val = $smsNumberInput.val().replace('+','').replace(" ", "").replace("-", "");
         $.ajax({
-                url: '/settings/2FaOptions/preconnect_sms?number=' + val,
-                type: 'GET',
-                success: function (data) {
-                    $smsMessagePrice.text(data);
-                    $('#sms_instruction').show();
-                    $('#sms_connect_button').prop('disabled', false);
-                }, error: function (data) {
-                    $smsNumberError.text(data.responseJSON.detail);
-                }
+            url: '/settings/2FaOptions/preconnect_sms?number=' + val,
+            type: 'GET',
+            success: function (data) {
+                $smsMessagePrice.text(data);
+                $('#sms_instruction').show();
+                $('#sms_connect_button').prop('disabled', false);
+            }, error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
         });
     });
 
@@ -251,9 +251,6 @@ function SettingsClass() {
             }
         });
     });
-
-
-
 
     $('#subscribe_GOOGLE_AUTHENTICATOR').on('click', function() {
         $('#google2fa_connect_block').show();
@@ -400,11 +397,11 @@ $(function () {
         var pass = $('#user-confirmpassword').val();
         var repass = $('#confirmNewPassword').val();
         if (repass && (pass === repass)) {
-                $('.repass').css("display", "block");
-                $('.repass-error').css("display", "none");
-            } else {
-                $('.repass-error').css("display", "block");
-                $('.repass').css("display", "none");
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        } else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
         }
         checkPasswordFieldsOnFillInUserSettings();
     });
@@ -455,4 +452,3 @@ function checkOldPasswordAndNewPasswordField(){
         $("#confirmNewPassword").attr('readonly', true);
     }
 }
-

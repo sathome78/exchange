@@ -175,14 +175,12 @@ public class DashboardController {
       int userId = userService.verifyUserEmail(token);
       if (userId != 0){
           User user = userService.getUserById(userId);
+
           attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
                   null, localeResolver.resolveLocale(request)));
           attr.addFlashAttribute("user", user);
-          model.setViewName("redirect:/passwordRecovery");
 
-          user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
-          user.setStatus(UserStatus.REGISTERED);
-          user.setPassword(null);
+          model.setViewName("redirect:/passwordRecovery");
       } else {
           if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
               attr.addFlashAttribute("userEmail", email);
@@ -208,11 +206,11 @@ public class DashboardController {
       modelAndView.addObject("captchaType", CAPTCHA_TYPE);
       return modelAndView;
     } else {
+      User userUpdate = userService.findByEmail(user.getEmail());
       ModelAndView model = new ModelAndView();
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+      UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
       updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setRole(UserRole.USER);
-      updateUserDto.setStatus(UserStatus.ACTIVE);
+
       userService.updateUserByAdmin(updateUserDto);
 
       Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
