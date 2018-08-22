@@ -1141,7 +1141,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "JET",
                 "JET", true, ExConvert.Unit.ETHER);
     }
-    
+
     @Bean(name = "patServiceImpl")
     public EthTokenService patService() {
         List<String> tokensList = new ArrayList<>();
