@@ -821,7 +821,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " LEFT JOIN USER ADMIN ON (ADMIN.id = RR.admin_holder_id) " +
         " JOIN MERCHANT M ON (M.id = RR.merchant_id) " +
         " LEFT JOIN TRANSACTION TX ON (TX.source_type = :source_type) AND (TX.source_id = :id) " +
-        " WHERE RR.id = :id";
+        " WHERE RR.id = :id LIMIT 1";
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("id", id)
         .addValue("source_type", REFILL.name());
