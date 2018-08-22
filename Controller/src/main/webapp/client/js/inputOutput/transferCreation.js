@@ -136,6 +136,7 @@ $(function transferCreation() {
     subscribeAll();
 
     $container.find(".start-transfer").on('click', function () {
+        console.log('click');
         startTransfer(this);
     });
 
@@ -260,10 +261,7 @@ $(function transferCreation() {
     }
 
     function sendRequest(data) {
-<<<<<<< HEAD
-=======
         $pinWrong.hide();
->>>>>>> add_eth_PAT
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForTransferCreate,
