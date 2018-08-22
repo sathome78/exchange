@@ -600,7 +600,7 @@ public class MainController {
     @RequestMapping(value = "/api_docs", method = RequestMethod.GET)
     public ModelAndView apiDocs(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs", "captchaType", CAPTCHA_TYPE);
-        String baseUrl = String.join("", request.getScheme(), "://", request.getServerName(), "/openapi/v1");
+        String baseUrl = String.join("", "https://", request.getServerName(), "/openapi/v1");
         modelAndView.addObject("baseUrl", baseUrl);
         modelAndView.addObject("orderTypeValues", Arrays.asList(OrderType.values()));
         modelAndView.addObject("periodValues", Arrays.stream(OrderHistoryPeriod.values())
