@@ -48,6 +48,9 @@
                 <div class="field__label">Password</div>
                 <div class="field__pwd-show / js-show-pwd"></div>
                 <input id="password" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                <div id="password_info_message" class='field__info' style="display:block">
+                    Should have 8 chars at least, symbols and numbers
+                </div>
                 <div id="password_wrong" class='field__error' style="display:none">
                     Password cannot be less than 8 and more than 20 characters long and should contain of letters (a-z), numbers (0-9) and/or any combination of @*%!#^!&$<> characters
                 </div>

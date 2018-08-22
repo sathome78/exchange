@@ -386,6 +386,12 @@ a:hover {
     background-image: url(../img/icons/pwd-show--a.svg)
 }
 
+.field__info {
+    padding-top: 8px;
+    text-align: left;
+    color: #edeaea
+}
+
 .field__error {
     /*font-size: .75em;*/
     padding-top: 8px;
