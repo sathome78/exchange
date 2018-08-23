@@ -72,6 +72,8 @@
         </div>
     </sec:authorize>
 
+
+
     <%--NEWS LIST--%>
     <div id="new-list-container" style="position: relative" class="clearfix">
         <%--set hidden to switch indecator--%>
