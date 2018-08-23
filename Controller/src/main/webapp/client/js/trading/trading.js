@@ -45,10 +45,16 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange(data) {
+        if (data) {
+            currentPair = data.name;
+        }
+        else {
+            currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
+        }
+        console.log('on pair change ' + currentPair);
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
-        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
@@ -660,6 +666,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 data.rate = e.value;
             }
         });
+        data.baseType = 'LIMIT';
         showOrderCreateDialog(data);
     }
 
@@ -674,6 +681,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 data.rate = e.value;
             }
         });
+        data.baseType = 'LIMIT';
         showOrderCreateDialog(data);
     }
 
@@ -692,6 +700,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             }
         });
         data.baseType = 'STOP_LIMIT';
+        console.log(data);
         showOrderCreateDialog(data);
     }
     
