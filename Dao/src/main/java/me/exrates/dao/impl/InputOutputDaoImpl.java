@@ -43,6 +43,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
           String email,
           Integer offset,
           Integer limit,
+          List<Integer> operationTypeIdList,
           Locale locale) {
     String sql = "(SELECT WR.date_creation AS datetime, CUR.name AS currency, WR.amount AS amount, " +
             "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS operation_type, " +
