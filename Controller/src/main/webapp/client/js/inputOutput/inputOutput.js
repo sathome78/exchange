@@ -168,16 +168,8 @@ function InputOutputClass(currentCurrencyPair, cpData) {
                 e.stopPropagation();
                 console.log('click on');
         });
-
-        $('#inputoutput-table').on('click', 'tr[data-type=Output].in_out_row', function (e) {
-            if (currentClicked !== undefined) {
-                currentClicked = undefined;
-                return;
-            }
-           showWithdraw(this);
-        });
-
-        $('#inputoutput-table').on('click', 'tr[data-type=withdraw].in_out_row', function (e) {
+        
+        $('#inputoutput-table').on('click', 'tr[data-type=Withdraw].in_out_row', function (e) {
             if (currentClicked !== undefined) {
                 currentClicked = undefined;
                 return;
