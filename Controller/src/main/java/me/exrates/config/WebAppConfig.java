@@ -1178,7 +1178,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     @Bean(name = "fpwrServiceImpl")
     public EthTokenService fpwrService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x18e4fd8b11ddcb27d39993a322f83fbb5f0a893f");
+        tokensList.add("0xdd92e60563250012ee1c4cb4b26810c45a0591da");
         return new EthTokenServiceImpl(
                 tokensList,
                 "FPWR",
