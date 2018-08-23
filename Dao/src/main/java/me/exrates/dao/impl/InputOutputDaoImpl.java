@@ -39,172 +39,40 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
   @Override
   public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
-      String email,
-      Integer offset,
-      Integer limit,
-      List<Integer> operationTypeIdList,
-      Locale locale) {
-    String sql = " SELECT " +
-        "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
-        "    CURRENCY.name as currency, TRANSACTION.amount, " +
-        "    IF (WITHDRAW_REQUEST.id IS NOT NULL, (WITHDRAW_REQUEST.commission + WITHDRAW_REQUEST.merchant_commission), TRANSACTION.commission_amount) AS commission_amount, " +
-        "    MERCHANT.name AS merchant,  " +
-        "    TRANSACTION.source_type AS source_type, " +
-        "    OPERATION_TYPE.name as operation_type, TRANSACTION.id AS transaction_id, " +
-        "    IF (WITHDRAW_REQUEST.id IS NOT NULL, WITHDRAW_REQUEST.id, REFILL_REQUEST.id) AS operation_id," +
-        "    (SELECT MAX(confirmation_number) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmation, " +
-        "    IF(WITHDRAW_REQUEST.wallet IS NOT NULL, WITHDRAW_REQUEST.wallet, INVOICE_BANK.account_number) AS destination, " +
-        "    USER.id AS user_id," +
-        "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id," +
-        "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date," +
-        "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
-        "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
-        "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id, " +
-        "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash" +
-        "  FROM TRANSACTION " +
-        "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
-        "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
-        "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id" +
-        "    left join REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
-        "    left join REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
-        "    left join INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
-        "    left join MERCHANT on (MERCHANT.id = REFILL_REQUEST.merchant_id) OR (MERCHANT.id = WITHDRAW_REQUEST.merchant_id)" +
-        "    left join OPERATION_TYPE on OPERATION_TYPE.id = TRANSACTION.operation_type_id" +
-        "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
-        "    left join USER on WALLET.user_id=USER.id" +
-        "  WHERE " +
-        "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
-        "    USER.email=:email " +
-        "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
-
-        "  UNION " +
-        "  (SELECT " +
-        "     RR.date_creation, " +
-        "     CUR.name, RR.amount, NULL, " +
-        "     M.name, " +
-        "     'REFILL', " +
-        "     'Input', NULL, " +
-        "     RR.id, " +
-        "     (SELECT MAX(confirmation_number) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = RR.id), " +
-        "     INVOICE_BANK.account_number, " +
-        "     USER.id, " +
-        "     RR.status_id, " +
-        "     RR.status_modification_date, " +
-        "     RRP.user_full_name, " +
-        "     RR.remark, " +
-        "     RR.admin_holder_id, " +
-        "     RR.merchant_transaction_id" +
-        "   FROM REFILL_REQUEST RR " +
-        "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
-        "     JOIN USER USER ON USER.id=RR.user_id " +
-        "     JOIN MERCHANT M ON M.id=RR.merchant_id " +
-        "     LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id)  " +
-        "     LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
-        "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
-        "   WHERE USER.email=:email AND " +
-        "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " +
-        "  )  " +
-
-        "  UNION " +
-        "  (SELECT " +
-        "     WR.date_creation, " +
-        "     CUR.name, WR.amount, WR.commission + WR.merchant_commission, " +
-        "     M.name, " +
-        "     'WITHDRAW', " +
-        "     'withdraw', NULL, " +
-        "     WR.id, " +
-        "     NULL, " +
-        "     WR.wallet, " +
-        "     USER.id, " +
-        "     WR.status_id, " +
-        "     WR.status_modification_date, " +
-        "     WR.user_full_name, " +
-        "     WR.remark, " +
-        "     WR.admin_holder_id, " +
-        "     WR.transaction_hash" +
-        "   FROM WITHDRAW_REQUEST WR " +
-        "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
-        "     JOIN USER USER ON USER.id=WR.user_id " +
-        "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
-        "   WHERE USER.email=:email AND " +
-        "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
-        "  )  " +
-
-            "  UNION ALL " +
-            "  (SELECT " +
-            "     TR.date_creation, " +
-            "     CUR.name, TR.amount, TR.commission, " +
-            "     M.name, " +
-            "     'USER_TRANSFER', " +
-            "     'User transfer - Output', NULL, " +
-            "     TR.id, " +
-            "     NULL, " +
-            "     TR.recipient_user_id, " +
-            "     USER.id, " +
-            "     TR.status_id, " +
-            "     TR.status_modification_date, " +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL" +
-            "   FROM TRANSFER_REQUEST TR " +
-            "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
-            "     JOIN USER USER ON USER.id=TR.user_id " +
-            "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-            "   WHERE USER.email=:email /*AND*/ " +
-            "  )  " +
-            "  UNION ALL " +
-            "  (SELECT " +
-            "     TR.date_creation, " +
-            "     CUR.name, TR.amount, TR.commission, " +
-            "     M.name, " +
-            "     'USER_TRANSFER', " +
-            "     'User transfer - Input', NULL, " +
-            "     TR.id, " +
-            "     NULL, " +
-            "     TR.recipient_user_id, " +
-            "     USER.id, " +
-            "     TR.status_id, " +
-            "     TR.status_modification_date, " +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL" +
-            "   FROM TRANSFER_REQUEST TR " +
-            "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
-            "     JOIN USER USER ON USER.id=TR.user_id " +
-            "     JOIN USER REC ON REC.id = TR.recipient_user_id  " +
-            "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-            "   WHERE REC.email=:email AND TR.status_id = 2 " +
-            "  )  " +
-            "  UNION ALL " +
-            "  (SELECT " +
-            "     TR.datetime, " +
-            "     CUR.name, TR.amount, NULL, " +
-            "     NULL, " +
-            "     'NOTIFICATIONS', " +
-            "     TR.description, NULL, " +
-            "     TR.id, " +
-            "     NULL, " +
-            "     NULL , " +
-            "     U.id, " +
-            "     NULL, " +
-            "     NULL," +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL, " +
-            "     NULL" +
-            "   FROM TRANSACTION TR " +
-            "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
-            "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
-            "     JOIN USER U ON U.id=W.user_id " +
-            "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
-            "  )  " +
-        "  ORDER BY datetime DESC, operation_id DESC " +
-        (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+          String email,
+          Integer offset,
+          Integer limit,
+          Locale locale) {
+    String sql = "(SELECT WR.date_creation AS datetime, CUR.name AS currency, WR.amount AS amount, " +
+            "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS operation_type, " +
+            "WR.id AS transaction_id, WR.transaction_hash  AS transaction_hash, WR.status_id AS status_id " +
+            "FROM WITHDRAW_REQUEST WR " +
+            "JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
+            "JOIN USER USER ON USER.id=WR.user_id " +
+            "JOIN MERCHANT M ON M.id=WR.merchant_id " +
+            "WHERE USER.email=:email) " +
+            "" +
+            "UNION ALL " +
+            "(SELECT RR.date_creation, CUR.name, RR.amount, NULL, M.name, 'REFILL', RR.id, RR.merchant_transaction_id, RR.status_id " +
+            "FROM REFILL_REQUEST RR JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
+            "JOIN USER USER ON USER.id=RR.user_id " +
+            "JOIN MERCHANT M ON M.id=RR.merchant_id " +
+            "LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
+            "LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+            "LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
+            "WHERE USER.email=:email) " +
+            "" +
+            "UNION ALL " +
+            "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', TR.id, NULL, NULL " +
+            "FROM TRANSACTION TR " +
+            "JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
+            "JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
+            "JOIN USER U ON U.id=W.user_id " +
+            "WHERE U.email=:email AND TR.source_type='NOTIFICATIONS') " +
+            "" +
+            "ORDER BY datetime DESC, operation_type DESC, transaction_id DESC " + (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
-    params.put("operation_type_id_list", operationTypeIdList);
     return jdbcTemplate.query(sql, params, (rs, i) -> {
       MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
       Timestamp datetime = rs.getTimestamp("datetime");
@@ -214,24 +82,12 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
       myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
       myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
-      myInputOutputHistoryDto.setConfirmation(rs.getInt("confirmation"));
-      myInputOutputHistoryDto.setTransactionId(rs.getInt("transaction_id"));
-      myInputOutputHistoryDto.setProvided(myInputOutputHistoryDto.getTransactionId() == null ? 0 : 1);
-      myInputOutputHistoryDto.setTransactionProvided(myInputOutputHistoryDto.getProvided() == 0 ?
-              messageSource.getMessage("inputoutput.statusFalse", null, locale) :
-              messageSource.getMessage("inputoutput.statusTrue", null, locale));
-      myInputOutputHistoryDto.setId(rs.getInt("operation_id"));
-      myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
-      myInputOutputHistoryDto.setBankAccount(rs.getString("destination"));
-      TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
+      TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("operation_type"));
       myInputOutputHistoryDto.setSourceType(sourceType);
-      myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
-      Timestamp dateModification = rs.getTimestamp("status_modification_date");
-      myInputOutputHistoryDto.setStatusUpdateDate(dateModification == null ? null : dateModification.toLocalDateTime());
-      myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
-      myInputOutputHistoryDto.setRemark(rs.getString("remark"));
-      myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+      myInputOutputHistoryDto.setId(rs.getInt("transaction_id"));
+      myInputOutputHistoryDto.setTransactionId(rs.getInt("transaction_id"));
       myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
+      myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
       return myInputOutputHistoryDto;
     });
   }
