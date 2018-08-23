@@ -37,60 +37,61 @@ public class InputOutputDaoImpl implements InputOutputDao {
   @Autowired
   private MessageSource messageSource;
 
-  @Override
-  public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
-          String email,
-          Integer offset,
-          Integer limit,
-          Locale locale) {
-    String sql = "(SELECT WR.date_creation AS datetime, CUR.name AS currency, WR.amount AS amount, " +
-            "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS operation_type, " +
-            "WR.id AS transaction_id, WR.transaction_hash  AS transaction_hash, WR.status_id AS status_id " +
-            "FROM WITHDRAW_REQUEST WR " +
-            "JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
-            "JOIN USER USER ON USER.id=WR.user_id " +
-            "JOIN MERCHANT M ON M.id=WR.merchant_id " +
-            "WHERE USER.email=:email) " +
-            "" +
-            "UNION ALL " +
-            "(SELECT RR.date_creation, CUR.name, RR.amount, NULL, M.name, 'REFILL', RR.id, RR.merchant_transaction_id, RR.status_id " +
-            "FROM REFILL_REQUEST RR JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
-            "JOIN USER USER ON USER.id=RR.user_id " +
-            "JOIN MERCHANT M ON M.id=RR.merchant_id " +
-            "LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
-            "LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
-            "LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
-            "WHERE USER.email=:email) " +
-            "" +
-            "UNION ALL " +
-            "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', TR.id, NULL, NULL " +
-            "FROM TRANSACTION TR " +
-            "JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
-            "JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
-            "JOIN USER U ON U.id=W.user_id " +
-            "WHERE U.email=:email AND TR.source_type='NOTIFICATIONS') " +
-            "" +
-            "ORDER BY datetime DESC, operation_type DESC, transaction_id DESC " + (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
-    final Map<String, Object> params = new HashMap<>();
-    params.put("email", email);
-    return jdbcTemplate.query(sql, params, (rs, i) -> {
-      MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
-      Timestamp datetime = rs.getTimestamp("datetime");
-      myInputOutputHistoryDto.setDatetime(datetime == null ? null: datetime.toLocalDateTime());
-      myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
-      myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
-      myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
-      myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
-      myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
-      TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("operation_type"));
-      myInputOutputHistoryDto.setSourceType(sourceType);
-      myInputOutputHistoryDto.setId(rs.getInt("transaction_id"));
-      myInputOutputHistoryDto.setTransactionId(rs.getInt("transaction_id"));
-      myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
-      myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
-      return myInputOutputHistoryDto;
-    });
-  }
+    @Override
+    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
+            String email,
+            Integer offset,
+            Integer limit,
+            List<Integer> operationTypeIdList,
+            Locale locale) {
+        String sql = "(SELECT WR.date_creation AS datetime, CUR.name AS currency, WR.amount AS amount, " +
+                "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS operation_type, " +
+                "WR.id AS transaction_id, WR.transaction_hash  AS transaction_hash, WR.status_id AS status_id " +
+                "FROM WITHDRAW_REQUEST WR " +
+                "JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
+                "JOIN USER USER ON USER.id=WR.user_id " +
+                "JOIN MERCHANT M ON M.id=WR.merchant_id " +
+                "WHERE USER.email=:email) " +
+                "" +
+                "UNION ALL " +
+                "(SELECT RR.date_creation, CUR.name, RR.amount, NULL, M.name, 'REFILL', RR.id, RR.merchant_transaction_id, RR.status_id " +
+                "FROM REFILL_REQUEST RR JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
+                "JOIN USER USER ON USER.id=RR.user_id " +
+                "JOIN MERCHANT M ON M.id=RR.merchant_id " +
+                "LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
+                "LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+                "LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
+                "WHERE USER.email=:email) " +
+                "" +
+                "UNION ALL " +
+                "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', TR.id, NULL, NULL " +
+                "FROM TRANSACTION TR " +
+                "JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
+                "JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
+                "JOIN USER U ON U.id=W.user_id " +
+                "WHERE U.email=:email AND TR.source_type='NOTIFICATIONS') " +
+                "" +
+                "ORDER BY datetime DESC, operation_type DESC, transaction_id DESC " + (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+        final Map<String, Object> params = new HashMap<>();
+        params.put("email", email);
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
+            MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
+            Timestamp datetime = rs.getTimestamp("datetime");
+            myInputOutputHistoryDto.setDatetime(datetime == null ? null: datetime.toLocalDateTime());
+            myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
+            myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
+            myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
+            myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
+            myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
+            TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("operation_type"));
+            myInputOutputHistoryDto.setSourceType(sourceType);
+            myInputOutputHistoryDto.setId(rs.getInt("transaction_id"));
+            myInputOutputHistoryDto.setTransactionId(rs.getInt("transaction_id"));
+            myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
+            myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
+            return myInputOutputHistoryDto;
+        });
+    }
 
   @Override
   public PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(Integer userId, Integer currencyId, @Nullable Integer limit, @Nullable Integer offset) {

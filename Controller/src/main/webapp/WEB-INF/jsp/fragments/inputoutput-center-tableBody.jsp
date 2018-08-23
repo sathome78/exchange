@@ -15,7 +15,7 @@
   <tr class="in_out_row"
     <@=
     (function(){
-    if (operationType == 'Output' || operationType == 'withdraw') {
+    if (operationType == 'WITHDRAW') {
     return
     'style="cursor: pointer"'
     }})()
@@ -40,6 +40,7 @@
         <input type="text" hidden value="" name="sourceType">
         <@=getButtonsSet(id, sourceType, merchantName, buttons, "inputoutput-table")@>
       </form>
+    </td>
   </tr>
 </script>
 </tbody>
