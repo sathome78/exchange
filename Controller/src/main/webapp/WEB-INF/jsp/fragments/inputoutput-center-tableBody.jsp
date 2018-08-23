@@ -15,7 +15,7 @@
   <tr class="in_out_row"
     <@=
     (function(){
-    if (operationType == 'WITHDRAW') {
+    if (operationType == 'Withdraw') {
     return
     'style="cursor: pointer"'
     }})()

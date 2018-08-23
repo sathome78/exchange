@@ -45,18 +45,16 @@ public class InputOutputDaoImpl implements InputOutputDao {
             List<Integer> operationTypeIdList,
             Locale locale) {
         String sql = "(SELECT WR.date_creation AS datetime, CUR.name AS currency, WR.amount AS amount, " +
-                "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS operation_type, " +
-                "WR.id AS transaction_id, WR.transaction_hash  AS transaction_hash, WR.status_id AS status_id " +
-                "FROM WITHDRAW_REQUEST WR " +
-                "JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
-                "JOIN USER USER ON USER.id=WR.user_id " +
-                "JOIN MERCHANT M ON M.id=WR.merchant_id " +
+                "(WR.commission + WR.merchant_commission) AS commission_amount, M.name AS merchant, 'WITHDRAW' AS source_type, " +
+                "'Withdraw' as operation_type, WR.id AS transaction_id, WR.transaction_hash  AS transaction_hash, WR.status_id AS status_id " +
+                "FROM WITHDRAW_REQUEST WR JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
+                "JOIN USER USER ON USER.id=WR.user_id JOIN MERCHANT M ON M.id=WR.merchant_id " +
                 "WHERE USER.email=:email) " +
                 "" +
                 "UNION ALL " +
-                "(SELECT RR.date_creation, CUR.name, RR.amount, NULL, M.name, 'REFILL', RR.id, RR.merchant_transaction_id, RR.status_id " +
-                "FROM REFILL_REQUEST RR JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
-                "JOIN USER USER ON USER.id=RR.user_id " +
+                "(SELECT RR.date_creation, CUR.name, RR.amount, NULL, M.name, 'REFILL', 'Refill', RR.id, " +
+                "RR.merchant_transaction_id, RR.status_id FROM REFILL_REQUEST RR JOIN CURRENCY CUR " +
+                "ON CUR.id=RR.currency_id JOIN USER USER ON USER.id=RR.user_id " +
                 "JOIN MERCHANT M ON M.id=RR.merchant_id " +
                 "LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
                 "LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
@@ -64,12 +62,29 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "WHERE USER.email=:email) " +
                 "" +
                 "UNION ALL " +
-                "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', TR.id, NULL, NULL " +
-                "FROM TRANSACTION TR " +
+                "(SELECT TR.date_creation, CUR.name, TR.amount, TR.commission, M.name, 'USER_TRANSFER', " +
+                "'User transfer - Output', TR.id, NULL, TR.status_id " +
+                "FROM TRANSFER_REQUEST TR " +
                 "JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
+                "JOIN USER USER ON USER.id=TR.user_id " +
+                "JOIN MERCHANT M ON M.id=TR.merchant_id " +
+                "WHERE USER.email=:email) " +
+                "" +
+                "UNION ALL " +
+                "(SELECT TR.date_creation, CUR.name, TR.amount, TR.commission, M.name, 'USER_TRANSFER', " +
+                "'User transfer - Input', TR.id, NULL, TR.status_id " +
+                "FROM TRANSFER_REQUEST TR " +
+                "JOIN CURRENCY CUR ON CUR.id=TR.currency_id JOIN USER USER ON USER.id=TR.user_id " +
+                "JOIN USER REC ON REC.id = TR.recipient_user_id  " +
+                "JOIN MERCHANT M ON M.id=TR.merchant_id " +
+                "WHERE REC.email=\"yagi7337@gmail.com\" AND TR.status_id = 2 ) " +
+                "" +
+                "UNION ALL " +
+                "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', 'notifications', TR.id, NULL, NULL " +
+                "FROM TRANSACTION TR JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
                 "JOIN USER U ON U.id=W.user_id " +
-                "WHERE U.email=:email AND TR.source_type='NOTIFICATIONS') " +
+                "WHERE U.email=\"yagi7337@gmail.com\" AND TR.source_type='NOTIFICATIONS') " +
                 "" +
                 "ORDER BY datetime DESC, operation_type DESC, transaction_id DESC " + (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
@@ -83,7 +98,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
             myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
             myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
-            TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("operation_type"));
+            TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
             myInputOutputHistoryDto.setSourceType(sourceType);
             myInputOutputHistoryDto.setId(rs.getInt("transaction_id"));
             myInputOutputHistoryDto.setTransactionId(rs.getInt("transaction_id"));
