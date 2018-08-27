@@ -689,7 +689,7 @@ public class AdminController {
         } else {
             if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
 
-                UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+                UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
                 updateUserDto.setPassword(user.getConfirmPassword());
                 updateUserDto.setStatus(UserStatus.ACTIVE);
                 updateUserDto.setRole(user.getRole());
