@@ -1195,6 +1195,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TUSD", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "cmitServiceImpl")
+    public EthTokenService cmitService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe11609b9a51caf7d32a55896386ac52ed90e66f1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CMIT",
+                "CMIT", true, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
