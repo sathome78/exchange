@@ -188,6 +188,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
             .antMatchers(POST, "/merchants/withdrawal/request/accept",
                     "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
+            .antMatchers("/newDeviceConfirm/**").permitAll()
+            .antMatchers("/newDeviceConfirm/**").anonymous()
             .antMatchers(POST, "/merchants/perfectmoney/payment/status",
                     "/merchants/perfectmoney/payment/status",
                     "/merchants/perfectmoney/payment/success",

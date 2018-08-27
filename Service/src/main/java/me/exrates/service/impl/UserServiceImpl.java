@@ -78,8 +78,19 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private NotificationsSettingsService settingsService;
 
+  private UserAgentAnalyzer uaa;
+
   /*this variable is set to use or not 2 factor authorization for all users*/
   private boolean global2FaActive = false;
+
+  @PostConstruct
+  private void init(){
+    uaa = UserAgentAnalyzer
+            .newBuilder()
+            .hideMatcherLoadStats()
+            .withCache(10000)
+            .build();
+  }
 
   @Override
   public boolean isGlobal2FaActive() {
@@ -168,7 +179,6 @@ public class UserServiceImpl implements UserService {
    */
   @Transactional(rollbackFor = Exception.class)
   public int verifyUserEmail(String token) {
-    System.out.println(" token  -  "+token);
     TemporalToken temporalToken = userDao.verifyToken(token);
     //deleting all tokens related with current through userId and tokenType
     return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
@@ -412,7 +422,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public boolean sendEmailForNewDevice(String userEmail, String userAgent) {
+  public boolean sendEmailForNewDevice(String userEmail, HttpServletRequest servletRequest) {
 
     User user = userDao.findByEmail(userEmail);
     if (user == null) {
@@ -422,16 +432,10 @@ public class UserServiceImpl implements UserService {
     LocalDateTime date = LocalDateTime.now();
     String time = String.valueOf(date.getLong(ChronoField.MINUTE_OF_DAY));
     String encodedTime = Base64.getEncoder().withoutPadding().encodeToString(time.getBytes());
-    UserAgentAnalyzer uaa = UserAgentAnalyzer
-            .newBuilder()
-            .hideMatcherLoadStats()
-            .withoutCache()
-            .build();
 
+    UserAgent agent =  uaa.parse(servletRequest.getHeader("User-agent"));
 
-    UserAgent agent =  uaa.parse(userAgent);
-
-    String operSystemInfo = agent.getValue("OperatingSystemNameVersion") + agent.getValue("DeviceCpuBits");
+    String operSystemInfo = agent.getValue("OperatingSystemNameVersion");
     String encodedOS = Base64.getEncoder().withoutPadding().encodeToString(operSystemInfo.getBytes());
     String deviceInfo = agent.getValue("DeviceClass") + " " +agent.getValue("AgentNameVersionMajor") +
                                                            "  (" + agent.getValue("OperatingSystemNameVersion")+")";
@@ -440,7 +444,6 @@ public class UserServiceImpl implements UserService {
     token.setValue(generateRegistrationToken());
     token.setTokenType(TokenType.CONFIRM_NEW_OS);
     token.setCheckIp(user.getIp());
-    System.out.println("user.getIp() "+user.getIp());
     createTemporalToken(token);
 
     Locale locale = getUserLocaleForMobile(userEmail);
@@ -450,7 +453,7 @@ public class UserServiceImpl implements UserService {
     StringBuilder confirmationUrl =
             new StringBuilder("/newDeviceConfirm?token=" + token.getValue()+"&device="+encodedOS +"&var="+encodedTime);
 
-    String rootUrl = "http://dev2.exrates.tech";
+    String rootUrl = servletRequest.getScheme() + "://" + servletRequest.getServerName() + ":" + servletRequest.getServerPort();
 
     email.setMessage(
             messageSource.getMessage(emailText, new Object[]{deviceInfo}, locale) +
@@ -851,11 +854,6 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public boolean checkOperSystem(String email, String userAgent) {
     int userId = userDao.getIdByEmail(email);
-    UserAgentAnalyzer uaa = UserAgentAnalyzer
-            .newBuilder()
-            .hideMatcherLoadStats()
-            .withoutCache()
-            .build();
 
     UserAgent agent =  uaa.parse(userAgent);
     String operSystemInfo = agent.getValue("OperatingSystemNameVersion") + agent.getValue("DeviceCpuBits");
