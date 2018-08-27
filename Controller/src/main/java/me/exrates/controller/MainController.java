@@ -7,6 +7,7 @@ import me.exrates.controller.exception.PasswordCreationException;
 import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
+import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -229,12 +230,14 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") User user, @RequestParam(required = false) String source,
+    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto, @RequestParam(required = false) String source,
                                         BindingResult result, HttpServletRequest request) {
         String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
         String validate = request.getParameter(GeetestLib.fn_geetest_validate);
         String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
-
+        User user = new User();
+        user.setEmail(userEmailDto.getEmail());
+        user.setParentEmail(userEmailDto.getParentEmail());
         int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
         String userid = (String)request.getSession().getAttribute("userid");
 
@@ -258,7 +261,6 @@ public class MainController {
                 return ResponseEntity.badRequest().body(result);
             } else {
                 boolean flag = false;
-                user = (User) result.getModel().get("user");
                 try {
                     String ip = IpUtils.getClientIpAddress(request, 100);
                     if (ip == null) {
@@ -331,7 +333,6 @@ public class MainController {
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
-
             Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
             org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
                     user.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);

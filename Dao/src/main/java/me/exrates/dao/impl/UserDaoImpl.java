@@ -297,13 +297,13 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, params) > 0;
   }
 
-  public boolean addUserRoles(String email, String role) {
+  /*public boolean addUserRoles(String email, String role) {
     String sql = "insert into USER_ROLE(name, user_id) values(:name,:userid)";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("name", role);
     namedParameters.put("userid", String.valueOf(getIdByEmail(email)));
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
+  }*/
 
   @Override
   public User findByEmail(String email) {
