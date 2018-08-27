@@ -156,10 +156,10 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
-        if (!userService.checkOperSystem(authentication.getName(), request.getHeader("User-agent"))){
+   /*     if (!userService.checkOperSystem(authentication.getName(), request.getHeader("User-agent"))){
             userService.sendEmailForNewDevice(authentication.getName(), request.getHeader("User-agent"));
             throw new UnconfirmedUserException("Check your email");
-        }
+        }*/
         /*-------------------*/
         secureServiceImpl.checkLoginAuth(request, authentication, this);
 

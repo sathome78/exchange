@@ -160,7 +160,7 @@
       <dependency>
           <groupId>nl.basjes.parse.useragent</groupId>
           <artifactId>yauaa</artifactId>
-          <version>RELEASE</version>
+          <version>5.2</version>
       </dependency>
   </dependencies>
   <repositories>
