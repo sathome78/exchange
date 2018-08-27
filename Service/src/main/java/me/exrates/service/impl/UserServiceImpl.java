@@ -856,7 +856,7 @@ public class UserServiceImpl implements UserService {
     int userId = userDao.getIdByEmail(email);
 
     UserAgent agent =  uaa.parse(userAgent);
-    String operSystemInfo = agent.getValue("OperatingSystemNameVersion") + agent.getValue("DeviceCpuBits");
+    String operSystemInfo = agent.getValue("OperatingSystemNameVersion");
     return 0 != userDao.checkOperSystem(userId, operSystemInfo);
   }
 
