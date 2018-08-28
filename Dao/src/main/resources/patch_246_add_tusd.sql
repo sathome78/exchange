@@ -46,7 +46,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='TUSD/ETH';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'XLM'), (select id from CURRENCY where name = 'TUSD'), 'XLM/TUSD', 160, 0, 'XLM', 'XLM/TUSD');
+VALUES((select id from CURRENCY where name = 'XLM'), (select id from CURRENCY where name = 'TUSD'), 'XLM/TUSD', 160, 0, 'FIAT', 'XLM/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -54,7 +54,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='XLM/TUSD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'NEO'), (select id from CURRENCY where name = 'TUSD'), 'NEO/TUSD', 160, 0, 'NEO', 'NEO/TUSD');
+VALUES((select id from CURRENCY where name = 'NEO'), (select id from CURRENCY where name = 'TUSD'), 'NEO/TUSD', 160, 0, 'FIAT', 'NEO/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -62,7 +62,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='NEO/TUSD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'LTC'), (select id from CURRENCY where name = 'TUSD'), 'LTC/TUSD', 160, 0, 'LTC', 'LTC/TUSD');
+VALUES((select id from CURRENCY where name = 'LTC'), (select id from CURRENCY where name = 'TUSD'), 'LTC/TUSD', 160, 0, 'FIAT', 'LTC/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -70,7 +70,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='LTC/TUSD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'DASH'), (select id from CURRENCY where name = 'TUSD'), 'DASH/TUSD', 160, 0, 'DASH', 'DASH/TUSD');
+VALUES((select id from CURRENCY where name = 'DASH'), (select id from CURRENCY where name = 'TUSD'), 'DASH/TUSD', 160, 0, 'FIAT', 'DASH/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -78,7 +78,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='DASH/TUSD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'TUSD'), 'BCH/TUSD', 160, 0, 'BCH', 'BCH/TUSD');
+VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'TUSD'), 'BCH/TUSD', 160, 0, 'FIAT', 'BCH/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -86,7 +86,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BCH/TUSD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'XRP'), (select id from CURRENCY where name = 'TUSD'), 'XRP/TUSD', 160, 0, 'XRP', 'XRP/TUSD');
+VALUES((select id from CURRENCY where name = 'XRP'), (select id from CURRENCY where name = 'TUSD'), 'XRP/TUSD', 160, 0, 'FIAT', 'XRP/TUSD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
