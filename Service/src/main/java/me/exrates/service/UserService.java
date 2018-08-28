@@ -92,7 +92,7 @@ public interface UserService {
   @Transactional(rollbackFor = Exception.class)
   void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
 
-  boolean sendEmailForNewDevice(String userEmail, String userAgent);
+  boolean sendEmailForNewDevice(String userEmail, HttpServletRequest servletRequest);
 
   void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
