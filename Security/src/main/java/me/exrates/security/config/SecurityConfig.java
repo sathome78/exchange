@@ -178,7 +178,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/**",
                     "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
-            /*... ADMIN */
+            .antMatchers("/2a8fy7b07dxe44/kyc/saveByAdmin",
+                    "/2a8fy7b07dxe44/kyc/getKyc",
+                    "/2a8fy7b07dxe44/kyc/approveKyc",
+                    "/2a8fy7b07dxe44/kyc/rejectKyc",
+                    "/2a8fy7b07dxe44/kyc/getWorldCheck",
+                    "/2a8fy7b07dxe44/kyc/approveWorldCheck",
+                    "/2a8fy7b07dxe44/kyc/rejectWorldCheck").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+        /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
             .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
@@ -251,6 +258,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
             .antMatchers( "/gt/**").permitAll()
             .antMatchers( "/test/**").permitAll()
+            .antMatchers("/kyc/**").authenticated()
             .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
             .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
             .antMatchers("/resetPasswordConfirm/**").permitAll()

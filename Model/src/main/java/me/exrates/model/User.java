@@ -2,6 +2,8 @@ package me.exrates.model;
 
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.kyc.KycStatus;
+import me.exrates.model.kyc.WorldCheckStatus;
 
 import java.util.Collections;
 import java.util.Date;
@@ -25,6 +27,9 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
+
+	private KycStatus kycStatus;
+	private WorldCheckStatus worldCheckStatus;
 
 	public UserRole getRole() {
 		return role;
@@ -139,6 +144,22 @@ public class User  {
 		this.parentEmail = parentEmail;
 	}
 
+	public KycStatus getKycStatus() {
+		return kycStatus;
+	}
+
+	public void setKycStatus(KycStatus kycStatus) {
+		this.kycStatus = kycStatus;
+	}
+
+	public WorldCheckStatus getWorldCheckStatus() {
+		return worldCheckStatus;
+	}
+
+	public void setWorldCheckStatus(WorldCheckStatus worldCheckStatus) {
+		this.worldCheckStatus = worldCheckStatus;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
@@ -157,6 +178,7 @@ public class User  {
 				", role=" + role +
 				", parentEmail='" + parentEmail + '\'' +
 				", userFiles=" + userFiles +
+				", kyc_status=" + kycStatus +
 				'}';
 	}
 

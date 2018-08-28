@@ -3,10 +3,12 @@ package me.exrates.controller;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
+import me.exrates.dao.KycDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
+import me.exrates.model.kyc.KYC;
 import me.exrates.service.*;
 import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
@@ -23,6 +25,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -89,6 +92,10 @@ public class EntryController {
     private ReferralService referralService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private KycService kycService;
+    @Autowired
+    private KycDao kycDao;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -298,7 +305,7 @@ public class EntryController {
 
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
-                                 HttpServletRequest request) {
+                                 HttpServletRequest request, Model model) {
         final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
         final ModelAndView mav = new ModelAndView("globalPages/settings");
         final List<UserFile> userFile = userService.findUserDoc(user.getId());
@@ -318,6 +325,13 @@ public class EntryController {
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
         mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);
+        if (!model.containsAttribute("kyc")) {
+            if (kycDao.inProgress(user.getId())) {
+                mav.addObject("kyc", kycService.getKyc(user.getId()));
+            } else {
+                mav.addObject("kyc", new KYC());
+            }
+        }
         return mav;
     }
 

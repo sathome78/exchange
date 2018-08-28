@@ -45,6 +45,8 @@
                                 <th><loc:message code="admin.registrationDate"/></th>
                                 <th><loc:message code="admin.role"/></th>
                                 <th><loc:message code="admin.status"/></th>
+                                <th>KYC</th>
+                                <th>World check</th>
                             </tr>
                             </thead>
                         </table>

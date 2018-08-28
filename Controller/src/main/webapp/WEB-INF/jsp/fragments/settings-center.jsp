@@ -8,6 +8,7 @@
             <li><a data-toggle="pill" href="#notification-options-wrapper"><loc:message code="notifications.settings"/></a></li>
             <li><a data-toggle="pill" href="#session-options-wrapper"><loc:message code="session.settings"/></a></li>
             <li><a data-toggle="pill" href="#api-options-wrapper"><loc:message code="api.user.settings"/></a></li>
+            <li><a data-toggle="pill" href="#kyc-options-wrapper">KYC settings</a></li>
         </ul>
     </div>
 
@@ -32,6 +33,9 @@
         </div>
         <div id="api-options-wrapper" class="tab-pane fade">
             <%@include file="settings-center-api-tokens.jsp" %>
+        </div>
+        <div id="kyc-options-wrapper" class="tab-pane fade">
+            <%@include file="settings-center-kyc.jsp" %>
         </div>
     </div>
 </div>

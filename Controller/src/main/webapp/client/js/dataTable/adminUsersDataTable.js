@@ -42,6 +42,30 @@ $(function () {
                 },
                 {
                     "data": "status"
+                },
+                {
+                    "data": "kycStatus",
+                    "render": function (data, type, row){
+                        if (type == 'display') {
+                            if (data == null) {
+                                return '<a a target="_blank" href="/2a8fy7b07dxe44/kyc/getKyc?userId='+row['id']+'">Not verified</a>';
+                            }
+                            return '<a a target="_blank" href="/2a8fy7b07dxe44/kyc/getKyc?userId='+row['id']+'">'+data+'</a>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "worldCheckStatus",
+                    "render": function (data, type, row){
+                        if (data == null) {
+                            return '<a a target="_blank" href="/2a8fy7b07dxe44/kyc/getWorldCheck?userId='+row['id']+'">Not verified</a>';
+                        }
+                        if (type == 'display') {
+                            return '<a a target="_blank" href="/2a8fy7b07dxe44/kyc/getWorldCheck?userId='+row['id']+'">'+data+'</a>';
+                        }
+                        return data;
+                    }
                 }
             ],
             "order": [

@@ -1466,6 +1466,17 @@ td.blue-white {
     padding: 0 15px 0 0;
 }
 
+.input-block-wrapper__error-wrapper__kyc {
+    float: right;
+    text-align: left;
+    color: rgba(232, 0, 0, 0.93);
+    overflow: hidden;
+    margin: 0;
+    line-height: 20px;
+    font-size: 1.2em;
+    padding: 0 15px 0 17px;
+}
+
 .input-block-wrapper__error-wrapper_forgot {
     text-align: left;
     color: rgba(232, 0, 0, 0.93);
@@ -1497,6 +1508,10 @@ td.blue-white {
 
 .confirm-button-wrapper {
     margin: 10px 0;
+}
+
+.kyc-confirm-button-wrapper {
+    display: inline-block;
 }
 
 .modal-form-dialog #uploadFile.file-choice__input {
@@ -2438,6 +2453,10 @@ input.copyable:hover{
 #user-settings-menu > li.active > a {
     background-color: #434e60;
 
+}
+
+.kycForm-toggler {
+    font-size: 1.3em;
 }
 
 #btcResultInfoTable td:first-child {

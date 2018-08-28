@@ -8,6 +8,8 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.kyc.KycStatus;
+import me.exrates.model.kyc.WorldCheckStatus;
 import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.apache.logging.log4j.LogManager;
@@ -87,6 +89,12 @@ public class UserDaoImpl implements UserDao {
       user.setFinpassword(resultSet.getString("finpassword"));
       try {
         user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
+        if (resultSet.getString("kyc_status") != null) {
+          user.setKycStatus(KycStatus.valueOf(resultSet.getString("kyc_status")));
+        }
+        if (resultSet.getString("world_check_status") != null) {
+          user.setWorldCheckStatus(WorldCheckStatus.valueOf(resultSet.getString("world_check_status")));
+        }
       } catch (final SQLException e) {/*NOP*/}
       return user;
     };
@@ -401,9 +409,13 @@ public class UserDaoImpl implements UserDao {
   public PagingData<List<User>> getUsersByRolesPaginated(List<UserRole> roles, int offset, int limit,
                                                          String orderColumnName, String orderDirection,
                                                          String searchValue) {
+    String userSQL = "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
+            "USER.phone, USER.status, USER_ROLE.name AS role_name, KYC.kyc_status as kyc_status, WORLD_CHECK.world_check_status as world_check_status FROM USER " +
+            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN KYC ON KYC.user_id = USER.id LEFT JOIN WORLD_CHECK ON WORLD_CHECK.user_id = USER.id LEFT JOIN REFERRAL_USER_GRAPH " +
+            "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
     StringJoiner sqlJoiner = new StringJoiner(" ");
     String whereClause = "WHERE USER_ROLE.name IN (:roles)";
-    sqlJoiner.add(SELECT_USER)
+    sqlJoiner.add(userSQL)
         .add(whereClause);
     String searchClause = "";
     if (!(searchValue == null || searchValue.isEmpty())) {
