@@ -1234,6 +1234,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 0);
     }
 
+    @Bean(name = "comsaServiceImpl")
+    public XemMosaicService comsaService() {
+        return new XemMosaicServiceImpl(
+                "CMS_X",
+                "CMS_X",
+                new MosaicIdDto("comsa", "cms"),
+                1000000,
+                6,
+                new Supply(219042298L),
+                0);
+    }
+
     /***stellarAssets****/
     private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
     @Bean(name = "sltStellarService")
