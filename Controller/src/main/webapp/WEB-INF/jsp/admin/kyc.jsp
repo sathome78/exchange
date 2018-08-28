@@ -43,7 +43,7 @@
                                 <c:choose>
                                     <c:when test="${kyc.kycType == \"INDIVIDUAL\"}">
                                         <form:form class="form-horizontal" id="kyc_individual_form"
-                                                   action="/kyc/saveByAdmin"
+                                                   action="/2a8fy7b07dxe44/kyc/saveByAdmin"
                                                    method="post"
                                                    enctype="multipart/form-data"
                                                    modelAttribute="kyc">

@@ -3,7 +3,7 @@
   Date: 7/9/2018
   Time: 12:37 PM
 --%>
-<section id="files-upload">
+<section id="kyc-files-upload">
     <h4 class="h4_green">
         KYC settings
     </h4>

@@ -108,14 +108,19 @@ public class KycController {
         kycService.updateByAdmin(kyc.getUserId(), kyc);
         attributes.addAttribute("userId", kyc.getUserId());
         attributes.addFlashAttribute("successNoty", messageSource.getMessage("kyc.SavedSuccess", null, locale));
-        return new ModelAndView("redirect:/kyc/getKyc");
+        return new ModelAndView("redirect:/2a8fy7b07dxe44/kyc/getKyc");
     }
 
     @AdminLoggable
     @GetMapping(value = "/2a8fy7b07dxe44/kyc/getKyc")
     public ModelAndView getKyc(@RequestParam int userId) {
         ModelAndView mav = new ModelAndView("/admin/kyc");
-        mav.addObject("kyc", kycService.getKyc(userId));
+        KYC kyc = kycService.getKyc(userId);
+        if (kyc != null) {
+            mav.addObject("kyc",kyc);
+        } else {
+            mav.addObject("kyc",new KYC());
+        }
         return mav;
     }
 

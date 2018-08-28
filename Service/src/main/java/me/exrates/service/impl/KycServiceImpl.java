@@ -128,7 +128,7 @@ public class KycServiceImpl implements KycService {
 
         kycDao.setStatus(userId, KycStatus.NEED_CHECK, null);
 
-        String link = "/kyc/getKyc?userId=" + userId;
+        String link = "/2a8fy7b07dxe44/kyc/getKyc?userId=" + userId;
         String rootUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         Email email = new Email();
         email.setMessage(

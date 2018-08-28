@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @Component
 public class KycValidator {
 
-    private static final String MOBILE_PATTERN = "[0-9]{12}";
+    private static final String MOBILE_PATTERN = "[0-9]{11,12}";
     private static final String[] USER_FILE_TYPES = new String[] {"pdf", "png", "jpeg", "jpg"};
 
     @Autowired
