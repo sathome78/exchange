@@ -77,14 +77,14 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "JOIN CURRENCY CUR ON CUR.id=TR.currency_id JOIN USER USER ON USER.id=TR.user_id " +
                 "JOIN USER REC ON REC.id = TR.recipient_user_id  " +
                 "JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "WHERE REC.email=\"yagi7337@gmail.com\" AND TR.status_id = 2 ) " +
+                "WHERE REC.email=:email AND TR.status_id = 2 ) " +
                 "" +
                 "UNION ALL " +
                 "(SELECT TR.datetime, CUR.name, TR.amount, NULL, NULL, 'NOTIFICATIONS', 'notifications', TR.id, NULL, NULL " +
                 "FROM TRANSACTION TR JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
                 "JOIN USER U ON U.id=W.user_id " +
-                "WHERE U.email=\"yagi7337@gmail.com\" AND TR.source_type='NOTIFICATIONS') " +
+                "WHERE U.email=:email AND TR.source_type='NOTIFICATIONS') " +
                 "" +
                 "ORDER BY datetime DESC, operation_type DESC, transaction_id DESC " + (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
