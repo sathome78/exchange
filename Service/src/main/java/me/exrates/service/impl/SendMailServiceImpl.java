@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.model.Email;
+import me.exrates.model.enums.EmailSenderType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.SendMailService;
 import org.apache.logging.log4j.LogManager;
@@ -72,12 +73,25 @@ public class SendMailServiceImpl implements SendMailService{
 	public void sendMailMandrill(Email email){
 		supportMailExecutors.execute(() -> {
 			try {
-				sendMail(email, MANDRILL_EMAIL, mandrillMailSender);
+				sendByType(email, EmailSenderType.valueOf(mailType));
 			} catch (Exception e) {
 				logger.error(e);
-				sendMail(email, INFO_EMAIL, infoMailSender);
+				sendMail(email, SUPPORT_EMAIL, supportMailSender);
 			}
 		});
+	}
+
+	private void sendByType(Email email, EmailSenderType type) {
+		switch (type) {
+			case gmail : {
+				sendMail(email, INFO_EMAIL, infoMailSender);
+				break;
+			}
+			case mandrill: {
+				sendMail(email, MANDRILL_EMAIL, mandrillMailSender);
+				break;
+			}
+		}
 	}
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -131,6 +145,8 @@ public class SendMailServiceImpl implements SendMailService{
 		email.setSubject("Feedback from " + senderName + " -- " + senderMail);
 		sendMail(email);
 	}
+
+
 
 
 	@PreDestroy
