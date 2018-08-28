@@ -86,6 +86,9 @@ public class OrderControllerRest {
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
             }
+            if (baseType == OrderBaseType.STOP_LIMIT && stop == null) {
+                throw new RuntimeException("Try to create stop-order without stop rate");
+            }
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);

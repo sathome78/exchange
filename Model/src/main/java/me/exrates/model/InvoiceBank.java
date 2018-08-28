@@ -22,4 +22,15 @@ public class InvoiceBank {
     private String recipient;
     @JsonInclude(NON_NULL)
     private String bankDetails;
+
+    public static InvoiceBank getUnavilableInvoice(int currencyId) {
+        InvoiceBank invoiceBank = new InvoiceBank();
+        invoiceBank.setId(0);
+        invoiceBank.setCurrencyId(currencyId);
+        invoiceBank.setName("SERVICE NOT AVAILABLE");
+        invoiceBank.setAccountNumber(" ");
+        invoiceBank.setRecipient(" ");
+        invoiceBank.setBankDetails("INVOICE SERVICE NOT AVAILBLE, YOU REFILLS WILL NOT BE CREDITED");
+        return invoiceBank;
+    }
 }

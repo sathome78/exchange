@@ -45,7 +45,14 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.ROUND_SCALE = 9;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
-    function onCurrencyPairChange() {
+    function onCurrencyPairChange(data) {
+        if (data) {
+            currentPair = data.name;
+        }
+        else {
+            currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
+        }
+        console.log('on pair change ' + currentPair);
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
