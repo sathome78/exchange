@@ -1235,6 +1235,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "HIVE", false, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "cms_eServiceImpl")
+    public EthTokenService cms_eService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf83301c5cd1ccbb86f466a6b3c53316ed2f8465a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CMS_E",
+                "CMS_E", false, ExConvert.Unit.MWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
