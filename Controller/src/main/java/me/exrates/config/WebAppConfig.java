@@ -1158,8 +1158,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         tokensList.add("0x07a7ed332c595b53a317afcee50733af571475e7");
         return new EthTokenServiceImpl(
                 tokensList,
-                "MTV",
-                "MTV", true, ExConvert.Unit.ETHER);
+                "eMTV",
+                "eMTV", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "kwattServiceImpl")
@@ -1170,6 +1170,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 tokensList,
                 "KWATT",
                 "KWATT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "fpwrServiceImpl")
+    public EthTokenService fpwrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdd92e60563250012ee1c4cb4b26810c45a0591da");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FPWR",
+                "FPWR", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
