@@ -43,6 +43,9 @@ public class SendMailServiceImpl implements SendMailService{
 	@Value("${mail_info.allowedEmails}")
 	private String allowedEmailsList;
 
+	@Value("${default_mail_type}")
+	private String mailType;
+
 	private final static int THREADS_NUMBER = 4;
 	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
 	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(3);
