@@ -6,6 +6,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.service.SendMailService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,9 +83,10 @@ public class SendMailServiceImpl implements SendMailService{
 	}
 
 	private void sendByType(Email email, EmailSenderType type) {
+		System.out.println("mailtype " + type);
 		switch (type) {
 			case gmail : {
-				sendMail(email, INFO_EMAIL, infoMailSender);
+				sendInfoMail(email);
 				break;
 			}
 			case mandrill: {
