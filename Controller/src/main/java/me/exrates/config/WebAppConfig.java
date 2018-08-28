@@ -1185,6 +1185,76 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "FPWR", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tusdServiceImpl")
+    public EthTokenService tusdService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8dd5fbce2f6a956c3022ba3663759011dd51e73e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TUSD",
+                "TUSD", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "cmitServiceImpl")
+    public EthTokenService cmitService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe11609b9a51caf7d32a55896386ac52ed90e66f1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CMIT",
+                "CMIT", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "crbtServiceImpl")
+    public EthTokenService crbtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CRBT",
+                "CRBT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "hdrServiceImpl")
+    public EthTokenService hdrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x52494fbffe10f8c29411521040ae8618c334981e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HDR",
+                "HDR", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "hiveServiceImpl")
+    public EthTokenService hiveService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x895f5d0b8456b980786656a33f21642807d1471c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HIVE",
+                "HIVE", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "cms_eServiceImpl")
+    public EthTokenService cms_eService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf83301c5cd1ccbb86f466a6b3c53316ed2f8465a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CMS_E",
+                "CMS_E", false, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "udooServiceImpl")
+    public EthTokenService udooService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc2046180ee648d597ac8ac812aa80d4d35374ab5");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDoo",
+                "uDoo", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
