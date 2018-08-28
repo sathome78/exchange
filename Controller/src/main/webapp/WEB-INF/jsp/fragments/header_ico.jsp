@@ -278,7 +278,7 @@
             <div class="popup__caption">Confirm the email</div>
 
             <div class="popup__text">
-                We sended the confirmation link to<br>
+                We've sent the confirmation link to<br>
                 <a id="confirm_email" href="" class="popup__text-link"></a>
             </div>
             <div class="popup__text">

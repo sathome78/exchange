@@ -1161,8 +1161,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         tokensList.add("0x07a7ed332c595b53a317afcee50733af571475e7");
         return new EthTokenServiceImpl(
                 tokensList,
-                "MTV",
-                "MTV", true, ExConvert.Unit.ETHER);
+                "eMTV",
+                "eMTV", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "kwattServiceImpl")
