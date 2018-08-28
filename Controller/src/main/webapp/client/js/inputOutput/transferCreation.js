@@ -8,12 +8,15 @@ var client;
 var connectedPS = false;
 var currencyPairStatisticSubscription;
 var reconnectsCounter = 0;
+var csrf;
 
 
 
 $(function transferCreation() {
 
     leftSider = new LeftSiderClass();
+
+    csrf = $('.s_csrf').val();
 
     var onConnectFail = function () {
     connectedPS = false;
@@ -36,7 +39,7 @@ $(function transferCreation() {
     function subscribeStatistics() {
         if (currencyPairStatisticSubscription == undefined) {
             var headers = {'X-CSRF-TOKEN': csrf};
-            var path = '/app/statisticsNew';
+            var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
             currencyPairStatisticSubscription = client.subscribe(path, function (message) {
                 var messageBody = JSON.parse(message.body);
                 messageBody.forEach(function(object){
@@ -63,11 +66,11 @@ $(function transferCreation() {
 
     function handleStatisticMessages(object) {
         switch (object.type){
-            case "CURRENCIES_STATISTIC" : {
+            case "MAIN_CURRENCIES_STATISTIC" : {
                 leftSider.updateStatisticsForAllCurrencies(object.data);
                 break;
             }
-            case "CURRENCY_STATISTIC" : {
+            case "MAIN_CURRENCY_STATISTIC" : {
                 object.data.forEach(function(object){
                     leftSider.updateStatisticsForCurrency(object);
                 });
@@ -133,7 +136,6 @@ $(function transferCreation() {
     var isVoucher;
 
     connectAndReconnect();
-    subscribeAll();
 
     $container.find(".start-transfer").on('click', function () {
         console.log('click');

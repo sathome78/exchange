@@ -8,10 +8,13 @@ var client;
 var connectedPS = false;
 var currencyPairStatisticSubscription;
 var reconnectsCounter = 0;
+var csrf;
 
 $(function withdrawCreation() {
 
     leftSider = new LeftSiderClass();
+
+    csrf = $('.s_csrf').val();
 
     var onConnectFail = function () {
         connectedPS = false;
@@ -34,7 +37,7 @@ $(function withdrawCreation() {
     function subscribeStatistics() {
         if (currencyPairStatisticSubscription == undefined) {
             var headers = {'X-CSRF-TOKEN': csrf};
-            var path = '/app/statisticsNew';
+            var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
             currencyPairStatisticSubscription = client.subscribe(path, function (message) {
                 var messageBody = JSON.parse(message.body);
                 messageBody.forEach(function(object){
@@ -47,6 +50,7 @@ $(function withdrawCreation() {
 
     function connectAndReconnect() {
         reconnectsCounter ++;
+        console.log("try to reconnect OUR " + reconnectsCounter);
         if (reconnectsCounter > 5) {
             location.reload()
         }
@@ -60,11 +64,11 @@ $(function withdrawCreation() {
 
     function handleStatisticMessages(object) {
         switch (object.type){
-            case "CURRENCIES_STATISTIC" : {
+            case "MAIN_CURRENCIES_STATISTIC" : {
                 leftSider.updateStatisticsForAllCurrencies(object.data);
                 break;
             }
-            case "CURRENCY_STATISTIC" : {
+            case "MAIN_CURRENCY_STATISTIC" : {
                 object.data.forEach(function(object){
                     leftSider.updateStatisticsForCurrency(object);
                 });
@@ -125,7 +129,6 @@ $(function withdrawCreation() {
     const cyrillicPattern = /[\u0400-\u04FF]/;
 
     connectAndReconnect();
-    subscribeAll();
 
     $container.find(".start-withdraw").on('click', function () {
         startWithdraw(this);
