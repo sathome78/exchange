@@ -1172,6 +1172,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "KWATT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "udooServiceImpl")
+    public EthTokenService udooService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc2046180ee648d597ac8ac812aa80d4d35374ab5");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDoo",
+                "uDoo", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
