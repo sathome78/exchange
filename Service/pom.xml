@@ -157,11 +157,11 @@
           <artifactId>httpasyncclient</artifactId>
           <version>4.1.1</version>
       </dependency>
-      <dependency>
+<!--      <dependency>
           <groupId>nl.basjes.parse.useragent</groupId>
           <artifactId>yauaa</artifactId>
           <version>5.2</version>
-      </dependency>
+      </dependency>-->
   </dependencies>
   <repositories>
     <repository>
