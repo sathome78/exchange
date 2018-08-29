@@ -1172,6 +1172,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "KWATT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tusdServiceImpl")
+    public EthTokenService tusdService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8dd5fbce2f6a956c3022ba3663759011dd51e73e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TUSD",
+                "TUSD", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "fpwrServiceImpl")
     public EthTokenService fpwrService() {
         List<String> tokensList = new ArrayList<>();

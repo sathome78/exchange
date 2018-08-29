@@ -150,7 +150,7 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statisticsNew';
+        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
@@ -261,11 +261,11 @@ function drawTechAlert(object) {
 
 function handleStatisticMessages(object) {
     switch (object.type){
-        case "CURRENCIES_STATISTIC" : {
+        case "MAIN_CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
             break;
         }
-        case "CURRENCY_STATISTIC" : {
+        case "MAIN_CURRENCY_STATISTIC" : {
             object.data.forEach(function(object){
                 leftSider.updateStatisticsForCurrency(object);
             });
@@ -429,7 +429,7 @@ $(function dashdoardInit() {
 
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -458,7 +458,7 @@ $(function dashdoardInit() {
         });
 
 
-        syncCurrentParams(null, null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
 
             var url = '/dashboard/createPairSelectorMenu';
@@ -555,7 +555,7 @@ function showSubPage(subPageId) {
 }
 
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
