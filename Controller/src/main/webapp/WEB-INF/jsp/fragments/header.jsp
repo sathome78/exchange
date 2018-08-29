@@ -274,22 +274,20 @@
         </div>
     <%--PIN | END--%>
 
+    <%-- Regitration with referral link | START --%>
+    <a id="pwd_referral_link_for_registration_hide" data-fancybox href="#registration" class="popup__bottom-link" style="display: none"><loc:message code="usermenu.referral"/></a>
+    <input id="referral_link_for_registration" hidden value='${refferalLink}'/>
+    <%-- Regitration with referral link | END --%>
+
+    <%-- Regitration | START --%>
     <div id="registration" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Registration</div>
 
             <form id="create_me" class="form" method="post">
                 <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
-                <%--<div class="field">--%>
-                    <%--<div class="field__label">Nickname</div>--%>
-                    <%--<input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>--%>
-                    <%--<div id="nickname_exists" class='field__error' style="display:none">--%>
-                        <%--Nichname exists--%>
-                    <%--</div>--%>
-                    <%--<div id="nichname_wrong" class='field__error' style="display:none">--%>
-                        <%--Wrong nichname--%>
-                    <%--</div>--%>
-                <%--</div>--%>
+                <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
+
                 <div class="field">
                     <div class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
@@ -322,6 +320,7 @@
             </form>
         </div>
     </div>
+    <%-- Regitration | END --%>
 
     <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
 
