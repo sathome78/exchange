@@ -171,7 +171,7 @@ public class DashboardController {
     return model;
   }
 
-/*    @RequestMapping(value = "/newDeviceConfirm")
+    @RequestMapping(value = "/newDeviceConfirm")
     public ModelAndView newDeviceConfirm(@RequestParam("token") String token,
                                          @RequestParam("device") String device,
                                          @RequestParam("var") String var,
@@ -220,7 +220,7 @@ public class DashboardController {
 
         model.setViewName("redirect:/dashboard");
         return model;
-    }*/
+    }
 
   @RequestMapping(value = "/resetPasswordConfirm")
   public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {

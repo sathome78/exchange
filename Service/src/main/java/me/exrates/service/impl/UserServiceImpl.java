@@ -21,8 +21,8 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
-/*import nl.basjes.parse.useragent.*;
-import nl.basjes.parse.useragent.UserAgent;*/
+import nl.basjes.parse.useragent.*;
+import nl.basjes.parse.useragent.UserAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,12 +77,12 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private NotificationsSettingsService settingsService;
-/*
-  private UserAgentAnalyzer uaa;*/
+
+  private UserAgentAnalyzer uaa;
 
   /*this variable is set to use or not 2 factor authorization for all users*/
   private boolean global2FaActive = false;
-/*
+
   @PostConstruct
   private void init(){
     uaa = UserAgentAnalyzer
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
             .hideMatcherLoadStats()
             .withCache(10000)
             .build();
-  }*/
+  }
 
   @Override
   public boolean isGlobal2FaActive() {
@@ -420,7 +420,7 @@ public class UserServiceImpl implements UserService {
     }
   }
 
-/*  @Override
+  @Override
   @Transactional(rollbackFor = Exception.class)
   public boolean sendEmailForNewDevice(String userEmail, HttpServletRequest servletRequest) {
 
@@ -466,7 +466,7 @@ public class UserServiceImpl implements UserService {
     email.setTo(user.getEmail());
     sendMailService.sendMailMandrill(email);
     return true;
-  }*/
+  }
 
 
   @Override
@@ -850,7 +850,7 @@ public class UserServiceImpl implements UserService {
     return auth.getName();
   }
 
-/*  @Override
+  @Override
   @Transactional
   public boolean checkOperSystem(String email, String userAgent) {
     int userId = userDao.getIdByEmail(email);
@@ -864,5 +864,5 @@ public class UserServiceImpl implements UserService {
   public boolean setNewOperSystem(String email, String operSystem) {
     int userId = userDao.getIdByEmail(email);
     return userDao.setNewOperSystem(userId, operSystem);
-  }*/
+  }
 }
