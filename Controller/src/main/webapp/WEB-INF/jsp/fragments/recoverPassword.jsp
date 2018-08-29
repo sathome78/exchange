@@ -27,8 +27,6 @@
 </head>
 <body>
 
-<a id="forgot_pwd_hide" data-fancybox href="#recovery_confirmed" class="popup__bottom-link">Forgot password?</a>
-
 <input id="recoveryConfirm" hidden value='${recoveryConfirm}'/>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
