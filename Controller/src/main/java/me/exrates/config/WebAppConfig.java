@@ -496,6 +496,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "NTY", "NTY", 12);
     }
 
+    @Bean(name = "etherincServiceImpl")
+    public EthereumCommonService etherincService() {
+        return new EthereumCommonServiceImpl("merchants/eti.properties",
+                "ETI", "ETI", 12);
+    }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
