@@ -40,21 +40,15 @@ public class LiskRestUtils {
     public static JsonNode extractTargetNodeFromLiskResponse(ObjectMapper objectMapper, String responseBody, String targetFieldName, JsonNodeType targetNodeType)  {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode successNode = getAndValidateJsonNode("success", root, JsonNode::isBoolean);
-            boolean success = successNode.booleanValue();
-            if (success) {
-                return getAndValidateJsonNode(targetFieldName, root, jsonNode -> jsonNode.getNodeType() == targetNodeType);
-            } else {
-                JsonNode error = getAndValidateJsonNode("error", root, JsonNode::isTextual);
-                throw new LiskRestException(String.format("API error: %s", error.textValue()));
-            }
+
+            return getAndValidateJsonNode(targetFieldName, root, jsonNode -> jsonNode.getNodeType() == targetNodeType);
         } catch (IOException e) {
             throw new LiskRestException(e.getMessage());
         }
     }
 
     public static JsonNode getAndValidateJsonNode(String fieldName, JsonNode parent, Predicate<JsonNode> validator) {
-        JsonNode target = parent.get(fieldName);
+        JsonNode target = parent.findValue(fieldName);
         if (target == null) {
             throw new LiskRestException(String.format("Field not found: %s", fieldName));
         } else if (!validator.test(target)) {

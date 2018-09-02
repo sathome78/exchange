@@ -115,7 +115,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     @Override
     public Long getFee() {
         String response = restTemplate.getForObject(absoluteURI(getFeeEndpoint), String.class);
-        return extractTargetNodeFromLiskResponse(objectMapper, response, "fee", JsonNodeType.NUMBER).longValue();
+        return Long.parseLong(extractTargetNodeFromLiskResponse(objectMapper, response, "send", JsonNodeType.NUMBER).textValue());
     }
 
 
