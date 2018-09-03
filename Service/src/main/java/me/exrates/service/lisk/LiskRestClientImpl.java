@@ -26,6 +26,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     private RestTemplate restTemplate;
 
     private String baseUrl;
+    private String microserviceUrl;
     private String openAccountUrl;
     private String sendTxUrl;
     private String sortingPrefix;
@@ -38,7 +39,8 @@ public class LiskRestClientImpl implements LiskRestClient {
     private final String newAccountEndpoint = "/api/accounts/open";
     private final String getAccountByAddressEndpoint = "/api/accounts";
     private final String getTransactionsEndpoint = "/api/transactions";
-    private final String getTransactionByIdEndpoint = "/api/transactions/get";
+    private final String getTransactionByIdEndpoint = "/api/transactions";
+    private final String getSignedTransactionWithData = "/api/transfer";
     private final String sendTransactionEndpoint = "/api/transactions";
     private final String getFeeEndpoint = "/api/blocks/getFee";
 
@@ -53,7 +55,9 @@ public class LiskRestClientImpl implements LiskRestClient {
             String mainPort = props.getProperty("lisk.node.port");
             String openAccountPort = props.getProperty("lisk.port.getAccount");
             String sendTxPort = props.getProperty("lisk.port.sendTx");
+            String microservicePort = props.getProperty("lisk.microservice.port");
 
+            this.microserviceUrl = String.join(":", "http://localhost", microservicePort);
             this.baseUrl = String.join(":", host, mainPort);
             this.openAccountUrl = String.join(":", host, openAccountPort);
             this.sendTxUrl = String.join(":", host, sendTxPort);
@@ -115,21 +119,27 @@ public class LiskRestClientImpl implements LiskRestClient {
     @Override
     public Long getFee() {
         String response = restTemplate.getForObject(absoluteURI(getFeeEndpoint), String.class);
-        return Long.parseLong(extractTargetNodeFromLiskResponse(objectMapper, response, "send", JsonNodeType.NUMBER).textValue());
+        return Long.parseLong(extractTargetNodeFromLiskResponse(objectMapper, response, "send", JsonNodeType.STRING).textValue());
     }
 
 
     @Override
     public String sendTransaction(LiskSendTxDto dto) {
-            ResponseEntity<String> response = restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.PUT, new HttpEntity<>(dto), String.class);
-            return extractTargetNodeFromLiskResponse(objectMapper, response.getBody(), "transactionId", JsonNodeType.STRING).textValue();
+        //Get signed transaction with data
+        ResponseEntity<String> responseFromMicroservice = restTemplate.exchange(microserviceUrl.concat(getSignedTransactionWithData), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+
+        //Post signed transaction with data into network
+        restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.POST, responseFromMicroservice, String.class);
+
+        //Return transaction id
+        return extractTargetNodeFromLiskResponse(objectMapper, responseFromMicroservice.getBody(), "id", JsonNodeType.STRING).textValue();
     }
 
     @Override
     public LiskAccount createAccount(String secret) {
         LiskOpenAccountDto dto = new LiskOpenAccountDto();
         dto.setSecret(secret);
-        ResponseEntity<String> response = restTemplate.exchange(openAccountUrl.concat(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(microserviceUrl.concat(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
         return extractObjectFromResponse(objectMapper, response.getBody(), "account", LiskAccount.class);
     }
 
