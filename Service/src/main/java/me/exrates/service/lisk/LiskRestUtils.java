@@ -40,8 +40,14 @@ public class LiskRestUtils {
     public static JsonNode extractTargetNodeFromLiskResponse(ObjectMapper objectMapper, String responseBody, String targetFieldName, JsonNodeType targetNodeType)  {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
-
-            return getAndValidateJsonNode(targetFieldName, root, jsonNode -> jsonNode.getNodeType() == targetNodeType);
+            JsonNode successNode = getAndValidateJsonNode("success", root, JsonNode::isBoolean);
+            boolean success = successNode.booleanValue();
+            if (success) {
+                return getAndValidateJsonNode(targetFieldName, root, jsonNode -> jsonNode.getNodeType() == targetNodeType);
+            } else {
+                JsonNode error = getAndValidateJsonNode("error", root, JsonNode::isTextual);
+                throw new LiskRestException(String.format("API error: %s", error.textValue()));
+            }
         } catch (IOException e) {
             throw new LiskRestException(e.getMessage());
         }
