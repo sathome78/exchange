@@ -176,7 +176,7 @@ public class ChartController {
                 .add("exchange", "EXRATES")
                 .add("minmov", 1)
                 .add("fractional", false)
-                .add("pricescale", 10000)
+                .add("pricescale", 1000000000)
                 .add("type", "bitcoin")
                 .add("session", "24x7")
                 .add("ticker", symbol)
