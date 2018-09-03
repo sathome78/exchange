@@ -425,7 +425,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new LoggingAspect();
     }
 
-    @Bean(name = "nsrServiceImpl")
+   /* @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
                 "NuShares", "NSR", 4, 20, false, false);
@@ -447,7 +447,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HSR", "HSR", 4, 20, false, false);
-    }
+    }*/
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -455,7 +455,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Ethereum", "ETH", 12);
     }
 
-    @Bean(name = "ethereumClassicServiceImpl")
+    /*@Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
                 "Ethereum Classic", "ETC", 12);
@@ -495,7 +495,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     public EthereumCommonService ntyService() {
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
                 "NTY", "NTY", 12);
-    }
+    }*/
 
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
@@ -507,7 +507,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
 
-    @Bean(name = "repServiceImpl")
+   /* @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
@@ -1200,7 +1200,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 tokensList,
                 "CRBT",
                 "CRBT", true, ExConvert.Unit.ETHER);
-    }
+    }*/
 
     @Bean(name = "hiveServiceImpl")
     public EthTokenService hiveService() {
