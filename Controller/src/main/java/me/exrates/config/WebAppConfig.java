@@ -425,6 +425,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new LoggingAspect();
     }
 
+    /*
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
@@ -448,6 +449,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HSR", "HSR", 4, 20, false, false);
     }
+    */
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -455,6 +457,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Ethereum", "ETH", 12);
     }
 
+    /*
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
@@ -496,6 +499,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
                 "NTY", "NTY", 12);
     }
+    */
 
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
@@ -507,6 +511,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
 
+    /*
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
@@ -1191,6 +1196,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "FPWR",
                 "FPWR", false, ExConvert.Unit.ETHER);
     }
+    */
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
@@ -1210,7 +1216,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     //**** Monero ****/
-    /*
     @Bean(name = "moneroServiceImpl")
     public MoneroService moneroService() {
         return new MoneroServiceImpl("merchants/monero.properties",
@@ -1228,7 +1233,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new MoneroServiceImpl("merchants/sumokoin.properties",
                 "SUMO", "SUMO", 10, 9);
     }
-    */
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
