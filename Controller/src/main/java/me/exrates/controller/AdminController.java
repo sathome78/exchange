@@ -1262,7 +1262,7 @@ public class AdminController {
         return (BitcoinService) merchantService;
     }
 
-
+    //build now(test)
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
     public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
         ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
