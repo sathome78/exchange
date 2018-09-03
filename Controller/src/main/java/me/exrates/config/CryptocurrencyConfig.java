@@ -214,12 +214,14 @@ public class CryptocurrencyConfig {
     // LISK-like cryptos
 
 
+    /*
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
         LiskRestClient restClient = liskRestClient();
         return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
                 "Lisk", "LSK", "merchants/lisk.properties");
     }
+    */
 
     @Bean(name = "btwServiceImpl")
     public LiskService btwService() {
