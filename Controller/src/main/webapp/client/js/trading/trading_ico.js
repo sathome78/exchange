@@ -63,9 +63,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function () {
+    this.syncCurrencyPairSelector = function (cpName) {
         dashboardCurrencyPairSelector.syncState('ICO', function () {
         });
+        currentPair = cpName;
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
