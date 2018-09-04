@@ -44,6 +44,11 @@ public interface TronService extends IRefillable, IWithdrawable {
         return false;
     }
 
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
+    }
+
     Set<String> getAddressesHEX();
 
     RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto);

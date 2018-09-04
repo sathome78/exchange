@@ -431,7 +431,7 @@ $(function dashdoardInit() {
 
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -554,7 +554,7 @@ function showSubPage(subPageId) {
 }
 
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 

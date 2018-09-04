@@ -3,10 +3,12 @@ VALUES ('Tron', 'TRX', 2, 'tronServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('TRX', 'Tron', '0', 6, 6, 8);
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block)
 VALUES ((SELECT id from MERCHANT WHERE name='TRX'),
         (SELECT id from CURRENCY WHERE name='TRX'),
-        0.000001);
+        0.000001, 1);
+
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='TRX'));
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='TRX')
   , '/client/img/merchants/TRX.png', 'TRX', (SELECT id from CURRENCY WHERE name='TRX'));
@@ -20,7 +22,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'TRX'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'USD'), 'TRX/USD', 270, 1, 'TRX/USD');
+VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'USD'), 'TRX/USD', 270, 0, 'TRX/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -28,7 +30,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='TRX/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'BTC'), 'TRX/BTC', 260, 1, 'BTC', 'TRX/BTC');
+VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'BTC'), 'TRX/BTC', 260, 0, 'BTC', 'TRX/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -36,7 +38,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='TRX/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'ETH'), 'TRX/ETH', 260, 1, 'ETH', 'TRX/ETH');
+VALUES((select id from CURRENCY where name = 'TRX'), (select id from CURRENCY where name = 'ETH'), 'TRX/ETH', 260, 0, 'ETH', 'TRX/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -71,5 +73,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('TRX/USD', 'TRX/BTC', 'TRX/ETH'));
 
   INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'TRX'), 'LastScannedBlock', '1683140');
+  ((SELECT id FROM MERCHANT WHERE name = 'TRX'), 'LastScannedBlock', '1935069');
 
