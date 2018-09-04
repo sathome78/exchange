@@ -256,6 +256,7 @@ public class CryptocurrencyConfig {
 
     // WAVES-like
 
+    /*
     @Bean(name = "wavesServiceImpl")
     public WavesService wavesService() {
         return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
@@ -265,5 +266,6 @@ public class CryptocurrencyConfig {
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
+    */
 
 }
