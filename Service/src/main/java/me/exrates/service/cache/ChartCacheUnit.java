@@ -82,7 +82,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private boolean isUpdateCasheRequired() {
-        System.out.println("is time for update " + isTimeForUpdate());
         return needToUpdate.get() && isTimeForUpdate() && lazyUpdate;
     }
 
@@ -96,7 +95,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private boolean isTimeForUpdate() {
-        System.out.println("min interval "  + minUpdateIntervalSeconds);
         return lastUpdateDate == null || lastUpdateDate.plusSeconds(minUpdateIntervalSeconds).compareTo(LocalDateTime.now()) <= 0;
     }
 //    @Override
@@ -189,32 +187,17 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
-        log.debug("update cahce {} {}", currencyPairId, timeFrame);
+        log.debug("update cache {} {}", currencyPairId, timeFrame);
         if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
-            System.out.println("cache data before update");
             cachedData.forEach(System.out::println);
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);
             LocalDateTime lastBarStartTime = lastBar.getBeginPeriod();
-            System.out.println("DB start getting data orderService.getLastDataForCandleChart ");
             List<CandleChartItemDto> newData = orderService.getLastDataForCandleChart(currencyPairId, lastBarStartTime, timeFrame.getResolution());
-            System.out.println("DB  end getting data orderService.getLastDataForCandleChart ");
-            System.out.println("new data ");
             newData.forEach(System.out::println);
             cachedData.addAll(newData);
-            System.out.println("cache data after update");
             cachedData.forEach(System.out::println);
         } else {
-            System.out.println("DB all start getting data orderService.getDataForCandleChart ");
-            System.out.println("cache data before update");
-            if (cachedData != null) {
-                cachedData.forEach(System.out::println);
-            } else {
-                System.out.println("null");
-            }
             setCachedData(orderService.getDataForCandleChart(currencyPairId, timeFrame));
-            System.out.println("cache data after update");
-            cachedData.forEach(System.out::println);
-            System.out.println("DB all end getting data orderService.getDataForCandleChart ");
         }
         lastUpdateDate = LocalDateTime.now();
         needToUpdate.set(false);
