@@ -459,13 +459,8 @@ $(function dashdoardInit() {
             live: true
         });
 
-<<<<<<< HEAD
         console.log("sync db");
         syncCurrentParams(null, null, null, null, null, function (data) {
-=======
-
-        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
->>>>>>> add_eth_RAC
             showPage($('#startup-page-id').text().trim());
             var url = '/dashboard/createPairSelectorMenu';
             $.ajax({
