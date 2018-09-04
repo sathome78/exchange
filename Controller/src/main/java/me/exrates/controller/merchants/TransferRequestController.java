@@ -122,10 +122,9 @@ public class TransferRequestController {
   @ResponseBody
   public void checkingTransferReception(
           @RequestParam String recipient,
-          Principal principal, Locale locale,
-          HttpServletRequest servletRequest){
+          Principal principal, Locale locale){
     User user = userService.findByEmail(principal.getName());
-    if (user.getNickname().equals(recipient) || user.getEmail().equals(recipient)) {
+    if (user.getEmail().equals(recipient) || (user.getNickname() != null && user.getNickname().equals(recipient))) {
       throw new InvalidNicknameException(messageSource
               .getMessage("transfer.selfNickname", null, locale));
     }
