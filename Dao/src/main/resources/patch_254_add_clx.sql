@@ -12,7 +12,7 @@ INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
           0.00000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='CLX')
-, '/client/img/merchants/riz.png', 'CLX', (SELECT id from CURRENCY WHERE name='CLX'));
+, '/client/img/merchants/clx.png', 'CLX', (SELECT id from CURRENCY WHERE name='CLX'));
 
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='CLX') from USER;
 
