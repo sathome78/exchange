@@ -27,7 +27,6 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     private String baseUrl;
     private String microserviceUrl;
-    private String openAccountUrl;
     private String sendTxUrl;
     private String sortingPrefix;
     private int maxTransactionQueryLimit;
@@ -42,7 +41,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     private final String getTransactionByIdEndpoint = "/api/transactions";
     private final String getSignedTransactionWithData = "/api/transfer";
     private final String sendTransactionEndpoint = "/api/transactions";
-    private final String getFeeEndpoint = "/api/blocks/getFee";
+    private final String getFeeEndpoint = "/api/node/constants";
 
 
 
@@ -53,13 +52,12 @@ public class LiskRestClientImpl implements LiskRestClient {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
             String host = props.getProperty("lisk.node.host");
             String mainPort = props.getProperty("lisk.node.port");
-            String openAccountPort = props.getProperty("lisk.port.getAccount");
             String sendTxPort = props.getProperty("lisk.port.sendTx");
+            String microserviceHost = props.getProperty("lisk.microservice.host");
             String microservicePort = props.getProperty("lisk.microservice.port");
 
-            this.microserviceUrl = String.join(":", "http://localhost", microservicePort);
+            this.microserviceUrl = String.join(":", microserviceHost, microservicePort);
             this.baseUrl = String.join(":", host, mainPort);
-            this.openAccountUrl = String.join(":", host, openAccountPort);
             this.sendTxUrl = String.join(":", host, sendTxPort);
             this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
@@ -119,7 +117,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     @Override
     public Long getFee() {
         String response = restTemplate.getForObject(absoluteURI(getFeeEndpoint), String.class);
-        return Long.parseLong(extractTargetNodeFromLiskResponse(objectMapper, response, "send", JsonNodeType.STRING).textValue());
+        return Long.parseLong(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "send", JsonNodeType.STRING).textValue());
     }
 
 
@@ -132,7 +130,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.POST, responseFromMicroservice, String.class);
 
         //Return transaction id
-        return extractTargetNodeFromLiskResponse(objectMapper, responseFromMicroservice.getBody(), "id", JsonNodeType.STRING).textValue();
+        return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice.getBody(), "id", JsonNodeType.STRING).textValue();
     }
 
     @Override
