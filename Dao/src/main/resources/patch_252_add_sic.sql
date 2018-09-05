@@ -74,4 +74,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('SIC/USD', 'SIC/BTC', 'SIC/ETH'));
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
-VALUES ((SELECT id from MERCHANT WHERE name='SIC'), (select id from CURRENCY where name='SIC'), 'sicWallet.title', 'j9MjQPCrwaARUpuw5gn9X4pt3XKfPjuMmYLp');
+VALUES ((SELECT id from MERCHANT WHERE name='SIC'), (select id from CURRENCY where name='SIC'), 'sicWallet.title', 'pass123');
