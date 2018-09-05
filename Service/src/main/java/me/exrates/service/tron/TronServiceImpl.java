@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -145,5 +146,10 @@ public class TronServiceImpl implements TronService {
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
+    }
+
+    @Override
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
     }
 }

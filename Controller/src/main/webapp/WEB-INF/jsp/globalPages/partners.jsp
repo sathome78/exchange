@@ -80,10 +80,33 @@
                         <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
                 </div>
             </div>
-
         </div>
 
+        <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
+            <h1 style="text-align: center"><loc:message code="our.partners"/></h1>
+            <%--<div class="img-container">
+                <img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/>
+                <img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/>
+                <img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/>
+            </div>
+            <div class="img-container">
+                <img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/>
+                <img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/>
+            </div>--%>
+            <table class="img-table" style="width: 100%">
+                <tr><td><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/></td>
+                </tr>
+                <tr>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-8 col-md-offset-2 content sponsors">
 
+        </div>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>

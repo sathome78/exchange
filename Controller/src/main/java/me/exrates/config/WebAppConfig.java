@@ -1160,7 +1160,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "PAT",
                 "PAT", false, ExConvert.Unit.ETHER);
     }
-    
+
     @Bean(name = "mtvServiceImpl")
     public EthTokenService mtvService() {
         List<String> tokensList = new ArrayList<>();
