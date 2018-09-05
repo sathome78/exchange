@@ -70,36 +70,6 @@ public class LiskRestUtils {
         }
     }
 
-    /**
-     * An additional method without a field `success` for the node Lisk v1.0
-     * @param objectMapper
-     * @param responseBody
-     * @param targetFieldName
-     * @param targetNodeType
-     * @return
-     */
-    public static JsonNode extractTargetNodeFromLiskResponseAdditionalForSendTransaction(ObjectMapper objectMapper, String responseBody, String targetFieldName, JsonNodeType targetNodeType) {
-        try {
-            JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode successNode = getAndValidateJsonNode("status", root, JsonNode::isBoolean);
-            boolean success = successNode.booleanValue();
-            if (success) {
-                return getAndValidateJsonNode(targetFieldName, root, jsonNode -> jsonNode.getNodeType() == targetNodeType);
-            } else {
-                JsonNode message = getAndValidateJsonNode("message", root, JsonNode::isTextual);
-                JsonNode error = getAndValidateJsonNode("error", root, JsonNode::isTextual);
-                if (!message.textValue().trim().isEmpty() || message.textValue() != null) {
-                    throw new LiskRestException(String.format("API error: %s", message.textValue()));
-                } else if (!error.textValue().trim().isEmpty() || error.textValue() != null) {
-                    throw new LiskRestException(String.format("API error: %s", error.textValue()));
-                }
-            }
-        } catch (IOException e) {
-            throw new LiskRestException(e.getMessage());
-        }
-        return null;
-    }
-
     public static JsonNode getAndValidateJsonNode(String fieldName, JsonNode parent, Predicate<JsonNode> validator) {
         JsonNode target = parent.findValue(fieldName);
         if (target == null) {
