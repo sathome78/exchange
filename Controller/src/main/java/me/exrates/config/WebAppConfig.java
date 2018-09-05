@@ -1201,43 +1201,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TUSD", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "crbtServiceImpl")
-    public EthTokenService crbtService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CRBT",
-                "CRBT", true, ExConvert.Unit.ETHER);
-    @Bean(name = "cmitServiceImpl")
-    public EthTokenService cmitService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe11609b9a51caf7d32a55896386ac52ed90e66f1");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CMIT",
-                "CMIT", false, ExConvert.Unit.AIWEI);
-    }
-
-    @Bean(name = "crbtServiceImpl")
-    public EthTokenService crbtService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CRBT",
-                "CRBT", true, ExConvert.Unit.ETHER);
-    }
-
-    @Bean(name = "hdrServiceImpl")
-    public EthTokenService hdrService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x52494fbffe10f8c29411521040ae8618c334981e");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "HDR",
-                "HDR", true, ExConvert.Unit.ETHER);
-    }
 
     @Bean(name = "hiveServiceImpl")
     public EthTokenService hiveService() {
