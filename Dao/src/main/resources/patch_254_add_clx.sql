@@ -58,12 +58,12 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 
 INSERT INTO BOT_LAUNCH_SETTINGS(bot_trader_id, currency_pair_id)
   SELECT BT.id, CP.id FROM BOT_TRADER BT
-    JOIN CURRENCY_PAIR CP WHERE CP.name IN ('CLX/USD', 'CLX/BTC', 'CLX/ETH');
+    JOIN CURRENCY_PAIR CP WHERE CP.name IN ('CLX/USD', 'CLX/BTC');
 
 INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
-  WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('CLX/USD', 'CLX/BTC', 'CLX/ETH'));
+  WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('CLX/USD', 'CLX/BTC'));
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
 VALUES ((SELECT id from MERCHANT WHERE name='CLX'), (select id from CURRENCY where name='CLX'), 'clxWallet.title', 'znaNuYXyZWQzEUedUgFL8EjNdt39quHEPN69');
