@@ -461,7 +461,6 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
-
             var url = '/dashboard/createPairSelectorMenu';
             $.ajax({
                 url: url,
@@ -474,7 +473,6 @@ $(function dashdoardInit() {
                     leftSider.setOnWalletsRefresh(function () {
                         trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
                     });
-
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, cpData);

@@ -1160,7 +1160,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "PAT",
                 "PAT", false, ExConvert.Unit.ETHER);
     }
-
+    
     @Bean(name = "mtvServiceImpl")
     public EthTokenService mtvService() {
         List<String> tokensList = new ArrayList<>();
@@ -1201,6 +1201,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TUSD", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "crbtServiceImpl")
+    public EthTokenService crbtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CRBT",
+                "CRBT", true, ExConvert.Unit.ETHER);
     @Bean(name = "cmitServiceImpl")
     public EthTokenService cmitService() {
         List<String> tokensList = new ArrayList<>();
@@ -1269,6 +1277,46 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 tokensList,
                 "GEX",
                 "GEX", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "cmitServiceImpl")
+    public EthTokenService cmitService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe11609b9a51caf7d32a55896386ac52ed90e66f1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CMIT",
+                "CMIT", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "hdrServiceImpl")
+    public EthTokenService hdrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x52494fbffe10f8c29411521040ae8618c334981e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HDR",
+                "HDR", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "racServiceImpl")
+    public EthTokenService racService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x342ba159f988f24f0b033f3cc5232377ee500543");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RAC",
+                "RAC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "iqnServiceImpl")
+    public EthTokenService iqnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0db8d8b76bc361bacbb72e2c491e06085a97ab31");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IQN",
+                "IQN", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

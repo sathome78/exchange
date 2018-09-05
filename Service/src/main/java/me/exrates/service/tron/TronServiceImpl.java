@@ -148,7 +148,6 @@ public class TronServiceImpl implements TronService {
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
-    @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
         return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
     }
