@@ -69,7 +69,6 @@ public class ChartsCacheManager {
     public List<CandleChartItemDto> getData(Integer pairId, ChartTimeFrame timeFrame, boolean lastOnly) {
         log.debug("get data for {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
-        System.out.println("cache unit " + cacheUnit);
         return lastOnly ? cacheUnit.getLastData() : cacheUnit.getData();
     }
 

@@ -1093,4 +1093,9 @@ public class RefillServiceImpl implements RefillService {
   public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
     return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
   }
+
+  @Override
+  public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
+  }
 }
