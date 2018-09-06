@@ -92,6 +92,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         this.unit = unit;
     }
 
+    /*
     @PostConstruct
     private void init() {
         merchant = merchantService.findByName(merchantName);
@@ -117,6 +118,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         }, 16L, 125L, TimeUnit.MINUTES);
 
      }
+     */
 
     @Synchronized
     private void scanBlocks() {
