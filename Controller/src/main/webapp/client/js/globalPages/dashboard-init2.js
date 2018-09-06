@@ -151,7 +151,6 @@ function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
-        console.log("subscribe statistics ");
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             console.log(messageBody);
@@ -459,8 +458,8 @@ $(function dashdoardInit() {
             live: true
         });
 
-        console.log("sync db");
-        syncCurrentParams(null, null, null, null, null, function (data) {
+
+        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
             var url = '/dashboard/createPairSelectorMenu';
             $.ajax({

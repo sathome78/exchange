@@ -1201,15 +1201,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TUSD", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "crbtServiceImpl")
-    public EthTokenService crbtService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "CRBT",
-                "CRBT", true, ExConvert.Unit.ETHER);
-    }
 
     @Bean(name = "hiveServiceImpl")
     public EthTokenService hiveService() {

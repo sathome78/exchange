@@ -2484,3 +2484,16 @@ input.copyable:hover{
     width: 100%;
     word-wrap: break-word;
 }
+
+.img-table{
+    width: 100%;
+}
+
+.partners-img{
+    margin-top: 15px;
+    margin-left: 3%;
+    margin-right: 3%;
+    border:0;
+    max-width: 90%;
+    max-height: 90%;
+}
