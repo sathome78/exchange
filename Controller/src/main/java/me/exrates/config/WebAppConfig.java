@@ -1291,6 +1291,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "IQN", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "dorServiceImpl")
+    public EthTokenService dorService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x906b3f8b7845840188eab53c3f5ad348a787752f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DOR",
+                "DOR", true, ExConvert.Unit.FINNEY);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
