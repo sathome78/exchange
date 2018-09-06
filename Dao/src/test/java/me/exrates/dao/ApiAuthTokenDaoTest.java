@@ -60,7 +60,7 @@ public class ApiAuthTokenDaoTest {
 
     @Test
     public void createToken_failed() {
-
+        assert 1 != 1;
     }
 
     @Test

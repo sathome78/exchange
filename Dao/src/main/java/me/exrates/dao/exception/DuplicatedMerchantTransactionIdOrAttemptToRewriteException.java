@@ -7,5 +7,4 @@ public class DuplicatedMerchantTransactionIdOrAttemptToRewriteException extends 
     public DuplicatedMerchantTransactionIdOrAttemptToRewriteException(String message) {
         super(message);
     }
-    public void xerH9();
 }
