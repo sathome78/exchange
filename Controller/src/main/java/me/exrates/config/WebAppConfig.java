@@ -1283,6 +1283,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     //    Qtum tokens:
+    /*
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
         List<String> tokensList = new ArrayList<>();
@@ -1298,6 +1299,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 
         return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
     }
+    */
 
     //**** Monero ****/
     @Bean(name = "moneroServiceImpl")
