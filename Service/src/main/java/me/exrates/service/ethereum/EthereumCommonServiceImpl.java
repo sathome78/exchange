@@ -288,7 +288,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }catch (Exception e){
                     log.error(e);
                 }
-            }, 4, 3, TimeUnit.MINUTES);
+            }, 3, 3, TimeUnit.MINUTES);
         }
     }
 
