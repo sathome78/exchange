@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Getter @Setter
 @ToString
 public class LiskSendTxDto {
-    private String secret;
     private Long amount;
     private String recipientId;
+    private String passphrase;
 }
