@@ -116,11 +116,7 @@ public class MainController {
     }
 
     @RequestMapping("/403")
-    public String error403() throws Exception{
-        String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
-        System.out.println("************************************* SECRET ************************************* | "+secret);
-        return "403";
-    }
+    public String error403() { return "403"; }
 
     /**
      * Register user on referral link (redirect to dashboard, call pop-up with registration)
