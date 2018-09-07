@@ -82,7 +82,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public List<LiskTransaction> getTransactionsByRecipient(String recipientAddress) {
             Map<String, String> params = new HashMap<String, String>() {{
                put("recipientId", recipientAddress);
-               put("orderBy", sortingPrefix + "timestamp:asc");
+               put("sort", sortingPrefix + "timestamp:asc");
             }};
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
