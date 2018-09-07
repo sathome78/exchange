@@ -73,7 +73,7 @@ public class LiskRestClientImpl implements LiskRestClient {
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
                     String.class);
 
-            return extractObjectFromResponse(objectMapper, response, "transaction", LiskTransaction.class);
+            return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class LiskRestClientImpl implements LiskRestClient {
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
 
-            return extractListFromResponse(objectMapper, response, "transactions", LiskTransaction.class);
+            return extractListFromResponse(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -96,8 +96,8 @@ public class LiskRestClientImpl implements LiskRestClient {
         int count;
         do {
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
-            count = Integer.parseInt(extractTargetNodeFromLiskResponse(objectMapper, response, "count", countNodeType).asText());
-            result.addAll(extractListFromResponse(objectMapper, response, "transactions", LiskTransaction.class));
+            count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
+            result.addAll(extractListFromResponse(objectMapper, response, "data", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
         return result;
@@ -108,7 +108,7 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("orderBy", sortingPrefix + "timestamp:asc");
+            put("sort", sortingPrefix + "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
         return restTemplate.getForObject(targetURI, String.class);
@@ -145,7 +145,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount getAccountByAddress(String address) {
         String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getAccountByAddressEndpoint), Collections.singletonMap("address", address)),
                 String.class);
-        return extractObjectFromResponse(objectMapper, response, "account", LiskAccount.class);
+        return extractObjectFromResponse(objectMapper, response, "data", LiskAccount.class);
     }
 
 

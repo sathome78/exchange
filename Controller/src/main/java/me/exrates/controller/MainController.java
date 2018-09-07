@@ -29,6 +29,7 @@ import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bitcoinj.crypto.MnemonicCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -59,6 +60,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -114,7 +116,9 @@ public class MainController {
     }
 
     @RequestMapping("/403")
-    public String error403() {
+    public String error403() throws Exception{
+        String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
+        System.out.println("************************************* SECRET ************************************* | "+secret);
         return "403";
     }
 
