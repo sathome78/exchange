@@ -15,7 +15,7 @@ public class LiskSpecialMethodServiceImpl implements LiskSpecialMethodService {
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
         LiskSendTxDto dto = new LiskSendTxDto();
-        dto.setSecret(secret);
+        dto.setPassphrase(secret);
         dto.setAmount(amount);
         dto.setRecipientId(recipientId);
         return liskRestClient.sendTransaction(dto);
