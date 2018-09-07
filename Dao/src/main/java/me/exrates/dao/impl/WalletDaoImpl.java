@@ -14,6 +14,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,7 +44,11 @@ public class WalletDaoImpl implements WalletDao {
   @Autowired
   private CurrencyDao currencyDao;
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
+  @Autowired
+  @Qualifier(value = "slaveTemplate")
+  private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
   protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
 
@@ -152,7 +157,7 @@ public class WalletDaoImpl implements WalletDao {
         put("userId", userId);
       }
     };
-    ArrayList<Wallet> result = (ArrayList<Wallet>) jdbcTemplate.query(sql, params,
+    ArrayList<Wallet> result = (ArrayList<Wallet>) slaveJdbcTemplate.query(sql, params,
         walletRowMapper);
 
     return result;
@@ -171,7 +176,7 @@ public class WalletDaoImpl implements WalletDao {
     final Map<String, Object> params = new HashMap() {{
       put("email", email);
     }};
-    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+    return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
@@ -194,7 +199,7 @@ public class WalletDaoImpl implements WalletDao {
       put("email", email);
       put("currencies", currencyIds);
     }};
-    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+    return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
@@ -209,7 +214,7 @@ public class WalletDaoImpl implements WalletDao {
     String sql = "SELECT CUR.name AS currency_name, W.active_balance, W.reserved_balance FROM WALLET W " +
             " JOIN CURRENCY CUR ON W.currency_id = CUR.id " +
             " WHERE W.user_id = (SELECT id FROM USER WHERE email = :email)";
-    return jdbcTemplate.query(sql, Collections.singletonMap("email", userEmail), (rs, rowNum) -> {
+    return slaveJdbcTemplate.query(sql, Collections.singletonMap("email", userEmail), (rs, rowNum) -> {
       WalletBalanceDto dto = new WalletBalanceDto();
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setActiveBalance(rs.getBigDecimal("active_balance"));
@@ -226,7 +231,7 @@ public class WalletDaoImpl implements WalletDao {
         "INNER JOIN CURRENCY ON CURRENCY.id = WALLET.currency_id " +
         "WHERE WALLET.id = :wallet_id";
     final Map<String, Integer> params = Collections.singletonMap("wallet_id", walletId);
-    return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
+    return slaveJdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
       MyWalletsStatisticsApiDto dto = new MyWalletsStatisticsApiDto();
       dto.setWalletId(resultSet.getInt("id"));
       dto.setUserId(resultSet.getInt("user_id"));
@@ -432,7 +437,7 @@ public class WalletDaoImpl implements WalletDao {
     params.put("withdraw_success_status_id_list", withdrawSuccessStatusIds);
     params.put("refill_success_status_id_list", refillSuccessStatusIds);
 
-    return jdbcTemplate.query(sql, params, (rs, row) -> {
+    return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
 
       WalletFormattedDto dto = new WalletFormattedDto();
       dto.setId(rs.getInt("wallet_id"));
@@ -560,7 +565,7 @@ public class WalletDaoImpl implements WalletDao {
       put("currencyIds", currencyIds);
       put("status_id_list", withdrawStatusIds);
     }};
-    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+    return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
       myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
       myWalletsDetailedDto.setUserId(rs.getInt("user_id"));
@@ -1126,7 +1131,7 @@ public class WalletDaoImpl implements WalletDao {
                put("requester_user_id", requesterUserId);
             }};
 
-        ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
+        ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
             @Override
             public UserWalletSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserWalletSummaryDto userWalletSummaryDto = new UserWalletSummaryDto();
@@ -1168,7 +1173,7 @@ public class WalletDaoImpl implements WalletDao {
               "  ) AGR " +
               "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id AND CUR.hidden = 0" +
               "  ORDER BY currency_id";
-      return jdbcTemplate.query(sql, Collections.emptyMap(), (rs, row) -> {
+      return slaveJdbcTemplate.query(sql, Collections.emptyMap(), (rs, row) -> {
         UserGroupBalanceDto dto = new UserGroupBalanceDto();
         dto.setCurId(rs.getInt("currency_id"));
         dto.setCurrency(rs.getString("currency_name"));
@@ -1191,7 +1196,7 @@ public class WalletDaoImpl implements WalletDao {
             "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id  AND CUR.hidden = 0" +
             "  JOIN USER_ROLE UR ON AGR.role_id = UR.id " +
             "  ORDER BY currency_id";
-    return jdbcTemplate.query(sql, Collections.singletonMap("role_list", roleIdsList), (rs, row) -> {
+    return slaveJdbcTemplate.query(sql, Collections.singletonMap("role_list", roleIdsList), (rs, row) -> {
       UserRoleBalanceDto dto = new UserRoleBalanceDto();
       dto.setCurrency(rs.getString("currency_name"));
       dto.setUserRole(UserRole.valueOf(rs.getString("role_name")));
@@ -1214,7 +1219,7 @@ public class WalletDaoImpl implements WalletDao {
             "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
             "where process_type = 'CRYPTO') as MC on MC.currency_id = CURRENCY.id " +
             "order by currency_id;";
-    return jdbcTemplate.query(sql, (rs, row) -> {
+    return slaveJdbcTemplate.query(sql, (rs, row) -> {
       ExternalWalletsDto dto = new ExternalWalletsDto();
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setMerchantId(rs.getInt("merchant_id"));
@@ -1256,7 +1261,7 @@ public class WalletDaoImpl implements WalletDao {
             "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
             "where process_type = 'CRYPTO') as MC on MC.currency_id = CUR.id\n" +
             "  ORDER BY currency_id";
-    return jdbcTemplate.query(sql, (rs, row) -> {
+    return slaveJdbcTemplate.query(sql, (rs, row) -> {
       ExternalWalletsDto dto = new ExternalWalletsDto();
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setMerchantId(rs.getInt("merchant_id"));

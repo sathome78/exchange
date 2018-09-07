@@ -84,16 +84,7 @@
 
         <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
             <h1 style="text-align: center"><loc:message code="our.partners"/></h1>
-            <%--<div class="img-container">
-                <img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/>
-                <img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/>
-                <img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/>
-            </div>
-            <div class="img-container">
-                <img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/>
-                <img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/>
-            </div>--%>
-            <table class="img-table" style="width: 100%">
+            <table class="img-table">
                 <tr><td><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/></td>

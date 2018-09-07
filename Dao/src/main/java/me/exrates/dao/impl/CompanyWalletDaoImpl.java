@@ -4,6 +4,7 @@ import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class CompanyWalletDaoImpl implements CompanyWalletDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override

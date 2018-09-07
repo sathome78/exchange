@@ -5,6 +5,7 @@ import me.exrates.dao.UserTransferDao;
 import me.exrates.model.UserTransfer;
 import me.exrates.model.dto.UserTransferInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -28,6 +29,7 @@ import java.util.Map;
 public class UserTransferDaoImpl implements UserTransferDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Transactional

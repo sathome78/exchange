@@ -4,6 +4,7 @@ import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -24,7 +25,7 @@ public class EDCAccountDaoImpl implements EDCAccountDao {
 
     private final Logger LOG = LogManager.getLogger("merchant");
 
-    public EDCAccountDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public EDCAccountDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

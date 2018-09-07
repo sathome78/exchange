@@ -28,7 +28,7 @@ import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
 public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
 
     @Autowired
-    @Qualifier("hikariDataSource")
+    @Qualifier("masterHikariDataSource")
     private DataSource dataSource;
 
     private static final String YMONEY_TABLE = "YANDEX_MONEY_MERCHANT";

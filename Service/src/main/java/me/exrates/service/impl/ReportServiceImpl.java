@@ -96,7 +96,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional
   public List<InvoiceReportDto> getInvoiceReport(
       String requesterUserEmail,
       String startDate,
@@ -139,7 +138,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<SummaryInOutReportDto> getUsersSummaryInOutList(
       String requesterUserEmail,
       String startDate,
@@ -163,7 +161,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Map<String, UserSummaryTotalInOutDto> getUsersSummaryInOutMap(List<SummaryInOutReportDto> resultList) {
     Map<String, UserSummaryTotalInOutDto> resultMap = new HashMap<String, UserSummaryTotalInOutDto>() {
       @Override
@@ -186,7 +183,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       String requesterUserEmail,
       String startDate,
@@ -200,7 +196,7 @@ public class ReportServiceImpl implements ReportService {
 
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public List<UserSummaryOrdersDto> getUserSummaryOrdersList(
       String requesterUserEmail,
       String startDate,
@@ -213,7 +209,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
       String requesterUserEmail,
       String startDate,
@@ -483,6 +478,7 @@ public class ReportServiceImpl implements ReportService {
           }
       });
   }
+
 
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets(){

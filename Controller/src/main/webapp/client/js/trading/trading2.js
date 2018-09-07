@@ -55,9 +55,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function () {
+    this.syncCurrencyPairSelector = function (cpName) {
         dashboardCurrencyPairSelector.syncState('MAIN', onCurrencyPairChange);
-
+        currentPair = cpName;
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {

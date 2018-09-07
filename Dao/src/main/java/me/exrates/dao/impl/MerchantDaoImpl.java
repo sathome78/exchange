@@ -14,6 +14,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -36,6 +37,7 @@ import java.util.*;
 public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired

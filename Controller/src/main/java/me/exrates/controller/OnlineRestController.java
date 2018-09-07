@@ -10,6 +10,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
@@ -128,6 +129,8 @@ public class OnlineRestController {
 
   @Autowired
   private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+  @Autowired
+  private ExchangeRatesHolder exchangeRatesHolder;
 
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
@@ -164,7 +167,7 @@ public class OnlineRestController {
 
     if (resultWallet.size() > 1) {
 
-      List<ExOrderStatisticsShortByPairsDto> resultOrders = ordersStatisticByPairsCache.getCachedList();
+      List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
 
       final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
       resultOrders.stream()
