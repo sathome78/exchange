@@ -124,8 +124,7 @@ public class MainController {
         return new FileSystemResource(file);
     }
 
-    @RequestMapping("/403")
-    public String error403() throws Exception{ return "403"; }
+    public String error403() { return "403"; }
 
     @RequestMapping("/generateReferral")
     public
