@@ -16,6 +16,9 @@ $(function () {
                     "data": "nickname",
                     "render": function (data, type, row){
                         if (type == 'display') {
+                            if (!data) {
+                                return '';
+                            }
                             return '<a href="/2a8fy7b07dxe44/userInfo?id='+row['id']+'">'+data+'</a>';
                         }
                         return data;
