@@ -20,7 +20,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
                 "Bitcoin", "BTC", 4, 15, false);
     }
-    @Bean(name = "litecoinServiceImpl")
+   /* @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
                 "Litecoin", "LTC", 4, 20, false);
@@ -225,7 +225,7 @@ public class CryptocurrencyConfig {
     public BitcoinService clxService() {
         return new BitcoinServiceImpl("merchants/clx_wallet.properties",
                 "CLX", "CLX", 4, 20, false, false, true, false);
-    }
+    }*/
     
     // LISK-like cryptos
 
