@@ -125,11 +125,7 @@ public class MainController {
     }
 
     @RequestMapping("/403")
-    public String error403() throws Exception{
-        String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
-        System.out.println("************************************* SECRET ************************************* | "+secret);
-        return "403";
-    }
+    public String error403() throws Exception{ return "403"; }
 
     @RequestMapping("/generateReferral")
     public
