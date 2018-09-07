@@ -27,11 +27,8 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     private String baseUrl;
     private String microserviceUrl;
-    private String sendTxUrl;
-    private String sortingPrefix;
     private int maxTransactionQueryLimit;
     private JsonNodeType countNodeType;
-
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -52,14 +49,11 @@ public class LiskRestClientImpl implements LiskRestClient {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
             String host = props.getProperty("lisk.node.host");
             String mainPort = props.getProperty("lisk.node.port");
-            String sendTxPort = props.getProperty("lisk.port.sendTx");
             String microserviceHost = props.getProperty("lisk.microservice.host");
             String microservicePort = props.getProperty("lisk.microservice.port");
 
             this.microserviceUrl = String.join(":", microserviceHost, microservicePort);
             this.baseUrl = String.join(":", host, mainPort);
-            this.sendTxUrl = String.join(":", host, sendTxPort);
-            this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
             this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
 
@@ -80,7 +74,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public List<LiskTransaction> getTransactionsByRecipient(String recipientAddress) {
             Map<String, String> params = new HashMap<String, String>() {{
                put("recipientId", recipientAddress);
-               put("sort", sortingPrefix + "timestamp:asc");
+               put("sort", "timestamp:asc");
             }};
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
@@ -108,7 +102,7 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("sort", sortingPrefix + "timestamp:asc");
+            put("sort", "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
         return restTemplate.getForObject(targetURI, String.class);
@@ -127,7 +121,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         ResponseEntity<String> responseFromMicroservice = restTemplate.exchange(microserviceUrl.concat(getSignedTransactionWithData), HttpMethod.POST, new HttpEntity<>(dto), String.class);
 
         //Post signed transaction with data into network
-        restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.POST, responseFromMicroservice, String.class);
+        restTemplate.exchange(absoluteURI(sendTransactionEndpoint), HttpMethod.POST, responseFromMicroservice, String.class);
 
         //Return transaction id
         return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice.getBody(), "id", JsonNodeType.STRING).textValue();
