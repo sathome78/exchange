@@ -118,13 +118,13 @@ public class LiskRestClientImpl implements LiskRestClient {
     @Override
     public String sendTransaction(LiskSendTxDto dto) {
         //Get signed transaction with data
-        ResponseEntity<String> responseFromMicroservice = restTemplate.exchange(microserviceUrl.concat(getSignedTransactionWithData), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+        String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
 
         //Post signed transaction with data into network
-        restTemplate.exchange(absoluteURI(sendTransactionEndpoint), HttpMethod.POST, responseFromMicroservice, String.class);
+        restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), responseFromMicroservice, String.class);
 
         //Return transaction id
-        return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice.getBody(), "id", JsonNodeType.STRING).textValue();
+        return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice, "id", JsonNodeType.STRING).textValue();
     }
 
     @Override
