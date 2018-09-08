@@ -11,6 +11,7 @@ import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Log4j2(topic = "config")
 @Configuration
@@ -216,11 +217,13 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }
 
+
+    */
+
     @Bean(name="cmkServiceImpl")
     public BitcoinService cmkService(){
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
     }
-    */
 
     @Bean(name = "clxServiceImpl")
     public BitcoinService clxService() {
