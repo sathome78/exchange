@@ -43,12 +43,7 @@
                 <td class="right"><@=reservedByMerchant@></td>
                 <td class="table-button-block--balance">
                     <span>
-                      <%--  <form class="table-button-block__form" action="/merchants/input" target="_blank">
-                            <loc:message code="mywallets.input" var="inputButton"/>
-                            <input type="text" hidden value=<@=currencyName@> name="currency" >
-                            <button class="table-button-block__button btn btn-success" type="submit">${inputButton}</button>
-                        </form>--%>
-                        <a href="/merchants/input?currency=<@=currencyName@>" class="btn btn-success butto-block">
+                        <a href="/merchants/input?currency=<@=currencyName@>" target="_blank" class="btn btn-success butto-block">
                             <loc:message code="mywallets.input"/>
                         </a>
                         <form class="table-button-block__form" action="<c:url value="/merchants/output"/>" target="_blank">
