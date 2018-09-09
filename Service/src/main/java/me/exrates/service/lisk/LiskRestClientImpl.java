@@ -122,9 +122,14 @@ public class LiskRestClientImpl implements LiskRestClient {
         //Get signed transaction with data
         String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
 
-        //Post signed transaction with data into network
-        restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), responseFromMicroservice, String.class);
+        log.info("*** Lisk *** Signed transactions (/api/transfer) from microservice: "+responseFromMicroservice);
 
+        //Post signed transaction with data into network
+        String postSignedTrans = restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), responseFromMicroservice, String.class);
+
+        log.info("*** Lisk *** Posted signed transactions: "+postSignedTrans);
+
+        log.info("*** Lisk *** Send transaction *** Id: "+extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice, "id", JsonNodeType.STRING).textValue());
         //Return transaction id
         return extractTargetNodeFromLiskResponseAdditional(objectMapper, responseFromMicroservice, "id", JsonNodeType.STRING).textValue();
     }
