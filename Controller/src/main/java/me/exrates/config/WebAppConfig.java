@@ -1334,7 +1334,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     @Bean(name = "ixeServiceImpl")
     public EthTokenService ixeService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x669de0d0d61ce2d6265479d781b8531bba4dc693");
+        tokensList.add("0x7a07e1a0c2514d51132183ecfea2a880ec3b7648");
         return new EthTokenServiceImpl(
                 tokensList,
                 "IXE",
