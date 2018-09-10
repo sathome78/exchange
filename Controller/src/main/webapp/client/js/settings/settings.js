@@ -267,14 +267,49 @@ function SettingsClass() {
 
 }
 
+/**
+ * Password element
+ */
+var password = $('#user-password');
+/**
+ * New password element
+ */
+var newPassword = $('#user-confirmpassword');
+/**
+ * Confirm new password element
+ */
+var confirmNewPassword = $('#confirmNewPassword');
+/**
+ * Password submit button
+ */
+var passwordChangeButton = $("#password-change-button");
+
+/**
+ * Password wrong error
+ */
+var errorPasswordWrong = $('#new_password_wrong');
+/**
+ * Password required error
+ */
+var errorPasswordRequired = $('#new_password_required');
+
+/**
+ * Symbol (okay) when newPassword and confirmNewPassword identity (equals one to one)
+ */
+/**
+ * Password patterm | START
+ */
+const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
+const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+
+const fieldContainsSpace = new RegExp("\\s");
+/**
+ * Password pattern | END
+ */
+
 $(function () {
-    const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
-    const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
-    const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
-
-    const fieldContainsSpace = new RegExp("\\s");
-
-    $("#password-change-button").click(function(e) {
+    passwordChangeButton.click(function(e) {
         e.preventDefault();
         $.ajax({
             url: '/settings/changePassword/submit',
@@ -285,14 +320,19 @@ $(function () {
             }, error: function (data) {
                 errorNoty(data.responseJSON.message);
             }, complete : function () {
-                $('#user-confirmpassword').val('');
-                $('#user-password').val('');
-                $('#confirmNewPassword').val('');
-                $('#user-confirmpassword').attr('readonly', true);
-                $('#confirmNewPassword').attr('readonly', true);
+                password.val('');
+                newPassword.val('');
+                confirmNewPassword.val('');
+
+                newPassword.attr('readonly', true);
+                confirmNewPassword.attr('readonly', true);
+
+                errorPasswordWrong.css('display', 'none');
+                errorPasswordRequired.css('display', 'none');
                 $('.repass').css("display", "none");
                 $('.repass-error').css("display", "none");
-                $('#password-change-button').attr('disabled', true);
+
+                passwordChangeButton.attr('disabled', true);
             }
         });
     });
@@ -309,14 +349,11 @@ $(function () {
         checkOldPasswordAndNewPasswordField();
     }
 
-    $('#user-confirmpassword').keyup(debounce(function(){
+    password.keyup(debounce(function(){
         /**
          * Start validation for password confirm
          */
-        var pass = $('#user-confirmpassword').val();
-        var repass = $('#confirmNewPassword').val();
-
-        if (pass && (pass === repass)) {
+        if (password.val() && (password.val() === confirmPassword.val())) {
             $('.repass').css("display", "block");
             $('.repass-error').css("display", "none");
         }
@@ -324,38 +361,18 @@ $(function () {
             $('.repass-error').css("display", "block");
             $('.repass').css("display", "none");
         }
-        checkPasswordFieldsOnFillInUserSettings();
+
         /**
          * End validation for password confirm
          */
 
-        $('#new_password_wrong').css('display', 'none');
-        $('#new_password_required').css('display', 'none');
+        checkPasswordFieldsOnFillInUserSettings();
 
-        if(!pass) {
-            $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
-            $('#new_password_required').css('display', 'block');
-            $("#password-change-button").attr('disabled', true);
-            checkPasswordFieldsOnFillInUserSettings();
-            return;
-        }
-        if ((passwordPatternLettersAndNumbers.test(pass) || passwordPatternLettersAndCharacters.test(pass)
-            || passwordPatternLettersAndNumbersAndCharacters.test(pass)) && !fieldContainsSpace.test(pass)) {
-            $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
-            $("#password-change-button").attr('disabled', false);
-            checkPasswordFieldsOnFillInUserSettings();
-        } else {
-            $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
-            $('#new_password_wrong').css('display', 'block');
-            $("#password-change-button").attr('disabled', true);
-            checkPasswordFieldsOnFillInUserSettings();
-        }
+
     },100));
 
-    $("#confirmNewPassword").keyup(function () {
-        var pass = $('#user-confirmpassword').val();
-        var repass = $('#confirmNewPassword').val();
-        if (repass && (pass === repass)) {
+    confirmPassword.keyup(function () {
+        if (confirmPassword.val() && (password.val() === confirmPassword.val())) {
             $('.repass').css("display", "block");
             $('.repass-error').css("display", "none");
         } else {
@@ -372,17 +389,33 @@ $(function () {
 });
 
 /**
- * Check password fields on fill for change password by user in user settings.
+ * Check password fields on fill and correct input (validation pass) for change password by user in user settings.
  */
 function checkPasswordFieldsOnFillInUserSettings() {
     var password = $('#user-password').val();
     var newPassword = $('#user-confirmpassword').val();
     var confirmNewPassword = $('#confirmNewPassword').val();
-    if (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword)) {
+
+    $('#new_password_wrong').css('display', 'none');
+    $('#new_password_required').css('display', 'none');
+
+    if(!newPassword) {
+        $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+        $('#new_password_required').css('display', 'block');
+        $("#password-change-button").attr('disabled', true);
+        return;
+    }
+    if (((passwordPatternLettersAndNumbers.test(newPassword) || passwordPatternLettersAndCharacters.test(newPassword)
+        || passwordPatternLettersAndNumbersAndCharacters.test(newPassword)) && !fieldContainsSpace.test(newPassword))
+        && (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword))) {
+        $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
         $("#password-change-button").attr('disabled', false);
     } else {
+        $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+        $('#new_password_wrong').css('display', 'block');
         $("#password-change-button").attr('disabled', true);
     }
+
 }
 
 /**
