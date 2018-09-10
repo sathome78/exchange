@@ -294,8 +294,14 @@ var errorPasswordWrong = $('#new_password_wrong');
 var errorPasswordRequired = $('#new_password_required');
 
 /**
- * Symbol (okay) when newPassword and confirmNewPassword identity (equals one to one)
+ * Symbol (okay) when newPassword and confirmNewPassword identity (equal one to one)
  */
+var symbolOkayConfirmPassword = $('.repass');
+/**
+ * Symbol (not okay) when newPassword and confirmNewPassword identity (not equal one to one)
+ */
+var symbolNotOkayConfirmPassword = $('.repass-error');
+
 /**
  * Password patterm | START
  */
@@ -329,91 +335,76 @@ $(function () {
 
                 errorPasswordWrong.css('display', 'none');
                 errorPasswordRequired.css('display', 'none');
-                $('.repass').css("display", "none");
-                $('.repass-error').css("display", "none");
+
+                symbolOkayConfirmPassword.css("display", "none");
+                symbolNotOkayConfirmPassword.css("display", "none");
 
                 passwordChangeButton.attr('disabled', true);
             }
         });
     });
 
-    if (document.getElementById("password-change-button")) {
-        checkPasswordFieldsOnFillInUserSettings();
-    }
-
-    if (document.getElementById("user-password")) {
-        checkOldPasswordField();
-    }
-
-    if (document.getElementById("user-password") && document.getElementById("user-confirmpassword")) {
-        checkOldPasswordAndNewPasswordField();
-    }
-
-    password.keyup(debounce(function(){
-        /**
-         * Start validation for password confirm
-         */
-        if (password.val() && (password.val() === confirmPassword.val())) {
-            $('.repass').css("display", "block");
-            $('.repass-error').css("display", "none");
+    /**
+     * Start validation for password confirm
+     */
+    newPassword.keyup(function(){
+        if (newPassword.val() && (newPassword.val() === confirmNewPassword.val())) {
+            symbolOkayConfirmPassword.css("display", "block");
+            symbolNotOkayConfirmPassword.css("display", "none");
         }
         else {
-            $('.repass-error').css("display", "block");
-            $('.repass').css("display", "none");
-        }
-
-        /**
-         * End validation for password confirm
-         */
-
-        checkPasswordFieldsOnFillInUserSettings();
-
-
-    },100));
-
-    confirmPassword.keyup(function () {
-        if (confirmPassword.val() && (password.val() === confirmPassword.val())) {
-            $('.repass').css("display", "block");
-            $('.repass-error').css("display", "none");
-        } else {
-            $('.repass-error').css("display", "block");
-            $('.repass').css("display", "none");
+            symbolOkayConfirmPassword.css("display", "none");
+            symbolNotOkayConfirmPassword.css("display", "block");
         }
         checkPasswordFieldsOnFillInUserSettings();
     });
 
-    $('#user-password').keyup(checkOldPasswordField);
-    $('#user-password, #user-confirmpassword').keyup(checkOldPasswordAndNewPasswordField);
-    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
+    confirmNewPassword.keyup(function () {
+        if (confirmNewPassword.val() && (newPassword.val() === confirmNewPassword.val())) {
+            symbolOkayConfirmPassword.css("display", "block");
+            symbolNotOkayConfirmPassword.css("display", "none");
+        } else {
+            symbolOkayConfirmPassword.css("display", "none");
+            symbolNotOkayConfirmPassword.css("display", "block");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+    });
+    /**
+     * End validation for password confirm
+     */
 
+    password.keyup(checkOldPasswordField);
+
+    password.keyup(checkOldPasswordAndNewPasswordField);
+    newPassword.keyup(checkOldPasswordAndNewPasswordField);
+
+    confirmNewPassword.keyup(checkPasswordFieldsOnFillInUserSettings);
 });
 
 /**
  * Check password fields on fill and correct input (validation pass) for change password by user in user settings.
  */
 function checkPasswordFieldsOnFillInUserSettings() {
-    var password = $('#user-password').val();
-    var newPassword = $('#user-confirmpassword').val();
-    var confirmNewPassword = $('#confirmNewPassword').val();
-
-    $('#new_password_wrong').css('display', 'none');
-    $('#new_password_required').css('display', 'none');
+    errorPasswordWrong.css('display', 'none');
+    errorPasswordRequired.css('display', 'none');
 
     if(!newPassword) {
-        $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
-        $('#new_password_required').css('display', 'block');
-        $("#password-change-button").attr('disabled', true);
+        newPassword.addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+        errorPasswordRequired.css('display', 'block');
+        passwordChangeButton.attr('disabled', true);
         return;
     }
     if (((passwordPatternLettersAndNumbers.test(newPassword) || passwordPatternLettersAndCharacters.test(newPassword)
         || passwordPatternLettersAndNumbersAndCharacters.test(newPassword)) && !fieldContainsSpace.test(newPassword))
         && (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword))) {
-        $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
-        $("#password-change-button").attr('disabled', false);
+
+        newPassword.removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
+        passwordChangeButton.attr('disabled', false);
+
     } else {
-        $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
-        $('#new_password_wrong').css('display', 'block');
-        $("#password-change-button").attr('disabled', true);
+        newPassword.addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+        errorPasswordWrong.css('display', 'block');
+        passwordChangeButton.attr('disabled', true);
     }
 
 }
@@ -422,12 +413,10 @@ function checkPasswordFieldsOnFillInUserSettings() {
  * Remove disabled from buttons newPassword, when old password field fill.
  */
 function checkOldPasswordField(){
-    var password = $('#user-password').val();
-
     if (password) {
-        $("#user-confirmpassword").attr('readonly', false);
+        newPassword.attr('readonly', false);
     } else {
-        $("#user-confirmpassword").attr('readonly', true);
+        newPassword.attr('readonly', true);
     }
 }
 
@@ -435,34 +424,9 @@ function checkOldPasswordField(){
  * Remove disabled from button confirmNewPassword, when old password and new password fields fill.
  */
 function checkOldPasswordAndNewPasswordField(){
-    var password = $('#user-password').val();
-    var newPassword = $('#user-confirmpassword').val();
-
     if (password && newPassword) {
-        $("#confirmNewPassword").attr('readonly', false);
+        confirmNewPassword.attr('readonly', false);
     } else {
-        $("#confirmNewPassword").attr('readonly', true);
+        confirmNewPassword.attr('readonly', true);
     }
-}
-
-/**
- * Do some function after wait interval
- * @param func
- * @param wait
- * @param immediate
- * @returns {Function}
- */
-function debounce(func, wait, immediate) {
-    var timeout;
-    return function() {
-        var context = this, args = arguments;
-        var later = function() {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        };
-        var callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
-    };
 }

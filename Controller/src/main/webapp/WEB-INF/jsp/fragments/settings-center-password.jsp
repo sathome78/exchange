@@ -51,7 +51,7 @@
                                 </div>
                                 <div class="col-md-7 input-block-wrapper__input-wrapper">
                                     <form:password path="password" class="form-control input-block-wrapper__input"
-                                                   id="user-password" placeholder="${oldPassword}"/>
+                                                   id="user-password" placeholder="${oldPassword}" readonly="true"/>
                                 </div>
                                 <br>
                                 <div class="col-md-12 input-block-wrapper__error-wrapper">
@@ -67,7 +67,7 @@
                                 </div>
                                 <div class="col-md-7 input-block-wrapper__input-wrapper">
                                     <form:password path="confirmPassword" class="form-control input-block-wrapper__input"
-                                                   id="user-confirmpassword" placeholder="${newPassword}"/>
+                                                   id="user-confirmpassword" placeholder="${newPassword}" readonly="true"/>
                                 </div>
                                 <span class="col-md-1 input-block-wrapper__input-wrapper"></span>
                                 <div class="col-md-12 input-block-wrapper__error-wrapper">
