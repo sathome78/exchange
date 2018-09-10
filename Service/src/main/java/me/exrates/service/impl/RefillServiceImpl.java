@@ -294,7 +294,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  @Transactional
   public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,

@@ -34,7 +34,7 @@ function MyWalletsClass() {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowMyWalletsData');
         }
 
-        var $balanceTable = $('#balance-table').find('tbody');
+        var $balanceTable = $('#balance-grid').find('tbody');
         var url = '/dashboard/myWalletsData' + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
@@ -67,11 +67,11 @@ function MyWalletsClass() {
         that.getAndShowMyWalletsData();
         $('#exclude-zero-mybalances').prop('checked', localStorage.checked == 'true');
         excludeZero();
-        $('#balance-table').on('mouseleave', function (e) {
+        $('#balance-grid').on('mouseleave', function (e) {
             hideConfirmationDetailTooltip();
         });
 
-        $('#balance-table').on('click', '.mywallet-item-detail', function (e) {
+        $('#balance-grid').on('click', '.mywallet-item-detail', function (e) {
             hideConfirmationDetailTooltip();
             var walletId = $(this).data('walletid');
             getMyWalletConfirmationDetail(walletId, $(this));
@@ -105,7 +105,7 @@ function MyWalletsClass() {
         var input, filter, table, tr, td1, td2, td3, td4, i, activeBalance, reservedBalance;;
         input = document.getElementById("myInputTextField");
         filter = input.value.toUpperCase();
-        table = document.getElementById("balance-table");
+        table = document.getElementById("balance-grid");
         tr = table.getElementsByTagName("tr");
 
         for (i = 0; i < tr.length; i++) {
@@ -167,7 +167,7 @@ function mySearchFunction() {
     var input, filter, table, tr, td1, td2, td3, td4, i, activeBalance, reservedBalance;;
     input = document.getElementById("myInputTextField");
     filter = input.value.toUpperCase();
-    table = document.getElementById("balance-table");
+    table = document.getElementById("balance-grid");
     tr = table.getElementsByTagName("tr");
 
     // Loop through all table rows, and hide those who don't match the search query

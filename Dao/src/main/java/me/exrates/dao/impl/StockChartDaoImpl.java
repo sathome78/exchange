@@ -6,6 +6,7 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.ChartResolutionTimeUnit;
 import me.exrates.model.enums.IntervalType2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,7 @@ import java.util.List;
 public class StockChartDaoImpl implements StockChartDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired

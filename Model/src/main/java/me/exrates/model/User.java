@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -25,6 +26,14 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
+
+	public User(ChangePasswordDto dto) {
+		this.password = dto.getPassword();
+		this.confirmPassword = dto.getConfirmPassword();
+	}
+
+	public User() {
+	}
 
 	public UserRole getRole() {
 		return role;

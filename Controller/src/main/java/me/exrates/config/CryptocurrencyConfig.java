@@ -211,6 +211,10 @@ public class CryptocurrencyConfig {
                 "RIZ", "RIZ", 4, 20, false);
     }*/
 
+    @Bean(name="sicServiceImpl")
+    public BitcoinService sicService(){
+        return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
+    }
     // LISK-like cryptos
 
 

@@ -8,7 +8,7 @@
 
     <context:component-scan base-package="me.exrates"/>
 
-    <bean id="hikariDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+    <bean id="hikariDataSource" name="masterHikariDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
         <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
         <property name="jdbcUrl" value="jdbc:hsqldb:mem:testdb"/>
         <property name="username" value="sa"/>
@@ -19,7 +19,11 @@
         <jdbc:script location="classpath:exrates_API_AUTH_TOKEN.sql"/>
     </jdbc:initialize-database>
 
-    <bean id="namedParameterJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+    <bean id="namedParameterJdbcTemplate" name="masterTemplate" primary="true" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+        <constructor-arg ref="hikariDataSource"/>
+    </bean>
+
+    <bean id="slaveNamedParameterJdbcTemplate" name="slaveTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
         <constructor-arg ref="hikariDataSource"/>
     </bean>
 

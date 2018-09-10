@@ -5,6 +5,7 @@ import me.exrates.model.enums.UserAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,7 @@ public class MobileAppDaoImpl implements MobileAppDao {
     private static final Logger LOGGER = LogManager.getLogger(MobileAppDaoImpl.class);
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate parameterJdbcTemplate;
 
     @Autowired

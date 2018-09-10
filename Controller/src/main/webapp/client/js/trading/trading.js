@@ -51,7 +51,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        console.log('on pair change ' + currentPair);
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();

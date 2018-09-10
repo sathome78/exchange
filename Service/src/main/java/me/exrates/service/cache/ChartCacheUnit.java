@@ -69,14 +69,9 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
     @Override
     public List<CandleChartItemDto> getData() {
-        log.debug("getting data {} {}", currencyPairId, timeFrame);
         if (cachedData == null || isUpdateCasheRequired()) {
-            System.out.println("need to update data");
-            log.debug("update data {} {}", currencyPairId, timeFrame);
             updateCache(cachedData != null );
-            System.out.println("end update data");
         }
-        log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
     }
 
@@ -124,15 +119,12 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 //    }
     @Override
     public void setNeedToUpdate() {
-        log.debug("setting update data {} {}", currencyPairId, timeFrame);
         if (!lazyUpdate) {
-            log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
             if (timerLock.tryLock()) {
                 timerLock.lock();
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                            log.debug("execute task update data {} {}", currencyPairId, timeFrame);
                             timerLock = new ReentrantLock();
                             updateCache(true);
                             eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
@@ -149,13 +141,10 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
 
     private void updateCache(boolean appendLastEntriesOnly) {
-        log.debug("try update cahce {} {}", currencyPairId, timeFrame);
         if (tryLockWithTimeout()) {
             lastLock = LocalDateTime.now();
-            log.debug("lock was unlocked {} {}", currencyPairId, timeFrame);
             try {
                 performUpdate(appendLastEntriesOnly);
-                log.debug("end update cache {} {}", currencyPairId, timeFrame);
                 barrier.reset();
             } finally {
                 if (lock.isHeldByCurrentThread()) {
@@ -163,7 +152,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }
             }
         } else {
-                log.debug("wait update data {} {}", currencyPairId, timeFrame);
                 try {
                     barrier.await(30, TimeUnit.SECONDS);
                     /*if (cachedData == null) {
@@ -186,7 +174,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
-        log.debug("update cache {} {}", currencyPairId, timeFrame);
         if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
             cachedData.forEach(System.out::println);
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);

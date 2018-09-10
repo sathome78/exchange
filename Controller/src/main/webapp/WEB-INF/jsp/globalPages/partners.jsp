@@ -80,10 +80,24 @@
                         <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
                 </div>
             </div>
-
         </div>
 
+        <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
+            <h1 style="text-align: center"><loc:message code="our.partners"/></h1>
+            <table class="img-table">
+                <tr><td><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/></td>
+                </tr>
+                <tr>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-8 col-md-offset-2 content sponsors">
 
+        </div>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
