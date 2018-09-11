@@ -1277,7 +1277,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "HDR", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "racServiceImpl")
+   /* @Bean(name = "racServiceImpl")
     public EthTokenService racService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x342ba159f988f24f0b033f3cc5232377ee500543");
@@ -1322,7 +1322,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
 
         return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
-    }
+    }*/
 
     //**** Monero ****/
     @Bean(name = "moneroServiceImpl")
