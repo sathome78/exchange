@@ -20,7 +20,6 @@ public class RegisterFormValidation implements Validator {
     @Autowired
     UserService userService;
 
-
     private Pattern pattern;
     private Matcher matcher;
 
@@ -30,36 +29,40 @@ public class RegisterFormValidation implements Validator {
     String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
+    private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS = "^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$";
+    private static final String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
+    private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS = "^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
+
+    private static final String fieldContainsSpace = "\\s";
+
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
-//    private static final Locale ru = new Locale("ru");
-    private Locale ru = new Locale("en");
+    private Locale locale = new Locale("en");
 
     @Autowired
     MessageSource messageSource;
 
-    public boolean supports(Class<?> arg0) {
-        // TODO Auto-generated method stub
+    public boolean supports(Class<?> clazz){
         return false;
     }
 
-    public void validate(Object target, Errors errors, Locale ru) {
-        this.ru = ru;
+    public void validate(Object target, Errors errors, Locale locale) {
+        this.locale = locale;
         validate(target, errors);
     }
 
     public void validate(Object target, Errors errors) {
         User user = (User) target;
-        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, ru);
-        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, ru);
-        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, ru);
-        String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
-        String emailExists = messageSource.getMessage("validation.emailexists", null, ru);
-        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-        String notReadRules = messageSource.getMessage("validation.notreadrules", null, ru);
-        String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, ru);
+        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, locale);
+        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, locale);
+        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, locale);
+        String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
+        String emailExists = messageSource.getMessage("validation.emailexists", null, locale);
+        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
+        String notReadRules = messageSource.getMessage("validation.notreadrules", null, locale);
+        String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, locale);
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
                 nicknameRequired);
@@ -93,10 +96,6 @@ public class RegisterFormValidation implements Validator {
         if (!userService.ifEmailIsUnique(user.getEmail())) {
             errors.rejectValue("email", "email.exists", emailExists);
         }
-//		  ValidationUtils.rejectIfEmptyOrWhitespace(errors, "phone",  
-//		    "required.phone", "Phone is required.");  
-//		  
-        // phone number validation
 
         if (user.getPhone() != null && !user.getPhone().isEmpty()) {
             pattern = Pattern.compile(MOBILE_PATTERN);
@@ -125,17 +124,15 @@ public class RegisterFormValidation implements Validator {
 
     }
 
-    public void validate(String nickname, String email, String password, Errors errors, Locale ru) {
-        this.ru = ru;
-
-        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, ru);
-        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, ru);
-        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, ru);
-        String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
-        String emailExists = messageSource.getMessage("validation.emailexists", null, ru);
-        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
+    public void validate(String nickname, String email, String password, Errors errors, Locale locale) {
+        String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, locale);
+        String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, locale);
+        String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, locale);
+        String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
+        String emailExists = messageSource.getMessage("validation.emailexists", null, locale);
+        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
 
         if (nickname != null) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
@@ -173,16 +170,7 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        if (password != null) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                    "required.password", passwordRequired);
-
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(password);
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
+        validatePassword(password, errors);
     }
 
     public void validateNickname(Object target, Errors errors, Locale locale) {
@@ -206,13 +194,13 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateEditUser(Object target, Errors errors, Locale ru) {
+    public void validateEditUser(Object target, Errors errors, Locale locale) {
         User user = (User) target;
-        String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
-        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
-        String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, ru);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
+        String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
+        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
+        String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, locale);
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
                 "required.email", emailRequired);
@@ -235,66 +223,30 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
+        validatePassword(user.getPassword(), errors);
     }
 
-    public void validateResetPassword(Object target, Errors errors, Locale ru) {
+    /**
+     * Validation method for password (change user password in user private cabinet)
+     * @param target
+     * @param errors
+     * @param locale
+     */
+    public void validatePasswordInPrivateCabinet(Object target, Errors errors, Locale locale) {
+        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
+
         User user = (User) target;
 
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                "required.password", passwordRequired);
-
-//        if (!user.getPassword().equals(user.getConfirmPassword())) {
-//            errors.rejectValue("confirmPassword", "password.mismatch",
-//                    passwordMismatch);
-//        }
-
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
+        if (!user.getPassword().equals(user.getConfirmPassword())) {
+            errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }
+
+        validatePassword(user.getPassword(), errors);
     }
 
-    public void validateResetFinPassword(Object target, Errors errors, Locale ru) {
-        User user = (User) target;
-
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, ru);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "finpassword",
-                "required.password", passwordRequired);
-
-        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
-            errors.rejectValue("confirmFinPassword", "password.mismatch",
-                    passwordMismatch);
-        }
-
-        if (!(user.getFinpassword() != null && user.getFinpassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getFinpassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("finpassword", "password.incorrect", passwordIncorrect);
-            }
-        }
-    }
-
-    public void validateEmail(User user, Errors errors, Locale ru) {
-        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
-        String statusIncorrect = messageSource.getMessage("login.blocked", null, ru);
+    public void validateEmail(User user, Errors errors, Locale locale) {
+        String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
+        String statusIncorrect = messageSource.getMessage("login.blocked", null, locale);
 
         int userId = userService.getIdByEmail(user.getEmail());
         if (userId != 0) {
@@ -304,6 +256,27 @@ public class RegisterFormValidation implements Validator {
             }
         } else {
             errors.rejectValue("email", "email.incorrect", emailIncorrect);
+        }
+    }
+
+    /**
+     * Validation method for general password validation (for create password in registration process,
+     * for change password in user private cabinet, for reset password after recovery process)
+     * @param password
+     * @param errors
+     */
+    private void validatePassword(String password, Errors errors){
+        String passwordRequired = messageSource.getMessage("validation.message.password.required", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.message.password.wrong", null, locale);
+
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "required.password", passwordRequired);
+
+        if (!(password != null && password.isEmpty())) {
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(password);
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
         }
     }
 }
