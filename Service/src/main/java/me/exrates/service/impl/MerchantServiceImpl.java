@@ -399,7 +399,7 @@ public class MerchantServiceImpl implements MerchantService {
     return Optional.ofNullable(props.getProperty("wallet.password"));
   }
 
-  /*pass file format : classpath: merchants/pass/<merchant>_pass.properties
+  /*pass file format : local: /crypto/btc/<merchant_name>_pass.properties  | prod: opt/properties/<merchant_name>_pass.properties
    * stored values: wallet.password
    *                node.bitcoind.rpc.user
    *                node.bitcoind.rpc.password
