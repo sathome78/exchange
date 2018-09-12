@@ -1115,8 +1115,8 @@ public class WalletDaoImpl implements WalletDao {
             "      ( " +
             "      SELECT USER.roleid, CURRENCY.id, CURRENCY.name, COUNT(*), SUM(active_balance), SUM(reserved_balance), 0, 0 " +
             "      FROM WALLET " +
-            "      JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.hidden != 1) " +
-            "      JOIN USER ON (USER.id = WALLET.user_id) " +
+            "      STRAIGHT_JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.hidden != 1) " +
+            "      STRAIGHT_JOIN USER ON (USER.id = WALLET.user_id) " +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
             "  ) AGRIGATE " +

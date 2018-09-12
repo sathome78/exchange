@@ -147,12 +147,8 @@ public class User  {
 				", email='" + email + '\'' +
 				", phone='" + phone + '\'' +
 				", status=" + status +
-				", password='" + password + '\'' +
-				", finpassword='" + finpassword + '\'' +
 				", regdate=" + regdate +
 				", ipaddress='" + ipaddress + '\'' +
-				", confirmPassword='" + confirmPassword + '\'' +
-				", confirmFinPassword='" + confirmFinPassword + '\'' +
 				", readRules=" + readRules +
 				", role=" + role +
 				", parentEmail='" + parentEmail + '\'' +

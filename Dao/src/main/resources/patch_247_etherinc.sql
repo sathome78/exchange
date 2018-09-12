@@ -5,10 +5,10 @@ VALUES ('ETI', 'Etherinc', '0', 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ETI'));
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block, transfer_block)
   VALUES ((SELECT id from MERCHANT WHERE name='ETI'),
           (SELECT id from CURRENCY WHERE name='ETI'),
-          0.00000001);
+          0.00000001, 1, 1, 1);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='ETI')
 , '/client/img/merchants/ETI.png', 'ETI', (SELECT id from CURRENCY WHERE name='ETI'));
@@ -22,7 +22,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'ETI'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'USD'), 'ETI/USD', 170, 0, 'ETI/USD');
+VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'USD'), 'ETI/USD', 170, 1, 'ETI/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -30,7 +30,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN ORDER_TYPE OT where CP.name='ETI/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'BTC'), 'ETI/BTC', 160, 0, 'BTC', 'ETI/BTC');
+VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'BTC'), 'ETI/BTC', 160, 1, 'BTC', 'ETI/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -38,7 +38,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='ETI/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'ETH'), 'ETI/ETH', 160, 0, 'ETH', 'ETI/ETH');
+VALUES((select id from CURRENCY where name = 'ETI'), (select id from CURRENCY where name = 'ETH'), 'ETI/ETH', 160, 1, 'ETH', 'ETI/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -73,4 +73,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('ETI/USD', 'ETI/BTC', 'ETI/ETH'));
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'ETI'), 'LastRecievedBlock', 1305066);
+  ((SELECT id FROM MERCHANT WHERE name = 'ETI'), 'LastRecievedBlock', 1365260);
