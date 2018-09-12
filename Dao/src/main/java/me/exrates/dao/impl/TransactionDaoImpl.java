@@ -70,26 +70,25 @@ public final class TransactionDaoImpl implements TransactionDao {
       //NOP
     }
 
-//    todo: delete
-//    ExOrder order = null;
-//    try {
-//      resultSet.findColumn("EXORDERS.id");
-//      if (resultSet.getObject("EXORDERS.id") != null) {
-//        order = new ExOrder();
-//        order.setId(resultSet.getInt("EXORDERS.id"));
-//        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
-//        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
-//        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
-//        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
-//        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
-//        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
-//        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
-//        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-//        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
-//      }
-//    } catch (SQLException e) {
-//      //NOP
-//    }
+    ExOrder order = null;
+    try {
+      resultSet.findColumn("EXORDERS.id");
+      if (resultSet.getObject("EXORDERS.id") != null) {
+        order = new ExOrder();
+        order.setId(resultSet.getInt("EXORDERS.id"));
+        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+      }
+    } catch (SQLException e) {
+      //NOP
+    }
 
     WithdrawRequest withdraw = null;
     try {
@@ -205,7 +204,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     transaction.setUserWallet(userWallet);
     transaction.setOperationType(operationType);
     transaction.setMerchant(merchant);
-//    transaction.setOrder(order);
+    transaction.setOrder(order);
     transaction.setCurrency(currency);
     transaction.setWithdrawRequest(withdraw);
     transaction.setRefillRequest(refill);
