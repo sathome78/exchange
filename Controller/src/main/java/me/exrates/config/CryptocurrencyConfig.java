@@ -215,6 +215,11 @@ public class CryptocurrencyConfig {
     public BitcoinService sicService(){
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }
+
+    @Bean(name="sbtcServiceImpl")
+    public BitcoinService sbtcService(){
+        return new BitcoinServiceImpl("merchants/sbtc_wallet.properties", "SBTC", "SBTC", 4, 20, false);
+    }
     // LISK-like cryptos
 
 
