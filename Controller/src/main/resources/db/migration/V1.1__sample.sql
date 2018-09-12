@@ -1,0 +1,1 @@
+INSERT INTO birzha.CHAT_AR(id, user_id, body, message_time) VALUES (1, 1, 'dsfs', current_date);
