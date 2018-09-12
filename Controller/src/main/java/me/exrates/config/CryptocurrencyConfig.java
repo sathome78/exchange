@@ -228,7 +228,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "clxServiceImpl")
     public BitcoinService clxService() {
         return new BitcoinServiceImpl("merchants/clx_wallet.properties",
-                "CLX", "CLX", 4, 20, false);
+                "CLX", "CLX", 4, 20, false, false);
     }
     
     // LISK-like cryptos
