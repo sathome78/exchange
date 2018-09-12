@@ -788,8 +788,6 @@
         <logger name="etherinc_log" level="ALL" additivity="false">
             <AppenderRef ref="etherinc_log"/>
         </logger>
-        <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
-        </logger>
 
         <Root level="INFO">
             <AppenderRef ref="Console"/>
