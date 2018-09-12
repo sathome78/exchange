@@ -102,7 +102,7 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("sort", "timestamp%3Aasc");
+            put("sort", "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
         return restTemplate.getForObject(targetURI, String.class);
