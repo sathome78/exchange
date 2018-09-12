@@ -2,6 +2,7 @@ package me.exrates.model;
 
 import java.math.BigInteger;
 
+@Deprecated
 public class EthereumAccount {
 
     private String address;

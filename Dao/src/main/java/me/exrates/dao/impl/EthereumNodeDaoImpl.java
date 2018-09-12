@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@Deprecated
 public class EthereumNodeDaoImpl implements EthereumNodeDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Service
+@Deprecated
 public interface YandexMoneyService extends IRefillable, IWithdrawable {
 
     List<String> getAllTokens();

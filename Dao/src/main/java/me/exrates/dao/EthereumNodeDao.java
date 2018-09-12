@@ -5,6 +5,7 @@ import me.exrates.model.EthereumAccount;
 import java.util.List;
 import java.util.Optional;
 
+@Deprecated
 public interface EthereumNodeDao {
 
     void createAddress(EthereumAccount ethereumAccount, String merchant);

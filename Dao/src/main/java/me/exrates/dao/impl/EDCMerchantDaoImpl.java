@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@Deprecated
 public class EDCMerchantDaoImpl implements EDCMerchantDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

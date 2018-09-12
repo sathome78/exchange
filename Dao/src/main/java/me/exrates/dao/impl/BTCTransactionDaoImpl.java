@@ -22,6 +22,7 @@ import java.util.Map;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Repository
+@Deprecated
 public class BTCTransactionDaoImpl implements BTCTransactionDao {
 
     private final Logger LOG = LogManager.getLogger("merchant");

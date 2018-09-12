@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 public interface EDCAccountDao {
 
     EDCAccount findByTransactionId(int id);

@@ -46,6 +46,7 @@ public interface WalletDao {
 
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale);
 
+    @Deprecated
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);

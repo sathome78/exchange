@@ -29,6 +29,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 @Controller
 @RequestMapping("/merchants/yandexmoney")
 public class YandexMoneyMerchantController {

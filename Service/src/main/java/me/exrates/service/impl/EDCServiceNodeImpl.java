@@ -42,6 +42,7 @@ import static org.springframework.transaction.annotation.Propagation.NESTED;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})

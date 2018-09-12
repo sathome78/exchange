@@ -70,25 +70,26 @@ public final class TransactionDaoImpl implements TransactionDao {
       //NOP
     }
 
-    ExOrder order = null;
-    try {
-      resultSet.findColumn("EXORDERS.id");
-      if (resultSet.getObject("EXORDERS.id") != null) {
-        order = new ExOrder();
-        order.setId(resultSet.getInt("EXORDERS.id"));
-        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
-        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
-        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
-        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
-        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
-        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
-        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
-        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
-      }
-    } catch (SQLException e) {
-      //NOP
-    }
+//    todo: delete
+//    ExOrder order = null;
+//    try {
+//      resultSet.findColumn("EXORDERS.id");
+//      if (resultSet.getObject("EXORDERS.id") != null) {
+//        order = new ExOrder();
+//        order.setId(resultSet.getInt("EXORDERS.id"));
+//        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+//        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+//        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+//        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+//        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+//        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+//        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+//        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+//        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+//      }
+//    } catch (SQLException e) {
+//      //NOP
+//    }
 
     WithdrawRequest withdraw = null;
     try {
@@ -204,7 +205,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     transaction.setUserWallet(userWallet);
     transaction.setOperationType(operationType);
     transaction.setMerchant(merchant);
-    transaction.setOrder(order);
+//    transaction.setOrder(order);
     transaction.setCurrency(currency);
     transaction.setWithdrawRequest(withdraw);
     transaction.setRefillRequest(refill);
@@ -226,7 +227,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   private final String SELECT_ALL =
       " SELECT " +
           "   TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
-          "   TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+          "   TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, /*TRANSACTION.order_id, */" +
           "   TRANSACTION.source_type, TRANSACTION.source_id, " +
           "   WALLET.id, WALLET.active_balance, WALLET.reserved_balance, WALLET.currency_id," +
           "   USER.id as user_id, USER.email as user_email," +
@@ -278,12 +279,12 @@ public final class TransactionDaoImpl implements TransactionDao {
   @Override
   public Transaction create(Transaction transaction) {
     final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-        " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
+        " commission_id, operation_type_id, currency_id, merchant_id, datetime, /*order_id, */confirmation, provided," +
         " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
         " source_type, " +
         " source_id, description)" +
         "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-        "   :merchant, :datetime, :order_id, :confirmation, :provided," +
+        "   :merchant, :datetime, /*:order_id, */:confirmation, :provided," +
         "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
         "   :source_type, " +
         "   :source_id, :description)";
@@ -300,7 +301,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           put("currency", transaction.getCurrency().getId());
           put("merchant", transaction.getMerchant() == null ? null : transaction.getMerchant().getId());
           put("datetime", transaction.getDatetime() == null ? null : Timestamp.valueOf(transaction.getDatetime()));
-          put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
+//          put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
           put("confirmation", transaction.getConfirmation());
           put("provided", transaction.isProvided());
           put("active_balance_before", transaction.getActiveBalanceBefore());

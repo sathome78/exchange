@@ -13,6 +13,7 @@
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 @Getter @Setter
 @EqualsAndHashCode
 @ToString

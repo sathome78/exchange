@@ -28,7 +28,7 @@ public class Transaction {
     private Merchant merchant;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
-    private ExOrder order;
+//    private ExOrder order;
     private boolean provided;
     private Integer confirmation;
     private BigDecimal activeBalanceBefore;

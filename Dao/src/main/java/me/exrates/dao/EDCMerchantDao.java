@@ -4,6 +4,7 @@ import me.exrates.model.User;
 
 import java.util.Optional;
 
+@Deprecated
 public interface EDCMerchantDao {
 
     void createAddress(String address, User user);

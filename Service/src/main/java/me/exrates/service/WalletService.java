@@ -75,6 +75,7 @@ public interface WalletService {
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 
+    @Deprecated
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
     @Transactional(readOnly = true)

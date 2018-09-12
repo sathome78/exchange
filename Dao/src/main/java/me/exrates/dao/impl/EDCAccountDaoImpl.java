@@ -19,6 +19,7 @@ import static java.util.Collections.singletonMap;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Repository
+@Deprecated
 public class EDCAccountDaoImpl implements EDCAccountDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

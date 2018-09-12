@@ -10,6 +10,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 public interface YandexMoneyMerchantDao {
     List<String> getAllTokens();
     String getTokenByUserEmail(String email);

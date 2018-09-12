@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.InvoiceBank;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
@@ -23,7 +21,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 /**
  * Created by OLEG on 21.02.2017.
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @ToString
 public class RefillRequestDetailsDto {

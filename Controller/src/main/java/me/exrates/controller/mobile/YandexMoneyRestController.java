@@ -27,6 +27,7 @@ import java.util.Optional;
 /**
  * Created by OLEG on 26.10.2016.
  */
+@Deprecated
 @RestController
 public class YandexMoneyRestController {
     private static final Logger logger = LogManager.getLogger(YandexMoneyRestController.class);

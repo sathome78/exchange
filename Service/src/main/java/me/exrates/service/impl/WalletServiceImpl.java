@@ -223,6 +223,7 @@ public class WalletServiceImpl implements WalletService {
     return walletDao.walletBalanceChange(walletOperationData);
   }
 
+  @Deprecated
   @Override
   public List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale) {
     return walletDao.getWalletConfirmationDetail(walletId, locale);

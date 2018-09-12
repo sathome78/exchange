@@ -58,6 +58,7 @@ public class WalletController {
         return new ModelAndView("CompanyWallets", "companyWalletList", companyWalletList);
     }
 
+    @Deprecated
     @RequestMapping("/dashboard/myWalletsConfirmationDetail")
     @ResponseBody
     public List<MyWalletConfirmationDetailDto> showWalletsConfirmationDetail(

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Deprecated
 public class BTCTransaction {
 
     private String hash;

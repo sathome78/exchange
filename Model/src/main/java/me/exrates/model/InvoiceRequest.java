@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 /**
  * Created by ogolv on 25.07.2016.
  */
+@Deprecated
 @Getter @Setter
 @NoArgsConstructor
 public class InvoiceRequest {

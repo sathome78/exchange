@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * Created by OLEG on 17.03.2017.
  */
+@Deprecated
 public interface BitcoinTransactionService {
   @Transactional(readOnly = true)
   boolean existsPendingPaymentWithStatusAndAddress(InvoiceStatus beginStatus, String address);

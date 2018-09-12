@@ -589,6 +589,7 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
+  @Deprecated
   public List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale) {
     final String sql =
         " SELECT TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.amount+TRANSACTION.commission_amount AS total, TRANSACTION.confirmation " +
