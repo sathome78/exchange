@@ -50,11 +50,11 @@
                                 </a>
                             </span>
                         <%  } else { %>
-                                <form class="table-button-block__form" action="/merchants/input" target="_blank">
-                                    <loc:message code="mywallets.input" var="inputButton"/>
-                                    <input type="text" hidden value=<@=currencyName@> name="currency" >
-                                    <button class="table-butto-block__button butto-block btn btn-success" type="submit">${inputButton}</button>
-                                </form>
+                            <span>
+                                <a href="/merchants/input?currency=<@=currencyName@>" target="_blank" class="btn btn-success butto-block">
+                                    <loc:message code="mywallets.input"/>
+                                </a>
+                            </span>
                         <% } %>
                         <% double numW = Math.random(); if (numW > 0.5) {  %>
                             <span>
@@ -63,11 +63,11 @@
                                 </a>
                             </span>
                         <%  } else { %>
-                                <form class="table-button-block__form" action="<c:url value="/merchants/output"/>" target="_blank">
-                                    <loc:message code="mywallets.output" var="outputButton"/>
-                                    <input type="text" hidden value=<@=currencyName@> name="currency" >
-                                    <button class="butto-block btn btn-danger" type="submit">${outputButton}</button>
-                                </form>
+                            <span>
+                                <a href="/merchants/output?currency=<@=currencyName@>" target="_blank" class="butto-block btn btn-danger">
+                                    <loc:message code="mywallets.output"/>
+                                </a>
+                            </span>
                         <% } %>
                         <% double numH = Math.random(); if (numH > 0.5) {  %>
                             <span>
@@ -76,12 +76,11 @@
                                 </a>
                             </span>
                         <%  } else { %>
-                               <form class="table-button-block__form" action="<c:url value="#"/>">
-                                    <loc:message code="mywallets.history" var="historyButton"/>
-                                    <@=
-                                    '<button data-walletid='+id+' class="wallet-mystatement-button butto-block btn btn-primary" type="submit">${historyButton}</button>'
-                                    @>
-                                </form>
+                            <span>
+                                <a style="cursor:pointer" target="_blank" class="wallet-mystatement-button butto-block btn btn-primary">
+                                    <loc:message code="mywallets.history"/>
+                                </a>
+                            </span>
                         <% } %>
                         <% double numT = Math.random(); if (numT > 0.5) {  %>
                             <span>
@@ -90,11 +89,11 @@
                                 </a>
                             </span>
                         <%  } else { %>
-                                <form class="table-button-block__form" action="<c:url value="/merchants/transfer"/>" target="_blank">
-                                    <loc:message code="mywallets.transfer" var="transferButton"/>
-                                    <input type="text" hidden value=<@=currencyName@> name="currency" >
-                                    <button class="butto-block btn btn-info" type="submit">${transferButton}</button>
-                                </form>
+                            <span>
+                                <a href="/merchants/transfer?currency=<@=currencyName@>" target="_blank" class="butto-block btn btn-info">
+                                    <loc:message code="mywallets.transfer"/>
+                                </a>
+                            </span>
                         <% } %>
                     </span>
                 </td>
