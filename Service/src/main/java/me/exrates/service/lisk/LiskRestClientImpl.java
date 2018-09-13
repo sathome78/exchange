@@ -64,10 +64,12 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public LiskTransaction getTransactionById(String txId) {
-            String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
+        String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
                     String.class);
 
-            return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
+        log.info("*** Lisk *** getTransactionById: "+response);
+
+        return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -78,6 +80,8 @@ public class LiskRestClientImpl implements LiskRestClient {
             }};
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
+
+            log.info("*** Lisk *** getTransactionsByRecipient: "+response);
 
             return extractListFromResponse(objectMapper, response, "data", LiskTransaction.class);
     }
@@ -105,6 +109,9 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("sort", "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+targetURI);
+
         return restTemplate.getForObject(targetURI, String.class);
     }
 
@@ -144,6 +151,9 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount getAccountByAddress(String address) {
         String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getAccountByAddressEndpoint), Collections.singletonMap("address", address)),
                 String.class);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+response);
+
         return extractObjectFromResponse(objectMapper, response, "data", LiskAccount.class);
     }
 
