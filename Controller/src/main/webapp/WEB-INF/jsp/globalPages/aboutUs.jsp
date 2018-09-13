@@ -24,7 +24,8 @@
 
   <%----------------------------------------%>
   <%@include file="../tools/google_head.jsp"%>
-  <%@include file="../tools/alexa.jsp" %>
+  <%--alexa закоментировано т.к. не используется в данный момент--%>
+  <%--<%@include file="../tools/alexa.jsp" %>--%>
   <%--<%@include file="../tools/yandex.jsp" %>--%>
 
   <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -64,7 +65,7 @@
   <script type="text/javascript" src="/client/js/lib/tinymce/tinymce.min.js"></script>
   <script type="text/javascript" src="/client/js/lib/tinymce/angular-ui-tinymce/tinymce.js"></script>
   <%--... Alerts --%>
-  <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
