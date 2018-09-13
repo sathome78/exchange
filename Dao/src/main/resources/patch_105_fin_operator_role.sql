@@ -1,9 +1,0 @@
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 1, 1);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 2, 1);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 3, 1);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 4, 0);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 5, 0);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 6, 0);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 7, 0);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 8, 0);
-INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS (role_id, admin_authority_id, enabled) VALUES (9, 9, 0);
