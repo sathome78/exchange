@@ -91,7 +91,9 @@ import java.util.stream.Collectors;
 @ComponentScan({"me.exrates"})
 @Import(
         {
-                SecurityConfig.class, WebSocketConfig.class, CryptocurrencyConfig.class
+                SecurityConfig.class,
+                WebSocketConfig.class,
+                CryptocurrencyConfig.class
         }
 )
 @PropertySource(value = {
@@ -257,19 +259,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new HikariDataSource(hikariConfig);
     }
 
+    @DependsOn("masterHikariDataSource")
     @Bean
-    public Flyway flywayMaster() {
+    public Flyway flywayMaster(@Qualifier("masterHikariDataSource") DataSource dataSource) {
         Flyway flyway = new Flyway();
-        flyway.setDataSource(dbMasterUrl, dbMasterUser, dbMasterPassword);
-        flyway.setBaselineOnMigrate(true);
-        flyway.migrate();
-        return flyway;
-    }
-
-    @Bean
-    public Flyway flywaySlave() {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(dbSlaveUrl, dbSlaveUser, dbSlavePassword);
+        flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.migrate();
         return flyway;
