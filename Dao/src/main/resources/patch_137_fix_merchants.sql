@@ -1,1 +1,0 @@
-UPDATE MERCHANT SET process_type = 'CRYPTO' where name IN ('Litecoin', 'Ethereum Classic', 'Dash');
