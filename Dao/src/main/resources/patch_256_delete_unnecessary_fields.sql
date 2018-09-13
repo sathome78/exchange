@@ -1,0 +1,10 @@
+-- Drop unnecessary fields
+
+ALTER TABLE TRANSACTION DROP FOREIGN KEY fk_EXORDERS;
+
+ALTER TABLE TRANSACTION DROP COLUMN order_id;
+
+
+
+
+
