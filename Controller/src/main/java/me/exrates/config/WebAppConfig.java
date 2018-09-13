@@ -1307,6 +1307,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "GEX", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ixeServiceImpl")
+    public EthTokenService ixeService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7a07e1a0c2514d51132183ecfea2a880ec3b7648");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IXE",
+                "IXE", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
