@@ -1,8 +1,6 @@
 package me.exrates.security.filter;
 
 import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;

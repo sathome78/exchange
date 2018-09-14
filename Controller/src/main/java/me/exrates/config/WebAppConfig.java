@@ -1341,6 +1341,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "IXE", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "phiServiceImpl")
+    public EthTokenService phiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x13c2fab6354d3790d8ece4f0f1a3280b4a25ad96");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PHI",
+                "PHI", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     /*
     @Bean(name = "spcServiceImpl")

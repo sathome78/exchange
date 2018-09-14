@@ -20,9 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static org.zeromq.ZMQ.context;
 
 @Log4j2(topic = "bitcoin_core")
 public class BtcdZMQDaemonImpl implements BtcDaemon{

@@ -2,8 +2,6 @@ package me.exrates.service;
 
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;

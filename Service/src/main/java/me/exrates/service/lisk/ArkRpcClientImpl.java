@@ -6,7 +6,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.merchants.lisk.ArkOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.ArkSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
-import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
@@ -19,7 +18,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
-import static me.exrates.service.lisk.LiskRestUtils.*;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponse;
+import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskResponse;
 
 @Log4j2(topic = "lisk_log")
 @Service

@@ -5,13 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
-import me.exrates.model.enums.AlertType;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 /**
  * Created by Maks on 13.12.2017.

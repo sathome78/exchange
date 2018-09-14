@@ -1,7 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
-
 import java.util.Arrays;
 
 /**

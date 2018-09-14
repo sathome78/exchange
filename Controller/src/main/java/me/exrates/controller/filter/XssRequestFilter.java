@@ -4,7 +4,6 @@ package me.exrates.controller.filter;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
-
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

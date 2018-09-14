@@ -1,7 +1,6 @@
 package me.exrates.service.ethereum;
 
 
-import me.exrates.service.ethereum.EthTokenServiceImpl;
 import org.web3j.protocol.core.methods.response.Transaction;
 
 import java.math.BigInteger;

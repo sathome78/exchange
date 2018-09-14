@@ -22,9 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.*;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController

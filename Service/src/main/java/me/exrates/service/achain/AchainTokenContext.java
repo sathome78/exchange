@@ -1,7 +1,5 @@
 package me.exrates.service.achain;
 
-import me.exrates.model.dto.MosaicIdDto;
-import me.exrates.service.nem.XemMosaicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

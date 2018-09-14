@@ -7,8 +7,6 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
-import me.exrates.service.events.CreateOrderEvent;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.util.List;

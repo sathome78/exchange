@@ -1,6 +1,5 @@
 package me.exrates.controller.openAPI;
 
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
@@ -11,6 +10,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.MissingServletRequestParameterException;

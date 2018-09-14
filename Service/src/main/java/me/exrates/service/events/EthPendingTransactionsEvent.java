@@ -3,8 +3,6 @@ package me.exrates.service.events;
 import org.springframework.context.ApplicationEvent;
 import org.web3j.protocol.core.methods.response.Transaction;
 
-import java.util.List;
-
 /**
  * Created by Maks on 19.09.2017.
  */
