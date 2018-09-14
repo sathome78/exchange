@@ -83,7 +83,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
             log.info("*** Lisk *** getTransactionsByRecipient: "+response);
 
-            return extractListFromResponse(objectMapper, response, "data", LiskTransaction.class);
+            return extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         do {
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
             count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
-            result.addAll(extractListFromResponse(objectMapper, response, "data", LiskTransaction.class));
+            result.addAll(extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
         return result;

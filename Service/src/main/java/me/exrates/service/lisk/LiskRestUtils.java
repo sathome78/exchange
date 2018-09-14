@@ -37,6 +37,25 @@ public class LiskRestUtils {
         }
     }
 
+    /**
+     * An additional method without a field `success` for the node Lisk v1.0 | Special for Lisk v1.0
+     * @param objectMapper
+     * @param responseBody
+     * @param targetFieldName
+     * @param listElementType
+     * @param <T>
+     * @return
+     */
+    public static <T> List<T> extractListFromResponseAdditional(ObjectMapper objectMapper, String responseBody, String targetFieldName, Class<T> listElementType)  {
+        try {
+            JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, listElementType);
+            String array = extractTargetNodeFromLiskResponseAdditional(objectMapper, responseBody, targetFieldName, JsonNodeType.ARRAY).toString();
+            return objectMapper.readValue(array, type);
+        } catch (IOException e) {
+            throw new LiskRestException(e.getMessage());
+        }
+    }
+
     public static JsonNode extractTargetNodeFromLiskResponse(ObjectMapper objectMapper, String responseBody, String targetFieldName, JsonNodeType targetNodeType)  {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
@@ -54,7 +73,7 @@ public class LiskRestUtils {
     }
 
     /**
-     * An additional method without a field `success` for the node Lisk v1.0
+     * An additional method without a field `success` for the node Lisk v1.0 | Special for Lisk v1.0
      * @param objectMapper
      * @param responseBody
      * @param targetFieldName
