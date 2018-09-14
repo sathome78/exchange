@@ -581,6 +581,7 @@ public class UserDaoImpl implements UserDao {
         temporalToken.setId(rs.getInt("id"));
         temporalToken.setUserId(rs.getInt("user_id"));
         temporalToken.setValue(token);
+        temporalToken.setAlreadyUsed(rs.getBoolean("already_used"));
         temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
         temporalToken.setExpired(rs.getBoolean("expired"));
         temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));

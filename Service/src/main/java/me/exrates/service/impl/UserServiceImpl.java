@@ -428,8 +428,10 @@ public class UserServiceImpl implements UserService {
   }
 
   public boolean createTemporalToken(TemporalToken token) {
+    log.info("Token is " + token);
     boolean result = userDao.createTemporalToken(token);
     if (result) {
+      log.info("Token succesfully saved");
       tokenScheduler.initTrigers();
     }
     return result;
