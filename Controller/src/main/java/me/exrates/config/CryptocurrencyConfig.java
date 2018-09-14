@@ -4,8 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
-import me.exrates.service.waves.WavesRestClient;
-import me.exrates.service.waves.WavesRestClientImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -217,7 +215,6 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }
 
-
     */
 
     @Bean(name="cmkServiceImpl")
@@ -235,6 +232,7 @@ public class CryptocurrencyConfig {
     public BitcoinService sbtcService(){
         return new BitcoinServiceImpl("merchants/sbtc_wallet.properties", "SBTC", "SBTC", 4, 20, false);
     }
+
     // LISK-like cryptos
 
     @Bean(name = "liskServiceImpl")

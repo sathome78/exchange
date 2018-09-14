@@ -1,10 +1,8 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exceptions.UnsupportedAuthorityException;
 import me.exrates.model.vo.BackDealInterval;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by Maks on 04.09.2017.

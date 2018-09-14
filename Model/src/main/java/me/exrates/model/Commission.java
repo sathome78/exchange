@@ -8,9 +8,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 
 @Getter @Setter

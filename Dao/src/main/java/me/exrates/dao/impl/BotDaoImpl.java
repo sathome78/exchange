@@ -2,7 +2,6 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.BotDao;
 import me.exrates.model.BotLaunchSettings;
-import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
 import me.exrates.model.BotTradingSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
@@ -20,7 +19,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 @Repository

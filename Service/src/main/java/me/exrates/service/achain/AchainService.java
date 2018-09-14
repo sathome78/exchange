@@ -2,7 +2,6 @@ package me.exrates.service.achain;
 
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.stellar.sdk.responses.TransactionResponse;
 
 /**
  * Created by Maks on 14.06.2018.

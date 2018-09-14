@@ -2,7 +2,6 @@ package me.exrates.model.dto.merchants.qtum;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import me.exrates.model.dto.merchants.neo.NeoVout;
 
 import java.util.List;
 

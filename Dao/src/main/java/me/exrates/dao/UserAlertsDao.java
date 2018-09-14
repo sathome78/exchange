@@ -1,7 +1,6 @@
 package me.exrates.dao;
 
 import me.exrates.model.dto.AlertDto;
-import me.exrates.model.enums.AlertType;
 
 import java.util.List;
 

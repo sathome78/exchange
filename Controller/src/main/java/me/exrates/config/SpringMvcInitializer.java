@@ -2,7 +2,6 @@ package me.exrates.config;
 
 import me.exrates.controller.filter.HeaderFilter;
 import me.exrates.controller.filter.XssRequestFilter;
-import me.exrates.controller.listener.StoreSessionListenerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.session.HttpSessionEventPublisher;

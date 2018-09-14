@@ -1,6 +1,5 @@
 package me.exrates.service.stellar;
 
-import me.exrates.service.nem.XemMosaicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.stellar.sdk.Asset;

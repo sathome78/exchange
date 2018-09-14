@@ -1,11 +1,9 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;

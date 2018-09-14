@@ -1,9 +1,6 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import lombok.experimental.Tolerate;
-
-import java.math.BigDecimal;
 
 /**
  * Created by Maks on 12.10.2017.

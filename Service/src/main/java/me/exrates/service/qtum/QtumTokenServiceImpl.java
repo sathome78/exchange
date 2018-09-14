@@ -7,7 +7,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.merchants.qtum.QtumTokenContract;
 import me.exrates.model.dto.merchants.qtum.QtumTokenTransaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -24,7 +23,6 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
 import javax.annotation.PostConstruct;

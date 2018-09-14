@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
@@ -8,7 +7,6 @@ import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.*;
 import me.exrates.service.*;
-import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
@@ -21,7 +19,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

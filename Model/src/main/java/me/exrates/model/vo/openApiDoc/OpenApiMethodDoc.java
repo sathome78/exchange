@@ -9,7 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static me.exrates.model.vo.openApiDoc.OpenApiMethodGroup.*;
-import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 
 @Getter
 @ToString

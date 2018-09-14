@@ -10,9 +10,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

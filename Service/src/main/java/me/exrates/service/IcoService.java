@@ -2,7 +2,6 @@ package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.stellar.sdk.responses.TransactionResponse;
 
 public interface IcoService extends IRefillable, IWithdrawable {
 

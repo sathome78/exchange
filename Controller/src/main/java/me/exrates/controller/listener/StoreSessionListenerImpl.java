@@ -2,12 +2,6 @@ package me.exrates.controller.listener;
 
 import lombok.extern.log4j.Log4j2;
 
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionEvent;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Created by OLEG on 11.10.2016.
  */

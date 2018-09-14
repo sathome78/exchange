@@ -4,7 +4,6 @@ import me.exrates.model.dto.AlertDto;
 import me.exrates.model.enums.AlertType;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 

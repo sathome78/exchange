@@ -11,14 +11,16 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.UnknownAssetIdException;
+import me.exrates.service.exception.WavesPaymentProcessingException;
+import me.exrates.service.exception.WavesRestException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.ParamMapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;

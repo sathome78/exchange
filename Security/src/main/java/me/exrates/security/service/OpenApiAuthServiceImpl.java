@@ -19,7 +19,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "open_api")

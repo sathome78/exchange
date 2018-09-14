@@ -1,14 +1,13 @@
 package me.exrates.controller.advice;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NoPermissionForOperationException;
+import me.exrates.service.exception.OrderDeletingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;

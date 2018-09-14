@@ -2,17 +2,11 @@ package me.exrates.service.notifications;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
-import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.SendMailService;
-import me.exrates.service.UserService;
 import me.exrates.service.exception.MessageUndeliweredException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.Locale;
 
 /**
  * Created by Maks on 29.09.2017.

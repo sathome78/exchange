@@ -1,6 +1,5 @@
 package me.exrates.service.achain;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.Consts;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;

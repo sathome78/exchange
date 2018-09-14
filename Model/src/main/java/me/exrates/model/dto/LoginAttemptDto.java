@@ -7,7 +7,8 @@ import lombok.ToString;
 import me.exrates.model.enums.IpBanStatus;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
 
 @Getter @Setter
 @EqualsAndHashCode

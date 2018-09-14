@@ -8,11 +8,9 @@ import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -66,10 +64,12 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public LiskTransaction getTransactionById(String txId) {
-            String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
+        String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionByIdEndpoint), Collections.singletonMap("id", txId)),
                     String.class);
 
-            return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
+        log.info("*** Lisk *** getTransactionById: "+response);
+
+        return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -81,7 +81,9 @@ public class LiskRestClientImpl implements LiskRestClient {
             String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getTransactionsEndpoint), params),
                     String.class);
 
-            return extractListFromResponse(objectMapper, response, "data", LiskTransaction.class);
+            log.info("*** Lisk *** getTransactionsByRecipient: "+response);
+
+            return extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class);
     }
 
     @Override
@@ -93,7 +95,7 @@ public class LiskRestClientImpl implements LiskRestClient {
         do {
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
             count = Integer.parseInt(extractTargetNodeFromLiskResponseAdditional(objectMapper, response, "count", countNodeType).asText());
-            result.addAll(extractListFromResponse(objectMapper, response, "data", LiskTransaction.class));
+            result.addAll(extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
         return result;
@@ -107,6 +109,9 @@ public class LiskRestClientImpl implements LiskRestClient {
             put("sort", "timestamp:asc");
         }};
         URI targetURI = getURIWithParams(absoluteURI(getTransactionsEndpoint), params);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+targetURI);
+
         return restTemplate.getForObject(targetURI, String.class);
     }
 
@@ -146,6 +151,9 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount getAccountByAddress(String address) {
         String response = restTemplate.getForObject(getURIWithParams(absoluteURI(getAccountByAddressEndpoint), Collections.singletonMap("address", address)),
                 String.class);
+
+        log.info("*** Lisk *** getTransactionsByRecipient: "+response);
+
         return extractObjectFromResponse(objectMapper, response, "data", LiskAccount.class);
     }
 

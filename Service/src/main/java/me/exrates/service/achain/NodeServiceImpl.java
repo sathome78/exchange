@@ -1,24 +1,12 @@
 package me.exrates.service.achain;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.achain.TransactionDTO;
-import me.exrates.model.dto.achain.enums.AchainTransactionType;
-import me.exrates.model.dto.achain.enums.TrxType;
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by Maks on 14.06.2018.
