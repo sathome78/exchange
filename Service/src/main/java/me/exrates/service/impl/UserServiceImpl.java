@@ -376,6 +376,7 @@ public class UserServiceImpl implements UserService {
     token.setValue(generateRegistrationToken());
     token.setTokenType(tokenType);
     token.setCheckIp(user.getIp());
+    token.setAlreadyUsed(false);
 
     createTemporalToken(token);
     String tempPassId = "";
@@ -824,5 +825,14 @@ public class UserServiceImpl implements UserService {
         }
         return true;
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+        return userDao.verifyToken(token);
+    }
+
+    public User getUserByTemporalToken(String token) {
+    return userDao.getUserByTemporalToken(token);
+  }
 
 }

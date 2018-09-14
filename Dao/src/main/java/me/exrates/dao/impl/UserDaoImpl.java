@@ -93,6 +93,21 @@ public class UserDaoImpl implements UserDao {
     };
   }
 
+  private RowMapper<User> getUserRowMapperWithoutRoleAndParentEmail() {
+    return (resultSet, i) -> {
+      final User user = new User();
+      user.setId(resultSet.getInt("id"));
+      user.setNickname(resultSet.getString("nickname"));
+      user.setEmail(resultSet.getString("email"));
+      user.setPassword(resultSet.getString("password"));
+      user.setRegdate(resultSet.getDate("regdate"));
+      user.setPhone(resultSet.getString("phone"));
+      user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+      user.setFinpassword(resultSet.getString("finpassword"));
+      return user;
+    };
+  }
+
   public int getIdByEmail(String email) {
     String sql = "SELECT id FROM USER WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
@@ -381,6 +396,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("id", String.valueOf(id));
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
+  }
+
+  public User getUserByTemporalToken(String token){
+    String sql = "SELECT * FROM USER WHERE USER.id =(SELECT TEMPORAL_TOKEN.user_id FROM TEMPORAL_TOKEN WHERE TEMPORAL_TOKEN.value=:token_value)";
+    Map<String,String> namedParameters = new HashMap<>();
+    namedParameters.put("token_value",token);
+    return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
   }
 
   @Override
