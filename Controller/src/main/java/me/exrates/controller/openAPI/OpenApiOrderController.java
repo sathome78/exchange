@@ -2,7 +2,7 @@ package me.exrates.controller.openAPI;
 
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
-import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
+import me.exrates.model.dto.openAPI.OrderCreationDto;
 import me.exrates.model.dto.openAPI.OrderParamsDto;
 import me.exrates.model.enums.OrderType;
 import me.exrates.service.OrderService;
@@ -21,9 +21,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,17 +45,23 @@ import java.util.Map;
 
 import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
 import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
 @RestController
 @RequestMapping("/openapi/v1/orders")
 public class OpenApiOrderController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+    private final UserService userService;
 
     @Autowired
-    private UserService userService;
+    public OpenApiOrderController(OrderService orderService,
+                                  UserService userService) {
+        this.orderService = orderService;
+        this.userService = userService;
+    }
 
     /**
      * @api {post} /openapi/v1/orders/create Create order
@@ -58,23 +75,26 @@ public class OpenApiOrderController {
      * @apiParam {Number} amount Amount in base currency
      * @apiParam {Number} price Exchange rate
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/create
-     *       RequestBody:{currency_pair, order_type, amount, price}
-     *
+     * /openapi/v1/orders/create
+     * RequestBody:{currency_pair, order_type, amount, price}
      * @apiSuccess {Object} orderCreationResult Order creation result information
      * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
      * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
      * @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
      */
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('TRADE')")
-    @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
+    @PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<OrderCreationDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto,
+                                                        Errors errors) {
+        if (errors.hasErrors()) {
+            //todo: throw exception
+        }
         String currencyPairName = formatCurrencyPairNameParam(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
                 orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
-        return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
+        return ResponseEntity.ok(new OrderCreationDto(resultDto));
     }
 
     /**
@@ -86,8 +106,8 @@ public class OpenApiOrderController {
      * @apiDescription Canceles order
      * @apiParam {String} order_id Id of order to be cancelled
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/cancel
-     *       RequestBody: Map{order_id=123}
+     * /openapi/v1/orders/cancel
+     * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
@@ -110,8 +130,8 @@ public class OpenApiOrderController {
      * @apiDescription Accepts order
      * @apiParam {Integer} order_id Id of order to be accepted
      * @apiParamExample Request Example:
-     *     /openapi/v1/orders/accept
-     *     RequestBody: Map{order_id=123}
+     * /openapi/v1/orders/accept
+     * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success=true Acceptance result
      */
     @PreAuthorize("hasAuthority('TRADE')")
@@ -135,7 +155,7 @@ public class OpenApiOrderController {
      * @apiParam {String} order_type Type of order (BUY or SELL)
      * @apiParam {String} currency_pair Name of currency pair
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/open/SELL?btc_usd
+     * /openapi/v1/orders/open/SELL?btc_usd
      * @apiSuccess {Array} openOrder Open Order Result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
@@ -149,7 +169,6 @@ public class OpenApiOrderController {
         String currencyPairName = formatCurrencyPairNameParam(currencyPair);
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
-
 
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

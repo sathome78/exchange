@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 @Getter
 @ToString
-public class OrderCreationResultOpenApiDto {
+public class OrderCreationDto {
 
     @JsonProperty("created_order_id")
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -24,7 +24,7 @@ public class OrderCreationResultOpenApiDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal partiallyAcceptedAmount;
 
-    public OrderCreationResultOpenApiDto(OrderCreationResultDto orderCreationResultDto) {
+    public OrderCreationDto(OrderCreationResultDto orderCreationResultDto) {
         this.createdOrderId = orderCreationResultDto.getCreatedOrderId();
         this.autoAcceptedQuantity = orderCreationResultDto.getAutoAcceptedQuantity();
         this.partiallyAcceptedAmount = orderCreationResultDto.getPartiallyAcceptedAmount();
