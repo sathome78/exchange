@@ -56,103 +56,66 @@
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <h3><loc:message code="dashboard.contactsAndSupport"/></h3>
-        <hr/>
-
-        <div class="col-md-6 col-md-offset-3 content">
-           <div class="text-center">
-               <h4><loc:message code="contacts.feedback"/></h4>
-           </div>
-            <div class="panel-body">
-                <form:form action="/sendFeedback" id="feedback-form" cssClass="form_auto_height form_full_width"
-                           method="post" accept-charset="UTF-8" modelAttribute="messageForm">
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label for="sender-name" class="input-block-wrapper__label"><loc:message
-                                    code="contacts.name"/></label>
-                        </div>
-
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <form:input path="senderName" class="input-block-wrapper__input full-width"
-                                   id="sender-name"/>
-                            <form:errors path="senderName" class="input-block-wrapper__input red"/>
-                        </div>
+        <div class="col-md-8 col-md-offset-2 content legal_content">
+            <h3>Contacts & Representatives </h3>
+            <hr>
+            <div>
+                <div class="col-md-7" style="padding-left: 0;">
+                    <p style="margin-top: 0;">Dear community please visit our representative offices and get detailed information about the listing and partnership with Exrates.
+                        <br>
+                        You can find us: </p>
+                    <div>
+                        <p>
+                        <h5 style="margin-top: 30px;">China</h5>
+                        <p>
+                            <b>Representative office location:</b>
+                        </p>
+                        <p style="margin-top: 0;" text-align: left;>北京市朝阳区朝阳路都会国际 China, Beijing, Chaoyang dstr, Chaoyang rd, Duhui international<p>
+                        <p>
+                            <b>Phone:</b> +8615313750545
+                        </p>
+                        <p>
+                            <b>Managing Partner </b>
+                        </p>
+                        <a style="margin-top: 0; margin-bottom: 10px; display: inline-block;" href="http://www.linkedin.com/in/fangjinzhu4284/"> 房金柱 mr.Fang</a>
+                        <br>
+                        <a href="email:fang.chinalisting@exrates.me">fang.chinalisting@exrates.me</a>
+                        </p>
                     </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label for="sender-email" class="input-block-wrapper__label"><loc:message
-                                    code="login.email"/></label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <form:input path="senderEmail" class="input-block-wrapper__input full-width"
-                                   id="sender-email"/>
-                            <form:errors path="senderEmail" class="input-block-wrapper__input red"/>
-                        </div>
+                    <div>
+                        <h5 style="margin-top: 30px;">Switzerland </h5>
+                        <p>
+                            <b>Representative office location:</b>
+                        </p>
+                        <p style="margin-top: 0; text-align: left;">Gotthardstrasse 191, Goeschenen, CH-6487, Switzerland (MERKURI HOLDING AG)</p>
+                        <p>
+                            <b>Phone:</b> +41788832270
+                        </p>
+                        <p>
+                            <b>Chairman of the Board  </b>
+                        </p>
+                        <a style="margin-top: 0; margin-bottom: 10px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/">Vladislav Postoupalski</a>
+                        <br>
+                        <a href="email:merkuri@exrates.me">merkuri@exrates.me</a>
                     </div>
-
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label for="message-text" class="input-block-wrapper__label"><loc:message
-                                    code="contacts.messageText"/></label>
-                        </div>
-                        <div class="col-md-9">
-                            <form:textarea path="messageText" class="textarea non-resize"
-                                           id="message-text"></form:textarea>
-                            <form:errors path="messageText" class="input-block-wrapper__input red"/>
-
-                        </div>
+                    <div>
+                        <h5 style="margin-top: 30px;">Listing Support Line </h5>
+                        <p>
+                            <b>Phone:</b> +6281547581914
+                        </p>
+                        <a href="email:merkuri@exrates.me">listing@exrates.me</a>
                     </div>
-                    <br/>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-
-                        </div>
-                        <div class="col-md-9">
-                            <c:if test="${captchaType==\"RECAPTCHA\"}">
-                                <%--CAPTCHA GOOGLE--%>
-                                <div id="cpch-head-field" class="g-recaptcha"
-                                     data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                            </c:if>
-                            <c:if test="${captchaType==\"BOTDETECT\"}">
-                                <%--CAPTCHA BotDetect--%>
-                                <div class="validationDiv">
-                                    <botDetect:captcha id="feedbackMessageCaptcha" userInputID="captchaCode"/>
-                                    <input name="captchaCode" type="text" id="captchaCode"/>
-                                    <input type="hidden" name="captchaId" value="feedbackMessageCaptcha"/>
-                                </div>
-                            </c:if>
-                            <input type="hidden" name="captchaType" value="${captchaType}"/>
-
-
-                        </div>
+                </div>
+                <div class="col-md-4 col-md-offset-1">
+                    <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
+                        <script data-cfasync="false" src="https://exrates.me/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+                        <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script>
                     </div>
-                    <div class="input-block-wrapper paddingtop10">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        </div>
-                        <div class="col-md-9">
-                            <button id="feedbackSubmit" type="submit" class="blue-box"><loc:message
-                                    code="dashboard.onlinechatsend"/></button>
-                        </div>
-                    </div>
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-
-
-                    <%----%>
-
-
-
-                </form:form>
-
+                </div>
+            </div>
         </div>
     </div>
-
-    </div>
-    <div class="row">
-        <loc:message code="contacts.address"/>
-        <p><loc:message code="contacts.contactPhone"/> </p>
-    </div>
-    <div style="margin-bottom: 15%"></div>
+    <div style="margin-bottom: 5%"></div>
 
 
 </main>
