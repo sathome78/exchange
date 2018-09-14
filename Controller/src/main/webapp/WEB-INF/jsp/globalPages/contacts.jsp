@@ -58,52 +58,51 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">
             <h3>Contacts & Representatives </h3>
-            <hr>
+            <hr style="margin-bottom: 16px; margin-top: 16px;">
             <div>
                 <div class="col-md-7" style="padding-left: 0;">
                     <p style="margin-top: 0;">Dear community please visit our representative offices and get detailed information about the listing and partnership with Exrates.
                         <br>
+                        <br>
                         You can find us: </p>
                     <div>
-                        <p>
-                        <h5 style="margin-top: 30px;">China</h5>
-                        <p>
+                        <h5 style="margin-top: 32px; margin-bottom: 16px;">China</h5>
+                        <p style="margin-bottom: 0; margin-top: 0;">
                             <b>Representative office location:</b>
                         </p>
-                        <p style="margin-top: 0;" text-align: left;>北京市朝阳区朝阳路都会国际 China, Beijing, Chaoyang dstr, Chaoyang rd, Duhui international<p>
-                        <p>
+                        <p style="margin-top: 0; margin-bottom:0; text-align: left;">北京市朝阳区朝阳路都会国际  China, Beijing, Chaoyang dstr, Chaoyang rd, Duhui international</p>
+                        <p style="margin-top: 8px; margin-bottom: 0;">
                             <b>Phone:</b> +8615313750545
                         </p>
-                        <p>
+                        <p style="margin-top: 8px; margin-bottom: 8px;">
                             <b>Managing Partner </b>
                         </p>
-                        <a style="margin-top: 0; margin-bottom: 10px; display: inline-block;" href="http://www.linkedin.com/in/fangjinzhu4284/"> 房金柱 mr.Fang</a>
+                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="http://www.linkedin.com/in/fangjinzhu4284/"> 房金柱 mr.Fang</a>
                         <br>
-                        <a href="email:fang.chinalisting@exrates.me">fang.chinalisting@exrates.me</a>
-                        </p>
+                        <a href="mailto:fang.chinalisting@exrates.me">fang.chinalisting@exrates.me</a>
                     </div>
                     <div>
-                        <h5 style="margin-top: 30px;">Switzerland </h5>
-                        <p>
+                        <h5 style="margin-top: 32px;margin-bottom: 16px;">Switzerland </h5>
+                        <p style="margin-bottom: 0; margin-top: 0;">
                             <b>Representative office location:</b>
                         </p>
-                        <p style="margin-top: 0; text-align: left;">Gotthardstrasse 191, Goeschenen, CH-6487, Switzerland (MERKURI HOLDING AG)</p>
-                        <p>
+                        <p style="margin-top: 0; margin-bottom:0; text-align: left;">Gotthardstrasse 191, Goeschenen, CH-6487, Switzerland (MERKURI HOLDING AG)</p>
+                        <p style="margin-top: 8px; margin-bottom: 0;">
                             <b>Phone:</b> +41788832270
                         </p>
-                        <p>
+                        <p style="margin-top: 8px; margin-bottom: 8px;">
                             <b>Chairman of the Board  </b>
                         </p>
-                        <a style="margin-top: 0; margin-bottom: 10px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/">Vladislav Postoupalski</a>
+                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/">Vladislav Postoupalski</a>
                         <br>
-                        <a href="email:merkuri@exrates.me">merkuri@exrates.me</a>
+                        <a href="mailto:merkuri@exrates.me">merkuri@exrates.me</a>
                     </div>
                     <div>
-                        <h5 style="margin-top: 30px;">Listing Support Line </h5>
-                        <p>
+                        <h5 style="margin-top: 32px; margin-bottom: 16px;">Listing Support Line </h5>
+                        <p style="margin-top: 8px; margin-bottom: 0;">
                             <b>Phone:</b> +6281547581914
                         </p>
-                        <a href="email:merkuri@exrates.me">listing@exrates.me</a>
+                        <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
                     </div>
                 </div>
                 <div class="col-md-4 col-md-offset-1">
