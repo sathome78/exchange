@@ -57,7 +57,7 @@
 <main class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">
-            <h3>Contacts & Representatives </h3>
+            <h3>CONTACTS & REPRESENTATIVES </h3>
             <hr style="margin-bottom: 16px; margin-top: 16px;">
             <div>
                 <div class="col-md-7" style="padding-left: 0;">
