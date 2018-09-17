@@ -476,6 +476,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new LoggingAspect();
     }
 
+    /*
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
@@ -499,6 +500,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HSR", "HSR", 4, 20, false, false);
     }
+    */
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -1367,7 +1369,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     @Bean(name = "nerServiceImpl")
     public EthTokenService nerService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x7a07e1a0c2514d51132183ecfea2a880ec3b7648");
+        tokensList.add("0xee5dfb5ddd54ea2fb93b796a8a1b83c3fe38e0e6");
         return new EthTokenServiceImpl(
                 tokensList,
                 "NER",
