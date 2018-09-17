@@ -222,11 +222,13 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
     }
 
+    /*
     @Bean(name = "clxServiceImpl")
     public BitcoinService clxService() {
         return new BitcoinServiceImpl("merchants/clx_wallet.properties",
                 "CLX", "CLX", 4, 20, false, false);
     }
+    */
 
     @Bean(name="sbtcServiceImpl")
     public BitcoinService sbtcService(){

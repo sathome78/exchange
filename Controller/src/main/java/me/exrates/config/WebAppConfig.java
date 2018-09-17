@@ -463,6 +463,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new LoggingAspect();
     }
 
+    /*
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
@@ -486,6 +487,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HSR", "HSR", 4, 20, false, false);
     }
+    */
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
