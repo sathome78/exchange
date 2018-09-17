@@ -174,10 +174,6 @@
 			<artifactId>aspectjweaver</artifactId>
 			<version>${aspectj.version}</version>
 		</dependency>
-
-
-
-
 		<!--AspectJ-->
 
 
@@ -432,6 +428,11 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>4.2.0</version>
+		</dependency>
 
 	</dependencies>
 

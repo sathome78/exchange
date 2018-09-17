@@ -31,6 +31,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -254,6 +255,24 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setMaximumPoolSize(50);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
+    }
+
+    @Bean
+    public Flyway flywayMaster() {
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dbMasterUrl, dbMasterUser, dbMasterPassword);
+        flyway.setBaselineOnMigrate(true);
+        flyway.migrate();
+        return flyway;
+    }
+
+    @Bean
+    public Flyway flywaySlave() {
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dbSlaveUrl, dbSlaveUser, dbSlavePassword);
+        flyway.setBaselineOnMigrate(true);
+        flyway.migrate();
+        return flyway;
     }
 
     @Primary
