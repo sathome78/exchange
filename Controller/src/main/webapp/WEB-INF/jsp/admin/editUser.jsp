@@ -379,7 +379,6 @@
                     <input id="datetimepicker_end" type="text" name="endDate">
                   </div>
 
-                </div>
                 <%--AMOUNT--%>
                 <div class="input-block-wrapper">
                   <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -412,6 +411,26 @@
               </form>
 
             </div>
+
+              <%--TIME--%>
+              <div class="input-block-wrapper">
+                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="ordersearch.date"/>
+                  </label>
+                </div>
+
+              <form id="transaction-search-datetime-form">
+                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                  <input id="datetimepicker_start" type="text" name="startDate">
+                  <input id="datetimepicker_end" type="text" name="endDate">
+                  <button id="transactions_change_date" class="blue-box"><loc:message
+                          code="admin.user.transactions.aplly_dates"/></button>
+                </div>
+
+                </form>
+              </div>
+
 
 
             <table id="transactionsTable"

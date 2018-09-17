@@ -6,6 +6,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
@@ -29,11 +30,7 @@ import java.util.concurrent.Semaphore;
 public class OrdersEventHandleService  {
 
     @Autowired
-    private StompMessenger stompMessenger;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private OrderService orderService;
+    private ExchangeRatesHolder ratesHolder;
     @Autowired
     private CurrencyStatisticsHandler currencyStatisticsHandler;
 
@@ -65,11 +62,11 @@ public class OrdersEventHandleService  {
     void handleOrderEventAsync(AcceptOrderEvent event) {
         log.debug("new thr accept {} ", Thread.currentThread().getName());
         ExOrder order = (ExOrder)event.getSource();
-        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         handleAllTrades(order);
         handleMyTrades(order);
         handleChart(order);
-
+        ratesHolder.onRatesChange(order.getCurrencyPairId(), order.getExRate());
+        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
 
@@ -89,14 +86,14 @@ public class OrdersEventHandleService  {
     }
 
     @Async
-    private void handleAllTrades(ExOrder exOrder) {
+    void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();
     }
 
     @Async
-    private void handleMyTrades(ExOrder exOrder) {
+    void handleMyTrades(ExOrder exOrder) {
         MyTradesHandler handler = mapMyTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> MyTradesHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent(exOrder.getUserId());
@@ -104,7 +101,7 @@ public class OrdersEventHandleService  {
     }
 
     @Async
-    private void handleChart(ExOrder exOrder) {
+    void handleChart(ExOrder exOrder) {
         ChartRefreshHandler handler = mapChart
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();

@@ -4,25 +4,27 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+
 @Getter @Setter
 @ToString
 public class CandleDto {
     private long time;
-    private double close;
-    private double open;
-    private double high;
-    private double low;
-    private double volume;
+    private BigDecimal close;
+    private BigDecimal open;
+    private BigDecimal high;
+    private BigDecimal low;
+    private BigDecimal volume;
 
     public CandleDto() {
     }
 
     public CandleDto(CandleChartItemDto candleChartItemDto) {
         this.time = candleChartItemDto.getBeginDate().getTime();
-        this.close = candleChartItemDto.getCloseRate().doubleValue();
-        this.open = candleChartItemDto.getOpenRate().doubleValue();
-        this.high = candleChartItemDto.getHighRate().doubleValue();
-        this.low = candleChartItemDto.getLowRate().doubleValue();
-        this.volume = candleChartItemDto.getBaseVolume().doubleValue();
+        this.close = candleChartItemDto.getCloseRate();
+        this.open = candleChartItemDto.getOpenRate();
+        this.high = candleChartItemDto.getHighRate();
+        this.low = candleChartItemDto.getLowRate();
+        this.volume = candleChartItemDto.getBaseVolume();
     }
 }

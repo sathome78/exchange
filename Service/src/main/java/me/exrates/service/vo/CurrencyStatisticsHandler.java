@@ -6,6 +6,7 @@ package me.exrates.service.vo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,6 @@ public class CurrencyStatisticsHandler {
 
     @Autowired
     private StompMessenger stompMessenger;
-    @Autowired
-    private OrdersStatisticByPairsCache cache;
 
     private Set<Integer> currenciesSet = Sets.newConcurrentHashSet();
 
@@ -41,7 +40,7 @@ public class CurrencyStatisticsHandler {
 
     @Async
     public void onEvent(int pairId) {
-        cache.setNeedUpdate(true);
+       /* cache.setNeedUpdate(true);*/
         try {
             if (lock.isLocked()) {
                 cdl.await(5, TimeUnit.SECONDS);

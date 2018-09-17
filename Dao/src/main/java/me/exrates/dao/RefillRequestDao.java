@@ -123,6 +123,8 @@ public interface RefillRequestDao {
 
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
+    List<RefillRequestAddressDto> findAddressDtosByMerchantAndCurrency(Integer merchantId, Integer currencyId);
+
     PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressFilterData data);
 
   List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);

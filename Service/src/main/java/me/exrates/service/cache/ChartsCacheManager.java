@@ -42,7 +42,6 @@ public class ChartsCacheManager {
 
     @Async
     public void onUpdateEvent(int pairId) {
-        log.debug("trigger update for {}", pairId);
         List<ChartTimeFrame> allIntervals = orderService.getChartTimeFrames();
         allIntervals.forEach(p -> setNeedUpdate(pairId, p));
         /*List<ChartTimeFrame> subscribedTimeFrames = stompMessenger.getSubscribedTimeFramesForCurrencyPair(pairId);
@@ -56,7 +55,6 @@ public class ChartsCacheManager {
 
 
     private void setNeedUpdate(Integer pairId, ChartTimeFrame timeFrame) {
-        log.debug("set need update {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
         cacheUnit.setNeedToUpdate();
     }
@@ -67,9 +65,7 @@ public class ChartsCacheManager {
     }
 
     public List<CandleChartItemDto> getData(Integer pairId, ChartTimeFrame timeFrame, boolean lastOnly) {
-        log.debug("get data for {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
-        System.out.println("cache unit " + cacheUnit);
         return lastOnly ? cacheUnit.getLastData() : cacheUnit.getData();
     }
 

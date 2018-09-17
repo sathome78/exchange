@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.QueryParam;
+import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,8 +145,9 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/tradingview/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime2() {
-
-        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
+        LocalDateTime now =  LocalDateTime.now();
+        LocalDateTime roundFloor =  now.truncatedTo(ChronoUnit.HOURS);
+        return new ResponseEntity(roundFloor.toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
     }
 
     @OnlineMethod
@@ -173,7 +176,7 @@ public class ChartController {
                 .add("exchange", "EXRATES")
                 .add("minmov", 1)
                 .add("fractional", false)
-                .add("pricescale", 10000)
+                .add("pricescale", 1000000000)
                 .add("type", "bitcoin")
                 .add("session", "24x7")
                 .add("ticker", symbol)
@@ -280,11 +283,11 @@ public class ChartController {
 
     private void getData(HashMap<String, Object> response, List<CandleDto> result) {
         List<Long> t = new ArrayList<>();
-        List<Double> o = new ArrayList<>();
-        List<Double> h = new ArrayList<>();
-        List<Double> l = new ArrayList<>();
-        List<Double> c = new ArrayList<>();
-        List<Double> v = new ArrayList<>();
+        List<BigDecimal> o = new ArrayList<>();
+        List<BigDecimal> h = new ArrayList<>();
+        List<BigDecimal> l = new ArrayList<>();
+        List<BigDecimal> c = new ArrayList<>();
+        List<BigDecimal> v = new ArrayList<>();
         for (CandleDto r : result) {
             t.add(r.getTime() / 1000);
             o.add(r.getOpen());

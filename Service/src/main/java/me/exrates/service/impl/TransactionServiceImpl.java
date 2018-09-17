@@ -267,7 +267,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
       String startDate,
       String endDate,
@@ -285,7 +285,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       Integer requesterUserId,
       String startDate,
@@ -294,6 +294,7 @@ public class TransactionServiceImpl implements TransactionService {
     return transactionDao.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, roleIdList);
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
     return transactionDao.getUserSummaryOrdersList(requesterUserId, startDate, endDate, roles);

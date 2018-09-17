@@ -159,6 +159,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private final ScheduledExecutorService checkerScheduler = Executors.newScheduledThreadPool(1);
 
+    private final ScheduledExecutorService etiReconnectScheduler = Executors.newScheduledThreadPool(1);
+
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
@@ -225,6 +227,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
             }
         }, 5, 5, TimeUnit.MINUTES);
+
+        if (currencyName.equals("ETI")) {
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                    checkConnection();
+                }catch (Exception e){
+                    log.error(e);
+                }
+            }, 4, 3, TimeUnit.MINUTES);
+        }
     }
 
     @Override
@@ -237,7 +249,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         throw new NotImplimentedMethod("for " + params);
     }
 
-    public void createSubscribe(){
+    private void checkConnection() {
+        log.debug("{} is unsubscribed {} ", currencyName,subscription.isUnsubscribed());
+        observable = null;
+        web3j.shutdown();
+        saveLastBlock(currentBlockNumber.toString());
+        web3j = Web3j.build(new HttpService(url));
+        createSubscribe(currentBlockNumber.toString());
+    }
+
+    public void createSubscribe(String lastBlock){
         try {
             log.debug(merchantName + " Connecting ethereum...");
 
@@ -257,8 +278,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             final String[] currentHash = new String[1];
             currentHash[0] = "";
 
-            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(lastBlock)));
+            log.info("start subscribe method");
             subscription = observable.subscribe(ethBlock -> {
+                log.info("new block {}", ethBlock.getBlockNumber());
                 if (merchantName.equals("Ethereum")) {
                     if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
                         counter[0]++;
@@ -361,6 +384,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
                 });
 
+            log.info("dubscr {}", subscription.isUnsubscribed());
+
         } catch (Exception e) {
             subscribeCreated = false;
             log.error(merchantName + " " + e);
@@ -372,7 +397,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             web3j.netVersion().send();
             if (subscription == null || subscribeCreated == false || subscription.isUnsubscribed()){
-                createSubscribe();
+
+                createSubscribe(loadLastBlock());
             }
             subscribeCreated = true;
         } catch (IOException e) {

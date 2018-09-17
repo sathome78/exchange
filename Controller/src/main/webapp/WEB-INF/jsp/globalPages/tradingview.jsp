@@ -17,7 +17,7 @@
 
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+   <%-- <%@include file="../tools/alexa.jsp" %>--%>
     <%--ZOPIM CHAT--%>
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%--INTERCOM CHAT--%>
@@ -29,9 +29,9 @@
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
-    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+    <script src="<c:url value="/client/js/datatables.js"/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/font-awesome.min.css'/>" rel="stylesheet">
     <%--<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">--%>
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
@@ -40,12 +40,12 @@
     <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+    <link href="<c:url value='/client/css/jqueryDatatables.css'/>" rel="stylesheet">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
@@ -70,7 +70,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+    <script type="text/javascript" src="<c:url value='/client/js/tinymce.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/historyRefStr.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>

@@ -528,6 +528,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="tron" fileName="${sys:catalina.home}/logs/crypto/tron.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/tron_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="etherinc_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/etherinc_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/etherinc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -546,11 +564,9 @@
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.springframework.security" level="INFO" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
@@ -751,8 +767,16 @@
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
         </logger>
+        <logger name="tron" level="ALL" additivity="false">
+            <AppenderRef ref="tron"/>
+        </logger>
         <logger name="open_api" level="ALL" additivity="false">
             <AppenderRef ref="open_api_log"/>
+        </logger>
+        <logger name="etherinc_log" level="ALL" additivity="false">
+            <AppenderRef ref="etherinc_log"/>
+        </logger>
+        <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
         </logger>
 
         <Root level="INFO">

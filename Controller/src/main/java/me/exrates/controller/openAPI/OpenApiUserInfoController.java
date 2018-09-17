@@ -26,6 +26,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
+@SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/user")
 public class OpenApiUserInfoController {
@@ -36,12 +37,49 @@ public class OpenApiUserInfoController {
     @Autowired
     private OrderService orderService;
 
+    /**
+     * @apiDefine NonPublicAuth
+     *  See Authentication API doc section
+     */
 
+    /**
+     * @api {get} /openapi/v1/user/balances User Balances
+     * @apiName User Balances
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Returns array of wallet objects
+     * @apiParamExample Request Example:
+     *           /openapi/v1/user/balances
+     * @apiSuccess {Array} Wallet objects result
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {String} data.currencyName Name of currency
+     * @apiSuccess {Number} data.activeBalance Balance that is available for spending
+     * @apiSuccess {Number} data.reservedBalance Balance reserved for orders or withdraw
+     */
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<WalletBalanceDto> userBalances() {
         return walletService.getBalancesForUser();
     }
 
+    /**
+     * @api {get} /openapi/v1/user/orders/open?currency_pair User's open orders
+     * @apiName Open orders
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Returns collection of user open orders
+     * @apiParam {String} currency_pair Name of currency pair (optional)
+     * @apiParamExample Request Example:
+     *           /openapi/v1/user/orders/open?currency_pair=btc_usd
+     * @apiSuccess {Array} User orders result
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.id Order id
+     * @apiSuccess {String} data.currency_pair Name of currency pair (e.g. btc_usd)
+     * @apiSuccess {Number} data.amount Amount in base currency
+     * @apiSuccess {String} data.order_type Type of order (BUY or SELL)
+     * @apiSuccess {Number} data.price Exchange rate
+     * @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
+     * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
+     */
     @GetMapping(value = "/orders/open", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userOpenOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
 
@@ -52,10 +90,31 @@ public class OpenApiUserInfoController {
         return orderService.getUserOpenOrders(currencyPairName);
     }
 
+    /**
+     * @api {get} /openapi/v1/user/orders/closed?currency_pair&limit&offset User's closed orders
+     * @apiName Closed orders
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Returns collection of user closed orders sorted by creation time
+     * @apiParam {String} currency_pair Name of currency pair (optional)
+     * @apiParam {Integer} limit Number of orders returned (default - 20, max - 100) (optional)
+     * @apiParam {Integer} offset Number of orders skipped (optional)
+     * @apiParamExample Request Example:
+     *           /openapi/v1/user/orders/closed?currency_pair=btc_usd&limit=100&offset=10
+     * @apiSuccess {Array} User orders result
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.id Order id
+     * @apiSuccess {String} data.currency_pair Name of currency pair (e.g. btc_usd)
+     * @apiSuccess {Number} data.amount Amount in base currency
+     * @apiSuccess {String} data.order_type Type of order (BUY or SELL)
+     * @apiSuccess {Number} data.price Exchange rate
+     * @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
+     * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
+     */
     @GetMapping(value = "/orders/closed", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userClosedOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
-                                          @RequestParam(required = false) Integer limit,
-                                          @RequestParam(required = false) Integer offset) {
+                                                @RequestParam(required = false) Integer limit,
+                                                @RequestParam(required = false) Integer offset) {
 
         String currencyPairName = null;
         if (currencyPair != null) {
@@ -72,6 +131,23 @@ public class OpenApiUserInfoController {
         }
     }
 
+    /**
+     * @api {get} /openapi/v1/user/commissions User’s commission rates
+     * @apiName Commissions
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Returns info on user’s commission rates
+     * (as per cent - for example, 0.5 rate means 0.5% of amount) by operation type.
+     * Commissions for orders (sell and buy) are calculated and withdrawn from amount in quote currency.
+     * @apiParamExample Request Example:
+     *      /openapi/v1/user/commissions
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Number} data.input Commission for input operations
+     * @apiSuccess {Number} data.output Commission for output operations
+     * @apiSuccess {Number} data.sell Commission for sell operations
+     * @apiSuccess {Number} data.buy Commission for buy operations
+     * @apiSuccess {Number} data.transfer Commission for transfer operations
+     */
     @GetMapping(value = "/commissions", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OpenApiCommissionDto getCommissions() {
         return new OpenApiCommissionDto(orderService.getAllCommissions());
