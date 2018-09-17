@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +23,11 @@ public class RateLimitService {
 
     private static final int TIME_LIMIT_SECONDS = 3600;
 
-    private static final int ATTEMPS = 5;
+    private static final Integer DEFAULT_ATTEMPS = 5;
 
-    private Map<String, CopyOnWriteArrayList<LocalDateTime>> map = new ConcurrentHashMap<>();
+    private final Map<String, CopyOnWriteArrayList<LocalDateTime>> userTimes = new ConcurrentHashMap<>();
+
+    private final Map<String, Integer> userLimits = new ConcurrentHashMap<>();
 
     @Autowired
     private UserDao userApiDao;
@@ -31,9 +35,9 @@ public class RateLimitService {
     @Scheduled(cron = "* 5 * * * *")
     public void clearExpiredRequests() {
 
-        new HashMap<>(map).forEach((k, v) -> {
+        new HashMap<>(userTimes).forEach((k, v) -> {
             if (v.stream().filter(p -> p.isAfter(LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS))).count() == 0) {
-                map.remove(k);
+                userTimes.remove(k);
             }
         });
     }
@@ -41,30 +45,56 @@ public class RateLimitService {
     public void registerRequest() {
 
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        map.putIfAbsent(userEmail, new CopyOnWriteArrayList<>());
-        map.get(userEmail).add(LocalDateTime.now());
+        userTimes.putIfAbsent(userEmail, new CopyOnWriteArrayList<>());
+        userTimes.get(userEmail).add(LocalDateTime.now());
     }
 
-    public void checkLimitsExceed() throws RequestsLimitExceedException {
+    public boolean checkLimitsExceed() throws RequestsLimitExceedException {
 
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         LocalDateTime beginTime = LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS);
-        List<LocalDateTime> list = map.get(userEmail);
-        if (list != null) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Integer limit = getRequestLimit(userEmail);
+
+        List<LocalDateTime> list = userTimes.get(userEmail);
+        if (list == null) {
+            return true;
+        } else {
             long counter = list.stream().filter(p -> p.isAfter(beginTime)).count();
-            if (counter > ATTEMPS) {
-                throw new RequestsLimitExceedException("LimitsExceed: " + userEmail);
-            }
+            return counter > limit;
         }
     }
 
-    public void setLimit(String userEmail, Integer limit){
+    @Transactional
+    public void setRequestLimit(String userEmail, Integer limit) {
 
-        userApiDao.setUserLimit(userEmail, limit);
+        userApiDao.updateRequestsLimit(userEmail, limit);
+        userLimits.put(userEmail, limit);
+        userTimes.remove(userEmail);
     }
 
-    public void getLimit(Long userId){
+    @Transactional
+    public Integer getRequestLimit(String userEmail) {
 
+        if (userLimits.containsKey(userEmail)) {
+            return userLimits.get(userEmail);
+        } else {
+            //get from database
+            Integer limit = userApiDao.getRequestsLimit(userEmail);
+            if (limit == 0) {
+                //no record. set default
+                userApiDao.setRequestsDefaultLimit(userEmail, DEFAULT_ATTEMPS);
+                limit = DEFAULT_ATTEMPS;
+            }
+            userLimits.put(userEmail, limit);
+            return limit;
+        }
     }
 
+    Map<String, Integer> getUserLimits() {
+        return Collections.unmodifiableMap(userLimits);
+    }
+
+    static Integer getDefaultAttemps() {
+        return DEFAULT_ATTEMPS;
+    }
 }
