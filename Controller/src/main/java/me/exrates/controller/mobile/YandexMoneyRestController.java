@@ -63,7 +63,7 @@ public class YandexMoneyRestController {
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);
         if (!requestPayment.isPresent()) {
             yandexMoneyService.deletePayment(paymentId);
-            final String message ="merchants.successfulBalanceDeposit";
+            final String message = "merchants.successfulBalanceDeposit";
             return new ResponseEntity<>(messageSource.getMessage(message, merchantService.formatResponseMessage(creditsOperation).values().toArray(), userLocale), HttpStatus.OK);
 
         }

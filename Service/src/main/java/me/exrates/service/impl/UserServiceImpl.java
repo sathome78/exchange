@@ -364,6 +364,7 @@ public class UserServiceImpl implements UserService {
     token.setValue(generateRegistrationToken());
     token.setTokenType(tokenType);
     token.setCheckIp(user.getIp());
+    token.setAlreadyUsed(false);
 
     createTemporalToken(token);
     String tempPassId = "";
@@ -415,8 +416,10 @@ public class UserServiceImpl implements UserService {
   }
 
   public boolean createTemporalToken(TemporalToken token) {
+    log.info("Token is " + token);
     boolean result = userDao.createTemporalToken(token);
     if (result) {
+      log.info("Token succesfully saved");
       tokenScheduler.initTrigers();
     }
     return result;
@@ -784,6 +787,15 @@ public class UserServiceImpl implements UserService {
       throw new AuthenticationNotAvailableException();
     }
     return auth.getName();
+  }
+
+    @Transactional(rollbackFor = Exception.class)
+    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+        return userDao.verifyToken(token);
+    }
+
+  public User getUserByTemporalToken(String token) {
+    return userDao.getUserByTemporalToken(token);
   }
 
 }

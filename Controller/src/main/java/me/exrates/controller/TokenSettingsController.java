@@ -47,7 +47,6 @@ public class TokenSettingsController {
     }
 
 
-
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public RedirectView tokenCreate(@RequestParam String alias, RedirectAttributes redirectAttributes,
                                     Principal principal) {
@@ -74,7 +73,6 @@ public class TokenSettingsController {
     public void deleteToken(@RequestParam Long tokenId, Principal principal) {
         openApiTokenService.deleteToken(tokenId, principal.getName());
     }
-
 
 
 }

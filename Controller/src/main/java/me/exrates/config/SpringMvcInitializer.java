@@ -68,7 +68,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
     protected void registerDispatcherServlet(ServletContext servletContext) {
         super.registerDispatcherServlet(servletContext);
         servletContext.addListener(HttpSessionEventPublisher.class);
-      //TODO temporary disable
+        //TODO temporary disable
         //  servletContext.addListener(StoreSessionListenerImpl.class);
     }
 }

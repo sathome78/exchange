@@ -163,6 +163,7 @@ public class ChartController {
 
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
+
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
 
         return Json.createObjectBuilder()
@@ -183,7 +184,7 @@ public class ChartController {
                 .add("ticker", symbol)
                 .add("timezone", "UTC")
                 .add("supported_resolutions", Json.createArrayBuilder()
-                         .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)
                 .add("has_weekly_and_monthly", false)
@@ -219,7 +220,7 @@ public class ChartController {
                                 .add("name", "All types")
                                 .add("value", "")))
                 .add("supported_resolutions", Json.createArrayBuilder()
-                       .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .build();
     }
 

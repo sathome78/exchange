@@ -73,7 +73,7 @@
                     <p style="margin-top: 16px; margin-bottom: 0;">6. Access to testnet, test online wallets, faucets or other ways to receive test coins.</p>
                     <p style="margin-top: 16px; margin-bottom: 0;">7. Links to GitHub and supporting community - Slack, Reddit, Gitter etc.</p>
                     <p style="margin-top: 16px; margin-bottom: 0;">We will inform you on exact price only after studying all the technical documentation and the approval of the management.</p>
-                    <p style="margin-top: 8px; margin-bottom: 0;">If you are interested, please mail to <a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a>, <a href="mailto:listing@exrates.top?Subject=Add%20coin">listing@exrates.top</a> with all required technical data.</p>
+                    <p style="margin-top: 8px; margin-bottom: 0;">If you are interested, please mail to <a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a> with all required technical data.</p>
                     <p style="margin-top: 8px; margin-bottom: 0;"> <b>The head of the sales team: </b><a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a> </p>
                     <p style="margin-top: 8px; margin-bottom: 0;"><b>Sales manager: </b><a href="mailto:listmycoin@exrates.me?Subject=Add%20coin">listmycoin@exrates.me</a> </p>
                     <p style="margin-top: 8px; margin-bottom: 0;"><b>Sales manager: </b><a href="mailto:listme@exrates.me?Subject=Add%20coin">listme@exrates.me</a> </p>

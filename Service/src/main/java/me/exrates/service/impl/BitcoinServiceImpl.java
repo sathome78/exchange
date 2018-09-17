@@ -158,7 +158,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       if (supportWalletNotifications) {
         bitcoinWalletService.walletFlux().subscribe(this::onPayment);
       } else {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 3, 1, TimeUnit.MINUTES);
       }
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);

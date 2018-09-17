@@ -175,7 +175,6 @@ public class NewsControllerRest {
     }
 
 
-
     @RequestMapping(value = "/news/deleteNews", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(value = "id", required = false) Integer newsId,

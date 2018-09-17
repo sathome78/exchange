@@ -57,50 +57,51 @@
 <main class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">
-            <h3>Contacts & Representatives </h3>
+            <h3><loc:message code="contacts.title"/> </h3>
             <hr style="margin-bottom: 16px; margin-top: 16px;">
             <div>
                 <div class="col-md-7" style="padding-left: 0;">
-                    <p style="margin-top: 0;">Dear community please visit our representative offices and get detailed information about the listing and partnership with Exrates.
+                    <p style="margin-top: 0;"> <loc:message code="contacts.intro"/>
                         <br>
                         <br>
-                        You can find us: </p>
+                        <loc:message code="contacts.findUs"/>
+                    </p>
                     <div>
-                        <h5 style="margin-top: 32px; margin-bottom: 16px;">China</h5>
+                        <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="country.china"/></h5>
                         <p style="margin-bottom: 0; margin-top: 0;">
-                            <b>Representative office location:</b>
+                            <b><loc:message code="contacts.officeLocation.title"/></b>
                         </p>
-                        <p style="margin-top: 0; margin-bottom:0; text-align: left;">北京市朝阳区朝阳路都会国际  China, Beijing, Chaoyang dstr, Chaoyang rd, Duhui international</p>
+                        <p style="margin-top: 0; margin-bottom:0; text-align: left;"><loc:message code="contacts.officeLocation.china"/></p>
                         <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b>Phone:</b> +8615313750545
+                            <b><loc:message code="admin.phone"/>:</b> +8615313750545
                         </p>
                         <p style="margin-top: 8px; margin-bottom: 8px;">
-                            <b>Managing Partner </b>
+                            <b><loc:message code="contacts.partners.title"/> </b>
                         </p>
-                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="http://www.linkedin.com/in/fangjinzhu4284/"> 房金柱 mr.Fang</a>
+                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="http://www.linkedin.com/in/fangjinzhu4284/"><loc:message code="contacts.partners"/></a>
                         <br>
                         <a href="mailto:fang.chinalisting@exrates.me">fang.chinalisting@exrates.me</a>
                     </div>
                     <div>
-                        <h5 style="margin-top: 32px;margin-bottom: 16px;">Switzerland </h5>
+                        <h5 style="margin-top: 32px;margin-bottom: 16px;"><loc:message code="country.switzerland"/></h5>
                         <p style="margin-bottom: 0; margin-top: 0;">
-                            <b>Representative office location:</b>
+                            <b><loc:message code="contacts.officeLocation.title"/></b>
                         </p>
-                        <p style="margin-top: 0; margin-bottom:0; text-align: left;">Gotthardstrasse 191, Goeschenen, CH-6487, Switzerland (MERKURI HOLDING AG)</p>
+                        <p style="margin-top: 0; margin-bottom:0; text-align: left;"><loc:message code="contacts.officeLocation.switzerland"/></p>
                         <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b>Phone:</b> +41788832270
+                            <b><loc:message code="admin.phone"/>:</b> +41788832270
                         </p>
                         <p style="margin-top: 8px; margin-bottom: 8px;">
-                            <b>Chairman of the Board  </b>
+                            <b><loc:message code="contacts.chairman.title"/> </b>
                         </p>
-                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/">Vladislav Postoupalski</a>
+                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/"><loc:message code="contacts.chairman"/> </a>
                         <br>
                         <a href="mailto:merkuri@exrates.me">merkuri@exrates.me</a>
                     </div>
                     <div>
-                        <h5 style="margin-top: 32px; margin-bottom: 16px;">Listing Support Line </h5>
+                        <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="contacts.support.title"/></h5>
                         <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b>Phone:</b> +6281547581914
+                            <b><loc:message code="admin.phone"/>:</b> +6281547581914
                         </p>
                         <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
                     </div>

@@ -102,7 +102,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
 
-
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
     @Autowired
@@ -112,7 +111,7 @@ public class AdminController {
     @Autowired
     private UserService userService;
     @Autowired
-    private UserOperationService userOperationService;
+    private UserDetailsService userDetailsService;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
@@ -161,6 +160,8 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
+    @Autowired
+    private UserOperationService userOperationService;
 
 
     @Autowired
@@ -361,7 +362,7 @@ public class AdminController {
                                                                @RequestParam boolean sendMessage, Principal principal,
                                                                final Locale locale) {
         try {
-            userService.editUserComment(commentId, newComment,email, sendMessage, principal.getName());
+            userService.editUserComment(commentId, newComment, email, sendMessage, principal.getName());
         } catch (Exception e) {
             LOG.error(e);
             return new ResponseEntity<>(singletonMap("error",
@@ -433,14 +434,14 @@ public class AdminController {
                 break;
             case "stopOrdersCancelled":
                 List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
-                result = stopOrdersCancelled ;
+                result = stopOrdersCancelled;
                 break;
             case "stopOrdersClosed":
                 List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
-                result = stopOrdersClosed ;
+                result = stopOrdersClosed;
                 break;
             case "stopOrdersOpened":
-                List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, locale);
+                List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null, 0, -1, locale);
                 result = stopOrdersOpened;
                 break;
         }
@@ -481,7 +482,7 @@ public class AdminController {
 
     @AdminLoggable
     @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
-    public ModelAndView editUser(@RequestParam(required=false) Integer id, @RequestParam(required=false) String email, HttpServletRequest request, Principal principal) {
+    public ModelAndView editUser(@RequestParam(required = false) Integer id, @RequestParam(required = false) String email, HttpServletRequest request, Principal principal) {
 
         ModelAndView model = new ModelAndView();
 
@@ -494,7 +495,7 @@ public class AdminController {
         model.addObject("roleList", roleList);
 
         User user = new User();
-        if (email != null){
+        if (email != null) {
             email = email.replace(" ", "+");
             user = userService.findByEmail(email);
         } else {
@@ -539,7 +540,7 @@ public class AdminController {
         RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=".concat(String.valueOf(userId)));
         try {
             Map<Integer, NotificationsUserSetting> settingsMap = notificationsSettingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
+            settingsMap.forEach((k, v) -> {
                 Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
@@ -579,8 +580,10 @@ public class AdminController {
         int roleId = userService.getUserRoleFromDB(userId).getRole();
         BigDecimal fee = notificatorsService.getMessagePrice(notificatorId, roleId);
         BigDecimal price = doAction(fee, subscription.getPrice(), ActionType.ADD);
-        return new JSONObject(){{put("contact", contact);
-            put("price", price);}}.toString();
+        return new JSONObject() {{
+            put("contact", contact);
+            put("price", price);
+        }}.toString();
     }
 
     @AdminLoggable
@@ -684,8 +687,7 @@ public class AdminController {
             response.setStatus(500);
             message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
         } else {
-            if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
-
+            if (bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())) {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
                 updateUserDto.setPassword(user.getConfirmPassword());
                 updateUserDto.setStatus(UserStatus.ACTIVE);
@@ -699,7 +701,9 @@ public class AdminController {
                 message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
             }
         }
-        return new JSONObject(){{put("message", message);}}.toString();
+        return new JSONObject() {{
+            put("message", message);
+        }}.toString();
     }
 
 
@@ -750,9 +754,9 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
         } else {
             boolean userNicknameUpdated = userService.setNickname(user);
-            if(userNicknameUpdated){
+            if (userNicknameUpdated) {
                 redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
-            }else{
+            } else {
                 redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             }
         }
@@ -955,16 +959,14 @@ public class AdminController {
         return new ModelAndView("admin/transaction_bitcoin");
     }
 
-
-    private BitcoinService findAnyBitcoinServiceBean() {
-        return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
-    }
-
     @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
     public ModelAndView sessionControl() {
         return new ModelAndView("admin/sessionControl");
     }
 
+    private BitcoinService findAnyBitcoinServiceBean() {
+        return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
+    }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
     @ResponseBody
@@ -1098,9 +1100,7 @@ public class AdminController {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
         return new ResponseEntity<>(HttpStatus.OK);
-
     }
-
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
@@ -1206,7 +1206,6 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<String>> getPhrases(
@@ -1259,7 +1258,6 @@ public class AdminController {
         return (BitcoinService) merchantService;
     }
 
-    //build now(test)
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
     public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
         ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
@@ -1355,7 +1353,6 @@ public class AdminController {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.scanForUnprocessedTransactions(blockhash);
     }
-
 
     @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
     @ResponseBody
@@ -1541,8 +1538,6 @@ public class AdminController {
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
         modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
-
-
         return modelAndView;
     }
 
@@ -1563,6 +1558,7 @@ public class AdminController {
         model.addAttribute("tech", alertsService.getAlert(AlertType.TECHNICAL_WORKS));
         return "admin/alertMessages";
     }
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/getSubtractFeeStatus", method = GET)
     public Boolean getSubtractFeeFromAmount(@PathVariable String merchantName) {
@@ -1576,6 +1572,7 @@ public class AdminController {
         alertsService.updateAction(alertDto);
         return "redirect:/2a8fy7b07dxe44/alerts";
     }
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setSubtractFee", method = POST)
     public void setSubtractFeeFromAmount(@PathVariable String merchantName,
@@ -1583,7 +1580,6 @@ public class AdminController {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.setSubtractFeeFromAmount(subtractFee);
     }
-
 
     @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses")
     public String refillAddressesPage(Model model) {

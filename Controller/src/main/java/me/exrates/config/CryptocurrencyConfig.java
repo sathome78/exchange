@@ -19,6 +19,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
                 "Bitcoin", "BTC", 4, 15, false);
     }
+
    /* @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
@@ -36,6 +37,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
                 "ATB", "ATB", 10, 20, false);
     }
+
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
@@ -113,6 +115,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bca_wallet.properties",
                 "BitcoinAtom", "BCA", 4, 20, false);
     }
+
     @Bean(name = "btcpServiceImpl")
     public BitcoinService btcpService() {
         return new BitcoinServiceImpl("merchants/btcp_wallet.properties",
@@ -210,8 +213,8 @@ public class CryptocurrencyConfig {
                 "RIZ", "RIZ", 4, 20, false);
     }
 
-    @Bean(name="sicServiceImpl")
-    public BitcoinService sicService(){
+    @Bean(name = "sicServiceImpl")
+    public BitcoinService sicService() {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }
 
@@ -284,7 +287,7 @@ public class CryptocurrencyConfig {
     /*
     @Bean(name = "wavesServiceImpl")
     public WavesService wavesService() {
-        return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
+        return new WavesServiceImpl("WAVES", "Waves", "merchants/waves.properties");
     }
 
     @Bean(name = "lunesServiceImpl")

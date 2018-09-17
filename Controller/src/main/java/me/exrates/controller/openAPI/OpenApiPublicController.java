@@ -44,7 +44,7 @@ public class OpenApiPublicController {
      * @apiDescription Returns array of ticker info objects
      * @apiParam {String} currency_pair Currency pair name (optional)
      * @apiParamExample Request Example:
-     *      /openapi/v1/public/ticker?currency_pair=btc_usd
+     * /openapi/v1/public/ticker?currency_pair=btc_usd
      * @apiSuccess {Array} Ticker Infos result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Currency pair id
@@ -122,7 +122,7 @@ public class OpenApiPublicController {
      * @apiDescription Provides collection of recent deal info objects
      * @apiParam {String} period period (available values: minute, hour, day, default: hour) (optional)
      * @apiParamExample Request Example:
-     *      openapi/v1/public/history/btc_usd?hour=1
+     * openapi/v1/public/history/btc_usd?hour=1
      * @apiSuccess {Array} Array of recent deals info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.order_id Order id
@@ -146,7 +146,7 @@ public class OpenApiPublicController {
      * @apiPermission user
      * @apiDescription Provides collection of currency pairs
      * @apiParamExample Request Example:
-     *      openapi/v1/public/currency_pairs
+     * openapi/v1/public/currency_pairs
      * @apiSuccess {Array} Array of currency pairs
      * @apiSuccess {Object} data Container object
      * @apiSuccess {String} data.name Currency pair name

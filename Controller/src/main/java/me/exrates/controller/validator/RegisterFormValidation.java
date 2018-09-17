@@ -41,7 +41,7 @@ public class RegisterFormValidation implements Validator {
     String STRING_PATTERN = "[a-zA-Z]+";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
-//    private static final Locale ru = new Locale("ru");
+    //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
 
@@ -309,7 +309,7 @@ public class RegisterFormValidation implements Validator {
         if (userId != 0) {
             User findUser = userService.getUserById(userId);
             if (findUser.getStatus() == UserStatus.DELETED) {
-                errors.rejectValue(EMAIL_FIELD_NAME, "email.incorrect", statusIncorrect);
+                errors.rejectValue("email", "email.incorrect", statusIncorrect);
             }
         } else {
             errors.rejectValue(EMAIL_FIELD_NAME, "email.incorrect", emailIncorrect);

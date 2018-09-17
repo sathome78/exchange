@@ -94,6 +94,21 @@ public class UserDaoImpl implements UserDao {
     };
   }
 
+  private RowMapper<User> getUserRowMapperWithoutRoleAndParentEmail() {
+    return (resultSet, i) -> {
+      final User user = new User();
+      user.setId(resultSet.getInt("id"));
+      user.setNickname(resultSet.getString("nickname"));
+      user.setEmail(resultSet.getString("email"));
+      user.setPassword(resultSet.getString("password"));
+      user.setRegdate(resultSet.getDate("regdate"));
+      user.setPhone(resultSet.getString("phone"));
+      user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+      user.setFinpassword(resultSet.getString("finpassword"));
+      return user;
+    };
+  }
+
   public int getIdByEmail(String email) {
     String sql = "SELECT id FROM USER WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
@@ -374,6 +389,13 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
   }
 
+  public User getUserByTemporalToken(String token){
+    String sql = "SELECT * FROM USER WHERE USER.id =(SELECT TEMPORAL_TOKEN.user_id FROM TEMPORAL_TOKEN WHERE TEMPORAL_TOKEN.value=:token_value)";
+    Map<String,String> namedParameters = new HashMap<>();
+    namedParameters.put("token_value",token);
+    return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
+  }
+
   @Override
   public User getCommonReferralRoot() {
     final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
@@ -550,6 +572,7 @@ public class UserDaoImpl implements UserDao {
         temporalToken.setId(rs.getInt("id"));
         temporalToken.setUserId(rs.getInt("user_id"));
         temporalToken.setValue(token);
+        temporalToken.setAlreadyUsed(rs.getBoolean("already_used"));
         temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
         temporalToken.setExpired(rs.getBoolean("expired"));
         temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));

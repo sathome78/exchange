@@ -95,7 +95,7 @@ public class NeoServiceImpl implements NeoService {
                 log.error(e);
             }
 
-        }, 1L, 30L, TimeUnit.MINUTES);
+        }, 3L, 30L, TimeUnit.MINUTES);
     }
 
 

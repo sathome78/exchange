@@ -152,15 +152,15 @@ public class IotaServiceImpl implements IotaService {
                         .host(HOST)
                         .port(PORT)
                         .build();
-                log.info("Iota started");
-                GetNodeInfoResponse response = iotaClient.getNodeInfo();
-                System.out.println(response.toString());
+               /*Do not delete!1
+               GetNodeInfoResponse response = iotaClient.getNodeInfo();
+                System.out.println(response.toString());*/
 
                 scheduler.scheduleAtFixedRate(new Runnable() {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 1, 120, TimeUnit.MINUTES);
+                }, 3, 120, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }

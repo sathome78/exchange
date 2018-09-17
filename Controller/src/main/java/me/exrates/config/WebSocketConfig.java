@@ -25,13 +25,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
 
-    
+
     @Value("${ws.lib.url}")
     private String clientLibraryUrl;
-    
+
     @Value("${ws.origin}")
     private String allowedOrigins;
-    
+
     @Autowired
     public WebSocketConfig(final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.handlers = handlers;
@@ -72,7 +72,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public ChatWebSocketHandler chatARWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
-    
+
     @Bean(name = "chatIN")
     public ChatWebSocketHandler chatINWebSocketHandler() {
         return new ChatWebSocketHandler();
