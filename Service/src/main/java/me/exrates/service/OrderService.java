@@ -395,8 +395,9 @@ public interface OrderService {
 
     List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 
-    List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
-                                             @Nullable Integer limit, @Nullable Integer offset);
+    List<UserOrdersDto> getUserClosedOrders(String currencyPairName, Integer limit, Integer offset);
+
+    List<UserOrdersDto> getUserCanceledOrders(String currencyPairName, Integer limit, Integer offset);
 
     List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
 
