@@ -79,6 +79,9 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
+    @Autowired
+    TemporalTokenService temporalTokenService;
+
     @Value("${captcha.type}")
     String CAPTCHA_TYPE;
 
@@ -97,20 +100,6 @@ public class DashboardController {
             userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
         }
         request.getSession();
-
-  @Autowired
-  TemporalTokenService temporalTokenService;
-
-  @RequestMapping(value = {"/dashboard/locale"})
-  @ResponseBody
-  public void localeSwitcherCommand(
-      Principal principal,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    Locale locale = localeResolver.resolveLocale(request);
-    localeResolver.setLocale(request, response, locale);
-    if (principal != null) {
-      userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
     }
 
     public static String convertLanguageNameToMenuFormat(String lang) {
@@ -128,55 +117,8 @@ public class DashboardController {
         }
         model.addAttribute("captchaType", CAPTCHA_TYPE);
         return "forgotPassword";
-    model.addAttribute("captchaType", CAPTCHA_TYPE);
-    return "forgotPassword";
   }
 
-  @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
-  @ResponseBody
-  public ResponseEntity forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, RedirectAttributes attr) {
-      String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
-      String validate = request.getParameter(GeetestLib.fn_geetest_validate);
-      String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
-
-      int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-      String userid = (String)request.getSession().getAttribute("userid");
-
-      HashMap<String, String> param = new HashMap<>();
-      param.put("user_id", userid);
-
-      int gtResult = 0;
-      if (gt_server_status_code == 1) {
-          gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-          LOG.info(gtResult);
-      } else {
-          LOG.error("failback:use your own server captcha validate");
-          gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-          LOG.error(gtResult);
-      }
-
-      if (gtResult == 1) {
-          registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
-          if (result.hasErrors()) {
-              //TODO
-              throw new RuntimeException(result.toString());
-          }
-          String email = user.getEmail();
-          user = userService.findByEmail(email);
-          UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-          updateUserDto.setEmail(email);
-          userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
-
-          Map<String, Object> body = new HashMap<>();
-          body.put("result",messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
-          body.put("email", email);
-          return ResponseEntity.ok(body);
-      }
-      else {
-          //TODO
-          throw new RuntimeException("Geetest error");
-      }
-  }
 
   @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
   public ModelAndView recoveryPassword(@ModelAttribute("user") User user, @ModelAttribute("token") TemporalToken temporalToken) {
@@ -190,32 +132,34 @@ public class DashboardController {
 
   @RequestMapping(value = "/resetPasswordConfirm")
   public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
-    ModelAndView model = new ModelAndView();
-    try {
-        TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
-        if (dbToken !=null && !dbToken.isAlreadyUsed()){
-          User user = userService.getUserById(dbToken.getUserId());
+      ModelAndView model = new ModelAndView();
+      try {
+          TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
+          if (dbToken != null && !dbToken.isAlreadyUsed()) {
+              User user = userService.getUserById(dbToken.getUserId());
 
-          attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
-                  null, localeResolver.resolveLocale(request)));
-          attr.addFlashAttribute("user", user);
-          attr.addFlashAttribute("token", dbToken);
+              attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
+                      null, localeResolver.resolveLocale(request)));
+              attr.addFlashAttribute("user", user);
+              attr.addFlashAttribute("token", dbToken);
 
-          model.setViewName("redirect:/passwordRecovery");
-          temporalTokenService.updateTemporalToken(dbToken);
-      } else {
-          if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
-              attr.addFlashAttribute("userEmail", email);
-              attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
+              model.setViewName("redirect:/passwordRecovery");
+              temporalTokenService.updateTemporalToken(dbToken);
           } else {
-              attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
+              if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
+                  attr.addFlashAttribute("userEmail", email);
+                  attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
+              } else {
+                  attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
+              }
+              return new ModelAndView(new RedirectView("/dashboard"));
           }
-          return new ModelAndView(new RedirectView("/dashboard"));
+      } catch (Exception e) {
+          model.setViewName("DBError");
+          e.printStackTrace();
       }
-    } catch (Exception e) {
-      model.setViewName("DBError");
-      e.printStackTrace();
-    }
+      return model;
+  }
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
     @ResponseBody
@@ -260,42 +204,6 @@ public class DashboardController {
             //TODO
             throw new RuntimeException("Geetest error");
         }
-    }
-
-    @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
-    public ModelAndView recoveryPassword(@ModelAttribute("user") User user) {
-        ModelAndView model = new ModelAndView("fragments/recoverPassword");
-        model.addObject("user", user);
-        return model;
-    }
-
-    @RequestMapping(value = "/resetPasswordConfirm")
-    public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
-        ModelAndView model = new ModelAndView();
-        try {
-            int userId = userService.verifyUserEmail(token);
-            if (userId != 0) {
-                User user = userService.getUserById(userId);
-
-                attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
-                        null, localeResolver.resolveLocale(request)));
-                attr.addFlashAttribute("user", user);
-
-                model.setViewName("redirect:/passwordRecovery");
-            } else {
-                if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
-                    attr.addFlashAttribute("userEmail", email);
-                    attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
-                } else {
-                    attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
-                }
-                return new ModelAndView(new RedirectView("/dashboard"));
-            }
-        } catch (Exception e) {
-            model.setViewName("DBError");
-            e.printStackTrace();
-        }
-        return model;
     }
 
     @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
