@@ -52,6 +52,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 @Repository
 public class OrderDaoImpl implements OrderDao {
 
@@ -1359,14 +1362,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<UserOrdersDto> getUserOpenOrders(Integer userId, @Nullable Integer currencyPairId) {
-
-
         String currencyPairSql = currencyPairId == null ? "" : " AND EO.currency_pair_id = :currency_pair_id ";
         String sql = "SELECT EO.id AS order_id, EO.amount_base, EO.exrate, CP.name AS currency_pair_name, EO.operation_type_id, " +
                 " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE EO.user_id = :user_id AND EO.status_id = :status_id " + currencyPairSql +
-                " ORDER BY EO.date_creation DESC ";
+                " ORDER BY EO.date_creation DESC";
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
@@ -1376,31 +1377,39 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<UserOrdersDto> getUserOrdersHistory(Integer userId, @Nullable Integer currencyPairId, int limit, int offset) {
+    public List<UserOrdersDto> getUserOrdersByStatus(Integer userId,
+                                                     Integer currencyPairId,
+                                                     OrderStatus status,
+                                                     int limit,
+                                                     int offset) {
+        String currencyPairSql = nonNull(currencyPairId) ? " AND EO.currency_pair_id = :currency_pair_id " : StringUtils.EMPTY;
+        String limitSql = limit > 0 ? " LIMIT :limit " : StringUtils.EMPTY;
+        String offsetSql = (limit > 0 && offset > 0) ? "OFFSET :offset" : StringUtils.EMPTY;
 
-        String limitSql = limit > 0 ? " LIMIT :limit " : "";
-        String offsetSql = limit > 0 && offset > 0 ? "OFFSET :offset" : "";
-
-        String currencyPairSql = currencyPairId == null ? "" : " AND EO.currency_pair_id = :currency_pair_id ";
         String sql = "SELECT EO.id AS order_id, EO.amount_base, EO.exrate, CP.name AS currency_pair_name, EO.operation_type_id, " +
                 " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE (EO.user_id = :user_id OR EO.user_acceptor_id = :user_id) AND EO.status_id = :status_id " + currencyPairSql +
                 " ORDER BY EO.date_creation DESC " + limitSql + offsetSql;
+
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
-        params.put("status_id", OrderStatus.CLOSED.getStatus());
+        params.put("status_id", status.getStatus());
         params.put("limit", limit);
         params.put("offset", offset);
 
         return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
+    @Override
+    public void getTradeHistoryByOrder(Integer orderId) {
+        String sql = "SELECT * FROM TRANSACTION t WHERE t.source_id = :order_id AND t.source_type = 'ORDER'";
 
+        Map<String, Object> params = new HashMap<>();
 
-
-
+        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
+    }
 
 
 }

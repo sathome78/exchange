@@ -113,5 +113,7 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOpenOrders(Integer userId, Integer currencyPairId);
 
-    List<UserOrdersDto> getUserOrdersHistory(Integer userId, @Nullable Integer currencyPairId, int limit, int offset);
+    List<UserOrdersDto> getUserOrdersByStatus(Integer userId, Integer currencyPairId, OrderStatus status, int limit, int offset);
+
+    void getTradeHistoryByOrder(Integer orderId);
 }
