@@ -66,7 +66,7 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ModelAndView OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        log.error("URL: "+req.getRequestURL()+" | Exception "+exception);
+        log.error("URL: " + req.getRequestURL() + " | Exception " + exception);
         exception.printStackTrace();
         return new ModelAndView("errorPages/generalErrorPage");
     }

@@ -41,8 +41,8 @@ public class LiqpayMerchantController {
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
+    public RedirectView successPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
     /*    String signature = response.get("signature");
         String data = response.get("data");;
@@ -78,8 +78,8 @@ public class LiqpayMerchantController {
         return new RedirectView("/dashboard");
     }
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
+    public RedirectView statusPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         /*String signature = response.get("signature");
         String data = response.get("data");;

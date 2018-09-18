@@ -136,7 +136,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     private void proceedStopOrder(ExOrder exOrder) {
         OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairById(
                 exOrder.getCurrencyPair().getId()), exOrder.getOperationType(),
-                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.LIMIT);
+                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.STOP_LIMIT);
         if (newOrder == null) {
             throw new RuntimeException("error preparing new order");
         }

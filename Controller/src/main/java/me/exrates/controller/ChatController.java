@@ -46,26 +46,24 @@ public class ChatController {
     private final ChatService chatService;
     private final MessageSource messageSource;
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
- //   private final Gson gson = new Gson();
+    //   private final Gson gson = new Gson();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 
 
     public ChatController(final ChatService chatService,
                           final MessageSource messageSource,
-                          final EnumMap<ChatLang, ChatWebSocketHandler> handlers)
-    {
+                          final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.chatService = chatService;
         this.messageSource = messageSource;
         this.handlers = handlers;
     }
 
     @RequestMapping(value = "/chat/new-message", method = POST)
-    public ResponseEntity<Map<String,String>> newMessage(final @RequestParam("body") String body,
-                                             final @RequestParam("lang") String lang,
-                                             final Principal principal,
-                                             final Locale locale)
-    {
+    public ResponseEntity<Map<String, String>> newMessage(final @RequestParam("body") String body,
+                                                          final @RequestParam("lang") String lang,
+                                                          final Principal principal,
+                                                          final Locale locale) {
         final ChatLang chatLang = ChatLang.toInstance(lang);
         final ChatMessage message;
         try {
@@ -94,7 +92,8 @@ public class ChatController {
 
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/chat/deleteMessage", method = POST)
-    public @ResponseBody String deleteMessage(HttpServletRequest request) {
+    public @ResponseBody
+    String deleteMessage(HttpServletRequest request) {
 
         Map<String, String[]> params = request.getParameterMap();
         ChatMessage message = new ChatMessage();

@@ -81,7 +81,7 @@ public class OrderControllerRest {
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             if (baseType == null) baseType = OrderBaseType.LIMIT;
-           /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
+            /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
             CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair);
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
@@ -105,13 +105,13 @@ public class OrderControllerRest {
                 request.getSession().setAttribute("orderCreationError", errorMap);
                 throw new OrderParamsWrongException();
             } else {
-            /*protect orderCreateDto*/
+                /*protect orderCreateDto*/
                 request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
             }
             return orderCreateSummaryDto;
         } catch (OrderParamsWrongException e) {
             long after = System.currentTimeMillis();
-            LOGGER.error("error... ms: " + (after - before) + " : " + e+" "+request.getSession().getAttribute("orderCreationError"));
+            LOGGER.error("error... ms: " + (after - before) + " : " + e + " " + request.getSession().getAttribute("orderCreationError"));
             throw e;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
@@ -174,9 +174,7 @@ public class OrderControllerRest {
                 orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
             } catch (AttemptToAcceptBotOrderException e) {
                 return "";
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw e;
             }
             return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";

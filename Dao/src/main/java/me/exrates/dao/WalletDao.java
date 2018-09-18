@@ -1,8 +1,10 @@
 package me.exrates.dao;
 
+import me.exrates.model.PagingData;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -83,7 +85,7 @@ public interface WalletDao {
   
   void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
+    List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId, List<Integer> roleIds);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
 

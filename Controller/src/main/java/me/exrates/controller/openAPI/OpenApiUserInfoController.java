@@ -47,7 +47,7 @@ public class OpenApiUserInfoController {
      * @apiPermission NonPublicAuth
      * @apiDescription Returns array of wallet objects
      * @apiParamExample Request Example:
-     *           /openapi/v1/user/balances
+     * /openapi/v1/user/balances
      * @apiSuccess {Array} Wallet objects result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {String} data.currencyName Name of currency
@@ -67,7 +67,7 @@ public class OpenApiUserInfoController {
      * @apiDescription Returns collection of user open orders
      * @apiParam {String} currency_pair Name of currency pair (optional)
      * @apiParamExample Request Example:
-     *           /openapi/v1/user/orders/open?currency_pair=btc_usd
+     * /openapi/v1/user/orders/open?currency_pair=btc_usd
      * @apiSuccess {Array} User orders result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
@@ -98,7 +98,7 @@ public class OpenApiUserInfoController {
      * @apiParam {Integer} limit Number of orders returned (default - 20, max - 100) (optional)
      * @apiParam {Integer} offset Number of orders skipped (optional)
      * @apiParamExample Request Example:
-     *           /openapi/v1/user/orders/closed?currency_pair=btc_usd&limit=100&offset=10
+     * /openapi/v1/user/orders/closed?currency_pair=btc_usd&limit=100&offset=10
      * @apiSuccess {Array} User orders result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
@@ -138,7 +138,7 @@ public class OpenApiUserInfoController {
      * (as per cent - for example, 0.5 rate means 0.5% of amount) by operation type.
      * Commissions for orders (sell and buy) are calculated and withdrawn from amount in quote currency.
      * @apiParamExample Request Example:
-     *      /openapi/v1/user/commissions
+     * /openapi/v1/user/commissions
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Number} data.input Commission for input operations
      * @apiSuccess {Number} data.output Commission for output operations

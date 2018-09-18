@@ -21,27 +21,24 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class SurveyController {
 
-  private static final Logger log_result = LogManager.getLogger("survey_result");
-  private static final Logger log = LogManager.getLogger("survey");
-  @Autowired
-  private MessageSource messageSource;
-  @Autowired
-  private SurveyService surveyService;
+    private static final Logger log_result = LogManager.getLogger("survey_result");
+    private static final Logger log = LogManager.getLogger("survey");
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private SurveyService surveyService;
 
-  @RequestMapping(value = "/survey/saveAsDone", method = POST)
-  @ResponseBody
-  public void saveAsDone(
-      @RequestParam String surveyToken,
-      @RequestBody String surveyResultJsonString,
-      Principal principal) {
-    log_result.info(String.format("survey: %s user: %s  answer: %s", surveyToken, principal.getName(),surveyResultJsonString));
-    surveyService.savePollAsDoneByUser(principal.getName());
-  }
+    @RequestMapping(value = "/survey/saveAsDone", method = POST)
+    @ResponseBody
+    public void saveAsDone(@RequestParam String surveyToken, @RequestBody String surveyResultJsonString, Principal principal) {
+        log_result.info(String.format("survey: %s user: %s  answer: %s", surveyToken, principal.getName(), surveyResultJsonString));
+        surveyService.savePollAsDoneByUser(principal.getName());
+    }
 
-  @RequestMapping(value = "/survey/getSurvey", method = GET)
-  @ResponseBody
-  public SurveyDto getSurvey(Locale locale) {
-    return surveyService.getFirstActiveSurveyByLang(locale.getLanguage());
-  }
+    @RequestMapping(value = "/survey/getSurvey", method = GET)
+    @ResponseBody
+    public SurveyDto getSurvey(Locale locale) {
+        return surveyService.getFirstActiveSurveyByLang(locale.getLanguage());
+    }
 
 }

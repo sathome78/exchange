@@ -45,8 +45,8 @@ public class Privat24MerchantController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params,
+    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(final @RequestParam Map<String, String> params,
                                               final RedirectAttributes redir) {
 
         LOG.debug("Begin method: statusPayment.");
@@ -57,8 +57,8 @@ public class Privat24MerchantController {
         String payment = params.get("payment");
         LOG.debug("Get status payment: " + payment);
         String[] arrayResponse = payment.split("&");
-        Map<String,String> mapResponse = new HashMap<>();
-        for (String value : arrayResponse){
+        Map<String, String> mapResponse = new HashMap<>();
+        for (String value : arrayResponse) {
             mapResponse.put(value.split("=")[0], value.split("=")[1]);
         }
 
@@ -71,31 +71,31 @@ public class Privat24MerchantController {
         return new ResponseEntity<>(BAD_REQUEST);
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
+    public RedirectView successPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         LOG.debug("Begin method: successPayment.");
 
         String signature = response.get("signature");
         String payment = response.get("payment");
         String[] arrayResponse = payment.split("&");
-        Map<String,String> mapResponse = new HashMap<>();
-        for (String value : arrayResponse){
+        Map<String, String> mapResponse = new HashMap<>();
+        for (String value : arrayResponse) {
             mapResponse.put(value.split("=")[0], value.split("=")[1]);
         }
         LOG.info("Response: " + response);
 
         Transaction transaction;
-        try{
+        try {
             transaction = transactionService.findById(Integer.parseInt(mapResponse.get("order")));
-            if (!transaction.isProvided()){
+            if (!transaction.isProvided()) {
                 if (!privat24Service.confirmPayment(mapResponse, signature, payment)) {
 
                     redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
                     return new RedirectView("/dashboard");
                 }
             }
-        }catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             LOG.error(e);
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
@@ -107,4 +107,4 @@ public class Privat24MerchantController {
         return new RedirectView("/dashboard");
     }
 
-    }
+}

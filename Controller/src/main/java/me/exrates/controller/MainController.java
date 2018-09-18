@@ -139,7 +139,7 @@ public class MainController {
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
         int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-        String userid = (String)request.getSession().getAttribute("userid");
+        String userid = (String) request.getSession().getAttribute("userid");
 
         HashMap<String, String> param = new HashMap<>();
         param.put("user_id", userid);
@@ -193,7 +193,7 @@ public class MainController {
                     }
 
                     Map<String, Object> body = new HashMap<>();
-                    body.put("result",successNoty);
+                    body.put("result", successNoty);
                     body.put("user", user);
                     return ResponseEntity.ok(body);
 
@@ -201,8 +201,7 @@ public class MainController {
                     throw new NotCreateUserException("DBError");
                 }
             }
-        }
-        else {
+        } else {
             //TODO
             throw new RuntimeException("Geetest error");
         }
@@ -225,7 +224,7 @@ public class MainController {
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
-           throw new PasswordCreationException("Error while creating password.");
+            throw new PasswordCreationException("Error while creating password.");
         } else {
             User userUpdate = userService.findByEmail(user.getEmail());
             UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
@@ -239,7 +238,7 @@ public class MainController {
             Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved",null, localeResolver.resolveLocale(request)));
+            attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
 
             if (view != null && view.equals("ico_dashboard")) {
                 return new ModelAndView("redirect:/ico_dashboard");
@@ -257,7 +256,7 @@ public class MainController {
         ModelAndView model = new ModelAndView();
         try {
             int userId = userService.verifyUserEmail(token);
-            if (userId != 0){
+            if (userId != 0) {
                 User user = userService.getUserById(userId);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
                 attr.addFlashAttribute("user", user);
@@ -271,7 +270,7 @@ public class MainController {
                     model.setViewName("redirect:/createPassword");
                 }
             } else {
-                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
                 model.setViewName("redirect:/dashboard");
             }
         } catch (Exception e) {
@@ -319,10 +318,10 @@ public class MainController {
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("loginErr", exception.getMessage());
-                } else if(exceptionClass.equals("UnconfirmedUserException")){
+                } else if (exceptionClass.equals("UnconfirmedUserException")) {
                     UnconfirmedUserException exception = (UnconfirmedUserException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("unconfirmedUserEmail", exception.getMessage());
-                    attr.addFlashAttribute("unconfirmedUserMessage",  messageSource.getMessage("register.unconfirmedUserMessage",
+                    attr.addFlashAttribute("unconfirmedUserMessage", messageSource.getMessage("register.unconfirmedUserMessage",
                             new Object[]{exception.getMessage()}, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("unconfirmedUser", messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request)));
                 } else {

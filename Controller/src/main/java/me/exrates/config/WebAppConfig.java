@@ -94,17 +94,17 @@ import java.util.stream.Collectors;
         }
 )
 @PropertySource(value = {
-  "classpath:/db.properties",
-    "classpath:/uploadfiles.properties",
-    "classpath:/news.properties",
-    "classpath:/mail.properties",
-    "classpath:/angular.properties",
-    "classpath:/twitter.properties",
-    "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties",
-    "classpath:/geetest.properties"})
+        "classpath:/db.properties",
+        "classpath:/uploadfiles.properties",
+        "classpath:/news.properties",
+        "classpath:/mail.properties",
+        "classpath:/angular.properties",
+        "classpath:/twitter.properties",
+        "classpath:/angular.properties",
+        "classpath:/merchants/stellar.properties",
+        "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter{
+public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     private
     @Value("${db.master.user}")
@@ -654,7 +654,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
 
-
     @Bean(name = "taxiServiceImpl")
     public EthTokenService taxiRentService() {
         List<String> tokensList = new ArrayList<>();
@@ -1028,6 +1027,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "LEDU",
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "adbServiceImpl")
     public EthTokenService adbService() {
         List<String> tokensList = new ArrayList<>();
@@ -1067,6 +1067,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SAT",
                 "SAT", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "cheServiceImpl")
     public EthTokenService cheService() {
         List<String> tokensList = new ArrayList<>();
@@ -1317,6 +1318,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "IXE", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "nerServiceImpl")
+    public EthTokenService nerService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xee5dfb5ddd54ea2fb93b796a8a1b83c3fe38e0e6");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NER",
+                "NER", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "phiServiceImpl")
     public EthTokenService phiService() {
         List<String> tokensList = new ArrayList<>();
@@ -1325,6 +1336,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 tokensList,
                 "PHI",
                 "PHI", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mftuServiceImpl")
+    public EthTokenService mftuService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05d412ce18f24040bb3fa45cf2c69e506586d8e8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MFTU",
+                "MFTU", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
@@ -1351,7 +1372,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Monero", "XMR", 10, 12);
     }
 
-   @Bean(name = "ditcoinServiceImpl")
+    @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
@@ -1390,13 +1411,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
+
     @Bean(name = "sltStellarService")
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
                 "SLT",
                 "SLT",
-        SLT_EMMITER);
+                SLT_EMMITER);
     }
 
     @Bean(name = "ternStellarService")
@@ -1483,7 +1506,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     @Bean
-    public Map<String, String> angularProperties(){
+    public Map<String, String> angularProperties() {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;

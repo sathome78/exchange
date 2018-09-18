@@ -109,7 +109,7 @@ public class WavesServiceImpl implements WavesService {
             initAssets(props);
             long processFixedDelay = Long.parseLong(props.getProperty("waves.process.delay"));
 
-            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, processFixedDelay, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 3L, processFixedDelay, TimeUnit.MINUTES);
 
         } catch (Exception e) {
             log.error(e);

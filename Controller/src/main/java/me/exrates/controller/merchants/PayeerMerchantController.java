@@ -21,32 +21,32 @@ import static org.springframework.http.HttpStatus.OK;
 @Controller
 public class PayeerMerchantController {
 
-  @Autowired
-  private PayeerService payeerService;
+    @Autowired
+    private PayeerService payeerService;
 
-  private static final Logger logger = LogManager.getLogger("merchant");
+    private static final Logger logger = LogManager.getLogger("merchant");
 
-  private static final String merchantInputErrorPage = "redirect:/merchants/input";
+    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-  @RequestMapping(value = "/merchants/payeer/payment/status", method = RequestMethod.POST)
-  public ResponseEntity<String> statusPayment(@RequestParam Map<String,String> params) throws RefillRequestAppropriateNotFoundException {
+    @RequestMapping(value = "/merchants/payeer/payment/status", method = RequestMethod.POST)
+    public ResponseEntity<String> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
-    ResponseEntity<String> responseOK = new ResponseEntity<>(params.get("m_orderid") + "|success", OK);
-    logger.info("Response: " + params);
-    try {
-      payeerService.processPayment(params);
-      return responseOK;
-    }catch (RefillRequestAlreadyAcceptedException e){
-      return responseOK;
-    }catch (Exception e){
-      return new ResponseEntity<>(BAD_REQUEST);
+        ResponseEntity<String> responseOK = new ResponseEntity<>(params.get("m_orderid") + "|success", OK);
+        logger.info("Response: " + params);
+        try {
+            payeerService.processPayment(params);
+            return responseOK;
+        } catch (RefillRequestAlreadyAcceptedException e) {
+            return responseOK;
+        } catch (Exception e) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
     }
-  }
 
-  @RequestMapping(value = "/merchants/payeer/payment/success", method = RequestMethod.GET)
-  public RedirectView successPayment(@RequestParam Map<String, String> response) {
-    logger.debug(response);
-    return new RedirectView("/dashboard");
-  }
+    @RequestMapping(value = "/merchants/payeer/payment/success", method = RequestMethod.GET)
+    public RedirectView successPayment(@RequestParam Map<String, String> response) {
+        logger.debug(response);
+        return new RedirectView("/dashboard");
+    }
 
 }

@@ -69,7 +69,7 @@ public class NemRecieveTransactionsService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 3, 5, TimeUnit.MINUTES);
     }
 
 
