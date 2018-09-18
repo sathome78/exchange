@@ -19,8 +19,9 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -52,8 +53,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static me.exrates.model.enums.OrderStatus.CLOSED;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
@@ -134,7 +135,7 @@ public class OrderDaoImpl implements OrderDao {
             put("amount_convert", exOrder.getAmountConvert());
             put("commission_id", exOrder.getComissionId());
             put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
-            put("status_id", OrderStatus.CLOSED.getStatus());
+            put("status_id", CLOSED.getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
             Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
@@ -1339,25 +1340,45 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderHistoryItem> getRecentOrderHistory(Integer currencyPairId, BackDealInterval interval) {
-        String sql = "SELECT id, date_acception, exrate, amount_base, amount_convert, operation_type_id FROM EXORDERS " +
-                " WHERE currency_pair_id=:currency_pair_id AND status_id=:status_id " +
-                " AND date_acception >= now() - INTERVAL " + interval.getInterval() +
-                " ORDER BY date_acception";
+    public List<TradeHistoryDto> getTradeHistory(Integer currencyPairId,
+                                                 LocalDateTime fromDate,
+                                                 LocalDateTime toDate,
+                                                 Integer limit) {
+        String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
+
+        String sql = "SELECT o.id as order_id, " +
+                "cp.name as currency_pair, " +
+                "o.date_creation as created, " +
+                "o.date_acception as accepted, " +
+                "o.amount_base as amount, " +
+                "o.exrate as price, " +
+                "o.amount_convert as sum, " +
+                "ot.name as operation_type" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp on o.currency_pair_id = cp.id" +
+                " JOIN OPERATION_TYPE ot on o.operation_type_id = ot.id" +
+                " WHERE o.currency_pair_id=:currency_pair_id AND o.status_id=:status_id" +
+                " AND o.date_acception BETWEEN :start_date AND :end_date" +
+                " ORDER BY o.date_acception ASC"
+                + limitSql;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("status_id", OrderStatus.CLOSED.getStatus());
+        params.put("status_id", CLOSED.getStatus());
         params.put("currency_pair_id", currencyPairId);
-        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
-            OrderHistoryItem item = new OrderHistoryItem();
-            item.setOrderId(rs.getInt("id"));
-            item.setDateAcceptance(rs.getTimestamp("date_acception").toLocalDateTime());
-            item.setAmount(rs.getBigDecimal("amount_base"));
-            item.setPrice(rs.getBigDecimal("exrate"));
-            item.setTotal(rs.getBigDecimal("amount_convert"));
-            item.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
-            return item;
-        });
+        params.put("start_date", fromDate);
+        params.put("end_date", toDate);
+        params.put("limit", limit);
+
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> TradeHistoryDto.builder()
+                .orderId(rs.getInt("order_id"))
+                .currencyPair(rs.getString("currency_pair"))
+                .dateCreation(rs.getTimestamp("created").toLocalDateTime())
+                .dateAcceptance(rs.getTimestamp("accepted").toLocalDateTime())
+                .amount(rs.getBigDecimal("amount"))
+                .price(rs.getBigDecimal("price"))
+                .total(rs.getBigDecimal("sum"))
+                .orderType(OrderType.fromOperationType(OperationType.of(rs.getString("operation_type"))))
+                .build());
     }
 
     @Override
@@ -1403,7 +1424,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public void getTradeHistoryByOrder(Integer orderId) {
+    public List<UserTradeHistoryDto> getTransactionsByOrder(Integer orderId) {
         String sql = "SELECT * FROM TRANSACTION t WHERE t.source_id = :order_id AND t.source_type = 'ORDER'";
 
         Map<String, Object> params = new HashMap<>();
@@ -1411,5 +1432,55 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
+    @Override
+    public void getTradeHistoryByCurrencyPair(Integer orderId) {
 
+    }
+
+    @Override
+    public List<UserTradeHistoryDto> getUserTradeHistory(Integer userId,
+                                                         Integer currencyPairId,
+                                                         LocalDateTime fromDate,
+                                                         LocalDateTime toDate,
+                                                         Integer limit) {
+        String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
+
+        String sql = "SELECT o.id as order_id, " +
+                "o.user_id as user_id, " +
+                "cp.name as currency_pair, " +
+                "o.date_creation as created, " +
+                "o.date_acception as accepted, " +
+                "o.amount_base as amount, " +
+                "o.exrate as price, " +
+                "o.amount_convert as sum, " +
+                "ot.name as operation_type" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp on o.currency_pair_id = cp.id" +
+                " JOIN OPERATION_TYPE ot on o.operation_type_id = ot.id" +
+                " WHERE (o.user_id = :user_id OR o.user_acceptor_id = :user_id) AND o.currency_pair_id = :currency_pair_id" +
+                " AND o.status_id = :status_id AND o.date_acception BETWEEN :start_date AND :end_date" +
+                " ORDER BY o.date_acception ASC"
+                + limitSql;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("status_id", CLOSED.getStatus());
+        params.put("user_id", userId);
+        params.put("currency_pair_id", currencyPairId);
+        params.put("start_date", fromDate);
+        params.put("end_date", toDate);
+        params.put("limit", limit);
+
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> UserTradeHistoryDto.builder()
+                .orderId(rs.getInt("order_id"))
+                .userId(userId)
+                .isMaker(userId == rs.getInt("user_id"))
+                .currencyPair(rs.getString("currency_pair"))
+                .dateCreation(rs.getTimestamp("created").toLocalDateTime())
+                .dateAcceptance(rs.getTimestamp("accepted").toLocalDateTime())
+                .amount(rs.getBigDecimal("amount"))
+                .price(rs.getBigDecimal("price"))
+                .total(rs.getBigDecimal("sum"))
+                .orderType(OrderType.fromOperationType(OperationType.of(rs.getString("operation_type"))))
+                .build());
+    }
 }

@@ -14,13 +14,13 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
 
-import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -109,11 +109,15 @@ public interface OrderDao {
 
     List<OpenOrderDto> getOpenOrders(Integer currencyPairId, OrderType orderType);
 
-    List<OrderHistoryItem> getRecentOrderHistory(Integer currencyPairId, BackDealInterval interval);
+    List<TradeHistoryDto> getTradeHistory(Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
 
     List<UserOrdersDto> getUserOpenOrders(Integer userId, Integer currencyPairId);
 
     List<UserOrdersDto> getUserOrdersByStatus(Integer userId, Integer currencyPairId, OrderStatus status, int limit, int offset);
 
-    void getTradeHistoryByOrder(Integer orderId);
+    void getTransactionsByOrder(Integer orderId);
+
+    void getTradeHistoryByCurrencyPair(Integer orderId);
+
+    List<UserTradeHistoryDto> getUserTradeHistory(Integer userId, Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
 }

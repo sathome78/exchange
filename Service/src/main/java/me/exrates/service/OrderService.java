@@ -18,8 +18,9 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -391,7 +393,7 @@ public interface OrderService {
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
-  List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period);
+  List<TradeHistoryDto> getTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
     List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 
@@ -400,4 +402,6 @@ public interface OrderService {
     List<UserOrdersDto> getUserCanceledOrders(String currencyPairName, Integer limit, Integer offset);
 
     List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
+
+  List<UserTradeHistoryDto> getUserTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 }
