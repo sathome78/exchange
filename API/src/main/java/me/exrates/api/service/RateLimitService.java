@@ -38,12 +38,14 @@ public class RateLimitService {
 
     @Scheduled(initialDelay = 30 * 60 * 1000, fixedDelay = 30 * 60 * 1000)
     public void clearExpiredRequests() {
-        log.debug(">> clearExpiredRequests");
+        if(log.isDebugEnabled()) {
+            log.debug(">> clearExpiredRequests");
+        }
         new HashMap<>(userTimes).forEach((k, v) -> {
             if (v.stream().filter(p -> p.isAfter(LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS))).count() == 0) {
                 userTimes.remove(k);
                 if(log.isDebugEnabled()){
-                    log.debug("Removed from cache :"+ k);
+                    log.debug("Removed from cache: "+ k);
                 }
             }
         });
