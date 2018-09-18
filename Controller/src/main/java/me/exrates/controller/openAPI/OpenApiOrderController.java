@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
+import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 import static org.springframework.http.HttpStatus.*;
 
@@ -72,7 +72,7 @@ public class OpenApiOrderController {
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
-        String currencyPairName = formatCurrencyPairNameParam(orderParamsDto.getCurrencyPair());
+        String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
                 orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
@@ -151,7 +151,7 @@ public class OpenApiOrderController {
     @GetMapping(value = "/open/{order_type}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
                                          @RequestParam("currency_pair") String currencyPair) {
-        String currencyPairName = formatCurrencyPairNameParam(currencyPair);
+        String currencyPairName = transformCurrencyPair(currencyPair);
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
 

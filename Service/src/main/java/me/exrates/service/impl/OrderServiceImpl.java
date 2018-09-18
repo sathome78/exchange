@@ -50,8 +50,9 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.ChartPeriodsEnum;
@@ -62,7 +63,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderDeleteStatus;
-import me.exrates.model.enums.OrderHistoryPeriod;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
@@ -127,7 +127,9 @@ import javax.annotation.PostConstruct;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1962,10 +1964,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period) {
-        Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
-        OrderHistoryPeriod historyPeriod = OrderHistoryPeriod.fromLowerCaseString(period);
-        return orderDao.getRecentOrderHistory(currencyPairId, historyPeriod.getInterval());
+    public List<TradeHistoryDto> getTradeHistory(String currencyPairName,
+                                                 @Null LocalDate fromDate,
+                                                 @Null LocalDate toDate,
+                                                 @Null Integer limit) {
+        final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
+
+        return orderDao.getTradeHistory(
+                currencyPairId,
+                LocalDateTime.of(fromDate, LocalTime.MIN),
+                LocalDateTime.of(toDate, LocalTime.MAX),
+                limit);
     }
 
     @Override
@@ -2011,6 +2020,19 @@ public class OrderServiceImpl implements OrderService {
     public List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType) {
         Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
         return orderDao.getOpenOrders(currencyPairId, orderType);
+    }
+
+    @Override
+    public List<UserTradeHistoryDto> getUserTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit) {
+        final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
+        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        return orderDao.getUserTradeHistory(
+                userId,
+                currencyPairId,
+                LocalDateTime.of(fromDate, LocalTime.MIN),
+                LocalDateTime.of(toDate, LocalTime.MAX),
+                limit);
     }
 
     @Override

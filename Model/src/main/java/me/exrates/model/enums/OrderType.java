@@ -48,9 +48,10 @@ public enum OrderType {
   }
 
   public static OrderType fromOperationType(OperationType operationType) {
-    return Arrays.stream(OrderType.values()).filter(item -> item.operationType == operationType)
-            .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format("Operation type %s not convertible to order type",
-                    operationType.name())));
+    return Arrays.stream(OrderType.values())
+            .filter(item -> item.operationType == operationType)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Operation type %s not convertible to order type", operationType.name())));
   }
 
   @Override

@@ -1,10 +1,12 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.controller.model.BaseResponse;
 import me.exrates.api.ApiRequestsLimitExceedException;
 import me.exrates.api.aspect.ApiRateLimitCheck;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.service.OrderService;
 import me.exrates.service.WalletService;
@@ -13,6 +15,7 @@ import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,10 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Objects.nonNull;
-import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
+import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.utils.ValidationUtil.validateNaturalInt;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -98,7 +103,7 @@ public class OpenApiUserInfoController {
 
         String currencyPairName = null;
         if (currencyPair != null) {
-            currencyPairName = formatCurrencyPairNameParam(currencyPair);
+            currencyPairName = transformCurrencyPair(currencyPair);
         }
         return orderService.getUserOpenOrders(currencyPairName);
     }
@@ -129,7 +134,7 @@ public class OpenApiUserInfoController {
     public List<UserOrdersDto> userClosedOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
                                                 @RequestParam(required = false) Integer limit,
                                                 @RequestParam(required = false) Integer offset) {
-        final String currencyPairName = nonNull(currencyPair) ? formatCurrencyPairNameParam(currencyPair) : null;
+        final String currencyPairName = nonNull(currencyPair) ? transformCurrencyPair(currencyPair) : null;
 
         validateNaturalInt(limit);
         validateNaturalInt(offset);
@@ -162,7 +167,7 @@ public class OpenApiUserInfoController {
     public ResponseEntity<List<UserOrdersDto>> userCanceledOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
                                                                   @RequestParam(required = false) Integer limit,
                                                                   @RequestParam(required = false) Integer offset) {
-        final String currencyPairName = nonNull(currencyPair) ? formatCurrencyPairNameParam(currencyPair) : null;
+        final String currencyPairName = nonNull(currencyPair) ? transformCurrencyPair(currencyPair) : null;
 
         validateNaturalInt(limit);
         validateNaturalInt(offset);
@@ -191,6 +196,46 @@ public class OpenApiUserInfoController {
     @GetMapping(value = "/commissions", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OpenApiCommissionDto getCommissions() {
         return new OpenApiCommissionDto(orderService.getAllCommissions());
+    }
+
+    /**
+     * @api {get} /openapi/v1/user/history/{currency_pair}?fromDate&toDate&limit User trade history
+     * @apiName User Trade History
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Provides collection of user trade info objects
+     * @apiParam {LocalDate} fromDate start date of search (date format: yyyy-MM-dd) (optional)
+     * @apiParam {LocalDate} toDate end date of search (date format: yyyy-MM-dd) (optional)
+     * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero) (optional)
+     * @apiParamExample Request Example:
+     * openapi/v1/user/history/btc_usd?fromDate=2018-09-01&toDate=2018-09-05&limit=20
+     * @apiSuccess {Array} Array of user trade info objects
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.user_id User id
+     * @apiSuccess {Boolean} data.maker User is maker
+     * @apiSuccess {Integer} data.order_id Order id
+     * @apiSuccess {Number} data.date_acceptance Order acceptance date (as UNIX timestamp)
+     * @apiSuccess {Number} data.date_creation Order creation date (as UNIX timestamp)
+     * @apiSuccess {Number} data.amount Order amount in base currency
+     * @apiSuccess {Number} data.price Exchange rate
+     * @apiSuccess {Number} data.total Total sum
+     * @apiSuccess {String} data.order_type Order type (BUY or SELL)
+     */
+    @GetMapping(value = "/history/{currency_pair}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistory(@PathVariable(value = "currency_pair") String currencyPair,
+                                                                                       @RequestParam(required = false, defaultValue = "") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+                                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+                                                                                       @RequestParam(required = false) Integer limit) {
+        if (fromDate.isAfter(toDate)) {
+            return ResponseEntity.badRequest().body(BaseResponse.error("From date is before to date"));
+        }
+        if (limit <= 0) {
+            return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
+        }
+
+        final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
+
+        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistory(transformedCurrencyPair, fromDate, toDate, limit)));
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

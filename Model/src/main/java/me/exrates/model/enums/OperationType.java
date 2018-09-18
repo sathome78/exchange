@@ -103,6 +103,13 @@ public enum OperationType {
             .orElseThrow(() -> new UnsupportedOperationTypeException(id));
     }
 
+    public static OperationType of(String value) {
+        return Arrays.stream(OperationType.values())
+                .filter(operationType -> operationType.name().equals(value))
+                .findAny()
+                .orElseThrow(() -> new UnsupportedOperationTypeException("Not supported booking status: " + value));
+    }
+
     public String toString(MessageSource messageSource, Locale locale) {
         return messageSource.getMessage("operationtype." + this.name(), null, locale);
     }
