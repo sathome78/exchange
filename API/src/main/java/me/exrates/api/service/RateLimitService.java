@@ -1,6 +1,8 @@
 package me.exrates.api.service;
 
 import me.exrates.api.dao.UserDao;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +23,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class RateLimitService {
 
+    private static final Logger log = LogManager.getLogger(RateLimitService.class);
+
     private static final int TIME_LIMIT_SECONDS = 3600;
 
     private static final Integer DEFAULT_ATTEMPS = 5;
@@ -32,12 +36,15 @@ public class RateLimitService {
     @Autowired
     private UserDao userApiDao;
 
-    @Scheduled(cron = "* 5 * * * *")
+    @Scheduled(initialDelay = 30 * 60 * 1000, fixedDelay = 30 * 60 * 1000)
     public void clearExpiredRequests() {
-
+        log.debug(">> clearExpiredRequests");
         new HashMap<>(userTimes).forEach((k, v) -> {
             if (v.stream().filter(p -> p.isAfter(LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS))).count() == 0) {
                 userTimes.remove(k);
+                if(log.isDebugEnabled()){
+                    log.debug("Removed from cache :"+ k);
+                }
             }
         });
     }
@@ -49,7 +56,7 @@ public class RateLimitService {
         userTimes.get(userEmail).add(LocalDateTime.now());
     }
 
-    public boolean checkLimitsExceed() throws RequestsLimitExceedException {
+    public boolean isLimitExceed() {
 
         LocalDateTime beginTime = LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS);
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -57,7 +64,7 @@ public class RateLimitService {
 
         List<LocalDateTime> list = userTimes.get(userEmail);
         if (list == null) {
-            return true;
+            return false;
         } else {
             long counter = list.stream().filter(p -> p.isAfter(beginTime)).count();
             return counter > limit;
@@ -94,7 +101,7 @@ public class RateLimitService {
         return Collections.unmodifiableMap(userLimits);
     }
 
-    static Integer getDefaultAttemps() {
+    public static Integer getDefaultAttemps() {
         return DEFAULT_ATTEMPS;
     }
 }

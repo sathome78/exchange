@@ -1,4 +1,4 @@
-package me.exrates.api.service;
+package me.exrates.api;
 
 /**
  * Created by Yuriy Berezin on 14.09.2018.

@@ -6,7 +6,7 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="me.exrates" level="info" additivity="false">
+        <logger name="me.exrates" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
         <Root level="error">
