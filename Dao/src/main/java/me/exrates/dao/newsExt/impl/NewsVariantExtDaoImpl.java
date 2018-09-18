@@ -6,6 +6,7 @@ import me.exrates.model.newsEntity.News;
 import me.exrates.model.newsEntity.NewsType;
 import me.exrates.model.newsEntity.NewsVariant;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -31,6 +32,7 @@ import static me.exrates.model.util.DateTimeUtil.stringToLocalDateTime;
 public class NewsVariantExtDaoImpl implements NewsVariantExtDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Override

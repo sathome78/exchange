@@ -360,7 +360,7 @@ header li {
         font-size: 0.7rem;
     }
 
-    #balance-table button, #balance-table th, #balance-table td {
+    #balance-grid button, #balance-grid th, #balance-grid td {
         font-size: 0.85rem;
     }
 
@@ -401,7 +401,7 @@ header li {
     #notification-icon span.badge {
         font-size: 0.7rem;
     }
-    #balance-table button, #balance-table th, #balance-table td {
+    #balance-grid button, #balance-grid th, #balance-grid td {
         font-size: 1.1rem;
     }
     .blue_area {
@@ -1344,14 +1344,17 @@ td.blue-white {
     color: white;
 }
 
-.table-button-block--wallets {
+.table-button-block--balance {
     min-width: 260px;
 }
 
-.table-button-block .table-button-block__button {
+/*.table-button-block .table-button-block__button {
+    padding: 0 10px;
+}*/
+
+.butto-block {
     padding: 0 10px;
 }
-
 
 .table-button-block__form {
     display: inline-block;
@@ -2497,4 +2500,17 @@ input.copyable:hover{
 .word-wrap-break-work{
     width: 100%;
     word-wrap: break-word;
+}
+
+.img-table{
+    width: 100%;
+}
+
+.partners-img{
+    margin-top: 15px;
+    margin-left: 3%;
+    margin-right: 3%;
+    border:0;
+    max-width: 90%;
+    max-height: 90%;
 }

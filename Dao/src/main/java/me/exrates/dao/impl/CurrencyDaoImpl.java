@@ -18,6 +18,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -31,6 +32,7 @@ import java.util.*;
 public class CurrencyDaoImpl implements CurrencyDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
   protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {

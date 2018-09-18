@@ -5,6 +5,7 @@ import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class NotificationUserSettingsDaoImpl implements NotificationUserSettingsDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static RowMapper<NotificationsUserSetting> notificationsUserSettingRowMapper = (rs, idx) -> {

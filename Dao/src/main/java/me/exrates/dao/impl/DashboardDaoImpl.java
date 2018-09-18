@@ -16,7 +16,7 @@ import java.util.Map;
 public class DashboardDaoImpl implements DashboardDao {
 
     @Autowired
-    @Qualifier("hikariDataSource")
+    @Qualifier("masterHikariDataSource")
     DataSource dataSource;
 
     @Override

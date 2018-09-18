@@ -46,13 +46,13 @@ public class OrdersStatisticByPairsCache {
 
     private AtomicBoolean needUpdate = new AtomicBoolean(true);
 
-    @PostConstruct
+   /* @PostConstruct
     private void init() {
         allPairs = currencyDao.getAllCurrencyPairs(CurrencyPairType.ALL);
         update();
         needUpdate.set(false);
         log.info("initialized, {}", cachedList.size());
-    }
+    }*/
 
 
 

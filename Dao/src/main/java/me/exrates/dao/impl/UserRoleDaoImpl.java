@@ -4,6 +4,7 @@ import me.exrates.dao.UserRoleDao;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,7 +22,9 @@ import static java.util.Collections.singletonMap;
  */
 @Repository
 public class UserRoleDaoImpl implements UserRoleDao {
+
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired

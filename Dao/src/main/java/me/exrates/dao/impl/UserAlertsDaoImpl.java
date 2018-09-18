@@ -4,6 +4,7 @@ import me.exrates.dao.UserAlertsDao;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.enums.AlertType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class UserAlertsDaoImpl implements UserAlertsDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     private static RowMapper<AlertDto> getWalletsForOrderCancelDtoMapper = (rs, idx) -> {

@@ -134,6 +134,7 @@ $(function transferCreation() {
      }*/
 
     function checkReception() {
+        recipient = recipientUserIsNeeded ? recipient : '';
         $.ajax({
             url: '/transfer/request/checking?recipient='+ recipient,
             async: true,
@@ -189,7 +190,6 @@ $(function transferCreation() {
     }
 
     function transferSuccess(result) {
-        console.log(result);
         showTransferDialogAfterCreation(result['message'], result['hash']);
         notifications.getNotifications();
     }

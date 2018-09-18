@@ -17,6 +17,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -268,7 +269,11 @@ public final class TransactionDaoImpl implements TransactionDao {
   @Autowired
   MessageSource messageSource;
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
+  @Autowired
+  @Qualifier(value = "slaveTemplate")
+  private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
   @Override
   public Transaction create(Transaction transaction) {
@@ -378,18 +383,18 @@ public final class TransactionDaoImpl implements TransactionDao {
     final PagingData<List<Transaction>> result = new PagingData<>();
     log.debug("count sql {}", selectAllCountSql);
     long start = System.currentTimeMillis();
-    final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+    final int total = slaveJdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     log.debug("count in {}", System.currentTimeMillis() - start);
 
     if (total == 0) {
       result.setData(Collections.emptyList());
     } else {
       start = System.currentTimeMillis();
-      List<Integer> transactionIds = jdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+      List<Integer> transactionIds = slaveJdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
       String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
       final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
       log.debug("data sql {}", selectLimitedAllSql);
-      result.setData(jdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
+      result.setData(slaveJdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
       log.debug("data in {}", System.currentTimeMillis() - start);
     }
 
@@ -479,7 +484,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         "  ORDER BY -date_time ASC, -transaction_id ASC";
     final Map<String, Object> params = new HashMap<>();
     params.put("wallet_id", walletId);
-    return jdbcTemplate.query(sql, params, new RowMapper<AccountStatementDto>() {
+    return slaveJdbcTemplate.query(sql, params, new RowMapper<AccountStatementDto>() {
       @Override
       public AccountStatementDto mapRow(ResultSet rs, int i) throws SQLException {
         AccountStatementDto accountStatementDto = new AccountStatementDto();
@@ -554,7 +559,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   public Integer getStatementSize(Integer walletId) {
     String sql = "SELECT COUNT(*) FROM TRANSACTION WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id";
     Map<String, Integer> params = Collections.singletonMap("wallet_id", walletId);
-    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return slaveJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
 
@@ -619,7 +624,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       put("source_type_list", sourceTypeList);
       put("operation_type_id", operationType);
     }};
-    return jdbcTemplate.query(sql, params, new RowMapper<TransactionFlatForReportDto>() {
+    return slaveJdbcTemplate.query(sql, params, new RowMapper<TransactionFlatForReportDto>() {
       @Override
       public TransactionFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
         TransactionFlatForReportDto transactionFlatForReportDto = new TransactionFlatForReportDto();
@@ -713,7 +718,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     namedParameters.put("end_date", endDate);
     namedParameters.put("role_id_list", roleIdList);
     namedParameters.put("requester_user_id", requesterUserId);
-    return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
+    return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
       UserSummaryDto userSummaryDto = new UserSummaryDto();
       userSummaryDto.setUserNickname(rs.getString("user_nickname"));
       userSummaryDto.setUserEmail(rs.getString("user_email"));
@@ -760,7 +765,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       put("role_id_list", roleIdList);
       put("requester_user_id", requesterUserId);
     }};
-    return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
+    return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
       UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
       userSummaryOrdersDto.setUserEmail(rs.getString("email"));
       userSummaryOrdersDto.setWallet(rs.getString("currency_name"));

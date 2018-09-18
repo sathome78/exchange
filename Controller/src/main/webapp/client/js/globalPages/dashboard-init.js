@@ -22,6 +22,7 @@ var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
+var currentPairName;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
@@ -402,7 +403,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector('MAIN');
+            trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -612,6 +613,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            currentPairName = data.currencyPair.name;
             enableF = enableFilter;
             if (period != null) {
                 newChartPeriod = period;
