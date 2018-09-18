@@ -32,8 +32,8 @@
     <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/datatables.js"/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <%--<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">--%>
+    <%--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">--%>
+    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
@@ -41,7 +41,7 @@
     <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="<c:url value="/client/css/jqueryDatatables.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
