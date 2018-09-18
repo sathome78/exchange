@@ -18,7 +18,7 @@ public interface UserDao {
 
   int getIdByNickname(String nickname);
 
-  boolean setNickname(User user);
+  boolean setNickname(String newNickName, String userEmail);
 
   boolean create(User user);
 

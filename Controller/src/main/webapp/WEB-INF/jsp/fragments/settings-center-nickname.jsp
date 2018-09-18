@@ -46,7 +46,6 @@
 
         <form id="nickname_change_form" action="/settings/changeNickname/submit" class="form" method="post">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-            <input type="hidden" name="id" value="${user.id}"/>
 
             <div class="field">
                 <div class="field__label">Nickname</div>
