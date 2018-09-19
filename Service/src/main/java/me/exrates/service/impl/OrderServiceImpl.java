@@ -124,6 +124,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -1171,21 +1172,41 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override
     @Transactional
-    public void cancelOrder(Integer orderId, String currentUserEmail) {
+    @Override
+    public void cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-        String creatorEmail = userService.getEmailById(exOrder.getUserId());
-        if (!currentUserEmail.equals(creatorEmail)) {
-            throw new IncorrectCurrentUserException(String.format("creator %s, current user %s", creatorEmail, currentUserEmail));
-        }
-        Locale locale = userService.getUserLocaleForMobile(currentUserEmail);
-        cancellOrder(exOrder, locale);
+
+        cancelOrder(exOrder);
+    }
+
+    @Transactional
+    @Override
+    public void cancelAllOpenOrders() {
+        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
+
+        openedOrders.forEach(this::cancelOrder);
+    }
+
+    private boolean cancelOrder(ExOrder exOrder) {
+        return cancelOrder(exOrder, null);
     }
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
-    public boolean cancellOrder(ExOrder exOrder, Locale locale) {
+    public boolean cancelOrder(ExOrder exOrder, Locale locale) {
+        if (isNull(locale)) {
+            final String currentUserEmail = getUserEmailFromSecurityContext();
+
+            final String creatorEmail = userService.getEmailById(exOrder.getUserId());
+            if (!currentUserEmail.equals(creatorEmail)) {
+                throw new IncorrectCurrentUserException(String.format("Creator email: %s and currentUser email: %s are different", creatorEmail, currentUserEmail));
+            }
+
+            locale = userService.getUserLocaleForMobile(currentUserEmail);
+        }
         try {
             WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
                     exOrder.getId(),
@@ -1965,8 +1986,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<TradeHistoryDto> getTradeHistory(String currencyPairName,
-                                                 @Null LocalDate fromDate,
-                                                 @Null LocalDate toDate,
+                                                 @NotNull LocalDate fromDate,
+                                                 @NotNull LocalDate toDate,
                                                  @Null Integer limit) {
         final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
 
@@ -2023,17 +2044,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<UserTradeHistoryDto> getUserTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit) {
+    public List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName,
+                                                                       @NotNull LocalDate fromDate,
+                                                                       @NotNull LocalDate toDate,
+                                                                       @Null Integer limit) {
         final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
-        return orderDao.getUserTradeHistory(
+        return orderDao.getUserTradeHistoryByCurrencyPair(
                 userId,
                 currencyPairId,
                 LocalDateTime.of(fromDate, LocalTime.MIN),
                 LocalDateTime.of(toDate, LocalTime.MAX),
                 limit);
     }
+
+//    @Override
+//    public List<UserTradeHistoryDto> getUserTradeHistoryByOrder(Integer orderId,
+//                                                                @NotNull LocalDate fromDate,
+//                                                                @NotNull LocalDate toDate,
+//                                                                @Null Integer limit) {
+//        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+//
+//        return orderDao.getUserTradeHistoryByOrder(
+//                userId,
+//                orderId,
+//                LocalDateTime.of(fromDate, LocalTime.MIN),
+//                LocalDateTime.of(toDate, LocalTime.MAX),
+//                limit);
+//    }
 
     @Override
     public List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {

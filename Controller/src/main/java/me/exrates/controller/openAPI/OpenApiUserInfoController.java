@@ -164,15 +164,15 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
      */
     @GetMapping(value = "/orders/canceled", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<UserOrdersDto>> userCanceledOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
-                                                                  @RequestParam(required = false) Integer limit,
-                                                                  @RequestParam(required = false) Integer offset) {
+    public ResponseEntity<BaseResponse<List<UserOrdersDto>>> userCanceledOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
+                                                                                @RequestParam(required = false) Integer limit,
+                                                                                @RequestParam(required = false) Integer offset) {
         final String currencyPairName = nonNull(currencyPair) ? transformCurrencyPair(currencyPair) : null;
 
         validateNaturalInt(limit);
         validateNaturalInt(offset);
 
-        return ResponseEntity.ok(orderService.getUserCanceledOrders(currencyPairName, limit, offset));
+        return ResponseEntity.ok(BaseResponse.success(orderService.getUserCanceledOrders(currencyPairName, limit, offset)));
     }
 
     /**
@@ -199,44 +199,83 @@ public class OpenApiUserInfoController {
     }
 
     /**
-     * @api {get} /openapi/v1/user/history/{currency_pair}?fromDate&toDate&limit User trade history
+     * @api {get} /openapi/v1/user/history/{currency_pair}/trades?from_date&to_date&limit User trade history
      * @apiName User Trade History
      * @apiGroup User API
      * @apiPermission NonPublicAuth
      * @apiDescription Provides collection of user trade info objects
-     * @apiParam {LocalDate} fromDate start date of search (date format: yyyy-MM-dd) (optional)
-     * @apiParam {LocalDate} toDate end date of search (date format: yyyy-MM-dd) (optional)
-     * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero) (optional)
+     * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
+     * @apiParam {LocalDate} to_date end date of search (date format: yyyy-MM-dd)
+     * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero, default value: 50) (optional)
      * @apiParamExample Request Example:
-     * openapi/v1/user/history/btc_usd?fromDate=2018-09-01&toDate=2018-09-05&limit=20
+     * openapi/v1/user/history/btc_usd/trades?from_date=2018-09-01&to_date=2018-09-05&limit=20
      * @apiSuccess {Array} Array of user trade info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.user_id User id
      * @apiSuccess {Boolean} data.maker User is maker
      * @apiSuccess {Integer} data.order_id Order id
-     * @apiSuccess {Number} data.date_acceptance Order acceptance date (as UNIX timestamp)
-     * @apiSuccess {Number} data.date_creation Order creation date (as UNIX timestamp)
+     * @apiSuccess {Number} data.date_acceptance Order acceptance date
+     * @apiSuccess {Number} data.date_creation Order creation date
      * @apiSuccess {Number} data.amount Order amount in base currency
      * @apiSuccess {Number} data.price Exchange rate
      * @apiSuccess {Number} data.total Total sum
+     * @apiSuccess {Number} data.commission commission
      * @apiSuccess {String} data.order_type Order type (BUY or SELL)
      */
-    @GetMapping(value = "/history/{currency_pair}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistory(@PathVariable(value = "currency_pair") String currencyPair,
-                                                                                       @RequestParam(required = false, defaultValue = "") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-                                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-                                                                                       @RequestParam(required = false) Integer limit) {
+    @GetMapping(value = "/history/{currency_pair}/trades", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistoryByCurrencyPair(@PathVariable(value = "currency_pair") String currencyPair,
+                                                                                                     @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+                                                                                                     @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+                                                                                                     @RequestParam(required = false, defaultValue = "50") Integer limit) {
         if (fromDate.isAfter(toDate)) {
             return ResponseEntity.badRequest().body(BaseResponse.error("From date is before to date"));
         }
-        if (limit <= 0) {
+        if (nonNull(limit) && limit <= 0) {
             return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
         }
 
         final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
 
-        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistory(transformedCurrencyPair, fromDate, toDate, limit)));
+        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByCurrencyPair(transformedCurrencyPair, fromDate, toDate, limit)));
     }
+
+//    /**
+//     * @api {get} /openapi/v1/user/history/{currency_pair}?from_date&to_date&limit User trade history
+//     * @apiName User Trade History
+//     * @apiGroup User API
+//     * @apiPermission NonPublicAuth
+//     * @apiDescription Provides collection of user trade info objects
+//     * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
+//     * @apiParam {LocalDate} to_date end date of search (date format: yyyy-MM-dd)
+//     * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero, default value: 50) (optional)
+//     * @apiParamExample Request Example:
+//     * openapi/v1/user/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=20
+//     * @apiSuccess {Array} Array of user trade info objects
+//     * @apiSuccess {Object} data Container object
+//     * @apiSuccess {Integer} data.user_id User id
+//     * @apiSuccess {Boolean} data.maker User is maker
+//     * @apiSuccess {Integer} data.order_id Order id
+//     * @apiSuccess {Number} data.date_acceptance Order acceptance date
+//     * @apiSuccess {Number} data.date_creation Order creation date
+//     * @apiSuccess {Number} data.amount Order amount in base currency
+//     * @apiSuccess {Number} data.price Exchange rate
+//     * @apiSuccess {Number} data.total Total sum
+//     * @apiSuccess {Number} data.commission commission
+//     * @apiSuccess {String} data.order_type Order type (BUY or SELL)
+//     */
+//    @GetMapping(value = "/history/order/{order_id}/trades", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistoryByOrder(@PathVariable(value = "order_id") Integer orderId,
+//                                                                                              @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+//                                                                                              @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+//                                                                                              @RequestParam(required = false, defaultValue = "50") Integer limit) {
+//        if (fromDate.isAfter(toDate)) {
+//            return ResponseEntity.badRequest().body(BaseResponse.error("From date is before to date"));
+//        }
+//        if (nonNull(limit) && limit <= 0) {
+//            return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
+//        }
+//        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByOrder(orderId, fromDate, toDate, limit)));
+//    }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)

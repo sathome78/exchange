@@ -4,7 +4,18 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -17,7 +28,11 @@ import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
 
@@ -51,8 +66,8 @@ public interface OrderDao {
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
-  
-  List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime);
+
+    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime);
 
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType);
 
@@ -115,11 +130,11 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOrdersByStatus(Integer userId, Integer currencyPairId, OrderStatus status, int limit, int offset);
 
-    void getTransactionsByOrder(Integer orderId);
+    List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(Integer userId, Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
 
-    void getTradeHistoryByCurrencyPair(Integer orderId);
+    List<ExOrder> getAllOpenedOrdersByUserId(Integer userId);
 
-    List<UserTradeHistoryDto> getUserTradeHistory(Integer userId, Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
+//    List<UserTradeHistoryDto> getUserTradeHistoryByOrder(Integer userId, Integer orderId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
 
     List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
