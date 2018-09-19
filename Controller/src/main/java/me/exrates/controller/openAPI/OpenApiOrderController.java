@@ -1,5 +1,7 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.api.ApiRequestsLimitExceedException;
+import me.exrates.api.aspect.ApiRateLimitCheck;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
@@ -28,17 +30,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
-import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.service.util.OpenApiUtils.*;
-import static me.exrates.service.util.RestApiUtils.*;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
+import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/openapi/v1/orders")
@@ -50,8 +48,8 @@ public class OpenApiOrderController {
     @Autowired
     private UserService userService;
 
-
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
     produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
@@ -63,6 +61,7 @@ public class OpenApiOrderController {
     }
 
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/cancel", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Boolean> cancelOrder(@RequestBody Map<String, String> params) {
@@ -74,6 +73,7 @@ public class OpenApiOrderController {
     }
 
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
@@ -84,6 +84,7 @@ public class OpenApiOrderController {
         return Collections.singletonMap("success", true);
     }
 
+    @ApiRateLimitCheck
     @GetMapping(value = "/open/{order_type}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
                                          @RequestParam("currency_pair") String currencyPair) {
@@ -157,5 +158,11 @@ public class OpenApiOrderController {
         return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), "An internal error occured");
     }
 
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(ApiRequestsLimitExceedException.class)
+    @ResponseBody
+    public OpenApiError requestsLimitExceedExceptionHandler(HttpServletRequest req, ApiRequestsLimitExceedException exception) {
+        return new OpenApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
 
 }
