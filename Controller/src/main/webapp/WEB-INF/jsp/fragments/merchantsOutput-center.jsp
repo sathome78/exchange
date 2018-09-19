@@ -117,6 +117,7 @@
   <%@include file="modal/pin_modal.jsp"%>
   <%@include file="modal/loading_modal.jsp" %>
   <%@include file="modal/check_fin_pass_modal.jsp" %>
+  <%@include file="modal/check_wallet_address_modal.jsp" %>
   <%@include file="modal/dialogWithdrawCreation_modal.jsp" %>
   <%@include file="modal/dialogWithdrawDetailedParamsEnter_modal.jsp" %>
 
