@@ -25,6 +25,7 @@ import nl.basjes.parse.useragent.*;
 import nl.basjes.parse.useragent.UserAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -37,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -106,6 +109,7 @@ public class UserServiceImpl implements UserService {
 
   public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
   public static String APP_NAME = "Exrates";
+
 
   private final int USER_FILES_THRESHOLD = 3;
 
@@ -789,6 +793,11 @@ public class UserServiceImpl implements UserService {
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
+
+    if (setting.getNotificatorId() == 4) {
+        return checkGoogle2faVerifyCode(pin, email);
+    }
+
     if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
@@ -831,6 +840,38 @@ public class UserServiceImpl implements UserService {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @Override
+  @Transactional
+  public String getGoogleAuthenticatorCode(String userEmail) {
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return secret2faCode;
+  }
+
+  @Override
+  @Transactional
+  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+  }
+
+  @Override
+  public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
+        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
+        final Totp totp = new Totp(google2faSecret);
+        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+            throw new IncorrectSmsPinException();
+        }
+        return true;
+  }
 
   private boolean isValidLong(String code) {
     try {

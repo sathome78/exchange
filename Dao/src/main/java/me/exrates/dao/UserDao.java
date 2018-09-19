@@ -181,4 +181,8 @@ public interface UserDao {
     int checkOperSystem(Integer id, String operSystem);
 
     boolean setNewOperSystem(Integer id, String operSystem);
+
+    String get2faSecretByEmail(String email);
+
+    boolean set2faSecretCode(String email);
 }

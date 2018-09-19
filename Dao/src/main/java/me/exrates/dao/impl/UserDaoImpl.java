@@ -40,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jboss.aerogear.security.otp.api.Base32;
 
 import static java.util.Collections.singletonMap;
 
@@ -842,6 +843,8 @@ public class UserDaoImpl implements UserDao {
     }
   }
 
+
+
   @Override
   public boolean tempDeleteUser(int id) {
     String sql = "DELETE FROM USER WHERE USER.id = :id; ";
@@ -1102,4 +1105,21 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
+
+  public String get2faSecretByEmail(String email) {
+    String sql = "SELECT 2fa_secret FROM USER WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  public boolean set2faSecretCode(String email) {
+    String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("secret", Base32.random());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
 }

@@ -50,6 +50,7 @@
                             <tbody>
                             <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
                             <c:forEach items="${user2faOptions.get('events')}" var="event">
+                                ${notificator.id != 4}
                                     <tr>
                                         <td><loc:message code="settings.message.event.${event}"/></td>
                                         <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">

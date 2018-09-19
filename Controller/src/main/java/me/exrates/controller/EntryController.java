@@ -323,6 +323,7 @@ public class EntryController {
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
+        mav.addObject("googleAuthenticatorCode", userService.getGoogleAuthenticatorCode(user.getEmail()));
         mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);
         if (!model.containsAttribute("kyc")) {
@@ -481,6 +482,21 @@ public class EntryController {
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
+    }
+
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+        return new Generic2faResponseDto(userService.generateQRUrl(principal.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_google2fa")
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
+        if (principal != null) {
+            userService.checkGoogle2faVerifyCode(code, principal.getName());
+        }
+        return "";
     }
 
     @ResponseBody
