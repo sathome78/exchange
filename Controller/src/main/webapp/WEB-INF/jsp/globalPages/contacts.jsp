@@ -85,7 +85,7 @@
                     <div>
                         <h5 style="margin-top: 32px;margin-bottom: 16px;"><loc:message code="country.switzerland"/></h5>
                         <p style="margin-bottom: 0; margin-top: 0;">
-                            <b><loc:message code="contacts.officeLocation.title"/></b>
+                            <b><loc:message code="contacts.headquarters.title"/></b>
                         </p>
                         <p style="margin-top: 0; margin-bottom:0; text-align: left;"><loc:message code="contacts.officeLocation.switzerland"/></p>
                         <p style="margin-top: 8px; margin-bottom: 0;">

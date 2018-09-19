@@ -25,12 +25,12 @@ function ChartAmchartsClass2(currencyPair) {
     };
 
 
-    this.switchCurrencyPair = function () {
-        var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
+    this.switchCurrencyPair = function (pairName) {
+        /*var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');*/
 
-        stockChart.setSymbol(currencyPairName, function () {
+        stockChart.setSymbol(pairName, function () {
 
-            stockChart.setSymbol(currencyPairName, function () {
+            stockChart.setSymbol(pairName, function () {
 
                 stockChart.resetData()
             })
