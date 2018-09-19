@@ -5,6 +5,7 @@
 	<artifactId>Birzha</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
 	<modules>
 		<module>Security</module>
 		<module>Model</module>
@@ -12,6 +13,7 @@
 		<module>Dao</module>
 		<module>JDBC</module>
 		<module>Controller</module>
+		<module>openapi</module>
 	</modules>
 
 	<properties>
