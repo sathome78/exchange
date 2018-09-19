@@ -21,9 +21,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Created by Yuriy Berezin on 14.09.2018.
  */
 @Service
-public class RateLimitService {
+public class ApiRateLimitService {
 
-    private static final Logger log = LogManager.getLogger(RateLimitService.class);
+    private static final Logger log = LogManager.getLogger(ApiRateLimitService.class);
 
     private static final int TIME_LIMIT_SECONDS = 3600;
 

@@ -1,19 +1,15 @@
 package me.exrates.api.controller;
 
-import me.exrates.api.RequestsLimitExceedException;
+import me.exrates.api.ApiRequestsLimitExceedException;
 import me.exrates.api.TestUtil;
-import me.exrates.api.service.RateLimitService;
+import me.exrates.api.service.ApiRateLimitService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,7 +58,7 @@ public class RateLimitControllerTest {
         TestUtil.setAuth();
 
         log.info("Register valid requests");
-        for (int i = 0; i < RateLimitService.getDefaultAttemps(); i++) {
+        for (int i = 0; i < ApiRateLimitService.getDefaultAttemps(); i++) {
             log.info("# " + (i + 1));
             ResultActions actions = mockMvc.perform(get(TEST_ENDPOINT).
                     contentType(contentType)).
@@ -77,7 +73,7 @@ public class RateLimitControllerTest {
                 andExpect(status().isNotAcceptable());
         String retStr = actions.andReturn().getResponse().getContentAsString();
         Assert.assertEquals("Invalid test response",
-                "\"" + RequestsLimitExceedException.class.getSimpleName() + "\"", retStr);
+                "\"" + ApiRequestsLimitExceedException.class.getSimpleName() + "\"", retStr);
     }
 
 }

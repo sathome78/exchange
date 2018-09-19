@@ -24,7 +24,7 @@ public class RateLimitServiceTest {
 
 
     @Autowired
-    private RateLimitService apiRateLimitService;
+    private ApiRateLimitService apiRateLimitService;
 
     @Test
     @Sql(scripts = {"/sql/delete-test-data.sql", "/sql/insert-test-data.sql"}, executionPhase = BEFORE_TEST_METHOD)
@@ -32,8 +32,8 @@ public class RateLimitServiceTest {
 
         log.info("Default limit");
         Integer limit1 = apiRateLimitService.getRequestLimit(TestUtil.TEST_EMAIL);
-        Assert.assertEquals("No default value set", RateLimitService.getDefaultAttemps(), limit1);
-        Assert.assertEquals("DEFAULT_ATTEMPS not cached", RateLimitService.getDefaultAttemps(),
+        Assert.assertEquals("No default value set", ApiRateLimitService.getDefaultAttemps(), limit1);
+        Assert.assertEquals("DEFAULT_ATTEMPS not cached", ApiRateLimitService.getDefaultAttemps(),
                 apiRateLimitService.getUserLimits().get(TestUtil.TEST_EMAIL));
         log.info("Set limit");
         Integer updatedLimit = 100;
@@ -50,7 +50,7 @@ public class RateLimitServiceTest {
         TestUtil.setAuth();
 
         log.info("Register valid requests");
-        for (int i = 0; i < RateLimitService.getDefaultAttemps(); i++) {
+        for (int i = 0; i < ApiRateLimitService.getDefaultAttemps(); i++) {
             log.info("# " + (i + 1));
             apiRateLimitService.registerRequest();
             Assert.assertFalse("Register valid request failed", apiRateLimitService.isLimitExceed());
