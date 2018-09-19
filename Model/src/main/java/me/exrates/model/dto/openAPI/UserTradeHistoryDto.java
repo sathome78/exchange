@@ -1,17 +1,15 @@
 package me.exrates.model.dto.openAPI;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.enums.OrderType;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import lombok.ToString;
 
 @Getter
-@Setter(AccessLevel.PRIVATE)
+@Setter
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class UserTradeHistoryDto extends TradeHistoryDto {
 
     @JsonProperty("user_id")
@@ -19,12 +17,4 @@ public class UserTradeHistoryDto extends TradeHistoryDto {
 
     @JsonProperty("maker")
     private Boolean isMaker;
-
-    @Builder
-    public UserTradeHistoryDto(Integer userId, Boolean isMaker, Integer orderId, String currencyPair, LocalDateTime dateAcceptance,
-                               LocalDateTime dateCreation, BigDecimal amount, BigDecimal price, BigDecimal total, OrderType orderType) {
-        super(orderId, currencyPair, dateAcceptance, dateCreation, amount, price, total, orderType);
-        this.userId = userId;
-        this.isMaker = isMaker;
-    }
 }

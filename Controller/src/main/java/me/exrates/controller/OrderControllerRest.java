@@ -242,7 +242,7 @@ public class OrderControllerRest {
                     break;
                 }
                 default: {
-                    result = orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
                 }
             }
             if (!result) {

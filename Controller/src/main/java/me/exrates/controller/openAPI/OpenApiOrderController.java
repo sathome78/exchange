@@ -1,5 +1,6 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
@@ -77,12 +78,12 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/cancel Cancel order
-     * @apiName Canceles order
+     * @api {get} /openapi/v1/orders/cancel Cancel order by order id
+     * @apiName Cancel order by order id
      * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
-     * @apiDescription Canceles order
+     * @apiDescription Cancel order by order id
      * @apiParam {String} order_id Id of order to be cancelled
      * @apiParamExample Request Example:
      * /openapi/v1/orders/cancel
@@ -90,14 +91,30 @@ public class OpenApiOrderController {
      * @apiSuccess {Map} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
-    @RequestMapping(value = "/cancel", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Boolean> cancelOrder(@RequestBody Map<String, String> params) {
-        String orderIdString = retrieveParamFormBody(params, "order_id", true);
-        Integer orderId = Integer.parseInt(orderIdString);
-        String userEmail = userService.getUserEmailFromSecurityContext();
-        orderService.cancelOrder(orderId, userEmail);
-        return Collections.singletonMap("success", true);
+    @PostMapping(value = "/cancel", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<BaseResponse<Map<String, Boolean>>> cancelOrder(@RequestBody Map<String, String> params) {
+        final Integer orderId = Integer.parseInt(retrieveParamFormBody(params, "order_id", true));
+
+        orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
+    }
+
+    /**
+     * @api {get} /openapi/v1/orders/cancel/all Cancel all open orders
+     * @apiName Cancel all open orders
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Cancel all open orders
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/cancel/all
+     * @apiSuccess {Map} success Cancellation result
+     */
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PostMapping(value = "/cancel/all", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<BaseResponse<Map<String, Boolean>>> cancelAllOrders() {
+        orderService.cancelAllOpenOrders();
+        return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
     }
 
     /**
