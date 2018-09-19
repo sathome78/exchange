@@ -213,9 +213,15 @@ public class RegisterFormValidation implements Validator {
         String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, ru);
         String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
         String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
+        String apiRateLimitIncorrect = messageSource.getMessage("validation.apiratelimitincorrect", null, ru);
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
                 "required.email", emailRequired);
+
+        Integer apiRateLimit = user.getApiRateLimit();
+        if(apiRateLimit == null || apiRateLimit == 0 ){
+            errors.rejectValue("apiRateLimit", "apiRateLimit.incorrect", apiRateLimitIncorrect);
+        }
 
         if (!(user.getEmail() != null && user.getEmail().isEmpty())) {
             pattern = Pattern.compile(EMAIL_PATTERN);

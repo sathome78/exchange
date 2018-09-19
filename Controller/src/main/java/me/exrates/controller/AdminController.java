@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.api.service.ApiRateLimitService;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;
@@ -162,6 +163,9 @@ public class AdminController {
   private UsersAlertsService alertsService;
   @Autowired
   private UserSessionService userSessionService;
+
+  @Autowired
+  private ApiRateLimitService apiRateLimitService;
 
 
   @Autowired
@@ -494,13 +498,14 @@ public class AdminController {
     }
     model.addObject("roleList", roleList);
 
-    User user = new User();
+    User user;
     if (email != null){
       email = email.replace(" ", "+");
       user = userService.findByEmail(email);
     } else {
       user = userService.getUserById(id);
     }
+    user.setApiRateLimit(apiRateLimitService.getRequestLimit(email));
 
     model.addObject("user", user);
     model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
@@ -610,7 +615,7 @@ public class AdminController {
     /**/
     registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
-      model.setViewName("admin/editUser");
+//      model.setViewName("admin/editUser");
       model.addObject("statusList", UserStatus.values());
       if (currentUserRole == ADMINISTRATOR) {
         model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
@@ -630,6 +635,7 @@ public class AdminController {
       } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
         notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
       }
+      apiRateLimitService.setRequestLimit(user.getEmail(), user.getApiRateLimit());
 
       model.setViewName("redirect:/2a8fy7b07dxe44");
     }
