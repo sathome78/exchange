@@ -29,7 +29,6 @@ import me.exrates.model.vo.*;
 import me.exrates.service.*;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -140,8 +139,6 @@ public class OrderServiceImpl implements OrderService {
   private ObjectMapper objectMapper;
   @Autowired
   private ApplicationEventPublisher eventPublisher;
-  @Autowired
-  private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
   @Autowired
   private ChartsCacheManager chartsCacheManager;
   @Autowired
@@ -1835,8 +1832,12 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-      orders = Stream.of(orders.stream().filter(p -> !p.getLastOrderRate().equals("0")), orders.stream().filter(p -> p.getLastOrderRate().equals("0")))
-              .map(ExOrderStatisticsShortByPairsDto.class::cast)
+      orders = Stream.of(
+              orders.stream()
+                      .filter(p -> !p.getLastOrderRate().equals("0")),
+              orders.stream()
+                      .filter(p -> p.getLastOrderRate().equals("0")))
+              .flatMap(p->p)
               .collect(Collectors.toList());
       setStatisitcValues(orders);
       return orders;
