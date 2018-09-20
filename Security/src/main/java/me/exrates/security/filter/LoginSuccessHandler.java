@@ -3,7 +3,8 @@ package me.exrates.security.filter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.UserIpState;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
@@ -76,7 +77,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
-            ipBlockingService.processLoginSuccess(ip);
+            ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
             String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
             request.getSession().removeAttribute("lastPageBeforeLogin");
             if (!StringUtils.isEmpty(lastPage)) {

@@ -27,10 +27,6 @@ public class User  {
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
 
-	public User(ChangePasswordDto dto) {
-		this.password = dto.getPassword();
-		this.confirmPassword = dto.getConfirmPassword();
-	}
 
 	public User() {
 	}
