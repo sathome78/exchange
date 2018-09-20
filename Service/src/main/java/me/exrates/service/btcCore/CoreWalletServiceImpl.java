@@ -20,6 +20,7 @@ import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -77,7 +78,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-      CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
+      RequestConfig.Builder rc = RequestConfig.custom().setConnectTimeout(3000).setConnectionRequestTimeout(3000);
+
+      CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(rc.build())
               .build();
       Properties nodeConfig = new Properties();
       nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));

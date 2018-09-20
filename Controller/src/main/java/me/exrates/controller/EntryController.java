@@ -53,6 +53,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -163,7 +164,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                                                 .stream()
                                                 .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                                                .collect(Collectors.toList()));
+                                                .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -230,7 +231,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
                     .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -298,7 +299,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
                     .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -378,7 +379,7 @@ public class EntryController {
         Object message;
         if (result.hasErrors()) {
             response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(toList());
         } else {
             if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
@@ -399,24 +400,21 @@ public class EntryController {
 
     /*todo move this method from admin controller*/
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
-                                               HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
-
+    public ModelAndView submitsettingsNickname(@RequestParam("nickname")String newNickName, BindingResult result,
+                                               HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
+        registerFormValidation.validateNickname(newNickName, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
         } else {
-            boolean userNicknameUpdated = userService.setNickname(user);
+            boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
             if(userNicknameUpdated){
                 redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
             }else{
                 redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             }
         }
-
         redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
-
         return new ModelAndView(new RedirectView("/settings"));
     }
 
@@ -439,10 +437,19 @@ public class EntryController {
 
     @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request, Principal principal) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
+        int userId = userService.getIdByEmail(principal.getName());
         RedirectView redirectView = new RedirectView("/settings");
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
+        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
+                stream().
+                map(option ->
+                        {
+                            option.setUserId(userId);
+                            return option;
+                        }
+                ).
+                collect(toList());;
         //TODO uncomment after turning notifications on
         /*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,

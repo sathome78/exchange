@@ -244,7 +244,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
-        return new HikariDataSource(hikariConfig);
+        HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.migrate();
+        return dataSource;
     }
 
     @Bean(name = "slaveHikariDataSource")
@@ -257,16 +263,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setMaximumPoolSize(50);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
-    }
-
-    @DependsOn("masterHikariDataSource")
-    @Bean
-    public Flyway flywayMaster(@Qualifier("masterHikariDataSource") DataSource dataSource) {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(dataSource);
-        flyway.setBaselineOnMigrate(true);
-        flyway.migrate();
-        return flyway;
     }
 
     @Primary
