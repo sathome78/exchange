@@ -13,23 +13,29 @@ $(function () {
             return moment(date).format(format);
         }
     });
-
+    var date = new Date();
+    date.setMonth(date.getMonth()-1);
+    console.log(date);
     $('#datetimepicker_start').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm',
+        format: 'YYYY-MM-DD HH:mm:ss',
         formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
+        formatTime: 'HH:mm:ss',
         lang: 'ru',
-        defaultDate: new Date(),
+        value:date,
+        defaultDate: date,
         defaultTime: '00:00'
     });
+
     $('#datetimepicker_end').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm',
+        format: 'YYYY-MM-DD HH:mm:ss',
         formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
+        formatTime: 'HH:mm:ss',
         lang: 'ru',
+        value:new Date(),
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
+
     $('#transactionsTable').hide();
     $('#transactionsTable').on('click', 'tbody .transactionlist-order-detail-button', function () {
         var row = transactionsDataTable.row($(this).parents('tr'));
@@ -146,13 +152,20 @@ $(function () {
 
     $('#download_trans_history').click(function () {
         var formParams = $('#transaction-search-form').serialize();
-        var params = "id="+$("#user-id").val() + '&' + formParams;
+        var dateParams = $('#transaction-search-datetime-form').serialize();
+        var params = "id="+$("#user-id").val() + '&' + dateParams +'&' + formParams;
         uploadUserTransactionsReport(params);
+    });
+
+    $('#transactions_change_date').on('click', function (e) {
+        e.preventDefault();
+        loadTransactionsDataTable();
     });
 
     function loadTransactionsDataTable() {
         var formParams = $('#transaction-search-form').serialize();
-        var url = '/2a8fy7b07dxe44/transactions?id=' + $("#user-id").val() + '&' + formParams;
+        var dateParams = $('#transaction-search-datetime-form').serialize();
+        var url = '/2a8fy7b07dxe44/transactions?id=' + $("#user-id").val() + '&' + dateParams +'&' + formParams;
         if ($.fn.dataTable.isDataTable('#transactionsTable')) {
             transactionsDataTable = $('#transactionsTable').DataTable();
             transactionsDataTable.ajax.url(url).load();

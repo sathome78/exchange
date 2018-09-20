@@ -4,6 +4,7 @@ import me.exrates.dao.OpenApiTokenDao;
 import me.exrates.model.OpenApiToken;
 import me.exrates.model.dto.openAPI.OpenApiTokenPublicDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -19,6 +20,7 @@ import java.util.*;
 public class OpenApiTokenDaoImpl implements OpenApiTokenDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     private final RowMapper<OpenApiToken> tokenRowMapper = (rs, rowNum) -> {

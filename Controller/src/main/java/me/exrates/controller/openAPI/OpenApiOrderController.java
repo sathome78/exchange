@@ -48,6 +48,26 @@ public class OpenApiOrderController {
     @Autowired
     private UserService userService;
 
+    /**
+     * @api {post} /openapi/v1/orders/create Create order
+     * @apiName Creates order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Creates Order
+     * @apiParam {String} currency_pair Name of currency pair (e.g. btc_usd)
+     * @apiParam {String} order_type Type of order (BUY or SELL)
+     * @apiParam {Number} amount Amount in base currency
+     * @apiParam {Number} price Exchange rate
+     * @apiParamExample Request Example:
+     *       /openapi/v1/orders/create
+     *       RequestBody:{currency_pair, order_type, amount, price}
+     *
+     * @apiSuccess {Object} orderCreationResult Order creation result information
+     * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
+     * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
+     * @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
+     */
     @PreAuthorize("hasAuthority('TRADE')")
     @ApiRateLimitCheck
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -60,6 +80,19 @@ public class OpenApiOrderController {
         return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
     }
 
+    /**
+     * @api {get} /openapi/v1/orders/cancel Cancel order
+     * @apiName Canceles order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Canceles order
+     * @apiParam {String} order_id Id of order to be cancelled
+     * @apiParamExample Request Example:
+     *       /openapi/v1/orders/cancel
+     *       RequestBody: Map{order_id=123}
+     * @apiSuccess {Map} success Cancellation result
+     */
     @PreAuthorize("hasAuthority('TRADE')")
     @ApiRateLimitCheck
     @RequestMapping(value = "/cancel", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -72,6 +105,19 @@ public class OpenApiOrderController {
         return Collections.singletonMap("success", true);
     }
 
+    /**
+     * @api {get} /openapi/v1/orders/accept Accept order
+     * @apiName Accept order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Accepts order
+     * @apiParam {Integer} order_id Id of order to be accepted
+     * @apiParamExample Request Example:
+     *     /openapi/v1/orders/accept
+     *     RequestBody: Map{order_id=123}
+     * @apiSuccess {Map} success=true Acceptance result
+     */
     @PreAuthorize("hasAuthority('TRADE')")
     @ApiRateLimitCheck
     @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -84,6 +130,24 @@ public class OpenApiOrderController {
         return Collections.singletonMap("success", true);
     }
 
+    /**
+     * @api {get} /openapi/v1/orders/open/{order_type}?currency_pair Open orders
+     * @apiName Open orders
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Buy or sell open orders ordered by price (SELL ascending, BUY descending)
+     * @apiParam {String} order_type Type of order (BUY or SELL)
+     * @apiParam {String} currency_pair Name of currency pair
+     * @apiParamExample Request Example:
+     *       /openapi/v1/orders/open/SELL?btc_usd
+     * @apiSuccess {Array} openOrder Open Order Result
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.id Order id
+     * @apiSuccess {String} data.order_type type of order (BUY or SELL)
+     * @apiSuccess {Number} data.amount Amount in base currency
+     * @apiSuccess {Number} data.price Exchange rate
+     */
     @ApiRateLimitCheck
     @GetMapping(value = "/open/{order_type}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,

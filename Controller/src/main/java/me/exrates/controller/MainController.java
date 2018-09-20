@@ -213,8 +213,6 @@ public class MainController {
                     e.printStackTrace();
                     logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
                 }
-                System.out.println("************************************************ EMAIL ********************************* | "+user.getEmail());
-                System.out.println("************************************************ PARENT EMAIL ********************************* | "+user.getParentEmail());
                 if (flag) {
                     final int child = userService.getIdByEmail(user.getEmail());
                     final int parent = userService.getIdByEmail(user.getParentEmail());

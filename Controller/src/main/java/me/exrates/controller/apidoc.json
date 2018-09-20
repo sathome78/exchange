@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Exrates REST API",
   "title": "Exrates REST API",
-  "url" : "https://exrates.me"
+  "url" : "https://exrates.me",
+  "forceLanguage" : "en"
 }
 
 

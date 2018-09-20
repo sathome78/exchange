@@ -6,7 +6,7 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@include file="../tools/google_head.jsp"%>
-<%@include file="../tools/alexa.jsp" %>
+<%--<%@include file="../tools/alexa.jsp" %>--%>
 <%-- <%@include file="../tools/yandex.jsp" %> --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -40,7 +40,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
 
 
-<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/datatables.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.select.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.buttons.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/buttons.html5.min.js'/>"></script>
@@ -63,7 +63,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
 
 
-<script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>

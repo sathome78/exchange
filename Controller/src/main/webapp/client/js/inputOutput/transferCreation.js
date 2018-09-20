@@ -204,7 +204,6 @@ $(function transferCreation() {
     }
 
     function transferSuccess(result) {
-        console.log(result);
         showTransferDialogAfterCreation(result['message'], result['hash']);
         notifications.getNotifications();
     }

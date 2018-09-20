@@ -86,7 +86,11 @@ function LeftSiderClass(type) {
         var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
         var sel = 'stat_' + data.currencyPairName;
         var $row = $(document.getElementById(sel));
-        $row.replaceWith(tmpl($tmpl, data));
+        if ($row.length) {
+            $row.replaceWith(tmpl($tmpl, data));
+        } else {
+            $currencyTable.append(tmpl($tmpl, data));
+        }
         blink($row);
         setPairFilter();
     };

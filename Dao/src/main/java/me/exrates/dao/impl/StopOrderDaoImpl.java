@@ -18,6 +18,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 public class StopOrderDaoImpl implements StopOrderDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private RowMapper<StopOrder> getStopOrdersRowMapper() {

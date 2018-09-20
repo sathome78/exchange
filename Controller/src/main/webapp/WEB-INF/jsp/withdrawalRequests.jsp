@@ -8,7 +8,8 @@
 <head>
   <meta charset="utf-8"/>
   <!--[if lt IE 9]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <%--script not found--%>
+  <!--<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script-->><![endif]-->
   <title><loc:message code="admin.withdrawRequests"/></title>
   <meta name="keywords" content=""/>
   <meta name="description" content=""/>

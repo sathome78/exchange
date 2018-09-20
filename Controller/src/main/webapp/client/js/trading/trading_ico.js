@@ -52,7 +52,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        console.log('on pair change ' + currentPair);
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
@@ -63,9 +62,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function () {
+    this.syncCurrencyPairSelector = function (cpName) {
         dashboardCurrencyPairSelector.syncState('ICO', function () {
         });
+        currentPair = cpName;
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {

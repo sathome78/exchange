@@ -4,6 +4,7 @@ import me.exrates.dao.EDCMerchantDao;
 import me.exrates.model.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,7 +21,7 @@ public class EDCMerchantDaoImpl implements EDCMerchantDao {
 
     private final Logger LOG = LogManager.getLogger("merchant");
 
-    public EDCMerchantDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public EDCMerchantDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

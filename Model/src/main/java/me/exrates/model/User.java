@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -33,6 +34,14 @@ public class User  {
 
 	public void setApiRateLimit(Integer apiRateLimit) {
 		this.apiRateLimit = apiRateLimit;
+	}
+
+	public User(ChangePasswordDto dto) {
+		this.password = dto.getPassword();
+		this.confirmPassword = dto.getConfirmPassword();
+	}
+
+	public User() {
 	}
 
 	public UserRole getRole() {
@@ -156,12 +165,8 @@ public class User  {
 				", email='" + email + '\'' +
 				", phone='" + phone + '\'' +
 				", status=" + status +
-				", password='" + password + '\'' +
-				", finpassword='" + finpassword + '\'' +
 				", regdate=" + regdate +
 				", ipaddress='" + ipaddress + '\'' +
-				", confirmPassword='" + confirmPassword + '\'' +
-				", confirmFinPassword='" + confirmFinPassword + '\'' +
 				", readRules=" + readRules +
 				", role=" + role +
 				", parentEmail='" + parentEmail + '\'' +

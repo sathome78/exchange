@@ -25,7 +25,7 @@
 
     <%----------------------------------------%>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+  <%--  <%@include file="../tools/alexa.jsp" %>--%>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -36,7 +36,7 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <%--... Alerts --%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
@@ -77,13 +77,27 @@
                 </div>
                 <div class="col-md-4 col-md-offset-1">
                     <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
-                        <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
+                        <script src="/client/js/webforms.min.js"></script></div>
                 </div>
             </div>
-
         </div>
 
+        <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
+            <h1 style="text-align: center"><loc:message code="our.partners"/></h1>
+            <table class="img-table">
+                <tr><td><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/></td>
+                </tr>
+                <tr>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-8 col-md-offset-2 content sponsors">
 
+        </div>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>

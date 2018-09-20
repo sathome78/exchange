@@ -10,6 +10,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -26,6 +27,7 @@ import java.util.*;
 public class BotDaoImpl implements BotDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
