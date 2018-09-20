@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,16 +49,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -101,8 +96,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Log4j2
 @Controller
 public class AdminController {
-
-
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
@@ -338,7 +331,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> addUserComment(@RequestParam String newComment, @RequestParam String email,
-                                                              @RequestParam boolean sendMessage, HttpServletRequest request, final Locale locale) {
+                                                              @RequestParam boolean sendMessage, final Locale locale) {
 
         try {
             userService.addUserComment(GENERAL, newComment, email, sendMessage);
@@ -398,8 +391,6 @@ public class AdminController {
             currencyPair = null;
         }
         String email = userService.getUserById(id).getEmail();
-        Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
-
         return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
     }
 
@@ -736,34 +727,15 @@ public class AdminController {
     @RequestMapping("/2a8fy7b07dxe44/userswallets")
     public ModelAndView showUsersWalletsSummary(Principal principal) {
         Integer requesterUserId = userService.getIdByEmail(principal.getName());
-        Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-        List<UserWalletSummaryDto> fullResult = walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId);
-        /**/
-        List<UserWalletSummaryDto> allFiltered = getSublistForRole(fullResult, "ALL");
-        List<UserWalletSummaryDto> adminFiltered = getSublistForRole(fullResult, "ADMIN");
-        List<UserWalletSummaryDto> userFiltered = getSublistForRole(fullResult, "USER");
-        List<UserWalletSummaryDto> exchangeFiltered = getSublistForRole(fullResult, "EXCHANGE");
-        List<UserWalletSummaryDto> vipUserFiltered = getSublistForRole(fullResult, "VIP_USER");
-        List<UserWalletSummaryDto> traderFiltered = getSublistForRole(fullResult, "TRADER");
-        /**/
-        mapUsersWalletsSummaryList.put("ALL", allFiltered);
-        mapUsersWalletsSummaryList.put("ADMIN", adminFiltered);
-        mapUsersWalletsSummaryList.put("USER", userFiltered);
-        mapUsersWalletsSummaryList.put("EXCHANGE", exchangeFiltered);
-        mapUsersWalletsSummaryList.put("VIP_USER", vipUserFiltered);
-        mapUsersWalletsSummaryList.put("TRADER", traderFiltered);
-        /**/
         ModelAndView model = new ModelAndView();
         model.setViewName("UsersWallets");
-        model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
         Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-            add("ALL");
+            add("ADMIN");
         }};
         usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
         model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
         List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
         model.addObject("operationDirectionList", operationDirectionList);
-
         return model;
     }
 
