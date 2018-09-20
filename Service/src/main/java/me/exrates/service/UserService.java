@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
