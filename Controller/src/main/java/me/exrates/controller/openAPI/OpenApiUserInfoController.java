@@ -2,6 +2,7 @@ package me.exrates.controller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
@@ -207,8 +208,8 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Integer} data.user_id User id
      * @apiSuccess {Boolean} data.maker User is maker
      * @apiSuccess {Integer} data.order_id Order id
-     * @apiSuccess {Number} data.date_acceptance Order acceptance date
-     * @apiSuccess {Number} data.date_creation Order creation date
+     * @apiSuccess {String} data.date_acceptance Order acceptance date
+     * @apiSuccess {String} data.date_creation Order creation date
      * @apiSuccess {Number} data.amount Order amount in base currency
      * @apiSuccess {Number} data.price Exchange rate
      * @apiSuccess {Number} data.total Total sum
@@ -232,43 +233,29 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByCurrencyPair(transformedCurrencyPair, fromDate, toDate, limit)));
     }
 
-//    /**
-//     * @api {get} /openapi/v1/user/history/{currency_pair}?from_date&to_date&limit User trade history
-//     * @apiName User Trade History
-//     * @apiGroup User API
-//     * @apiPermission NonPublicAuth
-//     * @apiDescription Provides collection of user trade info objects
-//     * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
-//     * @apiParam {LocalDate} to_date end date of search (date format: yyyy-MM-dd)
-//     * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero, default value: 50) (optional)
-//     * @apiParamExample Request Example:
-//     * openapi/v1/user/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=20
-//     * @apiSuccess {Array} Array of user trade info objects
-//     * @apiSuccess {Object} data Container object
-//     * @apiSuccess {Integer} data.user_id User id
-//     * @apiSuccess {Boolean} data.maker User is maker
-//     * @apiSuccess {Integer} data.order_id Order id
-//     * @apiSuccess {Number} data.date_acceptance Order acceptance date
-//     * @apiSuccess {Number} data.date_creation Order creation date
-//     * @apiSuccess {Number} data.amount Order amount in base currency
-//     * @apiSuccess {Number} data.price Exchange rate
-//     * @apiSuccess {Number} data.total Total sum
-//     * @apiSuccess {Number} data.commission commission
-//     * @apiSuccess {String} data.order_type Order type (BUY or SELL)
-//     */
-//    @GetMapping(value = "/history/order/{order_id}/trades", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistoryByOrder(@PathVariable(value = "order_id") Integer orderId,
-//                                                                                              @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-//                                                                                              @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-//                                                                                              @RequestParam(required = false, defaultValue = "50") Integer limit) {
-//        if (fromDate.isAfter(toDate)) {
-//            return ResponseEntity.badRequest().body(BaseResponse.error("From date is before to date"));
-//        }
-//        if (nonNull(limit) && limit <= 0) {
-//            return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
-//        }
-//        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByOrder(orderId, fromDate, toDate, limit)));
-//    }
+    /**
+     * @api {get} /openapi/v1/user/history/{order_id}/transactions Order transactions history
+     * @apiName Order transactions history
+     * @apiGroup User API
+     * @apiPermission NonPublicAuth
+     * @apiDescription Provides collection of user transactions info objects
+     * @apiParamExample Request Example:
+     * openapi/v1/user/history/1/transactions
+     * @apiSuccess {Array} Array of user trade info objects
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.transaction_id Transaction id
+     * @apiSuccess {Integer} data.wallet_id User wallet id
+     * @apiSuccess {Number} data.amount Amount to sell/buy
+     * @apiSuccess {Number} data.commission Commission
+     * @apiSuccess {String} data.currency Operation currency
+     * @apiSuccess {String} data.time Transaction creation date
+     * @apiSuccess {String} data.operation_type Transaction operation type
+     * @apiSuccess {String} data.transaction_status Transaction status
+     */
+    @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
+        return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
+    }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)

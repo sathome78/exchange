@@ -26,6 +26,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -134,5 +135,7 @@ public interface OrderDao {
 
     List<ExOrder> getAllOpenedOrdersByUserId(Integer userId);
 
-//    List<UserTradeHistoryDto> getUserTradeHistoryByOrder(Integer userId, Integer orderId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
+    List<ExOrder> getOpenedOrdersByCurrencyPair(Integer userId, String currencyPair);
+
+    List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId);
 }
