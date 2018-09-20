@@ -1390,14 +1390,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "RET", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "gicServiceImpl")
-    public EthTokenService gicService() {
+    @Bean(name = "gigcServiceImpl")
+    public EthTokenService gigcService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xbf8aa0617df5c542f533b0e95fe2f877906ac327");
         return new EthTokenServiceImpl(
                 tokensList,
-                "GIC",
-                "GIC", false, ExConvert.Unit.AIWEI);
+                "GIGC",
+                "GIGC", false, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:
