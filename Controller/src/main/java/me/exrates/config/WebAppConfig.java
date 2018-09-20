@@ -73,6 +73,7 @@ import org.zeromq.ZMQ;
 import javax.annotation.PostConstruct;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
+import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
@@ -106,30 +107,12 @@ import java.util.stream.Collectors;
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
-    private
-    @Value("${db.master.user}")
-    String dbMasterUser;
-    private
-    @Value("${db.master.password}")
-    String dbMasterPassword;
-    private
-    @Value("${db.master.url}")
-    String dbMasterUrl;
-    private
-    @Value("${db.master.classname}")
-    String dbMasterClassname;
-    private
-    @Value("${db.slave.user}")
-    String dbSlaveUser;
-    private
-    @Value("${db.slave.password}")
-    String dbSlavePassword;
-    private
-    @Value("${db.slave.url}")
-    String dbSlaveUrl;
-    private
-    @Value("${db.slave.classname}")
-    String dbSlaveClassname;
+    @Value("${db.properties.file}")
+    private String dbPropertiesFile;
+
+    @Value("${db.properties.outer.file}")
+    private Boolean isOuterFile;
+
     private
     @Value("${upload.userFilesDir}")
     String userFilesDir;
@@ -208,13 +191,40 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${geetest.newFailback}")
     private String gtNewFailback;
 
+    private String dbMasterUser;
+    private String dbMasterPassword;
+    private String dbMasterUrl;
+    private String dbMasterClassname;
+    private String dbSlaveUser;
+    private String dbSlavePassword;
+    private String dbSlaveUrl;
+    private String dbSlaveClassname;
+
 
     @PostConstruct
     public void init() {
-        log.debug("initNem");
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
+        Properties properties = new Properties();
+        try {
+            if (isOuterFile) {
+                properties.load(new FileInputStream(dbPropertiesFile));
+            }
+            else {
+                properties.load(getClass().getClassLoader().getResourceAsStream(dbPropertiesFile));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Db properties not loaded");
+        }
+        dbMasterUser = properties.getProperty("db.master.user");
+        dbMasterPassword = properties.getProperty("db.master.password");
+        dbMasterUrl = properties.getProperty("db.master.url");
+        dbMasterClassname = properties.getProperty("db.master.classname");
+        dbSlaveUser = properties.getProperty("db.slave.user");
+        dbSlavePassword = properties.getProperty("db.slave.password");
+        dbSlaveUrl = properties.getProperty("db.slave.url");
+        dbSlaveClassname = properties.getProperty("db.slave.classname");
     }
 
 
@@ -1336,6 +1346,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "PHI",
                 "PHI", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "retServiceImpl")
+    public EthTokenService retService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd7394087e1dbbe477fe4f1cf373b9ac9459565ff");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RET",
+                "RET", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "mftuServiceImpl")

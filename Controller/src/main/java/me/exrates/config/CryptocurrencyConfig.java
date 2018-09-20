@@ -148,7 +148,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "nycoinServiceImpl")
     public BitcoinService nycoinService() {
         return new BitcoinServiceImpl("merchants/nyc_wallet.properties",
-                "NYC", "NYC", 4, 20, false, false);
+                "NYC", "NYC", 4, 20, false, true);
     }
 
     @Bean(name = "ptcServiceImpl")

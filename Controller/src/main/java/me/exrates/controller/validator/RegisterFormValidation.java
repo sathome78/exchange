@@ -1,8 +1,10 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.User;
+import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -262,6 +264,20 @@ public class RegisterFormValidation implements Validator {
         if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
             pattern = Pattern.compile(PASSWORD_PATTERN);
             matcher = pattern.matcher(user.getPassword());
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }
+    }
+
+    public void validateChangePassword(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
+                "required.password", passwordRequired);
+        if (!(StringUtils.isEmpty(changePasswordDto.getPassword()))) {
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(changePasswordDto.getConfirmPassword());
             if (!matcher.matches()) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
             }
