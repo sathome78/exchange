@@ -2,7 +2,6 @@ package me.exrates.service.neo;
 
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.springframework.scheduling.annotation.Scheduled;
 
 public interface NeoService extends IRefillable, IWithdrawable {
 

@@ -1,28 +1,5 @@
 package me.exrates.controller.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import me.exrates.dao.EDCAccountDao;
-import me.exrates.model.EDCAccount;
-import me.exrates.service.EDCServiceNode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import javax.websocket.*;
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
-import static java.util.regex.Pattern.compile;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */

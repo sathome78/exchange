@@ -2,7 +2,10 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PriceGrowthDirection;
 import me.exrates.service.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

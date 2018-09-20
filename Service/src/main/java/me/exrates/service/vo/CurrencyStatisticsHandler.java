@@ -1,13 +1,9 @@
 package me.exrates.service.vo;
 
 
-
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -18,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**

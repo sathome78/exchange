@@ -2,7 +2,6 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.WithdrawRequestTableReportDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
@@ -41,121 +40,121 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Controller
 public class WithdrawRequestAdminController {
 
-  private static final Logger log = LogManager.getLogger("withdraw");
+    private static final Logger log = LogManager.getLogger("withdraw");
 
-  @Autowired
-  private MessageSource messageSource;
+    @Autowired
+    private MessageSource messageSource;
 
-  @Autowired
-  WithdrawService withdrawService;
+    @Autowired
+    WithdrawService withdrawService;
 
-  @Autowired
-  UserService userService;
+    @Autowired
+    UserService userService;
 
-  @Autowired
-  MerchantService merchantService;
+    @Autowired
+    MerchantService merchantService;
 
-  @Autowired
-  private CurrencyService currencyService;
+    @Autowired
+    private CurrencyService currencyService;
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
-  public ModelAndView withdrawalRequests(Principal principal) {
-    final Map<String, Object> params = new HashMap<>();
-    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
-            .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
-            .collect(Collectors.toList());
-    params.put("currencies", permittedCurrencies);
-    if (!permittedCurrencies.isEmpty()) {
-      List<Integer> currencyList = permittedCurrencies.stream()
-          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-          .collect(Collectors.toList());
-      List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.OUTPUT)
-          .stream()
-          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-          .distinct().sorted(Comparator.comparing(Merchant::getName)).collect(Collectors.toList());
-      params.put("merchants", merchants);
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
+    public ModelAndView withdrawalRequests(Principal principal) {
+        final Map<String, Object> params = new HashMap<>();
+        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
+                .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+                .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
+                .collect(Collectors.toList());
+        params.put("currencies", permittedCurrencies);
+        if (!permittedCurrencies.isEmpty()) {
+            List<Integer> currencyList = permittedCurrencies.stream()
+                    .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+                    .collect(Collectors.toList());
+            List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.OUTPUT)
+                    .stream()
+                    .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
+                    .distinct().sorted(Comparator.comparing(Merchant::getName)).collect(Collectors.toList());
+            params.put("merchants", merchants);
+        }
+        return new ModelAndView("withdrawalRequests", params);
     }
-    return new ModelAndView("withdrawalRequests", params);
-  }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
-  @ResponseBody
-  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
-      @RequestParam("viewType") String viewTypeName,
-      WithdrawFilterData withdrawFilterData,
-      @RequestParam Map<String, String> params,
-      Principal principal,
-      Locale locale) {
-    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
-    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    withdrawFilterData.initFilterItems();
-    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
-  }
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
+    @ResponseBody
+    public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
+            @RequestParam("viewType") String viewTypeName,
+            WithdrawFilterData withdrawFilterData,
+            @RequestParam Map<String, String> params,
+            Principal principal,
+            Locale locale) {
+        WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+        withdrawFilterData.initFilterItems();
+        return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
+    }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests/report", method = GET)
-  @ResponseBody
-  public String getRequestsReportByStatus(
-          @RequestParam("viewType") String viewTypeName,
-          WithdrawFilterData withdrawFilterData,
-          Principal principal,
-          Locale locale) {
-    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
-    DataTableParams dataTableParams = DataTableParams.defaultParams();
-    withdrawFilterData.initFilterItems();
-    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale)
-            .getData().stream().map(dto -> new WithdrawRequestTableReportDto(dto).toString())
-            .collect(Collectors.joining("", WithdrawRequestTableReportDto.getTitle(), ""));
-  }
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests/report", method = GET)
+    @ResponseBody
+    public String getRequestsReportByStatus(
+            @RequestParam("viewType") String viewTypeName,
+            WithdrawFilterData withdrawFilterData,
+            Principal principal,
+            Locale locale) {
+        WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
+        DataTableParams dataTableParams = DataTableParams.defaultParams();
+        withdrawFilterData.initFilterItems();
+        return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale)
+                .getData().stream().map(dto -> new WithdrawRequestTableReportDto(dto).toString())
+                .collect(Collectors.joining("", WithdrawRequestTableReportDto.getTitle(), ""));
+    }
 
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
-  @ResponseBody
-  public WithdrawRequestsAdminTableDto getInfo(
-      @RequestParam Integer id,
-      Principal principal) {
-    String requesterAdmin = principal.getName();
-    return withdrawService.getWithdrawRequestById(id, requesterAdmin);
-  }
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
+    @ResponseBody
+    public WithdrawRequestsAdminTableDto getInfo(
+            @RequestParam Integer id,
+            Principal principal) {
+        String requesterAdmin = principal.getName();
+        return withdrawService.getWithdrawRequestById(id, requesterAdmin);
+    }
 
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-  @ExceptionHandler(InvoiceNotFoundException.class)
-  @ResponseBody
-  public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(InvoiceNotFoundException.class)
+    @ResponseBody
+    public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler({
-      InvoiceActionIsProhibitedForCurrencyPermissionOperationException.class,
-      InvoiceActionIsProhibitedForNotHolderException.class
-  })
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler({
+            InvoiceActionIsProhibitedForCurrencyPermissionOperationException.class,
+            InvoiceActionIsProhibitedForNotHolderException.class
+    })
 
-  @ResponseBody
-  public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
+    @ResponseBody
+    public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-  @ExceptionHandler({
-      NotEnoughUserWalletMoneyException.class, RequestLimitExceededException.class
-  })
-  @ResponseBody
-  public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler({
+            NotEnoughUserWalletMoneyException.class, RequestLimitExceededException.class
+    })
+    @ResponseBody
+    public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
-  @ResponseBody
-  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    log.error(ExceptionUtils.getStackTrace(exception));
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        log.error(ExceptionUtils.getStackTrace(exception));
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
 }

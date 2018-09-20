@@ -1,5 +1,8 @@
 package me.exrates.service.geetest;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -8,9 +11,6 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Geetest SDK

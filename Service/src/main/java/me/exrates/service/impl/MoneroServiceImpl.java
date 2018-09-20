@@ -1,36 +1,28 @@
 package me.exrates.service.impl;
 
-import jota.IotaAPI;
-import jota.dto.response.GetNodeInfoResponse;
-import jota.model.Bundle;
-import jota.model.Transaction;
-import jota.model.Transfer;
-import jota.utils.Checksum;
-import jota.utils.IotaUnitConverter;
-import jota.utils.IotaUnits;
-import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.MoneroService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import wallet.*;
+import wallet.MoneroTransaction;
+import wallet.MoneroWallet;
+import wallet.MoneroWalletRpc;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -179,7 +171,7 @@ public class MoneroServiceImpl implements MoneroService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 0, 60, TimeUnit.MINUTES);
+                }, 3, 60, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }

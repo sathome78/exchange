@@ -58,9 +58,8 @@ public class OpenApiOrderController {
      * @apiParam {Number} amount Amount in base currency
      * @apiParam {Number} price Exchange rate
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/create
-     *       RequestBody:{currency_pair, order_type, amount, price}
-     *
+     * /openapi/v1/orders/create
+     * RequestBody:{currency_pair, order_type, amount, price}
      * @apiSuccess {Object} orderCreationResult Order creation result information
      * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
      * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
@@ -68,7 +67,7 @@ public class OpenApiOrderController {
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
         String currencyPairName = formatCurrencyPairNameParam(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
@@ -86,8 +85,8 @@ public class OpenApiOrderController {
      * @apiDescription Canceles order
      * @apiParam {String} order_id Id of order to be cancelled
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/cancel
-     *       RequestBody: Map{order_id=123}
+     * /openapi/v1/orders/cancel
+     * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
@@ -110,8 +109,8 @@ public class OpenApiOrderController {
      * @apiDescription Accepts order
      * @apiParam {Integer} order_id Id of order to be accepted
      * @apiParamExample Request Example:
-     *     /openapi/v1/orders/accept
-     *     RequestBody: Map{order_id=123}
+     * /openapi/v1/orders/accept
+     * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success=true Acceptance result
      */
     @PreAuthorize("hasAuthority('TRADE')")
@@ -135,7 +134,7 @@ public class OpenApiOrderController {
      * @apiParam {String} order_type Type of order (BUY or SELL)
      * @apiParam {String} currency_pair Name of currency pair
      * @apiParamExample Request Example:
-     *       /openapi/v1/orders/open/SELL?btc_usd
+     * /openapi/v1/orders/open/SELL?btc_usd
      * @apiSuccess {Array} openOrder Open Order Result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
@@ -149,7 +148,6 @@ public class OpenApiOrderController {
         String currencyPairName = formatCurrencyPairNameParam(currencyPair);
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
-
 
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

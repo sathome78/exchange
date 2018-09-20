@@ -97,17 +97,17 @@ import java.util.stream.Collectors;
         }
 )
 @PropertySource(value = {
-  "classpath:/db.properties",
-    "classpath:/uploadfiles.properties",
-    "classpath:/news.properties",
-    "classpath:/mail.properties",
-    "classpath:/angular.properties",
-    "classpath:/twitter.properties",
-    "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties",
-    "classpath:/geetest.properties"})
+        "classpath:/db.properties",
+        "classpath:/uploadfiles.properties",
+        "classpath:/news.properties",
+        "classpath:/mail.properties",
+        "classpath:/angular.properties",
+        "classpath:/twitter.properties",
+        "classpath:/angular.properties",
+        "classpath:/merchants/stellar.properties",
+        "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter{
+public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     private
     @Value("${db.master.user}")
@@ -663,7 +663,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
 
-
     @Bean(name = "taxiServiceImpl")
     public EthTokenService taxiRentService() {
         List<String> tokensList = new ArrayList<>();
@@ -1037,6 +1036,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "LEDU",
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "adbServiceImpl")
     public EthTokenService adbService() {
         List<String> tokensList = new ArrayList<>();
@@ -1076,6 +1076,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SAT",
                 "SAT", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "cheServiceImpl")
     public EthTokenService cheService() {
         List<String> tokensList = new ArrayList<>();
@@ -1316,6 +1317,66 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "GEX", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ixeServiceImpl")
+    public EthTokenService ixeService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7a07e1a0c2514d51132183ecfea2a880ec3b7648");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IXE",
+                "IXE", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "nerServiceImpl")
+    public EthTokenService nerService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xee5dfb5ddd54ea2fb93b796a8a1b83c3fe38e0e6");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NER",
+                "NER", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "phiServiceImpl")
+    public EthTokenService phiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x13c2fab6354d3790d8ece4f0f1a3280b4a25ad96");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PHI",
+                "PHI", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "retServiceImpl")
+    public EthTokenService retService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd7394087e1dbbe477fe4f1cf373b9ac9459565ff");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RET",
+                "RET", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "mftuServiceImpl")
+    public EthTokenService mftuService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05d412ce18f24040bb3fa45cf2c69e506586d8e8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MFTU",
+                "MFTU", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gigcServiceImpl")
+    public EthTokenService gigcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xbf8aa0617df5c542f533b0e95fe2f877906ac327");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GIGC",
+                "GIGC", false, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1340,7 +1401,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Monero", "XMR", 10, 12);
     }
 
-   @Bean(name = "ditcoinServiceImpl")
+    @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
@@ -1379,13 +1440,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
+
     @Bean(name = "sltStellarService")
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
                 "SLT",
                 "SLT",
-        SLT_EMMITER);
+                SLT_EMMITER);
     }
 
     @Bean(name = "ternStellarService")
@@ -1472,7 +1535,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     @Bean
-    public Map<String, String> angularProperties(){
+    public Map<String, String> angularProperties() {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;

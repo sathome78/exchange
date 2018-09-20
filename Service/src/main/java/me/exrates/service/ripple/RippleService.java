@@ -1,10 +1,7 @@
 package me.exrates.service.ripple;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.json.JSONObject;
 
 /**
  * Created by maks on 11.05.2017.

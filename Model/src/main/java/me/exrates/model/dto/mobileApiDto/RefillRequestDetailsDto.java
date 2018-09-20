@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.InvoiceBank;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;

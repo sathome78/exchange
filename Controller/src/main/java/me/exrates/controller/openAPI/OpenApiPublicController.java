@@ -1,6 +1,5 @@
 package me.exrates.controller.openAPI;
 
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
@@ -11,6 +10,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -44,7 +44,7 @@ public class OpenApiPublicController {
      * @apiDescription Returns array of ticker info objects
      * @apiParam {String} currency_pair Currency pair name (optional)
      * @apiParamExample Request Example:
-     *      /openapi/v1/public/ticker?currency_pair=btc_usd
+     * /openapi/v1/public/ticker?currency_pair=btc_usd
      * @apiSuccess {Array} Ticker Infos result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Currency pair id
@@ -122,7 +122,7 @@ public class OpenApiPublicController {
      * @apiDescription Provides collection of recent deal info objects
      * @apiParam {String} period period (available values: minute, hour, day, default: hour) (optional)
      * @apiParamExample Request Example:
-     *      openapi/v1/public/history/btc_usd?hour=1
+     * openapi/v1/public/history/btc_usd?hour=1
      * @apiSuccess {Array} Array of recent deals info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.order_id Order id
@@ -146,7 +146,7 @@ public class OpenApiPublicController {
      * @apiPermission user
      * @apiDescription Provides collection of currency pairs
      * @apiParamExample Request Example:
-     *      openapi/v1/public/currency_pairs
+     * openapi/v1/public/currency_pairs
      * @apiSuccess {Array} Array of currency pairs
      * @apiSuccess {Object} data Container object
      * @apiSuccess {String} data.name Currency pair name

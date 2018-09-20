@@ -3,7 +3,6 @@ package me.exrates.security.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.Locale;
 
 

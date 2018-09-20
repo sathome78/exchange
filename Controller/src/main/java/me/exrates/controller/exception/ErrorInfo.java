@@ -43,6 +43,7 @@ public class ErrorInfo {
         }
 
     }
+
     public ErrorInfo(CharSequence url, BindException ex) {
         this.url = url.toString();
         this.cause = ex.getClass().getSimpleName();

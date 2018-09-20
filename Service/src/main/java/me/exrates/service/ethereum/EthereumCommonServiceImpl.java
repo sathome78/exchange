@@ -5,7 +5,10 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
-import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -200,7 +203,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 1, 8, TimeUnit.MINUTES);
+        }, 3, 8, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(() -> {
             try {
@@ -250,12 +253,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     private void checkConnection() {
-        log.debug("{} is unsubscribed {} ", currencyName,subscription.isUnsubscribed());
         observable = null;
         web3j.shutdown();
-        saveLastBlock(currentBlockNumber.toString());
         web3j = Web3j.build(new HttpService(url));
-        createSubscribe(currentBlockNumber.toString());
+        String lastBlock = loadLastBlock();
+        if (currentBlockNumber.compareTo(new BigInteger(lastBlock)) > 0) {
+            saveLastBlock(currentBlockNumber.toString());
+            createSubscribe(currentBlockNumber.toString());
+        } else {
+            createSubscribe(lastBlock);
+        }
     }
 
     public void createSubscribe(String lastBlock){

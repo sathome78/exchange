@@ -37,9 +37,9 @@ public class AdvcashMerchantController {
         try {
             advcashService.processPayment(params);
             return responseOK;
-        }catch (RefillRequestAlreadyAcceptedException e){
+        } catch (RefillRequestAlreadyAcceptedException e) {
             return responseOK;
-        }catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
     }

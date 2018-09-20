@@ -1,8 +1,6 @@
 package me.exrates.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.NonNull;
 import me.exrates.model.enums.OperationType;
 
 import javax.validation.constraints.NotNull;

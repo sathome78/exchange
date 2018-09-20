@@ -26,13 +26,10 @@ import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -139,7 +136,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     private void proceedStopOrder(ExOrder exOrder) {
         OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairById(
                 exOrder.getCurrencyPair().getId()), exOrder.getOperationType(),
-                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.LIMIT);
+                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.STOP_LIMIT);
         if (newOrder == null) {
             throw new RuntimeException("error preparing new order");
         }

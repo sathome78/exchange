@@ -1,10 +1,8 @@
 package me.exrates.service.stockExratesRetrieval;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.service.util.OkHttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

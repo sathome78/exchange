@@ -5,6 +5,8 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -34,7 +36,8 @@ import java.util.stream.Collectors;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 @Log4j2
 @Service
@@ -388,8 +391,21 @@ public class WalletServiceImpl implements WalletService {
 
   @Override
   @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
-    return walletDao.getUsersWalletsSummaryNew(requesterUserId);
+  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId, List<Integer> roleIds) {
+    List<UserWalletSummaryDto> roleFilteredPaginData = walletDao.getUsersWalletsSummaryNew(requesterUserId, roleIds);
+
+    List<UserWalletSummaryDto> userWalletSummaryDtos = new ArrayList<>();
+    for (UserWalletSummaryDto item : roleFilteredPaginData) {
+      if (!userWalletSummaryDtos.contains(item)) {
+        userWalletSummaryDtos.add(new UserWalletSummaryDto(item));
+      } else {
+        UserWalletSummaryDto storedItem = userWalletSummaryDtos.stream().filter(e -> e.equals(item)).findAny().get();
+        storedItem.increment(item);
+      }
+    }
+    userWalletSummaryDtos.forEach(UserWalletSummaryDto::calculate);
+
+    return userWalletSummaryDtos;
   }
 
   @Override

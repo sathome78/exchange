@@ -36,6 +36,7 @@ var sessionId;
 var email;
 var csrf;
 var reconnectsCounter = 0;
+var currencyPairs;
 
 var timer;
 
@@ -60,9 +61,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+/*    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
-    }
+    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -160,7 +161,7 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
+/*function subscribeChart() {
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
@@ -173,7 +174,7 @@ function subscribeChart() {
             trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
-}
+}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -282,9 +283,9 @@ function handleEventsMessage(data) {
         var registered = $('#hello-my-friend')[0];
         var noty = '';
         if (data.redirect.url && registered) {
-            noty = "?errorNoty=" + data.redirect.successQR;
+            window.location = data.redirect.url;
+            /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-        window.location = data.redirect.url + noty;
     }
 
 }
@@ -296,7 +297,6 @@ function initTrades(object, currentCurrencyPair) {
     switch (object.type){
         case "ALL_TRADES" : {
             trading.updateAndShowAllTrades(object.data);
-
             break;
         }
         case "MY_TRADES" : {
@@ -341,7 +341,7 @@ $(function dashdoardInit() {
             .keypress(
                 function (e) {
                     var decimal = $(this).val().split('.')[1];
-                    if (decimal && decimal.length >= trading.ROUND_SCALE) {
+                    if (decimal && decimal.length > trading.ROUND_SCALE) {
                         return false;
                     }
                     if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
@@ -381,6 +381,7 @@ $(function dashdoardInit() {
         /*FOR HEADER...*/
         notifications = new NotificationsClass();
 
+
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
@@ -414,7 +415,7 @@ $(function dashdoardInit() {
         $('#menu-orders').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {
-                orders.syncCurrencyPairSelector();
+                orders.syncCurrencyPairSelector('ICO');
                 showPage('orders');
                 orders.updateAndShowAll();
             } else {
@@ -423,8 +424,8 @@ $(function dashdoardInit() {
             }
         });
 
-        $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
-        /*...FOR HEADER*/
+       /* $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
+       */ /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
 
@@ -468,7 +469,7 @@ $(function dashdoardInit() {
                 type: 'GET',
                 success: function (cpData) {
                     if (!cpData) return;
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
                     newChartPeriod = data.period;
                     leftSider = new LeftSiderClass('ICO');
                     leftSider.setOnWalletsRefresh(function () {

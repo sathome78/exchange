@@ -4,7 +4,6 @@ package me.exrates.model.enums;
  * Created by OLEG on 20.09.2016.
  */
 
-import me.exrates.model.Notification;
 import me.exrates.model.exceptions.TransactionLabelTypeAmountParamNeededException;
 import me.exrates.model.exceptions.TransactionLabelTypeMoreThenOneResultException;
 import me.exrates.model.exceptions.TransactionLabelTypeNotResolvedException;

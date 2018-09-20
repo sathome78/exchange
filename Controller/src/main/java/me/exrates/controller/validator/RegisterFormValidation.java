@@ -31,7 +31,7 @@ public class RegisterFormValidation implements Validator {
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
-//    private static final Locale ru = new Locale("ru");
+    //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
     @Autowired
@@ -298,7 +298,7 @@ public class RegisterFormValidation implements Validator {
         int userId = userService.getIdByEmail(user.getEmail());
         if (userId != 0) {
             User findUser = userService.getUserById(userId);
-            if (findUser.getStatus() == UserStatus.DELETED){
+            if (findUser.getStatus() == UserStatus.DELETED) {
                 errors.rejectValue("email", "email.incorrect", statusIncorrect);
             }
         } else {

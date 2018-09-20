@@ -1,7 +1,6 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 @Data

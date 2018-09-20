@@ -2,7 +2,6 @@ package me.exrates.service;
 
 import me.exrates.model.OpenApiToken;
 import me.exrates.model.dto.openAPI.OpenApiTokenPublicDto;
-import me.exrates.model.form.OpenApiTokenForm;
 
 import java.util.List;
 
