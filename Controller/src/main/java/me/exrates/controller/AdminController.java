@@ -615,7 +615,7 @@ public class AdminController {
     /**/
     registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
-//      model.setViewName("admin/editUser");
+      model.setViewName("admin/editUser");
       model.addObject("statusList", UserStatus.values());
       if (currentUserRole == ADMINISTRATOR) {
         model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
