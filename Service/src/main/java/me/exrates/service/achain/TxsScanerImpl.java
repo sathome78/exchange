@@ -4,13 +4,10 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
-import me.exrates.model.dto.achain.TransactionDTO;
 import me.exrates.model.dto.achain.enums.AchainTransactionType;
-import me.exrates.model.enums.TransactionType;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +47,7 @@ public class TxsScanerImpl implements BlocksScaner {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::scan, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::scan, 3, 5, TimeUnit.MINUTES);
     }
 
     @Override

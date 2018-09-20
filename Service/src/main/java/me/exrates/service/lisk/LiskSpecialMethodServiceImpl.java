@@ -2,7 +2,6 @@ package me.exrates.service.lisk;
 
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
-import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class LiskSpecialMethodServiceImpl implements LiskSpecialMethodService {

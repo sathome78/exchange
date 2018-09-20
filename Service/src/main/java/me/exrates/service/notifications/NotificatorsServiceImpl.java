@@ -5,7 +5,6 @@ import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
-import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;

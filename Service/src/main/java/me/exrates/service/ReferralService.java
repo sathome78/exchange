@@ -5,7 +5,6 @@ import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
-import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 

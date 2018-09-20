@@ -1,7 +1,6 @@
 package me.exrates.model.dto.merchants.btc;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

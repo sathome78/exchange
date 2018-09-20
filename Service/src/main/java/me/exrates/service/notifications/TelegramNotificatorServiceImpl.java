@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.StringJoiner;
 
-import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**

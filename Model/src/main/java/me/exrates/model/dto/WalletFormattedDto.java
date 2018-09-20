@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.Wallet;
-import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 

@@ -1,16 +1,10 @@
 package me.exrates.service.nem;
 
-import lombok.Getter;
-import lombok.Setter;
 import me.exrates.model.dto.MosaicIdDto;
-import me.exrates.model.dto.MosaicIdDto;
-import org.nem.core.model.mosaic.Mosaic;
 import org.nem.core.model.mosaic.MosaicId;
 import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.primitive.Quantity;
 import org.nem.core.model.primitive.Supply;
-
-import java.math.BigDecimal;
 
 /**
  * Created by Maks on 27.02.2018.

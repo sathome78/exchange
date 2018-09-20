@@ -90,7 +90,7 @@ public class YandexMoneyMerchantController {
             creditsOperation = (CreditsOperation) httpSession.getAttribute("creditsOperation");
             httpSession.removeAttribute("creditsOperation");
         }
-        final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token,creditsOperation);
+        final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);
         final RedirectView successView = new RedirectView("/dashboard");
         if (!requestPayment.isPresent()) {
             final OperationType operationType = creditsOperation.getOperationType();
@@ -106,24 +106,24 @@ public class YandexMoneyMerchantController {
                 case PAYEE_NOT_FOUND:
                     redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(httpServletRequest)));
                     return failureView;
-                    case NOT_ENOUGH_FUNDS:
-                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.notEnoughMoney", null, localeResolver.resolveLocale(httpServletRequest)));
-                        return failureView;
-                    case AUTHORIZATION_REJECT:
-                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(httpServletRequest)));
-                        return failureView;
-                    case LIMIT_EXCEEDED:
-                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.limitExceed", null, localeResolver.resolveLocale(httpServletRequest)));
-                        return failureView;
-                    case ACCOUNT_BLOCKED:
-                        return new RedirectView(request.accountUnblockUri);
-                    case EXT_ACTION_REQUIRED:
-                        return new RedirectView(request.extActionUri);
-                    default:
-                        logger.fatal(request.error);
-                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(httpServletRequest)));
-                        return failureView;
-                }
+                case NOT_ENOUGH_FUNDS:
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.notEnoughMoney", null, localeResolver.resolveLocale(httpServletRequest)));
+                    return failureView;
+                case AUTHORIZATION_REJECT:
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(httpServletRequest)));
+                    return failureView;
+                case LIMIT_EXCEEDED:
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.limitExceed", null, localeResolver.resolveLocale(httpServletRequest)));
+                    return failureView;
+                case ACCOUNT_BLOCKED:
+                    return new RedirectView(request.accountUnblockUri);
+                case EXT_ACTION_REQUIRED:
+                    return new RedirectView(request.extActionUri);
+                default:
+                    logger.fatal(request.error);
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(httpServletRequest)));
+                    return failureView;
+            }
         }
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(httpServletRequest)));
         return failureView;

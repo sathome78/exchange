@@ -6,14 +6,12 @@ import me.exrates.dao.NotificationMessagesDao;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.exception.MessageUndeliweredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by Maks on 29.09.2017.

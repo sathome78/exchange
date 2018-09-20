@@ -1,7 +1,6 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import me.exrates.model.enums.NotificationMessageEventEnum;
 
 @Data
 public class PinAttempsDto {

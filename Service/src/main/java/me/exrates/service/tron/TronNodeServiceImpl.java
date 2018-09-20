@@ -1,6 +1,5 @@
 package me.exrates.service.tron;
 
-import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.TronNewAddressDto;

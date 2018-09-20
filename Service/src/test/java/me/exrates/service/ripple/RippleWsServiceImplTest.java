@@ -1,25 +1,19 @@
 package me.exrates.service.ripple;
 
 import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.waves.WavesRestClient;
-import me.exrates.service.waves.WavesServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 

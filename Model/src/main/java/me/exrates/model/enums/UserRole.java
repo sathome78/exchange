@@ -1,7 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exceptions.UnsupportedUserRoleIdException;
-
 import java.util.Arrays;
 
 public enum UserRole implements RealCheckableRole {

@@ -1,18 +1,14 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.NotificatorPriceDao;
-import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * Created by Maks on 09.10.2017.

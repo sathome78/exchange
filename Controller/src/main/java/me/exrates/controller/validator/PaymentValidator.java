@@ -10,7 +10,7 @@ import org.springframework.validation.Validator;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Component
-public class PaymentValidator implements Validator{
+public class PaymentValidator implements Validator {
     @Override
     public boolean supports(Class<?> clazz) {
         return Payment.class.equals(clazz);
@@ -18,8 +18,8 @@ public class PaymentValidator implements Validator{
 
     @Override
     public void validate(Object o, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors,"meansOfPayment","merchants.incorrectPaymentDetails");
-        Payment payment = (Payment)o;
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meansOfPayment", "merchants.incorrectPaymentDetails");
+        Payment payment = (Payment) o;
 //        if (payment.getSum().compareTo(0.01) < 0) {
 //            errors.reject("error","merchants.invalidSum");
 //        }

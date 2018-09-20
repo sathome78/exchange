@@ -2,9 +2,7 @@ package me.exrates.model;
 
 import lombok.*;
 import me.exrates.model.dto.TransferRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

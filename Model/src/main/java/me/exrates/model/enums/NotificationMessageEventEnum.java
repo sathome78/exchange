@@ -1,8 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import me.exrates.model.exceptions.UnsupportedInvoiceOperationDirectionException;
-
 import java.util.stream.Stream;
 
 /**

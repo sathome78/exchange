@@ -25,7 +25,7 @@ public class btcInvoiceRequestJob {
   @Qualifier("bitcoinServiceImpl")
   BitcoinService bitcoinService;
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 6)
+  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 6)
   private void invoiceExpiredClean() throws Exception {
     try {
       if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {

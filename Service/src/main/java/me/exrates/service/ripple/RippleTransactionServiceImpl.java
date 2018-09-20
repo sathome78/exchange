@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import org.apache.commons.lang3.StringUtils;

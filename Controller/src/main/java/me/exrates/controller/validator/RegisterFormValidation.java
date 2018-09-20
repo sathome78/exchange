@@ -1,8 +1,10 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.User;
+import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,7 @@ public class RegisterFormValidation implements Validator {
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
-//    private static final Locale ru = new Locale("ru");
+    //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
     @Autowired
@@ -273,6 +275,20 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
+    public void validateChangePassword(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
+                "required.password", passwordRequired);
+        if (!(StringUtils.isEmpty(changePasswordDto.getPassword()))) {
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(changePasswordDto.getConfirmPassword());
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }
+    }
+
     public void validateResetFinPassword(Object target, Errors errors, Locale ru) {
         User user = (User) target;
 
@@ -304,7 +320,7 @@ public class RegisterFormValidation implements Validator {
         int userId = userService.getIdByEmail(user.getEmail());
         if (userId != 0) {
             User findUser = userService.getUserById(userId);
-            if (findUser.getStatus() == UserStatus.DELETED){
+            if (findUser.getStatus() == UserStatus.DELETED) {
                 errors.rejectValue("email", "email.incorrect", statusIncorrect);
             }
         } else {

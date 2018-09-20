@@ -1,13 +1,11 @@
 package me.exrates.model.dto.openAPI;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.serializer.BigDecimalNonePointSerializer;
 import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 
 import java.math.BigDecimal;

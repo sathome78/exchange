@@ -1,7 +1,5 @@
 package me.exrates.controller;
 
-import me.exrates.model.chart.ChartResolution;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.ChartTimeFrameDto;
 import me.exrates.service.OrderService;
 import me.exrates.service.StockChartService;
@@ -27,7 +25,6 @@ public class StockChartController {
     public Map<String, ChartTimeFrameDto> getTimeFrames() {
         return stockChartService.getTimeFramesByResolutions();
     }
-
 
 
 }

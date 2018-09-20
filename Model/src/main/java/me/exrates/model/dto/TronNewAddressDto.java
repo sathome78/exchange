@@ -1,6 +1,5 @@
 package me.exrates.model.dto;
 
-import com.google.gson.JsonObject;
 import lombok.Data;
 import org.json.JSONObject;
 

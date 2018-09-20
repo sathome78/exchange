@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -21,7 +21,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatistics;
     var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
-    var $graphicsLoadingImg = $('#graphics-container').find('.loading');
+/*    var $graphicsLoadingImg = $('#graphics-container').find('.loading');*/
     var $totalForBuyInput = $('#totalForBuy');
     var $exchangeRateBuyInput = $('#exchangeRateBuy');
     var $amountBuyInput = $('#amountBuy');
@@ -52,10 +52,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        $graphicsLoadingImg.removeClass('hidden');
+        that.getChart().switchCurrencyPair(currentPair);
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
-        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
@@ -66,6 +65,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         dashboardCurrencyPairSelector.syncState('ICO', function () {
         });
         currentPair = cpName;
+        that.getChart().switchCurrencyPair(cpName);
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
@@ -351,31 +351,28 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+    (function init(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'ICO');
-        try {
+   /*     try {
             chart = new ChartGoogleClass();
         } catch (e) {
-        }
+        }*/
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, 'ICO');
+            chart = new ChartAmchartsClass2(currentCurrencyPair);
         } catch (e) {
         }
-        if (chart) {
+/*        if (chart) {
             try {
                 chart.init(chartType);
             } catch (e) {
             }
-        }
+        }*/
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
         } catch (e) {
         }
-
-
-
 
         that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
@@ -413,7 +410,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         /**/
        /* switchCreateOrAcceptButtons();*/
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData);
+    })(currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];

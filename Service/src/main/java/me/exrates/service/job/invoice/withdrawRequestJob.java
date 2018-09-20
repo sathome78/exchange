@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -62,8 +61,8 @@ public class withdrawRequestJob {
 
   @PostConstruct
   private void initSchedule() {
-    scheduler.scheduleAtFixedRate(this::setInPostingStatus, 1, 60, TimeUnit.SECONDS);
-    scheduler.scheduleAtFixedRate(this::postWithdraw, 1, 60, TimeUnit.SECONDS);
+    scheduler.scheduleAtFixedRate(this::setInPostingStatus, 3, 1, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(this::postWithdraw, 3, 1, TimeUnit.MINUTES);
   }
 
  // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)

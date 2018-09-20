@@ -1,7 +1,6 @@
 package me.exrates.service.events;
 
 import me.exrates.model.ExOrder;
-import me.exrates.model.enums.OperationType;
 import org.springframework.context.ApplicationEvent;
 
 /**

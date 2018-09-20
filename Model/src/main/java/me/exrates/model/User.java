@@ -36,10 +36,6 @@ public class User  {
 		this.apiRateLimit = apiRateLimit;
 	}
 
-	public User(ChangePasswordDto dto) {
-		this.password = dto.getPassword();
-		this.confirmPassword = dto.getConfirmPassword();
-	}
 
 	public User() {
 	}

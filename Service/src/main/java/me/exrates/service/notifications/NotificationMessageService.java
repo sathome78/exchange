@@ -2,7 +2,6 @@ package me.exrates.service.notifications;
 
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.enums.NotificationMessageEventEnum;
 import org.springframework.transaction.annotation.Transactional;
 
 /**

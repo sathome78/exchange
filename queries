@@ -59,3 +59,4 @@ JOIN WALLET W ON W.id = TX.user_wallet_id
 JOIN USER U ON U.id = W.user_id
 JOIN CURRENCY CU on CU.id = W.currency_id
 WHERE U.email = 'olenatrademail@gmail.com'
+
