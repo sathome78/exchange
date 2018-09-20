@@ -33,6 +33,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -170,6 +171,8 @@ public interface OrderService {
 
     @Transactional
     void cancelOrder(Integer orderId);
+
+    void cancelOpenOrdersByCurrencyPair(String currencyPair);
 
     @Transactional
     void cancelAllOpenOrders();
@@ -428,7 +431,7 @@ public interface OrderService {
 
     List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
-//    List<UserTradeHistoryDto> getUserTradeHistoryByOrder(Integer orderId, LocalDate fromDate, LocalDate toDate, Integer limit);
+    List<TransactionDto> getOrderTransactions(Integer orderId);
 
     List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 

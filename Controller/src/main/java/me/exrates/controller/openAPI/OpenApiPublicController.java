@@ -1,12 +1,16 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.dto.openAPI.TickerJsonDto;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
@@ -32,9 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -105,7 +109,7 @@ public class OpenApiPublicController {
 
 
     private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
-        return data.stream().map(TickerJsonDto::new).collect(Collectors.toList());
+        return data.stream().map(TickerJsonDto::new).collect(toList());
     }
 
     /**
@@ -143,8 +147,8 @@ public class OpenApiPublicController {
      * @apiSuccess {Array} Array of trade info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.order_id Order id
-     * @apiSuccess {Number} data.date_acceptance Order acceptance date
-     * @apiSuccess {Number} data.date_creation Order creation date
+     * @apiSuccess {String} data.date_acceptance Order acceptance date
+     * @apiSuccess {String} data.date_creation Order creation date
      * @apiSuccess {Number} data.amount Order amount in base currency
      * @apiSuccess {Number} data.price Exchange rate
      * @apiSuccess {Number} data.total Total sum
@@ -184,6 +188,71 @@ public class OpenApiPublicController {
     @RequestMapping("/currency_pairs")
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         return currencyService.findActiveCurrencyPairs();
+    }
+
+    /**
+     * @api {get} /openapi/v1/public/{currency_pair}/candle_chart?interval_type&interval_value Data for candle chart
+     * @apiName Data for candle chart
+     * @apiGroup Public API
+     * @apiPermission user
+     * @apiDescription Data for candle chart
+     * @apiParam {String} interval_type type of interval (valid values: "HOUR", "DAY", "MONTH", "YEAR")
+     * @apiParam {Integer} interval_value value of interval
+     * @apiParamExample Request Example:
+     * /openapi/v1/public/btc_usd/candle_chart?interval_type=DAY&interval_value=7
+     * @apiSuccess {Array} chartData Request result
+     * @apiSuccess {Object} data Candle chart data item
+     * @apiSuccess {Object} data.beginPeriod beginning of period as Java8 LocalDateTime
+     * @apiSuccess {Object} data.endPeriod end of period as Java8 LocalDateTime
+     * @apiSuccess {Number} data.openRate open rate
+     * @apiSuccess {Number} data.closeRate close rate
+     * @apiSuccess {Number} data.lowRate low rate
+     * @apiSuccess {Number} data.highRate high rate
+     * @apiSuccess {Number} data.baseVolume base amount of order
+     * @apiSuccess {Number} data.beginDate same as beginPeriod, different format
+     * @apiSuccess {Number} data.endDate same as endPeriod, different format
+     * @apiSuccessExample {json} Success-Response:
+     * HTTP/1.1 200 OK
+     * [
+     * {
+     * "openRate":0.1,
+     * "closeRate":0.1,
+     * "lowRate":0.1,
+     * "highRate":0.1,
+     * "baseVolume":0,
+     * "beginDate":1472132318000,
+     * "endDate":1472132378000
+     * },
+     * {
+     * "openRate":0.1,
+     * "closeRate":0.1,
+     * "lowRate":0.1,
+     * "highRate":0.1,
+     * "baseVolume":0,
+     * "beginDate":1472132378000,
+     * "endDate":1472132438000
+     * }
+     * ]
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MissingParamError
+     * @apiUse CurrencyPairNotFoundError
+     * @apiUse InternalServerError
+     */
+    @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<CandleChartItemReducedDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String currencyPair,
+                                                                                            @RequestParam(value = "interval_type") IntervalType intervalType,
+                                                                                            @RequestParam(value = "interval_value") Integer intervalValue) {
+        final CurrencyPair currencyPairByName = currencyService.getCurrencyPairByName(transformCurrencyPair(currencyPair));
+        final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
+
+        List<CandleChartItemReducedDto> resultList = orderService.getDataForCandleChart(currencyPairByName, interval).stream()
+                .map(CandleChartItemReducedDto::new)
+                .collect(toList());
+        return ResponseEntity.ok(BaseResponse.success(resultList));
     }
 
     @ResponseStatus(BAD_REQUEST)

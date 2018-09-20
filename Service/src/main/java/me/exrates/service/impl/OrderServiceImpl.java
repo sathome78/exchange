@@ -51,6 +51,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.enums.ActionType;
@@ -318,7 +319,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime) {
-        LocalDateTime endTime = startTime.plus((long) interval.intervalValue, interval.intervalType.getCorrespondingTimeUnit());
+        LocalDateTime endTime = startTime.plus((long) interval.getIntervalValue(), interval.getIntervalType().getCorrespondingTimeUnit());
         return orderDao.getDataForCandleChart(currencyPair, interval, endTime);
     }
 
@@ -1182,6 +1183,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
+    public void cancelOpenOrdersByCurrencyPair(String currencyPair) {
+        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
+
+        openedOrders.forEach(this::cancelOrder);
+    }
+
+    @Transactional
+    @Override
     public void cancelAllOpenOrders() {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
@@ -1984,6 +1995,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<TradeHistoryDto> getTradeHistory(String currencyPairName,
                                                  @NotNull LocalDate fromDate,
@@ -2019,6 +2031,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getUserOrdersByStatus(userId, currencyPairId, OrderStatus.CLOSED, queryLimit, queryOffset);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserOrdersDto> getUserCanceledOrders(@Null String currencyPairName,
                                                      @Null Integer limit,
@@ -2043,6 +2056,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getOpenOrders(currencyPairId, orderType);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName,
                                                                        @NotNull LocalDate fromDate,
@@ -2059,20 +2073,13 @@ public class OrderServiceImpl implements OrderService {
                 limit);
     }
 
-//    @Override
-//    public List<UserTradeHistoryDto> getUserTradeHistoryByOrder(Integer orderId,
-//                                                                @NotNull LocalDate fromDate,
-//                                                                @NotNull LocalDate toDate,
-//                                                                @Null Integer limit) {
-//        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
-//
-//        return orderDao.getUserTradeHistoryByOrder(
-//                userId,
-//                orderId,
-//                LocalDateTime.of(fromDate, LocalTime.MIN),
-//                LocalDateTime.of(toDate, LocalTime.MAX),
-//                limit);
-//    }
+    @Transactional(readOnly = true)
+    @Override
+    public List<TransactionDto> getOrderTransactions(Integer orderId) {
+        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        return orderDao.getOrderTransactions(userId, orderId);
+    }
 
     @Override
     public List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
