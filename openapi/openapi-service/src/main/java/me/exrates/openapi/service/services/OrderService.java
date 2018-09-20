@@ -21,6 +21,8 @@ import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.dto.openAPI.OrderHistoryItem;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.openapi.service.persistence.dao.CommissionDao;
+import me.exrates.openapi.service.persistence.dao.OrderDao;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;

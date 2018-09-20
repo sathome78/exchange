@@ -1,5 +1,6 @@
 package me.exrates.openapi.service.services;
 
+import me.exrates.openapi.service.persistence.dao.CommissionDao;
 import me.exrates.openapi.service.services.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;

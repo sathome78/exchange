@@ -1,0 +1,57 @@
+# To successfully start Spring Boot developers version from Idea perform this steps:
+# - rename this file to src/main/resources/application.yml (file is in .gitignore and won't be pushed)
+
+server:
+  port: 8081
+  servlet:
+    context-path: /openapi
+
+spring:
+  application:
+    name: OpenApiService
+  profiles:
+    active:
+      - with-flyway-migration
+  datasource:
+    hikari:
+      driver-class-name:
+      jdbc-url:
+      username:
+      password:
+      maximum-pool-size:
+      data-source-class-name: masterDataSource
+
+# Enable just the health endpoint.
+endpoints:
+  health:
+    enabled: true
+
+  # Disable all default endpoints and Spring Cloud endpoints.
+  enabled: false
+  consul:
+    enabled: false
+  pause:
+    enabled: false
+  resume:
+    enabled: false
+  refresh:
+    enabled: false
+  restart:
+    enabled: false
+  shutdown:
+    enabled: false
+  env:
+    enabled: false
+
+management:
+  context-path: /manage
+  port: 9081
+  security:
+    enabled: false
+  health:
+    db:
+      enabled: false
+    diskspace:
+      enabled: false
+    defaults:
+      enabled: false

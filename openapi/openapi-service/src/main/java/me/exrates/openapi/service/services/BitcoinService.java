@@ -1,6 +1,8 @@
 package me.exrates.openapi.service.services;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.openapi.service.persistence.dao.MerchantSpecParamsDao;
+import me.exrates.openapi.service.services.btcCore.CoreWalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;

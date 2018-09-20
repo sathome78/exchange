@@ -12,6 +12,7 @@ import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.openapi.service.persistence.dao.ReferralLevelDao;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,6 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 @Service
 @PropertySource("classpath:/referral.properties")
 public class ReferralService {
-
 
     private static final int decimalPlaces = 9;
     @Autowired

@@ -10,6 +10,7 @@ import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.openapi.service.persistence.dao.CurrencyDao;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import org.apache.log4j.LogManager;

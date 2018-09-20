@@ -1,10 +1,6 @@
 package me.exrates.openapi.service.services;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.Merchant;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.CryptoCurrencyBalances;
-import me.exrates.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,16 +25,16 @@ public class CryptoCurrencyBalances {
         bitcoinServiceMap.entrySet().parallelStream().forEach(entry -> {
             try {
                 String balance = entry.getValue().getWalletInfo().getBalance();
-                if (balance != null){
+                if (balance != null) {
                     mapBalances.put(merchants.stream().filter(m -> m.getServiceBeanName().equals(entry.getKey())).findFirst().get().getId()
                             , balance);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e);
             }
         });
 
-        return  mapBalances;
+        return mapBalances;
     }
 
 }

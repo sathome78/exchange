@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import me.exrates.openapi.service.persistence.dao.CompanyWalletDao;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.WalletPersistException;
@@ -33,12 +34,10 @@ public class CompanyWalletService {
     @Autowired
     private CurrencyService currencyService;
 
-    @Override
     public CompanyWallet create(Currency currency) {
         return companyWalletDao.create(currency);
     }
 
-    @Override
     @Transactional(readOnly = true)
     public List<CompanyWallet> getCompanyWallets() {
         List<CompanyWallet> compWalletList = new ArrayList<CompanyWallet>();
@@ -52,13 +51,11 @@ public class CompanyWalletService {
         return compWalletList;
     }
 
-    @Override
     @Transactional(readOnly = true)
     public CompanyWallet findByCurrency(Currency currency) {
         return companyWalletDao.findByCurrencyId(currency);
     }
 
-    @Override
     @Transactional(readOnly = true)
     public CompanyWallet findByWalletId(int walletId) {
         CompanyWallet result = companyWalletDao.findByWalletId(walletId);
@@ -66,7 +63,6 @@ public class CompanyWalletService {
         return result;
     }
 
-    @Override
     @Transactional(propagation = Propagation.NESTED)
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);
@@ -78,7 +74,6 @@ public class CompanyWalletService {
         }
     }
 
-    @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().subtract(amount);
@@ -93,8 +88,6 @@ public class CompanyWalletService {
         }
     }
 
-
-    @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
         BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, SUBTRACT);
@@ -107,7 +100,6 @@ public class CompanyWalletService {
         }
     }
 
-    @Override
     @Transactional(readOnly = true)
     public List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
         Set<String> permittedCurrencies = currencyService.getCurrencyPermittedNameList(requesterUserId);
@@ -116,7 +108,6 @@ public class CompanyWalletService {
             .collect(Collectors.toList());
     }
 
-    @Override
     @Transactional
     public boolean substractCommissionBalanceById(Integer id, BigDecimal amount){
         return companyWalletDao.substarctCommissionBalanceById(id, amount);

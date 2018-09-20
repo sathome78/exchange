@@ -12,6 +12,7 @@ import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.openapi.service.persistence.dao.MerchantDao;
 import me.exrates.openapi.service.services.merchantStrategy.MerchantServiceContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

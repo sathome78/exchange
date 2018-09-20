@@ -1,5 +1,6 @@
 package me.exrates.openapi.service.services;
 
+import me.exrates.openapi.service.persistence.dao.NotificationDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -39,7 +40,6 @@ public class NotificationService {
         return notificationDao.createNotification(notification);
     }*/
 
-    @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
         Locale locale = new Locale(userService.getPreferedLang(userId));
@@ -48,31 +48,26 @@ public class NotificationService {
 
     }
 
-    @Override
     public long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
         Integer userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
                 messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
-
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {
         notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, normalizeArgs(messageArgs));
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs, Locale locale) {
         notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, normalizeArgs(messageArgs), locale);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {
@@ -81,7 +76,6 @@ public class NotificationService {
         notifyUser(userId, cause, titleCode, messageCode, normalizeArgs(messageArgs), locale);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs, Locale locale) {
@@ -90,7 +84,6 @@ public class NotificationService {
         notifyUser(userId, cause, titleMessage, message);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
         User user = userService.getUserById(userId);
@@ -111,8 +104,6 @@ public class NotificationService {
         }
     }
 
-
-    @Override
     @Transactional(readOnly = true)
     public List<Notification> findAllByUser(String email) {
         return notificationDao.findAllByUser(userService.getIdByEmail(email));
@@ -129,34 +120,27 @@ public class NotificationService {
         return result;
     }
 
-    @Override
     public boolean setRead(Long notificationId) {
         return notificationDao.setRead(notificationId);
     }
 
-    @Override
     public boolean remove(Long notificationId) {
         return notificationDao.remove(notificationId);
     }
 
-    @Override
     public int setReadAllByUser(String email) {
         return notificationDao.setReadAllByUser(userService.getIdByEmail(email));
     }
 
-    @Override
     public int removeAllByUser(String email) {
         return notificationDao.removeAllByUser(userService.getIdByEmail(email));
-
     }
 
-    @Override
     @Transactional(readOnly = true)
     public List<NotificationOption> getNotificationOptionsByUser(Integer userId) {
         return notificationDao.getNotificationOptionsByUser(userId);
     }
 
-    @Override
     public void updateUserNotifications(List<NotificationOption> options) {
         notificationDao.updateNotificationOptions(options);
     }
@@ -164,5 +148,4 @@ public class NotificationService {
     private String[] normalizeArgs(Object... args) {
         return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }
-
 }
