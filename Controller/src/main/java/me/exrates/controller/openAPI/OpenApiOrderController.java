@@ -81,7 +81,7 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/cancel Cancel order by order id
+     * @api {post} /openapi/v1/orders/cancel Cancel order by order id
      * @apiName Cancel order by order id
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -104,18 +104,18 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/cancel/{currency_pair} Cancel open orders by currency pair
+     * @api {post} /openapi/v1/orders/cancel/{currency_pair}/all Cancel open orders by currency pair
      * @apiName Cancel open orders by currency pair
      * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Cancel open orders by currency pair
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/cancel/btc_usd
+     * /openapi/v1/orders/cancel/btc_usd/all
      * @apiSuccess {Map} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
-    @PostMapping(value = "/cancel/{currency_pair}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/cancel/{currency_pair}/all", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<BaseResponse<Map<String, Boolean>>> cancelOrdersByCurrencyPair(@PathVariable("currency_pair") String currencyPair) {
         final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
 
@@ -124,7 +124,7 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/cancel/all Cancel all open orders
+     * @api {post} /openapi/v1/orders/cancel/all Cancel all open orders
      * @apiName Cancel all open orders
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -136,7 +136,7 @@ public class OpenApiOrderController {
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @ApiRateLimitCheck
-    @PostMapping(value = "/cancel/all", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/cancel/all", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<BaseResponse<Map<String, Boolean>>> cancelAllOrders() {
         orderService.cancelAllOpenOrders();
         return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
@@ -192,7 +192,6 @@ public class OpenApiOrderController {
         String currencyPairName = transformCurrencyPair(currencyPair);
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
-
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)
