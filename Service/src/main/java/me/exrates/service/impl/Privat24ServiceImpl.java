@@ -10,6 +10,7 @@ import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
 
 @Service
 @PropertySource("classpath:/merchants/privat24.properties")
@@ -103,7 +106,31 @@ public class Privat24ServiceImpl implements Privat24Service {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
-        throw new NotImplimentedMethod("for "+request);
+        Integer requestId = request.getId();
+        if (requestId == null) {
+            throw new RefillRequestIdNeededException(request.toString());
+        }
+        BigDecimal sum = request.getAmount();
+        String currency = request.getCurrencyName();
+        BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+        /**/
+        final Map<String, String> map = new TreeMap<>();
+
+        map.put("amt", String.valueOf(amountToPay));
+        map.put("ccy", currency);
+        map.put("merchant", merchant);
+        map.put("order", String.valueOf(requestId));
+        map.put("details", details);
+        map.put("ext_details", ext_details + requestId);
+        map.put("pay_way", pay_way);
+        map.put("return_url", return_url);
+        map.put("server_url", server_url);
+
+        Properties properties = new Properties();
+        properties.putAll(map);
+        /**/
+
+        return generateFullUrlMap(url, "POST", properties);
     }
 
     @Override
