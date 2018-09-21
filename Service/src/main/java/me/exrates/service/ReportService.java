@@ -2,7 +2,6 @@ package me.exrates.service;
 
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.dto.report.InputOutputSummaryByUsersDto;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 
@@ -25,34 +24,31 @@ public interface ReportService {
 
   List<OperationViewDto> getTransactionsHistory(String requesterUserEmail, Integer userId, AdminTransactionsFilterData filterData);
 
-    List<UserIpReportDto> getUserIpReport(String businessRole);
+  List<UserIpReportDto> getUserIpReport(String businessRole);
 
-    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
+  List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
 
-    List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
+  List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
 
-    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
-                                                                           List<UserRole> roleList);
-
-    List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+  List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<UserRole> roleList);
 
-    List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+  List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                        List<UserRole> roleList);
 
-    List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
-                                                                               List<UserRole> roleList);
+  List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+                                                                     List<UserRole> roleList);
 
-  List<InputOutputSummaryByUsersDto> getInputOutputSummaryByUsers(LocalDateTime startTime, LocalDateTime endTime,
-                                                                  List<UserRole> roleList);
+  List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+                                                                             List<UserRole> roleList);
 
-    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
+  List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
 
   List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
   boolean isReportMailingEnabled();
 
-    List<String> retrieveReportSubscribersList(boolean selectWithPremissions);
+  List<String> retrieveReportSubscribersList(boolean selectWithPremissions);
 
   String retrieveReportMailingTime();
 
