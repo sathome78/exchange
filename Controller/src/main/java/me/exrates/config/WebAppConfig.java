@@ -292,6 +292,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new DataSourceTransactionManager(masterHikariDataSource());
     }
 
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(angularAllowedOrigin)
+                .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
+                .allowedHeaders("X-Auth-Token", "Content-Type")
+//                .exposedHeaders("custom-header1", "custom-header2")
+                .allowCredentials(false)
+                .maxAge(4800);
+    }
+
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
         return new DataSourceTransactionManager(slaveHikariDataSource());
