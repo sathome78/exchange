@@ -132,7 +132,7 @@ public class MainController {
         User refferalRoot = userService.getCommonReferralRoot();
         String parentEmail = "";
 
-        if (!isNull(refReference)) {
+        if (!Objects.isNull(refReference)) {
             final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
             if (parentId.isPresent()) {
                 parentEmail = userService.getUserById(parentId.get()).getEmail();

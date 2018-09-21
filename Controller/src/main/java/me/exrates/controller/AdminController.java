@@ -736,28 +736,10 @@ public class AdminController {
     @RequestMapping("/2a8fy7b07dxe44/userswallets")
     public ModelAndView showUsersWalletsSummary(Principal principal) {
         Integer requesterUserId = userService.getIdByEmail(principal.getName());
-        Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-        List<UserWalletSummaryDto> fullResult = walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId);
-        /**/
-        List<UserWalletSummaryDto> allFiltered = getSublistForRole(fullResult, "ALL");
-        List<UserWalletSummaryDto> adminFiltered = getSublistForRole(fullResult, "ADMIN");
-        List<UserWalletSummaryDto> userFiltered = getSublistForRole(fullResult, "USER");
-        List<UserWalletSummaryDto> exchangeFiltered = getSublistForRole(fullResult, "EXCHANGE");
-        List<UserWalletSummaryDto> vipUserFiltered = getSublistForRole(fullResult, "VIP_USER");
-        List<UserWalletSummaryDto> traderFiltered = getSublistForRole(fullResult, "TRADER");
-        /**/
-        mapUsersWalletsSummaryList.put("ALL", allFiltered);
-        mapUsersWalletsSummaryList.put("ADMIN", adminFiltered);
-        mapUsersWalletsSummaryList.put("USER", userFiltered);
-        mapUsersWalletsSummaryList.put("EXCHANGE", exchangeFiltered);
-        mapUsersWalletsSummaryList.put("VIP_USER", vipUserFiltered);
-        mapUsersWalletsSummaryList.put("TRADER", traderFiltered);
-        /**/
         ModelAndView model = new ModelAndView();
         model.setViewName("UsersWallets");
-        model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
         Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-            add("ALL");
+            add("ADMIN");
         }};
         usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
         model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
