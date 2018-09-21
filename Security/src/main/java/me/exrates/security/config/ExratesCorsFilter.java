@@ -1,4 +1,4 @@
-package me.exrates.controller.filter;
+package me.exrates.security.config;
 
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -10,7 +10,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class CorsFilter implements Filter {
+public class ExratesCorsFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
