@@ -39,7 +39,7 @@
    </bean>
 
     <task:scheduled-tasks scheduler="myScheduler">
-        <task:scheduled ref="apiRateLimitService" method="clearExpiredRequests" fixed-delay="1000" />
+        <task:scheduled ref="apiRateLimitService" method="clearExpiredRequests" fixed-delay="2000" />
     </task:scheduled-tasks>
 
     <task:scheduler id="myScheduler"/>

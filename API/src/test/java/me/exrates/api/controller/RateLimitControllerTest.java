@@ -67,7 +67,10 @@ public class RateLimitControllerTest {
             Assert.assertEquals("Register valid request failed", "\"OK\"", retStr);
             Thread.sleep(500);
         }
-        log.info("Register exceeding request");
+        log.info("Register exceeding requests");
+        mockMvc.perform(get(TEST_ENDPOINT).
+                contentType(contentType));
+
         ResultActions actions = mockMvc.perform(get(TEST_ENDPOINT).
                 contentType(contentType)).
                 andExpect(status().isNotAcceptable());
