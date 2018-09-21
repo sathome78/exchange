@@ -1379,6 +1379,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MFTU", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "gigcServiceImpl")
+    public EthTokenService gigcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xbf8aa0617df5c542f533b0e95fe2f877906ac327");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GIGC",
+                "GIGC", false, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
