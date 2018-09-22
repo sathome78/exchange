@@ -30,7 +30,7 @@ public class LiskRestUtils {
      */
     public static  <T> T extractObjectFromResponseAdditional(ObjectMapper objectMapper, String responseBody, String targetFieldName, Class<T> type)  {
         try {
-            return objectMapper.treeToValue(extractTargetNodeFromLiskResponseAdditional(objectMapper, responseBody, targetFieldName, JsonNodeType.OBJECT), type);
+            return objectMapper.treeToValue(extractTargetNodeFromLiskResponseAdditional(objectMapper, responseBody, targetFieldName, JsonNodeType.ARRAY), type);
         } catch (JsonProcessingException e) {
             throw new LiskRestException(e.getMessage());
         }
