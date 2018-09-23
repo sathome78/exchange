@@ -179,21 +179,6 @@
 
                     <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-password" path="password"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.password"/></label>
-                      </div>
-                      <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:password path="password"
-                                       class="input-block-wrapper__input admin-form-input"
-                                       id="user-password"/>
-                        <form:errors path="password" class="input-block-wrapper__input"
-                                     style="color:red"/>
-                      </div>
-                    </div>
-
-                    <div class="input-block-wrapper">
-                      <div class="col-md-3 input-block-wrapper__label-wrapper">
                         <label for="user-phone"
                                class="input-block-wrapper__label"><loc:message
                                 code="admin.phone"/></label>
@@ -215,14 +200,17 @@
                                   code="admin.role"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                          <form:select path="role" id="user-role"
+                          <form:input path="role" id="user-role"
+                                      class="input-block-wrapper__input admin-form-input"
+                                      name="user-role" />
+                          <%--<form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
                             <c:forEach items="${roleList}" var="role">
                               <option value="${role}"
                                       <c:if test="${role eq user.role}">SELECTED</c:if>>${role}</option>
                             </c:forEach>
-                          </form:select>
+                          </form:select>--%>
                         </div>
                       </div>
                       </c:if>

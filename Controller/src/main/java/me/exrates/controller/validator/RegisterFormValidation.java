@@ -237,13 +237,13 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
+        /*if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
             pattern = Pattern.compile(PASSWORD_PATTERN);
             matcher = pattern.matcher(user.getPassword());
             if (!matcher.matches()) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
             }
-        }
+        }*/
     }
 
     public void validateResetPassword(Object target, Errors errors, Locale ru) {
