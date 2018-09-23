@@ -61,55 +61,6 @@ public class PublicController {
         }
     }
 
-    @RequestMapping(value = "/info/public/if_email_exists", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public List<String> checkIfNewUserEmailUnique(@RequestParam("email") String email, HttpServletRequest request) {
-        long before = System.currentTimeMillis();
-        String clientIpAddress = IpUtils.getClientIpAddress(request);
-
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-        try {
-            List<String> errors = new ArrayList<>();
-            if (!userService.ifEmailIsUnique(email)) {
-                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Email exists");
-            }
-            long after = System.currentTimeMillis();
-            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            LOGGER.debug(String.format("completed... : ms: %d", (after - before)));
-            return errors;
-        } catch (Exception e) {
-            long after = System.currentTimeMillis();
-            LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, (after - before), e.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            throw e;
-        }
-    }
-
-    @RequestMapping(value = "/info/public/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public List<String> checkIfNewUserUsernameUnique(@RequestParam("username") String username, HttpServletRequest request) {
-        long before = System.currentTimeMillis();
-        String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-        try {
-            List<String> errors = new ArrayList<>();
-            if (!userService.ifNicknameIsUnique(username)) {
-                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Username exists");
-            }
-            long after = System.currentTimeMillis();
-            LOGGER.debug(String.format("completed...: ms: %s", (after - before)));
-            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            return errors;
-        } catch (Exception e) {
-            long after = System.currentTimeMillis();
-            LOGGER.error(String.format("error... for username: %s ms: %s : %s", username, (after - before), e.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            throw e;
-        }
-    }
-
     private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
         List<CoinmarketApiDto> list = orderService.getDailyCoinmarketData(currencyPair);
         return list.stream().collect(Collectors.toMap(dto -> dto.getCurrency_pair_name().replace('/', '_'), CoinmarketApiJsonDto::new));
