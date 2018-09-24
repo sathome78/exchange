@@ -21,6 +21,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
@@ -33,6 +34,7 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -108,6 +110,8 @@ public class AdminController {
     private UserSecureService userSecureService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserOperationService userOperationService;
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
