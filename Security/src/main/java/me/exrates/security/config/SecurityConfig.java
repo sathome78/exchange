@@ -67,20 +67,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter()
-      throws Exception {
+          throws Exception {
     CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter = new CapchaAuthorizationFilter();
     customUsernamePasswordAuthenticationFilter
-        .setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
+            .setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
     customUsernamePasswordAuthenticationFilter
-        .setAuthenticationManager(authenticationManagerBean());
+            .setAuthenticationManager(authenticationManagerBean());
     customUsernamePasswordAuthenticationFilter
-        .setUsernameParameter("username");
+            .setUsernameParameter("username");
     customUsernamePasswordAuthenticationFilter
-        .setPasswordParameter("password");
+            .setPasswordParameter("password");
     customUsernamePasswordAuthenticationFilter
-        .setAuthenticationSuccessHandler(loginSuccessHandler());
+            .setAuthenticationSuccessHandler(loginSuccessHandler());
     customUsernamePasswordAuthenticationFilter
-        .setAuthenticationFailureHandler(loginFailureHandler());
+            .setAuthenticationFailureHandler(loginFailureHandler());
 
 
     return customUsernamePasswordAuthenticationFilter;
@@ -97,8 +97,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   /*
-  * Defines separate access denied error handling logic for XHR (AJAX requests) and usual requests
-  * */
+   * Defines separate access denied error handling logic for XHR (AJAX requests) and usual requests
+   * */
   @Bean
   public AjaxAwareAccessDeniedHandler accessDeniedHandler() {
     return new AjaxAwareAccessDeniedHandler("/403");
@@ -117,157 +117,169 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
     auth
-        .userDetailsService(userDetailsService)
-        .passwordEncoder(passwordEncoder);
+            .userDetailsService(userDetailsService)
+            .passwordEncoder(passwordEncoder);
   }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
-    http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
     http.addFilterAt(customConcurrentSessionFilter(), ConcurrentSessionFilter.class);
     http
-        .authorizeRequests()
-        /*ADMIN ...*/
-        .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",
-            "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
-        .antMatchers("/2a8fy7b07dxe44/addComment",
-            "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
-        .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-        .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
-        .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**")
+            .authorizeRequests()
+            /*ADMIN ...*/
+            .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",
+                    "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
+            .antMatchers("/2a8fy7b07dxe44/addComment",
+                    "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
+            .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
+            .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+            .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**")
             .hasAuthority(AdminAuthority.SEE_REPORTS.name())
 
-        .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
-            "/2a8fy7b07dxe44/editCmnRefRoot",
-            "/2a8fy7b07dxe44/editLevel",
-            "/2a8fy7b07dxe44/commissions/editCommission",
-            "/2a8fy7b07dxe44/commissions/editMerchantCommission",
-            "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
-            "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
-        .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
-        .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
-        .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
-        .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
-        .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+            .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
+                    "/2a8fy7b07dxe44/editCmnRefRoot",
+                    "/2a8fy7b07dxe44/editLevel",
+                    "/2a8fy7b07dxe44/commissions/editCommission",
+                    "/2a8fy7b07dxe44/commissions/editMerchantCommission",
+                    "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
+                    "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
+                    "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+            .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
+            .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
             .antMatchers(POST,"/2a8fy7b07dxe44/order/accept", "/2a8fy7b07dxe44/order/acceptMany").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(),
             UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
             .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/order/deleteMany", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
                     "/2a8fy7b07dxe44/removeOrder").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(),
             UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name(), UserRole.FIN_OPERATOR.name())
 
-         .antMatchers("/2a8fy7b07dxe44/userswallets",
-            "/2a8fy7b07dxe44/editCurrencyLimits",
-            "/2a8fy7b07dxe44/commissions",
-            "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
-        .antMatchers("/2a8fy7b07dxe44/candleTable",
-            "/2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.BOT_TRADER.name())
+            .antMatchers("/2a8fy7b07dxe44/userswallets",
+                    "/2a8fy7b07dxe44/editCurrencyLimits",
+                    "/2a8fy7b07dxe44/commissions",
+                    "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/candleTable",
+                    "/2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.BOT_TRADER.name())
             /*admin withdraw action ...*/
-        .antMatchers("/2a8fy7b07dxe44/editCurrencyPermissions/submit").hasAuthority(MANAGE_ACCESS.name())
-        .antMatchers("/2a8fy7b07dxe44/withdrawal").hasAuthority(PROCESS_WITHDRAW.name())
-        .antMatchers(POST, "/2a8fy7b07dxe44/withdraw/**").hasAuthority(PROCESS_WITHDRAW.name())
+            .antMatchers("/2a8fy7b07dxe44/editCurrencyPermissions/submit").hasAuthority(MANAGE_ACCESS.name())
+            .antMatchers("/2a8fy7b07dxe44/withdrawal").hasAuthority(PROCESS_WITHDRAW.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/withdraw/**").hasAuthority(PROCESS_WITHDRAW.name())
             /*... admin withdraw action*/
             /*admin report ... */
-        .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
             /*... admin report */
-        .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.TRADER.name())
-        .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+            .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
-        .antMatchers("/2a8fy7b07dxe44/**",
-            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
-        /*... ADMIN */
-        .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
-        .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-        .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
-        .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
-        .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
-            "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
-        .antMatchers(POST, "/merchants/withdrawal/request/accept",
-            "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
-        .antMatchers(POST, "/merchants/perfectmoney/payment/status",
-            "/merchants/perfectmoney/payment/status",
-            "/merchants/perfectmoney/payment/success",
-            "/merchants/perfectmoney/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/advcash/payment/status",
-            "/merchants/advcash/payment/success",
-            "/merchants/advcash/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/liqpay/payment/status",
-            "/merchants/liqpay/payment/success",
-            "/merchants/liqpay/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/nixmoney/payment/status",
-            "/merchants/nixmoney/payment/success",
-            "/merchants/nixmoney/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/privat24/payment/status",
-            "/merchants/privat24/payment/success",
-            "/merchants/privat24/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/interkassa/payment/status",
-            "/merchants/interkassa/payment/success",
-            "/merchants/interkassa/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/yandex_kassa/payment/status",
-            "/merchants/yandex_kassa/payment/success",
-            "/merchants/yandex_kassa/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/okpay/payment/status",
-            "/merchants/okpay/payment/success",
-            "/merchants/okpay/payment/failure").permitAll()
-        .antMatchers(POST, "/merchants/payeer/payment/status",
-            "/merchants/payeer/payment/success").permitAll()
-        .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
-        .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
-        .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
-        .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
-        .antMatchers(GET, "/generateReferral").permitAll()
-        .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
-        .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
-        .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
-        .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
-        .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
-        .antMatchers(GET, "/public/**").permitAll()
-        .antMatchers(GET, "/favicon.ico").permitAll()
-        .antMatchers(GET, "/news/**").permitAll()
-        .antMatchers(GET, "/pageMaterials/**").permitAll()
-        .antMatchers("/stickyImg").permitAll()
-        .antMatchers("/simpleCaptcha").permitAll()
-        .antMatchers("/botdetectcaptcha").permitAll()
-        .antMatchers(GET, "/com/captcha/botdetect/**").permitAll()
-        .antMatchers(POST, "/captchaSubmit").permitAll()
-        .antMatchers(POST, "/news/addNewsVariant").authenticated()
-        .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
-        .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
-        .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners").permitAll()
-        .antMatchers(POST, "/sendFeedback").permitAll()
-        .antMatchers(GET, "/utcOffset").permitAll()
-        .antMatchers( "/info/public/**").permitAll()
-        .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/register", "/info/public/authenticate").anonymous()
-        .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
-        .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
-        .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
-        .antMatchers( "/test/**").permitAll()
-        .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
-        .antMatchers(POST, "/login/new_pin_send").anonymous()
-        .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
-        .antMatchers(POST, "/survey/**").authenticated()
-        .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
-        /*user withdraw action ...*/
-        .antMatchers(POST, "/withdraw/request/**").authenticated()
-        /*... user withdraw action*/
-        /*user refill action ...*/
-        .antMatchers(POST, "/refill/request/**").authenticated()
-        /*... user refill action*/
-        .and()
-        .exceptionHandling()
-        .accessDeniedHandler(accessDeniedHandler());
+            .antMatchers("/2a8fy7b07dxe44/**",
+                    "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+            /*... ADMIN */
+            .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
+            .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
+            .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+            .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
+            .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ico_dashboard/**", "/registrationConfirm/**",
+                    "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
+            .antMatchers(POST, "/merchants/withdrawal/request/accept",
+                    "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
+            .antMatchers(POST, "/merchants/perfectmoney/payment/status",
+                    "/merchants/perfectmoney/payment/status",
+                    "/merchants/perfectmoney/payment/success",
+                    "/merchants/perfectmoney/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/advcash/payment/status",
+                    "/merchants/advcash/payment/success",
+                    "/merchants/advcash/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/liqpay/payment/status",
+                    "/merchants/liqpay/payment/success",
+                    "/merchants/liqpay/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/nixmoney/payment/status",
+                    "/merchants/nixmoney/payment/success",
+                    "/merchants/nixmoney/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/privat24/payment/status",
+                    "/merchants/privat24/payment/success",
+                    "/merchants/privat24/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/interkassa/payment/status",
+                    "/merchants/interkassa/payment/success",
+                    "/merchants/interkassa/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/yandex_kassa/payment/status",
+                    "/merchants/yandex_kassa/payment/success",
+                    "/merchants/yandex_kassa/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/okpay/payment/status",
+                    "/merchants/okpay/payment/success",
+                    "/merchants/okpay/payment/failure").permitAll()
+            .antMatchers(POST, "/merchants/payeer/payment/status",
+                    "/merchants/payeer/payment/success").permitAll()
+            .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
+            .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
+            .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
+            .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
+            .antMatchers(GET, "/generateReferral").permitAll()
+            .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
+            .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
+            .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
+            .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
+            .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
+            .antMatchers(GET, "/public/**").permitAll()
+            .antMatchers("/info/public/**").permitAll()
+            .antMatchers(GET, "/openapi/v1/public/**").permitAll()
+            .antMatchers(GET, "/favicon.ico").permitAll()
+            .antMatchers(GET, "/news/**").permitAll()
+            .antMatchers(GET, "/pageMaterials/**").permitAll()
+            .antMatchers("/stickyImg").permitAll()
+            .antMatchers("/simpleCaptcha").permitAll()
+            .antMatchers("/botdetectcaptcha").permitAll()
+            .antMatchers(GET, "/com/captcha/botdetect/**").permitAll()
+            .antMatchers(POST, "/captchaSubmit").permitAll()
+            .antMatchers(POST, "/news/addNewsVariant").authenticated()
+            .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
+            .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
+            .antMatchers("/payeer_510814850.txt").permitAll()
+            .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners", "/api_docs").permitAll()
+            .antMatchers(POST, "/sendFeedback").permitAll()
+            .antMatchers(GET, "/utcOffset").permitAll()
+            .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
+            .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
+            .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
+            .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
+            .antMatchers( "/gt/**").permitAll()
+            .antMatchers( "/test/**").permitAll()
+            .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
+            .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
+            .antMatchers("/resetPasswordConfirm/**").permitAll()
+            .antMatchers("/forgotPassword/**").permitAll()
+            .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
+            .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+            .antMatchers("/passwordRecovery").permitAll()
+            .antMatchers(POST, "/login/new_pin_send").anonymous()
+            .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
+            .antMatchers("/updatePassword", "/createPassword").permitAll()
+            .antMatchers(POST, "/createPasswordConfirm").permitAll()
+            .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
+            .antMatchers(POST, "/settings/changePassword/submit").authenticated()
+            .antMatchers(POST, "/survey/**").authenticated()
+            .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
+            UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
+            /*user withdraw action ...*/
+            .antMatchers(POST, "/withdraw/request/**").authenticated()
+            /*... user withdraw action*/
+            /*user refill action ...*/
+            .antMatchers(POST, "/refill/request/**").authenticated()
+            /*... user refill action*/
+            .and()
+            .exceptionHandling()
+            .accessDeniedHandler(accessDeniedHandler());
     SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
     sessionConfigurer
-        .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
-        .maximumSessions(MAXIMUM_SESSIONS)
-        .sessionRegistry(sessionRegistry())
-        .maxSessionsPreventsLogin(false);
+            .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
+            .maximumSessions(MAXIMUM_SESSIONS)
+            .sessionRegistry(sessionRegistry())
+            .maxSessionsPreventsLogin(false);
 
     //init and configure methods are required to instantiate the composite SessionAuthenticationStrategy, which is later passed to custom auth filter
     sessionConfigurer.init(http);
@@ -277,54 +289,54 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     customQRAuthorizationFilter().setAuthenticationStrategy(authenticationStrategy);
 
     http.formLogin()
-        .loginPage("/login")
-        .usernameParameter("username")
-        .passwordParameter("password")
-        .permitAll();
+            .loginPage("/login")
+            .usernameParameter("username")
+            .passwordParameter("password")
+            .permitAll();
 
     http.logout()
-        .permitAll()
-        .logoutUrl("/logout")
-        .logoutSuccessUrl("/")
-        .invalidateHttpSession(true)
-        .and()
-        .csrf().ignoringAntMatchers("/login")
-        .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
-                "/public_socket/", "/public_socket/**",
-            "/merchants/perfectmoney/payment/status",
-            "/merchants/perfectmoney/payment/failure",
-            "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
-            "/merchants/advcash/payment/failure",
-            "/merchants/advcash/payment/success",
-            "/merchants/advcash/payment/status",
-            "/merchants/edrcoin/payment/received",
-            "/merchants/edc/payment/received",
-            "/merchants/liqpay/payment/failure",
-            "/merchants/liqpay/payment/success",
-            "/merchants/liqpay/payment/status",
-            "/merchants/nixmoney/payment/failure",
-            "/merchants/nixmoney/payment/success",
-            "/merchants/nixmoney/payment/status",
-            "/merchants/privat24/payment/failure",
-            "/merchants/privat24/payment/success",
-            "/merchants/privat24/payment/status",
-            "/merchants/interkassa/payment/failure",
-            "/merchants/interkassa/payment/success",
-            "/merchants/interkassa/payment/status",
-            "/merchants/yandex_kassa/payment/failure",
-            "/merchants/yandex_kassa/payment/success",
-            "/merchants/yandex_kassa/payment/status",
-            "/merchants/okpay/payment/failure",
-            "/merchants/okpay/payment/success",
-            "/merchants/okpay/payment/status",
-            "/merchants/payeer/payment/success",
-            "/merchants/payeer/payment/status",
-                "/test/**",
-            "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/**", "/info/private/**");
+            .permitAll()
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/")
+            .invalidateHttpSession(true)
+            .and()
+            .csrf().ignoringAntMatchers("/login")
+            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
+                    "/public_socket/", "/public_socket/**",
+                    "/merchants/perfectmoney/payment/status",
+                    "/merchants/perfectmoney/payment/failure",
+                    "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
+                    "/merchants/advcash/payment/failure",
+                    "/merchants/advcash/payment/success",
+                    "/merchants/advcash/payment/status",
+                    "/merchants/edrcoin/payment/received",
+                    "/merchants/edc/payment/received",
+                    "/merchants/liqpay/payment/failure",
+                    "/merchants/liqpay/payment/success",
+                    "/merchants/liqpay/payment/status",
+                    "/merchants/nixmoney/payment/failure",
+                    "/merchants/nixmoney/payment/success",
+                    "/merchants/nixmoney/payment/status",
+                    "/merchants/privat24/payment/failure",
+                    "/merchants/privat24/payment/success",
+                    "/merchants/privat24/payment/status",
+                    "/merchants/interkassa/payment/failure",
+                    "/merchants/interkassa/payment/success",
+                    "/merchants/interkassa/payment/status",
+                    "/merchants/yandex_kassa/payment/failure",
+                    "/merchants/yandex_kassa/payment/success",
+                    "/merchants/yandex_kassa/payment/status",
+                    "/merchants/okpay/payment/failure",
+                    "/merchants/okpay/payment/success",
+                    "/merchants/okpay/payment/status",
+                    "/merchants/payeer/payment/success",
+                    "/merchants/payeer/payment/status",
+                    "/test/**",
+                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
     http
-        .headers()
-        .frameOptions()
-        .sameOrigin();
+            .headers()
+            .frameOptions()
+            .sameOrigin();
 
 
   }

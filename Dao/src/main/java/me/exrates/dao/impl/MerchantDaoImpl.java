@@ -10,6 +10,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,7 @@ public class MerchantDaoImpl implements MerchantDao {
         merchant.setDescription(resultSet.getString("description"));
         merchant.setId(resultSet.getInt("id"));
         merchant.setName(resultSet.getString("name"));
+        merchant.setProcessType(MerchantProcessType.convert(resultSet.getString("process_type")));
         return merchant;
       });
     } catch (EmptyResultDataAccessException e) {

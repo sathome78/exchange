@@ -6,6 +6,7 @@ import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -84,6 +85,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
@@ -638,13 +640,13 @@ public class AdminController {
                 notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
             }
 
-      model.setViewName("redirect:/2a8fy7b07dxe44");
+            model.setViewName("redirect:/2a8fy7b07dxe44");
+        }
+        /**/
+        model.addObject("user", user);
+        /**/
+        return model;
     }
-    /**/
-    model.addObject("user", user);
-    /**/
-    return model;
-  }
 
     @AdminLoggable
     @ResponseBody
@@ -758,7 +760,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/walletsSummaryTable", method = GET,  produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/walletsSummaryTable", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserWalletSummaryDto> findRequestByStatus(
             @RequestParam("viewType") String viewTypeName,
             Principal principal) {
@@ -1263,6 +1265,27 @@ public class AdminController {
         return modelAndView;
     }
 
+
+    @GetMapping(value = "/getWalletBalanceByCurrencyName")
+    public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
+        @RequestParam("token")String token){
+
+        if(!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")){
+            throw new RuntimeException("Some unexpected exception");
+        }
+        Currency byName = currencyService.findByName(currencyName);
+
+        List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
+        List<Merchant> collect = allByCurrency.stream().
+                filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
+        Map<String, String> collect1 = collect.
+                stream().
+                collect(toMap(Merchant::getName, merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
+
+
+        return new ResponseEntity<>(collect1, HttpStatus.OK);
+    }
+
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
@@ -1394,7 +1417,7 @@ public class AdminController {
     public ModelAndView generalStats() {
         Map<UserRole, Boolean> defaultRoleFilter = new EnumMap<>(UserRole.class);
         defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
-                .collect(Collectors.toMap(value -> value, value -> false)));
+                .collect(toMap(value -> value, value -> false)));
         userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
