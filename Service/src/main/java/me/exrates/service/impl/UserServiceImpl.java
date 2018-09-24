@@ -468,7 +468,7 @@ public class UserServiceImpl implements UserService {
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
     email.setTo(user.getEmail());
-    sendMailService.sendMailMandrill(email);
+    sendMailService.sendMail(email);
     return true;
   }
 

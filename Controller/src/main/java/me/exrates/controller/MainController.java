@@ -15,13 +15,10 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.OrderHistoryPeriod;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.form.FeedbackMessageForm;
-import me.exrates.security.exception.UnconfirmedUserException;
+import me.exrates.security.exception.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
-import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -332,7 +329,13 @@ public class MainController {
                     attr.addFlashAttribute("unconfirmedUserMessage",  messageSource.getMessage("register.unconfirmedUserMessage",
                             new Object[]{exception.getMessage()}, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("unconfirmedUser", messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request)));
-                } else {
+                } else if(exceptionClass.equals("UnconfirmedDeviceException")){
+                    UnconfirmedDeviceException exception = (UnconfirmedDeviceException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
+                    attr.addFlashAttribute("unconfirmedDeviceMessage",  messageSource.getMessage("register.unconfirmedDeviceMessage",
+                            new Object[]{exception.getMessage()}, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("unconfirmedDevice", messageSource.getMessage("register.unconfirmedDevice", null, localeResolver.resolveLocale(request)));
+                }
+                else {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
             }

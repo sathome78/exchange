@@ -323,6 +323,27 @@
         </div>
     </div>
 
+    <a id="pwd_unconfirmedDevice_hide" data-fancybox href="#pwd_unconfirmedDevice" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
+
+    <input id="unconfirmedDevice_error" hidden value='${unconfirmedDevice}'/>
+    <div id="pwd_unconfirmedDevice" class="popup">
+        <div class="popup__inner">
+            <c:if test="${not empty unconfirmedDevice}">
+                <div class='field__error' style="text-align: center">
+                        ${unconfirmedDevice}
+                </div>
+            </c:if>
+
+            <form id="pwd_unverifiedUser_form" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+
+                <div class="field">${unconfirmedDeviceMessage}</div>
+
+            </form>
+
+         </div>
+    </div>
+
     <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
 
     <input id="unverifiedUser_error" hidden value='${unconfirmedUser}'/>

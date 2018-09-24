@@ -6,6 +6,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.UnconfirmedDeviceException;
 import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
@@ -156,10 +157,10 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
-   /*     if (!userService.checkOperSystem(authentication.getName(), request.getHeader("User-agent"))){
+        if (!userService.checkOperSystem(authentication.getName(), request.getHeader("User-agent"))){
             userService.sendEmailForNewDevice(authentication.getName(), request);
-            throw new UnconfirmedUserException("Check your email");
-        }*/
+            throw new UnconfirmedDeviceException("New device");
+        }
         /*-------------------*/
         secureServiceImpl.checkLoginAuth(request, authentication, this);
 
