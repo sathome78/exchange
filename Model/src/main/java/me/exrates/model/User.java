@@ -26,11 +26,16 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
+	private Integer apiRateLimit;
 
-	public User(ChangePasswordDto dto) {
-		this.password = dto.getPassword();
-		this.confirmPassword = dto.getConfirmPassword();
+	public Integer getApiRateLimit() {
+		return apiRateLimit;
 	}
+
+	public void setApiRateLimit(Integer apiRateLimit) {
+		this.apiRateLimit = apiRateLimit;
+	}
+
 
 	public User() {
 	}

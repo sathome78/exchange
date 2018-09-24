@@ -1,5 +1,7 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.api.ApiRequestsLimitExceedException;
+import me.exrates.api.aspect.ApiRateLimitCheck;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
@@ -66,6 +68,7 @@ public class OpenApiOrderController {
      * @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
      */
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
@@ -90,6 +93,7 @@ public class OpenApiOrderController {
      * @apiSuccess {Map} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/cancel", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Boolean> cancelOrder(@RequestBody Map<String, String> params) {
@@ -114,6 +118,7 @@ public class OpenApiOrderController {
      * @apiSuccess {Map} success=true Acceptance result
      */
     @PreAuthorize("hasAuthority('TRADE')")
+    @ApiRateLimitCheck
     @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
@@ -142,6 +147,7 @@ public class OpenApiOrderController {
      * @apiSuccess {Number} data.amount Amount in base currency
      * @apiSuccess {Number} data.price Exchange rate
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/open/{order_type}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
                                          @RequestParam("currency_pair") String currencyPair) {
@@ -214,5 +220,11 @@ public class OpenApiOrderController {
         return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), "An internal error occured");
     }
 
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(ApiRequestsLimitExceedException.class)
+    @ResponseBody
+    public OpenApiError requestsLimitExceedExceptionHandler(HttpServletRequest req, ApiRequestsLimitExceedException exception) {
+        return new OpenApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
 
 }

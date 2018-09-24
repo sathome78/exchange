@@ -11,8 +11,10 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.service.*;
 import me.exrates.service.ApiService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserFilesService;
@@ -640,13 +642,13 @@ public class MobileEntryController {
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(ipAddress);
+        ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
 
         Optional<AuthTokenDto> authTokenResult = null;
         try {
             authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.processLoginFailure(ipAddress);
+            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
             throw new WrongUsernameOrPasswordException("Wrong credentials");
         }
         AuthTokenDto authTokenDto = authTokenResult.get();
@@ -674,8 +676,7 @@ public class MobileEntryController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-        ipBlockingService.processLoginSuccess(ipAddress);
-        userService.updateUserEntryDay(user.getEmail());
+        ipBlockingService.successfulProcessing(ipAddress,IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
 
@@ -721,7 +722,7 @@ public class MobileEntryController {
     @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(ipAddress);
+        ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
         if (!(body.containsKey("email") && body.containsKey("password"))) {
             throw new MissingCredentialException("Credentials missing");
         }
@@ -738,7 +739,7 @@ public class MobileEntryController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("Could not find user with email " + email);
-            ipBlockingService.processLoginFailure(ipAddress);
+            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
             throw new UsernameNotFoundException("Email not found");
         }
 

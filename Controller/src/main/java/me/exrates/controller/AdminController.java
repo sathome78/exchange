@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.api.service.ApiRateLimitService;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;
@@ -41,7 +42,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,16 +50,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -101,8 +97,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Log4j2
 @Controller
 public class AdminController {
-
-
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
@@ -160,6 +154,9 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
+
+  @Autowired
+  private ApiRateLimitService apiRateLimitService;
 
 
     @Autowired
@@ -338,7 +335,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> addUserComment(@RequestParam String newComment, @RequestParam String email,
-                                                              @RequestParam boolean sendMessage, HttpServletRequest request, final Locale locale) {
+                                                              @RequestParam boolean sendMessage, final Locale locale) {
 
         try {
             userService.addUserComment(GENERAL, newComment, email, sendMessage);
@@ -398,8 +395,6 @@ public class AdminController {
             currencyPair = null;
         }
         String email = userService.getUserById(id).getEmail();
-        Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
-
         return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
     }
 
@@ -492,13 +487,14 @@ public class AdminController {
         }
         model.addObject("roleList", roleList);
 
-        User user = new User();
-        if (email != null){
-            email = email.replace(" ", "+");
-            user = userService.findByEmail(email);
-        } else {
-            user = userService.getUserById(id);
-        }
+    User user;
+    if (email != null){
+      email = email.replace(" ", "+");
+      user = userService.findByEmail(email);
+    } else {
+      user = userService.getUserById(id);
+    }
+    user.setApiRateLimit(apiRateLimitService.getRequestLimit(email));
 
         model.addObject("user", user);
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
@@ -598,36 +594,37 @@ public class AdminController {
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
         UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
 
-        if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
-            return new ModelAndView("403");
-        }
-        user.setConfirmPassword(user.getPassword());
-        if (user.getFinpassword() == null) {
-            user.setFinpassword("");
-        }
-        /**/
-        registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
-        if (result.hasErrors()) {
-            model.setViewName("admin/editUser");
-            model.addObject("statusList", UserStatus.values());
-            if (currentUserRole == ADMINISTRATOR) {
-                model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
-            }
-        } else {
-            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-            updateUserDto.setEmail(user.getEmail());
-            updateUserDto.setPassword(user.getPassword());
-            updateUserDto.setPhone(user.getPhone());
-            if (currentUserRole == ADMINISTRATOR) {
-                updateUserDto.setRole(user.getRole());
-            }
-            updateUserDto.setStatus(user.getUserStatus());
-            userService.updateUserByAdmin(updateUserDto);
-            if (updateUserDto.getStatus() == UserStatus.DELETED) {
-                userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
-            } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
-                notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
-            }
+    if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
+      return new ModelAndView("403");
+    }
+    user.setConfirmPassword(user.getPassword());
+    if (user.getFinpassword() == null) {
+      user.setFinpassword("");
+    }
+    /**/
+    registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
+    if (result.hasErrors()) {
+      model.setViewName("admin/editUser");
+      model.addObject("statusList", UserStatus.values());
+      if (currentUserRole == ADMINISTRATOR) {
+        model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
+      }
+    } else {
+      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+      updateUserDto.setEmail(user.getEmail());
+      updateUserDto.setPassword(user.getPassword());
+      updateUserDto.setPhone(user.getPhone());
+      if (currentUserRole == ADMINISTRATOR) {
+        updateUserDto.setRole(user.getRole());
+      }
+      updateUserDto.setStatus(user.getUserStatus());
+      userService.updateUserByAdmin(updateUserDto);
+      if (updateUserDto.getStatus() == UserStatus.DELETED) {
+        userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
+      } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
+        notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
+      }
+      apiRateLimitService.setRequestLimit(user.getEmail(), user.getApiRateLimit());
 
             model.setViewName("redirect:/2a8fy7b07dxe44");
         }
@@ -745,7 +742,6 @@ public class AdminController {
         model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
         List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
         model.addObject("operationDirectionList", operationDirectionList);
-
         return model;
     }
 

@@ -1,5 +1,7 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.api.ApiRequestsLimitExceedException;
+import me.exrates.api.aspect.ApiRateLimitCheck;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
@@ -54,6 +56,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.activeBalance Balance that is available for spending
      * @apiSuccess {Number} data.reservedBalance Balance reserved for orders or withdraw
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<WalletBalanceDto> userBalances() {
         return walletService.getBalancesForUser();
@@ -78,6 +81,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
      * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/orders/open", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userOpenOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
 
@@ -109,6 +113,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
      * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/orders/closed", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userClosedOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
                                                 @RequestParam(required = false) Integer limit,
@@ -146,6 +151,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.buy Commission for buy operations
      * @apiSuccess {Number} data.transfer Commission for transfer operations
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/commissions", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OpenApiCommissionDto getCommissions() {
         return new OpenApiCommissionDto(orderService.getAllCommissions());
@@ -195,5 +201,11 @@ public class OpenApiUserInfoController {
         return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(ApiRequestsLimitExceedException.class)
+    @ResponseBody
+    public OpenApiError requestsLimitExceedExceptionHandler(HttpServletRequest req, ApiRequestsLimitExceedException exception) {
+        return new OpenApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
 
 }
