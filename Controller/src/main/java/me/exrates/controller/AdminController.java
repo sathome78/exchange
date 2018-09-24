@@ -511,16 +511,20 @@ public class AdminController {
         Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         AuthorityOptionsForm form = new AuthorityOptionsForm();
-        form.setUserId(user.getId());
-        form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
+        form.setUserId(id);
+        form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+        UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
+        userOperationForm.setUserId(id);
+        userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
-        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
-        model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
+        model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
+        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+        model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
         model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
         model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
         model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
-        model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
+        model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
         model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
         return model;
     }
