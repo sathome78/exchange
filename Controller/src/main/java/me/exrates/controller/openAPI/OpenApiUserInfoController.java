@@ -1,9 +1,8 @@
 package me.exrates.controller.openAPI;
 
-import me.exrates.controller.model.BaseResponse;
 import me.exrates.api.ApiRequestsLimitExceedException;
 import me.exrates.api.aspect.ApiRateLimitCheck;
-import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
@@ -164,6 +163,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
      * @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/orders/canceled", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<UserOrdersDto>>> userCanceledOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
                                                                                 @RequestParam(required = false) Integer limit,
@@ -223,6 +223,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {Number} data.commission commission
      * @apiSuccess {String} data.order_type Order type (BUY or SELL)
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/history/{currency_pair}/trades", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistoryByCurrencyPair(@PathVariable(value = "currency_pair") String currencyPair,
                                                                                                      @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -259,6 +260,7 @@ public class OpenApiUserInfoController {
      * @apiSuccess {String} data.operation_type Transaction operation type
      * @apiSuccess {String} data.transaction_status Transaction status
      */
+    @ApiRateLimitCheck
     @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
@@ -313,5 +315,4 @@ public class OpenApiUserInfoController {
     public OpenApiError requestsLimitExceedExceptionHandler(HttpServletRequest req, ApiRequestsLimitExceedException exception) {
         return new OpenApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
     }
-
 }

@@ -19,7 +19,9 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.UserActivitiesInPeriodDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserTotalCommissionDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -538,32 +540,28 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        List<CoinmarketApiDto> result = namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
-            @Override
-            public List<CoinmarketApiDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
-                ResultSet rs = ps.executeQuery();
-                List<CoinmarketApiDto> list = new ArrayList();
-                while (rs.next()) {
-                    CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
-                    coinmarketApiDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                    coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
-                    coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
-                    coinmarketApiDto.setLast(rs.getBigDecimal("last"));
-                    coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
-                    coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
-                    coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
-                    coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
-                    coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
-                    coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
-                    coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
-                    coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
-                    list.add(coinmarketApiDto);
-                }
-                rs.close();
-                return list;
+        return namedParameterJdbcTemplate.execute(s, ps -> {
+            ResultSet rs = ps.executeQuery();
+            List<CoinmarketApiDto> list = new ArrayList();
+            while (rs.next()) {
+                CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
+                coinmarketApiDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+                coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
+                coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
+                coinmarketApiDto.setLast(rs.getBigDecimal("last"));
+                coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
+                coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
+                coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
+                coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
+                coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
+                coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
+                coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
+                coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
+                list.add(coinmarketApiDto);
             }
+            rs.close();
+            return list;
         });
-        return result;
     }
 
     @Override
