@@ -227,8 +227,13 @@ public class CryptocurrencyConfig {
     public BitcoinService cmkService(){
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
     }
-    // LISK-like cryptos
 
+    @Bean(name="mbcServiceImpl")
+    public BitcoinService mbcService(){
+        return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 4, 20, false, true);
+    }
+
+    // LISK-like cryptos
 
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
