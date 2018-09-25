@@ -270,8 +270,8 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public CurrencyPair getCurrencyPairByName(String pairName) {
-    return currencyDao.findCurrencyPairByName(pairName);
+  public CurrencyPair getCurrencyPairByName(String currencyPair) {
+    return currencyDao.findCurrencyPairByName(currencyPair);
   }
 
   @Override

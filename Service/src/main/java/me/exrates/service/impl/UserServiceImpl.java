@@ -227,8 +227,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public boolean setNickname(User user) {
-    return userDao.setNickname(user);
+  public boolean setNickname(String newNickName,String userEmail) {
+    return userDao.setNickname(newNickName,userEmail);
   }
 
   @Override

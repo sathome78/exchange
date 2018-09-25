@@ -387,7 +387,7 @@ public class MobileOrderController {
         if (orderCreateDto == null) {
             throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, userLocale));
         }
-        if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
+        if (!orderService.cancelOrder(new ExOrder(orderCreateDto), userLocale)) {
             throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
         }
         return true;

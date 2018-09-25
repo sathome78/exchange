@@ -249,7 +249,21 @@
                                     id="parentEmail"/>
                       </div>
                     </div>
-
+                    <div class="input-block-wrapper">
+                      <div class="col-md-3 input-block-wrapper__label-wrapper">
+                        <label for="apiRateLimit"
+                               class="input-block-wrapper__label">
+                          <loc:message code="admin.apiRateLimit"/>
+                        </label>
+                      </div>
+                      <div class="col-md-9 input-block-wrapper__input-wrapper">
+                        <form:input path="apiRateLimit"
+                                    class="input-block-wrapper__input admin-form-input"
+                                    id="apiRateLimit"/>
+                        <form:errors path="apiRateLimit" class="input-block-wrapper__input"
+                                     style="color:red"/>
+                      </div>
+                    </div>
                     <sec:authorize access="hasAuthority('${admin_editUser}')">
                       <div class="admin-submit-group">
                         <div>

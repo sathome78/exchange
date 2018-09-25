@@ -26,6 +26,15 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
+	private Integer apiRateLimit;
+
+	public Integer getApiRateLimit() {
+		return apiRateLimit;
+	}
+
+	public void setApiRateLimit(Integer apiRateLimit) {
+		this.apiRateLimit = apiRateLimit;
+	}
 
 
 	public User() {
