@@ -332,7 +332,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/success",
                     "/merchants/payeer/payment/status",
                     "/test/**",
-                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/**", "/info/private/**");
     http
             .headers()
             .frameOptions()
