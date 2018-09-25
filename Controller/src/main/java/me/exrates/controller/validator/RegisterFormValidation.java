@@ -32,7 +32,7 @@ public class RegisterFormValidation implements Validator {
     private static final String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
     private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS = "^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
 
-    private static final String fieldContainsSpace = "\\s";
+    private static final String FIELD_CONTAINS_SPACE = "\\s";
 
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
     private Locale locale = new Locale("en");
@@ -255,9 +255,10 @@ public class RegisterFormValidation implements Validator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "required.password", passwordRequired);
 
         if (password != null && !password.isEmpty()) {
-            if (!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, password)
+            if ((!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, password)
                     && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, password)
-                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, password)) {
+                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, password))
+                    || Pattern.matches(FIELD_CONTAINS_SPACE, password)) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
             }
         }
