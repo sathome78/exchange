@@ -63,6 +63,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
