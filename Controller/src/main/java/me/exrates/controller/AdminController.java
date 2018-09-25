@@ -672,7 +672,7 @@ public class AdminController {
   @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                        Principal principal, HttpServletRequest request, HttpServletResponse response) {
-    registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+    registerFormValidation.validatePasswordInPrivateCabinet(user, result, localeResolver.resolveLocale(request));
 
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     User userPrincipal = userService.findByEmail(principal.getName());
@@ -685,8 +685,6 @@ public class AdminController {
 
         UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
         updateUserDto.setPassword(user.getConfirmPassword());
-        updateUserDto.setStatus(UserStatus.ACTIVE);
-        updateUserDto.setRole(user.getRole());
         updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
         userService.update(updateUserDto, localeResolver.resolveLocale(request));
         message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));

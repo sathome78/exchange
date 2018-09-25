@@ -327,7 +327,6 @@ public class UserServiceImpl implements UserService {
   @Transactional(rollbackFor = Exception.class)
   public boolean update(UpdateUserDto user, boolean resetPassword, Locale locale) {
     boolean changePassword = user.getPassword() != null && !user.getPassword().isEmpty();
-    boolean changeFinPassword = user.getFinpassword() != null && !user.getFinpassword().isEmpty();
 
     if (userDao.update(user)) {
       User u = new User();
@@ -335,8 +334,6 @@ public class UserServiceImpl implements UserService {
       u.setEmail(user.getEmail());
       if (changePassword) {
         sendUnfamiliarIpNotificationEmail(u, "admin.changePasswordTitle", "user.settings.changePassword.successful", locale);
-      } else if (changeFinPassword) {
-        sendEmailWithToken(u, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
       } else if (resetPassword) {
         sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
       }

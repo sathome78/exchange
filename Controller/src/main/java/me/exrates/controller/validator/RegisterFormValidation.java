@@ -28,7 +28,6 @@ public class RegisterFormValidation implements Validator {
     String ID_PATTERN = "[0-9]+";
     String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
-    private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
     private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS = "^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$";
     private static final String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
     private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS = "^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
@@ -228,14 +227,12 @@ public class RegisterFormValidation implements Validator {
 
     /**
      * Validation method for password (change user password in user private cabinet)
-     * @param target
+     * @param user
      * @param errors
      * @param locale
      */
-    public void validatePasswordInPrivateCabinet(Object target, Errors errors, Locale locale) {
+    public void validatePasswordInPrivateCabinet(User user, Errors errors, Locale locale) {
         String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
-
-        User user = (User) target;
 
         if (!user.getPassword().equals(user.getConfirmPassword())) {
             errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
@@ -271,10 +268,14 @@ public class RegisterFormValidation implements Validator {
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "required.password", passwordRequired);
 
-        if (!(password != null && password.isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(password);
-            if (!matcher.matches()) {
+        String PASSWORD_PATTERN_LETTERS_AND_NUMBERS = "^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$";
+        String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
+        String PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS = "^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
+
+        if (password != null && password.isEmpty()) {
+            if (!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, password)
+                    || !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, password)
+                        || !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, password)) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
             }
         }
