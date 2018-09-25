@@ -57,9 +57,7 @@ public class RegisterFormValidation implements Validator {
         String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
         String emailExists = messageSource.getMessage("validation.emailexists", null, locale);
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
         String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
         String notReadRules = messageSource.getMessage("validation.notreadrules", null, locale);
         String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, locale);
 
@@ -105,21 +103,11 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                "required.password", passwordRequired);
-
         if (!user.getPassword().equals(user.getConfirmPassword())) {
-            errors.rejectValue("confirmPassword", "password.mismatch",
-                    passwordMismatch);
+            errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }
 
-        if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
+        validatePassword(user.getPassword(), errors);
 
     }
 
@@ -130,8 +118,6 @@ public class RegisterFormValidation implements Validator {
         String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
         String emailExists = messageSource.getMessage("validation.emailexists", null, locale);
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
 
         if (nickname != null) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
@@ -225,22 +211,6 @@ public class RegisterFormValidation implements Validator {
         validatePassword(user.getPassword(), errors);
     }
 
-    /**
-     * Validation method for password (change user password in user private cabinet)
-     * @param user
-     * @param errors
-     * @param locale
-     */
-    public void validatePasswordInPrivateCabinet(User user, Errors errors, Locale locale) {
-        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
-
-        if (!user.getPassword().equals(user.getConfirmPassword())) {
-            errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
-        }
-
-        validatePassword(user.getPassword(), errors);
-    }
-
     public void validateEmail(User user, Errors errors, Locale locale) {
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
         String statusIncorrect = messageSource.getMessage("login.blocked", null, locale);
@@ -257,6 +227,22 @@ public class RegisterFormValidation implements Validator {
     }
 
     /**
+     * Validation method for password (change user password in user private cabinet)
+     * @param user
+     * @param errors
+     * @param locale
+     */
+    public void validatePasswordInPrivateCabinet(User user, Errors errors, Locale locale) {
+        String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
+
+        if (!user.getPassword().equals(user.getConfirmPassword())) {
+            errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
+        }
+
+        validatePassword(user.getPassword(), errors);
+    }
+
+    /**
      * Validation method for general password validation (for create password in registration process,
      * for change password in user private cabinet, for reset password after recovery process)
      * @param password
@@ -268,14 +254,10 @@ public class RegisterFormValidation implements Validator {
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "required.password", passwordRequired);
 
-        String PASSWORD_PATTERN_LETTERS_AND_NUMBERS = "^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$";
-        String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
-        String PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS = "^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
-
-        if (password != null && password.isEmpty()) {
+        if (password != null && !password.isEmpty()) {
             if (!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, password)
-                    || !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, password)
-                        || !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, password)) {
+                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, password)
+                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, password)) {
                 errors.rejectValue("password", "password.incorrect", passwordIncorrect);
             }
         }
