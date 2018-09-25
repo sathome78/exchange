@@ -19,6 +19,7 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -41,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private static final int MAXIMUM_SESSIONS = 2;
 
   private final PasswordEncoder passwordEncoder;
-  private final UserDetailsServiceImpl userDetailsService;
+  private final UserDetailsService userDetailsService;
 
   @Autowired
   public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsServiceImpl userDetailsService) {
@@ -123,6 +124,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
@@ -227,6 +229,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
             .antMatchers(GET, "/public/**").permitAll()
             .antMatchers("/info/public/**").permitAll()
+            .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/user/register", "/info/public/user/authenticate").anonymous()
             .antMatchers(GET, "/openapi/v1/public/**").permitAll()
             .antMatchers(GET, "/favicon.ico").permitAll()
             .antMatchers(GET, "/news/**").permitAll()
