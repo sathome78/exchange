@@ -229,7 +229,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
             .antMatchers(GET, "/public/**").permitAll()
             .antMatchers("/info/public/**").permitAll()
-            .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/user/register", "/info/public/user/authenticate").anonymous()
+            .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/info/public/users/register", "/info/public/users/authenticate").anonymous()
             .antMatchers(GET, "/openapi/v1/public/**").permitAll()
             .antMatchers(GET, "/favicon.ico").permitAll()
             .antMatchers(GET, "/news/**").permitAll()
