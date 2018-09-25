@@ -383,6 +383,7 @@ $(function dashdoardInit() {
 
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
+            console.log("on item click");
             if (e) e.preventDefault();
             trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');

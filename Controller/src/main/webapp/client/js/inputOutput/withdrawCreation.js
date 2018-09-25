@@ -1,11 +1,17 @@
 /**
  * Created by ValkSam on 10.04.2017.
  */
-/**
- * Created by ValkSam on 10.04.2017.
- */
+var leftSider;
+var socket_url = '/public_socket';
+var socket;
+var client;
+var connectedPS = false;
+var currencyPairStatisticSubscription;
+var reconnectsCounter = 0;
+var csrf;
 
 $(function withdrawCreation() {
+
     const $container = $("#merchants-output-center");
     const operationType = $container.find("#operationType").html();
     const $withdrawParamsDialog = $container.find('#dialog-withdraw-creation');
@@ -414,3 +420,71 @@ $(function withdrawCreation() {
 });
 
 
+$(function () {
+    csrf = $('.s_csrf').val();
+    var onConnectFail = function () {
+        connectedPS = false;
+        setTimeout(connectAndReconnect, 5000);
+    };
+
+    var onConnect = function() {
+        connectedPS = true;
+        subscribeAll();
+    };
+
+
+    function subscribeAll() {
+        if (connectedPS) {
+            subscribeStatistics();
+        }
+
+    }
+
+    function subscribeStatistics() {
+        if (currencyPairStatisticSubscription == undefined) {
+            var headers = {'X-CSRF-TOKEN': csrf};
+            var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
+            currencyPairStatisticSubscription = client.subscribe(path, function (message) {
+                var messageBody = JSON.parse(message.body);
+                messageBody.forEach(function(object){
+                    handleStatisticMessages(JSON.parse(object));
+                });
+            }, headers);
+        }
+    }
+
+
+    function connectAndReconnect() {
+        reconnectsCounter ++;
+        console.log("try to reconnect OUR " + reconnectsCounter);
+        if (reconnectsCounter > 5) {
+            location.reload()
+        }
+        socket = new SockJS(socket_url);
+        client = Stomp.over(socket);
+        client.debug = null;
+        var headers = {'X-CSRF-TOKEN' : csrf};
+        client.connect(headers, onConnect, onConnectFail);
+    }
+
+
+    function handleStatisticMessages(object) {
+        switch (object.type){
+            case "MAIN_CURRENCIES_STATISTIC" : {
+                leftSider.updateStatisticsForAllCurrencies(object.data);
+                break;
+            }
+            case "MAIN_CURRENCY_STATISTIC" : {
+                object.data.forEach(function(object){
+                    leftSider.updateStatisticsForCurrency(object);
+                });
+
+                break;
+            }
+        }
+
+
+    }
+    subscribeAll();
+    connectAndReconnect();
+});

@@ -42,6 +42,8 @@ public interface UserDao {
 
   boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
 
+  boolean createUserEntryDay(Integer userId, LocalDateTime entryDate);
+
   boolean hasAdminAuthorities(Integer userId);
 
   void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);
@@ -176,6 +178,10 @@ public interface UserDao {
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+  String get2faSecretByEmail(String email);
+
+  boolean set2faSecretCode(String email);
 
   User getUserByTemporalToken(String token);
 

@@ -1133,6 +1133,35 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
+    @Override
+    public List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+        String sql = "SELECT us.email as user_email, " +
+                " (select min(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as start_date, " +
+                " (select max(eo.date_creation) FROM  EXORDERS eo where eo.user_id = us.id ) as last_date, " +
+                " count(ud.entry_date) as entries" +
+                " FROM USER us " +
+                " JOIN USER_ENTRY_DAYS ud ON us.id = ud.user_id " +
+                " WHERE us.roleid IN (:user_roles) " +
+                " AND ud.entry_date BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+                " GROUP BY us.email ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        params.put("user_roles", userRoleIdList);
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserActivitiesInPeriodDto dto = new UserActivitiesInPeriodDto();
+            dto.setRefillNum(row + 1);
+            dto.setUserEmail(rs.getString("user_email"));
+            dto.setStartDate(rs.getTimestamp("start_date") != null ?
+                    rs.getTimestamp("start_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : " ");
+            dto.setLastDate(rs.getTimestamp("last_date") != null ?
+                    rs.getTimestamp("last_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : " ");
+            dto.setEntries(rs.getBigDecimal("entries"));
+            return dto;
+        });
+    }
 
     /*maybe add index
     * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
@@ -1398,9 +1427,35 @@ public class OrderDaoImpl implements OrderDao {
     }
 
 
+    @Override
+    public List<UserTotalCommissionDto> getUserTotalCommissionForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+        String sql = " SELECT CR.name as currency_name,  U.email, "+
+                " SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' " +
+                " AND source_id = EO.id AND operation_type_id != 5 )) AS order_commission, " +
+                " (SELECT  SUM(TX.commission_amount) FROM TRANSACTION TX  " +
+                "  JOIN WALLET W ON TX.user_wallet_id = W.id " +
+                "  WHERE TX.operation_type_id = 2 AND TX.source_type = 'WITHDRAW' " +
+                "  AND W.user_id = U.id  AND TX.currency_id = CR.id ) as withdraw_commission " +
+                "  FROM EXORDERS EO " +
+                "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                "  JOIN CURRENCY CR ON CP.currency2_id = CR.id  " +
+                "  JOIN USER U ON EO.user_id = U.id " +
+                " WHERE EO.status_id = 3 AND U.roleid IN (:user_roles) " +
+                " AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+                " GROUP BY CR.name, U.email ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        params.put("user_roles", userRoleIdList);
 
-
-
-
-
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserTotalCommissionDto dto = new UserTotalCommissionDto();
+            dto.setRefillNum(row + 1);
+            dto.setCurrencyName(rs.getString("currency_name"));
+            dto.setEmail(rs.getString("email"));
+            dto.setOrderCommissiom(rs.getBigDecimal("order_commission"));
+            dto.setWithdrawCommission(rs.getBigDecimal("withdraw_commission"));
+            return dto;
+        });
+    }
 }

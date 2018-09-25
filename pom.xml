@@ -36,6 +36,7 @@
 		<spring-messaging.version>4.3.10.RELEASE</spring-messaging.version>
 		<bitcoinj.version>0.14.3</bitcoinj.version>
 		<aspectj.version>1.8.10</aspectj.version>
+		<flyway.version>4.2.0</flyway.version>
 	</properties>
 
 	<dependencies>
@@ -174,10 +175,6 @@
 			<artifactId>aspectjweaver</artifactId>
 			<version>${aspectj.version}</version>
 		</dependency>
-
-
-
-
 		<!--AspectJ-->
 
 
@@ -420,6 +417,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.jboss.aerogear</groupId>
+			<artifactId>aerogear-otp-java</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.4.1</version>
@@ -443,6 +446,12 @@
 		</dependency>
 
 
+
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>${flyway.version}</version>
+		</dependency>
 
 	</dependencies>
 

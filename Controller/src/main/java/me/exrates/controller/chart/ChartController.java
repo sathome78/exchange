@@ -24,7 +24,6 @@ import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,7 +51,8 @@ public class ChartController {
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
- /*       String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
+        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
+
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
         ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
@@ -61,24 +61,23 @@ public class ChartController {
 
         LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
         String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
 
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(filterDataPeriod(result, from, to, resolution));
+            errors.putAll(filterDataPeriod(result, from, to));
             errors.put("s", "error");
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
 
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
+                ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
+        return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
 
     }
 
@@ -86,6 +85,7 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime() {
+
         return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
     }
 
@@ -98,18 +98,19 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/symbols", method = RequestMethod.GET)
     public ResponseEntity getChartSymbol(@QueryParam("symbol") String symbol) {
+
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/history", method = RequestMethod.GET)
+    @RequestMapping(value = "/tradingview/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData2(
             @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-/*        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
@@ -119,44 +120,46 @@ public class ChartController {
 
         LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
         String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
 
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(filterDataPeriod(result, from, to, resolution));
+            errors.putAll(filterDataPeriod(result, from, to));
             errors.put("s", "error");
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
         System.out.println("Update chart data");
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
+                ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
         System.out.println("End update chart data");
-        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
+        return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
 
     }
 
 
     @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/time", method = RequestMethod.GET)
+    @RequestMapping(value = "/tradingview/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime2() {
-        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
+        LocalDateTime now =  LocalDateTime.now();
+        LocalDateTime roundFloor =  now.truncatedTo(ChronoUnit.HOURS);
+        return new ResponseEntity(roundFloor.toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/config", method = RequestMethod.GET)
+    @RequestMapping(value = "/tradingview/config", method = RequestMethod.GET)
     public ResponseEntity getChartConfig2() {
         return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/ico_dashboard/symbols", method = RequestMethod.GET)
+    @RequestMapping(value = "/tradingview/symbols", method = RequestMethod.GET)
     public ResponseEntity getChartSymbol2(@QueryParam("symbol") String symbol) {
+
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
@@ -182,8 +185,8 @@ public class ChartController {
                          .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)
-                .add("has_weekly_and_monthly", true)
-                .add("has_empty_bars", true)
+                .add("has_weekly_and_monthly", false)
+                .add("has_empty_bars", false)
                 .add("volume_precision", 2)
                 .build();
     }
@@ -199,7 +202,7 @@ public class ChartController {
                 .add("supports_search", true)
                 .add("supports_group_request", false)
                 .add("supports_marks", false)
-                .add("supports_timescale_marks", true)
+                .add("supports_timescale_marks", false)
                 .add("supports_time", true)
                 .add("exchanges", Json.createArrayBuilder()
                         .add(Json.createObjectBuilder()
@@ -219,12 +222,12 @@ public class ChartController {
                 .build();
     }
 
-    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
+    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds) {
         List<CandleDto> filteredData = new ArrayList<>(data);
         HashMap<String, Object> filterDataResponse = new HashMap<>();
         if (filteredData.isEmpty()) {
             filterDataResponse.put("s", "ok");
-            getData(filterDataResponse, filteredData, resolution);
+            getData(filterDataResponse, filteredData);
             return filterDataResponse;
         }
 
@@ -273,59 +276,20 @@ public class ChartController {
         }
 
         filteredData = filteredData.subList(fromIndex, toIndex);
-        getData(filterDataResponse, filteredData, resolution);
+        getData(filterDataResponse, filteredData);
         return filterDataResponse;
 
     }
 
-    private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
+    private void getData(HashMap<String, Object> response, List<CandleDto> result) {
         List<Long> t = new ArrayList<>();
         List<BigDecimal> o = new ArrayList<>();
         List<BigDecimal> h = new ArrayList<>();
         List<BigDecimal> l = new ArrayList<>();
         List<BigDecimal> c = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
-
-        LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime()/1000), 0, ZoneOffset.UTC)
-                .truncatedTo(ChronoUnit.DAYS);
-        t.add(first.toEpochSecond(ZoneOffset.UTC));
-        o.add(BigDecimal.ZERO);
-        h.add(BigDecimal.ZERO);
-        l.add(BigDecimal.ZERO);
-        c.add(BigDecimal.ZERO);
-        v.add(BigDecimal.ZERO);
-
-
         for (CandleDto r : result) {
-            LocalDateTime now =  LocalDateTime.ofEpochSecond((r.getTime()/1000), 0, ZoneOffset.UTC)
-                                                                         .truncatedTo(ChronoUnit.MINUTES);
-            LocalDateTime actualDateTime;
-            long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
-            long currentHourOfDay = now.getLong(ChronoField.HOUR_OF_DAY);
-
-            switch (resolution){
-                case "30":
-                    long minutes =  Math.abs(currentMinutesOfHour - 30);
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
-                    break;
-                case "60":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                    break;
-                case "240":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
-                    break;
-                case "720":
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
-                    break;
-                case "M":
-                    actualDateTime = now.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
-                    break;
-                default:
-                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                
-            }
-
-            t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            t.add(r.getTime() / 1000);
             o.add(r.getOpen());
             h.add(r.getHigh());
             l.add(r.getLow());

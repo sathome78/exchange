@@ -120,6 +120,35 @@ public class MainController {
         return "403";
     }
 
+    /**
+     * Register user on referral link (redirect to dashboard, call pop-up with registration)
+     * @param refReference
+     * @param attr
+     * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
+     */
+    @RequestMapping("/register")
+    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, RedirectAttributes attr) {
+
+        User refferalRoot = userService.getCommonReferralRoot();
+        String parentEmail = "";
+
+        if (!isNull(refReference)) {
+            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
+            if (parentId.isPresent()) {
+                parentEmail = userService.getUserById(parentId.get()).getEmail();
+            }
+        } else if (refferalRoot != null) {
+            parentEmail = refferalRoot.getEmail();
+        }
+
+        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: "+parentEmail);
+
+        attr.addFlashAttribute("refferalLink", refReference);
+        attr.addFlashAttribute("parentEmail", parentEmail);
+
+        return new ModelAndView(new RedirectView("/dashboard"));
+    }
+
     @RequestMapping("/generateReferral")
     public
     @ResponseBody
@@ -182,6 +211,7 @@ public class MainController {
                     final int parent = userService.getIdByEmail(user.getParentEmail());
                     if (child > 0 && parent > 0) {
                         referralService.bindChildAndParent(child, parent);
+                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: "+user.getParentEmail());
                     }
 
                     String successNoty = null;

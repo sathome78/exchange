@@ -27,6 +27,8 @@ public interface TransferRequestDao {
 
   void setRecipientById(Integer id, Integer recipientId);
 
+  boolean checkTransferRequestsLimit(int currencyId, String email);
+
   List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 
   void setHashById(Integer id, Map<String, String> params);

@@ -83,12 +83,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             if (!StringUtils.isEmpty(lastPage)) {
                 super.setDefaultTargetUrl(lastPage);
             }
+            userService.updateUserEntryDay(email);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(e);
             authentication.setAuthenticated(false);
         }
-    }
 
+    }
 
 }

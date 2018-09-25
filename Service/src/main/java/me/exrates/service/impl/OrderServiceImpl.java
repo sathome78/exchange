@@ -1901,6 +1901,16 @@ public class OrderServiceImpl implements OrderService {
     Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
     return orderDao.getOpenOrders(currencyPairId, orderType);
   }
+
+  @Override
+  public List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+    return orderDao.getUserAtivityInOrdersForReport(startTime, endTime, userRoleIdList);
+  }
+
+  @Override
+  public List<UserTotalCommissionDto> getUserTotalCommissionForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+    return orderDao.getUserTotalCommissionForReport(startTime, endTime, userRoleIdList);
+  }
 }
 
 

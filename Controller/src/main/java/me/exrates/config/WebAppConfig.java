@@ -31,6 +31,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -91,7 +92,9 @@ import java.util.stream.Collectors;
 @ComponentScan({"me.exrates"})
 @Import(
         {
-                SecurityConfig.class, WebSocketConfig.class, CryptocurrencyConfig.class
+                SecurityConfig.class,
+                WebSocketConfig.class,
+                CryptocurrencyConfig.class
         }
 )
 @PropertySource(value = {
@@ -251,7 +254,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
-        return new HikariDataSource(hikariConfig);
+        HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.migrate();
+        return dataSource;
     }
 
     @Bean(name = "slaveHikariDataSource")
@@ -485,7 +494,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
-    @Bean(name = "nsrServiceImpl")
+   /* @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
                 "NuShares", "NSR", 4, 20, false, false);
@@ -507,7 +516,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
                 "HSR", "HSR", 4, 20, false, false);
-    }
+    }*/
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -515,7 +524,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Ethereum", "ETH", 12);
     }
 
-    @Bean(name = "ethereumClassicServiceImpl")
+    /*@Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
                 "Ethereum Classic", "ETC", 12);
@@ -555,7 +564,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthereumCommonService ntyService() {
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
                 "NTY", "NTY", 12);
-    }
+    }*/
 
     @Bean(name = "etherincServiceImpl")
     public EthereumCommonService etherincService() {
@@ -573,7 +582,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
 
-    @Bean(name = "repServiceImpl")
+   /* @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
@@ -1267,7 +1276,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "CRBT",
                 "CRBT", true, ExConvert.Unit.ETHER);
-    }
+    }*/
 
     @Bean(name = "hiveServiceImpl")
     public EthTokenService hiveService() {
@@ -1299,7 +1308,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "HDR", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "racServiceImpl")
+   /* @Bean(name = "racServiceImpl")
     public EthTokenService racService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x342ba159f988f24f0b033f3cc5232377ee500543");
@@ -1414,7 +1423,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
 
         return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
-    }
+    }*/
 
     //**** Monero ****/
     @Bean(name = "moneroServiceImpl")

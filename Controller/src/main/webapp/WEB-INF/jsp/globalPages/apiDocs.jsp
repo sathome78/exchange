@@ -31,7 +31,7 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <%--... Alerts --%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
@@ -43,7 +43,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+    <%--alexa закоментировано т.к. не используется в данный момент--%>
+<%--    <%@include file="../tools/alexa.jsp" %>--%>
     <%@include file="../tools/newCapchaScripts.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 </head>

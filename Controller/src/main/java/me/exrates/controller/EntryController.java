@@ -588,6 +588,21 @@ public class EntryController {
         return subscribable.reconnect(principal.getName()).toString();
     }
 
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+        return new Generic2faResponseDto(userService.generateQRUrl(principal.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_google2fa")
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
+        if (principal != null) {
+            userService.checkGoogle2faVerifyCode(code, principal.getName());
+        }
+        return "";
+    }
+
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/contact_info")
     public String getInfo(@RequestParam int id, Principal principal) {

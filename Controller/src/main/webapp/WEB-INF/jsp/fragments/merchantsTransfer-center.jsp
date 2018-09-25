@@ -31,6 +31,7 @@
             </div>
           </div>
           <div class="input-block-wrapper clearfix">
+
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
               <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
             </div>
@@ -44,7 +45,7 @@
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
                      data-submit-button-id=".start-transfer"
-                     <c:if test="${!checkingBalance}">disabled</c:if>
+                      <c:if test="${!checkingBalance}">disabled</c:if>
               />
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
@@ -54,6 +55,7 @@
                 </strong>
               </div>
             </div>
+
           </div>
           <b hidden id="buttonMessage"><loc:message code="merchants.transfer"/></b>
           <div id="merchantList">

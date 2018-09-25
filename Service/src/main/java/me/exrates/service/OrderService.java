@@ -399,4 +399,8 @@ public interface OrderService {
                                              @Nullable Integer limit, @Nullable Integer offset);
 
     List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
+
+  List<UserActivitiesInPeriodDto> getUserAtivityInOrdersForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
+
+    List<UserTotalCommissionDto> getUserTotalCommissionForReport(LocalDateTime startTime, LocalDateTime endTime, List<Integer> collect);
 }

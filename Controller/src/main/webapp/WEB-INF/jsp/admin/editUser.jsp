@@ -338,24 +338,34 @@
                   </div>
 
                 </div>
-                <%--MERCHANT--%>
+                  <%--CURRENCY--%>
+                  <div class="input-block-wrapper">
+                    <div class="col-md-3 input-block-wrapper__label-wrapper">
+                      <label class="input-block-wrapper__label">
+                        <loc:message code="transaction.currency"/>
+                      </label>
+                    </div>
+                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                      <ul class="checkbox-grid">
+                        <c:forEach items="${currencies}" var="currency">
+                          <li>
+                            <input type="checkbox" name="currencies" value="${currency.id}"><span>${currency.name}</span>
+                          </li>
+                        </c:forEach>
+                      </ul>
+                    </div>
+                  </div>
+                <%--TIME--%>
                 <div class="input-block-wrapper">
                   <div class="col-md-3 input-block-wrapper__label-wrapper">
                     <label class="input-block-wrapper__label">
-                      <loc:message code="withdrawal.merchant"/>
+                      <loc:message code="ordersearch.date"/>
                     </label>
                   </div>
                   <div class="col-md-9 input-block-wrapper__input-wrapper">
-                    <ul class="checkbox-grid">
-                      <c:forEach items="${merchants}" var="merchant">
-                        <li><input type="checkbox" name="merchants" value="${merchant.id}"><span>${merchant.name}</span>
-                        </li>
-                      </c:forEach>
-                    </ul>
-
+                    <input id="datetimepicker_start" type="text" name="startDate">
+                    <input id="datetimepicker_end" type="text" name="endDate">
                   </div>
-
-                </div>
 
                 <%--AMOUNT--%>
                 <div class="input-block-wrapper">

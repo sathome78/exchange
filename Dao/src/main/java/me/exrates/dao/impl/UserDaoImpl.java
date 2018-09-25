@@ -25,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.jboss.aerogear.security.otp.api.Base32;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -277,6 +278,19 @@ public class UserDaoImpl implements UserDao {
     params.put("role_id", role.getRole());
     return namedParameterJdbcTemplate.update(sql, params) > 0;
 
+  }
+
+  @Override
+  public boolean createUserEntryDay(Integer userId, LocalDateTime entryDate) {
+    String sql = "INSERT INTO USER_ENTRY_DAYS SELECT :user_id, :entry_date " +
+            " FROM USER_ENTRY_DAYS ud " +
+            " WHERE ud.user_id = :user_id AND " +
+            " DATE_FORMAT(ud.entry_date, '%Y-%m-%d') = DATE_FORMAT(:entry_date, '%Y-%m-%d') "+
+            " HAVING count(*) = 0";
+    Map<String, Object> params = new HashMap<>();
+    params.put("user_id", userId);
+    params.put("entry_date", Timestamp.valueOf(entryDate));
+    return namedParameterJdbcTemplate.update(sql, params) > 0;
   }
 
   @Override
@@ -823,6 +837,23 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
 
+  public String get2faSecretByEmail(String email) {
+    String sql = "SELECT 2fa_secret FROM USER WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("email", email);
+   return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  public boolean set2faSecretCode(String email) {
+    System.out.println("set2faSecretCode");
+    String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("secret", Base32.random());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
 
   @Override
   public boolean tempDeleteUser(int id) {

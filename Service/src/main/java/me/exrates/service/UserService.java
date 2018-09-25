@@ -73,6 +73,8 @@ public interface UserService {
 
   boolean updateUserByAdmin(UpdateUserDto user);
 
+  boolean updateUserEntryDay(String userEmail);
+
   @Transactional(rollbackFor = Exception.class)
   boolean updateUserSettings(UpdateUserDto user);
 
@@ -201,10 +203,14 @@ public interface UserService {
 
   Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+  String getUserEmailFromSecurityContext();
 
-    String getUserEmailFromSecurityContext();
+  String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
+
+  boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail);
 
   TemporalToken verifyUserEmailForForgetPassword(String token);
 
   User getUserByTemporalToken(String token);
+
 }
