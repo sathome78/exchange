@@ -13,7 +13,6 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Service
 public interface YandexMoneyService extends IRefillable, IWithdrawable {
 
     List<String> getAllTokens();

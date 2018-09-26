@@ -36,12 +36,13 @@ public class TxServiceImpl implements TxService {
 
     private static final String LAST_HASH_PARAM = "LastBlock";
     private static final String MERCHANT_NAME = "DCR";
+    private static final Integer BLOCKS_OFFSET_TO_SCAN = 4;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 60, 300, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 180, 300, TimeUnit.SECONDS);
     }
 
 
@@ -49,7 +50,7 @@ public class TxServiceImpl implements TxService {
     public void checkTransactions() {
         try {
             log.debug("decred check txs");
-            int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - 3;
+            int lastBlockToScan = decredGrpcService.getBlockInfo().getHeight() - BLOCKS_OFFSET_TO_SCAN;
             int firstBlockToScan = Integer.valueOf(loadLastBlock()) + 1;
             log.debug("first block {}, last block {}", firstBlockToScan, lastBlockToScan);
             if (firstBlockToScan >= lastBlockToScan) {

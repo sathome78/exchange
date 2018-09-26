@@ -7,30 +7,19 @@ import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.decred.rpc.WalletServiceGrpc;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.nem.core.utils.ArrayUtils;
-import org.nem.core.utils.StringUtils;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class GrpcService {
+public class TestGrpcService {
 
         private static ManagedChannel channel = null;
 
 
-
-
         public static void main(String[] args) {
             try {
-                ClassLoader loader = GrpcService.class.getClassLoader();
+                ClassLoader loader = TestGrpcService.class.getClassLoader();
                 InputStream streamCert = loader.getResourceAsStream("ca.crt");
                 channel = NettyChannelBuilder.forAddress("172.31.0.148", 9111)
                         .sslContext(GrpcSslContexts

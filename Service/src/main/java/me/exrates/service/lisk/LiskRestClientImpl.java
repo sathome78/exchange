@@ -69,7 +69,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
         log.info("*** Lisk *** getTransactionById: "+response);
 
-        return extractObjectFromResponse(objectMapper, response, "data", LiskTransaction.class);
+        return extractListFromResponseAdditional(objectMapper, response, "data", LiskTransaction.class).get(0);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
         log.info("*** Lisk *** getTransactionsByRecipient: "+response);
 
-        return extractObjectFromResponse(objectMapper, response, "data", LiskAccount.class);
+        return extractObjectFromResponseAdditional(objectMapper, response, "data", LiskAccount.class);
     }
 
 

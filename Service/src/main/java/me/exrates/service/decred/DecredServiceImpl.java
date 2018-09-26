@@ -40,8 +40,6 @@ public class DecredServiceImpl implements DecredService {
     @Autowired
     private DecredGrpcService decredGrpcService;
     @Autowired
-    private TxService txService;
-    @Autowired
     private RefillService refillService;
 
 

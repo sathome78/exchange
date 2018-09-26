@@ -9,7 +9,6 @@ import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Log4j2(topic = "config")
 @Configuration
@@ -20,7 +19,8 @@ public class CryptocurrencyConfig {
                 "Bitcoin", "BTC", 4, 15, false);
     }
 
-   /* @Bean(name = "litecoinServiceImpl")
+    /*
+    @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
                 "Litecoin", "LTC", 4, 20, false);
@@ -149,7 +149,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "nycoinServiceImpl")
     public BitcoinService nycoinService() {
         return new BitcoinServiceImpl("merchants/nyc_wallet.properties",
-                "NYC", "NYC", 4, 20, false, false);
+                "NYC", "NYC", 4, 20, false, true);
     }
 
     @Bean(name = "ptcServiceImpl")
@@ -200,7 +200,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
                 "LBTC", "LBTC", 4, 20, false);
     }
-    
+
     @Bean(name = "brbServiceImpl")
     public BitcoinService brbService() {
         return new BitcoinServiceImpl("merchants/brb_wallet.properties",
@@ -217,25 +217,22 @@ public class CryptocurrencyConfig {
     public BitcoinService sicService() {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }
-
     */
+
+    @Bean(name = "clxServiceImpl")
+    public BitcoinService clxService() {
+        return new BitcoinServiceImpl("merchants/clx_wallet.properties",
+                "CLX", "CLX", 4, 20, false, false);
+    }
 
     @Bean(name="cmkServiceImpl")
     public BitcoinService cmkService(){
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
     }
 
-    /*
-    @Bean(name = "clxServiceImpl")
-    public BitcoinService clxService() {
-        return new BitcoinServiceImpl("merchants/clx_wallet.properties",
-                "CLX", "CLX", 4, 20, false, false);
-    }
-    */
-
-    @Bean(name="sbtcServiceImpl")
-    public BitcoinService sbtcService(){
-        return new BitcoinServiceImpl("merchants/sbtc_wallet.properties", "SBTC", "SBTC", 4, 20, false);
+    @Bean(name="mbcServiceImpl")
+    public BitcoinService mbcService(){
+        return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 4, 20, false, true);
     }
 
     // LISK-like cryptos
@@ -273,13 +270,11 @@ public class CryptocurrencyConfig {
         return new LiskRestClientImpl();
     }
 
-    /*
     @Bean
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
     }
-    */
 
 
     // WAVES-like
