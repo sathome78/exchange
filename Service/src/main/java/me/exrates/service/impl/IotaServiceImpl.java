@@ -65,7 +65,7 @@ public class IotaServiceImpl implements IotaService {
     private @Value("${iota.message}")String MESSAGE;
     private @Value("${iota.tag}")String TAG;
     private @Value("${iota.mode}")String MODE;
-    private @Value("${iota.isEnabled}") Boolean isEnabled;
+//    private @Value("${iota.isEnabled}") Boolean isEnabled;    todo Nikita M uncomment and fix
 
     private static List<String> ADDRESSES = new ArrayList<>();
 
@@ -139,7 +139,7 @@ public class IotaServiceImpl implements IotaService {
 
     @PostConstruct
     public void init(){
-        if(!isEnabled) return;
+//        if(!isEnabled) return;
 
         currency = currencyService.findByName("IOTA");
         merchant = merchantService.findByName("IOTA");
