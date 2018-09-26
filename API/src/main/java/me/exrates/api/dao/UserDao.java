@@ -17,13 +17,13 @@ public class UserDao {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static final String SELECT_ATTEMPTS = "SELECT attempts FROM USER_API WHERE user_id = " +
-            "(SELECT id FROM user WHERE email = :email)";
+            "(SELECT id FROM USER WHERE email = :email)";
 
     private static final String UPDATE_ATTEMPTS = "UPDATE USER_API SET attempts = :attempts " +
-            "WHERE user_id = (SELECT id FROM user WHERE email = :email)";
+            "WHERE user_id = (SELECT id FROM USER WHERE email = :email)";
 
     private static final String INSERT_DEF_ATTEMPTS = "INSERT INTO USER_API (user_id, attempts) " +
-            "VALUES ((SELECT id FROM user WHERE email = :email), :attempts)";
+            "VALUES ((SELECT id FROM USER WHERE email = :email), :attempts)";
 
     public Integer getRequestsLimit(String email) {
         try {
