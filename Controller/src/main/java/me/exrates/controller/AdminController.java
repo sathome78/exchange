@@ -494,7 +494,7 @@ public class AdminController {
     } else {
       user = userService.getUserById(id);
     }
-    user.setApiRateLimit(apiRateLimitService.getRequestLimit(email));
+    user.setApiRateLimit(apiRateLimitService.getRequestLimit(user.getEmail()));
 
         model.addObject("user", user);
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
