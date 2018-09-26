@@ -16,13 +16,13 @@ public class UserDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    private static final String SELECT_ATTEMPTS = "SELECT attempts FROM user_api WHERE user_id = " +
+    private static final String SELECT_ATTEMPTS = "SELECT attempts FROM USER_API WHERE user_id = " +
             "(SELECT id FROM user WHERE email = :email)";
 
-    private static final String UPDATE_ATTEMPTS = "UPDATE user_api SET attempts = :attempts " +
+    private static final String UPDATE_ATTEMPTS = "UPDATE USER_API SET attempts = :attempts " +
             "WHERE user_id = (SELECT id FROM user WHERE email = :email)";
 
-    private static final String INSERT_DEF_ATTEMPTS = "INSERT INTO user_api (user_id, attempts) " +
+    private static final String INSERT_DEF_ATTEMPTS = "INSERT INTO USER_API (user_id, attempts) " +
             "VALUES ((SELECT id FROM user WHERE email = :email), :attempts)";
 
     public Integer getRequestsLimit(String email) {
