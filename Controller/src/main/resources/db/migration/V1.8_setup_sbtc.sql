@@ -3,7 +3,6 @@ INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENC
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
 VALUES ((SELECT id from MERCHANT WHERE name='SBTC'), (select id from CURRENCY where name='SBTC'), 'sbtcWallet.title', 'pass123');
 
-For ETH pairs:
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
 VALUES((select id from CURRENCY where name = 'SBTC'), (select id from CURRENCY where name = 'ETH'), 'SBTC/ETH', 160, 0, 'ETH', 'SBTC/ETH');
