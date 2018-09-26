@@ -19,6 +19,23 @@ public class LiskRestUtils {
     private LiskRestUtils() {
     }
 
+    /**
+     * An additional method without a field `success` for the node Lisk v1.0 | Special for Lisk v1.0
+     * @param objectMapper
+     * @param responseBody
+     * @param targetFieldName
+     * @param type
+     * @param <T>
+     * @return
+     */
+    public static  <T> T extractObjectFromResponseAdditional(ObjectMapper objectMapper, String responseBody, String targetFieldName, Class<T> type)  {
+        try {
+            return objectMapper.treeToValue(extractTargetNodeFromLiskResponseAdditional(objectMapper, responseBody, targetFieldName, JsonNodeType.ARRAY), type);
+        } catch (JsonProcessingException e) {
+            throw new LiskRestException(e.getMessage());
+        }
+    }
+
     public static  <T> T extractObjectFromResponse(ObjectMapper objectMapper, String responseBody, String targetFieldName, Class<T> type)  {
         try {
             return objectMapper.treeToValue(extractTargetNodeFromLiskResponse(objectMapper, responseBody, targetFieldName, JsonNodeType.OBJECT), type);

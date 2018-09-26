@@ -111,6 +111,8 @@ public class AdminController {
     @Autowired
     private UserService userService;
     @Autowired
+    private UserOperationService userOperationService;
+    @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private LocaleResolver localeResolver;
@@ -160,8 +162,6 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
-    @Autowired
-    private UserOperationService userOperationService;
 
 
     @Autowired
@@ -515,20 +515,20 @@ public class AdminController {
         Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         AuthorityOptionsForm form = new AuthorityOptionsForm();
-        form.setUserId(user.getId());
-        form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
+        form.setUserId(id);
+        form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
         UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
         userOperationForm.setUserId(id);
         userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
         model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
-        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
-        model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
+        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+        model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
         model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
         model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
         model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
-        model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
+        model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
         model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
         return model;
     }
@@ -642,144 +642,6 @@ public class AdminController {
         /**/
         model.addObject("user", user);
         /**/
-        return model;
-    }
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "/settings/uploadFile", method = POST)
-    public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
-                                       RedirectAttributes redirectAttributes,
-                                       final Principal principal,
-                                       final Locale locale) {
-        final RedirectView redirectView = new RedirectView("/settings");
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
-        redirectAttributes.addFlashAttribute("user", user);
-        if (uploaded.isEmpty()) {
-            redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
-            return redirectView;
-        }
-        try {
-            userFilesService.createUserFiles(user.getId(), uploaded);
-        } catch (final IOException e) {
-            LOG.error(e);
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
-            return redirectView;
-        }
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
-        redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
-        return redirectView;
-    }
-
-    /*todo move this method from admin controller*/
-    @ResponseBody
-    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
-        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        User userPrincipal = userService.findByEmail(principal.getName());
-        Object message;
-        if (result.hasErrors()) {
-            response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
-        } else {
-            if (bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())) {
-                UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
-                updateUserDto.setPassword(user.getConfirmPassword());
-                updateUserDto.setStatus(UserStatus.ACTIVE);
-                updateUserDto.setRole(user.getRole());
-                updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
-                userService.update(updateUserDto, localeResolver.resolveLocale(request));
-                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
-                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
-            } else {
-                response.setStatus(500);
-                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
-            }
-        }
-        return new JSONObject() {{
-            put("message", message);
-        }}.toString();
-    }
-
-
-  /*
-    //todo move this method from admin controller
-    @RequestMapping(value = "/changePasswordConfirm")
-  public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
-    try {
-      request.setCharacterEncoding("utf-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ModelAndView model = new ModelAndView();
-    try {
-      if (userService.verifyUserEmail(token) != 0) {
-        User userUpdate = userService.findByEmail(user.getEmail());
-        UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
-        updateUserDto.setEmail(userUpdate.getEmail());
-        updateUserDto.setPassword(userUpdate.getPassword());
-        updateUserDto.setStatus(UserStatus.ACTIVE);
-        userService.updateUserByAdmin(updateUserDto);
-        Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
-        org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                updateUserDto.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        attr.addFlashAttribute("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
-      } else {
-        attr.addFlashAttribute("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
-      }
-      model.setViewName("redirect:/dashboard");
-    } catch (Exception e) {
-      model.setViewName("DBError");
-      e.printStackTrace();
-    }
-    return model;
-  }
-  */
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
-                                               HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
-
-        if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
-        } else {
-            boolean userNicknameUpdated = userService.setNickname(user);
-            if (userNicknameUpdated) {
-                redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
-            } else {
-                redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            }
-        }
-
-        redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
-
-        return new ModelAndView(new RedirectView("/settings"));
-    }
-
-    @RequestMapping(value = "/newIpConfirm")
-    public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
-        ModelAndView model = new ModelAndView();
-        try {
-            if (userService.verifyUserEmail(token) != 0) {
-                req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
-            } else {
-                req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
-            }
-            model.setViewName("redirect:/login");
-        } catch (Exception e) {
-            model.setViewName("DBError");
-            e.printStackTrace();
-        }
         return model;
     }
 
@@ -950,14 +812,16 @@ public class AdminController {
         return new ModelAndView("admin/transaction_bitcoin");
     }
 
+
+    private BitcoinService findAnyBitcoinServiceBean() {
+        return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
     public ModelAndView sessionControl() {
         return new ModelAndView("admin/sessionControl");
     }
 
-    private BitcoinService findAnyBitcoinServiceBean() {
-        return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
-    }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
     @ResponseBody
@@ -1091,7 +955,9 @@ public class AdminController {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
         return new ResponseEntity<>(HttpStatus.OK);
+
     }
+
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
@@ -1197,6 +1063,7 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<String>> getPhrases(
@@ -1248,6 +1115,7 @@ public class AdminController {
         }
         return (BitcoinService) merchantService;
     }
+
 
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
     public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
@@ -1344,6 +1212,7 @@ public class AdminController {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.scanForUnprocessedTransactions(blockhash);
     }
+
 
     @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
     @ResponseBody
@@ -1529,6 +1398,8 @@ public class AdminController {
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
         modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
+
+
         return modelAndView;
     }
 
@@ -1571,6 +1442,7 @@ public class AdminController {
         BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
         walletService.setSubtractFeeFromAmount(subtractFee);
     }
+
 
     @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses")
     public String refillAddressesPage(Model model) {

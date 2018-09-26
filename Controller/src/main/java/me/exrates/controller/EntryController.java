@@ -2,6 +2,8 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.exception.*;
+import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
@@ -18,6 +20,8 @@ import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.notifications.*;
+import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,10 +30,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -37,6 +47,8 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -48,6 +60,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -93,6 +106,12 @@ public class EntryController {
     private ReferralService referralService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RegisterFormValidation registerFormValidation;
+    @Autowired
+    private UserFilesService userFilesService;
+    @Autowired
+    private UserSessionService userSessionService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -325,6 +344,100 @@ public class EntryController {
         mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);
         return mav;
+    }
+
+    /*todo move this method from admin controller*/
+    @RequestMapping(value = "/settings/uploadFile", method = POST)
+    public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+                                       RedirectAttributes redirectAttributes,
+                                       final Principal principal,
+                                       final Locale locale) {
+        final RedirectView redirectView = new RedirectView("/settings");
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
+        redirectAttributes.addFlashAttribute("user", user);
+        if (uploaded.isEmpty()) {
+            redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
+            return redirectView;
+        }
+        try {
+            userFilesService.createUserFiles(user.getId(), uploaded);
+        } catch (final IOException e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
+            return redirectView;
+        }
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
+        redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
+        return redirectView;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String submitsettingsPassword(@Valid @ModelAttribute ChangePasswordDto changePasswordDto, BindingResult result,
+                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
+        registerFormValidation.validateChangePassword(changePasswordDto, result, localeResolver.resolveLocale(request));
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        User userPrincipal = userService.findByEmail(principal.getName());
+        Object message;
+        if (result.hasErrors()) {
+            response.setStatus(500);
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+        } else {
+            if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
+                UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
+                updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
+                updateUserDto.setEmail(principal.getName());
+                userService.update(updateUserDto, localeResolver.resolveLocale(request));
+                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
+                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
+            } else {
+                response.setStatus(500);
+                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
+            }
+        }
+        return new JSONObject(){{put("message", message);}}.toString();
+    }
+
+    @RequestMapping(value = "settings/changeNickname/submit", method = POST)
+    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
+                                               HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
+            redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
+        } else {
+            boolean userNicknameUpdated = userService.setNickname(user);
+            if(userNicknameUpdated){
+                redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
+            }else{
+                redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
+
+        return new ModelAndView(new RedirectView("/settings"));
+    }
+
+    @RequestMapping(value = "/newIpConfirm")
+    public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
+        ModelAndView model = new ModelAndView();
+        try {
+            if (userService.verifyUserEmail(token) != 0) {
+                req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
+            } else {
+                req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
+            }
+            model.setViewName("redirect:/login");
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
     }
 
     @RequestMapping("/settings/notificationOptions/submit")

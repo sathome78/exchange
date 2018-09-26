@@ -63,25 +63,25 @@ public class LoggingAspect {
     }
 
 
-    @AfterThrowing(pointcut = "(execution(* me.exrates.controller..*(..)) " +
-            "|| execution(* me.exrates.dao..*(..))" +
-            "|| execution(* me.exrates.security.service..*(..))" +
-            "|| execution(* me.exrates.service.impl..*(..)) " +
-            "|| execution(* me.exrates.service.stockExratesRetrieval..*(..)) " +
-            "|| execution(* me.exrates.service.newsExt..*(..))) " +
-            "&& !execution(* me.exrates.controller.filter.XssRequestFilter.*(..))" +
-            "&& !execution(* me.exrates.controller.validator..*(..))" +
-            "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..)) " +
-            "&& !execution(* me.exrates.security.service.IpBlockingServiceImpl.*(..))", throwing = "ex")
-    public void logException(JoinPoint joinPoint, Exception ex) {
-        log.debug(String.format("error in method %s with args: \n%s",
-                String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()),
-                String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
-                        .map(Object::toString).collect(Collectors.toList()))));
-        log.debug(String.format("exception: %s : %s ", ex.getClass().getSimpleName(), ex.getMessage()));
-        log.debug("Root cause: " + ExceptionUtils.getRootCauseMessage(ex));
-        logExtended.debug(ExceptionUtils.getStackTrace(ex));
-    }
+  @AfterThrowing(pointcut = "(execution(* me.exrates.controller..*(..)) " +
+          "|| execution(* me.exrates.dao..*(..))" +
+          "|| execution(* me.exrates.security.service..*(..))" +
+          "|| execution(* me.exrates.service.impl..*(..)) " +
+          "|| execution(* me.exrates.service.stockExratesRetrieval..*(..)) " +
+          "|| execution(* me.exrates.service.newsExt..*(..))) " +
+          "&& !execution(* me.exrates.controller.filter.XssRequestFilter.*(..))" +
+          "&& !execution(* me.exrates.controller.validator..*(..))" +
+          "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..)) " +
+          "&& !execution(* me.exrates.security.ipsecurity.IpBlockingServiceImpl.*(..))", throwing = "ex")
+  public void logException(JoinPoint joinPoint, Exception ex) {
+    log.debug(String.format("error in method %s with args: \n%s",
+            String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
+            String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
+                    .map(Object::toString).collect(Collectors.toList()))) );
+    log.debug(String.format("exception: %s : %s ", ex.getClass().getSimpleName(), ex.getMessage()));
+    log.debug("Root cause: " + ExceptionUtils.getRootCauseMessage(ex));
+    logExtended.debug(ExceptionUtils.getStackTrace(ex));
+  }
 
     @AfterThrowing(pointcut = "(execution(* me.exrates.controller.merchants.WithdrawRequestController..*(..)) " +
             "|| execution(* me.exrates.service.impl.WithdrawServiceImpl..*(..)) " +
