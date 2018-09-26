@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 

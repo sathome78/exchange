@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -99,8 +100,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private void checkPinCode(HttpServletRequest request, UserDetails userDetails, String pin, Locale locale) {
         LocalDateTime dateTime = usersForPincheck.get(userDetails.getUsername());
         if (dateTime == null || dateTime.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now())) {
-            checkLoginAuth(userDetails.getUsername(), request, locale);
-            return;
+           checkLoginAuth(userDetails.getUsername(), request, locale);
+           return;
         }
         if (!userService.checkPin(userDetails.getUsername(), pin, NotificationMessageEventEnum.LOGIN)) {
             String res = secureService.reSendLoginMessage(request, userDetails.getUsername(), locale);

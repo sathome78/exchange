@@ -1,18 +1,21 @@
 package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.controller.exception.OrderParamsWrongException;
 import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +33,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 /**
  * Created by OLEG on 29.08.2016.
  */
@@ -55,6 +55,9 @@ public class MobileOrderController {
     OrderService orderService;
 
     @Autowired
+    StopOrderService stopOrderService;
+
+    @Autowired
     CommissionService commissionService;
 
     @Autowired
@@ -68,6 +71,9 @@ public class MobileOrderController {
 
     @Autowired
     MessageSource messageSource;
+
+
+
 
 
     /**
@@ -168,15 +174,16 @@ public class MobileOrderController {
      * @apiParam {Number} amount amount in base currency
      * @apiParam {Number} rate exchange rate
      * @apiParamExample {json} Request Example:
-     * {
-     * "currencyPairId":1,
-     * "orderType":"SELL",
-     * "amount": 2.0,
-     * "rate": 600
-     * }
+     *      {
+     *          "currencyPairId":1,
+     *          "orderType":"SELL",
+     *          "amount": 2.0,
+     *          "rate": 600
+     *      }
      * @apiPermission User
      * @apiDescription Method accepts basic order params, which are validated (including check for necessary amount
      * in user's wallet); returns summary and key to be passed after confirmation to createOrder or cancelCreation method.
+     *
      * @apiSuccess (200) {Object} summary Submitted order summary
      * @apiSuccess (200) {String} summary.currencyPairName currency pair
      * @apiSuccess (200) {String} summary.operationTypeName order type (BUY, SELL)
@@ -189,23 +196,26 @@ public class MobileOrderController {
      * @apiSuccess (200) {String} key Key to be passed to createOrder method after confirmation
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
-     * {
-     * "currencyPairId": 1,
-     * "operationType": "SELL",
-     * "balance": 9993,
-     * "amount": 2,
-     * "exrate": 590,
-     * "total": 1180,
-     * "commission": 2.36,
-     * "totalWithComission": 1177.64,
-     * "key": "8d096c36-530a-46dc-a790-340a8fe135c3"
-     * }
+     *  {
+     *      "currencyPairId": 1,
+     *      "operationType": "SELL",
+     *      "balance": 9993,
+     *      "amount": 2,
+     *      "exrate": 590,
+     *      "total": 1180,
+     *      "commission": 2.36,
+     *      "totalWithComission": 1177.64,
+     *      "key": "8d096c36-530a-46dc-a790-340a8fe135c3"
+     *  }
+     *
+     *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
      * @apiUse AuthenticationError
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
+     *
      */
 
     @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -214,7 +224,17 @@ public class MobileOrderController {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale, activeCurrencyPair.getPairType().getOrderBaseType());
+        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
+                userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+        orderCreateDto.setOrderBaseType(orderCreationParamsDto.getBaseType() == null ? OrderBaseType.LIMIT : orderCreationParamsDto.getBaseType());
+        orderCreateDto.setStop(orderCreationParamsDto.getStopRate());
+        LOGGER.debug("Order prepared" + orderCreateDto);
+        OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+        Map<String, Object> errors = orderValidationDto.getErrors();
+        if (!errors.isEmpty()) {
+            errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), userLocale));
+            throw new OrderParamsWrongException(errors.toString());
+        }
         UUID orderKey = UUID.randomUUID();
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());
@@ -236,13 +256,15 @@ public class MobileOrderController {
      * @apiSuccess (201) {Integer} autoAcceptedQuantity number of orders accepted automatically
      * @apiSuccess (201) {Integer} partiallyAcceptedAmount amount that was accepted partially
      * @apiSuccess (201) {Integer} partiallyAcceptedOrderFullAmount full amount of partially accepted order
+     *
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 201 Created
-     * {
-     * "autoAcceptedQuantity": 3
-     * "partiallyAcceptedAmount": 1.25,
-     * "partiallyAcceptedOrderFullAmount": 7
-     * }
+     *     HTTP/1.1 201 Created
+     *    {
+     *          "autoAcceptedQuantity": 3
+     *          "partiallyAcceptedAmount": 1.25,
+     *          "partiallyAcceptedOrderFullAmount": 7
+     *    }
+     *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -251,6 +273,7 @@ public class MobileOrderController {
      * @apiUse WrongOrderKeyError
      * @apiUse NotEnoughMoneyError
      * @apiUse InternalServerError
+     *
      */
     @RequestMapping(value = "/createOrder", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultDto> createOrder(@RequestBody Map<String, String> body) {
@@ -258,7 +281,27 @@ public class MobileOrderController {
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         try {
             OrderCreateDto orderCreateDto = removeOrderCreateDtoByKey(body);
-            OrderCreationResultDto orderCreationResultDto = orderService.createPreparedOrderRest(orderCreateDto, userLocale);
+            Optional<OrderCreationResultDto> autoAcceptResult = orderService.autoAcceptOrders(orderCreateDto, userLocale);
+            if (autoAcceptResult.isPresent()) {
+                return new ResponseEntity<>(autoAcceptResult.get(), CREATED);
+            }
+            OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
+
+            Integer createdOrderId;
+            switch (orderCreateDto.getOrderBaseType()) {
+                case STOP_LIMIT: {
+                    createdOrderId = stopOrderService.create(orderCreateDto, CREATE);
+                    break;
+                }
+                default: {
+                    /*todo: why create order without auto accept?*/
+                    createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
+                }
+            }
+            if (createdOrderId <= 0) {
+                throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
+            }
+            orderCreationResultDto.setCreatedOrderId(createdOrderId);
             return new ResponseEntity<>(orderCreationResultDto, CREATED);
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, userLocale));
@@ -274,7 +317,7 @@ public class MobileOrderController {
      * @apiPermission User
      * @apiDescription Cancels order creation. Returns empty response with HTTP 200 status
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
+     *     HTTP/1.1 200 OK
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -282,6 +325,7 @@ public class MobileOrderController {
      * @apiUse InvalidParamError
      * @apiUse WrongOrderKeyError
      * @apiUse InternalServerError
+     *
      */
     @RequestMapping(value = "/cancelCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> cancelOrderCreation(@RequestBody Map<String, String> body) {
@@ -311,17 +355,18 @@ public class MobileOrderController {
      * @apiUse TokenHeader
      * @apiParam {Array} orderIdsList List of IDs of orders to be accepted
      * @apiParamExample {json} Request example
-     * {
-     * "orderIdsList": [18381, 18382, 18383]
-     * }
+     *   {
+     *      "orderIdsList": [18381, 18382, 18383]
+     *   }
+     *
      * @apiPermission User
      * @apiDescription Accept list of orders.
      * @apiSuccess (200) {String} result Result detail
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
-     * {
-     * "result": "The 1 orders have been accepted successfully"
-     * }
+     *     HTTP/1.1 200 OK
+     *    {
+     *          "result": "The 1 orders have been accepted successfully"
+     *     }
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -330,46 +375,49 @@ public class MobileOrderController {
      * @apiUse NotEnoughMoneyError
      * @apiUse AlreadyAcceptedOrderError
      * @apiUse InternalServerError
+     *
      */
     @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer acceptOrderList(@RequestBody Map<String, List<Integer>> body) {
 
 
-        List<Integer> ordersList = body.get("orderIdsList");
+       List<Integer> ordersList = body.get("orderIdsList");
         if (ordersList == null) {
             throw new OrderParamsWrongException("Field \"orderIdsList\" is missing!");
         }
 
-        try {
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-            int userId = userService.getIdByEmail(userEmail);
-            Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-            orderService.acceptOrdersList(userId, ordersList, userLocale);
-        } catch (Exception e) {
-            throw e;
-        }
+       try {
+           String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+           int userId = userService.getIdByEmail(userEmail);
+           Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+           orderService.acceptOrdersList(userId, ordersList, userLocale);
+       } catch (Exception e) {
+           throw e;
+       }
 
-        return ordersList.size();
+       return ordersList.size();
 
     }
 
 
     /**
-     * @api {post} /api/orders/delete/:orderId Delete order
+     * @api {delete} /api/orders/delete/:orderId Delete order
      * @apiName deleteOrder
      * @apiGroup Orders
      * @apiUse TokenHeader
      * @apiParam {Integer} orderId id of order to be deleted
      * @apiParamExample Request Example:
-     * /api/orders/delete?orderId=18382
+     *     /api/orders/delete/18382
+     * @requestParam baseType - 1- Limit order, 2- stop-limit order
      * @apiPermission User
      * @apiDescription Method accepts order data returned from submitDeleteOrder method and returns notification of successful deletion
      * @apiSuccess (200) {String} result Result detail
      * @apiSuccessExample {json} Success-Response:
-     * HTTP/1.1 200 OK
-     * {
-     * "result": "order was successfull deleted"
-     * }
+     *     HTTP/1.1 200 OK
+     *    {
+     *          "result": "order was successfull deleted"
+     *    }
+     *  now it returns just 'true'
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
@@ -377,21 +425,46 @@ public class MobileOrderController {
      * @apiUse InvalidParamError
      * @apiUse OrderNotFoundError
      * @apiUse InternalServerError
+     *
      */
     @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
-    public boolean deleteOrder(@PathVariable Integer orderId) {
+    public boolean deleteOrder(@PathVariable Integer orderId,
+                               @RequestParam(value = "baseType", defaultValue = "1") int typeId) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-
-        OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
+        OrderBaseType orderBaseType = OrderBaseType.convert(typeId);
+        OrderCreateDto orderCreateDto;
+        switch (orderBaseType) {
+            case STOP_LIMIT: {
+                orderCreateDto = stopOrderService.getOrderById(orderId, false);
+                break;
+            }
+            default: {
+                orderCreateDto = orderService.getMyOrderById(orderId);
+            }
+        }
         if (orderCreateDto == null) {
             throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, userLocale));
         }
-        if (!orderService.cancelOrder(new ExOrder(orderCreateDto), userLocale)) {
+        if (orderCreateDto.getUserId() != userService.getIdByEmail(userEmail)) {
             throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+        }
+        switch (orderBaseType) {
+            case STOP_LIMIT: {
+                if (!stopOrderService.cancelOrder(new ExOrder(orderCreateDto), userLocale)) {
+                    throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+                }
+                break;
+            }
+            default: {
+                if (!orderService.cancellOrder(new ExOrder(orderCreateDto), userLocale)) {
+                    throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
+                }
+            }
         }
         return true;
     }
+
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

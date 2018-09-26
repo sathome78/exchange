@@ -16,6 +16,8 @@ public interface StompMessenger {
 
     void sendAllTrades(Integer currencyPair);
 
+    void sendCurrencyBalance(int walletId, int currencyId);
+
     void sendChartData(Integer currencyPairId);
 
     void sendChartData(Integer currencyPairId, String resolution, String data);

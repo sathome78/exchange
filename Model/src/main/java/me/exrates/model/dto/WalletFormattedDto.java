@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 public class WalletFormattedDto {
   private Integer id;
   private String name;
+  private String description;
   private BigDecimal totalInput;
   private BigDecimal totalOutput;
   private BigDecimal totalSell;

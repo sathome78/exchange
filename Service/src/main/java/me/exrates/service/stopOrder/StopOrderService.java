@@ -31,6 +31,9 @@ public interface StopOrderService {
     @Transactional
     String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale);
 
+    @Transactional
+    Integer create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum);
+
     Integer createOrder(ExOrder exOrder);
 
     void proceedStopOrders(int pairId, NavigableSet<StopOrderSummaryDto> orders);
@@ -56,6 +59,11 @@ public interface StopOrderService {
     @Transactional(readOnly = true)
     List<OrderWideListDto> getMyOrdersWithState(CacheData cacheData,
                                                 String email, CurrencyPair currencyPair, OrderStatus status,
+                                                OperationType operationType,
+                                                String scope, Integer offset, Integer limit, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 

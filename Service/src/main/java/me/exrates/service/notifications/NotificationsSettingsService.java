@@ -2,7 +2,10 @@ package me.exrates.service.notifications;
 
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,7 +17,11 @@ public interface NotificationsSettingsService {
 
     void createOrUpdate(NotificationsUserSetting setting);
 
-    Object get2faOptionsForUser(int id);
+    Map<String, Object> get2faOptionsForUser(int id);
 
     Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);
+
+    Map<NotificationMessageEventEnum, NotificationTypeEnum> getUser2FactorSettings(int userId);
+
+    void updateUser2FactorSettings(int userId, Map<String, String> body);
 }

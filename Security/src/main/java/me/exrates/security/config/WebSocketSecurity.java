@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
@@ -19,6 +20,12 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
     @Autowired
     private UserRoleService userRoleService;
 
+    /*to diasble csrf protection for sockets*/
+    @Override
+    protected boolean sameOriginDisabled() {
+        return true;
+    }
+
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
@@ -27,20 +34,25 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .map(p->p.getUserRole().name())
                 .toArray(String[]::new);
        /* -----------------------------------------------------------------------------------------------------------*/
-        messages.nullDestMatcher().permitAll()
-                .simpSubscribeDestMatchers("/app/statistics").permitAll()
-                .simpSubscribeDestMatchers("/app/statistics/*").permitAll()
-                .simpSubscribeDestMatchers("/app/statisticsNew").permitAll()
+       messages.nullDestMatcher().permitAll()
+                .simpSubscribeDestMatchers("/topic/chat**").permitAll()
+                .simpSubscribeDestMatchers("/app/info/statistics").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()
-                .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
-                .simpSubscribeDestMatchers("/app/charts2/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+                .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
-                .simpDestMatchers("/app/ev/*").permitAll()
+                .simpSubscribeDestMatchers("/user/queue/balance/*/*").permitAll()
+                .simpSubscribeDestMatchers("/topic/chat/**").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
+                .simpDestMatchers("/app/ev/*").permitAll()
+                .simpDestMatchers("/app/topic/**").authenticated()
+                .simpMessageDestMatchers("/app/topic/chat-**").authenticated()
                 .anyMessage().denyAll();
-
     }
+
+
+
+
 
 }

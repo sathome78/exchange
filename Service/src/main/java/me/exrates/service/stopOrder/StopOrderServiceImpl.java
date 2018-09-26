@@ -88,6 +88,19 @@ public class StopOrderServiceImpl implements StopOrderService {
         return "{\"result\":\"" + messageSource.getMessage("createdstoporder.text", null, locale) + "\"}";
     }
 
+    @Transactional
+    @Override
+    public Integer create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum) {
+        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+        if (orderId <= 0) {
+            return orderId;
+        }
+        ExOrder exOrder = new ExOrder(orderCreateDto);
+        exOrder.setId(orderId);
+        this.onStopOrderCreate(exOrder);
+        return orderId;
+    }
+
 
     @Transactional
     @Override
@@ -307,6 +320,14 @@ public class StopOrderServiceImpl implements StopOrderService {
             }};
         }
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        return stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, scope, offset, limit, locale);
     }
 
     @Transactional(readOnly = true)

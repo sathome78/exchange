@@ -176,6 +176,12 @@ public class NotificationServiceImpl implements NotificationService {
         notificationDao.updateNotificationOptions(options);
     }
 
+    @Override
+    public void updateNotificationOptionsForUser(int userId, List<NotificationOption> options) {
+        options.forEach(item -> item.setUserId(userId));
+        notificationDao.updateNotificationOptions(options);
+    }
+
     private String[] normalizeArgs(Object... args) {
        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }

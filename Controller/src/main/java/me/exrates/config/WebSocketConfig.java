@@ -38,6 +38,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
 
+
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
         String[] origins = allowedOrigins.split(",");

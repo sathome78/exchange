@@ -40,6 +40,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private Integer userId;
   private String bankAccount;
   private InvoiceStatus status;
+  @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime statusUpdateDate;
   private String summaryStatus;
   private String userFullName;

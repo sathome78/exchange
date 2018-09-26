@@ -1,7 +1,10 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.NotificatorsDao;
+import me.exrates.model.Notification;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +38,15 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         notificator.setEnabled(rs.getBoolean("enable"));
         notificator.setNeedSubscribe(NotificationTypeEnum.convert(notificator.getId()).isNeedSubscribe());
         return notificator;
+    };
+
+    private static RowMapper<NotificationOption> notificationOptionRowMapper = (rs, idx) -> {
+        NotificationOption option = new NotificationOption();
+        option.setUserId(rs.getInt("user_id"));
+        option.setEvent(NotificationEvent.convert(rs.getString("name")));
+        option.setSendNotification(rs.getBoolean("send_notification"));
+        option.setSendEmail(rs.getBoolean("send_email"));
+        return option;
     };
 
     @Override
@@ -75,4 +88,5 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         String sql = "SELECT * FROM 2FA_NOTIFICATOR";
         return jdbcTemplate.query(sql, notificatorRowMapper);
     }
+
 }

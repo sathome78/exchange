@@ -1,5 +1,6 @@
 package me.exrates.security.filter;
 
+import com.google.gson.JsonObject;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.SessionParamsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +50,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     @Autowired
     private SessionParamsService sessionParamsService;
 
-    @Autowired
-    private Map<String, String> angularProperties;
-
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
     private LogoutHandler[] handlers = new LogoutHandler[] { new SecurityContextLogoutHandler() };
@@ -85,13 +83,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-
-        // headers test angular
-        response.setHeader("Access-Control-Allow-Origin", angularProperties.get("angularAllowedOrigin"));
-        response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Exrates-Rest-Token");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-
         HttpSession session = request.getSession(false);
         if (session != null) {
             SessionInformation info = sessionRegistry.getSessionInformation(session
@@ -116,14 +107,15 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                 }
                 else {
                     if(isSessionExpired(session)) {
-                        /*JsonObject object = sessionParamsService.getSessionEndString(request);*/
+                        JsonObject object = sessionParamsService.getSessionEndString(request);
                         if (isAjax(request)) {
-                            response.setStatus(419);
-                            /*PrintWriter writer = response.getWriter();
+                            response.setStatus(419); PrintWriter writer = response.getWriter();
                             writer.print(object.toString());
-                            writer.close();*/
+                            writer.close();
                         } else {
-                            response.sendRedirect("/dashboard?sessionEnd");
+                            response.sendRedirect(object.getAsJsonPrimitive("url").getAsString()
+                                    .concat("?errorNoty=")
+                                    .concat(URLEncoder.encode(object.getAsJsonPrimitive("msg").getAsString(), "UTF-8")));
                         }
                         doLogout(request, response);
                         return;

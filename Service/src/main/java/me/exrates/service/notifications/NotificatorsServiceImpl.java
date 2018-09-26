@@ -3,6 +3,7 @@ package me.exrates.service.notifications;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 import me.exrates.model.enums.NotificationTypeEnum;

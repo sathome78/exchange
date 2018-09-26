@@ -30,4 +30,5 @@ public interface NotificationDao {
     void updateNotificationOptions(List<NotificationOption> options);
 
     NotificationOption findUserOptionForEvent(Integer userId, NotificationEvent event);
+
 }

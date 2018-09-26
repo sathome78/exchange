@@ -28,7 +28,10 @@ public interface TransferService {
 
   void revokeByUser(int requestId, Principal principal);
 
-  void revokeByAdmin(int requestId, Principal principal);
+    @Transactional
+    void revokeByUser(int requestId, String email);
+
+    void revokeByAdmin(int requestId, Principal principal);
 
   List<TransferRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
 
@@ -53,5 +56,5 @@ public interface TransferService {
           String authorizedUserEmail,
           Locale locale);
 
-    String getHash(Integer id, Principal principal);
+    String getHash(Integer id, String email);
 }

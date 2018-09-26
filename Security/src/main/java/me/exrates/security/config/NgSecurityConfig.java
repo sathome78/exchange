@@ -2,6 +2,8 @@ package me.exrates.security.config;
 
 import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
 import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
+import me.exrates.security.filter.CORSFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -16,12 +18,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.Filter;
 
+/**
+ * Created by Maks on 09.02.2018.
+ */
 @Configuration
 @Order(value = 2)
 @EnableWebSecurity
 public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String PRIVATE_URL = "/info/private/**";
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -33,7 +37,7 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
         return new AuthenticationTokenProcessingFilter("/**", authenticationManagerBean());
     }
 
-    @Bean(name = "ApiAuthenticationManager")
+    @Bean(name="ApiAuthenticationManager")
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         AuthenticationManager manager = super.authenticationManagerBean();
@@ -42,12 +46,13 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
+
+        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
 
         http
-                .antMatcher(PRIVATE_URL)
+                .antMatcher("/info/private/**")
                 .authorizeRequests()
-                .antMatchers(PRIVATE_URL).authenticated()
+                .antMatchers("/info/private/**").authenticated()
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
@@ -58,4 +63,5 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .httpBasic();
     }
+
 }
