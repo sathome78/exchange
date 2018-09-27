@@ -35,6 +35,9 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Created by OLEG on 23.08.2016.
+ */
 @Log4j2
 @Service
 @PropertySource(value = {"classpath:/mobile.properties"})
@@ -100,11 +103,11 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private void checkPinCode(HttpServletRequest request, UserDetails userDetails, String pin, Locale locale) {
         LocalDateTime dateTime = usersForPincheck.get(userDetails.getUsername());
         if (dateTime == null || dateTime.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now())) {
-           checkLoginAuth(userDetails.getUsername(), request, locale);
-           return;
+            checkLoginAuth(userDetails.getUsername(), request, locale);
+            return;
         }
         if (!userService.checkPin(userDetails.getUsername(), pin, NotificationMessageEventEnum.LOGIN)) {
-            String res = secureService.reSendLoginMessage(request, userDetails.getUsername(), locale);
+            String res = secureService.reSendLoginMessage(request, userDetails.getUsername(), true).getMessage();
             throw new IncorrectPinException(res);
         }
     }

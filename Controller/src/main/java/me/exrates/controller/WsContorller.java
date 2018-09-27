@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.GsonBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
@@ -26,8 +25,6 @@ import org.springframework.stereotype.Controller;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -52,8 +49,6 @@ public class WsContorller {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ChartsCache chartsCache;
-    @Autowired
-    private WalletService walletService;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -82,22 +77,6 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefresh(refreshObjectsEnum);
     }
 
-	@SubscribeMapping("/info/statistics")
-	public String subscribeStatisticNg() {
-    	return orderService.getAllCurrenciesStatForRefreshNg();
-	}
-
-    @SubscribeMapping("/queue/balance/{currencyId1}/{currencyId2}")
-    public String subscribeCurrencyPairBalances(@DestinationVariable Integer currencyId1,
-                                                @DestinationVariable Integer currencyId2,
-                                                SimpMessageHeaderAccessor headerAccessor) {
-        Principal principal = headerAccessor.getUser();
-        if(principal == null) {
-            return "";
-        }
-        return walletService.getActiveBalanceForCurrencies(Arrays.asList(currencyId1, currencyId2), principal.getName());
-    }
-
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
     public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
@@ -106,18 +85,9 @@ public class WsContorller {
 
 
     @SubscribeMapping("/trades/{currencyPairId}")
-    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId) throws Exception {
-        return orderService.getAllAndMyTradesForInitNg(currencyPairId, RefreshObjectsEnum.ALL_TRADES, null);
-    }
-
-    @SubscribeMapping("/queue/personal/{currencyPairId}")
-    public String subscribeTradesNg(@DestinationVariable Integer currencyPairId,  SimpMessageHeaderAccessor headerAccessor) throws Exception {
+    public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
-        log.info("principal {}", principal);
-        if (principal == null) {
-            return "";
-        }
-        return orderService.getAllAndMyTradesForInitNg(currencyPairId, RefreshObjectsEnum.MY_TRADES, principal);
+        return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
     }
 
     @SubscribeMapping("/charts/{currencyPairId}/{period}")
@@ -138,31 +108,18 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
-    /*@SubscribeMapping("/info/trade_orders/{currencyPairId}")
-    public String subscribeToTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
-        return getSimpleTradeOrders(currencyPairId);
-    }
-
-    private String getSimpleTradeOrders(Integer currencyPairId) throws JsonProcessingException {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
-        if (cp == null) {
-            return null;
-        }
-        List<OrderListDto> orders = new ArrayList<>();
-        orders.addAll(orderService.getAllSellOrdersEx(cp, Locale.ENGLISH, null));
-        orders.addAll(orderService.getAllBuyOrdersEx(cp, Locale.ENGLISH, null));
-        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(orders);
-    }*/
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
             return null;
         }
-        List<OrdersListWrapper> wrappers = new ArrayList<>();
-        wrappers.add(orderService.getOrdersForRefresh(currencyPair, OperationType.SELL, null));
-        wrappers.add(orderService.getOrdersForRefresh(currencyPair, OperationType.BUY, null));
-        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(wrappers);
+        JSONArray objectsArray = new JSONArray();
+        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
+                (cp, Locale.ENGLISH, userRole), OperationType.SELL.name(), currencyPair)));
+        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
+                (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
+        return objectsArray.toString();
     }
 
 }

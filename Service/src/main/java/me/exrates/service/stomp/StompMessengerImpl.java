@@ -54,49 +54,49 @@ public class StompMessengerImpl implements StompMessenger{
 
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
-                                                    .map(ChartPeriodsEnum::getBackDealInterval)
-                                                    .collect(Collectors.toList());
+            .map(ChartPeriodsEnum::getBackDealInterval)
+            .collect(Collectors.toList());
 
 
-   @Override
-   public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
-       String message = orderService.getOrdersForRefresh(pairId, operationType, null);
-       sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
-       sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
-   }
+    @Override
+    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
+        String message = orderService.getOrdersForRefresh(pairId, operationType, null);
+        sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
+        sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
+    }
 
-   private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
-      Set<SimpSubscription> subscriptions =
-              findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));
-      if (!subscriptions.isEmpty()) {
-          Map<UserRole, List<SimpSubscription>> map = new HashMap<>();
-          subscriptions.forEach(p -> {
-              String userEmail = p.getSession().getUser().getName();
-              if (!StringUtils.isEmpty(userEmail)) {
-                  UserRole role = userService.getUserRoleFromDB(userEmail);
-                  if (map.containsKey(role)) {
-                      map.get(role).add(p);
-                  } else {
-                      map.put(role, new ArrayList<SimpSubscription>(){{add(p);}});
-                  }
-              }
-          });
-          map.forEach((k,v) -> {
-              String message = orderService.getOrdersForRefresh(pairId, operationType, k);
-              for (SimpSubscription subscription : v) {
-                  sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
-              }
-          });
-      }
-   }
+    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
+        Set<SimpSubscription> subscriptions =
+                findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));
+        if (!subscriptions.isEmpty()) {
+            Map<UserRole, List<SimpSubscription>> map = new HashMap<>();
+            subscriptions.forEach(p -> {
+                String userEmail = p.getSession().getUser().getName();
+                if (!StringUtils.isEmpty(userEmail)) {
+                    UserRole role = userService.getUserRoleFromDB(userEmail);
+                    if (map.containsKey(role)) {
+                        map.get(role).add(p);
+                    } else {
+                        map.put(role, new ArrayList<SimpSubscription>(){{add(p);}});
+                    }
+                }
+            });
+            map.forEach((k,v) -> {
+                String message = orderService.getOrdersForRefresh(pairId, operationType, k);
+                for (SimpSubscription subscription : v) {
+                    sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
+                }
+            });
+        }
+    }
 
-   @Override
-   public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
-       String userEmail = userService.getEmailById(userId);
-       String destination = "/queue/personal/".concat(currencyPair.toString());
-       String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
-       messagingTemplate.convertAndSendToUser(userEmail, destination, message);
-   }
+    @Override
+    public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
+        String userEmail = userService.getEmailById(userId);
+        String destination = "/queue/personal/".concat(currencyPair.toString());
+        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
+        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
+    }
 
     @Override
     public void sendAllTrades(final Integer currencyPair) {
@@ -107,7 +107,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendChartData(final Integer currencyPairId) {
-       Map<String, String> data = chartsCache.getData(currencyPairId);
+        Map<String, String> data = chartsCache.getData(currencyPairId);
         orderService.getIntervals().forEach(p-> {
             String message = data.get(p.getInterval());
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
@@ -126,28 +126,28 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId) {
-       List<ChartTimeFrame> timeFrames = new ArrayList<>();
-       orderService.getChartTimeFrames().forEach(timeFrame -> {
-           String destination = String.join("/", "/app/charts", pairId.toString(),
-                   timeFrame.getResolution().toString());
+        List<ChartTimeFrame> timeFrames = new ArrayList<>();
+        orderService.getChartTimeFrames().forEach(timeFrame -> {
+            String destination = String.join("/", "/app/charts", pairId.toString(),
+                    timeFrame.getResolution().toString());
             Set<SimpSubscription> subscribers = findSubscribersByDestination(destination);
             if (subscribers.size() > 0) {
                 timeFrames.add(timeFrame);
             }
-       });
-       return timeFrames;
+        });
+        return timeFrames;
     }
 
 
     private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
-       List<BackDealInterval> intervals = new ArrayList<>();
-       orderService.getIntervals().forEach(p->{
+        List<BackDealInterval> intervals = new ArrayList<>();
+        orderService.getIntervals().forEach(p->{
             Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
             if (subscribers.size() > 0) {
                 intervals.add(p);
             }
-       });
-       return intervals;
+        });
+        return intervals;
     }
 
    /* public void sendChartUpdate(Integer currencyPairId) {
@@ -176,21 +176,21 @@ public class StompMessengerImpl implements StompMessenger{
 
 
     private Set<SimpSubscription> findSubscribersByDestination(final String destination) {
-       return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
-   }
+        return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
+    }
 
-   private void sendMessageToDestination(String destination, String message) {
-       messagingTemplate.convertAndSend(destination, message);
-   }
+    private void sendMessageToDestination(String destination, String message) {
+        messagingTemplate.convertAndSend(destination, message);
+    }
 
-   private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
-       sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), dest, message);
-   }
+    private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
+        sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), dest, message);
+    }
 
     private void sendMessageToDestinationAndUser(final String user, String destination, String message) {
-       messagingTemplate.convertAndSendToUser(user,
-                                               destination,
-                                               message);
+        messagingTemplate.convertAndSendToUser(user,
+                destination,
+                message);
     }
 
 }

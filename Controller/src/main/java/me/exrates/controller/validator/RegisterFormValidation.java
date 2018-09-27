@@ -187,22 +187,23 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateNickname(String nickName, Errors errors, Locale locale) {
+    public void validateNickname(Object target, Errors errors, Locale locale) {
+        User user = (User) target;
         String nicknameRequired = messageSource.getMessage("validation.nicknamerequired", null, locale);
         String nicknameExceed = messageSource.getMessage("validation.nicknameexceed", null, locale);
         String nicknameExists = messageSource.getMessage("validation.nicknameexists", null, locale);
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
                 nicknameRequired);
-        if (!nickName.matches(NICKNAME_PATTERN)) {
+        if (!user.getNickname().matches(NICKNAME_PATTERN)) {
             errors.rejectValue("nickname", "login.latinonly");
             errors.rejectValue("nickname", "login.symbonly");
             errors.rejectValue("nickname", "login.notdigit");
             return;
         }
-        if (nickName.length() > 40) {
+        if (user.getNickname().length() > 40) {
             errors.rejectValue("nickname", "nickname.exceed", nicknameExceed);
         }
-        if (!userService.ifNicknameIsUnique(nickName)) {
+        if (!userService.ifNicknameIsUnique(user.getNickname())) {
             errors.rejectValue("nickname", "nickname.incorrect", nicknameExists);
         }
     }
@@ -214,15 +215,9 @@ public class RegisterFormValidation implements Validator {
         String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, ru);
         String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
         String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, ru);
-        String apiRateLimitIncorrect = messageSource.getMessage("validation.apiratelimitincorrect", null, ru);
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
                 "required.email", emailRequired);
-
-        Integer apiRateLimit = user.getApiRateLimit();
-        if(apiRateLimit == null || apiRateLimit == 0 ){
-            errors.rejectValue("apiRateLimit", "apiRateLimit.incorrect", apiRateLimitIncorrect);
-        }
 
         if (!(user.getEmail() != null && user.getEmail().isEmpty())) {
             pattern = Pattern.compile(EMAIL_PATTERN);

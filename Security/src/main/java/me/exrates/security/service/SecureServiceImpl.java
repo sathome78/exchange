@@ -52,6 +52,14 @@ public class SecureServiceImpl implements SecureService {
 
 
     @Override
+    public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
+        String result = reSendLoginMessage(request, email, locale).getMessage();
+        if (result != null) {
+            throw new PinCodeCheckNeedException(result);
+        }
+    }
+
+    @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                                CapchaAuthorizationFilter filter) {
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
@@ -96,6 +104,11 @@ public class SecureServiceImpl implements SecureService {
             return new PinDto(message, needToSendPin);
         }
         return null;
+    }
+
+    @Override
+    public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
+        return reSendLoginMessage(request, userEmail, true);
     }
 
 

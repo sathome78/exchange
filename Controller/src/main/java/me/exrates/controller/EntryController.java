@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
@@ -16,10 +17,11 @@ import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
-import me.exrates.service.session.UserSessionService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.notifications.*;
+import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +50,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -56,8 +57,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -167,9 +168,9 @@ public class EntryController {
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
-                                                .stream()
-                                                .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                                                .collect(toList()));
+                    .stream()
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -235,8 +236,8 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -252,6 +253,73 @@ public class EntryController {
         return model;
     }
 
+    @RequestMapping(value = {"/tradingview"})
+    public ModelAndView tradingview(
+            @RequestParam(required = false) String qrLogin,
+            @RequestParam(required = false) String startupPage,
+            @RequestParam(required = false) String startupSubPage,
+            @RequestParam(required = false) String currencyPair,
+            HttpServletRequest request, Principal principal) {
+        ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
+        if (StringUtils.isEmpty(successNoty)) {
+            successNoty = (String) request.getSession().getAttribute("successNoty");
+            request.getSession().removeAttribute("successNoty");
+        }
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        }
+        model.addObject("successNoty", successNoty);
+        /**/
+        if (StringUtils.isEmpty(errorNoty)) {
+            errorNoty = (String) request.getSession().getAttribute("errorNoty");
+            request.getSession().removeAttribute("errorNoty");
+        }
+        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+        }
+        /**/
+        model.addObject("errorNoty", errorNoty);
+        model.addObject("captchaType", CAPTCHA_TYPE);
+        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
+        model.addObject("sessionId", request.getSession().getId());
+        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
+        model.setViewName("globalPages/tradingview");
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        model.addObject(orderCreateDto);
+        if (principal != null) {
+            User user = userService.findByEmail(principal.getName());
+            int userStatus = user.getStatus().getStatus();
+            model.addObject("userEmail", principal.getName());
+            model.addObject("userStatus", userStatus);
+            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
+            model.addObject("referalPercents", referralService.findAllReferralLevels()
+                    .stream()
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList()));
+        }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
+        if (currencyPair != null) {
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
+                    .filter(p -> p.getName().equals(currencyPair))
+                    .limit(1)
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
+        }
+
+        return model;
+    }
 
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
@@ -316,7 +384,7 @@ public class EntryController {
         Object message;
         if (result.hasErrors()) {
             response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(toList());
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
         } else {
             if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
@@ -334,21 +402,24 @@ public class EntryController {
     }
 
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@RequestParam("nickname")String newNickName, BindingResult result,
-                                               HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
-        registerFormValidation.validateNickname(newNickName, result, localeResolver.resolveLocale(request));
+    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
+                                               HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
         } else {
-            boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
+            boolean userNicknameUpdated = userService.setNickname(user);
             if(userNicknameUpdated){
                 redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
             }else{
                 redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             }
         }
+
         redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
+
         return new ModelAndView(new RedirectView("/settings"));
     }
 
@@ -371,25 +442,15 @@ public class EntryController {
 
     @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request, Principal principal) {
+                                                  HttpServletRequest request) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
-        int userId = userService.getIdByEmail(principal.getName());
         RedirectView redirectView = new RedirectView("/settings");
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
-                stream().
-                map(option ->
-                        {
-                            option.setUserId(userId);
-                            return option;
-                        }
-                ).
-                collect(toList());;
+        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
         //TODO uncomment after turning notifications on
         /*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
                     localeResolver.resolveLocale(request)));
             return redirectView;
-
         }*/
 
         notificationService.updateUserNotifications(notificationOptions);
@@ -526,21 +587,6 @@ public class EntryController {
         return subscribable.reconnect(principal.getName()).toString();
     }
 
-    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
-    @ResponseBody
-    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
-        return new Generic2faResponseDto(userService.generateQRUrl(principal.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/verify_google2fa")
-    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
-        if (principal != null) {
-            userService.checkGoogle2faVerifyCode(code, principal.getName());
-        }
-        return "";
-    }
-
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/contact_info")
     public String getInfo(@RequestParam int id, Principal principal) {
@@ -558,8 +604,6 @@ public class EntryController {
         }}.toString();
     }
 
-
-    /*todo what about news?*/
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/{newsVariant}/newstopic")
     public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {

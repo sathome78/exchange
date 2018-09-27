@@ -21,7 +21,6 @@ import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -34,8 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -227,8 +224,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public boolean setNickname(String newNickName,String userEmail) {
-    return userDao.setNickname(newNickName,userEmail);
+  public boolean setNickname(User user) {
+    return userDao.setNickname(user);
   }
 
   @Override
@@ -319,16 +316,6 @@ public class UserServiceImpl implements UserService {
       }
     }
     return result;
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean updateUserEntryDay(String userEmail) {
-    Integer userId = userDao.getIdByEmail(userEmail);
-    if (userId != null){
-      return userDao.createUserEntryDay(userId, LocalDateTime.now());
-    }
-    return false;
   }
 
   @Override
@@ -749,10 +736,6 @@ public class UserServiceImpl implements UserService {
               .build();
     }
 
-      if (setting.getNotificatorId() == 4) {
-          return checkGoogle2faVerifyCode(pin, email);
-      }
-
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -764,17 +747,6 @@ public class UserServiceImpl implements UserService {
   public boolean isLogin2faUsed(String email) {
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
     return setting != null && setting.getNotificatorId() != null;
-  }
-
-  @Override
-  @Transactional
-  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
-    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    if (secret2faCode == null || secret2faCode.isEmpty()){
-      userDao.set2faSecretCode(userEmail);
-      secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    }
-    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
   }
 
   @Override
@@ -817,23 +789,12 @@ public class UserServiceImpl implements UserService {
     return auth.getName();
   }
 
-    @Override
-    public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
-        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
-        final Totp totp = new Totp(google2faSecret);
-        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-            System.out.println("WTF?!@!!!!");
-            throw new IncorrectSmsPinException();
-        }
-        return true;
-    }
+  @Transactional(rollbackFor = Exception.class)
+  public TemporalToken verifyUserEmailForForgetPassword(String token) {
+    return userDao.verifyToken(token);
+  }
 
-    @Transactional(rollbackFor = Exception.class)
-    public TemporalToken verifyUserEmailForForgetPassword(String token) {
-        return userDao.verifyToken(token);
-    }
-
-    public User getUserByTemporalToken(String token) {
+  public User getUserByTemporalToken(String token) {
     return userDao.getUserByTemporalToken(token);
   }
 

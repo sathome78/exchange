@@ -3,7 +3,6 @@ package me.exrates.service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -22,6 +21,4 @@ public interface UserFilesService {
     String createUserAvatar(int userId, MultipartFile file) throws IOException;
 
     void deleteUserFile(String filename, int userId) throws IOException;
-
-	Path getUserFilePath(String filename, int userId) throws IOException;
 }

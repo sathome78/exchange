@@ -129,7 +129,7 @@ public class ReportServiceImpl implements ReportService {
         }
         //wolper 24.04.18
         Map<String, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReportByCurName();
-        result.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurrency())==null?BigDecimal.ZERO:rates.get(s.getCurrency()).getRate()));
+        result.stream().forEach(s -> s.setRateToUSD(rates.get(s.getCurrency()) == null ? BigDecimal.ZERO : rates.get(s.getCurrency()).getRate()));
         //
         return result.stream()
                 .sorted((a, b) -> a.getCreationDate().compareTo(b.getCreationDate()))
@@ -290,7 +290,7 @@ public class ReportServiceImpl implements ReportService {
         List<CurrencyInputOutputSummaryDto> report = getCurrencyTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
         //wolper 24.04.19
         Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
-        report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+        report.stream().forEach(s -> s.setRateToUSD(rates.get(s.getCurId()) == null ? BigDecimal.ZERO : rates.get(s.getCurId()).getRate()));
         //
         return report;
     }
@@ -320,7 +320,7 @@ public class ReportServiceImpl implements ReportService {
         //wolper 24.04.19
         Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
         //
-        report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+        report.stream().forEach(s -> s.setRateToUSD(rates.get(s.getCurId()) == null ? BigDecimal.ZERO : rates.get(s.getCurId()).getRate()));
         return report;
     }
 
@@ -332,7 +332,7 @@ public class ReportServiceImpl implements ReportService {
                 .map(UserRole::getRole).collect(Collectors.toList()));
         //wolper 24.04.19
         Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
-        report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+        report.stream().forEach(s -> s.setRateToUSD(rates.get(s.getCurId()) == null ? BigDecimal.ZERO : rates.get(s.getCurId()).getRate()));
         //
         return report;
     }
@@ -344,21 +344,20 @@ public class ReportServiceImpl implements ReportService {
         List<UserRoleTotalBalancesReportDto<UserRole>> report = walletService.getWalletBalancesSummaryByRoles(roles);
         //wolper 24.04.18
         Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
-        report.stream().forEach(s-> s.setRateToUSD(rates.get(s.getCurId())==null?BigDecimal.ZERO:rates.get(s.getCurId()).getRate()));
+        report.stream().forEach(s -> s.setRateToUSD(rates.get(s.getCurId()) == null ? BigDecimal.ZERO : rates.get(s.getCurId()).getRate()));
         //
         return report;
     }
 
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
-        List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report =  walletService.getWalletBalancesSummaryByGroups();
+        List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report = walletService.getWalletBalancesSummaryByGroups();
         //wolper 24.04.18
         Map<Integer, RatesUSDForReportDto> ratesList = orderService.getRatesToUSDForReport();
-        report.stream().forEach(s-> s.setRateToUSD(ratesList.get(s.getCurId())==null?BigDecimal.ZERO:ratesList.get(s.getCurId()).getRate()));
+        report.stream().forEach(s -> s.setRateToUSD(ratesList.get(s.getCurId()) == null ? BigDecimal.ZERO : ratesList.get(s.getCurId()).getRate()));
         //
         return report;
     }
-
 
 
     @Override
@@ -444,7 +443,7 @@ public class ReportServiceImpl implements ReportService {
 
         List<Email.Attachment> attachments = Arrays.asList(
                 new Email.Attachment("currency_pairs.csv",
-                        new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),"text/csv"),
+                        new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)), "text/csv"),
                 new Email.Attachment("currencies.csv",
                         new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"),
                 new Email.Attachment("balances.csv",
@@ -470,22 +469,8 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
+    public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
         return walletService.getBalancesWithExternalWallets();
-    }
-
-    @Override
-    public List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
-        Preconditions.checkArgument(!userRoles.isEmpty(), "At least one role must be specified");
-        return orderService.getUserAtivityInOrdersForReport(startTime, endTime, userRoles.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
-    }
-
-    @Override
-    public List<UserTotalCommissionDto> getUserTotalCommissionInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
-        Preconditions.checkArgument(!userRoles.isEmpty(), "At least one role must be specified");
-        return orderService.getUserTotalCommissionForReport(startTime, endTime, userRoles.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
     }
 
 

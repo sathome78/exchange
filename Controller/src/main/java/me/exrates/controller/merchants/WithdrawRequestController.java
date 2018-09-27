@@ -94,11 +94,11 @@ public class WithdrawRequestController {
     payment.setSum(requestParamsDto.getSum().doubleValue());
     payment.setDestination(requestParamsDto.getDestination());
     payment.setDestinationTag(requestParamsDto.getDestinationTag());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
     try {
-      secureServiceImpl.checkEventAdditionalPin(localeResolver.resolveLocale(request), principal.getName(),
+      secureServiceImpl.checkEventAdditionalPin(request, principal.getName(),
               NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency(withdrawRequestCreateDto));
     } catch (PinCodeCheckNeedException e) {
       request.getSession().setAttribute(withdrawRequestSessionAttr, withdrawRequestCreateDto);
@@ -123,8 +123,8 @@ public class WithdrawRequestController {
       request.getSession().removeAttribute(withdrawRequestSessionAttr);
       return withdrawService.createWithdrawalRequest((WithdrawRequestCreateDto)object, locale);
     } else {
-      String res = secureServiceImpl.resendEventPin(localeResolver.resolveLocale(request), principal.getName(),
-              NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency((WithdrawRequestCreateDto)object));
+      String res = secureServiceImpl.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.WITHDRAW,
+              getAmountWithCurrency((WithdrawRequestCreateDto)object)).getMessage();
       throw new IncorrectPinException(res);
     }
   }

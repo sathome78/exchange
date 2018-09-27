@@ -58,10 +58,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
-        /**/
+            /**/
             request.getSession().removeAttribute("errorNoty");
             request.getSession().removeAttribute("successNoty");
-        /**/
+            /**/
             String email = authentication.getName();
             String ip = request.getHeader("X-FORWARDED-FOR");
             if (ip == null) {
@@ -83,13 +83,12 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             if (!StringUtils.isEmpty(lastPage)) {
                 super.setDefaultTargetUrl(lastPage);
             }
-            userService.updateUserEntryDay(email);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(e);
             authentication.setAuthenticated(false);
         }
-
     }
+
 
 }

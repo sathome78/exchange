@@ -4,7 +4,6 @@ import javafx.util.Pair;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
-import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
@@ -143,11 +142,6 @@ public class ChatServiceImpl implements ChatService {
                 }
             }
         }
-    }
-
-    @Override
-    public List<ChatHistoryDto> getChatHistory(ChatLang chatLang) {
-        return chatDao.getChatHistory(chatLang);
     }
 
     @Override

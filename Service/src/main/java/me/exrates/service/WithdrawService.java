@@ -6,7 +6,6 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.ngDto.MerchantCurrencyShortDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +45,7 @@ public interface WithdrawService {
 
   List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies);
 
-    @Transactional
-    List<MerchantCurrencyShortDto> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrenciesDto(List<MerchantCurrencyShortDto> merchantCurrencies);
-
-    DataTable<List<WithdrawRequestsAdminTableDto>> getWithdrawRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String authorizedUserEmail, Locale locale);
+  DataTable<List<WithdrawRequestsAdminTableDto>> getWithdrawRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String authorizedUserEmail, Locale locale);
 
   WithdrawRequestsAdminTableDto getWithdrawRequestById(Integer id, String authorizedUserEmail);
 

@@ -19,7 +19,7 @@ import javax.servlet.Filter;
 import static org.springframework.http.HttpMethod.GET;
 
 @Configuration
-@Order(value = 2)
+@Order(value = 3)
 @EnableWebSecurity
 public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
