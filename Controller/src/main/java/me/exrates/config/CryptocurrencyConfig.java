@@ -235,10 +235,10 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 4, 20, false, true);
     }
 
-    @Bean(name="TOAServiceImpl")
-    public BitcoinService toaServiceImpl(){
-        return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
-    }
+//    @Bean(name="TOAServiceImpl")
+//    public BitcoinService toaServiceImpl(){
+//        return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
+//    }
 
     @Bean(name="sbtcServiceImpl")
     public BitcoinService sbtcService(){
