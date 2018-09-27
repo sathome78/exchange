@@ -647,6 +647,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER ... */
     function orderBuy(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: 'BUY'};
         $.map($('#dashboard-buy-form').serializeArray(), function (e) {
@@ -661,6 +664,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     }
 
     function orderSell(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: 'SELL'};
         $.map($('#dashboard-sell-form').serializeArray(), function (e) {
@@ -675,6 +681,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     }
 
     function stopOrder(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: $(this).data('action')};
         $.map($('#dashboard-stop-order-form').serializeArray(), function (e) {
@@ -690,6 +699,15 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         data.baseType = 'STOP_LIMIT';
         showOrderCreateDialog(data);
+    }
+
+    function checkAccessToOperationForUser(){
+        var access = $('#accessToOperationForUser').val();
+        var errorText = $('#accessToOperationForUserTextError').val();
+        if (access==="false") {
+            errorNoty(errorText);
+            return false;
+        }
     }
 
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
