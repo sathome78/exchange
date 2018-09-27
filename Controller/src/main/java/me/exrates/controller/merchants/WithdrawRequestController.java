@@ -16,6 +16,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
@@ -24,6 +25,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -64,6 +66,8 @@ public class WithdrawRequestController {
   @Autowired
   UserService userService;
   @Autowired
+  private UserOperationService userOperationService;
+  @Autowired
   MerchantService merchantService;
   @Autowired
   private InputOutputService inputOutputService;
@@ -83,7 +87,11 @@ public class WithdrawRequestController {
   public Map<String, String> createWithdrawalRequest(
       @RequestBody WithdrawRequestParamsDto requestParamsDto,
       Principal principal, HttpServletRequest request,
-      Locale locale) throws UnsupportedEncodingException {
+      Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.OUTPUT);
+    if(!accessToOperationForUser) {
+      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+    }
     if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
     }

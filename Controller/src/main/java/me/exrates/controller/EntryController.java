@@ -9,12 +9,14 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.model.kyc.KYC;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.notifications.*;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,6 +80,8 @@ public class EntryController {
     private NewsService newsService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserOperationService userOperationService;
     @Autowired
     private SessionParamsService sessionService;
     @Autowired
@@ -147,6 +151,10 @@ public class EntryController {
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
+
+            boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
+            model.addObject("accessToOperationForUser", accessToOperationForUser);
+
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
