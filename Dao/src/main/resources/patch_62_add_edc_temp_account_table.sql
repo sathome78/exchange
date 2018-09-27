@@ -1,9 +1,0 @@
-CREATE TABLE EDC_TEMP_ACCOUNT (
-  transaction_id INT PRIMARY KEY NOT NULL,
-  wif_priv_key VARCHAR(256) NOT NULL ,
-  pub_key VARCHAR(256) NOT NULL ,
-  brain_priv_key VARCHAR(256) NOT NULL ,
-  FOREIGN KEY EDC_TEMP_ACCOUNT(transaction_id) REFERENCES TRANSACTION(id) ON UPDATE RESTRICT ON DELETE RESTRICT
-);
-
-INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_62_add_edc_temp_account_table', DEFAULT, 1);

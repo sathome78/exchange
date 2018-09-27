@@ -1,1 +1,0 @@
-UPDATE MERCHANT SET service_bean_name='bitcoinServiceImpl' WHERE  id=3;
