@@ -6,6 +6,7 @@ import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.User;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
@@ -29,6 +30,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -69,6 +71,8 @@ public class TransferRequestController {
   @Autowired
   private UserService userService;
   @Autowired
+  private UserOperationService userOperationService;
+  @Autowired
   private MerchantService merchantService;
   @Autowired
   private InputOutputService inputOutputService;
@@ -93,6 +97,10 @@ public class TransferRequestController {
     Locale locale = localeResolver.resolveLocale(servletRequest);
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+    }
+    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
+    if(!accessToOperationForUser) {
+      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
     }
     if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
       throw new IllegalArgumentException(messageSource.getMessage(

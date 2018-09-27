@@ -123,6 +123,7 @@
                     </div>
 
                     <div class="row">
+                        <input id="accessToOperationForUser" hidden value='${accessToOperationForUser}'/>
                         <sec:authorize access="isAuthenticated()">
                             <button id="dashboard-buy" class="dashboard-sell-buy__button">
                                 <loc:message code="dashboard.buy"/>
