@@ -212,9 +212,4 @@ public interface UserService {
 
   boolean setNewOperSystem(String email, String operSystem);
 
-  String getGoogleAuthenticatorCode(String userEmail);
-
-  String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
-
-  boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail);
 }

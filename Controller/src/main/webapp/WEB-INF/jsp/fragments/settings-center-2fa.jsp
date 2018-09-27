@@ -40,7 +40,16 @@
                                                     </c:if>
                                                 </c:otherwise>
                                             </c:choose>
-                                        </c:if><br>${notificatorHead.name}<br>
+                                        </c:if>
+                                        <c:if test="${notificatorHead.id == 4 && !googleAuthenticatorEnable}">
+                                            <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
+                                                <loc:message code="notificator.conect"/></a>
+                                        </c:if>
+                                        <c:if test="${notificatorHead.id == 4 && googleAuthenticatorEnable}">
+                                            <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
+                                                <loc:message code="notificator.disconnect"/></a>
+                                        </c:if>
+                                        <br>${notificatorHead.name}<br>
                                         <c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>
                                     </th>
                                 </c:forEach>
@@ -50,7 +59,6 @@
                             <tbody>
                             <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
                             <c:forEach items="${user2faOptions.get('events')}" var="event">
-                                ${notificator.id != 4}
                                     <tr>
                                         <td><loc:message code="settings.message.event.${event}"/></td>
                                         <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
@@ -59,6 +67,7 @@
                                                     or not subscriptions.get(notificator.id).isConnected())}">
                                                         disabled
                                                     </c:if>
+                                                       <c:if test="${notificator.id == 4 && !googleAuthenticatorEnable}">disabled</c:if>
                                                        <c:if test="${!notificator.enabled}">disabled</c:if>
                                                     <c:if test="${settings.get(event.code) != null
                                                     and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
