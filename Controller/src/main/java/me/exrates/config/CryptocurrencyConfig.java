@@ -236,7 +236,7 @@ public class CryptocurrencyConfig {
     }
 
     @Bean(name="TOAServiceImpl")
-    public BitcoinService taoServiceImpl(){
+    public BitcoinService toaServiceImpl(){
         return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
     }
 
