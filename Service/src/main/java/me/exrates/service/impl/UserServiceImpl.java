@@ -795,7 +795,7 @@ public class UserServiceImpl implements UserService {
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
 
     if (setting.getNotificatorId() == 4) {
-        return checkGoogle2faVerifyCode(pin, email);
+        return notificationService.checkGoogle2faVerifyCode(pin, userId);
     }
 
     if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
@@ -838,48 +838,6 @@ public class UserServiceImpl implements UserService {
   @Override
   public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
-  }
-
-  @Override
-  @Transactional
-  public String getGoogleAuthenticatorCode(String userEmail) {
-    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    if (secret2faCode == null || secret2faCode.isEmpty()){
-      userDao.set2faSecretCode(userEmail);
-      secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    }
-    return secret2faCode;
-  }
-
-  @Override
-  @Transactional
-  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
-
-    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    if (secret2faCode == null || secret2faCode.isEmpty()){
-      userDao.set2faSecretCode(userEmail);
-      secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    }
-    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
-  }
-
-  @Override
-  public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
-        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
-        final Totp totp = new Totp(google2faSecret);
-        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-            throw new IncorrectSmsPinException();
-        }
-        return true;
-  }
-
-  private boolean isValidLong(String code) {
-    try {
-      Long.parseLong(code);
-    } catch (final NumberFormatException e) {
-      return false;
-    }
-    return true;
   }
 
   @Override
