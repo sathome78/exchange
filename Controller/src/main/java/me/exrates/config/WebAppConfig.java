@@ -596,11 +596,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+        tokensList.add("0x1985365e9f78359a9b6ad760e32412f4a445e862");
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true, ExConvert.Unit.ETHER);
+                "REP", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
