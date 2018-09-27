@@ -1,4 +1,6 @@
-package me.exrates.security.config;
+package me.exrates.security.filter;
+
+import org.springframework.core.annotation.Order;
 
 import java.io.IOException;
 import java.net.URL;
@@ -11,6 +13,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@Order(Integer.MIN_VALUE)
 public class ExratesCorsFilter implements Filter {
 
     @Override

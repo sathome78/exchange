@@ -2,8 +2,7 @@ package me.exrates.security.config;
 
 import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
 import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
-import me.exrates.security.filter.CORSFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import me.exrates.security.filter.ExratesCorsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -47,7 +46,7 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.addFilterBefore(new CORSFilter(), ChannelProcessingFilter.class);
+        http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
 
         http
                 .antMatcher("/info/private/**")
