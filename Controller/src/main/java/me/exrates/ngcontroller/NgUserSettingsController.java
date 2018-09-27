@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.NoSuchFileException;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -31,6 +32,8 @@ import java.util.Map;
 public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
+    private static final String NICKNAME = "nickname";
+
     @Autowired
     private RegisterFormValidation registerFormValidation;
     @Autowired
@@ -59,7 +62,7 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, BindingResult result){
+    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(email);
         Locale locale = userService.getUserLocaleForMobile(email);
@@ -76,6 +79,26 @@ public class NgUserSettingsController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
+    }
+
+    @GetMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> getNickName() {
+        User user = userService.findByEmail(getPrincapalEmail());
+        String nickname = user.getNickname() == null ? "" : user.getNickname();
+        return ResponseEntity.ok(Collections.singletonMap(NICKNAME, nickname));
+    }
+
+    @PutMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> updateNickName(@RequestBody Map<String, String> body) {
+        User user = userService.findByEmail(getPrincapalEmail());
+        if (body.containsKey(NICKNAME)) {
+            user.setNickname(body.get(NICKNAME));
+            if (userService.setNickname(user)) {
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 //    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -293,6 +316,10 @@ public class NgUserSettingsController {
     @ResponseBody
     public ResponseEntity<Object> AuthExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ResponseEntity<Object>("Not authorised", HttpStatus.UNAUTHORIZED);
+    }
+
+    private String getPrincapalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
 }
