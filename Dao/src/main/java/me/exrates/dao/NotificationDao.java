@@ -31,4 +31,13 @@ public interface NotificationDao {
 
     NotificationOption findUserOptionForEvent(Integer userId, NotificationEvent event);
 
+    String getGoogleAuthSecretCodeByUser(Integer userId);
+
+    void setGoogleAuthSecretCode(Integer userId);
+
+    void set2faGoogleAuthenticator(Integer userId);
+
+    boolean isGoogleAuthenticatorEnable(Integer userId);
+
+    void setEnable2faGoogleAuth(Integer userId, Boolean connection);
 }

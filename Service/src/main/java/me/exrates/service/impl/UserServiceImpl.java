@@ -223,9 +223,9 @@ public class UserServiceImpl implements UserService {
     return userDao.getIdByNickname(nickname);
   }
 
-
-  public boolean setNickname(String newNickName, String userEmail) {
-    return userDao.setNickname(newNickName, userEmail);
+  @Override
+  public boolean setNickname(User user) {
+    return userDao.setNickname(user);
   }
 
   @Override
@@ -394,7 +394,6 @@ public class UserServiceImpl implements UserService {
                     "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-
     email.setTo(user.getEmail());
     if (tokenType.equals(TokenType.REGISTRATION)
             || tokenType.equals(TokenType.CHANGE_PASSWORD)
@@ -770,6 +769,38 @@ public class UserServiceImpl implements UserService {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @Override
+  @Transactional
+  public String getGoogleAuthenticatorCode(String userEmail) {
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return secret2faCode;
+  }
+
+  @Override
+  @Transactional
+  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+  }
+
+  @Override
+  public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
+        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
+        final Totp totp = new Totp(google2faSecret);
+        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+            throw new IncorrectSmsPinException();
+        }
+        return true;
+  }
 
   private boolean isValidLong(String code) {
     try {

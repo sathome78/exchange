@@ -25,13 +25,12 @@ public interface UserService {
   int getIdByNickname(String nickname);
 
   /**
-   * Stores new user's nickname in DB
+   * Stores preferred locale for user in DB
    *
-   * @param newNickName
-   * @param userEmail
+   * @param user
    * @return "true" if data saved successfully, or "false" if none
    */
-  boolean setNickname(String newNickName,String userEmail);
+  boolean setNickname(User user);
 
   User findByEmail(String email);
 
@@ -49,9 +48,9 @@ public interface UserService {
 
   void setGlobal2FaActive(boolean global2FaActive);
 
-  List<String> getLocalesList();
+    List<String> getLocalesList();
 
-  boolean create(User user, Locale locale, String source);
+    boolean create(User user, Locale locale, String source);
 
   boolean ifNicknameIsUnique(String nickname);
 
@@ -165,9 +164,9 @@ public interface UserService {
 
   boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage);
 
-  void editUserComment(int commentId, String newComment, String email, boolean sendMessage, String authenticatedAdminEmail);
+    void editUserComment(int commentId, String newComment, String email, boolean sendMessage, String authenticatedAdminEmail);
 
-  boolean deleteUserComment(int id);
+    boolean deleteUserComment(int id);
 
   List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
@@ -184,7 +183,7 @@ public interface UserService {
   InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
   String getEmailById(Integer id);
-
+  
   UserRole getUserRoleFromDB(String email);
 
   UserRole getUserRoleFromDB(Integer userId);
@@ -194,18 +193,18 @@ public interface UserService {
 
   boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
 
-  boolean isLogin2faUsed(String email);
+    boolean isLogin2faUsed(String email);
 
-  boolean checkIsNotifyUserAbout2fa(String email);
+    boolean checkIsNotifyUserAbout2fa(String email);
 
-  List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
+    List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
 
   Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+    String getUserEmailFromSecurityContext();
 
-  String getUserEmailFromSecurityContext();
+  boolean checkOperSystem(String email, String userAgent);
 
-  TemporalToken verifyUserEmailForForgetPassword(String token);
+  boolean setNewOperSystem(String email, String operSystem);
 
-  User getUserByTemporalToken(String token);
 }
