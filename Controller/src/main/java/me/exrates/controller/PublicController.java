@@ -66,10 +66,9 @@ public class PublicController {
     public List<String> checkIfNewUserEmailUnique(@RequestParam("email") String email, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         String clientIpAddress = IpUtils.getClientIpAddress(request);
-
         ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+        List<String> errors = new ArrayList<>();
         try {
-            List<String> errors = new ArrayList<>();
             if (!userService.ifEmailIsUnique(email)) {
                 ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
                 errors.add("Email exists");
@@ -77,13 +76,13 @@ public class PublicController {
             long after = System.currentTimeMillis();
             if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             LOGGER.debug(String.format("completed... : ms: %d", (after - before)));
-            return errors;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, (after - before), e.getMessage()));
             ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            throw e;
+            errors.add("Maximum tries achieved");
         }
+        return errors;
     }
 
     @RequestMapping(value = "/info/public/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
