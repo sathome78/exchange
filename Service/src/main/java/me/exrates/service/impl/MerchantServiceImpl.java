@@ -398,11 +398,11 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
-    Properties props = getPassMerchantProperties(merchantName);
-    return Optional.ofNullable(props.getProperty("wallet.password"));
+      Properties props = getPassMerchantProperties(merchantName);
+      return Optional.ofNullable(props.getProperty("wallet.password"));
   }
 
-  /*pass file format : local: /crypto/btc/<merchant_name>_pass.properties  | prod: opt/properties/<merchant_name>_pass.properties
+  /*pass file format : local: opt/properties/<merchant_name>_pass.properties  | prod: opt/properties/<merchant_name>_pass.properties
    * stored values: wallet.password
    *                node.bitcoind.rpc.user
    *                node.bitcoind.rpc.password
