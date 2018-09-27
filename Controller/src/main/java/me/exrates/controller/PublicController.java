@@ -66,21 +66,27 @@ public class PublicController {
     public List<String> checkIfNewUserEmailUnique(@RequestParam("email") String email, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
         List<String> errors = new ArrayList<>();
+        // todo I hope it's temporal fix as every 4 times we catch while checkIp for known email it needs deeper search
         try {
-            if (!userService.ifEmailIsUnique(email)) {
+            ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            try {
+                if (!userService.ifEmailIsUnique(email)) {
+                    ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+                    errors.add("Email exists");
+                }
+                long after = System.currentTimeMillis();
+                if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+                LOGGER.debug(String.format("completed... : ms: %d", (after - before)));
+            } catch (Exception e) {
+                long after = System.currentTimeMillis();
+                LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, (after - before), e.getMessage()));
                 ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Email exists");
+                errors.add("Maximum tries achieved");
             }
-            long after = System.currentTimeMillis();
-            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            LOGGER.debug(String.format("completed... : ms: %d", (after - before)));
         } catch (Exception e) {
-            long after = System.currentTimeMillis();
-            LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, (after - before), e.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            errors.add("Maximum tries achieved");
+            LOGGER.info("Failure while checking ip: " + e.getMessage());
+            errors.add("Failure while checking ip");
         }
         return errors;
     }
