@@ -10,15 +10,18 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,6 +61,9 @@ public class RefillRequestController {
   UserService userService;
 
   @Autowired
+  private UserOperationService userOperationService;
+
+  @Autowired
   MerchantService merchantService;
 
   @Autowired
@@ -70,9 +76,13 @@ public class RefillRequestController {
   public Map<String, Object> createRefillRequest(
       @RequestBody RefillRequestParamsDto requestParamsDto,
       Principal principal,
-      Locale locale) throws UnsupportedEncodingException {
+      Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+    }
+    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
+    if(!accessToOperationForUser) {
+      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
     }
     if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
