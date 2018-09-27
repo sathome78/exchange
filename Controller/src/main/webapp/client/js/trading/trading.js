@@ -719,7 +719,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         if (access==="false") {
             errorNoty(errorText);
             return false;
-        }
+        } else return true;
     }
 
     $('#aggree_check').on('click', function () {
