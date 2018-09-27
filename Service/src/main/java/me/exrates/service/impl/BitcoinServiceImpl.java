@@ -149,6 +149,7 @@ public class BitcoinServiceImpl implements BitcoinService {
             passSource = merchantService.getPassMerchantProperties(merchantName);
         } catch (Exception e) {
             log.error("{} not started, pass props not found", merchantName);
+            System.out.println(merchantName + " not started, pass props not found");
             return;
         }
 
