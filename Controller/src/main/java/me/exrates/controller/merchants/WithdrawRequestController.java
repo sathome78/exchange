@@ -70,6 +70,8 @@ public class WithdrawRequestController {
     private LocaleResolver localeResolver;
     @Autowired
     private SecureService secureServiceImpl;
+    @Autowired
+    private RefillService refillService;
 
     private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
@@ -311,6 +313,12 @@ public class WithdrawRequestController {
         }
         log.error(ExceptionUtils.getStackTrace(exception));
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/withdraw/check", method = POST)
+    public Boolean checkWalletAddress( @RequestParam String wallet, Principal principal, HttpServletRequest request) {
+        return refillService.checkAddressForAvailability(wallet);
     }
 
 }
