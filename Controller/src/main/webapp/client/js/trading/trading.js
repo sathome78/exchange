@@ -707,7 +707,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         if (access==="false") {
             errorNoty(errorText);
             return false;
-        }
+        } else return true;
     }
 
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
