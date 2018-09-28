@@ -4,6 +4,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserFilesService;
@@ -11,6 +12,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -18,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,7 @@ public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
     private static final String NICKNAME = "nickname";
+    private static final String SESSION_INTERVAL =  "sessionInterval";
 
     @Autowired
     private RegisterFormValidation registerFormValidation;
@@ -63,7 +65,7 @@ public class NgUserSettingsController {
 
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
         Locale locale = userService.getUserLocaleForMobile(email);
         String password = body.getOrDefault("password", "");
@@ -83,14 +85,14 @@ public class NgUserSettingsController {
 
     @GetMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> getNickName() {
-        User user = userService.findByEmail(getPrincapalEmail());
+        User user = userService.findByEmail(getPrincipalEmail());
         String nickname = user.getNickname() == null ? "" : user.getNickname();
         return ResponseEntity.ok(Collections.singletonMap(NICKNAME, nickname));
     }
 
     @PutMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> updateNickName(@RequestBody Map<String, String> body) {
-        User user = userService.findByEmail(getPrincapalEmail());
+        User user = userService.findByEmail(getPrincipalEmail());
         if (body.containsKey(NICKNAME)) {
             user.setNickname(body.get(NICKNAME));
             if (userService.setNickname(user)) {
@@ -101,13 +103,31 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = "/sessionInterval", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = SESSION_INTERVAL, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer getSessionPeriod() {
-        SessionParams params = sessionService.getByEmailOrDefault(getPrincapalEmail());
+        SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
             return 0;
         }
         return params.getSessionTimeMinutes();
+    }
+
+    @PutMapping(value = "/" + SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request){
+        try {
+            int interval = body.get(SESSION_INTERVAL);
+            SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+            if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
+                sessionService.saveOrUpdate(sessionParams, getPrincipalEmail());
+                sessionService.setSessionLifeParams(request);
+                //todo inform user to logout to implement params next time
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
 //    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -187,38 +207,6 @@ public class NgUserSettingsController {
 //        } catch (Exception e) {
 //            return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 //        }
-//    }
-
-//    @PutMapping(value = "/updateSessionInterval", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<String> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request){
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        Locale locale = userService.getUserLocaleForMobile(userEmail);
-//        JSONObject jsonObject = new JSONObject();
-//
-//        try {
-//            int interval = body.get("interval");
-//            SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
-//            if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
-//                sessionService.saveOrUpdate(sessionParams, userEmail);
-//                sessionService.setSessionLifeParams(request); /*todo set new params for existing token???*/
-//                jsonObject.put("successNoty", messageSource.getMessage("session.settings.success", null, locale));
-//                return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
-//            } else {
-//                jsonObject.put("msg", messageSource.getMessage("session.settings.time.invalid", null, locale));
-//                return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.OK);
-//            }
-//        } catch (Exception e) {
-//            jsonObject.put("msg", messageSource.getMessage("session.settings.invalid", null, locale));
-//            return new ResponseEntity<String>(jsonObject.toString(), HttpStatus.BAD_REQUEST);
-//        }
-///*        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
-//            sessionService.saveOrUpdate(sessionParams, userEmail);
-//            *//* todo set new params for existing token???*//*
-//
-//
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        }
-//        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);*/
 //    }
 
 //    @GetMapping(value = "/userFiles")
@@ -317,7 +305,7 @@ public class NgUserSettingsController {
         return new ResponseEntity<Object>("Not authorised", HttpStatus.UNAUTHORIZED);
     }
 
-    private String getPrincapalEmail() {
+    private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 

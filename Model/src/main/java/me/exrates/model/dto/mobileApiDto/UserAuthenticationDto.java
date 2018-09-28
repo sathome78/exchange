@@ -18,6 +18,8 @@ public class UserAuthenticationDto {
 
     private String pin;
 
+    private boolean isPinRequired;
+
     public UserAuthenticationDto() {
     }
 
@@ -59,6 +61,14 @@ public class UserAuthenticationDto {
 
     public void setClientIp(String clientIp) {
         this.clientIp = clientIp;
+    }
+
+    public boolean isPinRequired() {
+        return isPinRequired;
+    }
+
+    public void setPinRequired(boolean pinRequired) {
+        isPinRequired = pinRequired;
     }
 
     @Override

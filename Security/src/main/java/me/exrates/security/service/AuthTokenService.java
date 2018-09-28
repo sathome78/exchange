@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,8 +14,7 @@ import java.util.Optional;
  */
 public interface AuthTokenService {
 
-    Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
-                                           HttpServletRequest request, String clientIp, String pin, boolean checkpin);
+    Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp);
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);
 

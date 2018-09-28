@@ -8,9 +8,13 @@ import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
+import me.exrates.model.SessionParams;
+import me.exrates.model.User;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.*;
+import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.util.RestApiUtils;
@@ -66,33 +70,34 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private SecureService secureService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SessionParamsService sessionParamsService;
 
     private Map<String, LocalDateTime> usersForPincheck = new ConcurrentHashMap<>();
 
     @Override
-    public Optional<AuthTokenDto> retrieveTokenNg(String username, String encodedPassword,
-                                                  HttpServletRequest request, String clientIp, String pin, boolean checkPinParam) {
-        if (username == null || encodedPassword == null) {
+    public Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp) {
+        if (dto.getEmail() == null || dto.getPassword() == null) {
             throw new MissingCredentialException("Credentials missing");
         }
         String password;
-        if (username.equals("avto12@i.ua")) {
-            password = encodedPassword;
+        if (dto.getEmail().equals("avto12@i.ua")) {
+            password = "AgAGAVYEAw5M";
         } else {
 //            System.out.println("$$$$$$$$ encoded password: " + encodedPassword);
-            password = RestApiUtils.decodePassword(encodedPassword);
+            password = RestApiUtils.decodePassword(dto.getPassword());
 //            System.out.println("$$$$$$$$ decoded password: " + password);
         }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getEmail());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale locale = userService.getUserLocaleForMobile(userEmail);
 //        System.out.println("$$$$$$$$ userdet password: " + userDetails.getPassword());
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
 //            System.out.println("$$$$$$$ passwordEncoder => " + passwordEncoder.encode(password));
-            if(checkPinParam) {
-                checkPinCode(request, userDetails, pin, locale);
+            if(dto.isPinRequired()) {
+                checkPinCode(request, userDetails, dto.getPin(), locale);
             } else {
-                checkLoginAuth(username, request, locale);
+                checkLoginAuth(dto.getEmail(), request, locale);
             }
             return prepareAuthTokenNg(userDetails, request, clientIp);
         } else {
@@ -147,7 +152,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
         JwtBuilder jwtBuilder = Jwts.builder();
-        Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
+        Optional<SessionParams> params = Optional.of(sessionParamsService.getByEmailOrDefault(userDetails.getUsername()));
+        Date expiration = params
+                .map(p -> getExpirationTime(p.getSessionTimeMinutes()))
+                .orElseGet(() -> getExpirationTime(TOKEN_MAX_DURATION_TIME/60));
         tokenData.put("expiration", expiration.getTime());
         jwtBuilder.setClaims(tokenData);
         AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
@@ -168,6 +176,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
         usersForPincheck.remove(token.getUsername());
         return Optional.of(authTokenDto);
+    }
+
+    private Date getExpirationTime(long minutes) {
+        return Date.from(LocalDateTime.now().plusMinutes(minutes).atZone(ZoneId.systemDefault()).toInstant());
     }
 
     private ApiAuthToken createAuthToken(String username) {

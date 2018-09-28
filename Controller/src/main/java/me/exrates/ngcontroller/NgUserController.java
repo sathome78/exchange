@@ -11,24 +11,26 @@ import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/info/public/users")
 public class NgUserController {
+
+    private static final Logger logger = LogManager.getLogger(NgUserController.class);
 
     private final IpBlockingService ipBlockingService;
     private final AuthTokenService authTokenService;
@@ -52,7 +54,7 @@ public class NgUserController {
 
         Optional<AuthTokenDto> authTokenResult;
         try {
-            authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
+            authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto, ipAddress);
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
             ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
@@ -80,6 +82,13 @@ public class NgUserController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
+    @GetMapping(value = "/if-pin-needed", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> checkIfPincodeNeeded(@RequestParam("email") String email, HttpServletRequest request) {
+        Boolean needed = processIpBlocking(request, email,
+                () -> userService.isLogin2faUsed(email));
+        return new ResponseEntity<>(needed, HttpStatus.OK);
+    }
+
     @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void register() {
         throw new UnsupportedOperationException("not yet");
@@ -88,5 +97,19 @@ public class NgUserController {
     private String getAvatarPathPrefix(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName() +
                 ":" + request.getServerPort() + "/rest";
+    }
+
+    private Boolean processIpBlocking(HttpServletRequest request, String email, Supplier<Boolean> operation) {
+        String clientIpAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+        Boolean result = operation.get();
+        if (!result) {
+            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            logger.debug("Authentication pincode for user with email: %s is not needed!", email);
+        } else {
+            ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            logger.debug("Authentication pincode for user with email: %s is needed!", email);
+        }
+        return result;
     }
 }
