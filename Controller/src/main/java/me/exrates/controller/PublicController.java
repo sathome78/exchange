@@ -79,7 +79,7 @@ public class PublicController {
         try {
             if (!userService.ifEmailIsUnique(email)) {
                 ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Email exists");
+                errors.add("emailExists");
             }
             if (errors.isEmpty()) {
                 ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
