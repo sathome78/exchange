@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.OrderService;
@@ -67,26 +68,27 @@ public class PublicController {
         long before = System.currentTimeMillis();
         String clientIpAddress = IpUtils.getClientIpAddress(request);
         List<String> errors = new ArrayList<>();
-        // todo I hope it's temporal fix as every 4 times we catch while checkIp for known email it needs deeper search
         try {
             ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            try {
-                if (!userService.ifEmailIsUnique(email)) {
-                    ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                    errors.add("Email exists");
-                }
-                long after = System.currentTimeMillis();
-                if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                LOGGER.debug(String.format("completed... : ms: %d", (after - before)));
-            } catch (Exception e) {
-                long after = System.currentTimeMillis();
-                LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, (after - before), e.getMessage()));
+        } catch (BannedIpException ban) {
+            LOGGER.debug(String.format("%s: completed : %d ms", ban.getMessage(), getTiming(before)));
+            errors.add(ban.getMessage());
+            return errors;
+        }
+
+        try {
+            if (!userService.ifEmailIsUnique(email)) {
                 ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-                errors.add("Maximum tries achieved");
+                errors.add("Email exists");
             }
-        } catch (Exception e) {
-            LOGGER.info("Failure while checking ip: " + e.getMessage());
-            errors.add("Failure while checking ip");
+            if (errors.isEmpty()) {
+                ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            }
+            LOGGER.debug(String.format("completed... : ms: %d", getTiming(before)));
+        } catch (Exception exc) {
+            LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, getTiming(before), exc.getMessage()));
+            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            errors.add("Maximum tries achieved");
         }
         return errors;
     }
@@ -118,6 +120,10 @@ public class PublicController {
     private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
         List<CoinmarketApiDto> list = orderService.getDailyCoinmarketData(currencyPair);
         return list.stream().collect(Collectors.toMap(dto -> dto.getCurrency_pair_name().replace('/', '_'), CoinmarketApiJsonDto::new));
+    }
+
+    private long getTiming(long before) {
+        return System.currentTimeMillis() - before;
     }
 
 
