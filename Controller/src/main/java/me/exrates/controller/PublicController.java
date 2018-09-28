@@ -88,7 +88,6 @@ public class PublicController {
         } catch (Exception exc) {
             LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, getTiming(before), exc.getMessage()));
             ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            errors.add("Maximum tries achieved");
         }
         return errors;
     }
