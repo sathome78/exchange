@@ -296,7 +296,7 @@
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
                     <div id="reg__email_exists" class='field__error' style="display:none">
                         <loc:message code="register.emailExists"/>
-                    </div
+                    </div>
                     <div id="ip_banned_incorrect_attempts_exceeded" class='field__error' style="display:none">
                         <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
