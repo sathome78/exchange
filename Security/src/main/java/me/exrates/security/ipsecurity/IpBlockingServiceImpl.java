@@ -53,9 +53,9 @@ public class IpBlockingServiceImpl implements IpBlockingService {
                 LocalDateTime currentTime = LocalDateTime.now();
                 LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
                 if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
-                    throw new BannedIpException("ipBanned", shortBanTime);
+                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
                 } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
-                    throw new BannedIpException("ipBanned", longBanTime);
+                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
                 }
                 if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
                     specificIpChecker.remove(ipAddress);
