@@ -101,6 +101,15 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping(value = "/sessionInterval", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Integer getSessionPeriod() {
+        SessionParams params = sessionService.getByEmailOrDefault(getPrincapalEmail());
+        if (null == params) {
+            return 0;
+        }
+        return params.getSessionTimeMinutes();
+    }
+
 //    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
 //    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
 //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -211,16 +220,6 @@ public class NgUserSettingsController {
 //        }
 //        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);*/
 //    }
-
-    @GetMapping(value = "/sessionInterval", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Integer getSessionPeriod() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        SessionParams params = sessionService.getByEmailOrDefault(userEmail);
-        if (null == params) {
-            return 0;
-        }
-        return params.getSessionTimeMinutes();
-    }
 
 //    @GetMapping(value = "/userFiles")
 //    public List<File> getUserFiles() throws Exception {
