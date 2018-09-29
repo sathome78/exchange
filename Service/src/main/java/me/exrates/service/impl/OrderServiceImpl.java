@@ -1834,9 +1834,9 @@ public class OrderServiceImpl implements OrderService {
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
       orders = Stream.of(
               orders.stream()
-                      .filter(p -> !p.getLastOrderRate().equals("0")),
+                      .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
               orders.stream()
-                      .filter(p -> p.getLastOrderRate().equals("0")))
+                      .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
               .flatMap(p->p)
               .collect(Collectors.toList());
       setStatisitcValues(orders);
