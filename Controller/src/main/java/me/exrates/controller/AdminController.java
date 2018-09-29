@@ -26,6 +26,8 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
+import me.exrates.service.aidos.AdkService;
+import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -162,6 +164,8 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
+    @Autowired
+    private AdkService adkService;
 
 
     @Autowired
@@ -1127,6 +1131,16 @@ public class AdminController {
         BitcoinService bitcoinService = getBitcoinServiceByMerchantName(merchantName);
         modelAndView.addObject("walletInfo", bitcoinService.getWalletInfo());
         modelAndView.addObject("rawTxEnabled", bitcoinService.isRawTxEnabled());
+        return modelAndView;
+  }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
+    public ModelAndView adkWallet() {
+        ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
+        modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
+        modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
+        modelAndView.addObject("title", "ADK Wallet");
+        modelAndView.addObject("balance", adkService.getBalance());
         return modelAndView;
     }
 

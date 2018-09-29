@@ -60,3 +60,19 @@ JOIN USER U ON U.id = W.user_id
 JOIN CURRENCY CU on CU.id = W.currency_id
 WHERE U.email = 'olenatrademail@gmail.com'
 
+SELECT TX.* FROM TRANSACTION TX
+JOIN WALLET W on TX.user_wallet_id = W.id
+JOIN USER U on W.user_id = U.id
+WHERE U.email = 'syssys@yopmail.com'  ORDER BY TX.datetime DESC;
+
+SELECT W.* FROM WALLET W
+JOIN USER U on W.user_id = U.id
+WHERE U.email = 'captrade@yopmail.com';
+
+SELECT UI.* FROM USER_IP UI
+JOIN USER U on UI.user_id = U.id
+WHERE U.email = 'syssys@yopmail.com';
+
+SELECT U.email, USER_IP.* FROM USER_IP
+JOIN USER U on USER_IP.user_id = U.id
+WHERE  INSTR(`ip`, '116.100.67.109') > 0;
