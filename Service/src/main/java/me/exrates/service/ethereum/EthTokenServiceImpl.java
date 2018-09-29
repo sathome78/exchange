@@ -66,7 +66,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private final BigInteger GAS_LIMIT = BigInteger.valueOf(96000);
+    private final BigInteger GAS_LIMIT = BigInteger.valueOf(146000);
 
     private final BigDecimal feeAmount = new BigDecimal("0.01");
 
