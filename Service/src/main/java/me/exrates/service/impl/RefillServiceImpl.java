@@ -348,7 +348,7 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
+  public Optional<Integer> getRequestIdReadyForAutoAccept(String address, Integer merchantId, Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
@@ -505,7 +505,7 @@ public class RefillServiceImpl implements RefillService {
   public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
     Integer requestId = requestAcceptDto.getRequestId();
     if (requestId == null) {
-      Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+      Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAccept(
           requestAcceptDto.getAddress(),
           requestAcceptDto.getMerchantId(),
           requestAcceptDto.getCurrencyId());
@@ -535,7 +535,7 @@ public class RefillServiceImpl implements RefillService {
   public void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
     Integer requestId = requestAcceptDto.getRequestId();
     if (requestId == null) {
-      Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+      Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAccept(
           requestAcceptDto.getAddress(),
           requestAcceptDto.getMerchantId(),
           requestAcceptDto.getCurrencyId());

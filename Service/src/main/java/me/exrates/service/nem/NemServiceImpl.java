@@ -124,7 +124,7 @@ public class NemServiceImpl implements NemService {
         int counter = 0;
         do {
             destinationTag = generateDestinationTag(String.valueOf(userId).concat(String.valueOf(counter)));
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+            id = refillService.getRequestIdReadyForAutoAccept(
                     destinationTag,
                     currency.getId(),
                     merchant.getId());

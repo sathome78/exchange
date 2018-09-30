@@ -155,7 +155,7 @@ public class StellarServiceImpl implements StellarService {
         int destinationTag;
         do {
             destinationTag = generateDestinationTag(userId);
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
+            id = refillService.getRequestIdReadyForAutoAccept(String.valueOf(destinationTag),
                     currency.getId(), merchant.getId());
         } while (id.isPresent());
         log.debug("tag is {}", destinationTag);

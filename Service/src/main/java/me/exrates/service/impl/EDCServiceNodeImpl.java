@@ -225,7 +225,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
     final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallFast(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
     final String response = makeRpcCallFast(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
-    log.info("bit_response: " + response.toString());
+    log.info("bit_response: " + response);
     if (response.contains("error")) {
       throw new Exception("Could not create new account!\n" + response);
     }
@@ -322,7 +322,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
         .string();
   }
 
-  private enum KEY_TYPE {
+  public enum KEY_TYPE {
     BRAIN("brain_priv_key"),
     PUBLIC("pub_key"),
     PRIVATE("wif_priv_key");
