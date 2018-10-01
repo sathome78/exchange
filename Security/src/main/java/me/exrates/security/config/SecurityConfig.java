@@ -253,7 +253,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
             .antMatchers("/resetPasswordConfirm/**").permitAll()
             .antMatchers("/forgotPassword/**").permitAll()
-            .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
+            .antMatchers(GET,"/getWalletBalanceByCurrencyName", "/getNodeState").permitAll()
             .antMatchers(GET, "/stockChart/timeFrames").permitAll()
             .antMatchers("/passwordRecovery").permitAll()
             .antMatchers(POST, "/login/new_pin_send").anonymous()

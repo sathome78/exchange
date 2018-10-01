@@ -23,6 +23,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.stellar.sdk.Asset;
+import org.stellar.sdk.AssetTypeNative;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.MemoText;
@@ -250,7 +252,12 @@ public class StellarServiceImpl implements StellarService, NodeStateControl {
 
     @Override
     public String getBalance() {
-        return "1000";
+        return stellarTransactionService.getBalance(new AssetTypeNative());
+    }
+
+    @Override
+    public String getBalance(Asset asset) {
+        return stellarTransactionService.getBalance(asset);
     }
 
     @Override

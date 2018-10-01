@@ -2,6 +2,7 @@ package me.exrates.service.stellar;
 
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.stellar.sdk.Asset;
 import org.stellar.sdk.responses.TransactionResponse;
 
 /**
@@ -68,4 +69,6 @@ public interface StellarService extends IRefillable, IWithdrawable {
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
         return true;
     }
+
+    String getBalance(Asset asset);
 }

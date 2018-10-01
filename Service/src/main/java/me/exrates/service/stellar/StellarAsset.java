@@ -36,6 +36,6 @@ public class StellarAsset implements NodeStateControl {
 
     @Override
     public String getBalance() {
-        return null;
+        return stellarService.getBalance(asset);
     }
 }

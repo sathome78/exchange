@@ -13,6 +13,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.*;
+import me.exrates.service.nodes_control.NodeStateControl;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
-public class BitcoinServiceImpl implements BitcoinService {
+public class BitcoinServiceImpl implements BitcoinService, NodeStateControl {
 
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
@@ -558,8 +559,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   }
 
-
-
   @Override
   public String getNewAddressForAdmin() {
     return bitcoinWalletService.getNewAddress(getCoreWalletPassword());
@@ -578,6 +577,26 @@ public class BitcoinServiceImpl implements BitcoinService {
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
     return merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
+  }
+
+  @Override
+  public boolean isNodeWorkCorrect() {
+    return true;
+  }
+
+  @Override
+  public String getBalance() {
+    return getWalletInfo().getBalance();
+  }
+
+  @Override
+  public String getMerchantName() {
+    return merchantName;
+  }
+
+  @Override
+  public String getCurrencyName() {
+    return currencyName;
   }
 
   @PreDestroy

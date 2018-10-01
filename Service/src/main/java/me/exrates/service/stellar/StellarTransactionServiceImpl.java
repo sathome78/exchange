@@ -35,11 +35,28 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);
     private @Value("${stellar.mode}") String MODE;
     private @Value("${stellar.horizon.url}")String SEVER_URL;
+    private @Value("${stellar.account.name}")String ACCOUNT_NAME;
+
 
     @Override
     public TransactionResponse getTxByURI(String serverURI, URI txUri) throws IOException, URISyntaxException {
         TransactionsRequestBuilder transactionsRequestBuilder = new TransactionsRequestBuilder(new URI(serverURI));
         return transactionsRequestBuilder.transaction(txUri);
+    }
+
+    @Override
+    public String getBalance(Asset asset) {
+        KeyPair source = KeyPair.fromPublicKey(ACCOUNT_NAME.getBytes());
+        Server server = new Server(SEVER_URL);
+        AccountResponse sourceAccount;
+        try {
+            sourceAccount = server.accounts().account(source);
+            return Arrays.stream(sourceAccount.getBalances())
+                    .filter(p -> p.getAsset().equals(asset)).findFirst().get().getBalance();
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException("Error whilke checking balance for" + asset.getType());
+        }
     }
 
     @Override

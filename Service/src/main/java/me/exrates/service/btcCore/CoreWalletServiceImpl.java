@@ -123,7 +123,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
         unlockWallet(walletPassword, 1);
       }
-      return btcdClient.getNewAddress();
+      return btcdClient.getBlockChainInfo().getNewAddress();
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException("Cannot generate new address!");

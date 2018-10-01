@@ -29,6 +29,8 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.nodes_control.NodeStateControl;
+import me.exrates.service.nodes_control.NodesStateContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
@@ -156,6 +158,8 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
+    @Autowired
+    private NodesStateContext nodeStateContext;
 
 
     @Autowired
@@ -1264,22 +1268,22 @@ public class AdminController {
 
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
-        @RequestParam("token")String token){
-
+                                                                              @RequestParam("token")String token){
         if(!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")){
             throw new RuntimeException("Some unexpected exception");
         }
-        Currency byName = currencyService.findByName(currencyName);
+        NodeStateControl stateControl = Preconditions.checkNotNull(nodeStateContext.getByCurrencyName(currencyName), "Currency not found");
+        return new ResponseEntity<>(Collections.singletonMap(stateControl.getMerchantName(), stateControl.getBalance()), HttpStatus.OK);
+    }
 
-        List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
-        List<Merchant> collect = allByCurrency.stream().
-                filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
-        Map<String, String> collect1 = collect.
-                stream().
-                collect(toMap(Merchant::getName, merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
-
-
-        return new ResponseEntity<>(collect1, HttpStatus.OK);
+    @GetMapping(value = "/getNodeState")
+    public ResponseEntity<Map<String, Boolean>> getNodeState(@RequestParam("currency") String currencyName,
+                                                                              @RequestParam("token")String token){
+        if(!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")){
+            throw new RuntimeException("Some unexpected exception");
+        }
+        NodeStateControl stateControl = Preconditions.checkNotNull(nodeStateContext.getByCurrencyName(currencyName), "Currency not found");
+        return new ResponseEntity<>(Collections.singletonMap(stateControl.getMerchantName(), stateControl.isNodeWorkCorrect()), HttpStatus.OK);
     }
 
     @AdminLoggable

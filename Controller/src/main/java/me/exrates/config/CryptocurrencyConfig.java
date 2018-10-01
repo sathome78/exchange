@@ -23,6 +23,16 @@ import org.springframework.context.annotation.Scope;
 @Log4j2(topic = "config")
 @Configuration
 public class CryptocurrencyConfig {
+
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
+    @Autowired
+    private StellarService stellarService;
+    @Autowired
+    private NemService nemService;
+
+
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
@@ -290,13 +300,6 @@ public class CryptocurrencyConfig {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
 
-
-    /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")
-    String SLT_EMMITER;
-    @Autowired
-    private StellarService stellarService;
-
     @Bean(name = "sltStellarService")
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
@@ -325,9 +328,6 @@ public class CryptocurrencyConfig {
                 "VNT",
                 "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO", stellarService);
     }
-
-    @Autowired
-    private NemService nemService;
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
