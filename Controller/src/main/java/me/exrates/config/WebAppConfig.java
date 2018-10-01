@@ -225,7 +225,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveUrl;
     private String dbSlaveClassname;
 
-
     @PostConstruct
     public void init() {
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
@@ -1473,65 +1472,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
                 "SUMO", "SUMO", 10, 9);
-    }
-
-    /***tokens based on xem mosaic)****/
-    @Bean(name = "dimCoinServiceImpl")
-    public XemMosaicService dimCoinService() {
-        return new XemMosaicServiceImpl(
-                "DimCoin",
-                "DIM",
-                new MosaicIdDto("dim", "coin"),
-                1000000,
-                6,
-                new Supply(9000000000L),
-                10);
-    }
-
-
-    @Bean(name = "npxsServiceImpl")
-    public XemMosaicService npxsService() {
-        return new XemMosaicServiceImpl(
-                "NPXSXEM",
-                "NPXSXEM",
-                new MosaicIdDto("pundix", "npxs"),
-                1000000,
-                6,
-                new Supply(9000000000L),
-                0);
-    }
-
-    /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")
-    String SLT_EMMITER;
-
-    @Bean(name = "sltStellarService")
-    public StellarAsset sltStellarService() {
-        return new StellarAsset("SLT",
-                "SLT",
-                "SLT",
-                SLT_EMMITER);
-    }
-
-    @Bean(name = "ternStellarService")
-    public StellarAsset ternStellarService() {
-        return new StellarAsset("TERN",
-                "TERN",
-                "TERN",
-                "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C");
-    }
-
-    @Bean("vexaniumContract")
-    public AchainContract achainContractService() {
-        return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
-    }
-
-    @Bean(name = "vntStellarService")
-    public StellarAsset vntStellarService() {
-        return new StellarAsset("VNT",
-                "VNT",
-                "VNT",
-                "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO");
     }
 
     @Bean

@@ -1,6 +1,7 @@
 package me.exrates.service.nem;
 
 import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.service.nodes_control.NodeStateControl;
 import org.nem.core.model.mosaic.MosaicId;
 import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.primitive.Quantity;
@@ -9,7 +10,7 @@ import org.nem.core.model.primitive.Supply;
 /**
  * Created by Maks on 27.02.2018.
  */
-public class XemMosaicServiceImpl implements XemMosaicService {
+public class XemMosaicServiceImpl implements XemMosaicService, NodeStateControl {
 
     private String merchantName;
     private String currencyName;
@@ -19,9 +20,9 @@ public class XemMosaicServiceImpl implements XemMosaicService {
     private Supply supply;
     private MosaicId mosaicId;
     private Quantity levyFee;
+    private NemService nemService;
 
-
-    public XemMosaicServiceImpl(String merchantName, String currencyName, MosaicIdDto mosaicIdDto, long decimals,
+    public XemMosaicServiceImpl(NemService nemService, String merchantName, String currencyName, MosaicIdDto mosaicIdDto, long decimals,
                                 int divisibility, Supply supply, long levyFee) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
@@ -71,5 +72,15 @@ public class XemMosaicServiceImpl implements XemMosaicService {
     @Override
     public long getDecimals() {
         return decimals;
+    }
+
+    @Override
+    public boolean isNodeWorkCorrect() {
+        return true;
+    }
+
+    @Override
+    public String getBalance() {
+        return "1000";
     }
 }

@@ -15,8 +15,7 @@ import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
-import me.exrates.service.nodes_observe.NodeStateControl;
-import org.json.JSONObject;
+import me.exrates.service.nodes_control.NodeStateControl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -242,26 +241,25 @@ public class StellarServiceImpl implements StellarService, NodeStateControl {
             default:
                 return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
         }
-
-    }
-
-    @Override
-    public Map<String, Long> getPollingPeriods() {
-        return null;
-    }
-
-    @Override
-    public boolean isNodeInWork() {
-        return true;
     }
 
     @Override
     public boolean isNodeWorkCorrect() {
-        return false;
+        return true;
     }
 
     @Override
-    public String nodeName() {
-        return "STELLAR";
+    public String getBalance() {
+        return "1000";
+    }
+
+    @Override
+    public String getMerchantName() {
+        return null;
+    }
+
+    @Override
+    public String getCurrencyName() {
+        return null;
     }
 }

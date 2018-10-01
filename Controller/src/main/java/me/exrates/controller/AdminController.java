@@ -29,7 +29,6 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.nodes_observe.StatesHolder;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
@@ -42,7 +41,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,15 +50,12 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -161,8 +156,6 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
-    @Autowired
-    private StatesHolder statesHolder;
 
 
     @Autowired
@@ -1544,11 +1537,6 @@ public class AdminController {
     public List<CoreWalletDto> listCoreWallets(HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
         return merchantService.retrieveCoreWallets(locale);
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/nodes_state_control")
-    public String nodesControl() {
-        return "admin/nodes_state";
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

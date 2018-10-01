@@ -1,11 +1,21 @@
 package me.exrates.config;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.achain.AchainContract;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
+import me.exrates.service.nem.NemService;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.stellar.StellarAsset;
+import me.exrates.service.stellar.StellarService;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
+import org.nem.core.model.primitive.Supply;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -278,6 +288,73 @@ public class CryptocurrencyConfig {
     @Bean(name = "lunesServiceImpl")
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
+    }
+
+
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
+    @Autowired
+    private StellarService stellarService;
+
+    @Bean(name = "sltStellarService")
+    public StellarAsset sltStellarService() {
+        return new StellarAsset("SLT",
+                "SLT",
+                "SLT",
+                SLT_EMMITER, stellarService);
+    }
+
+    @Bean(name = "ternStellarService")
+    public StellarAsset ternStellarService() {
+        return new StellarAsset("TERN",
+                "TERN",
+                "TERN",
+                "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C", stellarService);
+    }
+
+    @Bean("vexaniumContract")
+    public AchainContract achainContractService() {
+        return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
+    }
+
+    @Bean(name = "vntStellarService")
+    public StellarAsset vntStellarService() {
+        return new StellarAsset("VNT",
+                "VNT",
+                "VNT",
+                "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO", stellarService);
+    }
+
+    @Autowired
+    private NemService nemService;
+
+    /***tokens based on xem mosaic)****/
+    @Bean(name = "dimCoinServiceImpl")
+    public XemMosaicService dimCoinService() {
+        return new XemMosaicServiceImpl(
+                nemService,
+                "DimCoin",
+                "DIM",
+                new MosaicIdDto("dim", "coin"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                10);
+    }
+
+
+    @Bean(name = "npxsServiceImpl")
+    public XemMosaicService npxsService() {
+        return new XemMosaicServiceImpl(
+                nemService,
+                "NPXSXEM",
+                "NPXSXEM",
+                new MosaicIdDto("pundix", "npxs"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                0);
     }
 
 }
