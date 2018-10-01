@@ -244,6 +244,13 @@ public class CryptocurrencyConfig {
     public BitcoinService sbtcService(){
         return new BitcoinServiceImpl("merchants/sbtc_wallet.properties", "SBTC", "SBTC", 4, 20, false);
     }
+
+    @Bean(name = "qrkServiceImpl")
+    public BitcoinService qrkService() {
+        return new BitcoinServiceImpl("merchants/qrk_wallet.properties",
+                "QRK", "QRK", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
     @Bean(name = "liskServiceImpl")
