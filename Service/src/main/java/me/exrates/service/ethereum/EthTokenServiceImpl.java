@@ -13,6 +13,7 @@ import me.exrates.service.ethereum.ethTokensWrappers.ethTokenERC20;
 import me.exrates.service.ethereum.ethTokensWrappers.ethTokenNotERC20;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.nodes_control.NodeStateControl;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,7 +54,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "eth_tokens_log")
 @Service
-public class EthTokenServiceImpl implements EthTokenService {
+public class EthTokenServiceImpl implements EthTokenService, NodeStateControl {
 
     private Merchant merchant;
     private Currency currency;
@@ -375,6 +376,26 @@ public class EthTokenServiceImpl implements EthTokenService {
         public Address to;
 
         public Uint256 value;
+    }
+
+    @Override
+    public boolean isNodeWorkCorrect() {
+        return ethereumCommonService.isNodeWorkCorrect(currencyName);
+    }
+
+    @Override
+    public String getBalance() {
+        return null;
+    }
+
+    @Override
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    @Override
+    public String getCurrencyName() {
+        return currencyName;
     }
 
     @PreDestroy

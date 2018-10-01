@@ -5,6 +5,8 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
+import me.exrates.model.exceptions.CheckNodeBalanceException;
+import me.exrates.model.exceptions.CheckNodeStateException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -12,8 +14,10 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.nodes_control.NodeStateControl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.glassfish.grizzly.http.util.TimeStamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
@@ -26,6 +30,7 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -41,6 +46,8 @@ import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -50,10 +57,8 @@ import java.util.concurrent.TimeUnit;
  * Created by ajet
  */
 //@Service
-public class EthereumCommonServiceImpl implements EthereumCommonService {
+public class EthereumCommonServiceImpl implements EthereumCommonService, NodeStateControl {
 
-    @Autowired
-    private EthereumNodeDao ethereumNodeDao;
 
     @Autowired
     private CurrencyService currencyService;
@@ -62,19 +67,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private MerchantService merchantService;
 
     @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
-
-    @Autowired
     private MessageSource messageSource;
 
     @Autowired
     private RefillService refillService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
@@ -91,8 +88,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private String mainAddress;
 
     private final Set<String> accounts = new HashSet<>();
-
-    private final Set<String> pendingTransactions = new HashSet<>();
 
     private Web3j web3j;
 
@@ -532,4 +527,41 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return ethTokensContext.getByCurrencyId(currencyId);
     }
 
+    @Override
+    public boolean isNodeWorkCorrect() {
+        return isNodeWorkCorrect(currencyName);
+    }
+
+    @Override
+    public boolean isNodeWorkCorrect(String currencyName) {
+        EthBlock.Block block;
+        try {
+            block = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().getBlock();
+            LocalDateTime blockTime = new Timestamp(block.getTimestamp().longValue() * 1000).toLocalDateTime();
+            return blockTime.plusMinutes(30).isAfter(LocalDateTime.now());
+        } catch (IOException e) {
+            log.error(e);
+            throw new CheckNodeStateException(currencyName);
+        }
+    }
+
+    @Override
+    public String getBalance() {
+        try {
+            return Convert.fromWei(new BigDecimal(web3j.ethGetBalance(mainAddress, DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER).toString();
+        } catch (IOException e) {
+            log.error(e);
+            throw new CheckNodeBalanceException(currencyName);
+        }
+    }
+
+    @Override
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    @Override
+    public String getCurrencyName() {
+        return currencyName;
+    }
 }

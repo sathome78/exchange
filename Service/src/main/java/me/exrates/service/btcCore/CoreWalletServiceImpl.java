@@ -11,6 +11,8 @@ import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.enums.ActionType;
+import me.exrates.model.exceptions.CheckNodeBalanceException;
+import me.exrates.model.exceptions.CheckNodeStateException;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
 import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
@@ -32,6 +34,7 @@ import reactor.core.publisher.Flux;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -70,9 +73,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private final Object SENDING_LOCK = new Object();
 
-
-
-
   @Override
   public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
@@ -90,7 +90,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
     }
-    
   }
   
   @Override
@@ -113,9 +112,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   @Override
   public String getNewAddress(String walletPassword) {
       Integer keyPoolSize = getKeypoolSize();
-
     try {
-
       /*
       * If wallet is encrypted and locked, pool of private keys is not refilled
       * Keys are automatically refilled on unlocking
@@ -123,7 +120,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
         unlockWallet(walletPassword, 1);
       }
-      return btcdClient.getBlockChainInfo().getNewAddress();
+      return btcdClient.getNewAddress();
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException("Cannot generate new address!");
@@ -630,6 +627,30 @@ public class CoreWalletServiceImpl implements CoreWalletService {
           log.error(e);
           throw new BitcoinCoreException(e);
       }
+  }
+
+  @Override
+  public String getBalance(String currencyName) {
+      try {
+          return btcdClient.getBalance().toString();
+      } catch (Exception e) {
+        throw new CheckNodeBalanceException(currencyName);
+      }
+  }
+
+  @Override
+  public Boolean isNodeWorkCorrect(String currencyName) {
+      BtcBlockDto blockDto = getBlockByHash(getLastBlockHash());
+      LocalDateTime lastBlockTime = new Timestamp(blockDto.getTime() * 1000).toLocalDateTime();
+
+      try {
+          int connections = btcdClient.getInfo().getConnections();
+          return lastBlockTime.plusMinutes(40).isAfter(LocalDateTime.now()) && connections > 1;
+      } catch (Exception e) {
+          log.error(e);
+          throw new CheckNodeStateException(currencyName);
+      }
+
   }
 
   @PreDestroy

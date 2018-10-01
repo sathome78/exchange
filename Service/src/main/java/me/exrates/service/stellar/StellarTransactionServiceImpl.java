@@ -3,6 +3,7 @@ package me.exrates.service.stellar;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.StellarNetworkModeEnum;
+import me.exrates.model.exceptions.CheckNodeBalanceException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
@@ -55,7 +56,7 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
                     .filter(p -> p.getAsset().equals(asset)).findFirst().get().getBalance();
         } catch (Exception e) {
             log.error(e);
-            throw new RuntimeException("Error whilke checking balance for" + asset.getType());
+            throw new CheckNodeBalanceException(((AssetTypeCreditAlphaNum)asset).getCode());
         }
     }
 

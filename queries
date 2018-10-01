@@ -60,3 +60,8 @@ JOIN USER U ON U.id = W.user_id
 JOIN CURRENCY CU on CU.id = W.currency_id
 WHERE U.email = 'olenatrademail@gmail.com'
 
+SELECT C.name, SUM(EO.amount_convert) AS volume FROM EXORDERS EO
+JOIN CURRENCY_PAIR C on EO.currency_pair_id = C.id
+JOIN USER U on EO.user_acceptor_id = U.id
+WHERE EO.status_id = 3 AND C.market = 'USD' AND EO.date_acception > STR_TO_DATE('2018-06-01 00:00:00', '%Y-%m-%d %H:%i:%s')
+GROUP BY C.id ORDER BY volume DESC

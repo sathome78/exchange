@@ -16,47 +16,48 @@ import java.util.Optional;
  * Created by OLEG on 14.03.2017.
  */
 public interface CoreWalletService {
-  void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine);
-  
-  void initBtcdDaemon(boolean zmqEnabled);
-  
-  String getNewAddress(String walletPassword);
-  
-  void backupWallet(String backupFolder);
 
-  void shutdown();
+    void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine);
 
-  Optional<BtcTransactionDto> handleTransactionConflicts(String txId);
-  
-  BtcTransactionDto getTransaction(String txId);
-  
-  BtcWalletInfoDto getWalletInfo();
-  
-  List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
-  
-  List<BtcTransactionHistoryDto> listAllTransactions();
+    void initBtcdDaemon(boolean zmqEnabled);
+
+    String getNewAddress(String walletPassword);
+
+    void backupWallet(String backupFolder);
+
+    void shutdown();
+
+    Optional<BtcTransactionDto> handleTransactionConflicts(String txId);
+
+    BtcTransactionDto getTransaction(String txId);
+
+    BtcWalletInfoDto getWalletInfo();
+
+    List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
+
+    List<BtcTransactionHistoryDto> listAllTransactions();
 
     List<BtcPaymentFlatDto> listSinceBlockEx(@Nullable String blockHash, Integer merchantId, Integer currencyId);
 
     List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
   
-  BigDecimal estimateFee(int blockCount);
-  
-  BigDecimal getActualFee();
-  
-  void setTxFee(BigDecimal fee);
-  
-  void submitWalletPassword(String password);
-  
-  String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
-  
-  BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount);
+    BigDecimal estimateFee(int blockCount);
+
+    BigDecimal getActualFee();
+
+    void setTxFee(BigDecimal fee);
+
+    void submitWalletPassword(String password);
+
+    String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
+
+    BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount);
 
     Flux<BtcBlockDto> blockFlux();
 
     Flux<BtcTransactionDto> walletFlux();
 
-  Flux<BtcTransactionDto> instantSendFlux();
+    Flux<BtcTransactionDto> instantSendFlux();
 
     BtcPreparedTransactionDto prepareRawTransaction(Map<String, BigDecimal> payments);
 
@@ -66,7 +67,11 @@ public interface CoreWalletService {
 
     String getTxIdByHex(String hex);
 
-  String getLastBlockHash();
+    String getLastBlockHash();
 
-  BtcBlockDto getBlockByHash(String blockHash);
+    BtcBlockDto getBlockByHash(String blockHash);
+
+    String getBalance(String currencyName);
+
+    Boolean isNodeWorkCorrect(String currencyName);
 }

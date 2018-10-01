@@ -581,12 +581,12 @@ public class BitcoinServiceImpl implements BitcoinService, NodeStateControl {
 
   @Override
   public boolean isNodeWorkCorrect() {
-    return true;
+    return bitcoinWalletService.isNodeWorkCorrect(currencyName);
   }
 
   @Override
   public String getBalance() {
-    return getWalletInfo().getBalance();
+    return bitcoinWalletService.getBalance(currencyName);
   }
 
   @Override
