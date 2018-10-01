@@ -1439,6 +1439,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TIC", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "uDOOServiceImpl")
+    public EthTokenService uDOOService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0df721639ca2f7ff0e1f618b918a65ffb199ac4e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDOO",
+                "uDOO", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
