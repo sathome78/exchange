@@ -15,6 +15,8 @@ import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationMessageService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -101,6 +103,7 @@ public class SecureServiceImpl implements SecureService {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
+            log.info("Generated pin code message: {}", message);
             return new PinDto(message, needToSendPin);
         }
         return null;

@@ -4,6 +4,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
@@ -25,6 +26,9 @@ import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 
 @RestController
 @RequestMapping("/info/public/users")
@@ -50,7 +54,15 @@ public class NgUserController {
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
         String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+        try {
+            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+        } catch (BannedIpException ban) {
+            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+        }
+
+        if (userService.isLogin2faUsed(authenticationDto.getEmail()) && isEmpty(authenticationDto.getPin())) {
+            return new ResponseEntity<>(HttpStatus.PROXY_AUTHENTICATION_REQUIRED); //407
+        }
 
         Optional<AuthTokenDto> authTokenResult;
         try {
@@ -80,13 +92,6 @@ public class NgUserController {
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
         ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
-    }
-
-    @GetMapping(value = "/if-pin-needed", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Boolean> checkIfPincodeNeeded(@RequestParam("email") String email, HttpServletRequest request) {
-        Boolean needed = processIpBlocking(request, email,
-                () -> userService.isLogin2faUsed(email));
-        return new ResponseEntity<>(needed, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

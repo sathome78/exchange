@@ -10,6 +10,7 @@ import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
+import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -94,8 +95,9 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 //        System.out.println("$$$$$$$$ userdet password: " + userDetails.getPassword());
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
 //            System.out.println("$$$$$$$ passwordEncoder => " + passwordEncoder.encode(password));
-            if(dto.isPinRequired()) {
-                checkPinCode(request, userDetails, dto.getPin(), locale);
+            if(dto.isPinRequired() && !userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
+                throw new IncorrectPinException(res);
             } else {
                 checkLoginAuth(dto.getEmail(), request, locale);
             }
