@@ -233,14 +233,14 @@ public class OpenApiPublicController {
      * "endDate":1472132438000
      * }
      * ]
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InvalidParamError
-     * @apiUse MissingParamError
-     * @apiUse CurrencyPairNotFoundError
-     * @apiUse InternalServerError
+     * @apiError ExpiredAuthenticationTokenError
+     * @apiError MissingAuthenticationTokenError
+     * @apiError InvalidAuthenticationTokenError
+     * @apiError AuthenticationError
+     * @apiError InvalidParamError
+     * @apiError MissingParamError
+     * @apiError CurrencyPairNotFoundError
+     * @apiError InternalServerError
      */
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<CandleChartItemReducedDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String currencyPair,
