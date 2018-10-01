@@ -30,7 +30,7 @@ public interface UserService {
    * @param user
    * @return "true" if data saved successfully, or "false" if none
    */
-  boolean setNickname(User user);
+  boolean setNickname(String newNickName,String userEmail);
 
   User findByEmail(String email);
 

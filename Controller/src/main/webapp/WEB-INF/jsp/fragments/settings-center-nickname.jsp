@@ -46,7 +46,6 @@
 
         <form id="nickname_change_form" action="/settings/changeNickname/submit" class="form" method="post">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-
             <div class="field">
                 <div class="field__label">Nickname</div>
                 <input id="nickname" class="field__input" type="text" name="nickname" placeholder='<loc:message code="register.nickname"/>' required>

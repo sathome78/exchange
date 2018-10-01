@@ -130,12 +130,11 @@ public class UserDaoImpl implements UserDao {
     }
   }
 
-  @Override
-  public boolean setNickname( User user) {
-    String sql = "UPDATE USER SET nickname=:nickname WHERE id = :id";
+  public boolean setNickname(String newNickName, String userEmail) {
+    String sql = "UPDATE USER SET nickname=:nickname WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
-    namedParameters.put("id", String.valueOf(user.getId()));
-    namedParameters.put("nickname", user.getNickname());
+    namedParameters.put("nickname", newNickName);
+    namedParameters.put("email", userEmail);
     int result = namedParameterJdbcTemplate.update(sql, namedParameters);
     return result > 0;
   }

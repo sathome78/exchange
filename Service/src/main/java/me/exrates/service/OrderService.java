@@ -6,7 +6,21 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -18,9 +32,17 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -136,9 +159,9 @@ public interface OrderService {
      * - TransactionPersistException
      * - OrderAcceptionException
      *
-     * @param acceptorEmail  is email of acceptor-user
-     * @param orderId is ID of order that must be accepted
-     * @param locale  is current locale. Used to generate messages
+     * @param acceptorEmail is email of acceptor-user
+     * @param orderId       is ID of order that must be accepted
+     * @param locale        is current locale. Used to generate messages
      */
     /*void acceptOrder(int userId, int orderId, Locale locale);*/
 
@@ -147,7 +170,12 @@ public interface OrderService {
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
 
     @Transactional
-    void cancelOrder(Integer orderId, String currentUserEmail);
+    void cancelOrder(Integer orderId);
+
+    void cancelOpenOrdersByCurrencyPair(String currencyPair);
+
+    @Transactional
+    void cancelAllOpenOrders();
 
     /**
      * Cancels the order and set status "CANCELLED"
@@ -157,7 +185,7 @@ public interface OrderService {
      * @param exOrder is the entity ExOrder of order that must be cancelled
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
-    boolean cancellOrder(ExOrder exOrder, Locale locale);
+    boolean cancelOrder(ExOrder exOrder, Locale locale);
 
     /**
      * Updates order's fields:
@@ -383,7 +411,7 @@ public interface OrderService {
 
     /**
      * wolper 24.04.18
-     *  Returns the list of the latest exchange rates for each currency to USD
+     * Returns the list of the latest exchange rates for each currency to USD
      */
     Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
 
@@ -391,12 +419,17 @@ public interface OrderService {
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
-    List<OrderHistoryItem> getRecentOrderHistory(String currencyPairName, String period);
+    List<TradeHistoryDto> getTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
     List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 
-    List<UserOrdersDto> getUserOrdersHistory(@Nullable String currencyPairName,
-                                             @Nullable Integer limit, @Nullable Integer offset);
+    List<UserOrdersDto> getUserClosedOrders(String currencyPairName, Integer limit, Integer offset);
+
+    List<UserOrdersDto> getUserCanceledOrders(String currencyPairName, Integer limit, Integer offset);
 
     List<OpenOrderDto> getOpenOrders(String currencyPairName, OrderType orderType);
+
+    List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
+
+    List<TransactionDto> getOrderTransactions(Integer orderId);
 }
