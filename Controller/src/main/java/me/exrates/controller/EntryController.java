@@ -504,8 +504,14 @@ public class EntryController {
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/verify_google2fa")
-    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, @RequestParam boolean connect, Principal principal) {
-        if (principal != null) {
+    public RedirectView verifyGoogleAuthenticatorConnect(RedirectAttributes redirectAttributes,
+                                                         HttpServletRequest request,
+                                                         Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+
+        String code = request.getParameter("google2fa_code");
+        boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
+        try {
             User user = userService.findByEmail(principal.getName());
             if(!notificationService.checkGoogle2faVerifyCode(code, user.getId())){
                 throw new IncorrectSmsPinException("");
@@ -516,8 +522,15 @@ public class EntryController {
                 notificationService.setEnable2faGoogleAuth(user.getId(), false);
                 notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
             }
+        }catch (Exception e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
+                    localeResolver.resolveLocale(request)));
+            throw e;
         }
-        return "";
+        redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
+
+        return redirectView;
     }
 
     @ResponseBody

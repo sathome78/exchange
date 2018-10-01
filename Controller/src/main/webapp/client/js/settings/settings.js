@@ -178,36 +178,6 @@ function SettingsClass() {
         });
     });
 
-    $('#google2fa_send_code_button').on('click', function () {
-        $smsNumberError.text('');
-        var code = $('#google2fa_code_input').val();
-        $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code+ '&connect=true',
-            type: 'GET',
-            success: function (data) {
-                location.reload();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
-
-    $('#disconnect_google2fa_send_code_button').on('click', function () {
-        $smsNumberError.text('');
-        var code = $('#disconnect_google2fa_code_input').val();
-        $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code + '&connect=false',
-            type: 'GET',
-            success: function (data) {
-                location.reload();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
-
     $('#sms_code_input').on('input', function () {
         var code = $('#sms_code_input').val();
         if (isNumber(code)) {
