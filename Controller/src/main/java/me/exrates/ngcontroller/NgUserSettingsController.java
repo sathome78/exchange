@@ -29,7 +29,10 @@ import java.util.Locale;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/info/private/settings")
+@RequestMapping(value = "/info/private/settings",
+        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
+)
 public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
@@ -63,7 +66,7 @@ public class NgUserSettingsController {
         this.userFilesService = userFilesService;
     }
 
-    @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = "/updateMainPassword")
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body){
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
@@ -83,14 +86,14 @@ public class NgUserSettingsController {
         }
     }
 
-    @GetMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = NICKNAME)
     public ResponseEntity<Map<String, String>> getNickName() {
         User user = userService.findByEmail(getPrincipalEmail());
         String nickname = user.getNickname() == null ? "" : user.getNickname();
         return ResponseEntity.ok(Collections.singletonMap(NICKNAME, nickname));
     }
 
-    @PutMapping(value = NICKNAME, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = NICKNAME)
     public ResponseEntity<Void> updateNickName(@RequestBody Map<String, String> body) {
         User user = userService.findByEmail(getPrincipalEmail());
         if (body.containsKey(NICKNAME)) {
@@ -103,7 +106,7 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = SESSION_INTERVAL, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = SESSION_INTERVAL)
     public Integer getSessionPeriod() {
         SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
@@ -112,7 +115,7 @@ public class NgUserSettingsController {
         return params.getSessionTimeMinutes();
     }
 
-    @PutMapping(value = "/" + SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = SESSION_INTERVAL)
     public ResponseEntity<String> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request){
         try {
             int interval = body.get(SESSION_INTERVAL);
@@ -129,6 +132,7 @@ public class NgUserSettingsController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
 
 //    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
 //    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
