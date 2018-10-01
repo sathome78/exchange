@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/info/public")
+@RequestMapping("/info/public/v2/")
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);

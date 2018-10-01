@@ -29,7 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/info/private/settings",
+@RequestMapping(value = "/info/private/v2/settings",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )

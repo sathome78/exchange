@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 
 @RestController
-@RequestMapping("/info/public/users")
+@RequestMapping("/info/public/v2/users")
 public class NgUserController {
 
     private static final Logger logger = LogManager.getLogger(NgUserController.class);
