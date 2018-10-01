@@ -42,7 +42,7 @@ public class InterkassaMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
+    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
@@ -50,18 +50,18 @@ public class InterkassaMerchantController {
         try {
             interkassaService.processPayment(params);
             return responseOK;
-        }catch (RefillRequestAlreadyAcceptedException e){
+        } catch (RefillRequestAlreadyAcceptedException e) {
             return responseOK;
-        }catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
+    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String, String> response) {
 
         logger.debug(response);
         return new RedirectView("/dashboard");
     }
 
-    }
+}

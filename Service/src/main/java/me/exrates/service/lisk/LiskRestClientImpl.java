@@ -8,11 +8,9 @@ import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;

@@ -1,7 +1,6 @@
 package me.exrates.service.events;
 
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.vo.BackDealInterval;
 import org.springframework.context.ApplicationEvent;
 
 /**

@@ -1,6 +1,5 @@
 package me.exrates.dao;
 
-import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 
 import java.math.BigDecimal;

@@ -13,7 +13,6 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.nem.NemService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -55,7 +54,7 @@ public class NemJobs {
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName("NEM");
        /* scheduler.scheduleAtFixedRate(this::checkWithdrawals, 1, 5, TimeUnit.MINUTES);*/
-        scheduler.scheduleAtFixedRate(this::checkReffils, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkReffils, 3, 5, TimeUnit.MINUTES);
     }
 
     private void checkWithdrawals() {

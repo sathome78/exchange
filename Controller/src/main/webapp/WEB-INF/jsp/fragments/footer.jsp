@@ -21,6 +21,7 @@
             <span class="footer_link"><a href="<c:url value="/contacts"/>"><loc:message code="dashboard.contactsAndSupport"/></a></span>
             <span class="footer_link"><a href="<c:url value="/aboutUs"/>"><loc:message code="dashboard.aboutUs"/></a></span>
             <span class="footer_link"><a href="<c:url value="/partners"/>"><loc:message code="partners.title"/></a></span>
+            <span class="footer_link"><a href="https://ex-open-api.firebaseapp.com/" target="_blank"><loc:message code="apiDoc.title"/></a></span>
         </div>
     </div>
 </footer>

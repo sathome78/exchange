@@ -1,9 +1,7 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import me.exrates.model.Notification;
 import me.exrates.model.enums.NotificationPayTypeEnum;
-import me.exrates.model.enums.NotificationTypeEnum;
 
 import java.math.BigDecimal;
 

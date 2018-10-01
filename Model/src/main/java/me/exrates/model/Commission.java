@@ -23,4 +23,13 @@ public class Commission {
     public Commission(int id) {
         this.id = id;
     }
+
+    public static Commission zeroComission() {
+        Commission commission = new Commission();
+        commission.setId(24);
+        commission.setOperationType(OperationType.OUTPUT);
+        commission.setValue(BigDecimal.ZERO);
+        commission.setDateOfChange(new Date());
+        return commission;
+    }
 }

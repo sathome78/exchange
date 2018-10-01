@@ -1,17 +1,24 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import me.exrates.model.enums.CurrencyPairType;
 
 /**
  * Created by Valk
  */
-@Getter @Setter
+@Getter @Setter@ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String currencyPairName;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
+  @JsonIgnore
+  private Integer currencyPairId;
+  @JsonIgnore
+  private CurrencyPairType type;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -28,6 +35,14 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
+    this.type = exOrderStatisticsShortByPairsDto.type;
+    this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
+  }
+
+  public ExOrderStatisticsShortByPairsDto(Integer pairId, String lastRate, String predLastRate) {
+    this.lastOrderRate = lastRate;
+    this.predLastOrderRate = predLastRate;
+    this.currencyPairId = pairId;
   }
 
   @Override

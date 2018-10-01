@@ -8,6 +8,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
@@ -36,11 +37,11 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    List<CurrencyPair> getAllCurrencyPairs();
+    List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
-    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
-    CurrencyPair findCurrencyPairById(int currencyPairId);
+  CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
 
@@ -84,9 +85,17 @@ public interface CurrencyService {
 
   MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId);
 
-  CurrencyPair getCurrencyPairByName(String pairName);
+  CurrencyPair getCurrencyPairByName(String currencyPair);
+
+  Integer findCurrencyPairIdByName(String pairName);
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-  List<CurrencyPair> findPermitedCurrencyPairs();
+  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType ico);
+
+    CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isIco(Integer currencyId);
+
+    List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 }

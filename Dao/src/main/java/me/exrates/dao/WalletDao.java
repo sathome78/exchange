@@ -1,11 +1,14 @@
 package me.exrates.dao;
 
+import me.exrates.model.PagingData;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -14,6 +17,7 @@ import me.exrates.model.vo.WalletOperationData;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public interface WalletDao {
 
@@ -29,6 +33,10 @@ public interface WalletDao {
 
     List<Wallet> findAllByUser(int userId);
 
+    List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
+
+    List<WalletBalanceDto> getBalancesForUser(String userEmail);
+
     MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
 
     List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
@@ -41,7 +49,7 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
@@ -77,7 +85,7 @@ public interface WalletDao {
   
   void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
+    List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId, List<Integer> roleIds);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
 

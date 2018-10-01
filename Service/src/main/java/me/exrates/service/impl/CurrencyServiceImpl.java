@@ -9,6 +9,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
@@ -102,13 +103,13 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public List<CurrencyPair> getAllCurrencyPairs() {
-    return currencyDao.getAllCurrencyPairs();
+  public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
+    return currencyDao.getAllCurrencyPairs(type);
   }
 
   @Override
-  public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder() {
-    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs();
+  public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
+    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs(type);
     result.sort(Comparator.comparing(CurrencyPair::getName));
     return result;
   }
@@ -255,6 +256,11 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
+  public boolean isIco(Integer currencyId) {
+    return currencyDao.isCurrencyIco(currencyId);
+  }
+
+  @Override
   @Transactional
   public MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId) {
     MerchantCurrencyScaleDto result = currencyDao.findCurrencyScaleByCurrencyId(currencyId);
@@ -264,8 +270,13 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public CurrencyPair getCurrencyPairByName(String pairName) {
-    return currencyDao.findCurrencyPairByName(pairName);
+  public CurrencyPair getCurrencyPairByName(String currencyPair) {
+    return currencyDao.findCurrencyPairByName(currencyPair);
+  }
+
+  @Override
+  public Integer findCurrencyPairIdByName(String pairName) {
+    return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> new CurrencyPairNotFoundException(pairName));
   }
 
   @Override
@@ -274,7 +285,19 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public List<CurrencyPair> findPermitedCurrencyPairs(){
-    return currencyDao.findPermitedCurrencyPairs();
+  public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType){
+    return currencyDao.findPermitedCurrencyPairs(currencyPairType);
+  }
+
+  @Override
+  public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair) {
+    return currencyDao.getNotHiddenCurrencyPairByName(currencyPair);
+  }
+
+
+
+  @Override
+  public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
+    return currencyDao.findActiveCurrencyPairs();
   }
 }

@@ -2,11 +2,11 @@
  * Created by Valk on 06.06.2016.
  */
 
-function MyOrdersClass(currentCurrencyPair) {
+function MyOrdersClass(currentCurrencyPair, cpData) {
     if (MyOrdersClass.__instance) {
         return MyOrdersClass.__instance;
     } else if (this === window) {
-        return new MyOrdersClass(currentCurrencyPair);
+        return new MyOrdersClass(currentCurrencyPair, cpData);
     }
     MyOrdersClass.__instance = this;
     /**/
@@ -68,7 +68,7 @@ function MyOrdersClass(currentCurrencyPair) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        myordersCurrencyPairSelector.syncState(function (pairHasChanged) {
+        myordersCurrencyPairSelector.syncState('ALL', function (pairHasChanged) {
             if (pairHasChanged) {
                 that.updateAndShowAll(false, 1, null);
                 that.getAndShowMySellAndBuyOrdersData();
@@ -347,9 +347,9 @@ function MyOrdersClass(currentCurrencyPair) {
         })
     }
     /*=====================================================*/
-    (function init (currentCurrencyPair) {
-        myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair);
-        myordersCurrencyPairSelector.init(onCurrencyPairChange);
+    (function init (currentCurrencyPair, cpData) {
+        myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair, cpData);
+        myordersCurrencyPairSelector.init(onCurrencyPairChange, 'ALL');
         myordersStatusForShow = 'CLOSED';
         myOrdersScope = 'ALL';
         $('#myorders-button-deal').addClass('active');
@@ -423,5 +423,5 @@ function MyOrdersClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowMyStopOrdersData(true, null, 'FORWARD');
         });
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 }

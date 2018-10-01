@@ -9,6 +9,7 @@ import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -70,7 +71,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
             " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     @Autowired
-    public ReferralTransactionDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralTransactionDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

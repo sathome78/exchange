@@ -15,7 +15,9 @@ public enum BusinessUserRoleEnum {
   EXCHANGE,
   VIP_USER,
   TRADER,
-  BOT;
+  BOT,
+  MARKET_MAKER;
+
 
   public static BusinessUserRoleEnum convert(String name) {
     return Arrays.stream(BusinessUserRoleEnum.class.getEnumConstants())

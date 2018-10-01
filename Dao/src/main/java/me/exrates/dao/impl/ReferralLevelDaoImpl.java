@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.model.ReferralLevel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,7 +37,7 @@ public class ReferralLevelDaoImpl implements ReferralLevelDao {
     };
 
     @Autowired
-    public ReferralLevelDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralLevelDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

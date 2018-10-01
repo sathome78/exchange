@@ -4,8 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
-import me.exrates.service.waves.WavesRestClient;
-import me.exrates.service.waves.WavesRestClientImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +36,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
                 "ATB", "ATB", 10, 20, false);
     }
+
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
@@ -115,6 +114,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bca_wallet.properties",
                 "BitcoinAtom", "BCA", 4, 20, false);
     }
+
     @Bean(name = "btcpServiceImpl")
     public BitcoinService btcpService() {
         return new BitcoinServiceImpl("merchants/btcp_wallet.properties",
@@ -148,7 +148,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "nycoinServiceImpl")
     public BitcoinService nycoinService() {
         return new BitcoinServiceImpl("merchants/nyc_wallet.properties",
-                "NYC", "NYC", 4, 20, false, false);
+                "NYC", "NYC", 4, 20, false, true);
     }
 
     @Bean(name = "ptcServiceImpl")
@@ -194,6 +194,39 @@ public class CryptocurrencyConfig {
                 "EQL", "EQL", 4, 20, false);
     }
 
+    @Bean(name = "lbtcServiceImpl")
+    public BitcoinService lbtcService() {
+        return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
+                "LBTC", "LBTC", 4, 20, false);
+    }
+
+    @Bean(name = "brbServiceImpl")
+    public BitcoinService brbService() {
+        return new BitcoinServiceImpl("merchants/brb_wallet.properties",
+                "BRB", "BRB", 4, 20, false, false);
+    }
+
+    @Bean(name = "rizServiceImpl")
+    public BitcoinService rizService() {
+        return new BitcoinServiceImpl("merchants/riz_wallet.properties",
+                "RIZ", "RIZ", 4, 20, false);
+    }
+
+    @Bean(name = "sicServiceImpl")
+    public BitcoinService sicService() {
+        return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
+    }
+
+    @Bean(name = "clxServiceImpl")
+    public BitcoinService clxService() {
+        return new BitcoinServiceImpl("merchants/clx_wallet.properties",
+                "CLX", "CLX", 4, 20, false, false);
+    }
+
+    @Bean(name="cmkServiceImpl")
+    public BitcoinService cmkService(){
+        return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
+    }
     // LISK-like cryptos
 
 
@@ -239,7 +272,7 @@ public class CryptocurrencyConfig {
 
     @Bean(name = "wavesServiceImpl")
     public WavesService wavesService() {
-        return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
+        return new WavesServiceImpl("WAVES", "Waves", "merchants/waves.properties");
     }
 
     @Bean(name = "lunesServiceImpl")

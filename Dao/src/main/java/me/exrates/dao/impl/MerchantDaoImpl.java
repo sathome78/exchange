@@ -10,9 +10,11 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -35,6 +37,7 @@ import java.util.*;
 public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired
@@ -109,6 +112,7 @@ public class MerchantDaoImpl implements MerchantDao {
         merchant.setDescription(resultSet.getString("description"));
         merchant.setId(resultSet.getInt("id"));
         merchant.setName(resultSet.getString("name"));
+        merchant.setProcessType(MerchantProcessType.convert(resultSet.getString("process_type")));
         return merchant;
       });
     } catch (EmptyResultDataAccessException e) {

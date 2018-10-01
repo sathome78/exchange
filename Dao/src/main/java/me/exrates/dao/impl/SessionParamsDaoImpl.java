@@ -4,6 +4,7 @@ import me.exrates.dao.SessionParamsDao;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class SessionParamsDaoImpl implements SessionParamsDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private RowMapper<SessionParams> getSessionParamsRowMapper() {

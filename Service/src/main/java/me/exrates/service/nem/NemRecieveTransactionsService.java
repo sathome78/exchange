@@ -21,12 +21,13 @@ import org.nem.core.serialization.SimpleAccountLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +69,7 @@ public class NemRecieveTransactionsService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 3, 5, TimeUnit.MINUTES);
     }
 
 

@@ -2,19 +2,13 @@ package me.exrates.controller.listener;
 
 import lombok.extern.log4j.Log4j2;
 
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionEvent;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Created by OLEG on 11.10.2016.
  */
 @Log4j2
-public class StoreSessionListenerImpl implements StoreSessionListener {
+public class StoreSessionListenerImpl /*implements StoreSessionListener*/ {
 
-    private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
+    /*private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
 
 
     @Override
@@ -42,6 +36,6 @@ public class StoreSessionListenerImpl implements StoreSessionListener {
         HttpSession session = event.getSession();
         session.setMaxInactiveInterval(0);
         sessionStorage.put(session.getId(), session);
-    }
+    }*/
 
 }

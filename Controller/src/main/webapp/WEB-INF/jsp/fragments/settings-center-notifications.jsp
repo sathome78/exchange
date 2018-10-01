@@ -32,7 +32,6 @@
                                 <%--<td><form:checkbox path="options[${optStatus.index}].sendNotification" value="${notificationOption.sendNotification}"/></td>--%>
                                 <td><form:checkbox path="options[${optStatus.index}].sendEmail" value="${notificationOption.sendEmail}"/></td>
                                 <td hidden><form:input path="options[${optStatus.index}].event" value="${notificationOption.event}"/></td>
-                                <td hidden><form:input path="options[${optStatus.index}].userId" value="${notificationOption.userId}"/></td>
                             </tr>
                         </c:forEach>
                         <tr>

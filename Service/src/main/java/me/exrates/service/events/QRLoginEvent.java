@@ -5,7 +5,6 @@ import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
 
 /**
  * Created by Maks on 06.09.2017.

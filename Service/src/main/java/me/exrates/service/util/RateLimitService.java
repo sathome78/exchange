@@ -1,17 +1,14 @@
 package me.exrates.service.util;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import me.exrates.model.enums.OperationType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by maks on 20.06.2017.

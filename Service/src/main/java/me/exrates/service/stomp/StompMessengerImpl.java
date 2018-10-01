@@ -10,9 +10,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -159,7 +157,10 @@ public class StompMessengerImpl implements StompMessenger{
     @Synchronized
     @Override
     public void sendStatisticMessage(List<Integer> currenciesIds) {
-       sendMessageToDestination("/app/statistics", orderService.getSomeCurrencyStatForRefresh(currenciesIds));
+        Map<RefreshObjectsEnum, String> result =  orderService.getSomeCurrencyStatForRefresh(currenciesIds);
+        result.forEach((k,v) -> {
+            sendMessageToDestination("/app/statistics/".concat(k.getSubscribeChannel()), v);
+        });
     }
 
     @Override
@@ -169,7 +170,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendAlerts(final String message, final String lang) {
-       log.debug("lang to send {}", lang);
+        log.debug("lang to send {}", lang);
         sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 

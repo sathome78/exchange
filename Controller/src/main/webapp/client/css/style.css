@@ -360,7 +360,7 @@ header li {
         font-size: 0.7rem;
     }
 
-    #balance-table button, #balance-table th, #balance-table td {
+    #balance-grid button, #balance-grid th, #balance-grid td {
         font-size: 0.85rem;
     }
 
@@ -401,7 +401,7 @@ header li {
     #notification-icon span.badge {
         font-size: 0.7rem;
     }
-    #balance-table button, #balance-table th, #balance-table td {
+    #balance-grid button, #balance-grid th, #balance-grid td {
         font-size: 1.1rem;
     }
     .blue_area {
@@ -1344,14 +1344,17 @@ td.blue-white {
     color: white;
 }
 
-.table-button-block--wallets {
+.table-button-block--balance {
     min-width: 260px;
 }
 
-.table-button-block .table-button-block__button {
+/*.table-button-block .table-button-block__button {
+    padding: 0 10px;
+}*/
+
+.butto-block {
     padding: 0 10px;
 }
-
 
 .table-button-block__form {
     display: inline-block;
@@ -2215,6 +2218,7 @@ input[type=email], .dropdown-menu__form,
     margin-top: 20px;
     vertical-align: middle;
 }
+
 .access-denied-header {
     margin-bottom: 20px;
 }
@@ -2222,6 +2226,17 @@ input[type=email], .dropdown-menu__form,
 .access-denied-header + p {
     font-size: 2rem;
     margin-bottom: 30px;
+}
+
+#error-message-title {
+    font-size: 25px;
+    font-weight: bold;
+    margin-top: 20px;
+    vertical-align: middle;
+}
+
+#error-redirect-button {
+    margin-bottom: 15px;
 }
 
 #merchant-options-table td {
@@ -2424,4 +2439,52 @@ input.copyable:hover{
 #btcResultInfoTable td:first-child {
     word-break: break-all;
     width: 350px;
+}
+
+.apidoc_methods_container {
+    margin-left: 4%;
+}
+.apidoc_table td{
+    font-size: 1.3rem;
+}
+.apidoc_table td:first-child {
+    width: 150px;
+    padding-right: 10px;
+}
+
+#tokens-table-wrapper, #generate-button-wrapper {
+    margin: 20px 5px;
+}
+
+#api-tokens-table i {
+    font-size: 1.8rem;
+    margin: 0 5px;
+}
+
+.method-group-title {
+    font-size: 2rem;
+    margin: 30px 0;
+}
+
+#api-method-doc {
+    background-color: #ffffff;
+    padding: 0 20px;
+}
+
+.word-wrap-break-work{
+    width: 100%;
+    word-wrap: break-word;
+}
+
+.img-table{
+    width: 100%;
+}
+
+.partners-img{
+    margin-top: 15px;
+    margin-left: 3%;
+    margin-right: 3%;
+    border:0;
+    max-width: 90%;
+    max-height: 90%;
 }

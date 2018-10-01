@@ -66,19 +66,11 @@ public class WalletController {
         return walletService.getWalletConfirmationDetail(walletId, localeResolver.resolveLocale(request));
     }
 
-    
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
     @ResponseBody
     public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException) (exception)).getReason(), null, localeResolver.resolveLocale(req)));
     }
-    
-    
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ErrorInfo commonErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
+
 }

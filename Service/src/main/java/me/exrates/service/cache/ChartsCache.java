@@ -2,7 +2,7 @@ package me.exrates.service.cache;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class  ChartsCache {
     @PostConstruct
     public void init() {
         if (!lazyLoad) {
-            List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs();
+            List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
             pairs.forEach(p -> {
                 log.debug("start initialize cache for {}", p.getName());
                 updateCache(p.getId());
@@ -60,7 +60,6 @@ public class  ChartsCache {
 
 
     public Map<String, String> getData(Integer currencyPairId) {
-        log.error("get data for pair {}", currencyPairId);
         if (!cacheMap.containsKey(currencyPairId)) {
             log.debug("no key {}", currencyPairId );
             updateCache(currencyPairId);
@@ -85,21 +84,17 @@ public class  ChartsCache {
         CountDownLatch currentCountDownLock = countDownLocksMap.computeIfAbsent(currencyPairId, p -> new CountDownLatch(1));
         if (currentSemaphore.tryAcquire()) {
             currentLock.lock();
-            log.debug("update {}", currencyPairId);
             Map<String, String> map = cacheMap.computeIfAbsent(currencyPairId,
                     p -> new ConcurrentHashMap<>());
             orderService.getIntervals().forEach(p -> {
                 map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
             });
-            log.debug("done update for {}", currencyPairId);
             currentSemaphore.release();
             currentCountDownLock.countDown();
             currentLock.unlock();
         } else if(currentLock.isLocked()) {
             try {
-                log.debug("wait for unlock {}", currencyPairId);
                 currentCountDownLock.await(10, TimeUnit.SECONDS);
-                log.debug("unlocked {}", currencyPairId);
             } catch (InterruptedException e) {
                 log.error(e);
             }

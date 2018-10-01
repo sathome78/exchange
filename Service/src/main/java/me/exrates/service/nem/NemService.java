@@ -1,6 +1,5 @@
 package me.exrates.service.nem;
 
-import lombok.Synchronized;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.RefillRequestFlatDto;

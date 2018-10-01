@@ -11,7 +11,7 @@
                 <div class="content modal-content__content-wrapper">
                     <p id='pin_text'></p>
                     <loc:message code="message.pin_code" var="pinPlaceholder"/>
-                    <input id="pin_code" type="password" name="pin" autofocus placeholder="${pinPlaceholder}"/>
+                    <input id="pin_code" type="password" name="pin" autocomplete="off"  autofocus placeholder="${pinPlaceholder}"/>
                     <%--csrf--%>
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <br/>

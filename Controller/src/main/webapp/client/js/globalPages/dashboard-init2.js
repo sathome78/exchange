@@ -22,6 +22,7 @@ var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
+var currentPairName;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
@@ -59,9 +60,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    // if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-    //     subscribeChart();
-    // }
+    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+        subscribeChart();
+    }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -150,7 +151,7 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statisticsNew';
+        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
@@ -261,11 +262,11 @@ function drawTechAlert(object) {
 
 function handleStatisticMessages(object) {
     switch (object.type){
-        case "CURRENCIES_STATISTIC" : {
+        case "MAIN_CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
             break;
         }
-        case "CURRENCY_STATISTIC" : {
+        case "MAIN_CURRENCY_STATISTIC" : {
             object.data.forEach(function(object){
                 leftSider.updateStatisticsForCurrency(object);
             });
@@ -282,9 +283,9 @@ function handleEventsMessage(data) {
         var registered = $('#hello-my-friend')[0];
         var noty = '';
         if (data.redirect.url && registered) {
-            noty = "?errorNoty=" + data.redirect.successQR;
+            window.location = data.redirect.url;
+            /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-        window.location = data.redirect.url + noty;
     }
 
 }
@@ -382,7 +383,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector();
+            trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -420,8 +421,8 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-
-        $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
+    //TODO temporary disabled
+    //    $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
@@ -429,7 +430,7 @@ $(function dashdoardInit() {
 
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -458,18 +459,31 @@ $(function dashdoardInit() {
         });
 
 
-        syncCurrentParams(null, null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart);
-            newChartResolution = data.period;
-            leftSider = new LeftSiderClass();
-            leftSider.setOnWalletsRefresh(function () {
-                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+
+            var url = '/dashboard/createPairSelectorMenu';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (cpData) {
+                    if (!cpData) return;
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart, cpData);
+                    newChartResolution = data.period;
+
+                    leftSider = new LeftSiderClass();
+                    leftSider.setOnWalletsRefresh(function () {
+                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+                    });
+
+                    myWallets = new MyWalletsClass();
+                    myStatements = new MyStatementsClass();
+                    myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
+                    orders = new OrdersClass(data.currencyPair.name, cpData);
+                    /**/
+                    connectAndReconnect();
+                }
             });
-            myWallets = new MyWalletsClass();
-            myStatements = new MyStatementsClass();
-            myHistory = new MyHistoryClass(data.currencyPair.name);
-            orders = new OrdersClass(data.currencyPair.name);
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
@@ -521,7 +535,6 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    connectAndReconnect();
 });
 
 
@@ -543,7 +556,7 @@ function showSubPage(subPageId) {
 }
 
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
@@ -565,6 +578,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            currentPairName = data.currencyPair.name;
             enableF = enableFilter;
             if (period != null) {
                 newChartResolution = period;

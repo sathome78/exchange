@@ -1,8 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import me.exrates.model.exceptions.UnsupportedInvoiceOperationDirectionException;
-
 import java.util.stream.Stream;
 
 /**
@@ -10,11 +7,13 @@ import java.util.stream.Stream;
  */
 public enum NotificationMessageEventEnum {
 
-    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin"),
-    WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin"),
-    TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin");
+    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", true),
+    WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false),
+    TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false);
 
     private int code;
+
+    private boolean canBeDisabled;
 
     private String messageCode;
 
@@ -32,10 +31,15 @@ public enum NotificationMessageEventEnum {
         return sbjCode;
     }
 
-    NotificationMessageEventEnum(int code, String messageCode, String sbjCode) {
+    public boolean isCanBeDisabled() {
+        return canBeDisabled;
+    }
+
+    NotificationMessageEventEnum(int code, String messageCode, String sbjCode, boolean canBeDisabled) {
         this.code = code;
         this.messageCode = messageCode;
         this.sbjCode = sbjCode;
+        this.canBeDisabled = canBeDisabled;
     }
 
     public static NotificationMessageEventEnum convert(int id) {

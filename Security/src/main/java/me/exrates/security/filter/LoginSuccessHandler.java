@@ -3,18 +3,18 @@ package me.exrates.security.filter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.UserIpState;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.ServletException;
@@ -50,9 +50,11 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        super.setAlwaysUseDefaultTargetUrl(false);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
+            request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
@@ -75,10 +77,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
-            ipBlockingService.processLoginSuccess(ip);
+            ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
+            String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
+            request.getSession().removeAttribute("lastPageBeforeLogin");
+            if (!StringUtils.isEmpty(lastPage)) {
+                super.setDefaultTargetUrl(lastPage);
+            }
             super.onAuthenticationSuccess(request, response, authentication);
-
-
         } catch (Exception e) {
             log.error(e);
             authentication.setAuthenticated(false);

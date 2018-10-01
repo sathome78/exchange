@@ -142,6 +142,11 @@ $(function refillCreation() {
             $refillParamsDialog.find('#message').html(message ? message : '');
             $refillParamsDialog.find('#payment-qr').html('');
             $refillParamsDialog.find("#continue-btn").off('click').on('click', function () {
+
+            $("#warning-remporary-validity-refill-request-merchant").modal({
+                backdrop: 'static'
+            });
+
                 window.open("about:blank","newwin");
                 if (!checkRefillParamsEnter()) {
                     return;
@@ -202,10 +207,11 @@ $(function refillCreation() {
                 },
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(data)
             }).success(function (result) {
+                console.log(result);
                 if (!result || !result['redirectionUrl']) {
-                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
+                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['params']['qr'] + "'/>" : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
                     notifications.getNotifications();
                 } else {

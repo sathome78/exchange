@@ -2,7 +2,6 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.BotDao;
 import me.exrates.model.BotLaunchSettings;
-import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
 import me.exrates.model.BotTradingSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
@@ -10,6 +9,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -19,13 +19,13 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 @Repository
 public class BotDaoImpl implements BotDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired

@@ -1,9 +1,7 @@
 package me.exrates.service.stellar;
 
-import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.json.JSONObject;
 import org.stellar.sdk.responses.TransactionResponse;
 
 /**
@@ -58,12 +56,12 @@ public interface StellarService extends IRefillable, IWithdrawable {
 
     @Override
     default String additionalRefillFieldName() {
-        return "MEMO-ID";
+        return "MEMO-TEXT";
     }
 
     @Override
     default String additionalWithdrawFieldName() {
-        return "MEMO-ID";
+        return "MEMO-TEXT";
     }
 
     @Override

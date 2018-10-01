@@ -1,18 +1,16 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.SurveyDao;
-import me.exrates.dao.UserDao;
 import me.exrates.model.dto.SurveyDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public class SurveyDaoImpl implements SurveyDao {
@@ -20,6 +18,7 @@ public class SurveyDaoImpl implements SurveyDao {
   private static final Logger log = LogManager.getLogger("survey");
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired

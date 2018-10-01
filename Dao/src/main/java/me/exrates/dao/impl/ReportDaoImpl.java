@@ -3,14 +3,13 @@ package me.exrates.dao.impl;
 import me.exrates.dao.ReportDao;
 import me.exrates.model.enums.AdminAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class ReportDaoImpl implements ReportDao {
@@ -19,6 +18,7 @@ public class ReportDaoImpl implements ReportDao {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 

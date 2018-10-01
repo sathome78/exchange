@@ -27,10 +27,14 @@ function MyWalletsClass() {
             }, refreshIntervalForMyWalletsData);
             return;
         }
+        if( $('#myInputTextField').val().length > 0 ) {
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowMyWalletsData');
         }
-        var $balanceTable = $('#balance-table').find('tbody');
+
+        var $balanceTable = $('#balance-grid').find('tbody');
         var url = '/dashboard/myWalletsData' + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
@@ -48,8 +52,9 @@ function MyWalletsClass() {
                         $balanceTable.append(tmpl($tmpl, e));
                     });
                     blink($balanceTable.find('td:not(:first-child)'));
+                    excludeZero();
+
                 }
-                excludeZero();
                 clearTimeout(timeOutIdForMyWalletsData);
                 timeOutIdForMyWalletsData = setTimeout(function () {
                     that.getAndShowMyWalletsData(true);
@@ -58,19 +63,26 @@ function MyWalletsClass() {
         });
     };
     /*=====================================================*/
-    (function init() {
+    (function init(cpData) {
         that.getAndShowMyWalletsData();
-        $('#balance-table').on('mouseleave', function (e) {
+        $('#exclude-zero-mybalances').prop('checked', localStorage.checked == 'true');
+        excludeZero();
+        $('#balance-grid').on('mouseleave', function (e) {
             hideConfirmationDetailTooltip();
         });
 
-        $('#balance-table').on('click', '.mywallet-item-detail', function (e) {
+        $('#balance-grid').on('click', '.mywallet-item-detail', function (e) {
             hideConfirmationDetailTooltip();
             var walletId = $(this).data('walletid');
             getMyWalletConfirmationDetail(walletId, $(this));
         });
-        $('#exclude-zero-mybalances').change(function() {
+        $('#exclude-zero-mybalances').click(function(e){
             excludeZero();
+            if (e.target.checked) {
+                localStorage.checked = true;
+            } else {
+                localStorage.checked = false;
+            }
         });
 
         var getCellValue = function(tr, idx){ return tr.children[idx].innerText || tr.children[idx].textContent; }
@@ -89,24 +101,30 @@ function MyWalletsClass() {
     })();
 
     function excludeZero() {
-        var i, table, tr, td2, td4, activeBalance, reservedBalance;
-        var excludeZeroes = $('#exclude-zero-mybalances').prop('checked');
-        var table = document.getElementById("balance-table");
-        var tr = table.getElementsByTagName("tr");
+        var exclZeroes = $('#exclude-zero-mybalances').prop('checked');
+        var input, filter, table, tr, td1, td2, td3, td4, i, activeBalance, reservedBalance;;
+        input = document.getElementById("myInputTextField");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("balance-grid");
+        tr = table.getElementsByTagName("tr");
 
         for (i = 0; i < tr.length; i++) {
-            td2 = tr[i].getElementsByTagName("td")[2];
+            td1 = tr[i].getElementsByTagName("td")[0];
+            td2 = tr[i].getElementsByTagName("td")[1];
+            td3 = tr[i].getElementsByTagName("td")[2];
             td4 = tr[i].getElementsByTagName("td")[4];
-            if(td2 || td4) {
-                activeBalance =  parseFloat(td2.innerText) || 0;
+            if (td1 || td2 || td3 || td4) {
+                activeBalance =  parseFloat(td3.innerText) || 0;
                 reservedBalance =  parseFloat(td4.innerText) || 0;
-                if (excludeZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
-                    tr[i].style.display = "none";
-                } else {
+                if ((td1.innerHTML.toUpperCase().indexOf(filter) > -1) || (td2.innerHTML.toUpperCase().indexOf(filter) > -1) ) {
                     tr[i].style.display = "";
+                    if (exclZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
+                        tr[i].style.display = "none";
+                    }
+                } else {
+                    tr[i].style.display = "none";
                 }
             }
-
         }
     }
 
@@ -143,20 +161,29 @@ function MyWalletsClass() {
     }
 }
 function mySearchFunction() {
+    var exclZeroes = $('#exclude-zero-mybalances').prop('checked');
+
     // Declare variables
-    var input, filter, table, tr, td1, td2, i;
+    var input, filter, table, tr, td1, td2, td3, td4, i, activeBalance, reservedBalance;;
     input = document.getElementById("myInputTextField");
     filter = input.value.toUpperCase();
-    table = document.getElementById("balance-table");
+    table = document.getElementById("balance-grid");
     tr = table.getElementsByTagName("tr");
 
     // Loop through all table rows, and hide those who don't match the search query
     for (i = 0; i < tr.length; i++) {
         td1 = tr[i].getElementsByTagName("td")[0];
         td2 = tr[i].getElementsByTagName("td")[1];
-        if (td1 || td2) {
+        td3 = tr[i].getElementsByTagName("td")[2];
+        td4 = tr[i].getElementsByTagName("td")[4];
+        if (td1 || td2 || td3 || td4) {
+            activeBalance =  parseFloat(td3.innerText) || 0;
+            reservedBalance =  parseFloat(td4.innerText) || 0;
             if ((td1.innerHTML.toUpperCase().indexOf(filter) > -1) || (td2.innerHTML.toUpperCase().indexOf(filter) > -1) ) {
                 tr[i].style.display = "";
+                if (exclZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
+                    tr[i].style.display = "none";
+                }
             } else {
                 tr[i].style.display = "none";
             }

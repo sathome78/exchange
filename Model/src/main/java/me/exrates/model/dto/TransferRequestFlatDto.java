@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.Merchant;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;

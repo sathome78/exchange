@@ -7,6 +7,7 @@ import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -32,6 +33,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 
 	@Autowired
+	@Qualifier(value = "masterTemplate")
 	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override

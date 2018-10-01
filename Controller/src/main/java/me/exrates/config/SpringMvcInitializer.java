@@ -1,7 +1,7 @@
 package me.exrates.config;
 
+import me.exrates.controller.filter.HeaderFilter;
 import me.exrates.controller.filter.XssRequestFilter;
-import me.exrates.controller.listener.StoreSessionListenerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -61,13 +61,14 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     public Filter[] getServletFilters() {
-        return new Filter[]{new XssRequestFilter(), new CharacterEncodingFilter("UTF-8", true)};
+        return new Filter[]{new XssRequestFilter(), new HeaderFilter(), new CharacterEncodingFilter("UTF-8", true)};
     }
 
     @Override
     protected void registerDispatcherServlet(ServletContext servletContext) {
         super.registerDispatcherServlet(servletContext);
         servletContext.addListener(HttpSessionEventPublisher.class);
-        servletContext.addListener(StoreSessionListenerImpl.class);
+        //TODO temporary disable
+        //  servletContext.addListener(StoreSessionListenerImpl.class);
     }
 }

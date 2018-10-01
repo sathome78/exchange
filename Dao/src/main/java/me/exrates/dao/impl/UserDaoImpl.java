@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -54,6 +55,7 @@ public class UserDaoImpl implements UserDao {
       "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired
@@ -90,6 +92,21 @@ public class UserDaoImpl implements UserDao {
     };
   }
 
+  private RowMapper<User> getUserRowMapperWithoutRoleAndParentEmail() {
+    return (resultSet, i) -> {
+      final User user = new User();
+      user.setId(resultSet.getInt("id"));
+      user.setNickname(resultSet.getString("nickname"));
+      user.setEmail(resultSet.getString("email"));
+      user.setPassword(resultSet.getString("password"));
+      user.setRegdate(resultSet.getDate("regdate"));
+      user.setPhone(resultSet.getString("phone"));
+      user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+      user.setFinpassword(resultSet.getString("finpassword"));
+      return user;
+    };
+  }
+
   public int getIdByEmail(String email) {
     String sql = "SELECT id FROM USER WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
@@ -113,6 +130,15 @@ public class UserDaoImpl implements UserDao {
     }
   }
 
+  public boolean setNickname(String newNickName, String userEmail) {
+    String sql = "UPDATE USER SET nickname=:nickname WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("nickname", newNickName);
+    namedParameters.put("email", userEmail);
+    int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+    return result > 0;
+  }
+
   public boolean create(User user) {
     String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
         "values(:nickname,:email,:password,:phone,:status,:roleid)";
@@ -122,9 +148,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    String hashedPassword = passwordEncoder.encode(user.getPassword());
-    namedParameters.put("password", hashedPassword);
+    if (user.getPassword() != null) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      String hashedPassword = passwordEncoder.encode(user.getPassword());
+      namedParameters.put("password", hashedPassword);
+    } else {
+      namedParameters.put("password", user.getPassword());
+    }
     String phone = user.getPhone();
     if (user.getPhone() != null && user.getPhone().equals("")) {
       phone = null;
@@ -278,13 +308,13 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, params) > 0;
   }
 
-  public boolean addUserRoles(String email, String role) {
+  /*public boolean addUserRoles(String email, String role) {
     String sql = "insert into USER_ROLE(name, user_id) values(:name,:userid)";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("name", role);
     namedParameters.put("userid", String.valueOf(getIdByEmail(email)));
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
+  }*/
 
   @Override
   public User findByEmail(String email) {
@@ -351,6 +381,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("id", String.valueOf(id));
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
+  }
+
+  public User getUserByTemporalToken(String token){
+    String sql = "SELECT * FROM USER WHERE USER.id =(SELECT TEMPORAL_TOKEN.user_id FROM TEMPORAL_TOKEN WHERE TEMPORAL_TOKEN.value=:token_value)";
+    Map<String,String> namedParameters = new HashMap<>();
+    namedParameters.put("token_value",token);
+    return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
   }
 
   @Override
@@ -529,6 +566,7 @@ public class UserDaoImpl implements UserDao {
         temporalToken.setId(rs.getInt("id"));
         temporalToken.setUserId(rs.getInt("user_id"));
         temporalToken.setValue(token);
+        temporalToken.setAlreadyUsed(rs.getBoolean("already_used"));
         temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
         temporalToken.setExpired(rs.getBoolean("expired"));
         temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));
@@ -1044,7 +1082,5 @@ public class UserDaoImpl implements UserDao {
     params.put("end_time", Timestamp.valueOf(endTime));
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
-
-
 
 }

@@ -7,10 +7,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -56,7 +53,6 @@ public class WsContorller {
 
     @SubscribeMapping("/users_alerts/{loc}")
     public String usersAlerts(@DestinationVariable String loc) throws JsonProcessingException {
-        log.debug("locale {}", loc);
         if (!userService.getLocalesList().contains(loc)) {
             throw new RuntimeException("unsupported locale");
         }
@@ -75,9 +71,10 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
-    @SubscribeMapping("/statistics")
-    public String subscribeStatistic() {
-        return orderService.getAllCurrenciesStatForRefresh();
+    @SubscribeMapping("/statistics/{type}")
+    public String subscribeStatistic(@DestinationVariable String type) {
+        RefreshObjectsEnum refreshObjectsEnum = RefreshObjectsEnum.valueOf(type);
+        return orderService.getAllCurrenciesStatForRefresh(refreshObjectsEnum);
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")

@@ -1,9 +1,6 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
-import me.exrates.model.dto.onlineTableDto.OrderListDto;
-
-import java.util.List;
 
 /**
  * Created by maks on 02.08.2017.

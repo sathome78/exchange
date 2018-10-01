@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
-import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
@@ -30,6 +29,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
        /* -----------------------------------------------------------------------------------------------------------*/
         messages.nullDestMatcher().permitAll()
                 .simpSubscribeDestMatchers("/app/statistics").permitAll()
+                .simpSubscribeDestMatchers("/app/statistics/*").permitAll()
                 .simpSubscribeDestMatchers("/app/statisticsNew").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()

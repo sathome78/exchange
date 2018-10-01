@@ -39,8 +39,8 @@ function SettingsClass() {
         }
 
 
-        setActiveSwitcher();
-        switchPassTab();
+        /* setActiveSwitcher();
+         switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -50,21 +50,21 @@ function SettingsClass() {
         checkSmsNumber();
     })();
 
-    function setActiveSwitcher(){
-        $('.orderForm-toggler').removeClass('active');
-        $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-    }
+    /* function setActiveSwitcher(){
+         $('.orderForm-toggler').removeClass('active');
+         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
+     }*/
 
-    function switchPassTab(){
+    /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
         $('#'+tabId).siblings().removeClass('active');
         $('#'+tabId).addClass('active');
         blink($('#passwords-changing').find('[for="user-password"]'));
         blink($('#passwords-changing').find('[for="userFin-password"]'));
-    }
+    }*/
 
-   $('#sessionTime').on('change keyup', function() {
-       console.log('change');
+    $('#sessionTime').on('change keyup', function() {
+        console.log('change');
         var value = $(this).val(); // get the current value of the input field.
         var sendButton = $('#submitSessionOptionsButton');
         if (!value || isNaN(value)) {
@@ -89,7 +89,7 @@ function SettingsClass() {
     }
 
     $('#subscribe_SMS').on('click', function() {
-       connectOrReconnect();
+        connectOrReconnect();
     });
 
     $('#reconnect_SMS').on('click', function() {
@@ -106,15 +106,15 @@ function SettingsClass() {
         $smsNumberError.text('');
         var val = $smsNumberInput.val().replace('+','').replace(" ", "").replace("-", "");
         $.ajax({
-                url: '/settings/2FaOptions/preconnect_sms?number=' + val,
-                type: 'GET',
-                success: function (data) {
-                    $smsMessagePrice.text(data);
-                    $('#sms_instruction').show();
-                    $('#sms_connect_button').prop('disabled', false);
-                }, error: function (data) {
-                    $smsNumberError.text(data.responseJSON.detail);
-                }
+            url: '/settings/2FaOptions/preconnect_sms?number=' + val,
+            type: 'GET',
+            success: function (data) {
+                $smsMessagePrice.text(data);
+                $('#sms_instruction').show();
+                $('#sms_connect_button').prop('disabled', false);
+            }, error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
         });
     });
 
@@ -264,4 +264,171 @@ function SettingsClass() {
         });
     });
 
+}
+
+$(function () {
+    const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
+    const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+    const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
+
+    const fieldContainsSpace = new RegExp("\\s");
+
+    $("#password-change-button").click(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '/settings/changePassword/submit',
+            type: 'POST',
+            data: $('#settings-user-password-form').serialize(),
+            success: function (data) {
+                successNoty(data.message)
+            }, error: function (data) {
+                errorNoty(data.responseJSON.message);
+            }, complete : function () {
+                $('#user-confirmpassword').val('');
+                $('#user-password').val('');
+                $('#confirmNewPassword').val('');
+                $('#user-confirmpassword').attr('readonly', true);
+                $('#confirmNewPassword').attr('readonly', true);
+                $('.repass').css("display", "none");
+                $('.repass-error').css("display", "none");
+                $('#password-change-button').attr('disabled', true);
+            }
+        });
+    });
+
+    if (document.getElementById("password-change-button")) {
+        checkPasswordFieldsOnFillInUserSettings();
+    }
+
+    if (document.getElementById("user-password")) {
+        checkOldPasswordField();
+    }
+
+    if (document.getElementById("user-password") && document.getElementById("user-confirmpassword")) {
+        checkOldPasswordAndNewPasswordField();
+    }
+
+    $('#user-confirmpassword').keyup(debounce(function(){
+        /**
+         * Start validation for password confirm
+         */
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+
+        if (pass && (pass === repass)) {
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        }
+        else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+        /**
+         * End validation for password confirm
+         */
+
+        $('#new_password_wrong').css('display', 'none');
+        $('#new_password_required').css('display', 'none');
+
+        if(!pass) {
+            $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+            $('#new_password_required').css('display', 'block');
+            $("#password-change-button").attr('disabled', true);
+            checkPasswordFieldsOnFillInUserSettings();
+            return;
+        }
+        if ((passwordPatternLettersAndNumbers.test(pass) || passwordPatternLettersAndCharacters.test(pass)
+            || passwordPatternLettersAndNumbersAndCharacters.test(pass)) && !fieldContainsSpace.test(pass)) {
+            $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
+            $("#password-change-button").attr('disabled', false);
+            checkPasswordFieldsOnFillInUserSettings();
+        } else {
+            $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
+            $('#new_password_wrong').css('display', 'block');
+            $("#password-change-button").attr('disabled', true);
+            checkPasswordFieldsOnFillInUserSettings();
+        }
+    },100));
+
+    $("#confirmNewPassword").keyup(function () {
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+        if (repass && (pass === repass)) {
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        } else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+    });
+
+    $('#user-password').keyup(checkOldPasswordField);
+    $('#user-password, #user-confirmpassword').keyup(checkOldPasswordAndNewPasswordField);
+    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
+
+});
+
+/**
+ * Check password fields on fill for change password by user in user settings.
+ */
+function checkPasswordFieldsOnFillInUserSettings() {
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+    var confirmNewPassword = $('#confirmNewPassword').val();
+    if (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword)) {
+        $("#password-change-button").attr('disabled', false);
+    } else {
+        $("#password-change-button").attr('disabled', true);
+    }
+}
+
+/**
+ * Remove disabled from buttons newPassword, when old password field fill.
+ */
+function checkOldPasswordField(){
+    var password = $('#user-password').val();
+
+    if (password) {
+        $("#user-confirmpassword").attr('readonly', false);
+    } else {
+        $("#user-confirmpassword").attr('readonly', true);
+    }
+}
+
+/**
+ * Remove disabled from button confirmNewPassword, when old password and new password fields fill.
+ */
+function checkOldPasswordAndNewPasswordField(){
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+
+    if (password && newPassword) {
+        $("#confirmNewPassword").attr('readonly', false);
+    } else {
+        $("#confirmNewPassword").attr('readonly', true);
+    }
+}
+
+/**
+ * Do some function after wait interval
+ * @param func
+ * @param wait
+ * @param immediate
+ * @returns {Function}
+ */
+function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
 }

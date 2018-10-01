@@ -3,13 +3,7 @@ package me.exrates.service.notifications.sms;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.LookupResponseDto;
 import me.exrates.service.exception.*;
-import me.exrates.service.notifications.Subscribable;
-import org.apache.commons.lang.CharUtils;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpMethod;
@@ -19,10 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-
 import java.math.BigDecimal;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Random;
 
 import static rx.internal.operators.NotificationLite.isError;

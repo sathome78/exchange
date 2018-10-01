@@ -4,9 +4,109 @@
 
 var currentId;
 var currentRole;
+var tableViewType;
+var $tableTest;
+var dataTableTest;
+var filterParams;
+$(function () {
+    $tableTest = $('#walletsSummaryTable');
+    $('#panelADMIN').click(function () {
+        changeTableViewType("ADMIN")
 
-function uploadUserWallets(role) {
-    currentRole = role;
+    });
+    $('#panelUSER').click(function () {
+        changeTableViewType("USER")
+
+    });
+    $('#panelEXCHANGE').click(function () {
+        changeTableViewType("EXCHANGE")
+
+    });
+    $('#panelVIP_USER').click(function () {
+        changeTableViewType("VIP_USER")
+
+    });
+    $('#panelTRADER').click(function () {
+        changeTableViewType("TRADER")
+
+    });
+    $('#panelALL').click(function () {
+        changeTableViewType("ALL")
+    });
+    function changeTableViewType(newStatus) {
+        tableViewType = newStatus;
+        filterParams = '';
+        $('#walletsSummaryTable').DataTable().clear().destroy();
+        updateWalletTestTable();
+    }
+    filterParams = '';
+    tableViewType = "ADMIN";
+    updateWalletTestTable();
+});
+
+function updateWalletTestTable() {
+    var filter = filterParams.length > 0 ? '&' + filterParams : '';
+    var url = '/2a8fy7b07dxe44/walletsSummaryTable?viewType=' + tableViewType + filter;
+
+    if ($.fn.dataTable.isDataTable('#walletsSummaryTable')) {
+        dataTableTest = $tableTest.DataTable();
+        dataTableTest.ajax.url(url).load();
+    } else {
+        dataTableTest = $tableTest.DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "processing": true,
+            "paging": true,
+            "info": true,
+            "bFilter": true,
+            "deferRender": true,
+            "bDestroy": true,
+            "columns": [
+                {
+                    "data": "currencyName"
+                },
+                {
+                    "data": "walletsAmount"
+                },
+                {
+                    "data": "balance"
+                },
+                {
+                    "data": "balancePerWallet"
+                },
+                {
+                    "data": "activeBalance"
+                },
+                {
+                    "data": "activeBalancePerWallet"
+                },
+                {
+                    "data": "reservedBalance"
+                },
+                {
+                    "data": "reservedBalancePerWallet"
+                },
+                {
+                    "data": "merchantAmountInput"
+                },
+                {
+                    "data": "merchantAmountOutput"
+                }
+            ],
+            "order": [
+                [
+                    0, "asc"
+                ]
+            ],
+            "deferLoading": 6
+        });
+
+    }
+}
+function uploadUserWallets() {
+    currentRole = tableViewType;
     currentId = 'upload-users-wallets';
     showDialog({
         currencyPicker: false,
@@ -16,8 +116,8 @@ function uploadUserWallets(role) {
     });
 }
 
-function uploadUserWalletsInOut(role) {
-    currentRole = role;
+function uploadUserWalletsInOut() {
+    currentRole = tableViewType;
     currentId = 'upload-users-wallets-inout';
     showDialog({
         currencyPicker: false,
@@ -27,8 +127,8 @@ function uploadUserWalletsInOut(role) {
     });
 }
 
-function uploadUserWalletsOrders(role) {
-    currentRole = role;
+function uploadUserWalletsOrders() {
+    currentRole = tableViewType;
     currentId = 'upload-users-wallets-orders';
     showDialog({
         currencyPicker: false,
@@ -38,8 +138,8 @@ function uploadUserWalletsOrders(role) {
     });
 }
 
-function uploadUserWalletsOrdersByCurrencyPairs(role) {
-    currentRole = role;
+function uploadUserWalletsOrdersByCurrencyPairs() {
+    currentRole = tableViewType;
     currentId = 'upload-users-wallets-orders-by-currency-pairs';
     showDialog({
         currencyPicker: false,
@@ -49,8 +149,8 @@ function uploadUserWalletsOrdersByCurrencyPairs(role) {
     });
 }
 
-function uploadInputOutputSummaryReport(role) {
-    currentRole = role;
+function uploadInputOutputSummaryReport() {
+    currentRole = tableViewType;
     currentId = 'downloadInputOutputSummaryReport';
     showDialog({
         currencyPairPicker: false,
@@ -63,10 +163,10 @@ function uploadUserTransactionsReport(paramsString) {
     makeReportByParams(paramsString);
 }
 
-function uploadUserIps(role) {
-    currentRole = role;
+function uploadUserIps() {
+    currentRole = tableViewType;
     currentId = 'upload-users-ips';
-    makeReportByParams('role=' + role)
+    makeReportByParams('role=' + tableViewType)
 }
 
 

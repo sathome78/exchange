@@ -294,7 +294,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  @Transactional
   public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
@@ -1092,5 +1091,10 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
     return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
   }
 }

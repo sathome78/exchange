@@ -64,9 +64,11 @@
                                             </td>
                                         </c:forEach>
                                             <td><input type="radio" name="${event.code}" value="0"
-                                                    <c:if test="${settings.get(event.code) == null or settings.get(event.code).notificatorId == null}"> CHECKED</c:if>
+                                                    <c:if test="${not event.canBeDisabled}">disabled</c:if>
+                                                    <c:if test="${(settings.get(event.code) == null or settings.get(event.code).notificatorId == null)
+                                                        and event.canBeDisabled}"> CHECKED</c:if>
                                                 />
-                                            </td>
+                                                            </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>

@@ -4,6 +4,7 @@ import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
@@ -25,7 +26,7 @@ public class ChatDaoImpl implements ChatDao {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ChatDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
+    public ChatDaoImpl(@Qualifier(value = "masterTemplate")NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

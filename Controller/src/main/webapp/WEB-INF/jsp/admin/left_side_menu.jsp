@@ -147,7 +147,7 @@
 
         <li>
             <%--crypto wallets--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                 <a href="#cryptoWalletsMenu"  data-toggle="collapse">
                     <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="cryptoWalletsMenu">

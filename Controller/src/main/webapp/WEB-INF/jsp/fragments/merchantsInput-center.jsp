@@ -210,6 +210,7 @@
   <%@include file="modal/dialogRefillDetailedParamsEnter_modal.jsp" %>
   <%@include file="modal/dialogRefillConfirmationParamsEnter_modal.jsp" %>
   <%@include file="modal/confirm_with_info_modal.jsp" %>
+  <%@include file="modal/warning_temporary_validity_refill_request_merchant.jsp"%>
 </div>
 <c:if test="${not empty warningSingleAddress}">
   <div class="row inout-warning">

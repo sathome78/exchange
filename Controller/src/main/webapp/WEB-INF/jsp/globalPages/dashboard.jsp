@@ -29,7 +29,7 @@
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
-    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+    <script src="<c:url value="/client/js/datatables.js"/>" type="text/javascript"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <%--<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">--%>
@@ -76,12 +76,15 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
-   <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
+    <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
+    <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
     <!-- Amcharts Charts ... -->
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
@@ -91,6 +94,8 @@
 
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
+
 
 </head>
 <body>
@@ -127,10 +132,10 @@
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>
 <c:if test="${successRegister}"><span hidden id="successRegister"></span></c:if>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
 </body>
 </html>
-

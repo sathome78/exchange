@@ -1,2 +1,0 @@
-UPDATE MERCHANT SET `service_bean_name`='ethereumServiceImpl', `tokens_parrent_id`='16' WHERE name = 'Ink';
-UPDATE REFILL_REQUEST_ADDRESS set is_valid = 0 where currency_id = (select id from CURRENCY where name = 'Ink');

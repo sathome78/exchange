@@ -71,6 +71,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
   <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
   <%--... Angular and binded--%>
+  <%@include file="../tools/newCapchaScripts.jsp" %>
 </head>
 
 <style>

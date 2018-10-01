@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 public class OrderWideListDto extends OnlineTableDto{
     private int id;
     private int userId;
-    private OperationType operationType;
+    private String operationType;
+    private OperationType operationTypeEnum;
     private String stopRate; /*for stop orders*/
     private String exExchangeRate;
     private String amountBase;
@@ -90,14 +91,6 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public void setUserId(int userId) {
         this.userId = userId;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
     }
 
     public String getExExchangeRate() {
@@ -242,5 +235,21 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public void setOrderBaseType(OrderBaseType orderBaseType) {
         this.orderBaseType = orderBaseType;
+    }
+
+    public void setOperationType(String operationType) {
+        this.operationType = operationType;
+    }
+
+    public OperationType getOperationTypeEnum() {
+        return operationTypeEnum;
+    }
+
+    public void setOperationTypeEnum(OperationType operationTypeEnum) {
+        this.operationTypeEnum = operationTypeEnum;
+    }
+
+    public String getOperationType() {
+        return operationType;
     }
 }

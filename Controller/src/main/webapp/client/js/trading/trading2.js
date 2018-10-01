@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback) {
+function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -13,6 +13,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     var that = this;
     var chart = null;
     var orderRoleFilter = null;
+    var currentPair = currentCurrencyPair;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -48,15 +49,16 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
         that.getChart().switchCurrencyPair();
+        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState(onCurrencyPairChange);
-
+    this.syncCurrencyPairSelector = function (cpName) {
+        dashboardCurrencyPairSelector.syncState('MAIN', onCurrencyPairChange);
+        currentPair = cpName;
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
@@ -349,7 +351,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             $('#amount-stop').val(initialAmountString);
             calculateFieldsForStop();
             that.fillOrderBalance(currencyPairName);
-
+      
 
 
         });
@@ -500,11 +502,11 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
 
 
     /*=========================================================*/
-    (function init(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback) {
+    (function init(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback, cpData) {
         getOrderCommissions();
-        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
+        dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         chart = new ChartAmchartsClass2(currentCurrencyPair, chartSubscribeCallback);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange);
         } catch (e) {
@@ -552,7 +554,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback);
+    })(currentCurrencyPair, orderRoleFilterEnabled, chartSubscribeCallback, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
@@ -686,6 +688,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair = currentPair;
         /**/
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');

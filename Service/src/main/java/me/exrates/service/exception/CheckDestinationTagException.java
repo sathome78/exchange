@@ -9,6 +9,7 @@ public class CheckDestinationTagException extends RuntimeException {
 
     public CheckDestinationTagException(String message, String fieldName) {
         super(message);
+        this.fieldName = fieldName;
     }
 
     public String getFieldName() {
