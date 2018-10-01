@@ -1,4 +1,4 @@
-package com.birzha.SpringSecurity;
+package com.birzha.security;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

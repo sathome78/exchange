@@ -68,7 +68,7 @@ public interface CurrencyDao {
 
   MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
 
-  CurrencyPair findCurrencyPairByName(String pairName);
+  CurrencyPair findCurrencyPairByName(String currencyPair);
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 

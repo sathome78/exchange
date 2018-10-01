@@ -976,11 +976,12 @@ public class WalletDaoImpl implements WalletDao {
         "             (WALLET.currency_id = :currency_id) " +
         " WHERE (EXORDERS.id = :order_id)" +
         " FOR UPDATE "; //FOR UPDATE !Impotant
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("order_id", orderId);
-    namedParameters.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("order_id", orderId);
+    params.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
     try {
-      return jdbcTemplate.queryForObject(sql, namedParameters, getWalletsForOrderCancelDtoMapper(operationType));
+      return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper(operationType));
     } catch (EmptyResultDataAccessException e) {
       return null;
     }

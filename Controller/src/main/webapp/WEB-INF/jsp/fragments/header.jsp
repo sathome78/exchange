@@ -211,10 +211,13 @@
                         </c:otherwise>
                     </c:choose>
                     <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
-                        Wrong email
+                        <loc:message code="register.emailWrong"/>
                     </div>
                     <div id="email_pwd_restore_notExist" class='field__error' style="display:none">
                         <loc:message code="login.notExists.email"/>
+                    </div>
+                    <div id="ip_banned_incorrect_attempts_exceeded_recover" class='field__error' style="display:none">
+                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
                 </div>
 
@@ -257,7 +260,7 @@
                             <input id="pin" name="l_pin" type="text" placeholder="${pin}" class="form-control input-block-wrapper__input"/>
                         </div>
                         <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
-                            Wrong email
+                            <loc:message code="register.emailWrong"/>
                         </div>
                     </div>
 
@@ -289,10 +292,13 @@
                 <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
 
                 <div class="field">
-                    <div class="field__label">Email</div>
+                    <div id="email_label" class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
                     <div id="reg__email_exists" class='field__error' style="display:none">
                         <loc:message code="register.emailExists"/>
+                    </div>
+                    <div id="ip_banned_incorrect_attempts_exceeded" class='field__error' style="display:none">
+                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
                     <div id="reg__email_wrong" class='field__error' style="display:none">
                         <loc:message code="register.emailWrong"/>

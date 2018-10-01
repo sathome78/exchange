@@ -97,10 +97,17 @@ public enum OperationType {
     }
 
     public static OperationType convert(int id) {
-        return Arrays.stream(OperationType.class.getEnumConstants())
-            .filter(e -> e.type == id)
+        return Arrays.stream(OperationType.values())
+            .filter(operationType -> operationType.type == id)
             .findAny()
             .orElseThrow(() -> new UnsupportedOperationTypeException(id));
+    }
+
+    public static OperationType of(String value) {
+        return Arrays.stream(OperationType.values())
+                .filter(operationType -> operationType.name().equals(value))
+                .findAny()
+                .orElseThrow(() -> new UnsupportedOperationTypeException("Not supported booking status: " + value));
     }
 
     public String toString(MessageSource messageSource, Locale locale) {
