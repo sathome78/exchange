@@ -504,30 +504,34 @@ public class EntryController {
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/verify_google2fa")
-    public RedirectView verifyGoogleAuthenticatorConnect(RedirectAttributes redirectAttributes,
-                                                         HttpServletRequest request,
-                                                         Principal principal) {
-        RedirectView redirectView = new RedirectView("/settings");
-
-        String code = request.getParameter("google2fa_code");
-        boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
-        try {
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code,  Principal principal) {
+        if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             if(!notificationService.checkGoogle2faVerifyCode(code, user.getId())){
                 throw new IncorrectSmsPinException("");
             }
-            if (connect) {
-                notificationService.setEnable2faGoogleAuth(user.getId(), true);
-            } else {
-                notificationService.setEnable2faGoogleAuth(user.getId(), false);
-                notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-            }
-        }catch (Exception e) {
-            log.error(e);
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
-                    localeResolver.resolveLocale(request)));
-            throw e;
+
         }
+        return "";
+    }
+
+    @ResponseBody
+    @RequestMapping ("/settings/2FaOptions/google2fa_connect")
+    public RedirectView connectGoogleAuthenticatorConnect(RedirectAttributes redirectAttributes,
+                                                         HttpServletRequest request,
+                                                         Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+        boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
+        User user = userService.findByEmail(principal.getName());
+        if (connect) {
+            notificationService.setEnable2faGoogleAuth(user.getId(), true);
+        } else {
+            notificationService.setEnable2faGoogleAuth(user.getId(), false);
+            notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+        }
+
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                localeResolver.resolveLocale(request)));
         redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
 
         return redirectView;

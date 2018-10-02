@@ -4,8 +4,6 @@
         <div class="modal-content">
             <div class="modal-body">
                 <div id="google2fa_connect_block" style="border: 1px solid rgba(0, 0, 0, 0.29); border-radius: 4px; margin: 0 5px; padding: 10px">
-                    <form method="post" action="/settings/2FaOptions/verify_google2fa">
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <div style="border: 1px solid rgba(0, 0, 0, 0.29); border-radius: 4px; margin: 0 5px; padding: 10px">
                         <h5 class="modal-title"><loc:message code="message.attention"/></h5>
                     </div>
@@ -31,8 +29,7 @@
                             </div>
                             <div style="margin-bottom: 12px; ">
                                 <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
-                                <input id="google2fa_code_input" name="google2fa_code" type="text" style="float:right; border: 1px solid grey;">
-                                <input type="hidden" name="connect" value="true"/>
+                                <input id="google2fa_code_input" type="text" style="float:right; border: 1px solid grey;">
                                 <div class="clearfix"></div>
                             </div>
                             <div style="margin-bottom: 8px;"><loc:message code="ga.2fa_turnon"/></div>
@@ -46,12 +43,8 @@
                             </button>
                     </div>
                     <div class="clearfix"></div>
-                    </form>
             </div>
-
                 <div id="google2fa_disconnect_block" style="border: 1px solid rgba(0, 0, 0, 0.29); border-radius: 4px; margin: 0 5px; padding: 10px">
-                    <form method="post" action="/settings/2FaOptions/verify_google2fa">
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <div style="border: 1px solid rgba(0, 0, 0, 0.29); border-radius: 4px; margin: 0 5px; padding: 10px">
                         <h5 class="modal-title"><loc:message code="message.attention"/></h5>
                     </div>
@@ -77,8 +70,7 @@
                         </div>
                         <div style="margin-bottom: 12px; ">
                             <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
-                            <input id="disconnect_google2fa_code_input" name="google2fa_code" type="text" style="float:right; border: 1px solid grey;">
-                            <input type="hidden" name="connect" value="false"/>
+                            <input id="disconnect_google2fa_code_input" type="text" style="float:right; border: 1px solid grey;">
                             <div class="clearfix"></div>
                         </div>
                         <button id='disconnect_google2fa_send_code_button'  class="btn btn-default" style="float:right;" disabled >
@@ -86,7 +78,6 @@
                         </button>
                     </div>
                     <div class="clearfix"></div>
-                    </form>
                 </div>
         </div>
     </div>

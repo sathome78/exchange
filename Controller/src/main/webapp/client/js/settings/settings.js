@@ -132,6 +132,67 @@ function SettingsClass() {
         }
     }
 
+    $('#google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                var form = document.createElement("form");
+                form.setAttribute("method", "POST");
+                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
+                var hiddenField1 = document.createElement("input");
+                     hiddenField1.setAttribute("type", "hidden");
+                     hiddenField1.setAttribute("name", "_csrf");
+                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
+                var hiddenField2 = document.createElement("input");
+                     hiddenField2.setAttribute("type", "hidden");
+                     hiddenField2.setAttribute("name", "connect");
+                     hiddenField2.setAttribute("value", "true");
+                form.appendChild(hiddenField1);
+                form.appendChild(hiddenField2);
+                document.body.appendChild(form);
+                form.submit();
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
+    $('#disconnect_google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#disconnect_google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                var form = document.createElement("form");
+                form.setAttribute("method", "POST");
+                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
+
+                var hiddenField1 = document.createElement("input");
+                     hiddenField1.setAttribute("type", "hidden");
+                     hiddenField1.setAttribute("name", "_csrf");
+                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
+                var hiddenField2 = document.createElement("input");
+                     hiddenField2.setAttribute("type", "hidden");
+                     hiddenField2.setAttribute("name", "connect");
+                     hiddenField2.setAttribute("value", "false");
+                form.appendChild(hiddenField1);
+                form.appendChild(hiddenField2);
+                document.body.appendChild(form);
+                form.submit();
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
+
+
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
