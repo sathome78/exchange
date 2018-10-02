@@ -103,7 +103,6 @@ public class SecureServiceImpl implements SecureService {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
-            log.info("Generated pin code message: {}", message);
             return new PinDto(message, needToSendPin);
         }
         return new PinDto();
