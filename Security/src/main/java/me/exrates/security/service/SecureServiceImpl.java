@@ -106,7 +106,7 @@ public class SecureServiceImpl implements SecureService {
             log.info("Generated pin code message: {}", message);
             return new PinDto(message, needToSendPin);
         }
-        return null;
+        return new PinDto();
     }
 
     @Override

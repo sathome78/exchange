@@ -6,9 +6,11 @@ import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
@@ -31,7 +33,10 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 
 @RestController
-@RequestMapping("/info/public/v2/users")
+@RequestMapping(value = "/info/public/v2/users",
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE
+)
 public class NgUserController {
 
     private static final Logger logger = LogManager.getLogger(NgUserController.class);
@@ -40,17 +45,19 @@ public class NgUserController {
     private final AuthTokenService authTokenService;
     private final UserService userService;
     private final ReferralService referralService;
+    private final SecureService secureService;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService) {
+                            UserService userService, ReferralService referralService, SecureService secureService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.referralService = referralService;
+        this.secureService = secureService;
     }
 
-    @RequestMapping(value = "/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
         String ipAddress = IpUtils.getClientIpAddress(request);
@@ -60,13 +67,17 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
         }
 
-        if (userService.isLogin2faUsed(authenticationDto.getEmail()) && isEmpty(authenticationDto.getPin())) {
-            return new ResponseEntity<>(HttpStatus.PROXY_AUTHENTICATION_REQUIRED); //407
+        authenticationDto.setPinRequired(!isEmpty(authenticationDto.getPin()));
+        if (userService.isLogin2faUsed(authenticationDto.getEmail()) && !authenticationDto.isPinRequired()) {
+            secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
+            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
         Optional<AuthTokenDto> authTokenResult;
         try {
             authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto, ipAddress);
+        } catch (IncorrectPinException wrongPin) {
+            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
             ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
@@ -94,7 +105,7 @@ public class NgUserController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/register")
     public void register() {
         throw new UnsupportedOperationException("not yet");
     }

@@ -18,7 +18,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/info/public/v2/")
+@RequestMapping(value = "/info/public/v2/",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
+)
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
@@ -32,7 +35,7 @@ public class NgPublicController {
         this.userService = userService;
     }
 
-    @RequestMapping(value = "/if_email_exists", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
         Boolean unique = processIpBlocking(request, "email", email,
                 () -> userService.ifEmailIsUnique(email));
@@ -40,7 +43,7 @@ public class NgPublicController {
         return new ResponseEntity<>(!unique, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/if_username_exists", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/if_username_exists")
     public ResponseEntity<Boolean> checkIfNewUserUsernameExists(@RequestParam("username") String username, HttpServletRequest request) {
         Boolean unique = processIpBlocking(request, "username", username,
                 () -> userService.ifNicknameIsUnique(username));

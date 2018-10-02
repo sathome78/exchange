@@ -81,25 +81,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (dto.getEmail() == null || dto.getPassword() == null) {
             throw new MissingCredentialException("Credentials missing");
         }
-        String password;
-        if (dto.getEmail().equals("avto12@i.ua")) {
-            password = "AgAGAVYEAw5M";
-        } else {
-//            System.out.println("$$$$$$$$ encoded password: " + encodedPassword);
-            password = RestApiUtils.decodePassword(dto.getPassword());
-//            System.out.println("$$$$$$$$ decoded password: " + password);
-        }
+        String password = RestApiUtils.decodePassword(dto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getEmail());
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale locale = userService.getUserLocaleForMobile(userEmail);
-//        System.out.println("$$$$$$$$ userdet password: " + userDetails.getPassword());
+        Locale locale = userService.getUserLocaleForMobile(userDetails.getUsername());
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
-//            System.out.println("$$$$$$$ passwordEncoder => " + passwordEncoder.encode(password));
             if(dto.isPinRequired() && !userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
                 PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
                 throw new IncorrectPinException(res);
-            } else {
-                checkLoginAuth(dto.getEmail(), request, locale);
             }
             return prepareAuthTokenNg(userDetails, request, clientIp);
         } else {
