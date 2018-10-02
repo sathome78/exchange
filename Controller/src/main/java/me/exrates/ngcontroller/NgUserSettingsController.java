@@ -1,9 +1,12 @@
 package me.exrates.ngcontroller;
 
+import com.google.common.collect.Lists;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
@@ -24,12 +27,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.NoSuchFileException;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/settings",
+@RequestMapping(value = "/info/private/v2/settings/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
@@ -37,7 +39,8 @@ public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger("restSettingsAPI");
     private static final String NICKNAME = "nickname";
-    private static final String SESSION_INTERVAL =  "sessionInterval";
+    private static final String SESSION_INTERVAL = "sessionInterval";
+    private static final String EMAIL_NOTIFICATION = "notifications";
 
     @Autowired
     private RegisterFormValidation registerFormValidation;
@@ -55,10 +58,10 @@ public class NgUserSettingsController {
 
     @Autowired
     public NgUserSettingsController(UserService userService,
-                                   NotificationService notificationService,
-                                   SessionParamsService sessionService,
-                                   NotificationsSettingsService settingsService,
-                                   UserFilesService userFilesService) {
+                                    NotificationService notificationService,
+                                    SessionParamsService sessionService,
+                                    NotificationsSettingsService settingsService,
+                                    UserFilesService userFilesService) {
         this.userService = userService;
         this.notificationService = notificationService;
         this.sessionService = sessionService;
@@ -67,19 +70,19 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = "/updateMainPassword")
-    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body){
+    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
         Locale locale = userService.getUserLocaleForMobile(email);
         String password = body.getOrDefault("password", "");
-        if(password.isEmpty()){
+        if (password.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         user.setPassword(password);
         user.setConfirmPassword(password);
 
         //   registerFormValidation.validateResetPassword(user, result, locale);
-        if (userService.update(getUpdateUserDto(user), locale)){
+        if (userService.update(getUpdateUserDto(user), locale)) {
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -116,18 +119,40 @@ public class NgUserSettingsController {
     }
 
     @PutMapping(value = SESSION_INTERVAL)
-    public ResponseEntity<String> updateSessionPeriod(@RequestBody Map<String, Integer> body, HttpServletRequest request){
+    public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body) {
         try {
             int interval = body.get(SESSION_INTERVAL);
             SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
             if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
                 sessionService.saveOrUpdate(sessionParams, getPrincipalEmail());
-                sessionService.setSessionLifeParams(request);
+//                sessionService.setSessionLifeParams(request);
                 //todo inform user to logout to implement params next time
                 return new ResponseEntity<>(HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
             }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(value = EMAIL_NOTIFICATION)
+    public List<NotificationOption> getUserNotifications() {
+        try {
+            int userId = userService.getIdByEmail(getPrincipalEmail());
+            return notificationService
+                    .getNotificationOptionsByUser(userId);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @PutMapping(value = EMAIL_NOTIFICATION)
+    public ResponseEntity<Void> updateUserNotification(@RequestBody NotificationOption option) {
+        try {
+            int userId = userService.getIdByEmail(getPrincipalEmail());
+            notificationService.updateNotificationOptionsForUser(userId, Lists.newArrayList(option));
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -188,17 +213,6 @@ public class NgUserSettingsController {
 //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 //
 //        return null;
-//    }
-
-//    @GetMapping(value = "/notifications", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public List<NotificationOption> getUserNotifications(){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            int userId = userService.getIdByEmail(email);
-//            return notificationService.getNotificationOptionsByUser(userId);
-//        } catch (Exception e) {
-//            return new ArrayList<>();
-//        }
 //    }
 
 //    @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 
@@ -99,6 +100,7 @@ public class SecureServiceImpl implements SecureService {
             if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
                 message =  newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
+                log.info("New pin is {} sent: {}", newPin, LocalDateTime.now());
             } else {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
