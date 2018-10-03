@@ -16,6 +16,7 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.nem.core.model.observers.NotificationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -137,21 +138,23 @@ public class NgUserSettingsController {
     }
 
     @GetMapping(value = EMAIL_NOTIFICATION)
-    public List<NotificationOption> getUserNotifications() {
+    public Map<NotificationEvent, Boolean> getUserNotifications() {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
             return notificationService
-                    .getNotificationOptionsByUser(userId);
+                    .getNotificationOptionsByUser(userId)
+                    .stream()
+                    .collect(Collectors.toMap(NotificationOption::getEvent, NotificationOption::isSendEmail));
         } catch (Exception e) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 
     @PutMapping(value = EMAIL_NOTIFICATION)
-    public ResponseEntity<Void> updateUserNotification(@RequestBody NotificationOption option) {
+    public ResponseEntity<Void> updateUserNotification(@RequestBody List<NotificationOption> options) {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
-            notificationService.updateNotificationOptionsForUser(userId, Lists.newArrayList(option));
+            notificationService.updateNotificationOptionsForUser(userId, options);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -255,6 +258,7 @@ public class NgUserSettingsController {
 //    @PostMapping(value = "/userFiles/submit")
 //    public ResponseEntity<List<File>> saveUserFile(@RequestParam("file") MultipartFile file) throws Exception {
 //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+//        int userId = userService.getIdByEmail(userEmail);
 //        int userId = userService.getIdByEmail(userEmail);
 //        userFilesService.createUserFiles(userId, Collections.singletonList(file));
 //        return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
