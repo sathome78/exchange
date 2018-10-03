@@ -22,4 +22,6 @@ public interface NotificationsSettingsService {
     Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);
 
     Map<NotificationMessageEventEnum, NotificationTypeEnum> getUser2FactorSettings(int userId);
+
+    void updateUser2FactorSettings(int userId, Map<String, String> body);
 }
