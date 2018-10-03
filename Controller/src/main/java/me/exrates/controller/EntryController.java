@@ -55,7 +55,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
@@ -235,18 +234,18 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
-                    .filter(p->p.getPairType() == CurrencyPairType.ICO)
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getPairType() == CurrencyPairType.ICO)
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -271,8 +270,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -281,7 +280,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -290,7 +289,8 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/tradingview");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -339,11 +339,6 @@ public class EntryController {
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
-        mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
-        mav.addObject("googleAuthenticatorEnable", notificationService.isGoogleAuthenticatorEnable(user.getId()));
-        mav.addObject("googleAuthenticatorLogin", false);
-        mav.addObject("googleAuthenticatorWithdraw", true);
-        mav.addObject("googleAuthenticatorTransfer", false);
         mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);
         return mav;
@@ -445,7 +440,7 @@ public class EntryController {
 
     @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request, Principal principal) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
         RedirectView redirectView = new RedirectView("/settings");
         int userId = userService.getIdByEmail(principal.getName());
@@ -503,7 +498,7 @@ public class EntryController {
         try {
             int userId = userService.getIdByEmail(principal.getName());
             Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
+            settingsMap.forEach((k, v) -> {
                 Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
@@ -544,7 +539,7 @@ public class EntryController {
             if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
                 throw new IllegalStateException();
             }
-            dto.setCode(((TelegramSubscription)subscription).getCode());
+            dto.setCode(((TelegramSubscription) subscription).getCode());
         }
         return dto;
     }
@@ -597,30 +592,6 @@ public class EntryController {
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
-    }
-
-    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
-    @ResponseBody
-    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
-        return new Generic2faResponseDto(notificationService.generateQRUrl(principal.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping("/settings/2FaOptions/verify_google2fa")
-    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, @RequestParam boolean connect, Principal principal) {
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            if(!notificationService.checkGoogle2faVerifyCode(code, user.getId())){
-                throw new IncorrectSmsPinException("");
-            }
-            if (connect) {
-                notificationService.setEnable2faGoogleAuth(user.getId(), true);
-            } else {
-                notificationService.setEnable2faGoogleAuth(user.getId(), false);
-                notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-            }
-        }
-        return "";
     }
 
     @ResponseBody

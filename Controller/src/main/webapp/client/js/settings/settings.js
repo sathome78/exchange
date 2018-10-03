@@ -182,25 +182,17 @@ function SettingsClass() {
         $smsNumberError.text('');
         var code = $('#google2fa_code_input').val();
         $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code+ '&connect=true',
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
             type: 'GET',
             success: function (data) {
-                location.reload();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
+                $googleModal.modal('hide');
+                var inputs=document.getElementsByTagName('input');
+                for(i=0;i<inputs.length;i++){
+                    if (inputs[i].getAttribute('value') == '4'){
+                        inputs[i].disabled=false;
+                    }
 
-    $('#disconnect_google2fa_send_code_button').on('click', function () {
-        $smsNumberError.text('');
-        var code = $('#disconnect_google2fa_code_input').val();
-        $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code + '&connect=false',
-            type: 'GET',
-            success: function (data) {
-                location.reload();
+                }
             },
             error: function (data) {
                 $smsNumberError.text(data.responseJSON.detail);
@@ -239,6 +231,8 @@ function SettingsClass() {
         });
     });
 
+
+
     $('#subscribe_TELEGRAM').on('click', function() {
         $.ajax({
             url: '/settings/2FaOptions/getNotyPrice?id=3',
@@ -258,39 +252,8 @@ function SettingsClass() {
         });
     });
 
-    $('#backed_up_16').click(function () {
-
-        if ($(this).is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
-            $('#google2fa_send_code_button').removeAttr('disabled');
-
-        } else {
-            $('#google2fa_send_code_button').attr('disabled', true);
-        }
-    });
-
-    $('#google2fa_code_input').keyup(function () {
-
-        if ($('#backed_up_16').is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
-            $('#google2fa_send_code_button').removeAttr('disabled');
-
-        } else {
-            $('#google2fa_send_code_button').attr('disabled', true);
-        }
-    });
-
-    $('#disconnect_google2fa_code_input').keyup(function () {
-
-        if ($('#disconnect_google2fa_code_input').val().length > 0 ) {
-            $('#disconnect_google2fa_send_code_button').removeAttr('disabled');
-
-        } else {
-            $('#disconnect_google2fa_send_code_button').attr('disabled', true);
-        }
-    });
-
     $('#subscribe_GOOGLE_AUTHENTICATOR').on('click', function() {
         $('#google2fa_connect_block').show();
-        $('#google2fa_disconnect_block').hide();
         $googleModal.modal();
        $.ajax(
            "/settings/2FaOptions/google2fa",
@@ -301,28 +264,10 @@ function SettingsClass() {
                 },
             type: 'POST',
         }).success(function (data) {
-           if($('#qr').find('img').length==1) {
-               $("#qr").append('<img tyle="width: 100%; height: 100%;" src="'+data.message+'" />').show();
+           console.log(data);
+           if($('#qr').find('img').length === 1) {
+               $("#qr").append('<img src="'+data.message+'" />').show();
            }
-        });
-    });
-
-    $('#reconnect_GOOGLE_AUTHENTICATOR').on('click', function() {
-        $('#google2fa_disconnect_block').show();
-        $('#google2fa_connect_block').hide();
-        $googleModal.modal();
-        $.ajax(
-            "/settings/2FaOptions/google2fa",
-            {
-                headers:
-                    {
-                        'X-CSRF-Token': $("input[name='_csrf']").val()
-                    },
-                type: 'POST',
-            }).success(function (data) {
-            if($('#disconnect_qr').find('img').length==1) {
-                $("#disconnect_qr").append('<img tyle="width: 100%; height: 100%;" src="'+data.message+'" />').show();
-            }
         });
     });
 

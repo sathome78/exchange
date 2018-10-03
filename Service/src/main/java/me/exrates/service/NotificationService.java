@@ -6,7 +6,6 @@ import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.CacheData;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,15 +50,5 @@ public interface NotificationService {
 
   void updateUserNotifications(List<NotificationOption> options);
 
-  String getGoogleAuthenticatorCode(Integer userId);
-
-  void updateGoogleAuthenticatorSecretCodeForUser(Integer userId);
-
-  boolean isGoogleAuthenticatorEnable(Integer userId);
-
-  boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId);
-
-  void setEnable2faGoogleAuth(Integer userId, Boolean connection);
-
-  String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
+  void updateNotificationOptionsForUser(int userId, List<NotificationOption> options);
 }
