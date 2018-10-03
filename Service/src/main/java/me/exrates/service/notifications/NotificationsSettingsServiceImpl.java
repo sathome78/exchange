@@ -74,35 +74,4 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 		return settings;
 	}
 
-	@Override
-	public void updateUser2FactorSettings(int userId, Map<String, String> body) {
-		Map<NotificationMessageEventEnum, NotificationTypeEnum> newSettings = new HashMap<>();
-		body.forEach((key, value) -> {
-			if (null != value){
-				newSettings.put(NotificationMessageEventEnum.convert(key.toUpperCase()), NotificationTypeEnum.convert(value.toUpperCase()));
-			} else {
-				newSettings.put(NotificationMessageEventEnum.convert(key.toUpperCase()), null);
-			}
-		});
-		Arrays.asList(NotificationMessageEventEnum.values()).forEach(type -> {
-			NotificationsUserSetting notification = getByUserAndEvent(userId, type);
-			if (null != notification) {
-				if (null != newSettings.get(type)) {
-					notification.setNotificatorId(newSettings.get(type).getCode());
-				} else {
-					notification.setNotificatorId(null);
-				}
-				settingsDao.update(notification);
-			} else {
-				settingsDao.create(NotificationsUserSetting
-										.builder()
-										.userId(userId)
-										.notificationMessageEventEnum(type)
-										.notificatorId(null != newSettings.get(type) ? newSettings.get(type).getCode() : null)
-										.build());
-			}
-		});
-	}
-
-
 }
