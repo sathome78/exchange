@@ -255,7 +255,16 @@ public class CryptocurrencyConfig {
     public BitcoinService crypService() {
         return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
     }
+
+    @Bean(name = "ddxServiceImpl")
+    public BitcoinService ddxService() {
+        return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
+                "DDX", "DDX", 4, 20, false, true);
+    }
+
+
     // LISK-like cryptos
+
 
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
