@@ -30,6 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -38,6 +41,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.*;
@@ -61,6 +65,7 @@ public class AdkServiceImpl implements AdkService {
     private static final Integer SECONDDS_TO_UNLOCK_WALLET = 60;
     private @Value("${wallet.password}") String walletPassword;
     private static final Object SEND_MONITOR = new Object();
+    private static final String PASS_PATH = "/opt/properties/Aidos.properties";
 
     @Autowired
     public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource, MerchantService merchantService, CurrencyService currencyService, RefillService refillService) {
@@ -92,9 +97,10 @@ public class AdkServiceImpl implements AdkService {
         return merchantService;
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        if (!params.containsKey("admin")) {
+        if (params.containsKey("admin")) {
             processAdminTransaction(params);
         }
         String address = params.get("address");
@@ -210,6 +216,15 @@ public class AdkServiceImpl implements AdkService {
 
     @Override
     public void submitWalletPassword(String password) {
+        Properties props = new Properties();
+        FileInputStream inputStream;
+        try {
+            inputStream = new FileInputStream(new File(PASS_PATH));
+            props.load(inputStream);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        String walletPassword = props.getProperty("wallet.password");
         if (password == null || !password.equals(walletPassword)) {
             throw new IncorrectCoreWalletPasswordException("Incorrect password: " + password);
         }

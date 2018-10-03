@@ -38,6 +38,15 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='ADK/BTC';
 
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
+VALUES((select id from CURRENCY where name = 'ADK'), (select id from CURRENCY where name = 'BTC'), 'ADK/ETH', 160, 0, 'BTC', 'ADK/ETH');
+
+INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+    JOIN USER_ROLE UR
+    JOIN ORDER_TYPE OT where CP.name='ADK/ETH';
+
+
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
 VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'ADK'), 0.000001, 1, 1, 0);
 
