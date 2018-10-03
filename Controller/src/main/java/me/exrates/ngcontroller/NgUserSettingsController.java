@@ -102,7 +102,7 @@ public class NgUserSettingsController {
         User user = userService.findByEmail(getPrincipalEmail());
         if (body.containsKey(NICKNAME)) {
             user.setNickname(body.get(NICKNAME));
-            if (userService.setNickname(user)) {
+            if (userService.setNickname(user.getNickname(), user.getEmail())) {
                 return new ResponseEntity<>(HttpStatus.OK);
             }
             return new ResponseEntity<>(HttpStatus.OK);
