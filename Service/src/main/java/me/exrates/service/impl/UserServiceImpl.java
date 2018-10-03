@@ -21,6 +21,7 @@ import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -33,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -225,7 +228,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean setNickname(User user) {
-    return userDao.setNickname(user);
+    return userDao.setNickname(user.getNickname(), user.getEmail());
   }
 
   @Override
@@ -782,7 +785,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException, UnsupportedEncodingException {
 
     String secret2faCode = userDao.get2faSecretByEmail(userEmail);
     if (secret2faCode == null || secret2faCode.isEmpty()){
@@ -794,12 +797,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
-        String google2faSecret = userDao.get2faSecretByEmail(userEmail);
-        final Totp totp = new Totp(google2faSecret);
-        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-            throw new IncorrectSmsPinException();
-        }
-        return true;
+    String google2faSecret = userDao.get2faSecretByEmail(userEmail);
+    final Totp totp = new Totp(google2faSecret);
+    if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+      throw new IncorrectSmsPinException();
+    }
+    return true;
   }
 
   private boolean isValidLong(String code) {
@@ -818,6 +821,16 @@ public class UserServiceImpl implements UserService {
       throw new AuthenticationNotAvailableException();
     }
     return auth.getName();
+  }
+
+  @Override
+  public boolean checkOperSystem(String email, String userAgent) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public boolean setNewOperSystem(String email, String operSystem) {
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @Transactional(rollbackFor = Exception.class)

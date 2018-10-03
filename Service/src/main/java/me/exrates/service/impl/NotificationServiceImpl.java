@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.NotificationDao;
+import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.Email;
 import me.exrates.model.Notification;
 import me.exrates.model.NotificationOption;
@@ -13,11 +14,14 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +34,9 @@ import java.util.Locale;
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
 
+    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+    public static String APP_NAME = "Exrates";
+
     @Autowired
     private NotificationDao notificationDao;
 
@@ -41,6 +48,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private NotificationUserSettingsDao notificationUserSettingsDao;
 
     // TODO manage notifications in admin page
 
@@ -182,8 +192,62 @@ public class NotificationServiceImpl implements NotificationService {
         notificationDao.updateNotificationOptions(options);
     }
 
+    @Override
+    public String getGoogleAuthenticatorCode(Integer userId) {
+        String secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(userId);
+        if (secret2faCode == null || secret2faCode.isEmpty()){
+            notificationDao.set2faGoogleAuthenticator(userId);
+            secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(userId);
+        }
+        return secret2faCode;
+    }
+
+    @Override
+    public void updateGoogleAuthenticatorSecretCodeForUser(Integer userId) {
+        notificationDao.setGoogleAuthSecretCode(userId);
+    }
+
+    @Override
+    public boolean isGoogleAuthenticatorEnable(Integer userId) {
+        return notificationDao.isGoogleAuthenticatorEnable(userId);
+    }
+
+    @Override
+    public boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId) {
+        String google2faSecret = notificationDao.getGoogleAuthSecretCodeByUser(userId);
+        final Totp totp = new Totp(google2faSecret);
+        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void setEnable2faGoogleAuth(Integer userId, Boolean connection) {
+        notificationDao.setEnable2faGoogleAuth(userId, connection);
+        if (!connection) {
+            notificationUserSettingsDao.delete(userId);
+        }
+    }
+
+    @Override
+    public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+        User user = userService.findByEmail(userEmail);
+        String secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(user.getId());
+        return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+    }
+
     private String[] normalizeArgs(Object... args) {
        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
+    }
+
+    private boolean isValidLong(String code) {
+        try {
+            Long.parseLong(code);
+        } catch (final NumberFormatException e) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -179,4 +179,7 @@ public interface UserDao {
 
   User getUserByTemporalToken(String token);
 
+  String get2faSecretByEmail(String userEmail);
+
+  boolean set2faSecretCode(String userEmail);
 }

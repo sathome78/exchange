@@ -10,6 +10,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -388,6 +389,25 @@ public class UserDaoImpl implements UserDao {
     Map<String,String> namedParameters = new HashMap<>();
     namedParameters.put("token_value",token);
     return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
+  }
+
+  @Override
+  public String get2faSecretByEmail(String email) {
+    String sql = "SELECT 2fa_secret FROM USER WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  @Override
+  public boolean set2faSecretCode(String email) {
+    String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("secret", Base32.random());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
 
   @Override
@@ -1035,7 +1055,7 @@ public class UserDaoImpl implements UserDao {
     String whereClause = "";
     Map<String, Object> params = new HashMap<>();
     if (userRoleList.size() > 0) {
-      whereClause = "WHERE U.roleid IN (:roles)";
+      whereClause = " WHERE U.roleid IN (:roles)";
       params.put("roles", userRoleList);
     }
     return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {

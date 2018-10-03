@@ -409,7 +409,7 @@ public class EntryController {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
         } else {
-            boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
+            boolean userNicknameUpdated = userService.setNickname(user);
             if(userNicknameUpdated){
                 redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
             }else{
