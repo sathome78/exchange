@@ -1311,7 +1311,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("eth", eth);
 
         String sql =
-                " select CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
+                " select distinct CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
                         "(select id, \n" +
                         "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
                         "when name LIKE '%/ETH' then exrate*:eth \n" +
