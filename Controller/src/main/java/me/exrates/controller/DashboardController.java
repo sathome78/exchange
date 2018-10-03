@@ -194,30 +194,26 @@ public class DashboardController {
                 if (difference < 0) {
                     if((difference + 1440) < 30) {
                         userService.setNewOperSystem(user.getEmail(), userDevice);
-                        attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                        attr.addFlashAttribute("user", user);
+                        attr.addFlashAttribute("successNoty", messageSource.getMessage("register.confirmationDeviceSuccessfull", null, localeResolver.resolveLocale(request)));
                     } else {
-                        attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                        attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.confirmationDeviceUnsuccessfull",null, localeResolver.resolveLocale(request)));
                     }
                 } else if (difference < 30){
                     userService.setNewOperSystem(user.getEmail(), userDevice);
-                    attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                    attr.addFlashAttribute("user", user);
+                    attr.addFlashAttribute("successNoty", messageSource.getMessage("register.confirmationDeviceSuccessfull", null, localeResolver.resolveLocale(request)));
                 } else if(difference == 0){
                     userService.setNewOperSystem(user.getEmail(), userDevice);
-                    attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                    attr.addFlashAttribute("user", user);
+                    attr.addFlashAttribute("successNoty", messageSource.getMessage("register.confirmationDeviceSuccessfull", null, localeResolver.resolveLocale(request)));;
                 } else {
-                    attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.confirmationDeviceUnsuccessfull",null, localeResolver.resolveLocale(request)));
                 }
             } else {
-                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.confirmationDeviceUnsuccessfull",null, localeResolver.resolveLocale(request)));
             }
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();
         }
-
         model.setViewName("redirect:/dashboard");
         return model;
     }
