@@ -250,7 +250,7 @@ public class CryptocurrencyConfig {
     }
 
     @Bean(name = "crypServiceImpl")
-    public BitcoinService sicService() {
+    public BitcoinService crypService() {
         return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
     }
     // LISK-like cryptos
