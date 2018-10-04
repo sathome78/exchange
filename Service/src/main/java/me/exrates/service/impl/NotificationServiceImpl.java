@@ -223,9 +223,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void setEnable2faGoogleAuth(Integer userId, Boolean connection) {
-        notificationDao.setEnable2faGoogleAuth(userId, connection);
-        if (!connection) {
+    public void setEnable2faGoogleAuth(Integer userId, Boolean connected) {
+        notificationDao.setEnable2faGoogleAuth(userId, connected);
+        if (!connected) {
             notificationUserSettingsDao.delete(userId);
         }
     }
