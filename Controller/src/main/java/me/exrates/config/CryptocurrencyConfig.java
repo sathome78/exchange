@@ -251,6 +251,10 @@ public class CryptocurrencyConfig {
                 "QRK", "QRK", 4, 20, false, false);
     }
 
+    @Bean(name = "crypServiceImpl")
+    public BitcoinService sicService() {
+        return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
+    }
     // LISK-like cryptos
 
     @Bean(name = "liskServiceImpl")
