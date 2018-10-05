@@ -4,9 +4,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%----%>
 <%--<script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>--%>
-
+<link href="<c:url value='/client/css/chat-lang.css'/>" rel="stylesheet">
 <%----%>
 <div id="right-sider" class="cols-md-2">
+    <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
+    <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
+    <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+    <c:set var="admin_finOperatorEnum" value="<%=me.exrates.model.enums.UserRole.FIN_OPERATOR%>"/>
     <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
             <div class="current-time">
                 <span id="current-datetime"></span>
@@ -25,11 +29,10 @@
         <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
 
         <div id="chatLangButtons" class="chat-locales">
-            <a href="javascript:void(0)" onclick="changeChatLocale('en')">EN</a>
-            <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
-            <a href="javascript:void(0)" onclick="changeChatLocale('cn')">CN</a>
-            <a href="javascript:void(0)" onclick="changeChatLocale('ar')">AR</a>
-            <a href="javascript:void(0)" onclick="changeChatLocale('in')">IN</a>
+            <button id="bchaten" class="btna" onclick="changeChatLocale('en')">EN</button>
+            <button id="bchatru" class="btna" onclick="changeChatLocale('ru')">RU</button>
+            <button id="bchatcn" class="btna" onclick="changeChatLocale('cn')">CN</button>
+            <button id="bchatin" class="btna" onclick="changeChatLocale('in')">IN</button>
         </div>
     </div>
 
@@ -58,8 +61,13 @@
 
         </c:choose>
     </sec:authorize>
-
-
+    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+        <div class="row">
+            <button id="download-chats" class="send_button">
+                <loc:message code="admin.user.transactions.downloadHistory"/>
+            </button>
+        </div>
+    </sec:authorize>
 
     <%--NEWS LIST--%>
     <div id="new-list-container" style="position: relative" class="clearfix">
