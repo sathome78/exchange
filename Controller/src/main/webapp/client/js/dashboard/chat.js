@@ -73,6 +73,7 @@ function loadChatHistory(lang) {
 }
 
 function changeChatLocale(lang) {
+    chatLanguage = lang;
     if (lang === 'ar') {
         $('#new_mess').find('input[name="body"]').addClass('right-to-left');
     } else {
