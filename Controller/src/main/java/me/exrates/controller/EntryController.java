@@ -48,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -592,6 +593,49 @@ public class EntryController {
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
+    }
+
+    // Google Ouath
+
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+        return new Generic2faResponseDto(notificationService.generateQRUrl(principal.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_google2fa")
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code,  Principal principal) {
+        if (principal != null) {
+            User user = userService.findByEmail(principal.getName());
+            if(!notificationService.checkGoogle2faVerifyCode(code, user.getId())){
+                throw new IncorrectSmsPinException("");
+            }
+
+        }
+        return "";
+    }
+
+    @ResponseBody
+    @RequestMapping ("/settings/2FaOptions/google2fa_connect")
+    public RedirectView connectGoogleAuthenticatorConnect(RedirectAttributes redirectAttributes,
+                                                          HttpServletRequest request,
+                                                          Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+        boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
+        User user = userService.findByEmail(principal.getName());
+        if (connect) {
+            notificationService.setEnable2faGoogleAuth(user.getId(), true);
+        } else {
+            notificationService.setEnable2faGoogleAuth(user.getId(), false);
+            notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+        }
+
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                localeResolver.resolveLocale(request)));
+        redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
+
+        return redirectView;
     }
 
     @ResponseBody

@@ -41,5 +41,4 @@ public interface NotificationDao {
     boolean isGoogleAuthenticatorEnable(Integer userId);
 
     void setEnable2faGoogleAuth(Integer userId, Boolean connection);
-
 }

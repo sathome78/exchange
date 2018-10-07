@@ -1,22 +1,19 @@
 package me.exrates.ngcontroller;
 
-import com.google.common.collect.Lists;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.dao.PageLayoutSettingsDao;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
+import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.service.NotificationService;
-import me.exrates.service.SessionParamsService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
-import org.nem.core.model.observers.NotificationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -42,6 +39,10 @@ public class NgUserSettingsController {
     private static final String NICKNAME = "nickname";
     private static final String SESSION_INTERVAL = "sessionInterval";
     private static final String EMAIL_NOTIFICATION = "notifications";
+    private static final String COLOR_SCHEME = "color-schema";
+    private static final String IS_COLOR_BLIND = "is-low-color-enabled";
+
+    private static final String STATE = "STATE";
 
     @Autowired
     private RegisterFormValidation registerFormValidation;
@@ -54,6 +55,7 @@ public class NgUserSettingsController {
     private final UserService userService;
     private final NotificationService notificationService;
     private final SessionParamsService sessionService;
+    private final PageLayoutSettingsService layoutSettingsService;
     private final NotificationsSettingsService settingsService;
     private final UserFilesService userFilesService;
 
@@ -61,11 +63,13 @@ public class NgUserSettingsController {
     public NgUserSettingsController(UserService userService,
                                     NotificationService notificationService,
                                     SessionParamsService sessionService,
+                                    PageLayoutSettingsService layoutSettingsService,
                                     NotificationsSettingsService settingsService,
                                     UserFilesService userFilesService) {
         this.userService = userService;
         this.notificationService = notificationService;
         this.sessionService = sessionService;
+        this.layoutSettingsService = layoutSettingsService;
         this.settingsService = settingsService;
         this.userFilesService = userFilesService;
     }
@@ -158,6 +162,48 @@ public class NgUserSettingsController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(IS_COLOR_BLIND)
+    @ResponseBody
+    public Boolean getUserColorDepth() {
+        User user = userService.findByEmail(getPrincipalEmail());
+        PageLayoutSettingsDto dto = this.layoutSettingsService.findByUser(user);
+        return dto != null && dto.isLowColorEnabled();
+    }
+
+    @PutMapping(IS_COLOR_BLIND)
+    public ResponseEntity<Void> updateUserColorDepth(@RequestBody Map<String, Boolean> params) {
+        if (params.containsKey(STATE)) {
+            User user = userService.findByEmail(getPrincipalEmail());
+            this.layoutSettingsService.toggleLowColorMode(user, params.get(STATE));
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @GetMapping(COLOR_SCHEME)
+    @ResponseBody
+    public ColorScheme getUserColorScheme() {
+        User user = userService.findByEmail(getPrincipalEmail());
+        return this.layoutSettingsService.getColorScheme(user);
+    }
+
+    @PutMapping(COLOR_SCHEME)
+    public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {
+        if (params.containsKey("SCHEME")) {
+            Integer userId = userService.getIdByEmail(getPrincipalEmail());
+            PageLayoutSettingsDto settingsDto = PageLayoutSettingsDto
+                    .builder()
+                    .userId(userId)
+                    .scheme(ColorScheme.of(params.get("SCHEME")))
+                    .build();
+            this.layoutSettingsService.save(settingsDto);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 
