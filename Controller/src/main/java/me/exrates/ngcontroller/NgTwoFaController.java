@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
+import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.security.exception.IncorrectPinException;
@@ -12,6 +13,7 @@ import org.omg.CORBA.UNKNOWN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
