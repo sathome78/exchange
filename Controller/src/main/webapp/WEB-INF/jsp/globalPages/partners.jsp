@@ -98,6 +98,7 @@
                 <tr>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
                 </tr>
                 </tbody>
             </table>
