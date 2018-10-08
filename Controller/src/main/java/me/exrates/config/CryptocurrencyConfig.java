@@ -266,6 +266,10 @@ public class CryptocurrencyConfig {
     public BitcoinService xfcServiceImpl() {
         return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
                 "XFC", "XFC", 4, 20, false, false);
+
+    @Bean(name="lpcServiceImpl")
+    public BitcoinService lpcService(){
+        return new BitcoinServiceImpl("merchants/lpc_wallet.properties", "LPC", "LPC", 4, 20, false, false);
     }
     // LISK-like cryptos
 
