@@ -262,7 +262,10 @@ public class CryptocurrencyConfig {
                 "DDX", "DDX", 4, 20, false, true);
     }
 
-
+    @Bean(name = "xfcServiceImpl")
+    public BitcoinService xfcServiceImpl() {
+        return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
+                "XFC", "XFC", 4, 20, false, false);
 
     @Bean(name="lpcServiceImpl")
     public BitcoinService lpcService(){
