@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,6 +25,11 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 	@Autowired
 	private NotificatorsService notificatorsService;
 
+
+	@Override
+	public List<NotificationsUserSetting> getByUserAndEvents(int userId, NotificationMessageEventEnum... events) {
+		return settingsDao.getByUserAndEvents(userId, events);
+	}
 
 	@Override
 	public NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event) {

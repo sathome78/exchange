@@ -7,6 +7,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -15,6 +16,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,6 +50,22 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
         }};
         try{
             return namedParameterJdbcTemplate.queryForObject(sql, params, notificationsUserSettingRowMapper);
+        }
+        catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public List<NotificationsUserSetting> getByUserAndEvents(int userId, NotificationMessageEventEnum... events) {
+        String sql = "SELECT UN.* FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS UN " +
+                "WHERE UN.user_id = :user_id AND event_name IN (:events)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("events", events);
+        }};
+        try{
+            return namedParameterJdbcTemplate.query(sql, params, notificationsUserSettingRowMapper);
         }
         catch (EmptyResultDataAccessException e) {
             return null;

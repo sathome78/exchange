@@ -8,7 +8,6 @@ import me.exrates.model.enums.ColorScheme;
 @Builder
 public class PageLayoutSettingsDto {
 
-    private int id;
     private int userId;
     private ColorScheme scheme;
     private boolean isLowColorEnabled;

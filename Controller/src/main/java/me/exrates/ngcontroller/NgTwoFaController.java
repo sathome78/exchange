@@ -2,27 +2,25 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
-import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
+import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.IncorrectSmsPinException;
-import org.omg.CORBA.UNKNOWN;
+import me.exrates.service.notifications.NotificationsSettingsService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
+import org.web3j.abi.datatypes.Int;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,16 +32,20 @@ import java.util.stream.Collectors;
 )
 public class NgTwoFaController {
 
+    private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
+
     private static final String GOOGLE_2FA = "google2fa";
-    public static final String VERIFY_GOOGLE = "verify_google2fa";
+    private static final String VERIFY_GOOGLE = "verify_google2fa";
 
 
     private final NotificationService notificationService;
+    private final NotificationsSettingsService notificationsSettingsService;
     private final UserService userService;
 
     @Autowired
-    public NgTwoFaController(NotificationService notificationService, UserService userService) {
+    public NgTwoFaController(NotificationService notificationService, NotificationsSettingsService notificationsSettingsService, UserService userService) {
         this.notificationService = notificationService;
+        this.notificationsSettingsService = notificationsSettingsService;
         this.userService = userService;
     }
 
@@ -53,8 +55,23 @@ public class NgTwoFaController {
         return new Generic2faResponseDto(notificationService.generateQRUrl(getPrincipalEmail()));
     }
 
+    @GetMapping(GOOGLE_2FA + "/hash")
+    @ResponseBody
+    public Generic2faResponseDto getSecurityCode() {
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        Generic2faResponseDto result = new Generic2faResponseDto("");
+        try {
+            result.setMessage(this.notificationService.getGoogleAuthenticatorCode(userId));
+        } catch (Exception e) {
+            logger.info("Failed to retrieve secret code for user with id: {}, as {} ",
+                    userId, e.getLocalizedMessage());
+            result.setError(e.getLocalizedMessage());
+        }
+        return result;
+    }
+
     @GetMapping(GOOGLE_2FA + "/verify")
-    public ResponseEntity<Void> verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
+    public ResponseEntity<Void> verifyGoogleAuthenticatorConnect(@RequestParam String code) {
         User user = userService.findByEmail(getPrincipalEmail());
         if (notificationService.checkGoogle2faVerifyCode(code, user.getId())) {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -96,19 +113,35 @@ public class NgTwoFaController {
         return "OK";
     }
 
-    // only added support to google notification
     @GetMapping(GOOGLE_2FA + "/user")
     @ResponseBody
-    public Map<NotificationEvent, Boolean> getUserNotifications() {
+    public Map<NotificationMessageEventEnum, Boolean> getUserNotifications() {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
-            return notificationService
-                    .getNotificationOptionsByUser(userId)
+            return notificationsSettingsService
+                    .getByUserAndEvents(userId, NotificationMessageEventEnum.LOGIN,
+                            NotificationMessageEventEnum.WITHDRAW, NotificationMessageEventEnum.TRANSFER)
                     .stream()
-                    .collect(Collectors.toMap(NotificationOption::getEvent, NotificationOption::isSendEmail));
+                    .collect(Collectors.toMap(NotificationsUserSetting::getNotificationMessageEventEnum,
+                            NotificationsUserSetting::isEnabled));
         } catch (Exception e) {
             return Collections.emptyMap();
         }
+    }
+
+    @PatchMapping(GOOGLE_2FA + "/user")
+    public ResponseEntity<Void> updateUser2FaNotificationSettings(@RequestBody Map<String, Boolean> params) {
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        try {
+            NotificationsUserSetting setting = new NotificationsUserSetting();
+            setting.setUserId(userId);
+
+            this.notificationsSettingsService.createOrUpdate(setting);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            logger.info("Failed to update user settings for userId: {}, as {}", userId, e.getLocalizedMessage());
+        }
+        return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     private String getPrincipalEmail() {

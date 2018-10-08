@@ -20,4 +20,8 @@ public class NotificationsUserSetting {
     @Tolerate
     public NotificationsUserSetting() {
     }
+
+    public boolean isEnabled() {
+        return this.notificatorId != null && this.notificatorId > 0;
+    }
 }

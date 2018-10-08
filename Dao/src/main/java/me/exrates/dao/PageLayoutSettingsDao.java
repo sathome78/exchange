@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface PageLayoutSettingsDao {
 
-    int save(PageLayoutSettingsDto settingsDto);
+    PageLayoutSettingsDto save(PageLayoutSettingsDto settingsDto);
 
     Optional<PageLayoutSettingsDto> findByUserId(Integer userId);
 

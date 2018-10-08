@@ -35,12 +35,12 @@ import java.util.stream.Collectors;
 )
 public class NgUserSettingsController {
 
-    private static final Logger logger = LogManager.getLogger("restSettingsAPI");
+    private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
     private static final String NICKNAME = "nickname";
     private static final String SESSION_INTERVAL = "sessionInterval";
     private static final String EMAIL_NOTIFICATION = "notifications";
     private static final String COLOR_SCHEME = "color-schema";
-    private static final String IS_COLOR_BLIND = "is-low-color-enabled";
+    private static final String IS_COLOR_BLIND = "isLowColorEnabled";
 
     private static final String STATE = "STATE";
 

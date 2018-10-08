@@ -20,12 +20,7 @@ public class PageLayoutSettingsServiceImpl implements PageLayoutSettingsService 
 
     @Override
     public PageLayoutSettingsDto save(PageLayoutSettingsDto settingsDto) {
-        int result = pageLayoutSettingsDao.save(settingsDto);
-        if (result > 0) {
-            settingsDto.setId(result);
-            return settingsDto;
-        }
-        return null;
+        return pageLayoutSettingsDao.save(settingsDto);
     }
 
     @Override
@@ -49,7 +44,8 @@ public class PageLayoutSettingsServiceImpl implements PageLayoutSettingsService 
         PageLayoutSettingsDto userSettings = findByUser(user);
         if (userSettings != null) {
             userSettings.setLowColorEnabled(enabled);
-            return pageLayoutSettingsDao.save(userSettings) > 0;
+            PageLayoutSettingsDto updated = pageLayoutSettingsDao.save(userSettings);
+            return updated != null;
         }
         throw new RuntimeException("User Color Settings not set");
     }

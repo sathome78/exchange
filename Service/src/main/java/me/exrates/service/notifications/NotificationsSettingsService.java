@@ -4,14 +4,15 @@ import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by Maks on 08.10.2017.
  */
 public interface NotificationsSettingsService {
+
+    List<NotificationsUserSetting> getByUserAndEvents(int userId, NotificationMessageEventEnum... events);
 
     NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event);
 
