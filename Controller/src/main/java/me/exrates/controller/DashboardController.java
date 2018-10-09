@@ -190,7 +190,9 @@ public class DashboardController {
     //registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
 
     User userUpdate = userService.getUserByTemporalToken(temporalToken);
+
     ModelAndView model = new ModelAndView();
+
     UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
     updateUserDto.setPassword(password);
     userService.updateUserByAdmin(updateUserDto);
@@ -209,7 +211,9 @@ public class DashboardController {
     Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
     SecurityContextHolder.getContext().setAuthentication(auth);
     temporalTokenService.deleteTemporalToken(temporalToken);
-    userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
+
+    userSessionService.invalidateUserSessionExceptSpecific(userUpdate.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
+
     attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
     model.setViewName("redirect:/dashboard");
     return model;
