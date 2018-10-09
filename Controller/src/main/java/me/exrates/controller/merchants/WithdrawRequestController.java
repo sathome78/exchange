@@ -2,7 +2,7 @@ package me.exrates.controller.merchants;
 
 import com.google.common.base.Preconditions;
 import me.exrates.controller.annotation.AdminLoggable;
-import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
@@ -78,8 +78,9 @@ public class WithdrawRequestController {
   @Autowired
   private RefillService refillService;
 
-    private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
+  private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
+  @CheckActiveUserStatus
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
@@ -120,6 +121,7 @@ public class WithdrawRequestController {
         return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/withdraw/request/pin", method = POST)
     @ResponseBody
     public Map<String, String> withdrawRequestCheckPin(

@@ -564,6 +564,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="control_aspect" fileName="${sys:catalina.home}/logs/general/control_aspect.log"
+                     filePattern="${sys:catalina.home}/logs/general/control_aspect%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -801,6 +810,10 @@
         </logger>
         <logger name="adk_log" level="ALL" additivity="false">
             <AppenderRef ref="adk"/>
+        </logger>
+        <logger name="control_aspect_log" level="ALL" additivity="false">
+            <AppenderRef ref="control_aspect"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">

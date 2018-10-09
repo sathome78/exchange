@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
@@ -71,6 +72,7 @@ public class OrderControllerRest {
     @Autowired
     StopOrderService stopOrderService;
 
+    @CheckActiveUserStatus
     @RequestMapping("/order/submitnew/{orderType}")
     public OrderCreateSummaryDto newOrderToSell(@PathVariable OperationType orderType,
                                                 Principal principal,
@@ -129,6 +131,7 @@ public class OrderControllerRest {
 
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
     public String recordOrderToDB(HttpServletRequest request) {
         ProfileData profileData = new ProfileData(200);
@@ -173,6 +176,7 @@ public class OrderControllerRest {
         }
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
@@ -202,6 +206,7 @@ public class OrderControllerRest {
     }
 
 
+    @CheckActiveUserStatus
     @RequestMapping("/order/submitdelete/{orderId}")
     public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId,
                                                    @RequestParam(value = "baseType", defaultValue = "1") int typeId,
@@ -239,6 +244,7 @@ public class OrderControllerRest {
         }
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/delete", produces = "application/json;charset=utf-8")
     public String deleteOrder(HttpServletRequest request) {
         long before = System.currentTimeMillis();
