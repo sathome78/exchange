@@ -10,19 +10,11 @@
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
 <sec:authorize access="isAuthenticated()" var="isAuth"/>
-<c:set var="showEntrance" value="${
-                                (path != '/login')
-                                && (path != '/register')
-                                && (path != '/forgotPassword')
-                                && (path != '/login?error')}"/>
-<c:set var="showRegistration" value="${(path != '/register')}"/>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -55,7 +47,9 @@
                             </a>
                         </sec:authorize>
                     </li>
+                </sec:authorize>
 
+                <sec:authorize access="isAuthenticated()">
                     <li id="hello-my-friend"><a class="nav__link" href="">
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>
@@ -64,18 +58,6 @@
         </div>
         <div class="cols-md-2 right_header_nav">
             <ul class="padding0">
-                <sec:authorize access="isAuthenticated()">
-                    <li id="hello-my-friend"><a class="nav__link" href="">
-                        <strong><sec:authentication property="principal.username"/></strong></a>
-                    </li>
-                </sec:authorize>
-
-                <ul class="padding0 pull-right">
-                    <sec:authorize access="! isAuthenticated()">
-                        <li class="pull-left paddingtop10"> <a id="login_link" data-fancybox href="#login" class="focus-white nav__link"><loc:message code="dashboard.loginText"/></a></li>
-                    </sec:authorize>
-                </ul>
-
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
                         <form action="/logout" class="dropdown-menu__logout-form" method="post">
@@ -114,11 +96,13 @@
                         <%@include file="../fragments/notification-header.jsp" %>
                     </li>--%>
                 </sec:authorize>
+
                 <li class="home-menu-item">
                     <a href="/">
                         <span class="glyphicon glyphicon-home nav__link"></span>
                     </a>
                 </li>
+
             </ul>
         </div>
     </div>
