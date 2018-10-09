@@ -65,12 +65,10 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonMap;
 
 @Controller
-@PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
+@PropertySource(value = {"classpath:about_us.properties"})
 public class MainController {
 
     private static final Logger logger = LogManager.getLogger(MainController.class);
-    @Value("${captcha.type}")
-    String CAPTCHA_TYPE;
     private
     @Value("${contacts.telephone}")
     String telephone;
@@ -397,7 +395,7 @@ public class MainController {
 
     @RequestMapping("/aboutUs")
     public ModelAndView aboutUs() {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
+        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs");
         return modelAndView;
     }
 
@@ -428,17 +426,17 @@ public class MainController {
 
     @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
     public ModelAndView termsAndConditions() {
-        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
+        return new ModelAndView("/globalPages/termsAndConditions");
     }
 
     @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
     public ModelAndView privacyPolicy() {
-        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
+        return new ModelAndView("/globalPages/privacyPolicy");
     }
 
     @RequestMapping(value = "/contacts", method = RequestMethod.GET)
     public ModelAndView contacts(ModelMap model) {
-        ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
+        ModelAndView modelAndView = new ModelAndView("globalPages/contacts");
         model.forEach((key, value) -> logger.debug(key + " :: " + value));
         if (model.containsAttribute("messageForm")) {
             modelAndView.addObject("messageForm", model.get("messageForm"));
@@ -450,7 +448,7 @@ public class MainController {
 
     @RequestMapping(value = "/partners", method = RequestMethod.GET)
     public ModelAndView partners() {
-        return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
+        return new ModelAndView("/globalPages/partners");
     }
 
     @RequestMapping(value = "/utcOffset")
@@ -462,7 +460,7 @@ public class MainController {
 
     @RequestMapping(value = "/api_docs", method = RequestMethod.GET)
     public ModelAndView apiDocs(HttpServletRequest request) {
-        ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs", "captchaType", CAPTCHA_TYPE);
+        ModelAndView modelAndView = new ModelAndView("/globalPages/apiDocs");
         String baseUrl = String.join("", "https://", request.getServerName(), "/openapi/v1");
         modelAndView.addObject("baseUrl", baseUrl);
         modelAndView.addObject("orderTypeValues", Arrays.asList(OrderType.values()));

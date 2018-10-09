@@ -81,14 +81,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  */
 @Log4j2
 @Controller
-@PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties", "classpath:/telegram_bot.properties"})
+@PropertySource(value = {"classpath:/news.properties", "classpath:/telegram_bot.properties"})
 public class EntryController {
     private static final Logger LOGGER = LogManager.getLogger(EntryController.class);
 
     @Autowired
     MessageSource messageSource;
-    @Value("${captcha.type}")
-    String CAPTCHA_TYPE;
     @Value("${telegram.bot.url}")
     String TBOT_URL;
     @Value("${telegram_bot_name}")
@@ -164,7 +162,6 @@ public class EntryController {
         }
         /**/
         model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
@@ -236,7 +233,6 @@ public class EntryController {
         }
         /**/
         model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
@@ -304,7 +300,6 @@ public class EntryController {
         }
         /**/
         model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
@@ -686,7 +681,6 @@ public class EntryController {
                 news.setContent(newsContent);
                 LOGGER.error("NEWS NOT FOUND");
             }
-            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             modelAndView.addObject("news", news);
             return modelAndView;
         } catch (Exception e) {
