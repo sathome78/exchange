@@ -35,10 +35,8 @@ import java.security.Principal;
 import java.util.*;
 
 @Controller
-@PropertySource("classpath:/captcha.properties")
 public class DashboardController {
     private static final Logger LOG = LogManager.getLogger(DashboardController.class);
-
 
     @Autowired
     OrderService orderService;
