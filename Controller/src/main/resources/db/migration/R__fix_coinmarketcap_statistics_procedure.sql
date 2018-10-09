@@ -58,7 +58,7 @@ CREATE PROCEDURE GET_COINMARKETCAP_STATISTICS(IN currency_pair VARCHAR(45))
         WHERE (currency_pair IS NULL
          OR currency_pair = ""
           OR UPPER(currency_pair) = "NULL"
-           OR EO.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.ticker_name = currency_pair))
+           OR EO.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.name = currency_pair))
             AND EO.status_id = 3
              AND EO.date_acception >= now() - INTERVAL 24 HOUR
         GROUP BY CP.ticker_name, EO.currency_pair_id, EO.status_id;
