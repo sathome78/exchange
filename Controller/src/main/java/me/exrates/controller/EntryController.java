@@ -267,73 +267,6 @@ public class EntryController {
         return model;
     }
 
-    @RequestMapping(value = {"/tradingview"})
-    public ModelAndView tradingview(
-            @RequestParam(required = false) String qrLogin,
-            @RequestParam(required = false) String startupPage,
-            @RequestParam(required = false) String startupSubPage,
-            @RequestParam(required = false) String currencyPair,
-            HttpServletRequest request, Principal principal) {
-        ModelAndView model = new ModelAndView();
-        String successNoty = null;
-        String errorNoty = null;
-        if (qrLogin != null) {
-            successNoty = messageSource
-                    .getMessage("dashboard.qrLogin.successful", null,
-                            localeResolver.resolveLocale(request));
-        }
-        if (StringUtils.isEmpty(successNoty)) {
-            successNoty = (String) request.getSession().getAttribute("successNoty");
-            request.getSession().removeAttribute("successNoty");
-        }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
-        }
-        model.addObject("successNoty", successNoty);
-        /**/
-        if (StringUtils.isEmpty(errorNoty)) {
-            errorNoty = (String) request.getSession().getAttribute("errorNoty");
-            request.getSession().removeAttribute("errorNoty");
-        }
-        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
-        }
-        /**/
-        model.addObject("errorNoty", errorNoty);
-        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
-        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
-        model.addObject("sessionId", request.getSession().getId());
-        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */
-        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
-        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
-        model.setViewName("globalPages/tradingview");
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        model.addObject(orderCreateDto);
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
-            model.addObject("userEmail", principal.getName());
-            model.addObject("userStatus", userStatus);
-            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
-        }
-        if (principal == null) {
-            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
-        }
-        if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p -> p.getName().equals(currencyPair))
-                    .limit(1)
-                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
-        }
-
-        return model;
-    }
-
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
                                  HttpServletRequest request) {
@@ -364,7 +297,6 @@ public class EntryController {
         return mav;
     }
 
-    /*todo move this method from admin controller*/
     @RequestMapping(value = "/settings/uploadFile", method = POST)
     public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                        RedirectAttributes redirectAttributes,
@@ -419,11 +351,10 @@ public class EntryController {
         return new JSONObject(){{put("message", message);}}.toString();
     }
 
-    /*todo move this method from admin controller*/
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user,@RequestParam("nickname")String newNickName, BindingResult result,
+    public ModelAndView submitsettingsNickname(@RequestParam("nickname")String newNickName, BindingResult result,
                                                HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
-        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+        //registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
 
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
