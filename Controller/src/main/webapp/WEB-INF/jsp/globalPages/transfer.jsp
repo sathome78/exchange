@@ -44,7 +44,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value="/client/js/submits/finPassCheck.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/transferCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/valueInputControl.js"/>"></script>
