@@ -109,7 +109,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                             Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
     Properties props = new Properties();
     try {
-      props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+      loadWalletProperties(propertySource, props);
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
       this.nodeEnabled = Boolean.valueOf(props.getProperty("node.isEnabled"));
@@ -125,6 +125,18 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.supportReferenceLine = supportReferenceLine;
     } catch (IOException e) {
       log.error(e);
+    }
+  }
+
+  private void loadWalletProperties(String propertySource, Properties props) throws IOException {
+    try {
+      props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+    } catch (NullPointerException e) {
+      try {
+        props.load(getClass().getClassLoader().getResourceAsStream("properties/" + propertySource));
+      } catch (NullPointerException e1) {
+        System.out.println("Wallet props " + propertySource + " not founded");
+      }
     }
   }
 
