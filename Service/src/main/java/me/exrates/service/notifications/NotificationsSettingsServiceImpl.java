@@ -2,16 +2,15 @@ package me.exrates.service.notifications;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationUserSettingsDao;
+import me.exrates.model.User;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Maks on 08.10.2017.
@@ -38,10 +37,13 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 
 	@Override
 	public void createOrUpdate(NotificationsUserSetting setting) {
-		if (getByUserAndEvent(setting.getUserId(), setting.getNotificationMessageEventEnum()) == null) {
-			settingsDao.create(setting);
-		} else {
+		Optional<NotificationsUserSetting> found =
+				Optional.ofNullable(getByUserAndEvent(setting.getUserId(), setting.getNotificationMessageEventEnum()));
+		if (found.isPresent() ){
+			setting.setId(found.get().getId());
 			settingsDao.update(setting);
+		} else {
+			settingsDao.create(setting);
 		}
 	}
 
@@ -78,6 +80,22 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 				}
 		);
 		return settings;
+	}
+
+	@Override
+	public Map<NotificationMessageEventEnum, Boolean> getUserTwoFASettings(User user) {
+		return settingsDao.getByUserAndEvents(user.getId(), NotificationMessageEventEnum.LOGIN,
+						NotificationMessageEventEnum.WITHDRAW, NotificationMessageEventEnum.TRANSFER)
+				.stream()
+				.collect(Collectors.toMap(NotificationsUserSetting::getNotificationMessageEventEnum,
+						NotificationsUserSetting::isEnabled));
+	}
+
+	@Override
+	public boolean isGoogleTwoFALoginEnabled(User user) {
+		Map<NotificationMessageEventEnum, Boolean> settings = getUserTwoFASettings(user);
+		return settings.containsKey(NotificationMessageEventEnum.LOGIN) &&
+				settings.get(NotificationMessageEventEnum.LOGIN);
 	}
 
 	@Override

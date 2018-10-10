@@ -1,5 +1,6 @@
 package me.exrates.service.notifications;
 
+import me.exrates.model.User;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
@@ -23,6 +24,10 @@ public interface NotificationsSettingsService {
     Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);
 
     Map<NotificationMessageEventEnum, NotificationTypeEnum> getUser2FactorSettings(int userId);
+
+    Map<NotificationMessageEventEnum, Boolean> getUserTwoFASettings(User user);
+
+    boolean isGoogleTwoFALoginEnabled(User user);
 
     void updateUser2FactorSettings(int userId, Map<String, String> body);
 }

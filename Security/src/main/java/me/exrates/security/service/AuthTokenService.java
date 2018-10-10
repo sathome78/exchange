@@ -14,7 +14,8 @@ import java.util.Optional;
  */
 public interface AuthTokenService {
 
-    Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp);
+    Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp,
+                                           boolean isGoogleTwoFAEnabled);
 
     Optional<AuthTokenDto> retrieveToken(String username, String password);
 

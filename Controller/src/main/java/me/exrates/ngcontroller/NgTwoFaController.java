@@ -117,25 +117,18 @@ public class NgTwoFaController {
     @ResponseBody
     public Map<NotificationMessageEventEnum, Boolean> getUserNotifications() {
         try {
-            int userId = userService.getIdByEmail(getPrincipalEmail());
-            return notificationsSettingsService
-                    .getByUserAndEvents(userId, NotificationMessageEventEnum.LOGIN,
-                            NotificationMessageEventEnum.WITHDRAW, NotificationMessageEventEnum.TRANSFER)
-                    .stream()
-                    .collect(Collectors.toMap(NotificationsUserSetting::getNotificationMessageEventEnum,
-                            NotificationsUserSetting::isEnabled));
+            User user = userService.findByEmail(getPrincipalEmail());
+            return notificationsSettingsService.getUserTwoFASettings(user);
         } catch (Exception e) {
             return Collections.emptyMap();
         }
     }
 
-    @PatchMapping(GOOGLE_2FA + "/user")
-    public ResponseEntity<Void> updateUser2FaNotificationSettings(@RequestBody Map<String, Boolean> params) {
+    @PutMapping(GOOGLE_2FA + "/user")
+    public ResponseEntity<Void> updateUser2FaNotificationSettings(@RequestBody NotificationsUserSetting setting) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         try {
-            NotificationsUserSetting setting = new NotificationsUserSetting();
             setting.setUserId(userId);
-
             this.notificationsSettingsService.createOrUpdate(setting);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {

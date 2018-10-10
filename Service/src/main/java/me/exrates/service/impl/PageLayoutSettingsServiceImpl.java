@@ -41,12 +41,20 @@ public class PageLayoutSettingsServiceImpl implements PageLayoutSettingsService 
 
     @Override
     public boolean toggleLowColorMode(User user, boolean enabled) {
+        PageLayoutSettingsDto updated;
         PageLayoutSettingsDto userSettings = findByUser(user);
-        if (userSettings != null) {
+        if (userSettings == null) {
+            userSettings = PageLayoutSettingsDto
+                    .builder()
+                    .userId(user.getId())
+                    .scheme(ColorScheme.LIGHT)
+                    .isLowColorEnabled(enabled)
+                    .build();
+            updated = pageLayoutSettingsDao.save(userSettings);
+        } else {
             userSettings.setLowColorEnabled(enabled);
-            PageLayoutSettingsDto updated = pageLayoutSettingsDao.save(userSettings);
-            return updated != null;
+            updated = pageLayoutSettingsDao.save(userSettings);
         }
-        throw new RuntimeException("User Color Settings not set");
+        return updated != null;
     }
 }

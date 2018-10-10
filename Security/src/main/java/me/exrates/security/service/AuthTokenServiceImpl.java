@@ -15,6 +15,7 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.*;
+import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
@@ -73,26 +74,33 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     private UserService userService;
     @Autowired
     private SessionParamsService sessionParamsService;
+    @Autowired
+    private NotificationService notificationService;
 
     private Map<String, LocalDateTime> usersForPincheck = new ConcurrentHashMap<>();
 
     @Override
-    public Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp) {
+    public Optional<AuthTokenDto> retrieveTokenNg(HttpServletRequest request, UserAuthenticationDto dto, String clientIp,
+                                                  boolean isGoogleTwoFAEnabled) {
         if (dto.getEmail() == null || dto.getPassword() == null) {
             throw new MissingCredentialException("Credentials missing");
         }
         String password = RestApiUtils.decodePassword(dto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getEmail());
-        Locale locale = userService.getUserLocaleForMobile(userDetails.getUsername());
-        if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            if(dto.isPinRequired() && !userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
-                throw new IncorrectPinException(res);
-            }
-            return prepareAuthTokenNg(userDetails, request, clientIp);
-        } else {
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password");
         }
+
+        if (isGoogleTwoFAEnabled) {
+            Integer userId = userService.getIdByEmail(dto.getEmail());
+            if (!notificationService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
+                throw new IncorrectPinException("Incorrect google auth code");
+            }
+        } else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
+            throw new IncorrectPinException(res);
+        }
+        return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
     private void checkPinCode(HttpServletRequest request, UserDetails userDetails, String pin, Locale locale) {

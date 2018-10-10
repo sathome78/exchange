@@ -15,9 +15,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Maks on 02.10.2017.
@@ -59,10 +61,10 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
     @Override
     public List<NotificationsUserSetting> getByUserAndEvents(int userId, NotificationMessageEventEnum... events) {
         String sql = "SELECT UN.* FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS UN " +
-                "WHERE UN.user_id = :user_id AND event_name IN (:events)";
+                "WHERE UN.user_id = :user_id AND UN.event_name IN (:events)";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
-            put("events", events);
+            put("events", Arrays.stream(events).map(e -> e.toString()).collect(Collectors.toList()));
         }};
         try{
             return namedParameterJdbcTemplate.query(sql, params, notificationsUserSettingRowMapper);

@@ -11,8 +11,10 @@ import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
+import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
+import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +31,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 
 @RestController
@@ -46,46 +48,55 @@ public class NgUserController {
     private final UserService userService;
     private final ReferralService referralService;
     private final SecureService secureService;
+    private final NotificationsSettingsService notificationsSettingsService;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService, SecureService secureService) {
+                            UserService userService, ReferralService referralService, SecureService secureService, NotificationsSettingsService notificationsSettingsService, NotificationService notificationService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.referralService = referralService;
         this.secureService = secureService;
+        this.notificationsSettingsService = notificationsSettingsService;
     }
 
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
-        String ipAddress = IpUtils.getClientIpAddress(request);
-        try {
-            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
-        } catch (BannedIpException ban) {
-            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+//        try {
+//            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//        } catch (BannedIpException ban) {
+//            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+//        }
+
+        if (isEmpty(authenticationDto.getPin())) {
+            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
-        authenticationDto.setPinRequired(!isEmpty(authenticationDto.getPin()));
-        if (userService.isLogin2faUsed(authenticationDto.getEmail()) && !authenticationDto.isPinRequired()) {
+        User user = userService.findByEmail(authenticationDto.getEmail());
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        authenticationDto.setPinRequired(true);
+        boolean shouldLoginWithGoogle = notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        if(!shouldLoginWithGoogle) {
             secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
         Optional<AuthTokenDto> authTokenResult;
         try {
-            authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto, ipAddress);
+            authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto,
+                    authenticationDto.getClientIp(), shouldLoginWithGoogle);
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =
                 authTokenResult.orElseThrow(() -> new Exception("Failed to authenticate user with email: " + authenticationDto.getEmail()));
-
-        User user = userService.findByEmail(authenticationDto.getEmail());
 
         if (user.getStatus() == UserStatus.REGISTERED) {
             return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
@@ -101,7 +112,7 @@ public class NgUserController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-        ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.LOGIN);
+        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
