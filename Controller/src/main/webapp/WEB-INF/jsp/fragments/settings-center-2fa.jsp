@@ -20,31 +20,33 @@
                                 <th></th>
                                 <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
                                 <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
-                                    <th>
-                                        <c:if test="${notificatorHead.needSubscribe}">
-                                            <c:choose>
-                                                <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null
-                                                or not subscriptions.get(notificatorHead.id).isConnected()}">
-                                                    <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
-                                                    <loc:message code="notificator.conect"/></a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <c:if test="${subscriptions.get(notificatorHead.id).getContactStr() != null}">
-                                                        <a class="btn btn-default contact_info" data-id="${notificatorHead.id}"
-                                                           data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
-                                                        <loc:message code="message.info"/></a>
-                                                    </c:if>
-                                                    <c:if test="${notificatorHead.enabled}">
-                                                    <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
-                                                        <loc:message code="notificator.reconnect"/></a>
-                                                    </c:if>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:if><br>${notificatorHead.name}<br>
-                                        <c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>
-                                    </th>
+                                    <c:if test="${notificatorHead.enabled}">
+                                        <th>
+                                            <c:if test="${notificatorHead.needSubscribe}">
+                                                <c:choose>
+                                                    <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null
+                                                    or not subscriptions.get(notificatorHead.id).isConnected()}">
+                                                        <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
+                                                        <loc:message code="notificator.conect"/></a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <c:if test="${subscriptions.get(notificatorHead.id).getContactStr() != null}">
+                                                            <a class="btn btn-default contact_info" data-id="${notificatorHead.id}"
+                                                               data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
+                                                            <loc:message code="message.info"/></a>
+                                                        </c:if>
+                                                       <%-- <c:if test="${notificatorHead.enabled}">
+                                                        <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
+                                                            <loc:message code="notificator.reconnect"/></a>
+                                                        </c:if>--%>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:if><br>${notificatorHead.name}<br>
+                                        <%--<c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>--%>
+                                        </th>
+                                    </c:if>
                                 </c:forEach>
-                                <th>Disable</th>
+                               <%-- <th>Disable</th>--%>
                             </tr>
                             </thead>
                             <tbody>
@@ -53,29 +55,33 @@
                                     <tr>
                                         <td><loc:message code="settings.message.event.${event}"/></td>
                                         <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
-                                            <td><input type="radio" name="${event.code}" value="${notificator.id}"
-                                                    <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null
-                                                    or not subscriptions.get(notificator.id).isConnected())}">
-                                                        disabled
-                                                    </c:if>
-                                                       <c:if test="${!notificator.enabled}">disabled</c:if>
-                                                    <c:if test="${settings.get(event.code) != null
-                                                    and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
-                                            </td>
+                                            <c:if test="${notificator.enabled}">
+                                                <td><input type="radio" name="${event.code}" value="${notificator.id}"
+                                                        <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null
+                                                        or not subscriptions.get(notificator.id).isConnected())}">
+                                                            disabled
+                                                        </c:if>
+                                                           <c:if test="${!notificator.enabled}">disabled</c:if>
+                                                        <c:if test="${settings.get(event.code) != null
+                                                        and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
+                                                </td>
+                                            </c:if>
                                         </c:forEach>
-                                            <td><input type="radio" name="${event.code}" value="0"
+                                            <%--<td><input type="radio" name="${event.code}" value="0"
                                                     <c:if test="${not event.canBeDisabled}">disabled</c:if>
                                                     <c:if test="${(settings.get(event.code) == null or settings.get(event.code).notificatorId == null)
-                                                        and event.canBeDisabled}"> CHECKED</c:if>
+                                                        and event.canBeDisabled}">CHECKED</c:if>
                                                 />
-                                                            </td>
+                                            </td>--%>
                                     </tr>
                                 </c:forEach>
                             </tbody>
                         </table>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
-                            <loc:message code="button.update"/></button>
+                        <%--<button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                            <loc:message code="button.update"/></button>--%>
                     </form>
+                <a id="SubmitSessionOptions" class="btn btn-default update_set_button">
+                    <loc:message code="button.update"/></a>
             </div>
         </div>
     </div>

@@ -8,6 +8,8 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +94,21 @@ public class UserDaoImpl implements UserDao {
     };
   }
 
+  private RowMapper<User> getUserRowMapperWithoutRoleAndParentEmail() {
+    return (resultSet, i) -> {
+      final User user = new User();
+      user.setId(resultSet.getInt("id"));
+      user.setNickname(resultSet.getString("nickname"));
+      user.setEmail(resultSet.getString("email"));
+      user.setPassword(resultSet.getString("password"));
+      user.setRegdate(resultSet.getDate("regdate"));
+      user.setPhone(resultSet.getString("phone"));
+      user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+      user.setFinpassword(resultSet.getString("finpassword"));
+      return user;
+    };
+  }
+
   public int getIdByEmail(String email) {
     String sql = "SELECT id FROM USER WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
@@ -115,12 +132,11 @@ public class UserDaoImpl implements UserDao {
     }
   }
 
-  @Override
-  public boolean setNickname( User user) {
-    String sql = "UPDATE USER SET nickname=:nickname WHERE id = :id";
+  public boolean setNickname(String newNickName, String userEmail) {
+    String sql = "UPDATE USER SET nickname=:nickname WHERE email = :email";
     Map<String, String> namedParameters = new HashMap<>();
-    namedParameters.put("id", String.valueOf(user.getId()));
-    namedParameters.put("nickname", user.getNickname());
+    namedParameters.put("nickname", newNickName);
+    namedParameters.put("email", userEmail);
     int result = namedParameterJdbcTemplate.update(sql, namedParameters);
     return result > 0;
   }
@@ -131,6 +147,8 @@ public class UserDaoImpl implements UserDao {
     String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
     String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
         "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
+    String sqlUserOperationAuthority = "INSERT INTO USER_OPERATION_AUTHORITY (user_id, user_operation_id) " +
+            "SELECT :user_id, id FROM USER_OPERATION;";
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
@@ -154,7 +172,8 @@ public class UserDaoImpl implements UserDao {
     Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
     return namedParameterJdbcTemplate.update(sqlWallet, userIdParamMap) > 0
-        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0;
+        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0
+            && namedParameterJdbcTemplate.update(sqlUserOperationAuthority, userIdParamMap) > 0;
   }
 
   @Override
@@ -369,6 +388,13 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
   }
 
+  public User getUserByTemporalToken(String token){
+    String sql = "SELECT * FROM USER WHERE USER.id =(SELECT TEMPORAL_TOKEN.user_id FROM TEMPORAL_TOKEN WHERE TEMPORAL_TOKEN.value=:token_value)";
+    Map<String,String> namedParameters = new HashMap<>();
+    namedParameters.put("token_value",token);
+    return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
+  }
+
   @Override
   public User getCommonReferralRoot() {
     final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
@@ -545,6 +571,7 @@ public class UserDaoImpl implements UserDao {
         temporalToken.setId(rs.getInt("id"));
         temporalToken.setUserId(rs.getInt("user_id"));
         temporalToken.setValue(token);
+        temporalToken.setAlreadyUsed(rs.getBoolean("already_used"));
         temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
         temporalToken.setExpired(rs.getBoolean("expired"));
         temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));

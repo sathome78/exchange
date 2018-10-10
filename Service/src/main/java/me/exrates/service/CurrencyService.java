@@ -85,7 +85,7 @@ public interface CurrencyService {
 
   MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId);
 
-  CurrencyPair getCurrencyPairByName(String pairName);
+  CurrencyPair getCurrencyPairByName(String currencyPair);
 
   Integer findCurrencyPairIdByName(String pairName);
 

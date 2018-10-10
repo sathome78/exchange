@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.NotificationPayTypeEnum;
 
 /**
  * Created by Maks on 29.09.2017.

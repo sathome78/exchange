@@ -1,1 +1,0 @@
-UPDATE USER SET preferred_lang="en" WHERE preferred_lang="ar";

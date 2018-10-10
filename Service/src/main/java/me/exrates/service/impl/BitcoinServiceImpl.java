@@ -7,7 +7,10 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
@@ -49,6 +52,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Autowired
   private MessageSource messageSource;
+
   @Autowired
   private CoreWalletService bitcoinWalletService;
 
@@ -147,7 +151,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       if (supportWalletNotifications) {
         bitcoinWalletService.walletFlux().subscribe(this::onPayment);
       } else {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 3, 1, TimeUnit.MINUTES);
       }
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
@@ -208,7 +212,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private String address() {
     boolean isFreshAddress = false;
+    System.out.println("begin generate address");
     String address = bitcoinWalletService.getNewAddress(getCoreWalletPassword());
+    System.out.println("end generate address " + address);
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
 //    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {

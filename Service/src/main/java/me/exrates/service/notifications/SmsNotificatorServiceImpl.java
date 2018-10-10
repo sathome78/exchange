@@ -5,26 +5,22 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.SmsSubscriptionDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Email;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.NotificationPayEventEnum;
+import me.exrates.model.dto.NotificatorSubscription;
+import me.exrates.model.dto.SmsSubscriptionDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
-import me.exrates.service.notifications.sms.Sms1s2uService;
 import me.exrates.service.notifications.sms.epochta.EpochtaApi;
 import me.exrates.service.notifications.sms.epochta.Phones;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -130,6 +126,10 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     @Override
     public Object prepareSubscription(Object subscriptionObject) {
         SmsSubscriptionDto subscriptionDto = (SmsSubscriptionDto) subscriptionObject;
+        SmsSubscriptionDto oldDto = getByUserId(subscriptionDto.getUserId());
+        if (oldDto != null && oldDto.getStateEnum().isFinalState()) {
+            throw new RuntimeException("allready connected");
+        }
         Map<String, String> phones = new HashMap<>();
         Preconditions.checkArgument(!StringUtils.isEmpty(subscriptionDto.getNewContact()));
         phones.put("id1", subscriptionDto.getNewContact());
@@ -145,7 +145,6 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         } catch (Exception e) {
             throw new ServiceUnavailableException();
         }
-        SmsSubscriptionDto oldDto = getByUserId(subscriptionDto.getUserId());
         if (oldDto != null) {
             subscriptionDto.setStateEnum(oldDto.getStateEnum());
             subscriptionDto.setPriceForContact(oldDto.getPriceForContact());
@@ -218,7 +217,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
 
     @Override
     public NotificationTypeEnum getNotificationType() {
-        return NotificationTypeEnum.SMS;
+        /*todo uncomment when sms will be enabled*/
+        return /*NotificationTypeEnum.SMS;*/null;
     }
 
     @Transactional

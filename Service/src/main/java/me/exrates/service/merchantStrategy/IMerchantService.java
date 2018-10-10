@@ -1,9 +1,5 @@
 package me.exrates.service.merchantStrategy;
 
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.util.CharUtils;
 
@@ -11,8 +7,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**

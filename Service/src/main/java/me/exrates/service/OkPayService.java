@@ -1,11 +1,7 @@
 package me.exrates.service;
 
-import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
-import org.springframework.web.servlet.view.RedirectView;
-
-import java.util.Map;
 
 public interface OkPayService extends IRefillable, IWithdrawable {
 

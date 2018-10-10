@@ -16,7 +16,6 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.events.AcceptOrderEvent;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 

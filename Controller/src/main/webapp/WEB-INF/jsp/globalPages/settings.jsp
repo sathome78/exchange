@@ -79,6 +79,7 @@
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
 </main>
+<%@include file="../fragments/modal/pin_modal.jsp"%>
 <%@include file='../fragments/modal/telegram_connect_modal.jsp'%>
 <%@include file='../fragments/modal/sms_connect_modal.jsp' %>
 <%@include file='../fragments/footer.jsp' %>

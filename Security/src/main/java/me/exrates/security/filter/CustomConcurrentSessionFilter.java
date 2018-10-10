@@ -1,13 +1,10 @@
 package me.exrates.security.filter;
 
-import com.google.gson.JsonObject;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.SessionParamsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
@@ -28,10 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URLEncoder;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;

@@ -1,8 +1,7 @@
 package me.exrates.security.filter;
 
-import me.exrates.service.events.QRLoginEvent;
 import me.exrates.service.SessionParamsService;
-import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.events.QRLoginEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

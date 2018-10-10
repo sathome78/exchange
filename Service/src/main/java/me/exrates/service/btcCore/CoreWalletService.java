@@ -21,7 +21,7 @@ public interface CoreWalletService {
   void initBtcdDaemon(boolean zmqEnabled);
   
   String getNewAddress(String walletPassword);
-  
+
   void backupWallet(String backupFolder);
 
   void shutdown();

@@ -5,6 +5,7 @@ import me.exrates.dao.*;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalTime;
 import java.util.*;
 
 import static me.exrates.model.enums.OperationType.SELL;
@@ -974,11 +976,12 @@ public class WalletDaoImpl implements WalletDao {
         "             (WALLET.currency_id = :currency_id) " +
         " WHERE (EXORDERS.id = :order_id)" +
         " FOR UPDATE "; //FOR UPDATE !Impotant
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("order_id", orderId);
-    namedParameters.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("order_id", orderId);
+    params.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
     try {
-      return jdbcTemplate.queryForObject(sql, namedParameters, getWalletsForOrderCancelDtoMapper(operationType));
+      return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper(operationType));
     } catch (EmptyResultDataAccessException e) {
       return null;
     }
@@ -1079,7 +1082,14 @@ public class WalletDaoImpl implements WalletDao {
   }
 
     @Override
-    public List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId) {
+    public List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId, List<Integer> roleIds) {
+        String where = " WHERE roleid ";
+        String and = " AND roleid ";
+        String roleList = " IN (:role_list) ";
+        String exists = " AGRIGATE WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+                        " WHERE (IOP.currency_id = AGRIGATE.currency_id AND (IOP.user_id = :requester_user_id)) ) " +
+                        "  GROUP BY ROLE_ID, CURRENCY_ID, CURRENCY_NAME " ;
+
         String sql = "SELECT " +
             "   role_id, currency_id, currency_name, " +
             "   sum(wallet_count) AS wallet_count, sum(active_balance) AS active_balance, sum(reserved_balance) AS reserved_balance, " +
@@ -1096,6 +1106,7 @@ public class WalletDaoImpl implements WalletDao {
             "      AND TX.status_id=1         " +
             "      AND TX.source_type IN ('REFILL')        " +
             "      AND TX.OPERATION_TYPE_ID = 1 " +
+                (!roleIds.isEmpty() ? and + " "+roleList : " ") +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
             "    UNION " +
@@ -1109,6 +1120,7 @@ public class WalletDaoImpl implements WalletDao {
             "      AND TX.status_id=1         " +
             "      AND TX.source_type IN ('WITHDRAW')        " +
             "      AND TX.OPERATION_TYPE_ID = 2 " +
+                (!roleIds.isEmpty() ? and + " "+roleList : " ") +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
             "    UNION " +
@@ -1117,18 +1129,16 @@ public class WalletDaoImpl implements WalletDao {
             "      FROM WALLET " +
             "      STRAIGHT_JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.hidden != 1) " +
             "      STRAIGHT_JOIN USER ON (USER.id = WALLET.user_id) " +
+                (!roleIds.isEmpty() ? where + " "+roleList : " ") +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
-            "  ) AGRIGATE " +
-            "  WHERE EXISTS (" +
-            "                   SELECT * " +
-            "                       FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
-            "                       WHERE (IOP.currency_id=AGRIGATE.currency_id " +
-            "                             AND (IOP.user_id = :requester_user_id)) ) " +
-            "  GROUP BY ROLE_ID, CURRENCY_ID, CURRENCY_NAME";
+            "  ) " + exists;
 
-        Map<String, Object> namedParameters = new HashMap<String, Object>(){{
+      Map<String, Object> namedParameters = new HashMap<String, Object>(){{
                put("requester_user_id", requesterUserId);
+               if (!roleIds.isEmpty()){
+                 put("role_list", roleIds);
+               }
             }};
 
         ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserWalletSummaryDto>() {

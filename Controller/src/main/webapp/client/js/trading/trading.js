@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -21,7 +21,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatistics;
     var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
-    var $graphicsLoadingImg = $('#graphics-container').find('.loading');
+  /*  var $graphicsLoadingImg = $('#graphics-container').find('.loading');*/
     var $totalForBuyInput = $('#totalForBuy');
     var $exchangeRateBuyInput = $('#exchangeRateBuy');
     var $amountBuyInput = $('#amountBuy');
@@ -51,7 +51,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        $graphicsLoadingImg.removeClass('hidden');
+        that.getChart().switchCurrencyPair(currentPair);
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
@@ -64,6 +64,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         dashboardCurrencyPairSelector.syncState('MAIN', function () {
         });
         currentPair = cpName;
+        that.getChart().switchCurrencyPair(cpName);
     };
 
     this.updateAndShowStatistics = function (refreshIfNeeded) {
@@ -506,31 +507,28 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+    (function init(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
-        try {
+     /*   try {
             chart = new ChartGoogleClass();
         } catch (e) {
-        }
+        }*/
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, "MAIN");
+            chart = new ChartAmchartsClass2(currentCurrencyPair);
         } catch (e) {
         }
-        if (chart) {
+  /*      if (chart) {
             try {
                 chart.init(chartType);
             } catch (e) {
             }
-        }
+        }*/
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
         } catch (e) {
         }
-
-
-
 
         that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
@@ -571,7 +569,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData);
+    })(currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
@@ -656,6 +654,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER ... */
     function orderBuy(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: 'BUY'};
         $.map($('#dashboard-buy-form').serializeArray(), function (e) {
@@ -666,11 +667,13 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 data.rate = e.value;
             }
         });
-        data.baseType = 'LIMIT';
         showOrderCreateDialog(data);
     }
 
     function orderSell(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: 'SELL'};
         $.map($('#dashboard-sell-form').serializeArray(), function (e) {
@@ -681,11 +684,13 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                 data.rate = e.value;
             }
         });
-        data.baseType = 'LIMIT';
         showOrderCreateDialog(data);
     }
 
     function stopOrder(event) {
+        if(!checkAccessToOperationForUser()){
+            return false;
+        };
         event.preventDefault();
         var data = {operationType: $(this).data('action')};
         $.map($('#dashboard-stop-order-form').serializeArray(), function (e) {
@@ -700,8 +705,16 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             }
         });
         data.baseType = 'STOP_LIMIT';
-        console.log(data);
         showOrderCreateDialog(data);
+    }
+
+    function checkAccessToOperationForUser(){
+        var access = $('#accessToOperationForUser').val();
+        var errorText = $('#accessToOperationForUserTextError').val();
+        if (access==="false") {
+            errorNoty(errorText);
+            return false;
+        } else return true;
     }
 
     $('#aggree_check').on('click', function () {

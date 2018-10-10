@@ -46,7 +46,7 @@ public class YandexMoneyRestController {
     @Autowired
     private InputOutputService inputOutputService;
 
-    @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
+   /* @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
     public ResponseEntity<String> processYandexPayment(@RequestParam String token,
                                                        @RequestParam Integer userId,
                                                        @RequestParam Integer paymentId) {
@@ -63,7 +63,7 @@ public class YandexMoneyRestController {
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);
         if (!requestPayment.isPresent()) {
             yandexMoneyService.deletePayment(paymentId);
-            final String message ="merchants.successfulBalanceDeposit";
+            final String message = "merchants.successfulBalanceDeposit";
             return new ResponseEntity<>(messageSource.getMessage(message, merchantService.formatResponseMessage(creditsOperation).values().toArray(), userLocale), HttpStatus.OK);
 
         }
@@ -89,7 +89,7 @@ public class YandexMoneyRestController {
         }
 
         throw new MerchantInternalException(messageSource.getMessage("merchants.internalError", null, userLocale));
-    }
+    }*/
 
 
 }

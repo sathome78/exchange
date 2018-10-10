@@ -1,8 +1,6 @@
 package me.exrates.security.config;
 
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
-import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
-import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

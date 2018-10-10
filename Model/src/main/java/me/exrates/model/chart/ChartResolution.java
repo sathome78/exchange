@@ -1,8 +1,6 @@
 package me.exrates.model.chart;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.hash.HashCode;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import me.exrates.model.enums.ChartResolutionTimeUnit;

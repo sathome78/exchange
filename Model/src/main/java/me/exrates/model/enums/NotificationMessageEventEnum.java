@@ -1,8 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import me.exrates.model.exceptions.UnsupportedInvoiceOperationDirectionException;
-
 import java.util.stream.Stream;
 
 /**
@@ -10,13 +7,16 @@ import java.util.stream.Stream;
  */
 public enum NotificationMessageEventEnum {
 
-    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", true),
-    WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false),
-    TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false);
+    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", false, true),
+    WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false, true),
+    TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false, true),
+    CHANGE_2FA_SETTING(4, "message.pincode.for2faChange", "message.subj.2fachange.pin", false, false);
 
     private int code;
 
     private boolean canBeDisabled;
+
+    private boolean isChangable;
 
     private String messageCode;
 
@@ -38,11 +38,16 @@ public enum NotificationMessageEventEnum {
         return canBeDisabled;
     }
 
-    NotificationMessageEventEnum(int code, String messageCode, String sbjCode, boolean canBeDisabled) {
+    public boolean isChangable() {
+        return isChangable;
+    }
+
+    NotificationMessageEventEnum(int code, String messageCode, String sbjCode, boolean canBeDisabled, boolean isChangable) {
         this.code = code;
         this.messageCode = messageCode;
         this.sbjCode = sbjCode;
         this.canBeDisabled = canBeDisabled;
+        this.isChangable = isChangable;
     }
 
     public static NotificationMessageEventEnum convert(int id) {

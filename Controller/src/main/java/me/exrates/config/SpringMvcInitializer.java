@@ -2,7 +2,6 @@ package me.exrates.config;
 
 import me.exrates.controller.filter.HeaderFilter;
 import me.exrates.controller.filter.XssRequestFilter;
-import me.exrates.controller.listener.StoreSessionListenerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -69,7 +68,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
     protected void registerDispatcherServlet(ServletContext servletContext) {
         super.registerDispatcherServlet(servletContext);
         servletContext.addListener(HttpSessionEventPublisher.class);
-      //TODO temporary disable
+        //TODO temporary disable
         //  servletContext.addListener(StoreSessionListenerImpl.class);
     }
 }

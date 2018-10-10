@@ -96,6 +96,14 @@
             </button>
           </sec:authorize>
 
+          <%--Access for operation | START--%>
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <button class="adminForm-toggler yellow-box">
+              Access
+            </button>
+          </sec:authorize>
+          <%--Access for operation | END--%>
+
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
             <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
               <button class="adminForm-toggler red-box">
@@ -179,21 +187,6 @@
 
                     <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-password" path="password"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.password"/></label>
-                      </div>
-                      <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:password path="password"
-                                       class="input-block-wrapper__input admin-form-input"
-                                       id="user-password"/>
-                        <form:errors path="password" class="input-block-wrapper__input"
-                                     style="color:red"/>
-                      </div>
-                    </div>
-
-                    <div class="input-block-wrapper">
-                      <div class="col-md-3 input-block-wrapper__label-wrapper">
                         <label for="user-phone"
                                class="input-block-wrapper__label"><loc:message
                                 code="admin.phone"/></label>
@@ -215,14 +208,17 @@
                                   code="admin.role"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                          <form:select path="role" id="user-role"
+                          <form:input path="role" id="user-role"
+                                      class="input-block-wrapper__input admin-form-input"
+                                      name="user-role" />
+                          <%--<form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
                             <c:forEach items="${roleList}" var="role">
                               <option value="${role}"
                                       <c:if test="${role eq user.role}">SELECTED</c:if>>${role}</option>
                             </c:forEach>
-                          </form:select>
+                          </form:select>--%>
                         </div>
                       </div>
                       </c:if>
@@ -298,7 +294,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
+             <%-- <%@include file="../fragments/admin-settings-user-2fa.jsp" %>--%>
             </div>
           </div>
         </div>
@@ -738,6 +734,10 @@
           </div>
         <%--Access management--%>
 
+          <%--Access for operation | START--%>
+          <%@include file='../fragments/admin/editUser/accessToOperationsForTheUser.jsp' %>
+          <%--Access for operation | END--%>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
           <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
             <div id="panel6" class="tab-pane">
@@ -769,8 +769,8 @@
               </div>
             </div>
           </c:if>
-
         </sec:authorize>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
         <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
         <div id="panel6" class="tab-pane">

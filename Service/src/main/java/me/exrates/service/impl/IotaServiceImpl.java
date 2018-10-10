@@ -1,11 +1,7 @@
 package me.exrates.service.impl;
 
 import jota.IotaAPI;
-import jota.dto.response.GetInclusionStateResponse;
 import jota.dto.response.GetNodeInfoResponse;
-import jota.error.*;
-import jota.model.Bundle;
-import jota.model.Transaction;
 import jota.model.Transfer;
 import jota.utils.Checksum;
 import jota.utils.IotaUnitConverter;
@@ -17,8 +13,6 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IotaService;
 import me.exrates.service.MerchantService;
@@ -158,15 +152,15 @@ public class IotaServiceImpl implements IotaService {
                         .host(HOST)
                         .port(PORT)
                         .build();
-                log.info("Iota started");
-                GetNodeInfoResponse response = iotaClient.getNodeInfo();
-                System.out.println(response.toString());
+               /*Do not delete!1
+               GetNodeInfoResponse response = iotaClient.getNodeInfo();
+                System.out.println(response.toString());*/
 
                 scheduler.scheduleAtFixedRate(new Runnable() {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 1, 120, TimeUnit.MINUTES);
+                }, 3, 120, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }

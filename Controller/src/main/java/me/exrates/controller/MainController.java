@@ -9,20 +9,14 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.OrderHistoryPeriod;
-import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.*;
 import me.exrates.model.form.FeedbackMessageForm;
-import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.service.geetest.GeetestLib;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
-import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -31,6 +25,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,11 +40,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +50,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,7 +63,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
-import static java.util.Objects.isNull;
 
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
@@ -102,8 +95,6 @@ public class MainController {
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
-    private VerifyReCaptchaSec verifyReCaptchaSec;
-    @Autowired
     private ReferralService referralService;
     @Autowired
     private SendMailService sendMailService;
@@ -127,6 +118,35 @@ public class MainController {
         return "403";
     }
 
+    /**
+     * Register user on referral link (redirect to dashboard, call pop-up with registration)
+     * @param refReference
+     * @param attr
+     * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
+     */
+    @RequestMapping("/register")
+    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, RedirectAttributes attr) {
+
+        User refferalRoot = userService.getCommonReferralRoot();
+        String parentEmail = "";
+
+        if (!Objects.isNull(refReference)) {
+            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
+            if (parentId.isPresent()) {
+                parentEmail = userService.getUserById(parentId.get()).getEmail();
+            }
+        } else if (refferalRoot != null) {
+            parentEmail = refferalRoot.getEmail();
+        }
+
+        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: "+parentEmail);
+
+        attr.addFlashAttribute("refferalLink", refReference);
+        attr.addFlashAttribute("parentEmail", parentEmail);
+
+        return new ModelAndView(new RedirectView("/dashboard"));
+    }
+
     @RequestMapping("/generateReferral")
     public
     @ResponseBody
@@ -146,7 +166,7 @@ public class MainController {
         user.setEmail(userEmailDto.getEmail());
         user.setParentEmail(userEmailDto.getParentEmail());
         int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
-        String userid = (String)request.getSession().getAttribute("userid");
+        String userid = (String) request.getSession().getAttribute("userid");
 
         HashMap<String, String> param = new HashMap<>();
         param.put("user_id", userid);
@@ -189,6 +209,7 @@ public class MainController {
                     final int parent = userService.getIdByEmail(user.getParentEmail());
                     if (child > 0 && parent > 0) {
                         referralService.bindChildAndParent(child, parent);
+                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: "+user.getParentEmail());
                     }
 
                     String successNoty = null;
@@ -200,7 +221,7 @@ public class MainController {
                     }
 
                     Map<String, Object> body = new HashMap<>();
-                    body.put("result",successNoty);
+                    body.put("result", successNoty);
                     body.put("user", user);
                     return ResponseEntity.ok(body);
 
@@ -208,18 +229,17 @@ public class MainController {
                     throw new NotCreateUserException("DBError");
                 }
             }
-        }
-        else {
+        } else {
             //TODO
             throw new RuntimeException("Geetest error");
         }
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(@ModelAttribute User user, @RequestParam(required = false) String view) {
+    public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
-        mav.addObject("user", user);
+        mav.addObject("user", WebUtils.getRequiredSessionAttribute(request, "reg_user"));
         return mav;
     }
 
@@ -232,22 +252,23 @@ public class MainController {
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
-           throw new PasswordCreationException("Error while creating password.");
+            throw new PasswordCreationException("Error while creating password.");
         } else {
-            User userUpdate = userService.findByEmail(user.getEmail());
+            User sessionUser = (User) WebUtils.getRequiredSessionAttribute(request, "reg_user");
+            User userUpdate = userService.findByEmail(sessionUser.getEmail());
             UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
-            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(sessionUser.getEmail()).getAuthorities());
             org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                    user.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
+                    sessionUser.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
             Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved",null, localeResolver.resolveLocale(request)));
-
+            attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+            WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
                 return new ModelAndView("redirect:/ico_dashboard");
             }
@@ -264,21 +285,19 @@ public class MainController {
         ModelAndView model = new ModelAndView();
         try {
             int userId = userService.verifyUserEmail(token);
-            if (userId != 0){
+            if (userId != 0) {
                 User user = userService.getUserById(userId);
+                WebUtils.setSessionAttribute(request, "reg_user", user);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                attr.addFlashAttribute("user", user);
-
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
                 user.setStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
-
                 if (view != null) {
                     model.addObject("view", view);
                     model.setViewName("redirect:/createPassword");
                 }
             } else {
-                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
+                attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
                 model.setViewName("redirect:/dashboard");
             }
         } catch (Exception e) {
@@ -304,7 +323,6 @@ public class MainController {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
         ModelAndView model = new ModelAndView();
-        model.addObject("captchaType", CAPTCHA_TYPE);
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
@@ -326,10 +344,10 @@ public class MainController {
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("loginErr", exception.getMessage());
-                } else if(exceptionClass.equals("UnconfirmedUserException")){
+                } else if (exceptionClass.equals("UnconfirmedUserException")) {
                     UnconfirmedUserException exception = (UnconfirmedUserException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("unconfirmedUserEmail", exception.getMessage());
-                    attr.addFlashAttribute("unconfirmedUserMessage",  messageSource.getMessage("register.unconfirmedUserMessage",
+                    attr.addFlashAttribute("unconfirmedUserMessage", messageSource.getMessage("register.unconfirmedUserMessage",
                             new Object[]{exception.getMessage()}, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("unconfirmedUser", messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request)));
                 } else {
@@ -383,16 +401,6 @@ public class MainController {
         return modelAndView;
     }
 
-    /*CHECK FIN PASSWORD*/
-
-   /* @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
-    @ResponseBody
-    public void checkFinPassword(User user, HttpServletRequest request) {
-        String enteredFinPassword = user.getFinpassword();
-        User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
-        userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
-    }*/
-
     /*
     error handlers for this controller
     * */
@@ -443,56 +451,6 @@ public class MainController {
     @RequestMapping(value = "/partners", method = RequestMethod.GET)
     public ModelAndView partners() {
         return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
-    @ResponseBody
-    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
-                                     HttpServletRequest request, RedirectAttributes redirectAttributes) {
-
-
-        ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
-        String captchaType = request.getParameter("captchaType");
-        switch (captchaType) {
-            case "BOTDETECT": {
-                String captchaId = request.getParameter("captchaId");
-                Captcha captcha = Captcha.load(request, captchaId);
-                String captchaCode = request.getParameter("captchaCode");
-                if (!captcha.validate(captchaCode)) {
-                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
-
-                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-                    return modelAndView;
-                }
-                break;
-            }
-            case "RECAPTCHA": {
-                String recapchaResponse = request.getParameter("g-recaptcha-response");
-                if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
-                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
-                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-                    return modelAndView;
-                }
-                break;
-            }
-        }
-        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
-        result.getAllErrors().forEach(logger::debug);
-        if (result.hasErrors()) {
-            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
-            modelAndView.addObject("cpch", "");
-            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-            return modelAndView;
-        }
-
-        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
-
-        return modelAndView;
     }
 
     @RequestMapping(value = "/utcOffset")

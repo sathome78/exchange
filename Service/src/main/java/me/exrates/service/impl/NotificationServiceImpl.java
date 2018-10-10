@@ -117,7 +117,8 @@ public class NotificationServiceImpl implements NotificationService {
             message,
             cause);
       }*/
-      if (option.isSendEmail()) {
+      /*Always on email notifications*/
+      if (true/*option.isSendEmail()*/) {
         Email email = new Email();
         email.setSubject(titleMessage);
         email.setMessage(message);

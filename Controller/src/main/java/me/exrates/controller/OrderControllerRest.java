@@ -2,10 +2,10 @@ package me.exrates.controller;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
@@ -14,9 +14,12 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
+import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -58,6 +61,9 @@ public class OrderControllerRest {
     UserService userService;
 
     @Autowired
+    private UserOperationService userOperationService;
+
+    @Autowired
     MessageSource messageSource;
 
     @Autowired
@@ -66,6 +72,7 @@ public class OrderControllerRest {
     @Autowired
     StopOrderService stopOrderService;
 
+    @CheckActiveUserStatus
     @RequestMapping("/order/submitnew/{orderType}")
     public OrderCreateSummaryDto newOrderToSell(@PathVariable OperationType orderType,
                                                 Principal principal,
@@ -81,7 +88,7 @@ public class OrderControllerRest {
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             if (baseType == null) baseType = OrderBaseType.LIMIT;
-           /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
+            /* CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");*/
             CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair);
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
@@ -105,13 +112,13 @@ public class OrderControllerRest {
                 request.getSession().setAttribute("orderCreationError", errorMap);
                 throw new OrderParamsWrongException();
             } else {
-            /*protect orderCreateDto*/
+                /*protect orderCreateDto*/
                 request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
             }
             return orderCreateSummaryDto;
         } catch (OrderParamsWrongException e) {
             long after = System.currentTimeMillis();
-            LOGGER.error("error... ms: " + (after - before) + " : " + e+" "+request.getSession().getAttribute("orderCreationError"));
+            LOGGER.error("error... ms: " + (after - before) + " : " + e + " " + request.getSession().getAttribute("orderCreationError"));
             throw e;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
@@ -124,10 +131,15 @@ public class OrderControllerRest {
 
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
     public String recordOrderToDB(HttpServletRequest request) {
         ProfileData profileData = new ProfileData(200);
         long before = System.currentTimeMillis();
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(request.getUserPrincipal().getName()), UserOperationAuthority.TRADING);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
+        }
         /*restore protected orderCreateDto*/
         OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
         try {
@@ -164,9 +176,14 @@ public class OrderControllerRest {
         }
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
+        }
         try {
             List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
             try {
@@ -174,9 +191,7 @@ public class OrderControllerRest {
                 orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
             } catch (AttemptToAcceptBotOrderException e) {
                 return "";
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw e;
             }
             return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";
@@ -191,6 +206,7 @@ public class OrderControllerRest {
     }
 
 
+    @CheckActiveUserStatus
     @RequestMapping("/order/submitdelete/{orderId}")
     public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId,
                                                    @RequestParam(value = "baseType", defaultValue = "1") int typeId,
@@ -228,6 +244,7 @@ public class OrderControllerRest {
         }
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/order/delete", produces = "application/json;charset=utf-8")
     public String deleteOrder(HttpServletRequest request) {
         long before = System.currentTimeMillis();
@@ -244,7 +261,7 @@ public class OrderControllerRest {
                     break;
                 }
                 default: {
-                    result = orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
                 }
             }
             if (!result) {

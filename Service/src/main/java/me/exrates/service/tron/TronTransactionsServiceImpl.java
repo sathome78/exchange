@@ -47,8 +47,8 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 1, 5, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 1, 20, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 3, 5, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 3, 20, TimeUnit.MINUTES);
     }
 
     private void checkUnconfirmedJob() {

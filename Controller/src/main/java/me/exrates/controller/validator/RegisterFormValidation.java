@@ -1,8 +1,10 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.User;
+import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,7 @@ public class RegisterFormValidation implements Validator {
     private static final String FIELD_CONTAINS_SPACE = "\\s";
 
     private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_.]+";
+
     private Locale locale = new Locale("en");
 
     @Autowired
@@ -107,7 +110,7 @@ public class RegisterFormValidation implements Validator {
             errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }
 
-        validatePassword(user.getPassword(), errors);
+        //validatePassword(user.getPassword(), errors);
 
     }
 
@@ -208,7 +211,14 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        validatePassword(user.getPassword(), errors);
+        //validatePassword(user.getPassword(), errors);
+        /*if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(user.getPassword());
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }*/
     }
 
     public void validateEmail(User user, Errors errors, Locale locale) {
@@ -226,6 +236,28 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
+    public void validateChangePassword(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
+        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
+        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
+                "required.password", passwordRequired);
+/*        if (!(StringUtils.isEmpty(changePasswordDto.getPassword()))) {
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(changePasswordDto.getConfirmPassword());
+            if (!matcher.matches()) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }*/
+        if (changePasswordDto.getPassword() != null && !changePasswordDto.getPassword().isEmpty()) {
+            if ((!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, changePasswordDto.getPassword())
+                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, changePasswordDto.getPassword())
+                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, changePasswordDto.getPassword()))
+                    || Pattern.matches(FIELD_CONTAINS_SPACE, changePasswordDto.getPassword())) {
+                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
+            }
+        }
+    }
+
     /**
      * Validation method for password (change user password in user private cabinet)
      * @param user
@@ -234,7 +266,6 @@ public class RegisterFormValidation implements Validator {
      */
     public void validatePasswordInPrivateCabinet(User user, Errors errors, Locale locale) {
         String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
-
         if (!user.getPassword().equals(user.getConfirmPassword())) {
             errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }

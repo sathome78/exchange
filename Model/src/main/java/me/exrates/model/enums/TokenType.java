@@ -8,6 +8,7 @@ public enum TokenType {
     CHANGE_FIN_PASSWORD(3),
     CONFIRM_NEW_IP(4);
 
+
     private final int tokenType;
 
     TokenType(int tokenType) {

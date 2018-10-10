@@ -1064,13 +1064,14 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public List<String> findAllAddresses(Integer merchantId, Integer currencyId) {
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses) {
     final String sql = "SELECT REFILL_REQUEST_ADDRESS.address FROM REFILL_REQUEST_ADDRESS " +
-            "where merchant_id = :merchant_id AND currency_id = :currency_id AND is_valid = 1";
+            "where merchant_id = :merchant_id AND currency_id = :currency_id AND is_valid IN (:isValidStatuses)";
 
-    final Map<String, Integer> params = new HashMap<>();
+    final Map<String, Object> params = new HashMap<>();
     params.put("merchant_id", merchantId);
     params.put("currency_id", currencyId);
+    params.put("isValidStatuses", isValidStatuses);
 
     return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> rs.getString("address"));
   }
@@ -1092,6 +1093,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("address", address);
     }};
     return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+  }
+
+  @Override
+  public boolean checkAddressForAvailability(String address) {
+    String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where address = :address";
+    int size = namedParameterJdbcTemplate.queryForList(sql, singletonMap("address", address)).size();
+    if (size > 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -1165,6 +1177,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             " AND merchant_id = :merchant_id AND currency_id = :currency_id";
     namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
       put("isNeeded", (isNeeded)? 1: 0);
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }});
+  }
+
+  @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    String sql = "UPDATE REFILL_REQUEST_ADDRESS SET is_valid = FALSE  WHERE address = :address" +
+            " AND merchant_id = :merchant_id AND currency_id = :currency_id";
+    namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
       put("address", address);
       put("merchant_id", merchantId);
       put("currency_id", currencyId);

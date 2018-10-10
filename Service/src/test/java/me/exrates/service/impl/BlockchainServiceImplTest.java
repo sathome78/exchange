@@ -1,8 +1,5 @@
 package me.exrates.service.impl;
 
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */

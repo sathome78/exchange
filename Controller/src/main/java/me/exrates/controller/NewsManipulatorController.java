@@ -28,92 +28,92 @@ import java.util.Map;
 @Log4j
 public class NewsManipulatorController {
 
-  @Autowired
-  MessageSource messageSource;
-  @Autowired
-  private LocaleResolver localeResolver;
+    @Autowired
+    MessageSource messageSource;
+    @Autowired
+    private LocaleResolver localeResolver;
 
-  @Autowired
-  private NewsExtService newsExtService;
+    @Autowired
+    private NewsExtService newsExtService;
 
-  @Autowired
-  private NewsVariantExtService newsVariantExtService;
+    @Autowired
+    private NewsVariantExtService newsVariantExtService;
 
-  @Autowired
-  NewsContentManipulator newsContentManipulator;
+    @Autowired
+    NewsContentManipulator newsContentManipulator;
 
-  @RequestMapping(value = "/news/upload/image", method = RequestMethod.POST)
-  public Map<String, String> uploadNewsImage(@RequestParam(required = true) MultipartFile file,
-                                             @RequestParam(required = true) Integer newsId,
-                                             @RequestParam(required = true) String newsType) throws IOException {
-    String uploadedFileName = newsExtService.uploadImageForNews(file);  //   temp_img_upload/xxx.png
-    String resourcePathToUploadedFile = newsContentManipulator.getResourcePathToUploadedFile(
-        uploadedFileName,
-        NewsTypeEnum.convert(newsType));  //  /newstopic/temp_img_upload/xxx.png
-    return Collections.singletonMap("location", resourcePathToUploadedFile);
-  }
-
-  @RequestMapping(value = "/news/upload/file", method = RequestMethod.POST)
-  public Map<String, String> uploadNewsFile(@RequestParam(required = true) MultipartFile file,
-                                            @RequestParam(required = true) Integer newsId,
-                                            @RequestParam(required = true) String newsType) throws IOException {
-    String uploadedFileName = newsExtService.uploadFileForNews(file); //   temp_file_upload/xxx.png
-    String resourcePathToUploadedFile = newsContentManipulator.getResourcePathToUploadedFile(
-        uploadedFileName,
-        NewsTypeEnum.convert(newsType));  //  /newstopic/temp_file_upload/xxx.png
-    return Collections.singletonMap("location", resourcePathToUploadedFile);
-  }
-
-  @RequestMapping(value = "/news/addNews", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
-  @ResponseBody
-  public NewsEditorCreationFormDto createNewsWithEditor(
-      @RequestBody NewsEditorCreationFormDto newsEditorCreationFormDto,
-      HttpServletRequest request) throws IOException, InterruptedException {
-    NewsEditorCreationFormDto result = newsExtService.uploadNews(newsEditorCreationFormDto);
-    log.info(result.getNewsType());
-    if (result.getNotifySubscribers()) {
-      result.setBaseUrl(
-          request.getScheme()
-              .concat("://")
-              .concat(request.getServerName())
-              .concat(":")
-              .concat(String.valueOf(request.getServerPort())));
+    @RequestMapping(value = "/news/upload/image", method = RequestMethod.POST)
+    public Map<String, String> uploadNewsImage(@RequestParam(required = true) MultipartFile file,
+                                               @RequestParam(required = true) Integer newsId,
+                                               @RequestParam(required = true) String newsType) throws IOException {
+        String uploadedFileName = newsExtService.uploadImageForNews(file);  //   temp_img_upload/xxx.png
+        String resourcePathToUploadedFile = newsContentManipulator.getResourcePathToUploadedFile(
+                uploadedFileName,
+                NewsTypeEnum.convert(newsType));  //  /newstopic/temp_img_upload/xxx.png
+        return Collections.singletonMap("location", resourcePathToUploadedFile);
     }
-    result.setCallbackMessage(messageSource.getMessage("news.successload", null, localeResolver.resolveLocale(request)));
-    return result;
-  }
 
-  @RequestMapping(value = "/news/newstopic/delete", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
-  @ResponseBody
-  public NewsVariantDeleteDto delete(
-      @RequestBody NewsVariantDeleteDto newsVariantDeleteDto,
-      HttpServletRequest request) throws IOException {
-    newsVariantExtService.deleteNewsVariant(newsVariantDeleteDto.getId());
-    newsVariantDeleteDto.setCallbackMessage(messageSource.getMessage("news.successdelete", null, localeResolver.resolveLocale(request)));
-    return newsVariantDeleteDto;
-  }
-
-  @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-  @ExceptionHandler({
-      NewsTitleNotSetException.class,
-      NewsBriefNotSetException.class})
-  @ResponseBody
-  public ErrorInfoDto NewsManipulationExceptionHandler(HttpServletRequest req, Exception exception) {
-    log.error("\n\t" + ExceptionUtils.getStackTrace(exception));
-    if (exception.getLocalizedMessage() == null || exception.getLocalizedMessage().isEmpty()) {
-      return new ErrorInfoDto(exception.getClass().getSimpleName());
-    } else {
-      return new ErrorInfoDto(exception.getClass().getSimpleName(), exception.getLocalizedMessage());
+    @RequestMapping(value = "/news/upload/file", method = RequestMethod.POST)
+    public Map<String, String> uploadNewsFile(@RequestParam(required = true) MultipartFile file,
+                                              @RequestParam(required = true) Integer newsId,
+                                              @RequestParam(required = true) String newsType) throws IOException {
+        String uploadedFileName = newsExtService.uploadFileForNews(file); //   temp_file_upload/xxx.png
+        String resourcePathToUploadedFile = newsContentManipulator.getResourcePathToUploadedFile(
+                uploadedFileName,
+                NewsTypeEnum.convert(newsType));  //  /newstopic/temp_file_upload/xxx.png
+        return Collections.singletonMap("location", resourcePathToUploadedFile);
     }
-  }
 
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
-  @ResponseBody
-  public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    exception.printStackTrace();
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
+    @RequestMapping(value = "/news/addNews", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
+    @ResponseBody
+    public NewsEditorCreationFormDto createNewsWithEditor(
+            @RequestBody NewsEditorCreationFormDto newsEditorCreationFormDto,
+            HttpServletRequest request) throws IOException, InterruptedException {
+        NewsEditorCreationFormDto result = newsExtService.uploadNews(newsEditorCreationFormDto);
+        log.info(result.getNewsType());
+        if (result.getNotifySubscribers()) {
+            result.setBaseUrl(
+                    request.getScheme()
+                            .concat("://")
+                            .concat(request.getServerName())
+                            .concat(":")
+                            .concat(String.valueOf(request.getServerPort())));
+        }
+        result.setCallbackMessage(messageSource.getMessage("news.successload", null, localeResolver.resolveLocale(request)));
+        return result;
+    }
+
+    @RequestMapping(value = "/news/newstopic/delete", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
+    @ResponseBody
+    public NewsVariantDeleteDto delete(
+            @RequestBody NewsVariantDeleteDto newsVariantDeleteDto,
+            HttpServletRequest request) throws IOException {
+        newsVariantExtService.deleteNewsVariant(newsVariantDeleteDto.getId());
+        newsVariantDeleteDto.setCallbackMessage(messageSource.getMessage("news.successdelete", null, localeResolver.resolveLocale(request)));
+        return newsVariantDeleteDto;
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler({
+            NewsTitleNotSetException.class,
+            NewsBriefNotSetException.class})
+    @ResponseBody
+    public ErrorInfoDto NewsManipulationExceptionHandler(HttpServletRequest req, Exception exception) {
+        log.error("\n\t" + ExceptionUtils.getStackTrace(exception));
+        if (exception.getLocalizedMessage() == null || exception.getLocalizedMessage().isEmpty()) {
+            return new ErrorInfoDto(exception.getClass().getSimpleName());
+        } else {
+            return new ErrorInfoDto(exception.getClass().getSimpleName(), exception.getLocalizedMessage());
+        }
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        exception.printStackTrace();
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
 }

@@ -24,6 +24,12 @@ function SettingsClass() {
     const $smsSubscrPrice = $('#sms_subscr_price');
     const $smsNumberInput = $('#sms_number_input');
 
+    const $pinDialogModal = $('#pin_modal');
+    const $pinDialogText = $pinDialogModal.find('#pin_text');
+    const $pinWrong = $pinDialogModal.find('#pin_wrong');
+    const $pinSendButton = $("#check-pin-button");
+    const $pinInput = $('#pin_code');
+
     /*===========================================================*/
     (function init() {
         that.tabIdx = $('#tabIdx').text();
@@ -264,6 +270,69 @@ function SettingsClass() {
             }
         });
     });
+
+
+
+    $('.update_set_button').on('click', function() {
+        console.log('clivk');
+        $.ajax({
+            url: '/settings/2FaOptions/submit',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            data: $('#2faSettings_form').serialize()
+        }).success(function (result, textStatus, xhr) {
+                $pinDialogModal.modal();
+                $pinDialogText.text(result.detail);
+        });
+    });
+
+    $pinInput.on('input', function (e) {
+        checkPinInput()
+    });
+
+    function checkPinInput() {
+        var value = $pinInput.val();
+        if (value.length > 2 && value.length < 15 ) {
+            $pinSendButton.prop('disabled', false);
+        } else {
+            $pinSendButton.prop('disabled', true);
+        }
+    }
+
+    $pinSendButton.on('click', function () {
+        sendPin($pinInput.val());
+    });
+
+    function sendPin(pin) {
+        $pinWrong.hide();
+        $.ajax({
+            url: '/settings/2FaOptions/change?pin=' + pin,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function (result, textStatus, xhr) {
+            if (xhr.status === 200) {
+                $pinDialogModal.modal("hide");
+                window.location.replace("/settings?success2fa");
+            } else {
+                $pinWrong.show();
+                $pinDialogText.text(result.message);
+                if (result.needToSendPin) {
+                    successNoty(result.message)
+                }
+            }
+        }).error(function (result) {
+
+        }).complete(function () {
+            $pinInput.val("");
+            $pinSendButton.prop('disabled', true);
+        });
+    }
 
 }
 

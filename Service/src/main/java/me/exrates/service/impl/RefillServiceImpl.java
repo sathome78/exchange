@@ -1024,7 +1024,12 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
-     return refillRequestDao.findAllAddresses(merchantId, currencyId);
+     return this.findAllAddresses(merchantId, currencyId, Collections.singletonList(true));
+  }
+
+  @Override
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses){
+    return refillRequestDao.findAllAddresses(merchantId, currencyId, isValidStatuses);
   }
   
   //TODO remove after changes in mobile api
@@ -1037,6 +1042,11 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
     return refillRequestDao.findAllNotAcceptedByAddressAndMerchantAndCurrency(address, merchantId, currencyId);
+  }
+
+  @Override
+  public boolean checkAddressForAvailability(String address) {
+    return refillRequestDao.checkAddressForAvailability(address);
   }
 
   @Override
@@ -1096,5 +1106,10 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
     return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
+  }
+
+  @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    refillRequestDao.invalidateAddress(address, merchantId, currencyId);
   }
 }

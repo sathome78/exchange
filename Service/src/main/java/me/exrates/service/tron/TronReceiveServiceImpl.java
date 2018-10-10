@@ -4,7 +4,6 @@ package me.exrates.service.tron;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
-
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import org.json.JSONArray;

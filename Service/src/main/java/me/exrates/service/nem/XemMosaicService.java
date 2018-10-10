@@ -5,8 +5,6 @@ import org.nem.core.model.mosaic.MosaicId;
 import org.nem.core.model.primitive.Quantity;
 import org.nem.core.model.primitive.Supply;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Maks on 27.02.2018.
  */

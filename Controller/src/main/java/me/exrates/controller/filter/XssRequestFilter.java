@@ -4,7 +4,6 @@ package me.exrates.controller.filter;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
-
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -24,19 +23,19 @@ public class XssRequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            Map<String,String> errorMap = new HashMap<>();
-            parameterMap.forEach((k,v) -> {
+            Map<String, String> errorMap = new HashMap<>();
+            parameterMap.forEach((k, v) -> {
                 Stream.of(v).forEach(va -> {
-                    if (!k.equalsIgnoreCase("creatorEmail")&&!k.equalsIgnoreCase("recipientEmail")&&!k.equalsIgnoreCase("hash")&&
-                            !k.equalsIgnoreCase("password")&&!k.equalsIgnoreCase("confirmPassword")&&!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
-                        errorMap.put(k,"validation.notallowedsymbol");
+                    if (!k.equalsIgnoreCase("creatorEmail") && !k.equalsIgnoreCase("recipientEmail") && !k.equalsIgnoreCase("hash") &&
+                            !k.equalsIgnoreCase("password") && !k.equalsIgnoreCase("confirmPassword") && !va.equals(Jsoup.clean(va, Whitelist.basic()))) {
+                        errorMap.put(k, "validation.notallowedsymbol");
                     }
                 });
             });
             request.setAttribute("xssErrors", errorMap);
             chain.doFilter(request, response);
         } catch (RuntimeException e) {
-            ((HttpServletResponse)response).sendRedirect("/dashboard");
+            ((HttpServletResponse) response).sendRedirect("/dashboard");
         }
 
     }

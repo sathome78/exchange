@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Component
-public class ChatWebSocketHandler extends TextWebSocketHandler{
+public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 

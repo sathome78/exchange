@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
+import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.RemovedMessageDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.ChatService;
 import me.exrates.service.annotation.ThreadSafe;
 import me.exrates.service.exception.IllegalChatMessageException;
@@ -24,10 +26,8 @@ import org.springframework.web.socket.TextMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -46,26 +46,24 @@ public class ChatController {
     private final ChatService chatService;
     private final MessageSource messageSource;
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
- //   private final Gson gson = new Gson();
+    //   private final Gson gson = new Gson();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 
 
     public ChatController(final ChatService chatService,
                           final MessageSource messageSource,
-                          final EnumMap<ChatLang, ChatWebSocketHandler> handlers)
-    {
+                          final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.chatService = chatService;
         this.messageSource = messageSource;
         this.handlers = handlers;
     }
 
     @RequestMapping(value = "/chat/new-message", method = POST)
-    public ResponseEntity<Map<String,String>> newMessage(final @RequestParam("body") String body,
-                                             final @RequestParam("lang") String lang,
-                                             final Principal principal,
-                                             final Locale locale)
-    {
+    public ResponseEntity<Map<String, String>> newMessage(final @RequestParam("body") String body,
+                                                          final @RequestParam("lang") String lang,
+                                                          final Principal principal,
+                                                          final Locale locale) {
         final ChatLang chatLang = ChatLang.toInstance(lang);
         final ChatMessage message;
         try {
@@ -93,8 +91,18 @@ public class ChatController {
     }
 
     @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/chat/allHistory", method = GET, produces = "text/plain;charset=UTF-8")
+    public String downloadChatMessages(@RequestParam("lang") String lang) {
+        chatService.flushCache();
+        List<ChatHistoryDto> result = chatService.getChatHistory(ChatLang.toInstance(lang));
+        return result.stream().map(ChatHistoryDto::toString)
+                .collect(Collectors.joining("", ChatHistoryDto.getTitle(), ""));
+    }
+
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/chat/deleteMessage", method = POST)
-    public @ResponseBody String deleteMessage(HttpServletRequest request) {
+    public @ResponseBody
+    String deleteMessage(HttpServletRequest request) {
 
         Map<String, String[]> params = request.getParameterMap();
         ChatMessage message = new ChatMessage();

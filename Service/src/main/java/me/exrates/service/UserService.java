@@ -8,11 +8,10 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -32,7 +31,7 @@ public interface UserService {
    * @param user
    * @return "true" if data saved successfully, or "false" if none
    */
-  boolean setNickname(User user);
+  boolean setNickname(String newNickName,String userEmail);
 
   User findByEmail(String email);
 
@@ -205,4 +204,8 @@ public interface UserService {
 
 
     String getUserEmailFromSecurityContext();
+
+  TemporalToken verifyUserEmailForForgetPassword(String token);
+
+  User getUserByTemporalToken(String token);
 }

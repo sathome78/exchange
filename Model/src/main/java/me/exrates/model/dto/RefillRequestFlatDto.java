@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

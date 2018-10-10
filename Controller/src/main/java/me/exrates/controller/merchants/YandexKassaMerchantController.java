@@ -43,8 +43,8 @@ public class YandexKassaMerchantController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params) {
+    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(final @RequestParam Map<String, String> params) {
 
         LOG.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
@@ -57,14 +57,14 @@ public class YandexKassaMerchantController {
         return new ResponseEntity<>(BAD_REQUEST);
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.GET)
-    public RedirectView successPayment(@RequestParam final Map<String,String> response, final RedirectAttributes redir, final HttpServletRequest request) {
+    @RequestMapping(value = "payment/success", method = RequestMethod.GET)
+    public RedirectView successPayment(@RequestParam final Map<String, String> response, final RedirectAttributes redir, final HttpServletRequest request) {
 
         LOG.debug("Begin method: successPayment.");
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("orderNumber")));
         LOG.info("Response: " + response);
 
-        if (transaction.isProvided()){
+        if (transaction.isProvided()) {
 
             redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
                     merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
@@ -78,4 +78,4 @@ public class YandexKassaMerchantController {
         return new RedirectView("/dashboard");
     }
 
-    }
+}

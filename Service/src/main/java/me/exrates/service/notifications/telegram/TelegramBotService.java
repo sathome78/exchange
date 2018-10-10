@@ -19,6 +19,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import javax.annotation.PostConstruct;
+import java.util.stream.Stream;
 
 
 /**
@@ -41,14 +42,15 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     @PostConstruct
     private void init() {
-       /* if (!"exrates_local_test_bot".equals(botName) || !"exrates_test_bot".equals(botName)) {
+        if (Stream.of("exrates_local_test_bot", "exrates_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
+            log.debug("init telegram bot {}", botName);
             TelegramBotsApi botsApi = new TelegramBotsApi();
             try {
                 botsApi.registerBot(this);
             } catch (TelegramApiException e) {
                 log.error("error while initialize bot {}", e);
             }
-        }*/
+        }
     }
 
     public void sendMessage(Long chatId, String text) {

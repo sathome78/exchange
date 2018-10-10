@@ -9,7 +9,18 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -19,9 +30,18 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.OrderHistoryItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.TransactionStatus;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
@@ -48,11 +68,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
+import static me.exrates.model.enums.OrderStatus.CLOSED;
+import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
@@ -133,7 +164,7 @@ public class OrderDaoImpl implements OrderDao {
             put("amount_convert", exOrder.getAmountConvert());
             put("commission_id", exOrder.getComissionId());
             put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
-            put("status_id", OrderStatus.CLOSED.getStatus());
+            put("status_id", CLOSED.getStatus());
             put("order_source_id", exOrder.getSourceId());
             put("user_acceptor_id", exOrder.getUserAcceptorId());
             Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
@@ -281,7 +312,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         return getCandleChartData(currencyPair, backDealInterval, "NOW()");
     }
-    
+
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime) {
         String startTimeString = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
@@ -336,9 +367,9 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-    
+
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
-        String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
+        String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
         List<CandleChartItemDto> result = namedParameterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
@@ -408,8 +439,11 @@ public class OrderDaoImpl implements OrderDao {
     public List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs() {
         long before = System.currentTimeMillis();
         try {
-            String sql = "SELECT  " +
-                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type,      " +
+            String sql =
+                  "SELECT RESULT.currency_pair_name, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order " +
+                  "FROM " +
+                    "((SELECT  " +
+                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
@@ -423,7 +457,7 @@ public class OrderDaoImpl implements OrderDao {
                     "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
                     "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate " +
+                    "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
                     " FROM ( " +
                     "   SELECT DISTINCT" +
                     "   EXORDERS.status_id AS status_id,  " +
@@ -433,22 +467,15 @@ public class OrderDaoImpl implements OrderDao {
                     "   ) " +
                     " AGRIGATE " +
                     " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
-                    "" +
-                    " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
+                    " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
+                    " UNION ALL (" +
+                    "   SELECT CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.type AS type, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
+                    "      FROM CURRENCY_PAIR CP " +
+                    "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
+                    ")) RESULT ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
-            return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<ExOrderStatisticsShortByPairsDto>() {
-                @Override
-                public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
-                    exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                    exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                    exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
-                    exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                    exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
-                    return exOrderStatisticsDto;
-                }
-            });
+            return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -478,22 +505,14 @@ public class OrderDaoImpl implements OrderDao {
                     "       (PRED_LASTORDER.currency_pair_id = CP.id)  AND  " +
                     "       (PRED_LASTORDER.status_id = :status_id) " +
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate " +
+                    "       LIMIT 1,1) AS pred_last_exrate, CP.pair_order  " +
                     " FROM CURRENCY_PAIR CP " +
                     " WHERE CP.id IN (:pair_id) AND CP.hidden != 1";
 
             Map<String, Object> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
             namedParameters.put("pair_id", pairsIds);
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
-                ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
-                exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
-                exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
-                return exOrderStatisticsDto;
-            });
+            return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -503,6 +522,17 @@ public class OrderDaoImpl implements OrderDao {
             LOGGER.debug("query completed ... ms: " + (after - before));
         }
     }
+
+    RowMapper<ExOrderStatisticsShortByPairsDto> exchangeRatesRowMapper = (rs, rowNum) -> {
+        ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
+        exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+        exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+        exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+        exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+        exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
+        exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
+        return exOrderStatisticsDto;
+    };
 
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
@@ -612,7 +642,7 @@ public class OrderDaoImpl implements OrderDao {
             return null;
         }
     }
-    
+
     private List<Integer> getOrderChildren(int id) {
         String sql = "SELECT id FROM EXORDERS WHERE order_source_id = :id";
         return slaveJdbcTemplate.queryForList(sql, Collections.singletonMap("id", id), Integer.class);
@@ -706,7 +736,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public CommissionsDto getAllCommissions(UserRole userRole){
+    public CommissionsDto getAllCommissions(UserRole userRole) {
         final String sql =
                 "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission, " +
                         "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission, SUM(transfer_commission) as transfer_commission" +
@@ -740,13 +770,13 @@ public class OrderDaoImpl implements OrderDao {
         try {
             Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
             return slaveJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
-                    CommissionsDto commissionsDto = new CommissionsDto();
-                    commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
-                    commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
-                    commissionsDto.setInputCommission(rs.getBigDecimal("input_commission"));
-                    commissionsDto.setOutputCommission(rs.getBigDecimal("output_commission"));
-                    commissionsDto.setTransferCommission(rs.getBigDecimal("transfer_commission"));
-                    return commissionsDto;
+                CommissionsDto commissionsDto = new CommissionsDto();
+                commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
+                commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
+                commissionsDto.setInputCommission(rs.getBigDecimal("input_commission"));
+                commissionsDto.setOutputCommission(rs.getBigDecimal("output_commission"));
+                commissionsDto.setTransferCommission(rs.getBigDecimal("transfer_commission"));
+                return commissionsDto;
             });
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -785,7 +815,7 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
-        List<Integer> operationTypesIds = Arrays.asList(3,4);
+        List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
         String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
         if (statusIds.size() > 1) {
@@ -804,7 +834,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("user_id", userId);
         namedParameters.put("status_ids", statusIds);
         if (operationType != null) {
-        namedParameters.put("operation_type_id", operationType.getType());
+            namedParameters.put("operation_type_id", operationType.getType());
         } else {
             namedParameters.put("operation_type_id", operationTypesIds);
         }
@@ -1009,7 +1039,7 @@ public class OrderDaoImpl implements OrderDao {
         String sqlSetVar = "SET @cumsum := 0";
 
         /*needs to return several orders with best exrate if their total sum is less than amount in param,
-        * or at least one order if base amount is greater than param amount*/
+         * or at least one order if base amount is greater than param amount*/
         String sql = "SELECT EO.id, EO.user_id, EO.currency_pair_id, EO.operation_type_id, EO.exrate, EO.amount_base, EO.amount_convert, " +
                 "EO.commission_id, EO.commission_fixed_amount, EO.date_creation, EO.status_id, EO.base_type " +
                 "FROM EXORDERS EO " + roleJoinClause +
@@ -1045,33 +1075,33 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
-        Integer requesterUserId,
-        String startDate,
-        String endDate,
-        List<Integer> roles) {
+            Integer requesterUserId,
+            String startDate,
+            String endDate,
+            List<Integer> roles) {
         String condition = "";
         if (!roles.isEmpty()) {
             condition = " AND USER_ROLE.id IN (:roles) ";
         }
 
         String sql = "SELECT (select name from OPERATION_TYPE where id = EXORDERS.operation_type_id) as operation, date_acception, " +
-            "  (select email from USER where id = EXORDERS.user_id) as user_owner,  " +
-            "  (select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname,  " +
-            "  (select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor,  " +
-            "  (select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname,  " +
-            "  (select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate  " +
-            "  from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid)  " +
-            "    WHERE status_id = 3     " +
-            condition +
-            "  AND (operation_type_id IN (3,4))   " +
-            "  AND  (EXORDERS.date_acception BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s')  " +
-            "  AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) " +
-            "  AND EXISTS (SELECT * " +
-            "                  FROM CURRENCY_PAIR CP " +
-            "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP1  ON (IOP1.user_id = :requester_user_id) AND (IOP1.currency_id = CP.currency1_id) " +
-            "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP2  ON (IOP2.user_id = :requester_user_id) AND (IOP2.currency_id = CP.currency2_id) " +
-            "                  WHERE (CP.id=EXORDERS.currency_pair_id))" +
-            "  ORDER BY date_acception, date_creation";
+                "  (select email from USER where id = EXORDERS.user_id) as user_owner,  " +
+                "  (select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname,  " +
+                "  (select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor,  " +
+                "  (select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname,  " +
+                "  (select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate  " +
+                "  from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid)  " +
+                "    WHERE status_id = 3     " +
+                condition +
+                "  AND (operation_type_id IN (3,4))   " +
+                "  AND  (EXORDERS.date_acception BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s')  " +
+                "  AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) " +
+                "  AND EXISTS (SELECT * " +
+                "                  FROM CURRENCY_PAIR CP " +
+                "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP1  ON (IOP1.user_id = :requester_user_id) AND (IOP1.currency_id = CP.currency1_id) " +
+                "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP2  ON (IOP2.user_id = :requester_user_id) AND (IOP2.currency_id = CP.currency2_id) " +
+                "                  WHERE (CP.id=EXORDERS.currency_pair_id))" +
+                "  ORDER BY date_acception, date_creation";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
@@ -1104,7 +1134,7 @@ public class OrderDaoImpl implements OrderDao {
                 //wolper 19.04.18
                 // MIN is used for performance reason
                 // as an alternative to additional "group by CP.ID"
-                " MIN(CP.id) "+
+                " MIN(CP.id) " +
                 "AS currency__pair_id, SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert " +
                 "FROM EXORDERS EO " +
                 "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
@@ -1137,16 +1167,16 @@ public class OrderDaoImpl implements OrderDao {
 
 
     /*maybe add index
-    * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
-    * */
+     * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
+     * */
 
     @Override
     public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, "+
+        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, " +
                 //wolper 19.04.18
                 // MIN is used for performance reason
                 // as an alternative to additional "group by CUR.ID"
-                " MIN(CP.ID)"+
+                " MIN(CP.ID)" +
                 " AS currency_pair_id, OT.id AS operation_type_id, " +
                 "       SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert, " +
                 "  SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' AND source_id = EO.id AND operation_type_id != 5 )) " +
@@ -1211,9 +1241,9 @@ public class OrderDaoImpl implements OrderDao {
     //wolper 24.04.18
     //query to get the last rates to exchange to USD
     @Override
-    public List<RatesUSDForReportDto> getRatesToUSDForReport(){
+    public List<RatesUSDForReportDto> getRatesToUSDForReport() {
 
-        String sqlBtc ="SELECT EX.exrate AS exrate\n" +
+        String sqlBtc = "SELECT EX.exrate AS exrate\n" +
                 " FROM EXORDERS EX\n" +
                 "INNER JOIN\n" +
                 "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
@@ -1223,7 +1253,7 @@ public class OrderDaoImpl implements OrderDao {
                 "AND (CP.name LIKE '%BTC/USD')\n" +
                 "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;\n";
 
-            int btc;
+        int btc;
         try {
             btc = slaveJdbcTemplate.queryForObject(sqlBtc, new HashMap<>(), Integer.class);
         } catch (EmptyResultDataAccessException e) {
@@ -1232,14 +1262,14 @@ public class OrderDaoImpl implements OrderDao {
 
         String sqlEtc =
                 "SELECT EX.exrate AS exrate\n" +
-                " FROM EXORDERS EX\n" +
-                "INNER JOIN\n" +
-                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                "AND (CP.name LIKE '%ETH/USD')\n" +
-                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
+                        " FROM EXORDERS EX\n" +
+                        "INNER JOIN\n" +
+                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
+                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
+                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
+                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
+                        "AND (CP.name LIKE '%ETH/USD')\n" +
+                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
 
         int eth;
         try {
@@ -1253,25 +1283,25 @@ public class OrderDaoImpl implements OrderDao {
         params.put("eth", eth);
 
         String sql =
-                " select CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
-                "(select id, \n" +
-                "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
-                "when name LIKE '%/ETH' then exrate*:eth \n" +
-                "when name LIKE '%/USD' then exrate end) as rate\n" +
-                "\n" +
-                "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate \n" +
-                " FROM EXORDERS EX\n" +
-                "INNER JOIN\n" +
-                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')\n" +
-                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY\n" +
-                "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
-                "join CURRENCY CR on (CWE.currency_id = CR.id);";
+                " select distinct CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
+                        "(select id, \n" +
+                        "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
+                        "when name LIKE '%/ETH' then exrate*:eth \n" +
+                        "when name LIKE '%/USD' then exrate end) as rate\n" +
+                        "\n" +
+                        "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate \n" +
+                        " FROM EXORDERS EX\n" +
+                        "INNER JOIN\n" +
+                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
+                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
+                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
+                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
+                        "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')\n" +
+                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY\n" +
+                        "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
+                        "join CURRENCY CR on (CWE.currency_id = CR.id);";
 
-        return slaveJdbcTemplate.query(sql, params,  (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             RatesUSDForReportDto dto = new RatesUSDForReportDto();
             dto.setId(rs.getInt("id"));
             dto.setCurrencyName(rs.getString("name"));
@@ -1338,37 +1368,56 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderHistoryItem> getRecentOrderHistory(Integer currencyPairId, BackDealInterval interval) {
-        String sql = "SELECT id, date_acception, exrate, amount_base, amount_convert, operation_type_id FROM EXORDERS " +
-                " WHERE currency_pair_id=:currency_pair_id AND status_id=:status_id " +
-                " AND date_acception >= now() - INTERVAL " + interval.getInterval() +
-                " ORDER BY date_acception";
+    public List<TradeHistoryDto> getTradeHistory(Integer currencyPairId,
+                                                 LocalDateTime fromDate,
+                                                 LocalDateTime toDate,
+                                                 Integer limit) {
+        String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
+
+        String sql = "SELECT o.id as order_id, " +
+                "o.date_creation as created, " +
+                "o.date_acception as accepted, " +
+                "o.amount_base as amount, " +
+                "o.exrate as price, " +
+                "o.amount_convert as sum, " +
+                "c.value as commission, " +
+                "o.operation_type_id" +
+                " FROM EXORDERS o" +
+                " JOIN COMMISSION c on o.commission_id = c.id" +
+                " WHERE o.currency_pair_id=:currency_pair_id AND o.status_id=:status_id" +
+                " AND o.date_acception BETWEEN :start_date AND :end_date" +
+                " ORDER BY o.date_acception ASC"
+                + limitSql;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("status_id", OrderStatus.CLOSED.getStatus());
+        params.put("status_id", CLOSED.getStatus());
         params.put("currency_pair_id", currencyPairId);
+        params.put("start_date", fromDate);
+        params.put("end_date", toDate);
+        params.put("limit", limit);
+
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
-            OrderHistoryItem item = new OrderHistoryItem();
-            item.setOrderId(rs.getInt("id"));
-            item.setDateAcceptance(rs.getTimestamp("date_acception").toLocalDateTime());
-            item.setAmount(rs.getBigDecimal("amount_base"));
-            item.setPrice(rs.getBigDecimal("exrate"));
-            item.setTotal(rs.getBigDecimal("amount_convert"));
-            item.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
-            return item;
+            TradeHistoryDto tradeHistoryDto = new TradeHistoryDto();
+            tradeHistoryDto.setOrderId(rs.getInt("order_id"));
+            tradeHistoryDto.setDateCreation(rs.getTimestamp("created").toLocalDateTime());
+            tradeHistoryDto.setDateAcceptance(rs.getTimestamp("accepted").toLocalDateTime());
+            tradeHistoryDto.setAmount(rs.getBigDecimal("amount"));
+            tradeHistoryDto.setPrice(rs.getBigDecimal("price"));
+            tradeHistoryDto.setTotal(rs.getBigDecimal("sum"));
+            tradeHistoryDto.setCommission(rs.getBigDecimal("commission"));
+            tradeHistoryDto.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
+            return tradeHistoryDto;
         });
     }
 
     @Override
     public List<UserOrdersDto> getUserOpenOrders(Integer userId, @Nullable Integer currencyPairId) {
-
-
         String currencyPairSql = currencyPairId == null ? "" : " AND EO.currency_pair_id = :currency_pair_id ";
         String sql = "SELECT EO.id AS order_id, EO.amount_base, EO.exrate, CP.name AS currency_pair_name, EO.operation_type_id, " +
                 " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE EO.user_id = :user_id AND EO.status_id = :status_id " + currencyPairSql +
-                " ORDER BY EO.date_creation DESC ";
+                " ORDER BY EO.date_creation DESC";
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
@@ -1378,31 +1427,193 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<UserOrdersDto> getUserOrdersHistory(Integer userId, @Nullable Integer currencyPairId, int limit, int offset) {
+    public List<UserOrdersDto> getUserOrdersByStatus(Integer userId,
+                                                     Integer currencyPairId,
+                                                     OrderStatus status,
+                                                     int limit,
+                                                     int offset) {
+        String currencyPairSql = nonNull(currencyPairId) ? " AND EO.currency_pair_id = :currency_pair_id " : StringUtils.EMPTY;
+        String limitSql = limit > 0 ? " LIMIT :limit " : StringUtils.EMPTY;
+        String offsetSql = (limit > 0 && offset > 0) ? "OFFSET :offset" : StringUtils.EMPTY;
 
-        String limitSql = limit > 0 ? " LIMIT :limit " : "";
-        String offsetSql = limit > 0 && offset > 0 ? "OFFSET :offset" : "";
-
-        String currencyPairSql = currencyPairId == null ? "" : " AND EO.currency_pair_id = :currency_pair_id ";
         String sql = "SELECT EO.id AS order_id, EO.amount_base, EO.exrate, CP.name AS currency_pair_name, EO.operation_type_id, " +
                 " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE (EO.user_id = :user_id OR EO.user_acceptor_id = :user_id) AND EO.status_id = :status_id " + currencyPairSql +
                 " ORDER BY EO.date_creation DESC " + limitSql + offsetSql;
+
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
-        params.put("status_id", OrderStatus.CLOSED.getStatus());
+        params.put("status_id", status.getStatus());
         params.put("limit", limit);
         params.put("offset", offset);
 
         return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
+    @Override
+    public List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(Integer userId,
+                                                                       Integer currencyPairId,
+                                                                       LocalDateTime fromDate,
+                                                                       LocalDateTime toDate,
+                                                                       Integer limit) {
+        String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
+
+        String sql = "SELECT o.id as order_id, " +
+                "o.user_id as user_id, " +
+                "o.date_creation as created, " +
+                "o.date_acception as accepted, " +
+                "o.amount_base as amount, " +
+                "o.exrate as price, " +
+                "o.amount_convert as sum, " +
+                "c.value as commission, " +
+                "o.operation_type_id" +
+                " FROM EXORDERS o" +
+                " JOIN COMMISSION c on o.commission_id = c.id" +
+                " WHERE (o.user_id = :user_id OR o.user_acceptor_id = :user_id) AND o.currency_pair_id = :currency_pair_id" +
+                " AND o.status_id = :status_id AND o.date_acception BETWEEN :start_date AND :end_date" +
+                " ORDER BY o.date_acception ASC"
+                + limitSql;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("status_id", CLOSED.getStatus());
+        params.put("user_id", userId);
+        params.put("currency_pair_id", currencyPairId);
+        params.put("start_date", fromDate);
+        params.put("end_date", toDate);
+        params.put("limit", limit);
+
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserTradeHistoryDto userTradeHistoryDto = new UserTradeHistoryDto();
+            userTradeHistoryDto.setUserId(userId);
+            userTradeHistoryDto.setIsMaker(userId == rs.getInt("user_id"));
+            userTradeHistoryDto.setOrderId(rs.getInt("order_id"));
+            userTradeHistoryDto.setDateCreation(rs.getTimestamp("created").toLocalDateTime());
+            userTradeHistoryDto.setDateAcceptance(rs.getTimestamp("accepted").toLocalDateTime());
+            userTradeHistoryDto.setAmount(rs.getBigDecimal("amount"));
+            userTradeHistoryDto.setPrice(rs.getBigDecimal("price"));
+            userTradeHistoryDto.setTotal(rs.getBigDecimal("sum"));
+            userTradeHistoryDto.setCommission(rs.getBigDecimal("commission"));
+            userTradeHistoryDto.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
+            return userTradeHistoryDto;
+        });
+    }
+
+    @Override
+    public List<ExOrder> getAllOpenedOrdersByUserId(Integer userId) {
+        String sql = "SELECT o.id AS order_id, " +
+                "o.currency_pair_id, " +
+                "o.operation_type_id, " +
+                "o.exrate AS price, " +
+                "o.amount_base AS amount, " +
+                "o.amount_convert AS sum, " +
+                "o.commission_id, " +
+                "o.commission_fixed_amount, " +
+                "o.date_creation AS created, " +
+                "o.status_id, " +
+                "o.base_type" +
+                " FROM EXORDERS o" +
+                " WHERE o.user_id = :user_id AND o.status_id = : status_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("status_id", OrderStatus.OPENED.getStatus());
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            ExOrder exOrder = new ExOrder();
+            exOrder.setId(rs.getInt("id"));
+            exOrder.setUserId(userId);
+            exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            exOrder.setExRate(rs.getBigDecimal("price"));
+            exOrder.setAmountBase(rs.getBigDecimal("amount"));
+            exOrder.setAmountConvert(rs.getBigDecimal("sum"));
+            exOrder.setComissionId(rs.getInt("commission_id"));
+            exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
+            exOrder.setDateCreation(rs.getTimestamp("created").toLocalDateTime());
+            exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            return exOrder;
+        });
+    }
+
+    @Override
+    public List<ExOrder> getOpenedOrdersByCurrencyPair(Integer userId, String currencyPair) {
+        String sql = "SELECT o.id AS order_id, " +
+                "o.currency_pair_id, " +
+                "o.operation_type_id, " +
+                "o.exrate AS price, " +
+                "o.amount_base AS amount, " +
+                "o.amount_convert AS sum, " +
+                "o.commission_id, " +
+                "o.commission_fixed_amount, " +
+                "o.date_creation AS created, " +
+                "o.status_id, " +
+                "o.base_type" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp on o.currency_pair_id = cp.id" +
+                " WHERE o.user_id = :user_id AND cp.name = :currency_pair AND o.status_id = : status_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("currency_pair", currencyPair);
+        params.put("status_id", OrderStatus.OPENED.getStatus());
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            ExOrder exOrder = new ExOrder();
+            exOrder.setId(rs.getInt("id"));
+            exOrder.setUserId(userId);
+            exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            exOrder.setExRate(rs.getBigDecimal("price"));
+            exOrder.setAmountBase(rs.getBigDecimal("amount"));
+            exOrder.setAmountConvert(rs.getBigDecimal("sum"));
+            exOrder.setComissionId(rs.getInt("commission_id"));
+            exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
+            exOrder.setDateCreation(rs.getTimestamp("created").toLocalDateTime());
+            exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            return exOrder;
+        });
+    }
 
 
+    @Override
+    public List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId) {
+        String sql = "SELECT t.id, " +
+                "t.user_wallet_id, " +
+                "t.amount, " +
+                "t.commission_amount AS commission, " +
+                "cur.name AS currency, " +
+                "t.datetime AS time, " +
+                "t.operation_type_id, " +
+                "o.status_id" +
+                " FROM TRANSACTION t" +
+                " JOIN CURRENCY cur on t.currency_id = cur.id" +
+                " JOIN EXORDERS o on o.id = t.source_id" +
+                " WHERE (o.user_id = :user_id OR o.user_acceptor_id = :user_id)" +
+                " AND t.source_id = :order_id" +
+                " AND t.source_type = :source_type" +
+                " AND (t.operation_type_id = :operation_type_1 OR t.operation_type_id = :operation_type_2)" +
+                " ORDER BY t.id";
 
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("order_id", orderId);
+        params.put("source_type", ORDER.name());
+        params.put("operation_type_1", INPUT.getType());
+        params.put("operation_type_2", OUTPUT.getType());
 
-
-
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> TransactionDto.builder()
+                .transactionId(rs.getInt("id"))
+                .walletId(rs.getInt("user_wallet_id"))
+                .amount(rs.getBigDecimal("amount"))
+                .commission(rs.getBigDecimal("commission"))
+                .currency(rs.getString("currency"))
+                .time(rs.getTimestamp("time").toLocalDateTime())
+                .operationType(OperationType.convert(rs.getInt("operation_type_id")))
+                .status(TransactionStatus.convert(rs.getInt("status_id")))
+                .build());
+    }
 }

@@ -19,6 +19,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private Integer currencyPairId;
   @JsonIgnore
   private CurrencyPairType type;
+  @JsonIgnore
+  private Integer pairOrder;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -37,12 +39,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
     this.type = exOrderStatisticsShortByPairsDto.type;
     this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
-  }
-
-  public ExOrderStatisticsShortByPairsDto(Integer pairId, String lastRate, String predLastRate) {
-    this.lastOrderRate = lastRate;
-    this.predLastOrderRate = predLastRate;
-    this.currencyPairId = pairId;
+    this.pairOrder = exOrderStatisticsShortByPairsDto.pairOrder;
   }
 
   @Override

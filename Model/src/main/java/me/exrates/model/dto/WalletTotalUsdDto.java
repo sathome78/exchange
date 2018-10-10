@@ -6,7 +6,6 @@ import lombok.ToString;
 import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 
 @Getter

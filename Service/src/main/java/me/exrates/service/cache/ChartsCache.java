@@ -3,7 +3,6 @@ package me.exrates.service.cache;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,6 @@ public class ChartsCache {
 
     public Map<String, String> getData(Integer currencyPairId) {
         if (!cacheMap.containsKey(currencyPairId)) {
-            log.debug("no key {}", currencyPairId );
             updateCache(currencyPairId);
         }
         return cacheMap.get(currencyPairId);

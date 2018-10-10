@@ -2,7 +2,6 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 

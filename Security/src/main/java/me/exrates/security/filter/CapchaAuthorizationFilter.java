@@ -7,7 +7,8 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import me.exrates.service.geetest.GeetestLib;
@@ -43,8 +44,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     LocaleResolver localeResolver;
 
     @Autowired
-    VerifyReCaptchaSec verifyReCaptchaSec;
-    @Autowired
     private UserService userService;
     @Autowired
     private SecureService secureServiceImpl;
@@ -66,7 +65,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*----------------------------*/
         String ipAddress = IpUtils.getClientIpAddress(request);
         try {
-            ipBlockingService.checkIp(ipAddress);
+            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
         } catch (BannedIpException e) {
             long banDuration = e.getBanDurationSeconds();
             String durationMessage;
@@ -97,30 +96,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             return attemptAuthentication(principal.getUsername(),
                     String.valueOf(session.getAttribute(passwordParam)),request, response);
         } else {
-//            String captchaType = request.getParameter("captchaType");
-//            if (captchaType == null) {
-//                throw new NotVerifiedCaptchaError( messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
-//            }
-//            switch (captchaType) {
-//                case "BOTDETECT": {
-//                    String captchaId = request.getParameter("captchaId");
-//                    Captcha captcha = Captcha.load(request, captchaId);
-//                    String captchaCode = request.getParameter("captchaCode");
-//                    if (!captcha.validate(captchaCode)) {
-//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-//                    }
-//                    break;
-//                }
-//                case "RECAPTCHA": {
-//                    String recapchaResponse = request.getParameter("g-recaptcha-response");
-//                    if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
-//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-//                    }
-//                    break;
-//                }
-//            }
 
             String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
             String validate = request.getParameter(GeetestLib.fn_geetest_validate);

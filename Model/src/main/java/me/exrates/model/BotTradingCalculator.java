@@ -10,8 +10,10 @@ import org.apache.commons.math3.random.RandomDataGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import static me.exrates.model.enums.ActionType.*;
-import static me.exrates.model.enums.PriceGrowthDirection.*;
+import static me.exrates.model.enums.ActionType.ADD;
+import static me.exrates.model.enums.ActionType.SUBTRACT;
+import static me.exrates.model.enums.PriceGrowthDirection.DOWN;
+import static me.exrates.model.enums.PriceGrowthDirection.UP;
 
 @Getter
 @ToString

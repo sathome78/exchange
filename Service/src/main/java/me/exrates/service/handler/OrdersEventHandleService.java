@@ -3,24 +3,18 @@ package me.exrates.service.handler;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.RefreshObjectsEnum;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
-import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by Maks on 28.08.2017.

@@ -3,17 +3,33 @@ package me.exrates.controller;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
+import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.FileLoadingException;
+import me.exrates.controller.exception.NewsCreationException;
+import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.*;
 import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
+import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.notifications.NotificatorsService;
+import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.notifications.*;
+import me.exrates.service.userOperation.UserOperationService;
+import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -21,10 +37,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -32,18 +54,23 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -76,6 +103,8 @@ public class EntryController {
     @Autowired
     private UserService userService;
     @Autowired
+    private UserOperationService userOperationService;
+    @Autowired
     private SessionParamsService sessionService;
     @Autowired
     private NotificationService notificationService;
@@ -89,6 +118,14 @@ public class EntryController {
     private ReferralService referralService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RegisterFormValidation registerFormValidation;
+    @Autowired
+    private UserFilesService userFilesService;
+    @Autowired
+    private UserSessionService userSessionService;
+    @Autowired
+    private SecureService secureService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -113,8 +150,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -123,7 +160,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -131,8 +168,9 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-      /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-      */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -140,23 +178,27 @@ public class EntryController {
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
+
+            boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
+            model.addObject("accessToOperationForUser", accessToOperationForUser);
+
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
-                                                .stream()
-                                                .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                                                .collect(Collectors.toList()));
+                    .stream()
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p->p.getPairType() == CurrencyPairType.MAIN)
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getPairType() == CurrencyPairType.MAIN)
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -180,8 +222,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -190,7 +232,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -212,18 +254,18 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
-                    .filter(p->p.getPairType() == CurrencyPairType.ICO)
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getPairType() == CurrencyPairType.ICO)
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -248,8 +290,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -258,7 +300,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -267,7 +309,8 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/tradingview");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -280,17 +323,17 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -303,16 +346,21 @@ public class EntryController {
         final ModelAndView mav = new ModelAndView("globalPages/settings");
         final List<UserFile> userFile = userService.findUserDoc(user.getId());
         final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
-        List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
+     /*   List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
         notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
         NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
-        notificationOptionsForm.setOptions(notificationOptions);
+        notificationOptionsForm.setOptions(notificationOptions);*/
+        if(request.getParameter("success2fa") != null) {
+            mav.addObject("activeTabId", "2fa-options-wrapper");
+            mav.addObject("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    localeResolver.resolveLocale(request)));
+        }
         mav.addObject("user", user);
         mav.addObject("tabIdx", tabIdx);
         mav.addObject("sectionid", map != null && map.containsKey("sectionid") ? map.get("sectionid") : null);
         //mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
-        mav.addObject("notificationOptionsForm", notificationOptionsForm);
+       /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
@@ -321,25 +369,128 @@ public class EntryController {
         return mav;
     }
 
-    @RequestMapping("/settings/notificationOptions/submit")
+    /*todo move this method from admin controller*/
+    @RequestMapping(value = "/settings/uploadFile", method = POST)
+    public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+                                       RedirectAttributes redirectAttributes,
+                                       final Principal principal,
+                                       final Locale locale) {
+        final RedirectView redirectView = new RedirectView("/settings");
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
+        redirectAttributes.addFlashAttribute("user", user);
+        if (uploaded.isEmpty()) {
+            redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
+            return redirectView;
+        }
+        try {
+            userFilesService.createUserFiles(user.getId(), uploaded);
+        } catch (final IOException e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
+            return redirectView;
+        }
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
+        redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
+        return redirectView;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String submitsettingsPassword(@Valid @ModelAttribute ChangePasswordDto changePasswordDto, BindingResult result,
+                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
+        registerFormValidation.validateChangePassword(changePasswordDto, result, localeResolver.resolveLocale(request));
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        User userPrincipal = userService.findByEmail(principal.getName());
+        Object message;
+        if (result.hasErrors()) {
+            response.setStatus(500);
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(toList());
+        } else {
+            if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
+                UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
+                updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
+                updateUserDto.setEmail(principal.getName());
+                userService.update(updateUserDto, localeResolver.resolveLocale(request));
+                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
+                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
+            } else {
+                response.setStatus(500);
+                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
+            }
+        }
+        return new JSONObject(){{put("message", message);}}.toString();
+    }
+
+    /*todo move this method from admin controller*/
+    @RequestMapping(value = "settings/changeNickname/submit", method = POST)
+    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user,@RequestParam("nickname")String newNickName, BindingResult result,
+                                               HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
+        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
+            redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
+        } else {
+            boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
+            if(userNicknameUpdated){
+                redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
+            }else{
+                redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
+            }
+        }
+        redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
+
+        return new ModelAndView(new RedirectView("/settings"));
+    }
+
+    @RequestMapping(value = "/newIpConfirm")
+    public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
+        ModelAndView model = new ModelAndView();
+        try {
+            if (userService.verifyUserEmail(token) != 0) {
+                req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
+            } else {
+                req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
+            }
+            model.setViewName("redirect:/login");
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+   /* @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request, Principal principal) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
         RedirectView redirectView = new RedirectView("/settings");
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
+        int userId = userService.getIdByEmail(principal.getName());
+        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
+                stream().
+                map(option ->
+                        {
+                            option.setUserId(userId);
+                            return option;
+                        }
+                ).
+                collect(toList());
         //TODO uncomment after turning notifications on
-        /*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
+        *//*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
                     localeResolver.resolveLocale(request)));
             return redirectView;
 
-        }*/
+        }*//*
 
         notificationService.updateUserNotifications(notificationOptions);
         redirectAttributes.addFlashAttribute("activeTabId", "notification-options-wrapper");
         return redirectView;
     }
-
+*/
     @RequestMapping("/settings/sessionOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {
@@ -366,40 +517,55 @@ public class EntryController {
         return redirectView;
     }
 
-    @RequestMapping("/settings/2FaOptions/submit")
-    public RedirectView submitNotificationOptions(RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request, Principal principal) {
-        RedirectView redirectView = new RedirectView("/settings");
-        try {
-            int userId = userService.getIdByEmail(principal.getName());
-            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
-                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
-                if (notificatorId.equals(0)) {
-                    notificatorId = null;
-                }
-                if (v == null) {
-                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                            .userId(userId)
-                            .notificatorId(notificatorId)
-                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                            .build();
-                    settingsService.createOrUpdate(setting);
-                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                    v.setNotificatorId(notificatorId);
-                    settingsService.createOrUpdate(v);
-                }
-            });
-            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    localeResolver.resolveLocale(request)));
-        } catch (Exception e) {
-            log.error(e);
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
-                    localeResolver.resolveLocale(request)));
-            throw e;
+    @ResponseBody
+    @RequestMapping(value = "/settings/2FaOptions/submit", method = POST)
+    public void submitNotificationOptionsPin(HttpServletRequest request, Principal principal) {
+        Map<Integer, Integer> paramsMap = new HashMap<>();
+        Arrays.stream(NotificationMessageEventEnum.values()).filter(NotificationMessageEventEnum::isChangable).forEach(p->{
+            paramsMap.put(p.getCode(), Integer.parseInt(request.getParameter(String.valueOf(p.getCode()))));
+
+        });
+        request.getSession().setAttribute("2fa_newParams", paramsMap);
+        secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/change")
+    public String submitNotificationOptions(String pin, HttpServletRequest request, Principal principal) {
+        Map<Integer, Integer> params = (Map<Integer, Integer>) request.getSession().getAttribute("2fa_newParams");
+        request.getSession().removeAttribute("2fa_newParams");
+        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+        if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
+            try {
+                int userId = userService.getIdByEmail(principal.getName());
+                Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
+                settingsMap.forEach((k, v) -> {
+                    if (NotificationMessageEventEnum.convert(k).isChangable()) {
+                        Integer notificatorId = params.get(k);
+                        if (v == null) {
+                            NotificationsUserSetting setting = NotificationsUserSetting.builder()
+                                    .userId(userId)
+                                    .notificatorId(notificatorId)
+                                    .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
+                                    .build();
+                            settingsService.createOrUpdate(setting);
+                        } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
+                            v.setNotificatorId(notificatorId);
+                            settingsService.createOrUpdate(v);
+                        }
+                    }
+                });
+                return messageSource.getMessage("message.settings_successfully_saved", null,
+                        localeResolver.resolveLocale(request));
+            } catch (Exception e) {
+                log.error(e);
+                throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
+                        localeResolver.resolveLocale(request)));
+            }
+        } else {
+            PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
+            throw new IncorrectPinException(res);
         }
-        redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
-        return redirectView;
     }
 
     @ResponseBody
@@ -414,12 +580,12 @@ public class EntryController {
             if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
                 throw new IllegalStateException();
             }
-            dto.setCode(((TelegramSubscription)subscription).getCode());
+            dto.setCode(((TelegramSubscription) subscription).getCode());
         }
         return dto;
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/preconnect_sms")
     public String preconnectSms(@RequestParam String number, Principal principal, HttpServletRequest request) {
         number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
@@ -453,7 +619,7 @@ public class EntryController {
                 .userId(userId)
                 .build();
         return subscribable.subscribe(subscriptionDto).toString();
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/connect_telegram")
@@ -462,12 +628,12 @@ public class EntryController {
         return subscribable.createSubscription(principal.getName()).toString();
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/reconnect_telegram")
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/contact_info")
@@ -480,8 +646,10 @@ public class EntryController {
         int roleId = userService.getUserRoleFromSecurityContext().getRole();
         BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
         BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
-        return new JSONObject(){{put("contact", contact);
-                                 put("price", price);}}.toString();
+        return new JSONObject() {{
+            put("contact", contact);
+            put("price", price);
+        }}.toString();
     }
 
     /*skip resources: img, css, js*/
@@ -501,7 +669,7 @@ public class EntryController {
                         .append(newsId)             //                                  48
                         .append("/")                //                                     /
                         .append(newsVariant)   //      ru
-                                //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
+                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
                         .append("/newstopic.html")  //                                          /newstopic.html
                         .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
                 LOGGER.debug("News content path: " + newsContentPath);
@@ -531,6 +699,21 @@ public class EntryController {
     @ResponseBody
     public ErrorInfo NoFileForLoadingExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ExceptionHandler({PinCodeCheckNeedException.class})
+    @ResponseBody
+    public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ExceptionHandler({IncorrectPinException.class})
+    @ResponseBody
+    public PinDto incorrectPinExceptionHandler(HttpServletRequest req, HttpServletResponse response, Exception exception) {
+        IncorrectPinException ex = (IncorrectPinException) exception;
+        return ex.getDto();
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
@@ -573,6 +756,18 @@ public class EntryController {
     @ResponseBody
     public ErrorInfo msSubscribeMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.notEnoughtUsd", null, localeResolver.resolveLocale(req)));
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        if (exception instanceof MerchantException) {
+            return new ErrorInfo(req.getRequestURL(), exception,
+                    messageSource.getMessage(((MerchantException) (exception)).getReason(), null, localeResolver.resolveLocale(req)));
+        }
+        log.error(ExceptionUtils.getStackTrace(exception));
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }

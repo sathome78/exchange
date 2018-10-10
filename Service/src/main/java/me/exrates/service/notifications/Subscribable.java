@@ -1,8 +1,6 @@
 package me.exrates.service.notifications;
 
-import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.NotificatorSubscription;
-import org.apache.axis.transport.jms.Subscription;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
