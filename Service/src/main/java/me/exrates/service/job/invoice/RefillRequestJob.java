@@ -39,11 +39,12 @@ public class RefillRequestJob {
    */
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
   public void refillCheckPaymentsForQuarkAndLbtc() {
-    String blockhash = null;
     String quarkName = "QRK";
-    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(blockhash);
+    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(null);
     String litebitcoinName = "LBTC";
-    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(litebitcoinName);
+    getBitcoinServiceByMerchantName(litebitcoinName).scanForUnprocessedTransactions(null);
+    String lightpaycoinName = "LPC";
+    getBitcoinServiceByMerchantName(lightpaycoinName).scanForUnprocessedTransactions(null);
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
