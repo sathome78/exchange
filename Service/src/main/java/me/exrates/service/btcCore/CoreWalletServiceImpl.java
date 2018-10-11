@@ -32,6 +32,9 @@ import reactor.core.publisher.Flux;
 
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -80,7 +83,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(rc.build())
                     .build();
             Properties nodeConfig = new Properties();
-            nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
+            loadPropetries(nodePropertySource, nodeConfig);
             nodeConfig.setProperty("node.bitcoind.rpc.user", passPropertySource.getProperty("node.bitcoind.rpc.user"));
             nodeConfig.setProperty("node.bitcoind.rpc.password", passPropertySource.getProperty("node.bitcoind.rpc.password"));
             log.info("Node config: " + nodeConfig);
@@ -88,11 +91,24 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             this.supportInstantSend = supportInstantSend;
             this.supportSubtractFee = supportSubtractFee;
             this.supportReferenceLine = supportReferenceLine;
+
         } catch (Exception e) {
             log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
             log.error(ExceptionUtils.getStackTrace(e));
         }
 
+    }
+
+    private void loadPropetries(String nodePropertySource, Properties nodeConfig) throws IOException {
+        try {
+            nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
+        } catch (NullPointerException e){
+            try {
+                nodeConfig.load(getClass().getClassLoader().getResourceAsStream("properties/" + nodePropertySource));
+            } catch (NullPointerException e1) {
+                System.out.println("Not found " + nodePropertySource);
+            }
+        }
     }
 
     @Override
