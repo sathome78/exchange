@@ -1,27 +1,19 @@
 package me.exrates.controller.interceptor;
 
 import com.google.common.net.HttpHeaders;
-import com.sun.jersey.api.client.Client;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpMessage;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -29,20 +21,26 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.util.concurrent.CompletableFuture.*;
-import static java.util.stream.Collectors.*;
+import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.stream.Collectors.toList;
 
 @Component
 @Log4j2
-//@PropertySource("classpath:/db.properties")
+@PropertySource("classpath:/db.properties")
 public class LoggerInterceptor extends HandlerInterceptorAdapter {
 
-    //    @Value("${db.elasticsearch.url}")
-    private static final String url = "http://vpc-ex-app-s34knhiardlmpsiswpqhbu5d6e.us-east-2.es.amazonaws.com/test/_doc";
+    @Value("${db.elasticsearch.url}")
+    private String url;
 
     public static final String USER_ID = "USER_ID";
 
