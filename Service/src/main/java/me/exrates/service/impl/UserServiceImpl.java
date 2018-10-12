@@ -230,6 +230,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public boolean hasNickname(String userEmail){
+    String nickname = userDao.findByEmail(userEmail).getNickname();
+    if(nickname==null || nickname.trim().length()==0){
+      return false;
+    } else return true;
+  }
+
+  @Override
   public User findByEmail(String email) {
     return userDao.findByEmail(email);
   }
