@@ -31,7 +31,7 @@ $(function () {
         checkSendBtcFormFields();
     });
 
-    $('#btc_show_data').on('click', function(e) {
+    $('.btc_show_data').on('click', function(e) {
         updateTxHistoryTable();
     });
 
