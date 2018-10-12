@@ -21,14 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -39,7 +32,7 @@ import static java.util.stream.Collectors.toList;
 @PropertySource("classpath:/db.properties")
 public class LoggerInterceptor extends HandlerInterceptorAdapter {
 
-    @Value("${db.elasticsearch.url}")
+    @Value("${db.elasticsearch.url:http://vpc-ex-app-s34knhiardlmpsiswpqhbu5d6e.us-east-2.es.amazonaws.com/test/_doc}")
     private String url;
 
     public static final String USER_ID = "USER_ID";
@@ -77,7 +70,7 @@ public class LoggerInterceptor extends HandlerInterceptorAdapter {
             HttpPost httpPost = new HttpPost();
             httpPost.setHeader(new BasicHeader("Content-type", "application/json"));
             httpPost.setEntity(new StringEntity(jsonObject1.toString()));
-            httpPost.setURI(new URI(url));
+            httpPost.setURI(new URI(Optional.ofNullable(url).orElse("http://vpc-ex-app-s34knhiardlmpsiswpqhbu5d6e.us-east-2.es.amazonaws.com/test/_doc")));
 
             log.info("Post statistic to elasticsearch with id " + jsonObject.getString("UUID"));
             CloseableHttpResponse execute = build.execute(httpPost);
