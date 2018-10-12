@@ -60,7 +60,7 @@
             <h3><loc:message code="contacts.title"/> </h3>
             <hr style="margin-bottom: 16px; margin-top: 16px;">
             <div>
-                <div class="col-md-7" style="padding-left: 0;">
+                <div class="col-md-8" style="padding-left: 0;">
                     <p style="margin-top: 0;"> <loc:message code="contacts.intro"/>
                         <br>
                         <br>
@@ -103,10 +103,10 @@
                         <p style="margin-top: 8px; margin-bottom: 0;">
                             <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/nina-bar-b87945170/"><loc:message code="contacts.support.listing.manager"/> </a>
                         </p>
-                        <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
+                            <a href="mailto:merkuri@exrates.me" style="margin-bottom: 16px;">listing@exrates.me</a>
                     </div>
                 </div>
-                <div class="col-md-4 col-md-offset-1">
+                <div class="col-md-4">
                     <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
                         <script data-cfasync="false" src="https://exrates.me/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
                         <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script>
