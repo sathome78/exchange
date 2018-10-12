@@ -94,14 +94,15 @@
                         <p style="margin-top: 8px; margin-bottom: 8px;">
                             <b><loc:message code="contacts.chairman.title"/> </b>
                         </p>
-                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/"><loc:message code="contacts.chairman"/> </a>
+                        <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/nina-bar-b87945170/"><loc:message code="contacts.support.listing.manager"/> </a>
                         <br>
                         <a href="mailto:merkuri@exrates.me">merkuri@exrates.me</a>
                     </div>
                     <div>
                         <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="contacts.support.title"/></h5>
                         <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b><loc:message code="admin.phone"/>:</b> +6281547581914
+                            <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/vladislav-postoupalski-41b015126/"><loc:message code="contacts.chairman"/> </a>
+                            <b><loc:message code="admin.phone"/>:</b> Nina Bar
                         </p>
                         <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
                     </div>
