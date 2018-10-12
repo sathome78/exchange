@@ -13,7 +13,7 @@ $(function () {
    urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + merchantName + '/';
 
 
-    updateTxHistoryTable();
+
     retrieveFee();
     checkSendBtcFormFields();
     refreshSubtractFeeStatus();
@@ -29,6 +29,10 @@ $(function () {
         $($newPaymentDiv).find('.rm-button-placeholder').append($removeButton);
         $('#payments').append($newPaymentDiv);
         checkSendBtcFormFields();
+    });
+
+    $('#btc_show_data').on('click', function(e) {
+        updateTxHistoryTable();
     });
 
     $('#send-btc-form').on('click', '.remove-payment', function (e) {
