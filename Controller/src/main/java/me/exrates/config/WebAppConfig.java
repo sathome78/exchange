@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
+import me.exrates.controller.interceptor.LoggerInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -375,6 +376,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new FinPassCheckInterceptor());
+        registry.addInterceptor(new LoggerInterceptor());
     }
 
     @Override
