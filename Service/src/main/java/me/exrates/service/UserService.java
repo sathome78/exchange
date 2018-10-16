@@ -25,7 +25,7 @@ public interface UserService {
 
   int getIdByNickname(String nickname);
 
-  boolean setNickname(String newNickName,String userEmail);
+  boolean setNickname(User user);
 
   boolean hasNickname(String userEmail);
 
