@@ -1,16 +1,20 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dao.PageLayoutSettingsDao;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
+import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
+import me.exrates.ngcontroller.service.UserVerificationService;
 import me.exrates.service.*;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +45,7 @@ public class NgUserSettingsController {
     private static final String EMAIL_NOTIFICATION = "notifications";
     private static final String COLOR_SCHEME = "color-schema";
     private static final String IS_COLOR_BLIND = "isLowColorEnabled";
+    private static final String USER_FILES = "userFiles";
 
     private static final String STATE = "STATE";
 
@@ -58,6 +63,7 @@ public class NgUserSettingsController {
     private final PageLayoutSettingsService layoutSettingsService;
     private final NotificationsSettingsService settingsService;
     private final UserFilesService userFilesService;
+    private final UserVerificationService verificationService;
 
     @Autowired
     public NgUserSettingsController(UserService userService,
@@ -65,13 +71,14 @@ public class NgUserSettingsController {
                                     SessionParamsService sessionService,
                                     PageLayoutSettingsService layoutSettingsService,
                                     NotificationsSettingsService settingsService,
-                                    UserFilesService userFilesService) {
+                                    UserFilesService userFilesService, UserVerificationService verificationService) {
         this.userService = userService;
         this.notificationService = notificationService;
         this.sessionService = sessionService;
         this.layoutSettingsService = layoutSettingsService;
         this.settingsService = settingsService;
         this.userFilesService = userFilesService;
+        this.verificationService = verificationService;
     }
 
     @PutMapping(value = "/updateMainPassword")
@@ -207,56 +214,80 @@ public class NgUserSettingsController {
         }
     }
 
+    @PostMapping(USER_FILES)
+    public ResponseEntity<Void> uploadUserVerification(@RequestBody UserInfoVerificationDto data) {
+        int userId = userService.getIdByEmail(getPrincipalEmail());
 
+        data.setUserId(userId);
+
+       UserInfoVerificationDto attempt = verificationService.save(data);
+        if (attempt != null) {
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping(USER_FILES + "/docs")
+    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody UserDocVerificationDto data) {
+        int userId = userService.getIdByEmail(getPrincipalEmail());
+        data.setUserId(userId);
+
+        UserDocVerificationDto attempt = verificationService.save(data);
+        if (attempt != null) {
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    //        }
+    //            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    //        } else {
+    //            return new ResponseEntity<>(HttpStatus.OK);
+    //        if (userService.update(getUpdateUserDto(user), locale)){
+    //        }
+    //            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    //        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
+    //
+    //        user.setConfirmFinPassword(confirmFinpassword);
+    //        user.setFinpassword(finpassword);
+    //        }
+    //            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    //        if(finpassword.isEmpty() || confirmFinpassword.isEmpty()){
+    //
+    //        String confirmFinpassword = body.getOrDefault("confirmFinpassword", "");
+    //        String finpassword = body.getOrDefault("finpassword", "");
+    //        Locale locale = userService.getUserLocaleForMobile(email);
+    //        User user = userService.findByEmail(email);
+    //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    //    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
 //    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User user = userService.findByEmail(email);
-//        Locale locale = userService.getUserLocaleForMobile(email);
-//        String finpassword = body.getOrDefault("finpassword", "");
-//        String confirmFinpassword = body.getOrDefault("confirmFinpassword", "");
-//
-//        if(finpassword.isEmpty() || confirmFinpassword.isEmpty()){
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
-//        user.setFinpassword(finpassword);
-//        user.setConfirmFinPassword(confirmFinpassword);
-//
-//        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
-//            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//        }
-//        if (userService.update(getUpdateUserDto(user), locale)){
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//    }
 
+//    }
+    //        }
+    //            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    //        } catch (Exception e) {
+    //            return new ResponseEntity<>(settings, HttpStatus.OK);
+    //                    new HashMap<>(settingsService.getUser2FactorSettings(userId));
+    //            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings =
+    //            int userId = userService.getIdByEmail(userEmail);
+    //        try {
+    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+    //    public ResponseEntity<Map<NotificationMessageEventEnum, NotificationTypeEnum>> getAuthSettings(HttpServletRequest request){
+    //    @GetMapping(value = "/user2FactorAuthSettings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    //
+    //    }
+    //        }
+    //            return ResponseEntity.unprocessableEntity().build();
+    //        } catch (Exception e) {
+    //            return ResponseEntity.ok().build();
+    //            settingsService.updateUser2FactorSettings(userId, body);
+    //            int userId = userService.getIdByEmail(userEmail);
+    //        try {
+    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+    //    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body){
 //    @PutMapping(value = "/updateAuthorization", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body){
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            int userId = userService.getIdByEmail(userEmail);
-//            settingsService.updateUser2FactorSettings(userId, body);
-//            return ResponseEntity.ok().build();
-//        } catch (Exception e) {
-//            return ResponseEntity.unprocessableEntity().build();
-//        }
-//    }
-//
-//    @GetMapping(value = "/user2FactorAuthSettings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Map<NotificationMessageEventEnum, NotificationTypeEnum>> getAuthSettings(HttpServletRequest request){
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            int userId = userService.getIdByEmail(userEmail);
-//            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings =
-//                    new HashMap<>(settingsService.getUser2FactorSettings(userId));
-//            return new ResponseEntity<>(settings, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//    }
 
+//    }
 //    @PutMapping(value = "/updateDocuments", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
 //    public ResponseEntity<Void> updateDocuments(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
 //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -264,50 +295,42 @@ public class NgUserSettingsController {
 //        return null;
 //    }
 
-//    @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            int userId = userService.getIdByEmail(email);
-//            notificationService.updateNotificationOptionsForUser(userId, options);
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    //            return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 //        }
-//    }
+    //        } catch (Exception e) {
+    //            return new ResponseEntity<>(HttpStatus.OK);
+    //            notificationService.updateNotificationOptionsForUser(userId, options);
+    //            int userId = userService.getIdByEmail(email);
+    //        try {
+    //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    //    public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
+//    @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
 
+//    }
+    //        return docs;
+    //        });
+    //            docs.add(uf.getPath().toFile());
+    //        userService.findUserDoc(userId).forEach(uf -> {
+    //        List<File> docs = new ArrayList<>();
+    //        int userId = userService.getIdByEmail(userEmail);
+    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+    //    public List<File> getUserFiles() throws Exception {
 //    @GetMapping(value = "/userFiles")
-//    public List<File> getUserFiles() throws Exception {
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        int userId = userService.getIdByEmail(userEmail);
-//        List<File> files = new ArrayList<>();
-//        userService.findUserDoc(userId).forEach(uf -> {
-//            files.add(uf.getPath().toFile());
-//        });
-//        return files;
-//    }
 
+//    }
+    //                .body(resource);
+    //                .contentType(MediaType.parseMediaType("application/octet-stream"))
+    //                .contentLength(imagePath.toFile().length())
+    //        return ResponseEntity.ok()
+    //
+    //        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
+    //        Path imagePath = userFilesService.getUserFilePath(fileName, userId);
+    //
+    //        System.out.println("fileName: " + fileName);
+    //                                                   @PathVariable String fileName) throws NoSuchFileException, IOException {
+    //    public ResponseEntity<Resource> getSingleImage(@PathVariable Integer userId,
 //    @GetMapping(value = "/userFiles/{userId}/{fileName:.+}")
-//    public ResponseEntity<Resource> getSingleImage(@PathVariable Integer userId,
-//                                                   @PathVariable String fileName) throws NoSuchFileException, IOException {
-//        System.out.println("fileName: " + fileName);
-//
-//        Path imagePath = userFilesService.getUserFilePath(fileName, userId);
-//        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
-//
-//        return ResponseEntity.ok()
-//                .contentLength(imagePath.toFile().length())
-//                .contentType(MediaType.parseMediaType("application/octet-stream"))
-//                .body(resource);
-//    }
 
-//    @PostMapping(value = "/userFiles/submit")
-//    public ResponseEntity<List<File>> saveUserFile(@RequestParam("file") MultipartFile file) throws Exception {
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        int userId = userService.getIdByEmail(userEmail);
-//        int userId = userService.getIdByEmail(userEmail);
-//        userFilesService.createUserFiles(userId, Collections.singletonList(file));
-//        return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
 //    }
 
 //    @DeleteMapping(value = "/userFiles/delete")
@@ -353,24 +376,24 @@ public class NgUserSettingsController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NoSuchFileException.class)
+    @ExceptionHandler({NoSuchFileException.class, UserNotFoundException.class})
     @ResponseBody
     public ResponseEntity<Object> NotFileFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ResponseEntity<Object>("File not found", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ResponseEntity<Object> UnavailableFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ResponseEntity<Object>("Service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>("Service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     @ResponseBody
     public ResponseEntity<Object> AuthExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ResponseEntity<Object>("Not authorised", HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>("Not authorised", HttpStatus.UNAUTHORIZED);
     }
 
     private String getPrincipalEmail() {

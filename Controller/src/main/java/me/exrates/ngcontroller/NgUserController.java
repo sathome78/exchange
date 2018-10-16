@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
@@ -70,21 +71,23 @@ public class NgUserController {
 //            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
 //        }
 
-        if (isEmpty(authenticationDto.getPin())) {
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
-        }
-
-        User user = userService.findByEmail(authenticationDto.getEmail());
-        if (user == null) {
+        User user;
+        try {
+            user = userService.findByEmail(authenticationDto.getEmail());
+        } catch (UserNotFoundException esc) {
+            logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        authenticationDto.setPinRequired(true);
         boolean shouldLoginWithGoogle = notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
-        if(!shouldLoginWithGoogle) {
-            secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
+        if (isEmpty(authenticationDto.getPin())) {
+            if(!shouldLoginWithGoogle) {
+                secureService.sendLoginPincode(user, request);
+            }
+            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
+        authenticationDto.setPinRequired(true);
         Optional<AuthTokenDto> authTokenResult;
         try {
             authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto,

@@ -3,6 +3,7 @@ package me.exrates.service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -15,6 +16,8 @@ public interface UserFilesService {
     boolean checkFileValidity(MultipartFile file);
 
     void createUserFiles(int userId, List<MultipartFile> files) throws IOException;
+
+    Path createUserFile(int userId, MultipartFile file) throws IOException;
 
     String saveReceiptScan(int userId, int invoiceId, MultipartFile file) throws IOException;
 

@@ -41,7 +41,7 @@ you if you distribute copies of the library or if you modify it.
 or for a fee, you must give the recipients all the rights that we gave
 you.  You must make sure that they, too, receive or can get the source
 code.  If you link other code with the library, you must provide
-complete object files to the recipients, so that they can relink them
+complete object docs to the recipients, so that they can relink them
 with the library after making changes to the library and recompiling
 it.  And you must show them these terms so they know their rights.
 
@@ -136,7 +136,7 @@ included without limitation in the term "modification".)
   "Source code" for a work means the preferred form of the work for
 making modifications to it.  For a library, complete source code means
 all the source code for all modules it contains, plus any associated
-interface definition files, plus the scripts used to control compilation
+interface definition docs, plus the scripts used to control compilation
 and installation of the library.
 
   Activities other than copying, distribution and modification are not
@@ -166,8 +166,8 @@ above, provided that you also meet all of these conditions:
 
     a) The modified work must itself be a software library.
 
-    b) You must cause the files modified to carry prominent notices
-    stating that you changed the files and the date of any change.
+    b) You must cause the docs modified to carry prominent notices
+    stating that you changed the docs and the date of any change.
 
     c) You must cause the whole of the work to be licensed at no
     charge to all third parties under the terms of this License.
@@ -291,7 +291,7 @@ of these things:
     uses the Library", as object code and/or source code, so that the
     user can modify the Library and then relink to produce a modified
     executable containing the modified Library.  (It is understood
-    that the user who changes the contents of definitions files in the
+    that the user who changes the contents of definitions docs in the
     Library will not necessarily be able to recompile the application
     to use the modified definitions.)
 

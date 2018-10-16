@@ -8466,7 +8466,7 @@ define("tinymce/dom/DOMUtils", [
 		 * // Loads a CSS file into an editor instance by id
 		 * tinymce.get('someid').dom.loadCSS('somepath/some.css');
 		 *
-		 * // Loads multiple CSS files into the current document
+		 * // Loads multiple CSS docs into the current document
 		 * tinymce.DOM.loadCSS('somepath/some.css,somepath/someother.css');
 		 */
 		loadCSS: function(url) {
@@ -9360,8 +9360,8 @@ define("tinymce/dom/DOMUtils", [
 /*globals console*/
 
 /**
- * This class handles asynchronous/synchronous loading of JavaScript files it will execute callbacks
- * when various items gets loaded. This class is useful to load external JavaScript files.
+ * This class handles asynchronous/synchronous loading of JavaScript docs it will execute callbacks
+ * when various items gets loaded. This class is useful to load external JavaScript docs.
  *
  * @class tinymce.dom.ScriptLoader
  * @example
@@ -9532,7 +9532,7 @@ define("tinymce/dom/ScriptLoader", [
 		};
 
 		/**
-		 * Loads the specified queue of files and executes the callback ones they are loaded.
+		 * Loads the specified queue of docs and executes the callback ones they are loaded.
 		 * This method is generally not used outside this class but it might be useful in some scenarios.
 		 *
 		 * @method loadScripts
@@ -37227,7 +37227,7 @@ define("tinymce/Editor", [
 		self.baseURI = baseUri;
 
 		/**
-		 * Array with CSS files to load into the iframe.
+		 * Array with CSS docs to load into the iframe.
 		 *
 		 * @property contentCSS
 		 * @type Array
@@ -39022,7 +39022,7 @@ define("tinymce/Editor", [
 				return self.execCallback('urlconverter_callback', url, elm, true, name);
 			}
 
-			// Don't convert link href since thats the CSS files that gets loaded into the editor also skip local file URLs
+			// Don't convert link href since thats the CSS docs that gets loaded into the editor also skip local file URLs
 			if (!settings.convert_urls || (elm && elm.nodeName == 'LINK') || url.indexOf('file:') === 0 || url.length === 0) {
 				return url;
 			}
@@ -40295,7 +40295,7 @@ define("tinymce/EditorManager", [
 		},
 
 		/**
-		 * Adds a language pack, this gets called by the loaded language files like en.js.
+		 * Adds a language pack, this gets called by the loaded language docs like en.js.
 		 *
 		 * @method addI18n
 		 * @param {String} code Optional language code.

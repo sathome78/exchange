@@ -11,7 +11,7 @@ Gist
  Code  Issues 0  Pull requests 0  Wiki  Pulse  Graphs  Settings
 Branch: master Find file Copy pathbirzha/.gitignore
 4f2fb3a  6 days ago
-@lilacelephant lilacelephant add files to gitignore
+@lilacelephant lilacelephant add docs to gitignore
 1 contributor
 RawBlameHistory     50 lines (38 sloc)  621 Bytes
 # Windows image file caches
@@ -24,7 +24,7 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
-# Windows Installer files
+# Windows Installer docs
 *.cab
 *.msi
 *.msm

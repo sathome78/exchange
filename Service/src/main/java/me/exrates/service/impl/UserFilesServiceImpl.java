@@ -46,9 +46,9 @@ public class UserFilesServiceImpl implements UserFilesService {
     }
 
     /**
-     * Removes empty files and files with invalid extension from an input array
-     * @param files - Uploaded files
-     * @return - ArrayList with valid uploaded files
+     * Removes empty docs and docs with invalid extension from an input array
+     * @param files - Uploaded docs
+     * @return - ArrayList with valid uploaded docs
      */
     @Override
     public List<MultipartFile> reduceInvalidFiles(final MultipartFile[] files) {
@@ -63,10 +63,10 @@ public class UserFilesServiceImpl implements UserFilesService {
     }
 
     /**
-     * Moves uploaded files to user dir on the server ({@link UserFilesServiceImpl#userFilesDir} + userId) and persist File names in DB (table USER_DOC)
-     * If only one file failed to move - deletes all uploaded files and throws IOException
-     * @param userId - UserId who uploads the files
-     * @param files - uploaded files
+     * Moves uploaded docs to user dir on the server ({@link UserFilesServiceImpl#userFilesDir} + userId) and persist File names in DB (table USER_DOC)
+     * If only one file failed to move - deletes all uploaded docs and throws IOException
+     * @param userId - UserId who uploads the docs
+     * @param files - uploaded docs
      * @throws IOException
      */
     @Override
@@ -97,12 +97,37 @@ public class UserFilesServiceImpl implements UserFilesService {
                     exceptions.add(ex);
                 }
                 if (!exceptions.isEmpty()) {
-                    LOG.error("Exceptions during deleting uploaded files " + exceptions);
+                    LOG.error("Exceptions during deleting uploaded docs " + exceptions);
                 }
             }
             throw e;
         }
         userService.createUserFile(userId, logicalPaths);
+    }
+
+    @Override
+    public Path createUserFile(int userId, MultipartFile file) throws IOException {
+        Path filePath = null;
+        Path realPath = null;
+        final Path path = Paths.get(userFilesDir + userId);
+        if (!Files.exists(path)) {
+            Files.createDirectory(path);
+        }
+        try {
+            String name = UUID.randomUUID().toString() + "." + extractFileExtension(file);
+            realPath = Paths.get(path.toString(), name);
+            Files.write(realPath, file.getBytes());
+            filePath = Paths.get(userFilesLogicalDir, String.valueOf(userId), name);
+        } catch (IOException exc) {
+            try {
+                Files.delete(realPath);
+            } catch (IOException e) {
+                LOG.error("Exceptions during deleting uploaded file {}", e.getMessage());
+            }
+            LOG.error("Exceptions during uploading file {}", filePath);
+        }
+        userService.createUserFile(userId, Collections.singletonList(filePath));
+        return filePath;
     }
 
     @Override
@@ -136,8 +161,8 @@ public class UserFilesServiceImpl implements UserFilesService {
             try {
                 Files.delete(avatar);
             } catch (final IOException ex) {
-                LOG.error("Could not delete files");
-                throw new DeleteFileException("Could not delete files");
+                LOG.error("Could not delete docs");
+                throw new DeleteFileException("Could not delete docs");
             }
         });
         return logicalPath.toString();
@@ -162,7 +187,7 @@ public class UserFilesServiceImpl implements UserFilesService {
                     exceptions.add(ex);
                 }
                 if (!exceptions.isEmpty()) {
-                    LOG.error("Exceptions during deleting uploaded files " + exceptions);
+                    LOG.error("Exceptions during deleting uploaded docs " + exceptions);
                 }
             }
             throw e;
@@ -182,7 +207,7 @@ public class UserFilesServiceImpl implements UserFilesService {
 
     /**
      * @param file - Uploaded file
-     * @return - Uploaded files extension
+     * @return - Uploaded docs extension
      */
     private String extractFileExtension (final MultipartFile file) {
         return extractContentType(file).substring(6); //Index of dash in Content-Type

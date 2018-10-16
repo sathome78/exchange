@@ -8401,7 +8401,7 @@ function createActiveXHR() {
 // (This is still attached to ajaxSettings for backward compatibility)
 jQuery.ajaxSettings.xhr = window.ActiveXObject ?
 	/* Microsoft failed to properly
-	 * implement the XMLHttpRequest in IE7 (can't request local files),
+	 * implement the XMLHttpRequest in IE7 (can't request local docs),
 	 * so we use the ActiveXObject when it is available
 	 * Additionally XMLHttpRequest can be disabled in IE7/IE8 so
 	 * we need a fallback.
@@ -9541,7 +9541,7 @@ window.jQuery = window.$ = jQuery;
 // in a page that all might call define(). The loader will indicate
 // they have special allowances for multiple jQuery versions by
 // specifying define.amd.jQuery = true. Register as a named module,
-// since jQuery can be concatenated with other files that may use define,
+// since jQuery can be concatenated with other docs that may use define,
 // but not use a proper concatenation script that understands anonymous
 // AMD modules. A named AMD is safest and most robust way to register.
 // Lowercase jquery is used because AMD module names are derived from

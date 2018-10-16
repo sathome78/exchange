@@ -59,7 +59,7 @@ This file is part of tinyMCE.
 YouTube for tinyMCE
 Copyright (C) 2011 - 2015  Gerits Aurelien aurelien[at]magix-dev[dot]be - contact[at]aurelien-gerits[dot]be
 
-Redistributions of files must retain the above copyright notice.
+Redistributions of docs must retain the above copyright notice.
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or

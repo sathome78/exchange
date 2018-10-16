@@ -369,7 +369,7 @@ public class EntryController {
         }
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
         redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
+        redirectAttributes.addFlashAttribute("activeTabId", "docs-upload-wrapper");
         return redirectView;
     }
 

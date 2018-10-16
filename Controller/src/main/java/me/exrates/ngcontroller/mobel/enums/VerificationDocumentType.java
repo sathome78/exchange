@@ -1,11 +1,20 @@
-package me.exrates.model.enums;
+package me.exrates.ngcontroller.mobel.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum VerificationDocumentType {
 
-    PASSPORT, IDENTITY_CARD, DRIVER_LICENSE;
+    @JsonProperty("PASSPORT")
+    PASSPORT,
+    @JsonProperty("IDENTITY_CARD")
+    IDENTITY_CARD,
+    @JsonProperty("DRIVER_LICENSE")
+    DRIVER_LICENSE,
+    @JsonProperty("PHOTO")
+    PHOTO;
 
     @JsonCreator
     public static VerificationDocumentType of(String value) {
@@ -15,6 +24,8 @@ public enum VerificationDocumentType {
             return IDENTITY_CARD;
         } else if (value.equalsIgnoreCase(DRIVER_LICENSE.toString())) {
             return DRIVER_LICENSE;
+        } else if (value.equalsIgnoreCase(PHOTO.toString())) {
+            return PHOTO;
         }
         return null;
     }

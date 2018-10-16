@@ -1,5 +1,7 @@
 package me.exrates.security.service;
 
+import me.exrates.model.User;
+import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
@@ -26,4 +28,6 @@ public interface SecureService {
     void checkEventAdditionalPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency);
 
     PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency);
+
+    NotificationResultDto sendLoginPincode(User user, HttpServletRequest request);
 }

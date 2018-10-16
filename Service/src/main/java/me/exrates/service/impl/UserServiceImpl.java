@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
   private NotificationsSettingsService settingsService;
 
   /*this variable is set to use or not 2 factor authorization for all users*/
-  private boolean global2FaActive = false;
+  private boolean global2FaActive = true;
 
   @Override
   public boolean isGlobal2FaActive() {
@@ -728,16 +728,6 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
-    int userId = getIdByEmail(email);
-    NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
-      setting = NotificationsUserSetting.builder()
-              .notificatorId(NotificationTypeEnum.EMAIL.getCode())
-              .userId(userId)
-              .notificationMessageEventEnum(event)
-              .build();
-    }
-
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 

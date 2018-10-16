@@ -103,27 +103,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
-    private void checkPinCode(HttpServletRequest request, UserDetails userDetails, String pin, Locale locale) {
-        LocalDateTime dateTime = usersForPincheck.get(userDetails.getUsername());
-        if (dateTime == null || dateTime.plusMinutes(PIN_WAIT_MINUTES).isBefore(LocalDateTime.now())) {
-            checkLoginAuth(userDetails.getUsername(), request, locale);
-            return;
-        }
-        if (!userService.checkPin(userDetails.getUsername(), pin, NotificationMessageEventEnum.LOGIN)) {
-            String res = secureService.reSendLoginMessage(request, userDetails.getUsername(), true).getMessage();
-            throw new IncorrectPinException(res);
-        }
-    }
-
-    private void checkLoginAuth(String userName, HttpServletRequest request, Locale locale) {
-        try {
-            secureService.checkLoginAuthNg(userName, request, locale);
-        } catch (PinCodeCheckNeedException e) {
-            usersForPincheck.put(userName, LocalDateTime.now());
-            throw e;
-        }
-    }
-
     @Override
     public Optional<AuthTokenDto> retrieveToken(String username, String encodedPassword) {
         if (username == null || encodedPassword == null) {

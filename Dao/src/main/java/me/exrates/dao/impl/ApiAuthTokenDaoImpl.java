@@ -29,7 +29,6 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
         this.namedParameterJdbcTemplate = jdbcTemplate;
     }
 
-
     @Override
     public long createToken(ApiAuthToken token) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
