@@ -40,10 +40,9 @@
                         item['localizedTitle'] +'</a></li>';
                     $('#cryptoWalletsMenu').find('ul').append(link)
                 }
-
-
             });
-
+            var adkLink = '<li><a href="/2a8fy7b07dxe44/adkWallet"><loc:message code="admin.adk.wallet"/></a></li>';
+            $('#cryptoWalletsMenu').find('ul').append(adkLink);
             $('#cryptoWalletsMenu').find('ul').show();
 
         })

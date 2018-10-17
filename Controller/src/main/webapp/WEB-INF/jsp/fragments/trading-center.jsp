@@ -123,6 +123,10 @@
                     </div>
 
                     <div class="row">
+                        <c:if test="${accessToOperationForUser==false}">
+                            <input id="accessToOperationForUser" hidden value='${accessToOperationForUser}'/>
+                            <input id="accessToOperationForUserTextError" hidden value='<loc:message code="merchant.operationNotAvailable"/>'/>
+                        </c:if>
                         <sec:authorize access="isAuthenticated()">
                             <button id="dashboard-buy" class="dashboard-sell-buy__button">
                                 <loc:message code="dashboard.buy"/>

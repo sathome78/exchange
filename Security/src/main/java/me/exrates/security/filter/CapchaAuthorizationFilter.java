@@ -44,8 +44,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     LocaleResolver localeResolver;
 
     @Autowired
-    VerifyReCaptchaSec verifyReCaptchaSec;
-    @Autowired
     private UserService userService;
     @Autowired
     private SecureService secureServiceImpl;
@@ -98,30 +96,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             return attemptAuthentication(principal.getUsername(),
                     String.valueOf(session.getAttribute(passwordParam)),request, response);
         } else {
-//            String captchaType = request.getParameter("captchaType");
-//            if (captchaType == null) {
-//                throw new NotVerifiedCaptchaError( messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
-//            }
-//            switch (captchaType) {
-//                case "BOTDETECT": {
-//                    String captchaId = request.getParameter("captchaId");
-//                    Captcha captcha = Captcha.load(request, captchaId);
-//                    String captchaCode = request.getParameter("captchaCode");
-//                    if (!captcha.validate(captchaCode)) {
-//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-//                    }
-//                    break;
-//                }
-//                case "RECAPTCHA": {
-//                    String recapchaResponse = request.getParameter("g-recaptcha-response");
-//                    if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
-//                        String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-//                        throw new NotVerifiedCaptchaError(correctCapchaRequired);
-//                    }
-//                    break;
-//                }
-//            }
 
             String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
             String validate = request.getParameter(GeetestLib.fn_geetest_validate);

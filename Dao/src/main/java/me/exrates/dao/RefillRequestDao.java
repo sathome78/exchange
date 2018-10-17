@@ -103,9 +103,12 @@ public interface RefillRequestDao {
   
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 
-  List<String> findAllAddresses(Integer merchantId, Integer currencyId);
 
-    List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+  List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses);
+
+  List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+
+    boolean checkAddressForAvailability(String address);
 
     int getTxOffsetForAddress(String address);
 
@@ -119,7 +122,9 @@ public interface RefillRequestDao {
 
   void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded);
 
-  List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
+    void invalidateAddress(String address, Integer merchantId, Integer currencyId);
+
+    List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
 
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 

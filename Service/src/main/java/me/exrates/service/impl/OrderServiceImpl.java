@@ -87,7 +87,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -146,6 +145,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
@@ -227,8 +227,6 @@ public class OrderServiceImpl implements OrderService {
     private ObjectMapper objectMapper;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-    @Autowired
-    private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
     @Autowired
     private ChartsCacheManager chartsCacheManager;
     @Autowired
@@ -1957,26 +1955,34 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
     }
 
-    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-        Locale locale = Locale.ENGLISH;
-        orders = orders.stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
-        orders.forEach(e -> {
-            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-            BigDecimal percentChange = null;
-            if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-                percentChange = BigDecimal.ZERO;
-            } else {
-                percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-            }
-            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-        });
-        return orders;
-    }
+  private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
+      orders = Stream.of(
+              orders.stream()
+                      .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
+              orders.stream()
+                      .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
+              .flatMap(p->p)
+              .collect(Collectors.toList());
+      setStatisitcValues(orders);
+      return orders;
+  }
+
+  private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
+      Locale locale = Locale.ENGLISH;
+      ordersList.forEach(e -> {
+          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+          BigDecimal percentChange;
+          if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+              percentChange = BigDecimal.ZERO;
+          }  else {
+              percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+          }
+          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+      });
+  }
 
 
     @Override

@@ -7,22 +7,24 @@ import java.util.Arrays;
  */
 public enum NotificationTypeEnum {
 
-    EMAIL(1, false, null), SMS(2, true, "message_price"), TELEGRAM(3, true, "subscribe_price"),
-    GOOGLE2FA(4, false, null);
-
+    EMAIL(1, false, true, null), SMS(2, true, true, "message_price"), TELEGRAM(3, true, true, "subscribe_price"),
+    GOOGLE2FA(4, false, false, null);
     private int code;
     private String priceColumn;
 
     private boolean needSubscribe;
 
+    private boolean needToSendMessages;
+
     public String getPriceColumn() {
         return priceColumn;
     }
 
-    NotificationTypeEnum(int code, boolean needSubscribe, String priceColumn) {
+    NotificationTypeEnum(int code, boolean needSubscribe, boolean needToSendMessages, String priceColumn) {
         this.code = code;
         this.needSubscribe = needSubscribe;
         this.priceColumn = priceColumn;
+        this.needToSendMessages = needToSendMessages;
     }
 
     public boolean isNeedSubscribe() {
@@ -33,19 +35,14 @@ public enum NotificationTypeEnum {
         return code;
     }
 
+    public boolean isNeedToSendMessages() {
+        return needToSendMessages;
+    }
+
     public static NotificationTypeEnum convert(int id) {
         return Arrays.stream(NotificationTypeEnum.class.getEnumConstants())
                 .filter(e -> e.code == id)
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("invalid id " + String.valueOf(id)));
-    }
-
-    public static NotificationTypeEnum convert(String value) {
-        switch (value) {
-            case "SMS": return SMS;
-            case "EMAIL": return EMAIL;
-            case "TELEGRAM": return TELEGRAM;
-            default: return null;
-        }
     }
 }

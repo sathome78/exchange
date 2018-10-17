@@ -8,9 +8,10 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -46,14 +47,14 @@ public class UserDaoImpl implements UserDao {
   private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
   private final String SELECT_USER =
-          "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                  "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
-                  "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
-                  "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
-
-  private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
+      "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
+          "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
           "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
           "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+
+  private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
+      "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
+      "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
   @Autowired
   @Qualifier(value = "masterTemplate")
@@ -142,10 +143,12 @@ public class UserDaoImpl implements UserDao {
 
   public boolean create(User user) {
     String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
-            "values(:nickname,:email,:password,:phone,:status,:roleid)";
+        "values(:nickname,:email,:password,:phone,:status,:roleid)";
     String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
     String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
-            "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
+        "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
+    String sqlUserOperationAuthority = "INSERT INTO USER_OPERATION_AUTHORITY (user_id, user_operation_id) " +
+            "SELECT :user_id, id FROM USER_OPERATION;";
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
@@ -169,19 +172,20 @@ public class UserDaoImpl implements UserDao {
     Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
     return namedParameterJdbcTemplate.update(sqlWallet, userIdParamMap) > 0
-            && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0;
+        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0
+            && namedParameterJdbcTemplate.update(sqlUserOperationAuthority, userIdParamMap) > 0;
   }
 
   @Override
   public void createUserDoc(final int userId, final List<Path> paths) {
     final String sql = "INSERT INTO USER_DOC (user_id, path) VALUES (:userId, :path)";
     List<HashMap<String, Object>> collect = paths.stream()
-            .map(path -> new HashMap<String, Object>() {
-              {
-                put("userId", userId);
-                put("path", path.toString());
-              }
-            }).collect(Collectors.toList());
+        .map(path -> new HashMap<String, Object>() {
+          {
+            put("userId", userId);
+            put("path", path.toString());
+          }
+        }).collect(Collectors.toList());
     namedParameterJdbcTemplate.batchUpdate(sql, collect.toArray(new HashMap[paths.size()]));
   }
 
@@ -222,7 +226,7 @@ public class UserDaoImpl implements UserDao {
 
   public UserRole getUserRoles(String email) {
     String sql = "select USER_ROLE.name as role_name from USER " +
-            "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
+        "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("email", email);
     return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
@@ -234,7 +238,7 @@ public class UserDaoImpl implements UserDao {
   @Override
   public UserRole getUserRoleById(Integer id) {
     String sql = "select USER_ROLE.name as role_name from USER " +
-            "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id ";
+        "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id ";
     Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) -> UserRole.valueOf(rs.getString("role_name")));
   }
@@ -242,13 +246,13 @@ public class UserDaoImpl implements UserDao {
   @Override
   public List<String> getUserRoleAndAuthorities(String email) {
     String sql = "select USER_ROLE.name as role_name from USER " +
-            "inner join USER_ROLE on USER.roleid = USER_ROLE.id " +
-            "where USER.email = :email " +
-            "UNION " +
-            "SELECT ADMIN_AUTHORITY.name AS role_name from USER " +
-            "inner join USER_ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.user_id = USER.id " +
-            "inner join ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.admin_authority_id = ADMIN_AUTHORITY.id " +
-            "where USER.email = :email AND USER_ADMIN_AUTHORITY.enabled = 1 ";
+        "inner join USER_ROLE on USER.roleid = USER_ROLE.id " +
+        "where USER.email = :email " +
+        "UNION " +
+        "SELECT ADMIN_AUTHORITY.name AS role_name from USER " +
+        "inner join USER_ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.user_id = USER.id " +
+        "inner join ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.admin_authority_id = ADMIN_AUTHORITY.id " +
+        "where USER.email = :email AND USER_ADMIN_AUTHORITY.enabled = 1 ";
     Map<String, String> namedParameters = Collections.singletonMap("email", email);
     return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> rs.getString("role_name"));
   }
@@ -256,8 +260,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId) {
     String sql = "SELECT USER_ADMIN_AUTHORITY.admin_authority_id, USER_ADMIN_AUTHORITY.enabled FROM USER_ADMIN_AUTHORITY " +
-            "JOIN ADMIN_AUTHORITY ON ADMIN_AUTHORITY.id = USER_ADMIN_AUTHORITY.admin_authority_id AND ADMIN_AUTHORITY.hidden != 1 " +
-            "WHERE user_id = :user_id";
+        "JOIN ADMIN_AUTHORITY ON ADMIN_AUTHORITY.id = USER_ADMIN_AUTHORITY.admin_authority_id AND ADMIN_AUTHORITY.hidden != 1 " +
+        "WHERE user_id = :user_id";
     Map<String, Integer> params = Collections.singletonMap("user_id", userId);
     return namedParameterJdbcTemplate.query(sql, params, ((rs, rowNum) -> {
       AdminAuthorityOption option = new AdminAuthorityOption();
@@ -270,8 +274,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean createAdminAuthoritiesForUser(Integer userId, UserRole role) {
     String sql = "INSERT INTO USER_ADMIN_AUTHORITY SELECT :user_id, admin_authority_id, enabled " +
-            "FROM ADMIN_AUTHORITY_ROLE_DEFAULTS " +
-            "WHERE role_id = :role_id";
+        "FROM ADMIN_AUTHORITY_ROLE_DEFAULTS " +
+        "WHERE role_id = :role_id";
     Map<String, Integer> params = new HashMap<>();
     params.put("user_id", userId);
     params.put("role_id", role.getRole());
@@ -290,7 +294,7 @@ public class UserDaoImpl implements UserDao {
   @Override
   public void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId) {
     String sql = "UPDATE USER_ADMIN_AUTHORITY SET enabled = :enabled WHERE user_id = :user_id " +
-            "AND admin_authority_id = :admin_authority_id";
+        "AND admin_authority_id = :admin_authority_id";
     Map<String, Object>[] batchValues = options.stream().map(option -> {
       Map<String, Object> optionValues = new HashMap<String, Object>() {{
         put("admin_authority_id", option.getAdminAuthority().getAuthority());
@@ -335,18 +339,18 @@ public class UserDaoImpl implements UserDao {
   @Override
   public UserShortDto findShortByEmail(String email) {
     String sql =  "SELECT id, email, password, status FROM USER WHERE email = :email";
-    try {
-      return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
-        UserShortDto dto = new UserShortDto();
-        dto.setEmail(rs.getString("email"));
-        dto.setId(rs.getInt("id"));
-        dto.setPassword(rs.getString("password"));
-        dto.setStatus(UserStatus.convert(rs.getInt("status")));
-        return dto;
-      });
-    } catch (EmptyResultDataAccessException e) {
-      throw new UserNotFoundException(String.format("email: %s", email));
-    }
+      try {
+          return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
+            UserShortDto dto = new UserShortDto();
+            dto.setEmail(rs.getString("email"));
+            dto.setId(rs.getInt("id"));
+            dto.setPassword(rs.getString("password"));
+            dto.setStatus(UserStatus.convert(rs.getInt("status")));
+            return dto;
+          });
+      } catch (EmptyResultDataAccessException e) {
+          throw new UserNotFoundException(String.format("email: %s", email));
+      }
   }
 
   @Override
@@ -392,25 +396,6 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public String get2faSecretByEmail(String email) {
-    String sql = "SELECT 2fa_secret FROM USER WHERE email = :email";
-    Map<String, String> namedParameters = new HashMap<>();
-    namedParameters.put("email", email);
-    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
-  }
-
-  @Override
-  public boolean set2faSecretCode(String email) {
-    String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
-            "WHERE USER.email = :email";
-    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-      put("email", email);
-      put("secret", Base32.random());
-    }};
-    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
-
-  @Override
   public User getCommonReferralRoot() {
     final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
     final List<User> result = namedParameterJdbcTemplate.query(sql, getUserRowMapper());
@@ -442,23 +427,23 @@ public class UserDaoImpl implements UserDao {
     StringJoiner sqlJoiner = new StringJoiner(" ");
     String whereClause = "WHERE USER_ROLE.name IN (:roles)";
     sqlJoiner.add(SELECT_USER)
-            .add(whereClause);
+        .add(whereClause);
     String searchClause = "";
     if (!(searchValue == null || searchValue.isEmpty())) {
       searchClause = "AND (CONVERT(USER.nickname USING utf8) LIKE :searchValue OR CONVERT(USER.email USING utf8) LIKE :searchValue " +
-              "OR CONVERT(USER.regdate USING utf8) LIKE :searchValue)";
+          "OR CONVERT(USER.regdate USING utf8) LIKE :searchValue)";
     }
     sqlJoiner.add(searchClause).add("ORDER BY").add("USER." + orderColumnName).add(orderDirection)
-            .add("LIMIT").add(String.valueOf(limit))
-            .add("OFFSET").add(String.valueOf(offset));
+        .add("LIMIT").add(String.valueOf(limit))
+        .add("OFFSET").add(String.valueOf(offset));
     String sql = sqlJoiner.toString();
     LOGGER.debug(sql);
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("roles", roles.stream().map(Enum::name).collect(Collectors.toList()));
     namedParameters.put("searchValue", "%" + searchValue + "%");
     String selectCountSql = new StringJoiner(" ")
-            .add(SELECT_COUNT)
-            .add(whereClause).add(searchClause).toString();
+        .add(SELECT_COUNT)
+        .add(whereClause).add(searchClause).toString();
     LOGGER.debug(selectCountSql);
     List<User> selectedUsers = namedParameterJdbcTemplate.query(sql, namedParameters, getUserRowMapper());
     Integer total = namedParameterJdbcTemplate.queryForObject(selectCountSql, namedParameters, Integer.class);
@@ -535,12 +520,12 @@ public class UserDaoImpl implements UserDao {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     String currentUser = auth.getName(); //get logged in username
     LOGGER.debug("Updating user: " + user.getEmail() + " by " + currentUser +
-            ", newRole: " + user.getRole() + ", newStatus: " + user.getStatus());
+        ", newRole: " + user.getRole() + ", newStatus: " + user.getStatus());
 
     String sql = "UPDATE USER SET";
     StringBuilder fieldsStr = new StringBuilder(" ");
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    /*email is present in UpdateUserDto but used for hold email to send notification only, not for update email*/
+        /*email is present in UpdateUserDto but used for hold email to send notification only, not for update email*/
     if (user.getPhone() != null) {
       fieldsStr.append("phone = '" + user.getPhone()).append("',");
     }
@@ -716,9 +701,9 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean insertIp(String email, String ip) {
     String sql = "INSERT INTO USER_IP (user_id, ip)" +
-            " SELECT id, '" + ip + "'" +
-            " FROM USER " +
-            " WHERE USER.email = :email";
+        " SELECT id, '" + ip + "'" +
+        " FROM USER " +
+        " WHERE USER.email = :email";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("email", email);
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
@@ -729,9 +714,9 @@ public class UserDaoImpl implements UserDao {
 
 
     String sql = "SELECT * FROM USER_IP " +
-            " WHERE " +
-            " user_id = (SELECT USER.id FROM USER WHERE USER.email = :email)" +
-            " AND ip=:ip";
+        " WHERE " +
+        " user_id = (SELECT USER.id FROM USER WHERE USER.email = :email)" +
+        " AND ip=:ip";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("email", email);
     namedParameters.put("ip", ip);
@@ -761,8 +746,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean setIpStateConfirmed(int userId, String ip) {
     String sql = "UPDATE USER_IP " +
-            " SET confirmed = true, confirm_date = NOW() " +
-            " WHERE user_id = :user_id AND ip = :ip";
+        " SET confirmed = true, confirm_date = NOW() " +
+        " WHERE user_id = :user_id AND ip = :ip";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("user_id", String.valueOf(userId));
     namedParameters.put("ip", ip);
@@ -772,8 +757,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean setLastRegistrationDate(int userId, String ip) {
     String sql = "UPDATE USER_IP " +
-            " SET last_registration_date = NOW() " +
-            " WHERE user_id = :user_id AND ip = :ip";
+        " SET last_registration_date = NOW() " +
+        " WHERE user_id = :user_id AND ip = :ip";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("user_id", String.valueOf(userId));
     namedParameters.put("ip", ip);
@@ -783,8 +768,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
     String sql = "SELECT USER.id AS user_id, USER.nickname AS user_nickname, USER.email AS user_email, USER_ROLE.name AS user_role FROM USER " +
-            "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
-            "WHERE USER.email IN (:emails)";
+        "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
+        "WHERE USER.email IN (:emails)";
     Map<String, Object> params = Collections.singletonMap("emails", emails);
     return namedParameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
       UserSessionInfoDto userSessionInfoDto = new UserSessionInfoDto();
@@ -829,8 +814,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean updateUserPasswordFromTemporary(Long tempPassId) {
     String sql = "UPDATE USER SET USER.password = " +
-            "(SELECT password FROM API_TEMP_PASSWORD WHERE id = :tempPassId) " +
-            "WHERE USER.id = (SELECT user_id FROM API_TEMP_PASSWORD WHERE id = :tempPassId);\n";
+        "(SELECT password FROM API_TEMP_PASSWORD WHERE id = :tempPassId) " +
+        "WHERE USER.id = (SELECT user_id FROM API_TEMP_PASSWORD WHERE id = :tempPassId);\n";
     Map<String, Long> namedParameters = Collections.singletonMap("tempPassId", tempPassId);
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
@@ -888,7 +873,7 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean addUserComment(Comment comment) {
     String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent, topic_id) " +
-            "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id);";
+        "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id);";
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("user_id", comment.getUser().getId());
     namedParameters.put("comment", comment.getComment());
@@ -924,10 +909,10 @@ public class UserDaoImpl implements UserDao {
   @Override
   public List<String> findNicknamesByPart(String part, Integer limit) {
     String sql = "SELECT DISTINCT nickname FROM " +
-            "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
-            "  UNION " +
-            "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
-            "  LIMIT :lim ";
+        "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
+        "  UNION " +
+        "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
+        "  LIMIT :lim ";
     Map<String, Object> params = new HashMap<>();
     params.put("part_begin", part + "%");
     params.put("part_middle", "%" + part + "%");
@@ -948,8 +933,8 @@ public class UserDaoImpl implements UserDao {
     namedParameterJdbcTemplate.update(sql, params);
 
     sql = "INSERT INTO USER_CURRENCY_INVOICE_OPERATION_PERMISSION " +
-            " (user_id, currency_id, invoice_operation_permission_id, operation_direction, operation_direction_id) " +
-            " VALUES (?, ?, ?, ?, ?)";
+        " (user_id, currency_id, invoice_operation_permission_id, operation_direction, operation_direction_id) " +
+        " VALUES (?, ?, ?, ?, ?)";
 
     jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -973,19 +958,19 @@ public class UserDaoImpl implements UserDao {
 
   @Override
   public InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
-          Integer userId,
-          Integer currencyId,
-          InvoiceOperationDirection invoiceOperationDirection) {
+      Integer userId,
+      Integer currencyId,
+      InvoiceOperationDirection invoiceOperationDirection) {
     String sql = "SELECT invoice_operation_permission_id " +
-            " FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION " +
-            " WHERE user_id = :user_id AND currency_id = :currency_id AND operation_direction = :operation_direction";
+        " FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION " +
+        " WHERE user_id = :user_id AND currency_id = :currency_id AND operation_direction = :operation_direction";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("user_id", userId);
       put("currency_id", currencyId);
       put("operation_direction", invoiceOperationDirection.name());
     }};
     return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, idx) ->
-            InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+        InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
   }
 
   @Override
@@ -997,16 +982,16 @@ public class UserDaoImpl implements UserDao {
   @Override
   public UserRole getUserRoleByEmail(String email) {
     String sql = "select USER_ROLE.name as role_name from USER " +
-            "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
+        "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
     Map<String, String> namedParameters = Collections.singletonMap("email", email);
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) ->
-            UserRole.valueOf(rs.getString("role_name")));
+        UserRole.valueOf(rs.getString("role_name")));
   }
 
   @Override
   public void savePollAsDoneByUser(String email) {
     String sql = "UPDATE USER SET USER.tmp_poll_passed = 1 " +
-            " WHERE USER.email = :email ";
+        " WHERE USER.email = :email ";
     Map<String, String> namedParameters = Collections.singletonMap("email", email);
     namedParameterJdbcTemplate.update(sql, namedParameters);
   }
@@ -1014,8 +999,8 @@ public class UserDaoImpl implements UserDao {
   @Override
   public boolean checkPollIsDoneByUser(String email) {
     String sql = "SELECT tmp_poll_passed = 1 " +
-            "  FROM USER " +
-            "  WHERE USER.email = :email ";
+        "  FROM USER " +
+        "  WHERE USER.email = :email ";
     Map<String, String> namedParameters = Collections.singletonMap("email", email);
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
   }
@@ -1055,7 +1040,7 @@ public class UserDaoImpl implements UserDao {
     String whereClause = "";
     Map<String, Object> params = new HashMap<>();
     if (userRoleList.size() > 0) {
-      whereClause = " WHERE U.roleid IN (:roles)";
+      whereClause = "WHERE U.roleid IN (:roles)";
       params.put("roles", userRoleList);
     }
     return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
@@ -1101,6 +1086,24 @@ public class UserDaoImpl implements UserDao {
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
+  
+  @Override
+  public String getPassword(int userId) {
+      String sql = "SELECT password FROM USER WHERE USER.id =:id";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+        put("id", userId);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  @Override
+  public long countUserEntrance(String email) {
+      final String sql = "SELECT COUNT(UI.user_id) FROM USER_IP UI JOIN USER U ON U.id=UI.user_id WHERE U.email =:email";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+          put("email", email);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
   }
 
 }

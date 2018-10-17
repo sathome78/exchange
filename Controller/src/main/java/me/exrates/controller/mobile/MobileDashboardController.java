@@ -44,6 +44,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 /**
  * Created by OLEG on 23.08.2016.
  */
+
+/**
+ * ALL controleers oommented for security reasons
+ * */
 @RestController
 @RequestMapping(value = "/api/dashboard")
 public class MobileDashboardController {
@@ -297,7 +301,7 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/generalInfo", method = GET)
+    /*@RequestMapping(value = "/generalInfo", method = GET)
     public GeneralInfoDto getGeneralInfo(@RequestParam(required = false) Integer currencyId) {
         GeneralInfoDto result = new GeneralInfoDto();
         result.setCommissions(orderService.getAllCommissions());
@@ -307,7 +311,7 @@ public class MobileDashboardController {
         result.setMerchants(merchantService.findNonTransferMerchantCurrencies(currencyId));
         result.setTransferMerchants(merchantService.findTransferMerchants());
         return result;
-    }
+    }*/
 
     /**
      * @api {get} /api/dashboard/currencyPairs Get available currency pairs
@@ -361,11 +365,11 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/currencyPairs", method = GET)
+   /* @RequestMapping(value = "/currencyPairs", method = GET)
     public List<CurrencyPairWithLimitsDto> getCurrencyPairs() {
         return currencyService.findCurrencyPairsWithLimitsForUser().stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(Collectors.toList());
 
-    }
+    }*/
 
 
     /**
@@ -423,7 +427,7 @@ public class MobileDashboardController {
      * @apiUse InternalServerError
      */
 
-    @RequestMapping(value = "/candleChart", method = GET)
+    /*@RequestMapping(value = "/candleChart", method = GET)
     public List<CandleChartItemReducedDto> getCandleChartData(@RequestParam(value = "currencyPairId") Integer currencyPairId,
                                                               @RequestParam(value = "intervalType") IntervalType intervalType,
                                                               @RequestParam(value = "intervalValue") Integer intervalValue) {
@@ -435,7 +439,7 @@ public class MobileDashboardController {
         return result;
 
 
-    }
+    }*/
 
 
     /**
@@ -470,13 +474,13 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/currencyPairStatistics", method = GET)
+   /* @RequestMapping(value = "/currencyPairStatistics", method = GET)
     public List<ExOrderStatisticsShortByPairsApiDto> getCurrencyPairStatistics(HttpServletRequest request) {
         return orderService.getOrdersStatisticByPairsSessionless(localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new ExOrderStatisticsShortByPairsApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
     }
-
+*/
 
     /**
      * @api {get} /api/dashboard/ordersForPairStatistics/:currencyPairId/:intervalType/:intervalValue Statistics for orders of current currency pair
@@ -520,7 +524,7 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/ordersForPairStatistics", method = GET, produces = APPLICATION_JSON_VALUE)
+   /* @RequestMapping(value = "/ordersForPairStatistics", method = GET, produces = APPLICATION_JSON_VALUE)
     public ExOrderStatisticsApiDto getNewCurrencyPairData(@RequestParam(value = "currencyPairId") Integer currencyPairId,
                                                           @RequestParam(value = "intervalType") IntervalType intervalType,
                                                           @RequestParam(value = "intervalValue") Integer intervalValue,
@@ -530,7 +534,7 @@ public class MobileDashboardController {
         BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
         ExOrderStatisticsDto dto = orderService.getOrderStatistic(currencyPair, interval, localeResolver.resolveLocale(request));
         return new ExOrderStatisticsApiDto(dto, localeResolver.resolveLocale(request));
-    }
+    }*/
 
 
     /**
@@ -578,7 +582,7 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/acceptedOrderHistory", method = GET, produces = APPLICATION_JSON_VALUE)
+  /*  @RequestMapping(value = "/acceptedOrderHistory", method = GET, produces = APPLICATION_JSON_VALUE)
     public List<OrderAcceptedHistoryApiDto> getOrderHistory(@RequestParam(value = "scope") String scope,
                                                             @RequestParam(value = "currencyPairId") Integer currencyPairId,
                                                             HttpServletRequest request) {
@@ -588,7 +592,7 @@ public class MobileDashboardController {
                 currencyPair, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderAcceptedHistoryApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
-    }
+    }*/
 
 
     /**
@@ -618,12 +622,12 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/commission", method = GET, produces = APPLICATION_JSON_VALUE)
+   /* @RequestMapping(value = "/commission", method = GET, produces = APPLICATION_JSON_VALUE)
     public CommissionsDto getOrderCommissions() {
         return orderService.getAllCommissions();
     }
 
-
+*/
     /**
      * @api {get} /api/dashboard/sellOrders/:currencyPairId List of SELL open orders
      * @apiName getSellOrdersList
@@ -671,14 +675,14 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/sellOrders", method = GET, produces = APPLICATION_JSON_VALUE)
+  /*  @RequestMapping(value = "/sellOrders", method = GET, produces = APPLICATION_JSON_VALUE)
     public List<OrderListApiDto> getSellOrdersList(@RequestParam(value = "currencyPairId") Integer currencyPairId, HttpServletRequest request) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         return orderService.getAllSellOrders(currencyPair, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderListApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
     }
 
-
+*/
     /**
      * @api {get} /api/dashboard/buyOrders/:currencyPairId List of BUY open orders
      * @apiName getBuyOrdersList
@@ -726,14 +730,14 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/buyOrders", method = GET, produces = APPLICATION_JSON_VALUE)
+   /* @RequestMapping(value = "/buyOrders", method = GET, produces = APPLICATION_JSON_VALUE)
     public List<OrderListApiDto> getBuyOrdersList(@RequestParam(value = "currencyPairId") Integer currencyPairId, HttpServletRequest request) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         return orderService.getAllBuyOrders(currencyPair, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderListApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
     }
-
+*/
     /**
      * @api {get} /api/dashboard/myWalletsData User wallets
      * @apiName getMyWalletsData
@@ -779,7 +783,7 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/myWalletsData", method = GET)
+  /*  @RequestMapping(value = "/myWalletsData", method = GET)
     public List<MyWalletsDetailedApiDto> getMyWalletsData(@RequestParam(required = false) Integer[] currencyIds, HttpServletRequest request) {
         List<Integer> currencyIdList;
         if (currencyIds == null || currencyIds.length == 0) {
@@ -793,7 +797,7 @@ public class MobileDashboardController {
 
 
     }
-
+*/
 
     /**
      * @api {get} /api/dashboard/myWalletByCurrency/:currencyId Statistics for a user wallet
@@ -830,14 +834,14 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/myWalletByCurrency", method = GET)
+   /* @RequestMapping(value = "/myWalletByCurrency", method = GET)
     public MyWalletsStatisticsApiDto getMyWalletDataByCurrency(@RequestParam Integer currencyId) {
         int userId = userService.getIdByEmail(getAuthenticatedUserEmail());
         int walletId = walletService.getWalletId(userId, currencyId);
         return walletService.getUserWalletShortStatistics(walletId);
 
 
-    }
+    }*/
 
 
     /**
@@ -905,7 +909,7 @@ public class MobileDashboardController {
      * @apiUse MissingParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/myOrdersData", method = GET, produces = "application/json; charset=UTF-8")
+  /*  @RequestMapping(value = "/myOrdersData", method = GET, produces = "application/json; charset=UTF-8")
     public List<OrderWideListApiDto> getMyOrdersData(
             @RequestParam Integer currencyPairId,
             @RequestParam(required = false) Boolean showAllPairs,
@@ -922,7 +926,7 @@ public class MobileDashboardController {
                 Arrays.asList(status), type, offsetValue, limitValue, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderWideListApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
-    }
+    }*/
 
 
     /**
@@ -983,20 +987,20 @@ public class MobileDashboardController {
      * @apiUse MissingParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/myStatementData", method = GET, produces = "application/json; charset=UTF-8")
+  /*  @RequestMapping(value = "/myStatementData", method = GET, produces = "application/json; charset=UTF-8")
     public List<AccountStatementApiDto> getMyAccountStatementData(
             @RequestParam("walletId") Integer walletId,
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer limit,
             HttpServletRequest request) throws JsonProcessingException {
-        /**/
+        *//**//*
         int offsetValue = offset == null ? 0 : offset;
         int limitValue = limit == null ? -1 : limit;
         return transactionService.getAccountStatement(walletId, offsetValue, limitValue,
                 localeResolver.resolveLocale(request)).stream().filter(dto -> dto.getTransactionId() != 0).map(dto -> new AccountStatementApiDto(dto,
                 localeResolver.resolveLocale(request))).collect(Collectors.toList());
     }
-
+*/
     /**
      * @api {get} /api/dashboard/myInputoutputData Input/output data
      * @apiName getMyInputoutputData
@@ -1057,7 +1061,7 @@ public class MobileDashboardController {
      * @apiUse MissingParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/myInputoutputData", method = GET, produces = "application/json; charset=UTF-8")
+ /*   @RequestMapping(value = "/myInputoutputData", method = GET, produces = "application/json; charset=UTF-8")
     public List<MyInputOutputHistoryApiDto> getMyInputoutputData(
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer limit,
@@ -1072,7 +1076,7 @@ public class MobileDashboardController {
         return data;
 
 
-    }
+    }*/
 
     /**
      * @api {get} /api/dashboard/transferLimits Limits for transfers
@@ -1105,7 +1109,7 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transferLimits", method = GET)
+ /*   @RequestMapping(value = "/transferLimits", method = GET)
     public List<TransferLimitDto> retrieveMinTransferLimits(@RequestParam(required = false) Integer[] currencyIds) {
         List<Integer> currencyIdList = currencyIds == null || currencyIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(currencyIds);
         return currencyService.retrieveMinTransferLimits(currencyIdList);
@@ -1120,7 +1124,7 @@ public class MobileDashboardController {
             throw e;
         }
         return new ResponseEntity<>(HttpStatus.OK);
-    }
+    }*/
 
     /**
      * @api {get} /api/dashboard/stockExchangeStatistics Get stock exchange statistics
@@ -1174,7 +1178,7 @@ public class MobileDashboardController {
      * @apiUse CurrencyPairNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
+   /* @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
     public List<StockExchangeStats> getStockExchangeStatistics(@RequestParam Integer currencyPairId) {
         return stockExchangeService.getStockExchangeStatistics(currencyPairId);
     }
@@ -1200,7 +1204,7 @@ public class MobileDashboardController {
     public ApiError CurrencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.CURRENCY_PAIR_NOT_FOUND, req.getRequestURL(), exception);
     }
-
+*/
 
     /*@ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(NullPointerException.class)
@@ -1211,7 +1215,7 @@ public class MobileDashboardController {
         return result;
     }*/
 
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
+   /* @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
@@ -1225,6 +1229,6 @@ public class MobileDashboardController {
         }
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
+*/
 
 }

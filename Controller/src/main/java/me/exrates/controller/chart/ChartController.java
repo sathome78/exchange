@@ -126,12 +126,10 @@ public class ChartController {
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
-        System.out.println("Update chart data");
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
-        System.out.println("End update chart data");
         return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
 
     }

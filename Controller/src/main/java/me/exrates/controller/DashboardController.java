@@ -6,14 +6,12 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.session.UserSessionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +21,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -77,13 +74,7 @@ public class DashboardController {
     private UserSessionService userSessionService;
 
     @Autowired
-    VerifyReCaptchaSec verifyReCaptcha;
-
-    @Autowired
     TemporalTokenService temporalTokenService;
-
-    @Value("${captcha.type}")
-    String CAPTCHA_TYPE;
 
     @Autowired
     private GeetestLib geetest;
@@ -109,16 +100,6 @@ public class DashboardController {
         String convertedLangName = convertMap.get(lang);
         return convertedLangName == null ? lang : convertedLangName;
     }
-
-    @RequestMapping(value = "/forgotPassword")
-    public String forgotPassword(Model model) {
-        if (!model.containsAttribute("user")) {
-            model.addAttribute("user", new User());
-        }
-        model.addAttribute("captchaType", CAPTCHA_TYPE);
-        return "forgotPassword";
-  }
-
 
   @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
   public ModelAndView recoveryPassword(@ModelAttribute("user") User user, @ModelAttribute("token") TemporalToken temporalToken) {
@@ -206,93 +187,21 @@ public class DashboardController {
         }
     }
 
-    @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-    public ModelAndView updatePassword(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes attr, Locale locale) {
-        /**/
-        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-        if (result.hasErrors()) {
-            ModelAndView modelAndView = new ModelAndView("/updatePassword", "user", user);
-            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-            return modelAndView;
-        } else {
-            User userUpdate = userService.findByEmail(user.getEmail());
-            ModelAndView model = new ModelAndView();
-            UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
-            updateUserDto.setPassword(user.getPassword());
-
-            userService.updateUserByAdmin(updateUserDto);
-
-            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
-            org.springframework.security.core.userdetails.User userSpring =
-                    new org.springframework.security.core.userdetails.User(
-                            user.getEmail(),
-                            updateUserDto.getPassword(),
-                            false,
-                            false,
-                            false,
-                            false,
-                            authList
-                    );
-            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
-            userSessionService.invalidateUserSessionExceptSpecific(user.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
-
-            attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
-            model.setViewName("redirect:/dashboard");
-            return model;
-        }
-    }
-
-    @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
-    public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-        /**/
-        if (result.hasErrors()) {
-            model.addObject("user", user);
-            model.addObject("captchaType", CAPTCHA_TYPE);
-            model.setViewName("updatePassword");
-            return model;
-        } else {
-            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-            updateUserDto.setPassword(user.getPassword());
-            userService.updateUserByAdmin(updateUserDto);
-            model.setViewName("redirect:/dashboard");
-        }
-        /**/
-        return model;
-    }
-
-
   @RequestMapping(value = "/dashboard/updatePasswordbytoken", method = RequestMethod.POST)
-  public ModelAndView updatePassword(@ModelAttribute("user") User user, @RequestParam("token") String temporalToken,
-                                     @RequestParam("password") String password,
-                                     BindingResult result,
-                                     HttpServletRequest request,
-                                     RedirectAttributes attr, Locale locale) {
-    registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+  public ModelAndView updatePassword(@RequestParam("token") String temporalToken, @RequestParam("password") String password, RedirectAttributes attr, Locale locale) {
+    //registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
 
     User userUpdate = userService.getUserByTemporalToken(temporalToken);
-    ModelAndView model = new ModelAndView();
-    UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
-    updateUserDto.setPassword(user.getPassword());
-    userService.updateUserByAdmin(updateUserDto);
 
-    Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(userUpdate.getEmail()).getAuthorities());
-    org.springframework.security.core.userdetails.User userSpring =
-              new org.springframework.security.core.userdetails.User(
-                      userUpdate.getEmail(),
-                      password,
-                      false,
-                      false,
-                      false,
-                      false,
-                      authList
-              );
-    Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-    SecurityContextHolder.getContext().setAuthentication(auth);
+    ModelAndView model = new ModelAndView();
+
+    UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+    updateUserDto.setPassword(password);
+    userService.updateUserByAdmin(updateUserDto);
     temporalTokenService.deleteTemporalToken(temporalToken);
-    userSessionService.invalidateUserSessionExceptSpecific(user.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
+
+    userSessionService.invalidateUserSessionExceptSpecific(userUpdate.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
+
     attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
     model.setViewName("redirect:/dashboard");
     return model;

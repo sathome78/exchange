@@ -6,7 +6,6 @@
 <%--<script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>--%>
 <link href="<c:url value='/client/css/chat-lang.css'/>" rel="stylesheet">
 <%----%>
-
 <div id="right-sider" class="cols-md-2">
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
@@ -27,13 +26,13 @@
             </c:if>
         </div>
     <div>
-        <h4 class="h4_green">
-            <loc:message code="dashboard.onlinechat"/></h4>
+        <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
+
         <div id="chatLangButtons" class="chat-locales">
-                <button id="bchaten" class="btna" onclick="changeChatLocale('en')">EN</button>
-                <button id="bchatru" class="btna" onclick="changeChatLocale('ru')">RU</button>
-                <button id="bchatcn" class="btna" onclick="changeChatLocale('cn')">CN</button>
-                <button id="bchatin" class="btna" onclick="changeChatLocale('in')">IN</button>
+            <button id="bchaten" class="btna" onclick="changeChatLocale('en')">EN</button>
+            <button id="bchatru" class="btna" onclick="changeChatLocale('ru')">RU</button>
+            <button id="bchatcn" class="btna" onclick="changeChatLocale('cn')">CN</button>
+            <button id="bchatin" class="btna" onclick="changeChatLocale('in')">IN</button>
         </div>
     </div>
 
@@ -58,11 +57,9 @@
                     <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
 
                 </form>
-
             </c:otherwise>
 
         </c:choose>
-
     </sec:authorize>
     <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
         <div class="row">
@@ -71,8 +68,6 @@
             </button>
         </div>
     </sec:authorize>
-
-
 
     <%--NEWS LIST--%>
     <div id="new-list-container" style="position: relative" class="clearfix">

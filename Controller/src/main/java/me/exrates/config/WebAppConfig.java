@@ -11,7 +11,6 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
@@ -377,11 +376,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return resolver;
     }
 
-    @Bean
-    public VerifyReCaptchaSec verifyReCaptcha() {
-        return new VerifyReCaptchaSec();
-    }
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/client/**").addResourceLocations("/client/");
@@ -603,11 +597,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
    /* @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+        tokensList.add("0x1985365e9f78359a9b6ad760e32412f4a445e862");
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true, ExConvert.Unit.ETHER);
+                "REP", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -1444,6 +1438,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "BNC",
                 "BNC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "wtlServiceImpl")
+    public EthTokenService wtlService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9a0587eae7ef64b2b38a10442a44cfa43edd7d2a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WTL",
+                "WTL", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uDOOServiceImpl")
+    public EthTokenService uDOOService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0df721639ca2f7ff0e1f618b918a65ffb199ac4e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDOO",
+                "uDOO", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

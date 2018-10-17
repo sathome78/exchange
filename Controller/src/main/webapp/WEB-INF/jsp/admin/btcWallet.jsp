@@ -63,7 +63,9 @@
                     <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
                         <button id="check-payments-btn" class="blue-box"><loc:message code="btcWallet.checkPayment.title"/></button>
                     </sec:authorize>
-
+                    <button class="btc_show_data blue-box">
+                        <loc:message code="admin.datatable.showData"/> ${currency}
+                    </button>
                     <table id="txHistory">
                         <thead>
                         <tr>

@@ -81,7 +81,6 @@ public class SendMailServiceImpl implements SendMailService{
 	}
 
 	private void sendByType(Email email, EmailSenderType type) {
-		System.out.println("mailtype " + type);
 		switch (type) {
 			case gmail : {
 				sendInfoMail(email);

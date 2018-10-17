@@ -11,7 +11,6 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -128,8 +127,6 @@ public class OnlineRestController {
     @Autowired
     StopOrderService stopOrderService;
 
-    @Autowired
-    private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
 

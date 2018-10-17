@@ -54,6 +54,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 /**
  * Created by OLEG on 02.09.2016.
  */
+
+/**
+ * ALL controleers oommented for security reasons
+ * */
 @RestController
 @RequestMapping("/api/payments")
 public class MobileInputOutputController {
@@ -313,10 +317,10 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/merchants", method = GET)
+   /* @RequestMapping(value = "/merchants", method = GET)
     public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(@RequestParam(required = false) Integer currencyId) {
         return merchantService.findNonTransferMerchantCurrencies(currencyId);
-    }
+    }*/
 
 
     /**
@@ -356,10 +360,10 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transferMerchants", method = GET)
+  /*  @RequestMapping(value = "/transferMerchants", method = GET)
     public List<TransferMerchantApiDto> findAllTransferMerchantCurrencies() {
         return merchantService.findTransferMerchants();
-    }
+    }*/
 
 
     /**
@@ -387,7 +391,7 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/dynamicCommission", method = GET)
+   /* @RequestMapping(value = "/dynamicCommission", method = GET)
     public Double retrieveDynamicCommissionValue(@RequestParam("amount") BigDecimal amount,
                                                  @RequestParam("currency") Integer currencyId,
                                                  @RequestParam("merchant") Integer merchantId,
@@ -408,7 +412,7 @@ public class MobileInputOutputController {
         } catch (InvalidAmountException e) {
             throw new CommissionExceedingAmountException(e.getMessage());
         }
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/transfer/accept Accept transfer
@@ -436,7 +440,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> acceptVoucher(@RequestBody Map<String, String> params) {
         String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
         String userEmail = getAuthenticatedUserEmail();
@@ -461,7 +465,7 @@ public class MobileInputOutputController {
         transferService.performTransfer(flatDto, userLocale, action);
         return Collections.singletonMap("message", messageSource.getMessage("transfer.accept.success", new Object[]{BigDecimalProcessing.formatLocaleFixedSignificant(flatDto.getAmount(),
                 userLocale, 2) + " " + currencyService.getCurrencyName(flatDto.getCurrencyId())}, userLocale));
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/withdraw Withdraw
@@ -504,7 +508,7 @@ public class MobileInputOutputController {
      */
     // TODO temporary disable
     // @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, String>> withdraw(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
+  /*  public ResponseEntity<Map<String, String>> withdraw(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
 
 
         Payment payment = new Payment();
@@ -523,7 +527,7 @@ public class MobileInputOutputController {
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
         return new ResponseEntity<>(response, OK);
 
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/preparePayment Input payment
@@ -561,7 +565,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+ /*   @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public MerchantInputResponseDto preparePayment(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, HttpServletRequest request) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -637,7 +641,7 @@ public class MobileInputOutputController {
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         return new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
-    }
+    }*/
 
 
     /**
@@ -669,13 +673,13 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+   /* @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         refillService.confirmRefillRequest(invoiceConfirmData, userLocale);
         return new ResponseEntity<>(OK);
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/invoice/revoke Revoke invoice
@@ -700,7 +704,7 @@ public class MobileInputOutputController {
      * @apiUse InvoiceNotFoundException
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws Exception {
         String invoiceIdString = RestApiUtils.retrieveParamFormBody(params, "invoiceId", true);
         Integer invoiceId = Integer.parseInt(invoiceIdString);
@@ -708,7 +712,7 @@ public class MobileInputOutputController {
         invoiceConfirmData.setInvoiceId(invoiceId);
         refillService.revokeRefillRequest(invoiceId);
         return new ResponseEntity<>(OK);
-    }
+    }*/
 
 
     /**
@@ -752,9 +756,9 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/invoice/banks", method = GET)
+  /*  @RequestMapping(value = "/invoice/banks", method = GET)
     public List<InvoiceBank> getBanksByCurrency(@RequestParam Integer currencyId) {
-        /*return refillService.findBanksForCurrency(currencyId);*/
+        *//*return refillService.findBanksForCurrency(currencyId);*//*
         return Collections.singletonList(InvoiceBank.getUnavilableInvoice(currencyId));
     }
 
@@ -799,7 +803,7 @@ public class MobileInputOutputController {
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
 
         return new ResponseEntity<>(response, OK);
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/withdraw/revoke Revoke withdraw request
@@ -824,7 +828,7 @@ public class MobileInputOutputController {
      * @apiUse InvoiceNotFoundException
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/withdraw/revoke", method = POST)
+  /*  @RequestMapping(value = "/withdraw/revoke", method = POST)
     @ResponseBody
     public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
         Integer id = Integer.parseInt(RestApiUtils.retrieveParamFormBody(params, "invoiceId", true));
@@ -865,7 +869,7 @@ public class MobileInputOutputController {
     private String getAuthenticatedUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
+*/
 
     /**
      * @api {post} /api/payments/transfer/submit Submit transfer
@@ -909,7 +913,7 @@ public class MobileInputOutputController {
      */
     // TODO temporary disable
     // @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public TransferResponseDto submitTransfer(@RequestBody TransferRequestParamsDto requestParamsDto) {
+  /*  public TransferResponseDto submitTransfer(@RequestBody TransferRequestParamsDto requestParamsDto) {
         requestParamsDto.setOperationType(USER_TRANSFER);
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
         String userEmail = getAuthenticatedUserEmail();
@@ -928,7 +932,7 @@ public class MobileInputOutputController {
         responseDto.setMessage((String) result.get("message"));
         responseDto.setHash((String) result.get("hash"));
         return responseDto;
-    }
+    }*/
 
     /**
      * @api {get} /api/payments/lastAddress Get last address
@@ -961,7 +965,7 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/lastAddress", method = GET)
+   /* @RequestMapping(value = "/lastAddress", method = GET)
     public CryptoAddressDto getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId, @RequestParam Integer merchantId) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -1093,6 +1097,6 @@ public class MobileInputOutputController {
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
-
+*/
 
 }

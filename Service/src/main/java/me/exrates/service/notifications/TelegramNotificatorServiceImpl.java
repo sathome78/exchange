@@ -69,9 +69,10 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
         if (subscription.getSubscriptionState().isFinalState()) {
             /*set New account for subscription if allready subscribed*/
-            subscription.setChatId(subscriptionDto.getChatId());
+           /* subscription.setChatId(subscriptionDto.getChatId());
             subscription.setUserAccount(subscriptionDto.getUserAccount());
-            subscription.setCode(null);
+            subscription.setCode(null);*/
+           throw new RuntimeException("allready subscribed");
         } else if (subscription.getSubscriptionState().isBeginState()) {
             subscription.setSubscriptionState(nextState);
             subscription.setChatId(subscriptionDto.getChatId());

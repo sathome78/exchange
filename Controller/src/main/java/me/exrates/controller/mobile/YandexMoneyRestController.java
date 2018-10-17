@@ -46,7 +46,7 @@ public class YandexMoneyRestController {
     @Autowired
     private InputOutputService inputOutputService;
 
-    @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
+   /* @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
     public ResponseEntity<String> processYandexPayment(@RequestParam String token,
                                                        @RequestParam Integer userId,
                                                        @RequestParam Integer paymentId) {
@@ -89,7 +89,7 @@ public class YandexMoneyRestController {
         }
 
         throw new MerchantInternalException(messageSource.getMessage("merchants.internalError", null, userLocale));
-    }
+    }*/
 
 
 }

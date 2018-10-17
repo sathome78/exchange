@@ -12,6 +12,7 @@ import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -181,14 +182,14 @@ public class MerchantDaoImpl implements MerchantDao {
     } else if (operationType == OperationType.USER_TRANSFER) {
       blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
     }
+
     final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
         " MERCHANT_CURRENCY.min_sum, " +
         " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
         " MERCHANT_CURRENCY.merchant_fixed_commission " +
         " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
         " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
-        blockClause +
-        " order by MERCHANT.merchant_order";
+        blockClause + " ORDER BY MERCHANT.merchant_order";
 
     try {
       return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("currenciesId", currenciesId), (resultSet, i) -> {
