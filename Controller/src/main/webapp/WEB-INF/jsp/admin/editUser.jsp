@@ -215,7 +215,10 @@
                                   code="admin.role"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                          <form:select path="role" id="user-role"
+                          <%--<form:input path="role" id="user-role"
+                                      class="input-block-wrapper__input admin-form-input"
+                                      name="user-role" />--%>
+                          <<form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
                             <c:forEach items="${roleList}" var="role">
@@ -312,7 +315,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
+             <%-- <%@include file="../fragments/admin-settings-user-2fa.jsp" %>--%>
             </div>
           </div>
         </div>
