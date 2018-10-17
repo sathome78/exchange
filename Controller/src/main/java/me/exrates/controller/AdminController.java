@@ -642,36 +642,6 @@ public class AdminController {
         return model;
     }
 
-  /*todo move this method from admin controller*/
-  @ResponseBody
-  @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                       Principal principal, HttpServletRequest request, HttpServletResponse response) {
-    registerFormValidation.validatePasswordInPrivateCabinet(user, result, localeResolver.resolveLocale(request));
-
-    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-    User userPrincipal = userService.findByEmail(principal.getName());
-    Object message;
-    if (result.hasErrors()) {
-      response.setStatus(500);
-      message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
-    } else {
-      if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
-
-        UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
-        updateUserDto.setPassword(user.getConfirmPassword());
-        updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
-        userService.update(updateUserDto, localeResolver.resolveLocale(request));
-        message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
-        userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
-      } else {
-        response.setStatus(500);
-        message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
-      }
-    }
-    return new JSONObject(){{put("message", message);}}.toString();
-  }
-
     @AdminLoggable
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderinfo", method = RequestMethod.GET)

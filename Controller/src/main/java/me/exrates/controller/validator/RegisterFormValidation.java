@@ -27,8 +27,6 @@ public class RegisterFormValidation implements Validator {
 
     private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
             + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-    String ID_PATTERN = "[0-9]+";
-    String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN_LETTERS_AND_NUMBERS = "^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$";
     private static final String PASSWORD_PATTERN_LETTERS_AND_CHARACTERS = "^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$";
@@ -110,7 +108,7 @@ public class RegisterFormValidation implements Validator {
             errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }
 
-        //validatePassword(user.getPassword(), errors);
+        validatePassword(user.getPassword(), errors);
 
     }
 
@@ -187,8 +185,6 @@ public class RegisterFormValidation implements Validator {
         String emailRequired = messageSource.getMessage("validation.emailrequired", null, locale);
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, locale);
         String phoneIncorrect = messageSource.getMessage("validation.phoneincorrect", null, locale);
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email",
                 "required.email", emailRequired);
@@ -211,14 +207,8 @@ public class RegisterFormValidation implements Validator {
             }
         }
 
-        //validatePassword(user.getPassword(), errors);
-        /*if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(user.getPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }*/
+        validatePassword(user.getPassword(), errors);
+
     }
 
     public void validateEmail(User user, Errors errors, Locale locale) {
