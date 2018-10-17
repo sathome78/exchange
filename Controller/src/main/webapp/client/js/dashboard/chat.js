@@ -110,7 +110,7 @@ $(function () {
             if(error['errorInfo']!=null){
                 alert(error['errorInfo']);
             } else if(error['errorInfoSendChatMessageWithoutNickname']!=null){
-                alert(error['errorInfoSendChatMessageWithoutNickname']);
+                $('#errorInfoSendChatMessageWithoutNickname').modal('show');
             }
         });
     })
