@@ -256,12 +256,6 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
     }
 
-    @Bean(name = "ddxServiceImpl")
-    public BitcoinService ddxService() {
-        return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
-                "DDX", "DDX", 4, 20, false, true);
-    }
-
     @Bean(name = "xfcServiceImpl")
     public BitcoinService xfcServiceImpl() {
         return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
@@ -272,6 +266,14 @@ public class CryptocurrencyConfig {
     public BitcoinService lpcService(){
         return new BitcoinServiceImpl("merchants/lpc_wallet.properties", "LPC", "LPC", 4, 20, false, false);
     }
+
+    @Bean(name = "ddxServiceImpl")
+    public BitcoinService ddxService() {
+        return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
+                "DDX", "DDX", 4, 20, false, true);
+    }
+
+
     // LISK-like cryptos
 
 
