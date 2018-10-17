@@ -71,7 +71,7 @@ public class ChatController {
         if(!userService.hasNickname(principal.getName())){
             MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.put("Content-type", singletonList("application/json; charset=utf-8"));
-            return new ResponseEntity<>(singletonMap("errorInfo",
+            return new ResponseEntity<>(singletonMap("errorInfoSendChatMessageWithoutNickname",
                     messageSource.getMessage("chat.error.userWithoutNickname", null, locale)), headers, BAD_REQUEST);
         }
         final ChatLang chatLang = ChatLang.toInstance(lang);

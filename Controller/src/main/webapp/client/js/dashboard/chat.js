@@ -106,7 +106,12 @@ $(function () {
         }).fail(function (e) {
             console.log(e);
             const error = JSON.parse(e['responseText']);
-            alert(error['errorInfo']);
+
+            if(error['errorInfo']!=null){
+                alert(error['errorInfo']);
+            } else if(error['errorInfoSendChatMessageWithoutNickname']!=null){
+                $('#error-info-send-chat-message-without-nickname').modal;
+            }
         });
     })
 });
