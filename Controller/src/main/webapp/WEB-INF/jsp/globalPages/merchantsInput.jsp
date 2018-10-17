@@ -48,7 +48,6 @@
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/settings/settings.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>

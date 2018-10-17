@@ -11,10 +11,10 @@ import java.util.Map;
 public interface NotificationsSettingsService {
 
     NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event);
-
+/*
     void createOrUpdate(NotificationsUserSetting setting);
 
     Object get2faOptionsForUser(int id);
 
-    Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);
+    Map<Integer, NotificationsUserSetting> getSettingsMap(int userId);*/
 }

@@ -14,15 +14,6 @@ function SettingsClass() {
     var showLog = false;
     /**/
     this.tabIdx = 0;
-    const $telegramModal = $('#telegram_connect_modal');
-    const $telegramMessagePrice = $('#telegram_mssg_price');
-    const $telegramSubscrPrice = $('#telegram_subscr_price');
-    const $telegramCode = $('#telegram_code');
-    const $smsModal = $('#sms_connect_modal');
-    const $smsNumberError = $('#phone_error');
-    const $smsMessagePrice = $('#sms_mssg_price');
-    const $smsSubscrPrice = $('#sms_subscr_price');
-    const $smsNumberInput = $('#sms_number_input');
 
     const $pinDialogModal = $('#pin_modal');
     const $pinDialogText = $pinDialogModal.find('#pin_text');
@@ -44,6 +35,8 @@ function SettingsClass() {
             var $activeLink =  $($settingsMenu).find('a[href=#' + $($activeTabIdSpan).text() +  ']');
             $($activeLink).click();
         }
+        
+        getG2fa();
 
         /* setActiveSwitcher();
          switchPassTab();*/
@@ -54,21 +47,20 @@ function SettingsClass() {
             setActiveSwitcher();
             switchPassTab();
         });
-        checkSmsNumber();
     })();
 
-    /* function setActiveSwitcher(){
+     function setActiveSwitcher(){
          $('.orderForm-toggler').removeClass('active');
          $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-     }*/
+     }
 
-    /*function switchPassTab(){
+    function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
         $('#'+tabId).siblings().removeClass('active');
         $('#'+tabId).addClass('active');
         blink($('#passwords-changing').find('[for="user-password"]'));
         blink($('#passwords-changing').find('[for="userFin-password"]'));
-    }*/
+    }
 
     $('#sessionTime').on('change keyup', function() {
         console.log('change');
@@ -88,206 +80,6 @@ function SettingsClass() {
         $('#2fa_cell').css('color', 'red').css('text-decoration', 'underline');
     }
 
-    function resetSmsConnectModal() {
-        $('#sms_info_block').hide();
-        $('#sms_code_block').hide();
-        $('#sms_connect_block').hide();
-        $smsNumberError.text('');
-    }
-
-    $('#subscribe_SMS').on('click', function() {
-        connectOrReconnect();
-    });
-
-    $('#reconnect_SMS').on('click', function() {
-        connectOrReconnect();
-    });
-
-    function connectOrReconnect() {
-        resetSmsConnectModal();
-        $('#sms_connect_block').show();
-        $smsModal.modal();
-    }
-
-    $('#sms_check_number').on('click', function() {
-        $smsNumberError.text('');
-        var val = $smsNumberInput.val().replace('+','').replace(" ", "").replace("-", "");
-        $.ajax({
-            url: '/settings/2FaOptions/preconnect_sms?number=' + val,
-            type: 'GET',
-            success: function (data) {
-                $smsMessagePrice.text(data);
-                $('#sms_instruction').show();
-                $('#sms_connect_button').prop('disabled', false);
-            }, error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
-
-    $smsNumberInput.on('input', function () {
-        checkSmsNumber();
-    });
-
-    function checkSmsNumber() {
-        var val = $smsNumberInput.val().replace('+','').replace(" ", "").replace("-", "");
-        if (isNumber(val)) {
-            $('#sms_check_number').prop('disabled', false);
-        } else {
-            $('#sms_check_number').prop('disabled', true);
-        }
-    }
-
-    function isNumber(n) {
-        return !isNaN(parseFloat(n)) && isFinite(n);
-    }
-
-    $('#sms_connect__reload_button').on('click', function() {
-        location.reload();
-    });
-
-    $('#sms_connect_button').on('click', function() {
-        $smsNumberError.text('');
-        $.ajax({
-            url: '/settings/2FaOptions/confirm_connect_sms',
-            type: 'GET',
-            success: function (data) {
-                resetSmsConnectModal();
-                $('#sms_code_input').val("");
-                $('#sms_code_block').show();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
-
-
-    $('#sms_enter_code_button').on('click', function () {
-        resetSmsConnectModal();
-        $('#sms_code_input').val("");
-        $('#sms_code_block').show();
-    });
-
-    $('#sms_send_code_button').on('click', function () {
-        $smsNumberError.text('');
-        var code = $('#sms_code_input').val();
-        $.ajax({
-            url: '/settings/2FaOptions/verify_connect_sms?code=' + code,
-            type: 'GET',
-            success: function (data) {
-                location.reload();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
-            }
-        });
-    });
-
-    $('#sms_code_input').on('input', function () {
-        var code = $('#sms_code_input').val();
-        if (isNumber(code)) {
-            $('#sms_send_code_button').prop('disabled', false);
-        } else {
-            $('#sms_send_code_button').prop('disabled', true);
-        }
-    });
-
-
-
-    $('.contact_info').on('click', function() {
-        resetSmsConnectModal();
-        var id = $(this).data("id");
-        var contact = $(this).data("contact");
-        console.log("id " + id);
-        console.log("contact " + contact);
-        $.ajax({
-            url: '/settings/2FaOptions/contact_info?id=' + id,
-            type: 'GET',
-            success: function (data) {
-                console.log(data);
-                data = JSON.parse(data);
-                $smsModal.modal();
-                $('#sms_info_block').show();
-                $('#sms_number').text(data.contact);
-                $('#sms_price').text(data.price);
-            }
-        });
-    });
-
-
-
-    $('#subscribe_TELEGRAM').on('click', function() {
-        $.ajax({
-            url: '/settings/2FaOptions/getNotyPrice?id=3',
-            type: 'GET',
-            success: function (data) {
-                $telegramMessagePrice.text(data.messagePrice == null ? 0 : data.messagePrice);
-                $telegramSubscrPrice.text(data.subscriptionPrice);
-                if (data.code != undefined) {
-                    $('.code').show();
-                    $telegramCode.text(data.code);
-                    $('#telegram_pay_button').hide();
-                    $('#telegram_cancel_button').hide();
-                    $('#telegram_back_button').show();
-                }
-                $telegramModal.modal();
-            }
-        });
-    });
-
-    $('#telegram_pay_button').on('click', function() {
-        $.ajax({
-            url: '/settings/2FaOptions/connect_telegram',
-            type: 'GET',
-            success: function (data) {
-                $telegramModal.modal();
-                $('.code').show();
-                $telegramCode.text(data);
-                $('#telegram_pay_button').hide();
-                $('#telegram_cancel_button').hide();
-                $('#telegram_back_button').show();
-            }, error: function (data) {
-                console.log(data);
-            }
-        });
-    });
-
-    $('#reconnect_TELEGRAM').on('click', function() {
-        $.ajax({
-            url: '/settings/2FaOptions/reconnect_telegram',
-            type: 'GET',
-            success: function (data) {
-                $('#telegram_reconnect_block').show();
-                $('#telegram_connect_block').hide();
-                $('#telegram_pay_button').hide();
-                $('#telegram_cancel_button').hide();
-                $('#telegram_back_button').show();
-                $('.code').show();
-                $telegramModal.modal();
-                $telegramCode.text(data);
-
-            }
-        });
-    });
-
-
-
-    $('.update_set_button').on('click', function() {
-        console.log('clivk');
-        $.ajax({
-            url: '/settings/2FaOptions/submit',
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            data: $('#2faSettings_form').serialize()
-        }).success(function (result, textStatus, xhr) {
-                $pinDialogModal.modal();
-                $pinDialogText.text(result.detail);
-        });
-    });
-
     $pinInput.on('input', function (e) {
         checkPinInput()
     });
@@ -301,24 +93,39 @@ function SettingsClass() {
         }
     }
 
-    $pinSendButton.on('click', function () {
-        sendPin($pinInput.val());
+    $('#g2fa_connect_button').on('click', function () {
+        var data = $('#connect_g2fa').serialize();
+        $('#2fa_user_pass').val('');
+        $('#2fa_user_code').val('');
+        $.ajax({
+            url: '/settings/2FaOptions/google2fa_connect_check_creds',
+            type: "POST",
+            data: data,
+            success: function (data) {
+                $pinWrong.hide();
+                $pinDialogModal.modal();
+                $pinDialogText.text(data.detail);
+            }, error : function (data) {
+            }
+        });
     });
 
-    function sendPin(pin) {
-        $pinWrong.hide();
+    $pinSendButton.on('click', function () {
+        var pinCode = $('#pin_code');
         $.ajax({
-            url: '/settings/2FaOptions/change?pin=' + pin,
-            async: true,
+            url: '/settings/2FaOptions/google2fa_connect',
+            type: "POST",
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
-            type: 'POST',
-            contentType: 'application/json'
+            data: pinCode
         }).success(function (result, textStatus, xhr) {
+            console.log(xhr.status);
+            console.log(JSON.stringify(result));
             if (xhr.status === 200) {
                 $pinDialogModal.modal("hide");
-                window.location.replace("/settings?success2fa");
+                getG2fa();
+                successNoty(result.message);
             } else {
                 $pinWrong.show();
                 $pinDialogText.text(result.message);
@@ -326,14 +133,102 @@ function SettingsClass() {
                     successNoty(result.message)
                 }
             }
-        }).error(function (result) {
-
+        }).error(function (result, textStatus, xhr) {
+            console.log(xhr.status);
+            console.log(JSON.stringify(result));
+            console.log('error');
+            $pinDialogModal.modal("hide");
         }).complete(function () {
             $pinInput.val("");
             $pinSendButton.prop('disabled', true);
         });
+    });
+
+    $('#disconnect_google2fa').on('click', function () {
+        var data = $('#disconnect_g2fa').serialize();
+        $('#disconnect_pass').val('');
+        $('#disconnect_code').val('');
+        $.ajax({
+            url: '/settings/2FaOptions/google2fa_disconnect',
+            type: "POST",
+            data: data,
+            success: function (data) {
+                getG2fa();
+                successNoty(data.message);
+            }, error : function (data) {
+            }
+        });
+    });
+
+    $('#backed_up_16').click(function () {
+        checkConnectButton();
+    });
+
+    $('#2fa_user_code').keyup(function () {
+        checkConnectButton();
+    });
+
+    $('#2fa_user_pass').keyup(function () {
+        checkConnectButton();
+    });
+
+    $('#disconnect_pass').keyup(function () {
+        checkDisconnectButton()
+    });
+
+    $('#disconnect_code').keyup(function () {
+        checkDisconnectButton()
+    });
+
+    function checkConnectButton() {
+        var code = $('#2fa_user_code').val();
+        var pass = $('#2fa_user_pass').val();
+        if ($('#backed_up_16').is(':checked') && code.length > 0 && pass.length > 0) {
+            $('#g2fa_connect_button').removeAttr('disabled');
+        } else {
+            $('#g2fa_connect_button').attr('disabled', true);
+        }
     }
 
+    function checkDisconnectButton() {
+        var code = $('#disconnect_code').val();
+        var pass = $('#disconnect_pass').val();
+        if (pass.length > 0 && code.length > 0) {
+            $('#disconnect_google2fa').removeAttr('disabled');
+        } else {
+            $('#disconnect_google2fa').attr('disabled', true);
+        }
+    }
+
+    function getG2fa() {
+        $.ajax(
+            "/settings/2FaOptions/google2fa",
+            {
+                headers:
+                    {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                type: 'POST'
+            }).success(function (data) {
+                if (data) {
+                    showg2faConnect();
+                    $('#g2fa_code').text(data.code);
+                    $("#g2fa_qr_code").replaceWith('<img id="g2fa_qr_code" tyle="width: 100%; height: 100%;" src="' + data.message + '" />').show();
+                } else {
+                    showg2faConnected();
+                }
+        });
+    }
+
+    function showg2faConnect(){
+        $('.g2fa_connect').show();
+        $('.g2fa_connected').hide();
+    }
+
+    function showg2faConnected() {
+        $('.g2fa_connect').hide();
+        $('.g2fa_connected').show();
+    }
 }
 
 /**

@@ -198,20 +198,6 @@ public class DashboardController {
     UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
     updateUserDto.setPassword(password);
     userService.updateUserByAdmin(updateUserDto);
-
-    Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(userUpdate.getEmail()).getAuthorities());
-    org.springframework.security.core.userdetails.User userSpring =
-              new org.springframework.security.core.userdetails.User(
-                      userUpdate.getEmail(),
-                      password,
-                      false,
-                      false,
-                      false,
-                      false,
-                      authList
-              );
-    Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-    SecurityContextHolder.getContext().setAuthentication(auth);
     temporalTokenService.deleteTemporalToken(temporalToken);
 
     userSessionService.invalidateUserSessionExceptSpecific(userUpdate.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());

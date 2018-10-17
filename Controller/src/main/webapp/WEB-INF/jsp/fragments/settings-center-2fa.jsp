@@ -2,87 +2,89 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <section id="2fa-options">
     <h4 class="h4_green">
-        <loc:message code="message.2fa.title"/>
+        <loc:message code="message.2fa.title.big"/>
     </h4>
     <h4 class="under_h4_margin"></h4>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-6 content">
-
-                    <form method="post" action="/settings/2FaOptions/submit" id="2faSettings_form">
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <table id="2fa-options-table" class="table">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
-                                <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
-                                    <c:if test="${notificatorHead.enabled}">
-                                        <th>
-                                            <c:if test="${notificatorHead.needSubscribe}">
-                                                <c:choose>
-                                                    <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null
-                                                    or not subscriptions.get(notificatorHead.id).isConnected()}">
-                                                        <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
-                                                        <loc:message code="notificator.conect"/></a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <c:if test="${subscriptions.get(notificatorHead.id).getContactStr() != null}">
-                                                            <a class="btn btn-default contact_info" data-id="${notificatorHead.id}"
-                                                               data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
-                                                            <loc:message code="message.info"/></a>
-                                                        </c:if>
-                                                       <%-- <c:if test="${notificatorHead.enabled}">
-                                                        <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
-                                                            <loc:message code="notificator.reconnect"/></a>
-                                                        </c:if>--%>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:if><br>${notificatorHead.name}<br>
-                                        <%--<c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>--%>
-                                        </th>
-                                    </c:if>
-                                </c:forEach>
-                               <%-- <th>Disable</th>--%>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
-                            <c:forEach items="${user2faOptions.get('events')}" var="event">
-                                    <tr>
-                                        <td><loc:message code="settings.message.event.${event}"/></td>
-                                        <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
-                                            <c:if test="${notificator.enabled}">
-                                                <td><input type="radio" name="${event.code}" value="${notificator.id}"
-                                                        <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null
-                                                        or not subscriptions.get(notificator.id).isConnected())}">
-                                                            disabled
-                                                        </c:if>
-                                                           <c:if test="${!notificator.enabled}">disabled</c:if>
-                                                        <c:if test="${settings.get(event.code) != null
-                                                        and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
-                                                </td>
-                                            </c:if>
-                                        </c:forEach>
-                                            <%--<td><input type="radio" name="${event.code}" value="0"
-                                                    <c:if test="${not event.canBeDisabled}">disabled</c:if>
-                                                    <c:if test="${(settings.get(event.code) == null or settings.get(event.code).notificatorId == null)
-                                                        and event.canBeDisabled}">CHECKED</c:if>
-                                                />
-                                            </td>--%>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                        <%--<button id="submitSessionOptionsButton" type="submit" class="blue-box">
-                            <loc:message code="button.update"/></button>--%>
-                    </form>
-                <a id="SubmitSessionOptions" class="btn btn-default update_set_button">
-                    <loc:message code="button.update"/></a>
+    <div class="col-sm-12" style="width: 65%; margin-bottom: 20px;">
+        <!-- disable -->
+        <div class="g2fa_connect" hidden>
+            <h2 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:red"> <loc:message code="news.status.disabled"/></span> </h2>
+            <div style="width: 45%; float:left;">
+                <h4 style="margin-top: 0;"><loc:message code="ga.2fa_disable_title"/></h4>
+                <div><loc:message code="ga.2fa_recommend"/></div>
+                <hr>
+                <form id='connect_g2fa' action="#">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <div style="margin-bottom: 4px; ">
+                        <span style="float:left;">Username/Email:</span>
+                        <span style="float:right;">${user.getEmail()}</span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 12px; ">
+                        <span style="float:left;"><loc:message code="login.password"/></span>
+                        <input name="password" id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;" autocomplete="off">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 12px; ">
+                        <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
+                        <input name="code" id="2fa_user_code" type="text" style="float:right; border: 1px solid grey;" autocomplete="off">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 8px;"><loc:message code="ga.2fa_turnon"/></div>
+                    <div style="margin-bottom: 24px; max-width: 230px;">
+                        <input id="backed_up_16" type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;" autocomplete="off">
+                        <span style="vertical-align: middle;"><loc:message code="ga.2fa_backed_up"/></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </form>
+                <button id="g2fa_connect_button" class="btn btn-default" style="float:right;" disabled><loc:message code="ga.2fa_enable_button"/></button>
             </div>
         </div>
+        <!-- enable -->
+        <div class="g2fa_connected" hidden>
+            <h1 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:green"> <loc:message code="admin.enabled"/></span> </h1>
+            <div style="width: 45%; float:left;">
+                <h4 style="margin-top: 0;"><loc:message code="ga.2fa_enable_title"/></h4>
+                <div><loc:message code="ga.2fa_turnoff"/></div>
+                <hr>
+                <form id='disconnect_g2fa' action="#">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <div style="margin-bottom: 4px; ">
+                        <span style="float:left;">Username/Email:</span>
+                        <span style="float:right;">${user.getEmail()}</span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 12px; ">
+                        <span style="float:left;"><loc:message code="login.password"/>:</span>
+                        <input id="disconnect_pass" name="password" type="password" style="float:right; border: 1px solid grey;" autocomplete="off">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 24px;">
+                        <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
+                        <input id="disconnect_code" name="code" type="text" style="float:right; border: 1px solid grey;" autocomplete="off">
+                        <div class="clearfix"></div>
+                    </div>
+                </form>
+                <button id="disconnect_google2fa" class="btn btn-default" style="float:right;" disabled><loc:message code="ga.2fa_disable_button"/></button>
+            </div>
+        </div>
+        <!--  qr code block -->
+        <div class="g2fa_connect" style="width: 43%; float:right;" hidden>
+            <div style="margin-bottom: 10px; height: 220px; margin-top: 15px;">
+                <img id="g2fa_qr_code" alt="">
+            </div>
+            <div><b><loc:message code="ga.2fa_16"/></b> <span id="g2fa_code" style="color:red; text-transform: uppercase;"></span></div>
+            <div style="margin-bottom: 24px;"><loc:message code="ga.2fa_save"/></div>
+            <div>
+                <loc:message code="ga.2fa_note"/>
+            </div>
+        </div>
+        <div class="clearfix"></div>
     </div>
+
+
+
 </section>

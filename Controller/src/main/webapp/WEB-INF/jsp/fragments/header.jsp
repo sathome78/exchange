@@ -255,9 +255,6 @@
                             <loc:message code="register.emailWrong"/>
                         </div>
                     </div>
-
-                    <a id="send_pin_again" class="btn btn-link" style="margin-left: 90px;"><loc:message code="login.pin.sendagain"/></a>
-
                     <div id="send_pin_res"></div>
                     <br>
 

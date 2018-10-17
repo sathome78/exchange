@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -105,6 +106,9 @@
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
+    <c:if test="${firstLogin}">
+        <input id="info_new" hidden value='${firstLogin}'/>
+    </c:if>
     <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -129,8 +133,8 @@
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
-<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
+<%@include file="../fragments/modal/G2fa_noty_modal.jsp" %>
+<%@include file="../fragments/modal/g2fa_login_warning_modal.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>

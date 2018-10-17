@@ -24,14 +24,27 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     private NotificationUserSettingsDao settingsDao;
     @Autowired
     private NotificatorsService notificatorsService;
+    @Autowired
+    private G2faService g2faService;
 
 
     @Override
     public NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event) {
-        return settingsDao.getByUserAndEvent(userId, event);
+        if (g2faService.isGoogleAuthenticatorEnable(userId)) {
+            return NotificationsUserSetting.builder()
+                    .notificationMessageEventEnum(event)
+                    .notificatorId(NotificationTypeEnum.GOOGLE2FA.getCode())
+                    .build();
+        }
+        return  NotificationsUserSetting.builder()
+                .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+                .userId(userId)
+                .notificationMessageEventEnum(event)
+                .build();
     }
 
-    @Override
+    /*comment because only g2fa used now, if other messengers will be in use - uncomment and change getByUserAndEvent method*/
+    /*@Override
     public void createOrUpdate(NotificationsUserSetting setting) {
         if (!notificatorsService.getById(setting.getNotificatorId()).isEnabled()) {
             return;
@@ -75,6 +88,6 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
                 }
         );
         return map;
-    }
+    }*/
 
 }

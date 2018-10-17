@@ -261,18 +261,11 @@ public class MainController {
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
-            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(sessionUser.getEmail()).getAuthorities());
-            org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                    sessionUser.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
-            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
             WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
                 return new ModelAndView("redirect:/ico_dashboard");
             }
-
             return new ModelAndView("redirect:/dashboard");
         }
     }
@@ -360,7 +353,7 @@ public class MainController {
 
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
     public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
@@ -374,7 +367,7 @@ public class MainController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)

@@ -180,4 +180,7 @@ public interface UserDao {
 
   User getUserByTemporalToken(String token);
 
+    String getPassword(int userId);
+
+    long countUserEntrance(String email);
 }
