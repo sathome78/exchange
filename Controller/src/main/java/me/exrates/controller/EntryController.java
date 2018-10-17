@@ -335,7 +335,7 @@ public class EntryController {
     @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String submitsettingsPassword(@Valid @ModelAttribute ChangePasswordDto changePasswordDto, BindingResult result,
                                          Principal principal, HttpServletRequest request, HttpServletResponse response) {
-        registerFormValidation.validateChangePassword(changePasswordDto, result, localeResolver.resolveLocale(request));
+        registerFormValidation.validatePasswordInPrivateCabinet(changePasswordDto, result, localeResolver.resolveLocale(request));
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         User userPrincipal = userService.findByEmail(principal.getName());
         Object message;

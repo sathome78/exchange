@@ -236,41 +236,19 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateChangePassword(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
-        String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, locale);
-        String passwordIncorrect = messageSource.getMessage("validation.passwordincorrect", null, locale);
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
-                "required.password", passwordRequired);
-/*        if (!(StringUtils.isEmpty(changePasswordDto.getPassword()))) {
-            pattern = Pattern.compile(PASSWORD_PATTERN);
-            matcher = pattern.matcher(changePasswordDto.getConfirmPassword());
-            if (!matcher.matches()) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }*/
-        if (changePasswordDto.getPassword() != null && !changePasswordDto.getPassword().isEmpty()) {
-            if ((!Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS, changePasswordDto.getPassword())
-                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_CHARACTERS, changePasswordDto.getPassword())
-                    && !Pattern.matches(PASSWORD_PATTERN_LETTERS_AND_NUMBERS_AND_CHARACTERS, changePasswordDto.getPassword()))
-                    || Pattern.matches(FIELD_CONTAINS_SPACE, changePasswordDto.getPassword())) {
-                errors.rejectValue("password", "password.incorrect", passwordIncorrect);
-            }
-        }
-    }
-
     /**
      * Validation method for password (change user password in user private cabinet)
-     * @param user
+     * @param changePasswordDto
      * @param errors
      * @param locale
      */
-    public void validatePasswordInPrivateCabinet(User user, Errors errors, Locale locale) {
+    public void validatePasswordInPrivateCabinet(ChangePasswordDto changePasswordDto, Errors errors, Locale locale) {
         String passwordMismatch = messageSource.getMessage("validation.passwordmismatch", null, locale);
-        if (!user.getPassword().equals(user.getConfirmPassword())) {
+        if (!changePasswordDto.getPassword().equals(changePasswordDto.getConfirmPassword())) {
             errors.rejectValue("confirmPassword", "password.mismatch", passwordMismatch);
         }
 
-        validatePassword(user.getPassword(), errors);
+        validatePassword(changePasswordDto.getPassword(), errors);
     }
 
     /**
