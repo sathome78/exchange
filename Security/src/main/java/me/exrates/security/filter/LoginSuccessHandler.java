@@ -6,6 +6,7 @@ import me.exrates.model.enums.UserIpState;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.SurveyService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +41,6 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     LocaleResolver localeResolver;
     @Autowired
     private UserService userService;
-
     @Autowired
     private IpBlockingService ipBlockingService;
 
@@ -49,7 +50,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
         try {
             User principal = (User) authentication.getPrincipal();
@@ -83,6 +84,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             if (!StringUtils.isEmpty(lastPage)) {
                 super.setDefaultTargetUrl(lastPage);
             }
+            WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(e);

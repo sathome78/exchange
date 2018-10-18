@@ -96,6 +96,14 @@
             </button>
           </sec:authorize>
 
+          <%--Access for operation | START--%>
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <button class="adminForm-toggler yellow-box">
+              Access
+            </button>
+          </sec:authorize>
+          <%--Access for operation | END--%>
+
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
             <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
               <button class="adminForm-toggler red-box">
@@ -300,7 +308,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
+             <%-- <%@include file="../fragments/admin-settings-user-2fa.jsp" %>--%>
             </div>
           </div>
         </div>
@@ -750,6 +758,10 @@
           </div>
         <%--Access management--%>
 
+          <%--Access for operation | START--%>
+          <%@include file='../fragments/admin/editUser/accessToOperationsForTheUser.jsp' %>
+          <%--Access for operation | END--%>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
           <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
             <div id="panel6" class="tab-pane">
@@ -781,8 +793,8 @@
               </div>
             </div>
           </c:if>
-
         </sec:authorize>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
         <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
         <div id="panel6" class="tab-pane">

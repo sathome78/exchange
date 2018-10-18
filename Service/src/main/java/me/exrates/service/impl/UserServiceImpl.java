@@ -9,6 +9,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -16,12 +17,12 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -34,8 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -74,19 +73,8 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private NotificationsSettingsService settingsService;
-
-  /*this variable is set to use or not 2 factor authorization for all users*/
-  private boolean global2FaActive = true;
-
-  @Override
-  public boolean isGlobal2FaActive() {
-    return global2FaActive;
-  }
-
-  @Override
-  public void setGlobal2FaActive(boolean global2FaActive) {
-    this.global2FaActive = global2FaActive;
-  }
+  @Autowired
+  private G2faService g2faService;
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -226,9 +214,9 @@ public class UserServiceImpl implements UserService {
     return userDao.getIdByNickname(nickname);
   }
 
-  @Override
-  public boolean setNickname(User user) {
-    return userDao.setNickname(user.getNickname(), user.getEmail());
+
+  public boolean setNickname(String newNickName, String userEmail) {
+    return userDao.setNickname(newNickName, userEmail);
   }
 
   @Override
@@ -397,6 +385,7 @@ public class UserServiceImpl implements UserService {
                     "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+
     email.setTo(user.getEmail());
     if (tokenType.equals(TokenType.REGISTRATION)
             || tokenType.equals(TokenType.CHANGE_PASSWORD)
@@ -659,7 +648,6 @@ public class UserServiceImpl implements UserService {
       throw new ForbiddenOperationException("Status modification not permitted");
     }
     userDao.updateAdminAuthorities(options, userId);
-
   }
 
   @Override
@@ -726,8 +714,22 @@ public class UserServiceImpl implements UserService {
     return pin;
   }
 
+
+  /*todo refator it*/
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
+    int userId = getIdByEmail(email);
+    NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
+    if (setting == null || setting.getNotificatorId() == null) {
+      setting = NotificationsUserSetting.builder()
+              .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+              .userId(userId)
+              .notificationMessageEventEnum(event)
+              .build();
+    }
+    if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
+      return g2faService.checkGoogle2faVerifyCode(pin, userId);
+    }
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -737,19 +739,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean isLogin2faUsed(String email) {
-    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
-    return setting != null && setting.getNotificatorId() != null;
+    return g2faService.isGoogleAuthenticatorEnable(userDao.getIdByEmail(email));
   }
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
-    LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
-    boolean res = !isLogin2faUsed(email) &&
-            (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
-    if (res) {
-      userDao.updateLast2faNotifyDate(email);
-    }
-    return res;
+    return userDao.updateLast2faNotifyDate(email);
   }
 
   @Override
@@ -762,38 +757,6 @@ public class UserServiceImpl implements UserService {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
   }
 
-  @Override
-  @Transactional
-  public String getGoogleAuthenticatorCode(String userEmail) {
-    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    if (secret2faCode == null || secret2faCode.isEmpty()){
-      userDao.set2faSecretCode(userEmail);
-      secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    }
-    return secret2faCode;
-  }
-
-  @Override
-  @Transactional
-  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException, UnsupportedEncodingException {
-
-    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    if (secret2faCode == null || secret2faCode.isEmpty()){
-      userDao.set2faSecretCode(userEmail);
-      secret2faCode = userDao.get2faSecretByEmail(userEmail);
-    }
-    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
-  }
-
-  @Override
-  public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
-    String google2faSecret = userDao.get2faSecretByEmail(userEmail);
-    final Totp totp = new Totp(google2faSecret);
-    if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-      throw new IncorrectSmsPinException();
-    }
-    return true;
-  }
 
   private boolean isValidLong(String code) {
     try {
@@ -813,23 +776,23 @@ public class UserServiceImpl implements UserService {
     return auth.getName();
   }
 
-  @Override
-  public boolean checkOperSystem(String email, String userAgent) {
-    throw new UnsupportedOperationException("Not implemented");
+    @Transactional(rollbackFor = Exception.class)
+    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+        return userDao.verifyToken(token);
+    }
+
+    public User getUserByTemporalToken(String token) {
+      return userDao.getUserByTemporalToken(token);
   }
 
-  @Override
-  public boolean setNewOperSystem(String email, String operSystem) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
+    @Override
+    public boolean checkPassword(int userId, String password) {
+        return passwordEncoder.matches(password, userDao.getPassword(userId));
+    }
 
-  @Transactional(rollbackFor = Exception.class)
-  public TemporalToken verifyUserEmailForForgetPassword(String token) {
-    return userDao.verifyToken(token);
-  }
-
-  public User getUserByTemporalToken(String token) {
-    return userDao.getUserByTemporalToken(token);
-  }
+    @Override
+    public long countUserIps(String userEmail) {
+        return userDao.countUserEntrance(userEmail);
+    }
 
 }

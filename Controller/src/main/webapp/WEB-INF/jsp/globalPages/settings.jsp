@@ -21,7 +21,7 @@
     <%--ZOPIM CHAT--%>
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
-   <%-- <%@include file="../tools/alexa.jsp" %>--%>
+    <%@include file="../tools/alexa.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -34,15 +34,14 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/dataTables.bootstrap.min.css'/>" rel="stylesheet">
-    <script type="text/javascript" src="<c:url value='/client/js/datatables.js'/>"></script>
-    <link href="<c:url value='/client/css/font-awesome.min.css'/>" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
 <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
+    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/settings/settings.js'/>"></script>
@@ -56,6 +55,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notifications/notification-settings.js'/>"></script>
 
+    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
@@ -79,9 +79,10 @@
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
 </main>
+<%@include file="../fragments/modal/pin_modal.jsp"%>
 <%@include file='../fragments/modal/telegram_connect_modal.jsp'%>
 <%@include file='../fragments/modal/sms_connect_modal.jsp' %>
-<%@include file='../fragments/modal/google_authenticator_modal.jsp' %>
+<%--<%@include file='../fragments/modal/google_authenticator_modal.jsp' %>--%>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

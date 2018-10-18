@@ -54,6 +54,10 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 /**
  * Created by OLEG on 19.08.2016.
  */
+
+/**
+ * ALL controleers oommented for security reasons
+ * */
 @RestController
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/mobile.properties"})
 public class MobileEntryController {
@@ -518,7 +522,8 @@ public class MobileEntryController {
      * @apiUse InternalServerError
      * @apiUse InvalidFileError
      */
-    @RequestMapping(value = "/rest/user/register", produces = {"application/json;charset=utf-8"})
+
+    /*@RequestMapping(value = "/rest/user/register", produces = {"application/json;charset=utf-8"})
     public ResponseEntity<Integer> registerUser(@RequestParam String nickname,
                                                 @RequestParam String email,
                                                 @RequestParam String password,
@@ -592,7 +597,7 @@ public class MobileEntryController {
     private int getCommonReferralRootId() {
         User commonReferralRoot = userService.getCommonReferralRoot();
         return commonReferralRoot == null ? 0 : commonReferralRoot.getId();
-    }
+    }*/
 
 
     /**
@@ -636,7 +641,7 @@ public class MobileEntryController {
      * @apiUse InvalidAppKeyError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/rest/user/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/rest/user/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
@@ -676,9 +681,9 @@ public class MobileEntryController {
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
         ipBlockingService.successfulProcessing(ipAddress,IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
-    }
+    }*/
 
-    private void checkAppKey(String appKey, String userAgentHeader) {
+    /*private void checkAppKey(String appKey, String userAgentHeader) {
         UserAgent userAgent = UserAgent.DESKTOP;
         String headerLowerCase = userAgentHeader.toLowerCase();
         if (headerLowerCase.contains("android")) {
@@ -692,7 +697,7 @@ public class MobileEntryController {
                 throw new InvalidAppKeyException("Invalid app key");
             }
         }
-    }
+    }*/
 
 
     /**
@@ -717,7 +722,7 @@ public class MobileEntryController {
      * @apiUse NotExistingEmailError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String ipAddress = IpUtils.getClientIpAddress(request);
         ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
@@ -749,7 +754,7 @@ public class MobileEntryController {
         logger.debug(tempId);
         return new ResponseEntity<>(userService.replaceUserPassAndDelete(token, tempId), HttpStatus.OK);
 
-    }
+    }*/
 
 
     /**
@@ -775,13 +780,13 @@ public class MobileEntryController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/changePass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/api/user/changePass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> changePass(@RequestBody Map<String, String> body) {
 
         logger.debug(retrieveParamFormBody(body, "password", true));
         changeUserPasses(retrieveParamFormBody(body, "password", true), null);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
+    }*/
 
 
     /**
@@ -807,7 +812,7 @@ public class MobileEntryController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/changeFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/api/user/changeFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> changeFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
         changeUserPasses(null, retrieveParamFormBody(body, "finPass", true));
@@ -831,7 +836,7 @@ public class MobileEntryController {
         userService.updateUserSettings(updateUserDto);
 
         userSessionService.invalidateUserSessionExceptSpecific(userEmail, RequestContextHolder.currentRequestAttributes().getSessionId());
-    }
+    }*/
 
 
     /**
@@ -859,7 +864,7 @@ public class MobileEntryController {
      * @apiUse AbsentFinPasswordError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> checkFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
         String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true), passEncodeKey);
@@ -867,7 +872,7 @@ public class MobileEntryController {
         User user = userService.findByEmail(userEmail);
         userService.checkFinPassword(decodedFinPass, user, new Locale(userService.getPreferedLang(user.getId())));
         return new ResponseEntity<>(HttpStatus.OK);
-    }
+    }*/
 
 
     /**
@@ -904,7 +909,7 @@ public class MobileEntryController {
      * @apiUse InvalidFileError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/setAvatar", method = RequestMethod.POST)
+    /*@RequestMapping(value = "/api/user/setAvatar", method = RequestMethod.POST)
     public ResponseEntity<String> setUserAvatar(final @RequestParam("avatar") MultipartFile multipartFile, HttpServletRequest request) throws IOException {
         logger.debug(multipartFile.getOriginalFilename());
         logger.debug(multipartFile.getSize());
@@ -923,7 +928,7 @@ public class MobileEntryController {
     private String getAvatarPathPrefix(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName() +
                 ":" + request.getServerPort() + "/rest";
-    }
+    }*/
 
 
     /**
@@ -949,7 +954,7 @@ public class MobileEntryController {
      * @apiUse LanguageNotSupportedError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/setLanguage", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/api/user/setLanguage", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> setLanguage(@RequestBody Map<String, String> body) {
         String language = retrieveParamFormBody(body, "language", true);
         Locale locale = new Locale(language);
@@ -976,7 +981,7 @@ public class MobileEntryController {
         logger.debug(body.get("email"));
         userService.tempDeleteUser(body.get("email"));
         return new ResponseEntity<>(HttpStatus.OK);
-    }
+    }*/
 
     /**
      * @api {post} /api/user/findNicknames Find nicknames
@@ -1005,7 +1010,7 @@ public class MobileEntryController {
      * @apiUse LanguageNotSupportedError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/findNicknames", method = RequestMethod.GET)
+    /*@RequestMapping(value = "/api/user/findNicknames", method = RequestMethod.GET)
     @ResponseBody
     public List<String> findNicknames(@RequestParam String part) {
         if (part == null || part.isEmpty()) {
@@ -1013,7 +1018,7 @@ public class MobileEntryController {
         }
         return userService.findNicknamesByPart(part);
 
-    }
+    }*/
 
 
     /**
@@ -1035,9 +1040,9 @@ public class MobileEntryController {
      * @apiUse InvalidSessionIdError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> authenticateQR(@RequestBody Map<String, String> params, @RequestHeader("Exrates-Rest-Token") String token) {
-        /*TODO temporary disable
+        *//*TODO temporary disable
         logger.debug(params);
         String sessionId = params.get("sessionId");
         logger.debug(sessionId);
@@ -1047,7 +1052,7 @@ public class MobileEntryController {
         synchronized (mutex) {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
-        return new ResponseEntity<>(HttpStatus.OK);*/
+        return new ResponseEntity<>(HttpStatus.OK);*//*
         throw new NotImplimentedMethod("NOT IMPLEMENTED");
     }
 
@@ -1182,7 +1187,7 @@ public class MobileEntryController {
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         exception.printStackTrace();
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
-    }
+    }*/
 
 
 }

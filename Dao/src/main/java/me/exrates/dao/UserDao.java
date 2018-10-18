@@ -8,6 +8,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -73,9 +74,9 @@ public interface UserDao {
 
   boolean update(UpdateUserDto user);
 
-  UserShortDto findShortByEmail(String email);
+    UserShortDto findShortByEmail(String email);
 
-  User findByNickname(String nickname);
+    User findByNickname(String nickname);
 
   List<User> getAllUsers();
 
@@ -141,13 +142,13 @@ public interface UserDao {
 
   Collection<Comment> getUserComments(int id);
 
-  Optional<Comment> getCommentById(int id);
+    Optional<Comment> getCommentById(int id);
 
-  boolean addUserComment(Comment comment);
+    boolean addUserComment(Comment comment);
 
-  void editUserComment(int id, String newComment, boolean sendMessage);
+    void editUserComment(int id, String newComment, boolean sendMessage);
 
-  boolean deleteUserComment(int id);
+    boolean deleteUserComment(int id);
 
   Integer retrieveNicknameSearchLimit();
 
@@ -158,7 +159,7 @@ public interface UserDao {
   InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
   String getEmailById(Integer id);
-
+  
   UserRole getUserRoleByEmail(String email);
 
   void savePollAsDoneByUser(String email);
@@ -175,11 +176,11 @@ public interface UserDao {
 
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
-  Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
   User getUserByTemporalToken(String token);
 
-  String get2faSecretByEmail(String userEmail);
+    String getPassword(int userId);
 
-  boolean set2faSecretCode(String userEmail);
+    long countUserEntrance(String email);
 }

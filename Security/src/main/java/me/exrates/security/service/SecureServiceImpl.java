@@ -16,8 +16,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationMessageService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
 import java.util.Locale;
 
 
@@ -39,12 +36,9 @@ import java.util.Locale;
 @PropertySource("classpath:session.properties")
 public class SecureServiceImpl implements SecureService {
 
-    private @Value("${session.checkPinParam}")
-    String checkPinParam;
-    private @Value("${session.authenticationParamName}")
-    String authenticationParamName;
-    private @Value("${session.passwordParam}")
-    String passwordParam;
+    private @Value("${session.checkPinParam}") String checkPinParam;
+    private @Value("${session.authenticationParamName}") String authenticationParamName;
+    private @Value("${session.passwordParam}") String passwordParam;
 
     @Autowired
     private NotificationMessageService notificationService;
@@ -60,17 +54,12 @@ public class SecureServiceImpl implements SecureService {
 
     @Override
     public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
-        String result = reSendLoginMessage(request, email, locale).getMessage();
-        if (result != null) {
-            throw new PinCodeCheckNeedException(result);
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                                CapchaAuthorizationFilter filter) {
-        System.out.println("************************  public void checkLoginAuth(HttpServletRequest request, Authentication authentication,\n" +
-                "                               CapchaAuthorizationFilter filter) ");
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
         PinDto result = reSendLoginMessage(request, authentication.getName(), false);
         if (result != null) {
@@ -87,22 +76,19 @@ public class SecureServiceImpl implements SecureService {
         int userId = userService.getIdByEmail(userEmail);
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-        if (userService.isGlobal2FaActive() || (setting != null && setting.getNotificatorId() != null)) {
-            if (setting == null) {
+        if (setting == null || setting.getNotificatorId() == null) {
                 setting = NotificationsUserSetting.builder()
                         .notificatorId(NotificationTypeEnum.EMAIL.getCode())
                         .userId(userId)
                         .notificationMessageEventEnum(event)
                         .build();
-            }
-            if (setting.getNotificatorId() == null) {
-                setting.setNotificatorId(NotificationTypeEnum.EMAIL.getCode());
-            }
-            log.debug("noty_setting {}", setting.toString());
-            PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
-            Locale locale = localeResolver.resolveLocale(request);
-            boolean needToSendPin = forceSend || attempsDto.needToSendPin();
-            String message;
+        }
+        PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
+        Locale locale = localeResolver.resolveLocale(request);
+        boolean needToSendPin = false;
+        String message;
+        if (NotificationTypeEnum.convert(setting.getNotificatorId()).isNeedToSendMessages()) {
+            needToSendPin = forceSend || attempsDto.needToSendPin();
             if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
                 message = newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
@@ -110,15 +96,16 @@ public class SecureServiceImpl implements SecureService {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
-            return new PinDto(message, needToSendPin);
+        } else {
+            NotificationResultDto notificationResultDto = notificationService.notifyUser(userEmail, "", "", setting);
+            message = messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
         }
-        return new PinDto();
+        return new PinDto(message, needToSendPin);
     }
-
 
     @Override
     public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
-        return reSendLoginMessage(request, userEmail, true);
+        throw new UnsupportedOperationException();
     }
 
 
@@ -135,14 +122,15 @@ public class SecureServiceImpl implements SecureService {
 
     @Override
     public PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
-        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
+        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW) || event.equals(NotificationMessageEventEnum.CHANGE_2FA_SETTING));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = determineSettings(settingsService.getByUserAndEvent(userId, event), event.isCanBeDisabled(), userId, event);
-        if (setting != null) {
-            PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
-            Locale locale = localeResolver.resolveLocale(request);
-            boolean needToSendPin = attempsDto.needToSendPin();
-            String message;
+        PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
+        Locale locale = localeResolver.resolveLocale(request);
+        boolean needToSendPin = false;
+        String message;
+        if (NotificationTypeEnum.convert(setting.getNotificatorId()).isNeedToSendMessages()) {
+            needToSendPin = attempsDto.needToSendPin();
             if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
                 message = newPin.concat(sendPinMessage(email, setting, request, new String[]{amountCurrency}));
@@ -150,24 +138,27 @@ public class SecureServiceImpl implements SecureService {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
-            return new PinDto(message, needToSendPin);
+        } else {
+            NotificationResultDto notificationResultDto = notificationService.notifyUser(email, "", "", setting);
+            message = messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
         }
-        return null;
+        return new PinDto(message, needToSendPin);
+    }
+
+    @Override
+    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request) {
+        throw new UnsupportedOperationException();
     }
 
     private NotificationsUserSetting determineSettings(NotificationsUserSetting setting, boolean canBeDisabled, int userId, NotificationMessageEventEnum event) {
-        if ((setting == null || setting.getNotificatorId() == null) && !canBeDisabled) {
+        if (setting == null || setting.getNotificatorId() == null) {
             return NotificationsUserSetting.builder()
                     .notificatorId(NotificationTypeEnum.EMAIL.getCode())
                     .userId(userId)
                     .notificationMessageEventEnum(event)
                     .build();
         }
-        if (setting != null && setting.getNotificatorId() != null) {
-            return setting;
-        } else {
-            return null;
-        }
+        return setting;
     }
 
 
@@ -180,26 +171,6 @@ public class SecureServiceImpl implements SecureService {
         NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, setting);
         request.getSession().setAttribute("2fa_message".concat(setting.getNotificationMessageEventEnum().name()), notificationResultDto);
         return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
-    }
-
-    @Override
-    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request) {
-        NotificationsUserSetting setting = getLoginSettings(user);
-        Locale locale = localeResolver.resolveLocale(request);
-        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
-        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
-        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin}, locale);
-        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
-    }
-
-    private NotificationsUserSetting getLoginSettings(User user) {
-        return  NotificationsUserSetting
-                .builder()
-                .notificationMessageEventEnum(NotificationMessageEventEnum.LOGIN)
-                .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
-                .userId(user.getId())
-                .build();
     }
 
 }

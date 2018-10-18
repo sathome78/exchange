@@ -2028,11 +2028,11 @@ input[type=email], .dropdown-menu__form,
 #merchant-commissions-table tr:hover {
     cursor: pointer;
 }
-#register_button, #login_button {
+#register_button, #login_button, #userOperationSubmitButton {
     background: #525f74;
 }
 
-#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
+#register_button, #login_button:disabled, #submit-accept:disabled, #submit-btc:disabled, #userOperationSubmitButton:disabled {
     background: #b9c4d8;
 }
 
@@ -2190,6 +2190,13 @@ input[type=email], .dropdown-menu__form,
     background-color: #FFF;
 }
 #authoritiesTable td {
+    font-size: 1.5rem;
+}
+
+#user-authoritiesTable {
+    background-color: #FFF;
+}
+#user-authoritiesTable td {
     font-size: 1.5rem;
 }
 

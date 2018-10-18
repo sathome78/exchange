@@ -72,10 +72,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private final Object SENDING_LOCK = new Object();
 
 
-
-
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
+  public void initCoreClient(String nodePropertySource, Properties passPropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       RequestConfig.Builder rc = RequestConfig.custom().setConnectTimeout(3000).setConnectionRequestTimeout(3000);
@@ -84,6 +82,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               .build();
       Properties nodeConfig = new Properties();
       nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
+      nodeConfig.setProperty("node.bitcoind.rpc.user", passPropertySource.getProperty("node.bitcoind.rpc.user"));
+      nodeConfig.setProperty("node.bitcoind.rpc.password", passPropertySource.getProperty("node.bitcoind.rpc.password"));
       log.info("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;

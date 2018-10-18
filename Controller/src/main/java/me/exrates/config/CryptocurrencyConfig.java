@@ -18,7 +18,6 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
                 "Bitcoin", "BTC", 4, 15, false);
     }
-   /* @Bean(name = "litecoinServiceImpl")
 
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
@@ -212,10 +211,11 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/riz_wallet.properties",
                 "RIZ", "RIZ", 4, 20, false);
     }
-    @Bean(name="sicServiceImpl")
-    public BitcoinService sicService(){
+
+    @Bean(name = "sicServiceImpl")
+    public BitcoinService sicService() {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
-    }*/
+    }
 
     @Bean(name = "clxServiceImpl")
     public BitcoinService clxService() {
@@ -229,6 +229,25 @@ public class CryptocurrencyConfig {
                 "QRK", "QRK", 4, 20, false, false);
     }
 
+    @Bean(name="cmkServiceImpl")
+    public BitcoinService cmkService(){
+        return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
+    }
+
+    @Bean(name="lpcServiceImpl")
+    public BitcoinService lpcService(){
+        return new BitcoinServiceImpl("merchants/lpc_wallet.properties", "LPC", "LPC", 4, 20, false, false);
+    }
+    @Bean(name = "xfcServiceImpl")
+    public BitcoinService xfcServiceImpl() {
+        return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
+                "XFC", "XFC", 4, 20, false, false);
+    }
+
+    @Bean(name="TOAServiceImpl")
+    public BitcoinService taoServiceImpl(){
+        return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
+    }
     // LISK-like cryptos
 
 
@@ -239,7 +258,7 @@ public class CryptocurrencyConfig {
                 "Lisk", "LSK", "merchants/lisk.properties");
     }
 
-  /*  @Bean(name = "btwServiceImpl")
+    @Bean(name = "btwServiceImpl")
     public LiskService btwService() {
         LiskRestClient restClient = liskRestClient();
         return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient), "BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
@@ -256,7 +275,7 @@ public class CryptocurrencyConfig {
     public LiskService arkService() {
         return new LiskServiceImpl(liskRestClient(), arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
     }
-*/
+
     @Bean
     @Scope("prototype")
     public LiskRestClient liskRestClient() {
@@ -277,9 +296,9 @@ public class CryptocurrencyConfig {
         return new WavesServiceImpl("WAVES", "Waves", "merchants/waves.properties");
     }
 
-    /*@Bean(name = "lunesServiceImpl")
+    @Bean(name = "lunesServiceImpl")
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
-    }*/
+    }
 
 }

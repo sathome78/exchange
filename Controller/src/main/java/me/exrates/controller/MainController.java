@@ -17,7 +17,6 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -51,6 +50,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -95,8 +95,6 @@ public class MainController {
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
-    private VerifyReCaptchaSec verifyReCaptchaSec;
-    @Autowired
     private ReferralService referralService;
     @Autowired
     private SendMailService sendMailService;
@@ -118,6 +116,35 @@ public class MainController {
     @RequestMapping("/403")
     public String error403() {
         return "403";
+    }
+
+    /**
+     * Register user on referral link (redirect to dashboard, call pop-up with registration)
+     * @param refReference
+     * @param attr
+     * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
+     */
+    @RequestMapping("/register")
+    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, RedirectAttributes attr) {
+
+        User refferalRoot = userService.getCommonReferralRoot();
+        String parentEmail = "";
+
+        if (!Objects.isNull(refReference)) {
+            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
+            if (parentId.isPresent()) {
+                parentEmail = userService.getUserById(parentId.get()).getEmail();
+            }
+        } else if (refferalRoot != null) {
+            parentEmail = refferalRoot.getEmail();
+        }
+
+        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: "+parentEmail);
+
+        attr.addFlashAttribute("refferalLink", refReference);
+        attr.addFlashAttribute("parentEmail", parentEmail);
+
+        return new ModelAndView(new RedirectView("/dashboard"));
     }
 
     @RequestMapping("/generateReferral")
@@ -182,6 +209,7 @@ public class MainController {
                     final int parent = userService.getIdByEmail(user.getParentEmail());
                     if (child > 0 && parent > 0) {
                         referralService.bindChildAndParent(child, parent);
+                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: "+user.getParentEmail());
                     }
 
                     String successNoty = null;
@@ -208,10 +236,10 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(@ModelAttribute User user, @RequestParam(required = false) String view) {
+    public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
-        mav.addObject("user", user);
+        mav.addObject("user", WebUtils.getRequiredSessionAttribute(request, "reg_user"));
         return mav;
     }
 
@@ -226,24 +254,18 @@ public class MainController {
             //TODO
             throw new PasswordCreationException("Error while creating password.");
         } else {
-            User userUpdate = userService.findByEmail(user.getEmail());
+            User sessionUser = (User) WebUtils.getRequiredSessionAttribute(request, "reg_user");
+            User userUpdate = userService.findByEmail(sessionUser.getEmail());
             UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
-            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
-            org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                    user.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
-            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-
+            WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
                 return new ModelAndView("redirect:/ico_dashboard");
             }
-
             return new ModelAndView("redirect:/dashboard");
         }
     }
@@ -258,13 +280,11 @@ public class MainController {
             int userId = userService.verifyUserEmail(token);
             if (userId != 0) {
                 User user = userService.getUserById(userId);
+                WebUtils.setSessionAttribute(request, "reg_user", user);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                attr.addFlashAttribute("user", user);
-
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
                 user.setStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
-
                 if (view != null) {
                     model.addObject("view", view);
                     model.setViewName("redirect:/createPassword");
@@ -296,7 +316,6 @@ public class MainController {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
         ModelAndView model = new ModelAndView();
-        model.addObject("captchaType", CAPTCHA_TYPE);
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
@@ -334,7 +353,7 @@ public class MainController {
 
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
     public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
@@ -348,7 +367,7 @@ public class MainController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)
@@ -374,16 +393,6 @@ public class MainController {
         ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
         return modelAndView;
     }
-
-    /*CHECK FIN PASSWORD*/
-
-   /* @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
-    @ResponseBody
-    public void checkFinPassword(User user, HttpServletRequest request) {
-        String enteredFinPassword = user.getFinpassword();
-        User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
-        userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
-    }*/
 
     /*
     error handlers for this controller
@@ -435,56 +444,6 @@ public class MainController {
     @RequestMapping(value = "/partners", method = RequestMethod.GET)
     public ModelAndView partners() {
         return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
-    }
-
-    @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
-    @ResponseBody
-    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
-                                     HttpServletRequest request, RedirectAttributes redirectAttributes) {
-
-
-        ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
-        String captchaType = request.getParameter("captchaType");
-        switch (captchaType) {
-            case "BOTDETECT": {
-                String captchaId = request.getParameter("captchaId");
-                Captcha captcha = Captcha.load(request, captchaId);
-                String captchaCode = request.getParameter("captchaCode");
-                if (!captcha.validate(captchaCode)) {
-                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
-
-                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-                    return modelAndView;
-                }
-                break;
-            }
-            case "RECAPTCHA": {
-                String recapchaResponse = request.getParameter("g-recaptcha-response");
-                if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
-                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
-                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-                    return modelAndView;
-                }
-                break;
-            }
-        }
-        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
-        result.getAllErrors().forEach(logger::debug);
-        if (result.hasErrors()) {
-            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
-            modelAndView.addObject("cpch", "");
-            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-            return modelAndView;
-        }
-
-        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
-
-        return modelAndView;
     }
 
     @RequestMapping(value = "/utcOffset")

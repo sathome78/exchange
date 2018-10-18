@@ -43,6 +43,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 /**
  * Created by OLEG on 29.08.2016.
  */
+
+/**
+ * ALL controleers oommented for security reasons
+ * */
 @RestController
 @RequestMapping(value = "/api/orders")
 public class MobileOrderController {
@@ -208,7 +212,7 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      */
 
-    @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OrderSummaryDto submitOrderForCreation(@Valid @RequestBody OrderCreationParamsDto orderCreationParamsDto, HttpServletRequest request) {
         LOGGER.debug("Order creation params" + orderCreationParamsDto);
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
@@ -219,7 +223,7 @@ public class MobileOrderController {
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());
 
-    }
+    }*/
 
     /**
      * @api {post} /api/orders/createOrder Create order
@@ -252,7 +256,7 @@ public class MobileOrderController {
      * @apiUse NotEnoughMoneyError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/createOrder", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/createOrder", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultDto> createOrder(@RequestBody Map<String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -263,7 +267,7 @@ public class MobileOrderController {
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, userLocale));
         }
-    }
+    }*/
 
     /**
      * @api {post} /api/orders/cancelCreation Cancel order
@@ -283,7 +287,7 @@ public class MobileOrderController {
      * @apiUse WrongOrderKeyError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/cancelCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+ /*   @RequestMapping(value = "/cancelCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> cancelOrderCreation(@RequestBody Map<String, String> body) {
         removeOrderCreateDtoByKey(body);
         return new ResponseEntity<>(OK);
@@ -301,7 +305,7 @@ public class MobileOrderController {
             throw new WrongOrderKeyException("No order found by key");
         }
         return orderCreateDto;
-    }
+    }*/
 
 
     /**
@@ -331,7 +335,7 @@ public class MobileOrderController {
      * @apiUse AlreadyAcceptedOrderError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+   /* @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer acceptOrderList(@RequestBody Map<String, List<Integer>> body) {
 
 
@@ -351,7 +355,7 @@ public class MobileOrderController {
 
         return ordersList.size();
 
-    }
+    }*/
 
 
     /**
@@ -378,7 +382,7 @@ public class MobileOrderController {
      * @apiUse OrderNotFoundError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
+  /*  @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
     public boolean deleteOrder(@PathVariable Integer orderId) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -391,10 +395,10 @@ public class MobileOrderController {
             throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, userLocale));
         }
         return true;
-    }
+    }*/
 
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+   /* @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({HttpMessageNotReadableException.class})
     public ApiError httpMessageNotReadableExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(REQUEST_NOT_READABLE, req.getRequestURL(), exception);
@@ -451,7 +455,7 @@ public class MobileOrderController {
     @ResponseBody
     public ApiError otherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
-    }
+    }*/
 
 
 }

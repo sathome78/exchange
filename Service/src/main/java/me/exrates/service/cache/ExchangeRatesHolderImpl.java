@@ -33,7 +33,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public void onRatesChange(Integer pairId, BigDecimal rate) {
-        System.out.println("set holder rates");
         setRates(pairId, rate);
     }
 

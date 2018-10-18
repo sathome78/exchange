@@ -61,7 +61,6 @@ public class ChartsCache {
 
     public Map<String, String> getData(Integer currencyPairId) {
         if (!cacheMap.containsKey(currencyPairId)) {
-            log.debug("no key {}", currencyPairId );
             updateCache(currencyPairId);
         }
         return cacheMap.get(currencyPairId);

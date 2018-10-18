@@ -8,10 +8,10 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -27,11 +27,9 @@ public interface UserService {
 
     /**
      * Stores preferred locale for user in DB
-     *
-     * @param user
      * @return "true" if data saved successfully, or "false" if none
      */
-    boolean setNickname(User user);
+    boolean setNickname(String newNickName,String userEmail);
 
     User findByEmail(String email);
 
@@ -44,10 +42,6 @@ public interface UserService {
     void deleteUserFile(int docId);
 
     List<UserFile> findUserDoc(int userId);
-
-    boolean isGlobal2FaActive();
-
-    void setGlobal2FaActive(boolean global2FaActive);
 
     List<String> getLocalesList();
 
@@ -204,17 +198,11 @@ public interface UserService {
 
     String getUserEmailFromSecurityContext();
 
-    boolean checkOperSystem(String email, String userAgent);
-
-    boolean setNewOperSystem(String email, String operSystem);
-
-    String getGoogleAuthenticatorCode(String userEmail);
-
-    String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
-
-    boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail);
-
-    User getUserByTemporalToken(String temporalToken);
-
     TemporalToken verifyUserEmailForForgetPassword(String token);
+
+    User getUserByTemporalToken(String token);
+
+    boolean checkPassword(int userId, String password);
+
+    long countUserIps(String userEmail);
 }

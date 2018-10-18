@@ -27,4 +27,11 @@ public class BtcPaymentResultDetailedDto {
         this.txId = btcPaymentResultDto.getTxId();
         this.error = btcPaymentResultDto.getError();
     }
+
+    public BtcPaymentResultDetailedDto(String address, String amount, String txId, String error) {
+        this.address = address;
+        this.amount = amount;
+        this.txId = txId;
+        this.error = error;
+    }
 }
