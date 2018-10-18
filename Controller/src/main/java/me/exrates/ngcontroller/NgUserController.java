@@ -79,7 +79,9 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        boolean shouldLoginWithGoogle = notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        // todo
+        boolean shouldLoginWithGoogle = false;
+//        boolean shouldLoginWithGoogle = notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
         if (isEmpty(authenticationDto.getPin())) {
             if(!shouldLoginWithGoogle) {
                 secureService.sendLoginPincode(user, request);

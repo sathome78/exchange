@@ -52,14 +52,15 @@ public class NgTwoFaController {
     @GetMapping(GOOGLE_2FA)
     @ResponseBody
     public Generic2faResponseDto getGoogle2FA() throws UnsupportedEncodingException {
-        return new Generic2faResponseDto(notificationService.generateQRUrl(getPrincipalEmail()));
+        throw new UnsupportedOperationException();
+//        return new Generic2faResponseDto(notificationService.generateQRUrl(getPrincipalEmail()));
     }
 
     @GetMapping(GOOGLE_2FA + "/hash")
     @ResponseBody
     public Generic2faResponseDto getSecurityCode() {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Generic2faResponseDto result = new Generic2faResponseDto("");
+        Generic2faResponseDto result = new Generic2faResponseDto("", "");
         try {
             result.setMessage(this.notificationService.getGoogleAuthenticatorCode(userId));
         } catch (Exception e) {
@@ -118,7 +119,8 @@ public class NgTwoFaController {
     public Map<NotificationMessageEventEnum, Boolean> getUserNotifications() {
         try {
             User user = userService.findByEmail(getPrincipalEmail());
-            return notificationsSettingsService.getUserTwoFASettings(user);
+            throw new UnsupportedOperationException();
+//            return notificationsSettingsService.getUserTwoFASettings(user);
         } catch (Exception e) {
             return Collections.emptyMap();
         }
@@ -129,8 +131,9 @@ public class NgTwoFaController {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         try {
             setting.setUserId(userId);
-            this.notificationsSettingsService.createOrUpdate(setting);
-            return new ResponseEntity<>(HttpStatus.OK);
+            throw new UnsupportedOperationException();
+//            this.notificationsSettingsService.createOrUpdate(setting);
+//            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             logger.info("Failed to update user settings for userId: {}, as {}", userId, e.getLocalizedMessage());
         }

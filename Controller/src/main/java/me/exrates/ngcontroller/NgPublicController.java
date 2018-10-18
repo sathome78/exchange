@@ -49,7 +49,9 @@ public class NgPublicController {
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
         User user = userService.findByEmail(email);
-        return notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        return false;
+        // todo
+//        return notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
     }
 
     @GetMapping(value = "/if_username_exists")

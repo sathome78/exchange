@@ -197,7 +197,7 @@ public class TransferRequestController {
     @ResponseBody
     public String getHashForUser(
             @RequestParam Integer id, Principal principal) {
-        return transferService.getHash(id, principal);
+        return transferService.getHash(id, principal.getName());
     }
 
     @RequestMapping(value = "/transfer/request/revoke", method = POST)

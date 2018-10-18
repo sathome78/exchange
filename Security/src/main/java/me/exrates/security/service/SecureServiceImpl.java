@@ -3,6 +3,7 @@ package me.exrates.security.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
@@ -52,6 +53,11 @@ public class SecureServiceImpl implements SecureService {
 
 
     @Override
+    public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,
                                CapchaAuthorizationFilter filter) {
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
@@ -97,6 +103,11 @@ public class SecureServiceImpl implements SecureService {
         return new PinDto(message, needToSendPin);
     }
 
+    @Override
+    public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
+        throw new UnsupportedOperationException();
+    }
+
 
     /*Method used For withdraw or transfer*/
     @Override
@@ -132,6 +143,11 @@ public class SecureServiceImpl implements SecureService {
             message = messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
         }
         return new PinDto(message, needToSendPin);
+    }
+
+    @Override
+    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request) {
+        throw new UnsupportedOperationException();
     }
 
     private NotificationsUserSetting determineSettings(NotificationsUserSetting setting, boolean canBeDisabled, int userId, NotificationMessageEventEnum event) {

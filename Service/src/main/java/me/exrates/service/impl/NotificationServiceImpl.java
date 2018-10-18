@@ -185,6 +185,41 @@ public class NotificationServiceImpl implements NotificationService {
         notificationDao.updateNotificationOptions(options);
     }
 
+    @Override
+    public void updateNotificationOptionsForUser(int userId, List<NotificationOption> options) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getGoogleAuthenticatorCode(Integer userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void updateGoogleAuthenticatorSecretCodeForUser(Integer userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isGoogleAuthenticatorEnable(Integer userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setEnable2faGoogleAuth(Integer userId, Boolean connection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+        return null;
+    }
+
     private String[] normalizeArgs(Object... args) {
        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }
