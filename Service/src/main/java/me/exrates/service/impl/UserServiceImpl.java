@@ -73,6 +73,7 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private NotificationsSettingsService settingsService;
+
   @Autowired
   private G2faService g2faService;
 
@@ -794,5 +795,10 @@ public class UserServiceImpl implements UserService {
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
     }
+
+  @Override
+  public boolean isGlobal2FaActive() {
+    return false;
+  }
 
 }

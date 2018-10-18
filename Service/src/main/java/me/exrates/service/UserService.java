@@ -205,4 +205,6 @@ public interface UserService {
     boolean checkPassword(int userId, String password);
 
     long countUserIps(String userEmail);
+
+    boolean isGlobal2FaActive();
 }
