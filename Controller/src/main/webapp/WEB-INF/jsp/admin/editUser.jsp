@@ -208,17 +208,17 @@
                                   code="admin.role"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                          <form:input path="role" id="user-role"
+                          <%--<form:input path="role" id="user-role"
                                       class="input-block-wrapper__input admin-form-input"
-                                      name="user-role" />
-                          <%--<form:select path="role" id="user-role"
+                                      name="user-role" />--%>
+                          <form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
                             <c:forEach items="${roleList}" var="role">
                               <option value="${role}"
                                       <c:if test="${role eq user.role}">SELECTED</c:if>>${role}</option>
                             </c:forEach>
-                          </form:select>--%>
+                          </form:select>
                         </div>
                       </div>
                       </c:if>
