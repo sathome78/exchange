@@ -9,7 +9,7 @@ import me.exrates.model.enums.CurrencyPairType;
 /**
  * Created by Valk
  */
-@Getter @Setter@ToString
+@Getter @Setter @ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String currencyPairName;
   private String lastOrderRate;
@@ -17,6 +17,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String percentChange;
   private Integer currencyPairId;
   private String market;
+  private String volume;
   @JsonIgnore
   private CurrencyPairType type;
   @JsonIgnore
