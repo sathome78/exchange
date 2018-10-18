@@ -84,8 +84,7 @@ import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
-import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
-import static me.exrates.model.enums.UserRole.ROLE_CHANGE_PASSWORD;
+import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
@@ -593,38 +592,50 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
         UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+        /*todo: Temporary commented for security reasons*/
+        /*
+        if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
+            return new ModelAndView("403");
+        }*/
+        /*todo remove it; Temporary set null to prevent change role from admin, for security reasons*/
+        //user.setRole(null);
 
-    if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
-      return new ModelAndView("403");
-    }
-    user.setConfirmPassword(user.getPassword());
-    if (user.getFinpassword() == null) {
-      user.setFinpassword("");
-    }
-    /**/
-    registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      model.setViewName("admin/editUser");
-      model.addObject("statusList", UserStatus.values());
-      if (currentUserRole == ADMINISTRATOR) {
-        model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
-      }
-    } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setEmail(user.getEmail());
-      updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setPhone(user.getPhone());
-      if (currentUserRole == ADMINISTRATOR) {
-        updateUserDto.setRole(user.getRole());
-      }
-      updateUserDto.setStatus(user.getUserStatus());
-      userService.updateUserByAdmin(updateUserDto);
-      if (updateUserDto.getStatus() == UserStatus.DELETED) {
-        userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
-      } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
-        notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
-      }
-      apiRateLimitService.setRequestLimit(user.getEmail(), user.getApiRateLimit());
+        /*todo: Temporary commented for security reasons*/
+        /*user.setConfirmPassword(user.getPassword());*/
+        if (user.getFinpassword() == null) {
+            user.setFinpassword("");
+        }
+        /**/
+        registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
+            model.setViewName("admin/editUser");
+            model.addObject("statusList", UserStatus.values());
+            /*todo: Temporary commented for security reasons*/
+            /*if (currentUserRole == ADMINISTRATOR) {
+                model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
+            }*/
+        } else {
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setEmail(user.getEmail());
+            /*todo: Temporary commented for security reasons*/
+            /*updateUserDto.setPassword(user.getPassword());*/
+            updateUserDto.setPhone(user.getPhone());
+            /*todo: Temporary commented for security reasons*/
+            if (currentUserRole == ADMINISTRATOR) {
+                //Add to easy change user role to USER or VIP_USER !!! Not other
+                if(user.getRole()== USER || user.getRole()==VIP_USER) {
+                    updateUserDto.setRole(user.getRole());
+                }
+            }
+            updateUserDto.setStatus(user.getUserStatus());
+            userService.updateUserByAdmin(updateUserDto);
+            if (updateUserDto.getStatus() == UserStatus.DELETED) {
+                userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
+            } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
+                notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
+            }
+            apiRateLimitService.setRequestLimit(user.getEmail(), user.getApiRateLimit());
+
 
             model.setViewName("redirect:/2a8fy7b07dxe44");
         }
