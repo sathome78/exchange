@@ -305,6 +305,5 @@ public class CryptocurrencyConfig {
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
-    */
 
 }
