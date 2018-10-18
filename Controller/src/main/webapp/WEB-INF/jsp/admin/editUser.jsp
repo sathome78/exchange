@@ -211,7 +211,7 @@
                           <%--<form:input path="role" id="user-role"
                                       class="input-block-wrapper__input admin-form-input"
                                       name="user-role" />--%>
-                          <<form:select path="role" id="user-role"
+                          <form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
                             <c:forEach items="${roleList}" var="role">
