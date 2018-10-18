@@ -248,6 +248,11 @@ public class CryptocurrencyConfig {
     public BitcoinService taoServiceImpl(){
         return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
     }
+
+    @Bean(name = "crypServiceImpl")
+    public BitcoinService crypService() {
+        return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
+    }
     // LISK-like cryptos
 
 
