@@ -98,11 +98,11 @@
                     <td width="10%"></td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
-                    <td></td>
+                    <td width="5%"></td>
+                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
+                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
+                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
+                    <td width="5%"></td>
                 </tr>
                 <tr>
                     <td width="10%"></td>
