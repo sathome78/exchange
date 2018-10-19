@@ -89,17 +89,21 @@
         <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white; margin-top: 2.5%;">
             <h1 style="text-align: center">Our partners</h1>
             <table class="img-table">
-                <img class="img-thumbnail partners-img-temporary" src="/client/img/partners/coingecko.png">
-                <img class="img-thumbnail partners-img-temporary" src="/client/img/partners/icomarks.png">
                 <tbody>
+                <tr>
+                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
+                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                </tr>
                 <tr>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
                 </tr>
+                <tr>
+                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
+                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                </tr>
                 </tbody>
-                <img class="img-thumbnail partners-img-temporary" src="/client/img/partners/coingecko.png">
-                <img class="img-thumbnail partners-img-temporary" src="/client/img/partners/icomarks.png">
             </table>
         </div>
     </div>
