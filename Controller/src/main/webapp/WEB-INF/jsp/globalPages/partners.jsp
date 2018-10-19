@@ -96,6 +96,11 @@
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
                 </tr>
                 <tr>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                </tr>
+                <tr>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
