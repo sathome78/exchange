@@ -26,9 +26,6 @@
 
     <%----------------------------------------%>
     <%@include file="../tools/google_head.jsp"%>
-   <%-- <%@include file="../tools/alexa.jsp" %>--%>
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
-
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
@@ -109,7 +106,7 @@
                 <div class="col-md-4 col-md-offset-1">
                     <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
                         <script data-cfasync="false" src="https://exrates.me/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-                        <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script>
+                        <script src="/client/js/webforms.min.js"></script>
                     </div>
                 </div>
             </div>

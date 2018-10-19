@@ -80,7 +80,7 @@
                 </div>
                 <div class="col-md-4 col-md-offset-1">
                     <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571" id="ideqeofa" style="width: 100%; height: 100%; overflow: hidden; min-width: 320px; position: relative;">
-                        <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script><iframe src="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571?embeded=1&amp;uuid=ideqeofa" scrolling="no" name="https://exrates.me/partners-ideqeofa" style="border: none; overflow: hidden; width: 100%; max-width: 768px; min-width: 320px; height: 749px; position: relative;"></iframe>
+                        <script src="/client/js/webforms.min.js"></script><iframe src="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571?embeded=1&amp;uuid=ideqeofa" scrolling="no" name="https://exrates.me/partners-ideqeofa" style="border: none; overflow: hidden; width: 100%; max-width: 768px; min-width: 320px; height: 749px; position: relative;"></iframe>
                     </div>
                 </div>
             </div>
@@ -91,14 +91,21 @@
             <table class="img-table">
                 <tbody>
                 <tr>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
                 </tr>
                 <tr>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
-                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
                 </tr>
                 </tbody>
             </table>

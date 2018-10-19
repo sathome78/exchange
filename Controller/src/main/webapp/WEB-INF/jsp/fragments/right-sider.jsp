@@ -50,6 +50,8 @@
 
             </c:when>
             <c:otherwise>
+                <%@include file="modal/errorInfoSendMessageToChatWithoutNickname_modal.jsp" %>
+
                 <form id="new_mess" method="POST">
                     <input type="text" name="body" class="message_text"
                            placeholder='<loc:message code="dashboard.onlinechatenter"/>' autocomplete="off">

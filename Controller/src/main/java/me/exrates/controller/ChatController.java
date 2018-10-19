@@ -9,10 +9,12 @@ import me.exrates.model.dto.RemovedMessageDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.ChatService;
+import me.exrates.service.UserService;
 import me.exrates.service.annotation.ThreadSafe;
 import me.exrates.service.exception.IllegalChatMessageException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -50,6 +52,8 @@ public class ChatController {
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 
+    @Autowired
+    private UserService userService;
 
     public ChatController(final ChatService chatService,
                           final MessageSource messageSource,
@@ -64,6 +68,12 @@ public class ChatController {
                                                           final @RequestParam("lang") String lang,
                                                           final Principal principal,
                                                           final Locale locale) {
+        if(!userService.hasNickname(principal.getName())){
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.put("Content-type", singletonList("application/json; charset=utf-8"));
+            return new ResponseEntity<>(singletonMap("errorInfoSendChatMessageWithoutNickname",
+                    messageSource.getMessage("chat.error.userWithoutNickname", null, locale)), headers, BAD_REQUEST);
+        }
         final ChatLang chatLang = ChatLang.toInstance(lang);
         final ChatMessage message;
         try {
