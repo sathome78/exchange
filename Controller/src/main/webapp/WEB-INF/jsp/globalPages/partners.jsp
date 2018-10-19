@@ -91,25 +91,21 @@
             <table class="img-table">
                 <tbody>
                 <tr>
-                    <td width="10%"></td>
-                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
-                    <td width="10%"></td>
-                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
-                    <td width="10%"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
                 </tr>
                 <tr>
-                    <td width="5%"></td>
-                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
-                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
-                    <td width="30%"><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
-                    <td width="5%"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
                 </tr>
                 <tr>
-                    <td width="10%"></td>
-                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
-                    <td width="10%"></td>
-                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
-                    <td width="10%"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
+                    <td><img class="img-thumbnail partners-img"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
                 </tr>
                 </tbody>
             </table>
