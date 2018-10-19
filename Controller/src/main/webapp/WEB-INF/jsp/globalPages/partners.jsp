@@ -91,17 +91,25 @@
             <table class="img-table">
                 <tbody>
                 <tr>
-                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
-                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                    <td width="10%"></td>
+                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
+                    <td width="10%"></td>
+                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                    <td width="10%"></td>
                 </tr>
                 <tr>
+                    <td></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"></td>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
+                    <td></td>
                 </tr>
                 <tr>
-                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"></td>
-                    <td width="50%"><img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"></td>
+                    <td width="10%"></td>
+                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
+                    <td width="10%"></td>
+                    <td width="35%"><img class="img-thumbnail partners-img" src="/client/img/partners/trueusdcoin.png"></td>
+                    <td width="10%"></td>
                 </tr>
                 </tbody>
             </table>
