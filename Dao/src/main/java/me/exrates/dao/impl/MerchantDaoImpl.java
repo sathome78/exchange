@@ -14,6 +14,7 @@ import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.enums.UserRole;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -89,7 +90,13 @@ public class MerchantDaoImpl implements MerchantDao {
   public Merchant findByName(String name) {
     final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
     final Map<String, String> params = Collections.singletonMap("name", name);
-    return namedParameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+    } catch (Exception exc) {
+      log.error("ERRORR: **************** Failied to find merchant with name " + name);
+      throw new RuntimeException("ERRORR: **************** Failied to find merchant with name " + name);
+    }
+//    return namedParameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
   }
 
   @Override
