@@ -98,6 +98,31 @@ public class StopOrderDaoImpl implements StopOrderDao {
     }
 
     @Override
+    public boolean updateOrder(int orderId, StopOrder order){
+
+        String sql = "UPDATE STOP_ORDERS SET" +
+                " user_id = :user_id, currency_pair_id = :currency_pair_id, operation_type_id = :operation_type_id," +
+                " stop_rate = :stop_rate, limit_rate = :limit_rate, amount_base = :amount_base, amount_convert = :amount_convert," +
+                " commission_id = :commission_id, commission_fixed_amount = :commission_fixed_amount, status_id = :status_id)" +
+                " WHERE id = :id";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("user_id", order.getUserId())
+                .addValue("currency_pair_id", order.getCurrencyPairId())
+                .addValue("operation_type_id", order.getOperationType().getType())
+                .addValue("stop_rate", order.getStop())
+                .addValue("limit_rate", order.getLimit())
+                .addValue("amount_base", order.getAmountBase())
+                .addValue("amount_convert", order.getAmountConvert())
+                .addValue("commission_id", order.getComissionId())
+                .addValue("commission_fixed_amount", order.getCommissionFixedAmount())
+                .addValue("status_id", OrderStatus.INPROCESS.getStatus())
+                .addValue("id", orderId);
+
+        return namedParameterJdbcTemplate.update(sql, parameters) > 0;
+    }
+
+    @Override
     public boolean setStatus(int orderId, OrderStatus status) {
         String sql = "UPDATE STOP_ORDERS SET status_id=:status_id WHERE id = :id";
         Map<String, String> namedParameters = new HashMap<>();

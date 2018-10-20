@@ -91,20 +91,6 @@ public class OrderDaoImpl implements OrderDao {
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
 
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
-    @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    @Autowired
-    @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
-
-    @Autowired
-    CommissionDao commissionDao;
-
-    @Autowired
-    WalletDao walletDao;
-
     private final RowMapper<UserOrdersDto> userOrdersRowMapper = (rs, row) -> {
         int id = rs.getInt("order_id");
         String currencyPairName = rs.getString("currency_pair_name");
@@ -116,7 +102,28 @@ public class OrderDaoImpl implements OrderDao {
         BigDecimal price = rs.getBigDecimal("exrate");
         return new UserOrdersDto(id, currencyPairName, amount, orderType, price, dateCreation, dateAcceptance);
     };
-
+    @Autowired
+    CommissionDao commissionDao;
+    @Autowired
+    WalletDao walletDao;
+    RowMapper<ExOrderStatisticsShortByPairsDto> exchangeRatesRowMapper = (rs, rowNum) -> {
+        ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
+        exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+        exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+        exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+        exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+        exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
+        exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
+        exOrderStatisticsDto.setMarket(rs.getString("market"));
+        exOrderStatisticsDto.setVolume(rs.getString("volume"));
+        return exOrderStatisticsDto;
+    };
+    @Autowired
+    @Qualifier(value = "masterTemplate")
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     @Override
     public int createOrder(ExOrder exOrder) {
@@ -145,6 +152,30 @@ public class OrderDaoImpl implements OrderDao {
         return id;
     }
 
+    @Override
+    public boolean updateOrder(int orderId, ExOrder exOrder) {
+
+        String sql = "UPDATE EXORDERS SET" +
+                " user_id = :userId, currency_pair_id = :currency_pair_id, operation_type_id = :operation_type_id," +
+                " exrate = :exrates, amount_base = :amount_base, amount_convert = :amount_convert, commission_id = :commission_id," +
+                " commission_fixed_amount = :commission_fixed_amount, status_id = :status_id, order_source_id = :order_source_id," +
+                " base_type = :base_type" +
+                "  WHERE id = :id ";
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("user_id", exOrder.getUserId())
+                .addValue("currency_pair_id", exOrder.getCurrencyPairId())
+                .addValue("operation_type_id", exOrder.getOperationType().getType())
+                .addValue("exrate", exOrder.getExRate())
+                .addValue("amount_base", exOrder.getAmountBase())
+                .addValue("amount_convert", exOrder.getAmountConvert())
+                .addValue("commission_id", exOrder.getComissionId())
+                .addValue("commission_fixed_amount", exOrder.getCommissionFixedAmount())
+                .addValue("status_id", OrderStatus.INPROCESS.getStatus())
+                .addValue("order_source_id", exOrder.getSourceId())
+                .addValue("base_type", exOrder.getOrderBaseType().name())
+                .addValue("id", orderId);
+        return namedParameterJdbcTemplate.update(sql, parameters) > 0;
+    }
 
     /*USE FOR BOT ONLY!!!*/
     @Override
@@ -264,6 +295,14 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public boolean completeDeleteOrder(int orderId) {
+        String sql = "DELETE FROM EXORDERS WHERE id = :id";
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("id", String.valueOf(orderId));
+        return namedParameterJdbcTemplate.update(sql, parameters) > 0;
+    }
+
+    @Override
     public boolean setStatus(int orderId, OrderStatus status) {
         String sql = "UPDATE EXORDERS SET status_id=:status_id WHERE id = :id";
         Map<String, String> namedParameters = new HashMap<>();
@@ -367,7 +406,6 @@ public class OrderDaoImpl implements OrderDao {
         });
     }
 
-
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
         List<CandleChartItemDto> result = namedParameterJdbcTemplate.execute(s, ps -> {
@@ -440,44 +478,44 @@ public class OrderDaoImpl implements OrderDao {
         long before = System.currentTimeMillis();
         try {
             String sql =
-                  "SELECT RESULT.currency_pair_name, RESULT.market, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order, RESULT.volume " +
-                  "FROM " +
-                    "((SELECT  " +
-                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.market AS market, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
-                    "   (SELECT SUM(EX.amount_base) " +
-                    "       FROM EXORDERS EX " +
-                    "       WHERE " +
-                    "       (EX.currency_pair_id = AGRIGATE.currency_pair_id)  AND " +
-                    "       (EX.status_id = AGRIGATE.status_id)) AS volume, " +
-                    "   (SELECT LASTORDER.exrate " +
-                    "       FROM EXORDERS LASTORDER  " +
-                    "       WHERE  " +
-                    "       (LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                    "       (LASTORDER.status_id =AGRIGATE.status_id) " +
-                    "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
-                    "       LIMIT 1) AS last_exrate, " +
-                    "   (SELECT PRED_LASTORDER.exrate " +
-                    "       FROM EXORDERS PRED_LASTORDER  " +
-                    "       WHERE  " +
-                    "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                    "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
-                    "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
-                    " FROM ( " +
-                    "   SELECT DISTINCT" +
-                    "   EXORDERS.status_id AS status_id,  " +
-                    "   EXORDERS.currency_pair_id AS currency_pair_id " +
-                    "   FROM EXORDERS          " +
-                    "   WHERE EXORDERS.status_id = :status_id         " +
-                    "   ) " +
-                    " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
-                    " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
-                    " UNION ALL (" +
-                    "   SELECT CP.name AS currency_pair_name, CP.market AS market, CP.id AS currency_pair_id, CP.type AS type, 0 AS volume, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
-                    "      FROM CURRENCY_PAIR CP " +
-                    "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
-                    ")) RESULT ";
+                    "SELECT RESULT.currency_pair_name, RESULT.market, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order, RESULT.volume " +
+                            "FROM " +
+                            "((SELECT  " +
+                            "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.market AS market, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
+                            "   (SELECT SUM(EX.amount_base) " +
+                            "       FROM EXORDERS EX " +
+                            "       WHERE " +
+                            "       (EX.currency_pair_id = AGRIGATE.currency_pair_id)  AND " +
+                            "       (EX.status_id = AGRIGATE.status_id)) AS volume, " +
+                            "   (SELECT LASTORDER.exrate " +
+                            "       FROM EXORDERS LASTORDER  " +
+                            "       WHERE  " +
+                            "       (LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
+                            "       (LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
+                            "       LIMIT 1) AS last_exrate, " +
+                            "   (SELECT PRED_LASTORDER.exrate " +
+                            "       FROM EXORDERS PRED_LASTORDER  " +
+                            "       WHERE  " +
+                            "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
+                            "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
+                            "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
+                            " FROM ( " +
+                            "   SELECT DISTINCT" +
+                            "   EXORDERS.status_id AS status_id,  " +
+                            "   EXORDERS.currency_pair_id AS currency_pair_id " +
+                            "   FROM EXORDERS          " +
+                            "   WHERE EXORDERS.status_id = :status_id         " +
+                            "   ) " +
+                            " AGRIGATE " +
+                            " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
+                            " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
+                            " UNION ALL (" +
+                            "   SELECT CP.name AS currency_pair_name, CP.market AS market, CP.id AS currency_pair_id, CP.type AS type, 0 AS volume, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
+                            "      FROM CURRENCY_PAIR CP " +
+                            "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
+                            ")) RESULT ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
             return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
@@ -532,19 +570,6 @@ public class OrderDaoImpl implements OrderDao {
             LOGGER.debug("query completed ... ms: " + (after - before));
         }
     }
-
-    RowMapper<ExOrderStatisticsShortByPairsDto> exchangeRatesRowMapper = (rs, rowNum) -> {
-        ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
-        exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-        exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-        exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
-        exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-        exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
-        exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
-        exOrderStatisticsDto.setMarket(rs.getString("market"));
-        exOrderStatisticsDto.setVolume(rs.getString("volume"));
-        return exOrderStatisticsDto;
-    };
 
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
