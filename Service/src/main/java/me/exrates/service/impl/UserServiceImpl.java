@@ -539,7 +539,8 @@ public class UserServiceImpl implements UserService {
 
   @PostConstruct
   private void initTokenTriggers() {
-    tokenScheduler.initTrigers();
+
+//    tokenScheduler.initTrigers();
   }
 
   @Override
