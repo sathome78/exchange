@@ -29,12 +29,14 @@ public class ExratesCorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
 
         URL reqUrl =   new URL(request.getRequestURL().toString());
-//        System.out.println(reqUrl.toString());
-		/*if (domain.equals("localhost")) {
-			response.setHeader("Access-Control-Allow-Origin", "http://localhost:9000");
+        System.out.println(reqUrl.toString());
+        String host = reqUrl.toString();
+		if (host.contains("localhost") ||
+                host.contains("127.0.0.1")) {
+			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200                ");
 		} else {
-			response.setHeader("Access-Control-Allow-Origin", "http://dev2.exrates.tech");
-		}*/
+			response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
+		}
         ;
 //        System.out.println("protocol " + reqUrl.getProtocol());
 //        System.out.println("domain " + reqUrl.getHost());
@@ -45,7 +47,7 @@ public class ExratesCorsFilter implements Filter {
 //            path = String.join("", path, ":", String.valueOf(reqUrl.getPort()));
 //        }
 //        System.out.println("header path " + path);
-        response.setHeader("Access-Control-Allow-Origin", String.join(", ", angularOrigins.split(",")));
+//        response.setHeader("Access-Control-Allow-Origin", String.join(", ", angularOrigins.split(",")));
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
         response.setHeader("Access-Control-Max-Age", "3600");

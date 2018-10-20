@@ -323,7 +323,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(angularAllowedOrigin)
+                .allowedOrigins(angularAllowedOrigin.split(","))
                 .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
                 .allowedHeaders("X-Auth-Token", "Content-Type")
 //                .exposedHeaders("custom-header1", "custom-header2")
