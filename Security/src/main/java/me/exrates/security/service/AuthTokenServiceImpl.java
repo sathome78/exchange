@@ -87,6 +87,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
         String password = RestApiUtils.decodePassword(dto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getEmail());
+        System.out.println("PASSWORD test1234: " + passwordEncoder.encode(password));
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password");
         }
