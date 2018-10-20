@@ -25,6 +25,9 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Value("${ws.origin}")
     private String allowedOrigins;
 
+    @Value("${ws.lib.url}")
+    private String sockJSLibUrl;
+
     @Bean
     public HandshakeInterceptor wsHandshakeInterceptor() {
         return new WsHandshakeInterceptor();
@@ -44,7 +47,7 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 .addEndpoint("/public_socket")
                 .setAllowedOrigins(origins)
                 .withSockJS()
-                .setClientLibraryUrl("//cdn.jsdelivr.net/sockjs/1/sockjs.min.js")
+                .setClientLibraryUrl(sockJSLibUrl)
                 .setInterceptors(wsHandshakeInterceptor());
     }
 
