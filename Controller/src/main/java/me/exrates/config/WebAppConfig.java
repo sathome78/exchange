@@ -1412,15 +1412,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GIGC", false, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "swmServiceImpl")
-    public EthTokenService swmService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x9e88613418cf03dca54d6a2cf6ad934a78c7a17a");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "SWM",
-                "SWM", true, ExConvert.Unit.ETHER);
-    }
+//    @Bean(name = "swmServiceImpl")
+//    public EthTokenService swmService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x9e88613418cf03dca54d6a2cf6ad934a78c7a17a");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "SWM",
+//                "SWM", true, ExConvert.Unit.ETHER);
+//    }
 
     @Bean(name = "ticServiceImpl")
     public EthTokenService ticService() {
