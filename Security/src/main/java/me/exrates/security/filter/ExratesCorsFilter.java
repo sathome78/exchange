@@ -45,7 +45,7 @@ public class ExratesCorsFilter implements Filter {
 //            path = String.join("", path, ":", String.valueOf(reqUrl.getPort()));
 //        }
 //        System.out.println("header path " + path);
-        response.setHeader("Access-Control-Allow-Origin", angularOrigins);
+        response.setHeader("Access-Control-Allow-Origin", String.join(", ", angularOrigins.split(",")));
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
         response.setHeader("Access-Control-Max-Age", "3600");
