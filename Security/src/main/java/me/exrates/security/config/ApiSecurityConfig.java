@@ -3,8 +3,10 @@ package me.exrates.security.config;
 import me.exrates.security.entryPoint.RestAuthenticationEntryPoint;
 import me.exrates.security.filter.AuthenticationTokenProcessingFilter;
 import me.exrates.security.filter.ExratesCorsFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,8 +25,11 @@ import javax.servlet.Filter;
 @Configuration
 @Order(value = 1)
 @EnableWebSecurity
+@PropertySource("classpath:angular.properties")
 public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${angular.allowed.origin}")
+    private String angularOrigins;
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -46,7 +51,7 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
+        http.addFilterBefore(new ExratesCorsFilter(angularOrigins), ChannelProcessingFilter.class);
 
         http
                 .antMatcher("/api/**")

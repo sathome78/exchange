@@ -16,6 +16,12 @@ import javax.servlet.http.HttpServletResponse;
 @Order(Integer.MIN_VALUE)
 public class ExratesCorsFilter implements Filter {
 
+    private final String angularOrigins;
+
+    public ExratesCorsFilter(String angularOrigins) {
+        this.angularOrigins = angularOrigins;
+    }
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
@@ -39,8 +45,8 @@ public class ExratesCorsFilter implements Filter {
 //            path = String.join("", path, ":", String.valueOf(reqUrl.getPort()));
 //        }
 //        System.out.println("header path " + path);
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
-        response.setHeader("Access-control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Allow-Origin", angularOrigins);
+        response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");

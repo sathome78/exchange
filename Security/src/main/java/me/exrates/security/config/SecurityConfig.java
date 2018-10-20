@@ -8,8 +8,10 @@ import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +38,7 @@ import static org.springframework.http.HttpMethod.POST;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@PropertySource("classpath:angular.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   private static final Logger LOGGER = LogManager.getLogger(SecurityConfig.class);
@@ -43,6 +46,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final PasswordEncoder passwordEncoder;
   private final UserDetailsService userDetailsService;
+
+  @Value("${angular.allowed.origin}")
+  private String angularOrigins;
 
   @Autowired
   public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsServiceImpl userDetailsService) {
@@ -124,7 +130,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
+    http.addFilterBefore(new ExratesCorsFilter(angularOrigins), ChannelProcessingFilter.class);
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
