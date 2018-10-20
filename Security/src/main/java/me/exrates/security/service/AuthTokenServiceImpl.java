@@ -87,7 +87,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
         String password = RestApiUtils.decodePassword(dto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getEmail());
-        System.out.println("PASSWORD test1234: " + passwordEncoder.encode(password));
+//        System.out.println("PASSWORD ENCODED: " + passwordEncoder.encode(password));
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password");
         }
@@ -97,10 +97,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (!notificationService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
                 throw new IncorrectPinException("Incorrect google auth code");
             }
-        } else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
-            throw new IncorrectPinException(res);
+        } else if (dto.getPin().chars().allMatch(Character::isDigit)) {
+            throw new IncorrectPinException("Incorrect pin");
         }
+//        else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+//            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
+//            throw new IncorrectPinException(res);
+//        }
         return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
