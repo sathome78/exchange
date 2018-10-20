@@ -372,6 +372,11 @@ public interface OrderService {
                                                 OperationType operationType, String scope,
                                                 Integer offset, Integer limit, Locale locale);
 
+    @Transactional(readOnly = true)
+    Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+                                                                 String scope, Integer offset, Integer limit,
+                                                                 Locale locale, Map<String, String> sortedColumns);
+
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 Integer offset, Integer limit, Locale locale);
@@ -408,7 +413,6 @@ public interface OrderService {
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
-
     /**
      * wolper 24.04.18
      * Returns the list of the latest exchange rates for each currency to USD

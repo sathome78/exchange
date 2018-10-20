@@ -701,6 +701,7 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional(readOnly = true)
   public String getEmailById(Integer id) {
+
     return userDao.getEmailById(id);
   }
 

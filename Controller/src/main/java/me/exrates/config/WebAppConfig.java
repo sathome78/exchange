@@ -267,6 +267,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDriverClassName(dbMasterClassname);
         hikariConfig.setJdbcUrl(dbMasterUrl);
+        log.error("DB URL: " + dbMasterUrl);
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);

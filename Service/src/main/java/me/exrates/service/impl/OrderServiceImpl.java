@@ -1603,6 +1603,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+                                                                        String scope, Integer offset, Integer limit,
+                                                                        Locale locale, Map<String, String> sortedColumns) {
+
+        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale);
+        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, currencyPair, locale, scope, offset, limit, sortedColumns);
+        return Collections.singletonMap(records, orders);
+    }
+
+    @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
                                                        Integer offset, Integer limit, Locale locale) {

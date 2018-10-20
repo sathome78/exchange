@@ -98,6 +98,12 @@ public interface OrderDao {
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
+
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, Locale locale,
+                                                String scope, Integer offset, Integer limit, Map<String, String> sortedColumns);
+
+    Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset, Integer limit, Locale locale);
+
     OrderCreateDto getMyOrderById(int orderId);
 
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
