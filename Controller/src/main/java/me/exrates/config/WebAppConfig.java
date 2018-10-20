@@ -325,7 +325,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addMapping("/**")
                 .allowedOrigins(angularAllowedOrigin.split(","))
                 .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
-                .allowedHeaders("X-Auth-Token", "Content-Type")
+                .allowedHeaders("X-Auth-Token", "Content-Type", "Exrates-Rest-Token")
 //                .exposedHeaders("custom-header1", "custom-header2")
                 .allowCredentials(false)
                 .maxAge(4800);
