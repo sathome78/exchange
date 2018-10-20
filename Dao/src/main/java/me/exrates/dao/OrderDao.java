@@ -48,11 +48,15 @@ public interface OrderDao {
 
     int createOrder(ExOrder order);
 
+    boolean updateOrder(int orderId, ExOrder order);
+
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     ExOrder getOrderById(int orderid);
+
+    boolean completeDeleteOrder(int orderId);
 
     boolean setStatus(int orderId, OrderStatus status);
 
