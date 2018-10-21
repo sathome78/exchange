@@ -46,24 +46,6 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
         return new AuthenticationTokenProcessingFilter("/**", authenticationManagerBean());
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(angularOrigins.split(",")));
-        configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
-        // setAllowCredentials(true) is important, otherwise:
-        // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
-        configuration.setAllowCredentials(true);
-        // setAllowedHeaders is important! Without it, OPTIONS preflight request
-        // will fail with 403 Invalid CORS request
-        configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type",
-                "x-requested-with", "X-Forwarded-For", "x-auth-token", "Exrates-Rest-Token", "access-control-request-headers",
-                "access-control-request-method", "accept","origin"));
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
     @Bean(name="ApiAuthenticationManager")
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {

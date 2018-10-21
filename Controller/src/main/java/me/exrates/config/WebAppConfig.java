@@ -70,6 +70,9 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.*;
@@ -320,16 +323,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new DataSourceTransactionManager(masterHikariDataSource());
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(angularAllowedOrigin.split(","))
-                .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
-                .allowedHeaders("X-Auth-Token", "Content-Type", "Exrates-Rest-Token")
-//                .exposedHeaders("custom-header1", "custom-header2")
-                .allowCredentials(false)
-                .maxAge(4800);
-    }
 
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
@@ -352,6 +345,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         prop.setLocation(new ClassPathResource("captcha.properties"));
         return prop;
     }
+
+
 
     @Bean
     public MessageSource messageSource() {

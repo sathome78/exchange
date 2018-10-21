@@ -1,4 +1,4 @@
-package me.exrates.config;
+package me.exrates.ngcontroller.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
