@@ -57,7 +57,8 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
         // setAllowedHeaders is important! Without it, OPTIONS preflight request
         // will fail with 403 Invalid CORS request
         configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type",
-                "x-requested-with", "X-Forwarded-For", "x-auth-token", "Exrates-Rest-Token"));
+                "x-requested-with", "X-Forwarded-For", "x-auth-token", "Exrates-Rest-Token", "access-control-request-headers",
+                "access-control-request-method", "accept","origin"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
