@@ -37,7 +37,7 @@ public class ExratesCorsFilter implements Filter {
 		}
 
 //        System.out.println("protocol " + reqUrl.getProtocol());
-        System.out.println("domain " + reqUrl.getHost());
+//        System.out.println("domain " + reqUrl.getHost());
 //        System.out.println("req_port " + reqUrl.getPort());
 
 //        String path = String.join("", reqUrl.getProtocol(), "://", reqUrl.getHost());
