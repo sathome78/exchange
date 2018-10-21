@@ -12,12 +12,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/")
-public class NgLanguageController {
+public class LanguageController {
 
     private final UserService userService;
 
     @Autowired
-    public NgLanguageController(UserService userService) {
+    public LanguageController(UserService userService) {
         this.userService = userService;
     }
 
