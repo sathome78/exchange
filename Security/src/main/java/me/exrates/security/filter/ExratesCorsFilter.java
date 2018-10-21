@@ -34,7 +34,6 @@ public class ExratesCorsFilter implements Filter {
 		} else {
 			response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
 		}
-
 //        System.out.println("protocol " + reqUrl.getProtocol());
 //        System.out.println("domain " + reqUrl.getHost());
 //        System.out.println("req_port " + reqUrl.getPort());
