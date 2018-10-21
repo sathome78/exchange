@@ -220,6 +220,8 @@ public class NgDashboardController {
         }
     }
 
+    @GetMapping("/history_orders/")
+
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
