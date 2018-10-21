@@ -11,11 +11,11 @@ import me.exrates.model.enums.CurrencyPairType;
  */
 @Getter @Setter @ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
+  private Integer currencyPairId;
   private String currencyPairName;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
-  private Integer currencyPairId;
   private String market;
   private String volume;
   @JsonIgnore
