@@ -346,7 +346,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return prop;
     }
 
-
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        String [] origins = angularAllowedOrigin.contains(",")
+                ? angularAllowedOrigin.split(",")
+                : new String[]{angularAllowedOrigin};
+        registry
+                .addMapping("/**")
+                .allowedOrigins(origins);
+//                .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTION")
+//                .allowedHeaders("Content-Type", "Exrates-Rest-Token", "X-Forwarded-For")
+//                .exposedHeaders("Access-Control-Allow-Origin")
+//                .allowCredentials(false)
+//                .maxAge(3600);
+    }
 
     @Bean
     public MessageSource messageSource() {

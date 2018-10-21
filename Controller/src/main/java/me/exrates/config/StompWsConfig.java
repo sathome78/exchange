@@ -40,7 +40,9 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] origins = allowedOrigins.split(",");
+        String [] origins = allowedOrigins.contains(",")
+                ? allowedOrigins.split(",")
+                : new String[] {allowedOrigins};
 
         System.out.println("*************************** Orginis for WebSockets: " + Arrays.toString(origins) + " ****************");
         registry

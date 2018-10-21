@@ -49,11 +49,6 @@ public class NgUserSettingsController {
 
     private static final String STATE = "STATE";
 
-    @Autowired
-    private RegisterFormValidation registerFormValidation;
-    @Autowired
-    private MessageSource messageSource;
-
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
 

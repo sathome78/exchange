@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.config;
+package me.exrates.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,9 @@ public class AngularWebSocketConfig extends AbstractWebSocketMessageBrokerConfig
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		String [] origins = allowedOrigins.split(",");
+		String [] origins = allowedOrigins.contains(",")
+				? allowedOrigins.split(",")
+				: new String[] {allowedOrigins};
 		registry
 				.addEndpoint("/ws")
 				.setAllowedOrigins(origins)

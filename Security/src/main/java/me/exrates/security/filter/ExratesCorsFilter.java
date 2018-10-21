@@ -1,6 +1,8 @@
 package me.exrates.security.filter;
 
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,14 +15,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Order(Integer.MIN_VALUE)
+//@Component
+//@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ExratesCorsFilter implements Filter {
-
-    private final String angularOrigins;
-
-    public ExratesCorsFilter(String angularOrigins) {
-        this.angularOrigins = angularOrigins;
-    }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -30,7 +27,7 @@ public class ExratesCorsFilter implements Filter {
 
         URL reqUrl =   new URL(request.getRequestURL().toString());
 		if (reqUrl.getHost().equals("localhost")) {
-			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4400");
 		} else {
 			response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
 		}

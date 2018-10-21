@@ -34,7 +34,6 @@ import java.util.function.Supplier;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-
 @RestController
 @RequestMapping(value = "/info/public/v2/users",
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE,

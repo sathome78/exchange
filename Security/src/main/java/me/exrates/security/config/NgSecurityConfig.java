@@ -46,17 +46,38 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
         return new AuthenticationTokenProcessingFilter("/**", authenticationManagerBean());
     }
 
-    @Bean(name="ApiAuthenticationManager")
+    @Bean(name = "ApiAuthenticationManager")
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         AuthenticationManager manager = super.authenticationManagerBean();
         return manager;
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        String[] origins = angularOrigins.contains(",")
+                ? angularOrigins.split(",")
+                : new String[]{angularOrigins};
+
+        final CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(origins));
+        configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTION"));
+        // setAllowCredentials(true) is important, otherwise:
+        // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
+        configuration.setAllowCredentials(false);
+        // setAllowedHeaders is important! Without it, OPTIONS preflight request
+        // will fail with 403 Invalid CORS request
+        configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type",
+                "Exrates-Rest-Token", "X-Forwarded-For"));
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/info/**", configuration);
+        return source;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-//        http.addFilterBefore(new ExratesCorsFilter(angularOrigins), ChannelProcessingFilter.class);
+        http.addFilterBefore(new ExratesCorsFilter(), ChannelProcessingFilter.class);
 
         http
                 .antMatcher("/info/private/**")
@@ -69,6 +90,7 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterAfter(authenticationTokenProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+                .csrf().disable()
                 .httpBasic();
     }
 
