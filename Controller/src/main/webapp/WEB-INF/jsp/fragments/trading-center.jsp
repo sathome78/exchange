@@ -45,7 +45,7 @@
         <%--right: 0;--%>
         <%--margin: auto;--%>
         <%--z-index: 999;'/>--%>
-        <%@include file="amcharts-graphics2.jsp" %>
+        <%@include file="amcharts-graphics.jsp" %>
     </div>
     <div class="row">
         <c:if test="${roleSettings.orderAcceptionSameRoleOnly}">

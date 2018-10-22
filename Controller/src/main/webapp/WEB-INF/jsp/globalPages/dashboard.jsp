@@ -81,11 +81,11 @@
     <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
     <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
     <!-- Amcharts Charts ... -->
-    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/chart-amcharts/amcharts.js'/>" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/chart-amcharts/serial.js'/>" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/chart-amcharts/amstock.js'/>" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/chart-amcharts/chartInit2.js'/>" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/chart-amcharts/stockChart.js'/>" type="text/javascript"></script>
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
