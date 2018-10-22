@@ -3,6 +3,8 @@ package me.exrates.dao;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +23,6 @@ public interface StockExchangeDao {
     List<StockExchange> findAllActive();
 
     List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId);
+
+    List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to);
 }

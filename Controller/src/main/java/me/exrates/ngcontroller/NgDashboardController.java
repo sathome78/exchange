@@ -5,34 +5,43 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
+import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
+import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
+import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.cache.ExchangeRatesHolderImpl;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,21 +49,35 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgDashboardController {
+
+    private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
+
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -66,6 +89,8 @@ public class NgDashboardController {
     private final WalletService walletService;
     private final StopOrderDao stopOrderDao;
     private final OrderDao orderDao;
+    private final StockExchangeService stockExchangeService;
+    private final ExchangeRatesHolderImpl exchangeRatesHolder;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -77,7 +102,9 @@ public class NgDashboardController {
                                  NgOrderService ngOrderService,
                                  WalletService walletService,
                                  StopOrderDao stopOrderDao,
-                                 OrderDao orderDao) {
+                                 OrderDao orderDao,
+                                 StockExchangeService stockExchangeService,
+                                 ExchangeRatesHolderImpl exchangeRatesHolder) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
@@ -88,6 +115,8 @@ public class NgDashboardController {
         this.walletService = walletService;
         this.stopOrderDao = stopOrderDao;
         this.orderDao = orderDao;
+        this.stockExchangeService = stockExchangeService;
+        this.exchangeRatesHolder = exchangeRatesHolder;
     }
 
     @PostMapping("/order")
@@ -150,7 +179,15 @@ public class NgDashboardController {
         String userName = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(userName);
         Currency currency = currencyService.findByName(currencyName);
-        return new ResponseEntity<>(dashboardService.getBalanceByCurrency(user.getId(), currency.getId()), HttpStatus.OK);
+        BigDecimal balanceByCurrency;
+        try {
+            balanceByCurrency = dashboardService.getBalanceByCurrency(user.getId(), currency.getId());
+        } catch (Exception e) {
+            logger.error("Error while get balance by currency user {}, currency {} , e {}",
+                    user.getEmail(), currency.getName(), e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(balanceByCurrency, HttpStatus.OK);
     }
 
 
@@ -177,15 +214,16 @@ public class NgDashboardController {
 
     /**
      * Returns a list of user open orders
-     * @param currencyPairId    - currency pair id must be valid
-     * @param page              - requested page, not required,  default 1
-     * @param limit             - defines quantity rows per page, not required,  default 14
-     * @param sortByCreated     - enables ASC sort by created date, not required,  default DESC
-     * @param scope             - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
-     *                        "ALL" - both], not required,  default ""
-     * @param request           - HttpServletRequest
-     * @return                  - Pageable list of open orders with meta info about total orders' count
-     * @throws                  - 403 bad request
+     *
+     * @param currencyPairId - currency pair id must be valid
+     * @param page           - requested page, not required,  default 1
+     * @param limit          - defines quantity rows per page, not required,  default 14
+     * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
+     * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
+     *                       "ALL" - both], not required,  default ""
+     * @param request        - HttpServletRequest
+     * @return - Pageable list of open orders with meta info about total orders' count
+     * @throws - 403 bad request
      */
     @GetMapping("/open_orders/{currencyPairId}")
     public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
@@ -209,7 +247,7 @@ public class NgDashboardController {
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
                     this.orderService.getMyOrdersWithStateMap(userId, currencyPair, OrderStatus.OPENED, scope, offset,
-                                                                limit, locale, sortedColumns);
+                            limit, locale, sortedColumns);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
             pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
@@ -311,6 +349,195 @@ public class NgDashboardController {
             result = orderDao.updateOrder(orderId, exOrder);
         }
         return result;
+    }
+
+
+    @GetMapping("/info/{currencyPairId}")
+    public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
+        ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
+        String userName = userService.getUserEmailFromSecurityContext();
+        User user = userService.findByEmail(userName);
+
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        BigDecimal balanceByCurrency1 =
+                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+
+        List<ExOrderStatisticsShortByPairsDto> currencyRate =
+                orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+        result.setBalanceByCurrency1(balanceByCurrency1);
+
+        BigDecimal balanceByCurrency2 = new BigDecimal(0);
+        if (!currencyRate.isEmpty()) {
+            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
+            result.setPercentChange(currencyRate.get(0).getPercentChange());
+            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+        }
+        result.setBalanceByCurrency2(balanceByCurrency2);
+
+        //get daily statistic by 2 ways ---  what way is correct ???
+
+        //1 method
+        Date now = new Date();
+        Date minusDay = DateUtils.addDays(now, -1);
+
+        List<StockExchangeStats> statistics =
+                stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, minusDay, now);
+
+        //2 method
+        List<CoinmarketApiDto> coinmarketDataForActivePairs =
+                orderService.getDailyCoinmarketData(currencyPair.getName());
+
+        result.setDailyStatistic(coinmarketDataForActivePairs);
+        result.setStatistic(statistics);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/history")
+    public ResponseEntity getCandleChartHistoryData(
+            @QueryParam("symbol") String symbol,
+            @QueryParam("to") Long to,
+            @QueryParam("from") Long from,
+            @QueryParam("resolution") String resolution) {
+
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
+        List<CandleDto> result = new ArrayList<>();
+        if (currencyPair == null) {
+            HashMap<String, Object> errors = new HashMap<>();
+            errors.putAll(filterDataPeriod(result, from, to, resolution));
+            errors.put("s", "error");
+            errors.put("errmsg", "can not find currencyPair");
+            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
+        }
+
+        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
+        result = orderService.getCachedDataForCandle(currencyPair,
+                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
+                .stream().map(CandleDto::new).collect(Collectors.toList());
+        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
+    }
+
+    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
+        List<CandleDto> filteredData = new ArrayList<>(data);
+        HashMap<String, Object> filterDataResponse = new HashMap<>();
+        if (filteredData.isEmpty()) {
+            filterDataResponse.put("s", "ok");
+            getData(filterDataResponse, filteredData, resolution);
+            return filterDataResponse;
+        }
+
+        if ((filteredData.get(data.size() - 1).getTime() / 1000) < fromSeconds) {
+            filterDataResponse.put("s", "no_data");
+            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
+            return filterDataResponse;
+
+        }
+
+        int fromIndex = -1;
+        int toIndex = -1;
+
+        for (int i = 0; i < filteredData.size(); i++) {
+            long time = filteredData.get(i).getTime() / 1000;
+            if (fromIndex == -1 && time >= fromSeconds) {
+                fromIndex = i;
+            }
+            if (toIndex == -1 && time >= toSeconds) {
+                toIndex = time > toSeconds ? i - 1 : i;
+            }
+            if (fromIndex != -1 && toIndex != -1) {
+                break;
+            }
+        }
+
+        fromIndex = fromIndex > 0 ? fromIndex : 0;
+        toIndex = toIndex > 0 ? toIndex + 1 : filteredData.size();
+
+
+        toIndex = Math.min(fromIndex + 1000, toIndex); // do not send more than 1000 bars for server capacity reasons
+
+        String s = "ok";
+
+        if (toSeconds < filteredData.get(0).getTime() / 1000) {
+            s = "no_data";
+        }
+        filterDataResponse.put("s", s);
+
+        toIndex = Math.min(fromIndex + 1000, toIndex);
+
+        if (fromIndex > toIndex) {
+            filterDataResponse.put("s", "no_data");
+            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
+            return filterDataResponse;
+        }
+
+        filteredData = filteredData.subList(fromIndex, toIndex);
+        getData(filterDataResponse, filteredData, resolution);
+        return filterDataResponse;
+
+    }
+
+    private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
+        List<Long> t = new ArrayList<>();
+        List<BigDecimal> o = new ArrayList<>();
+        List<BigDecimal> h = new ArrayList<>();
+        List<BigDecimal> l = new ArrayList<>();
+        List<BigDecimal> c = new ArrayList<>();
+        List<BigDecimal> v = new ArrayList<>();
+
+        LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime() / 1000), 0, ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.DAYS);
+        t.add(first.toEpochSecond(ZoneOffset.UTC));
+        o.add(BigDecimal.ZERO);
+        h.add(BigDecimal.ZERO);
+        l.add(BigDecimal.ZERO);
+        c.add(BigDecimal.ZERO);
+        v.add(BigDecimal.ZERO);
+
+        for (CandleDto r : result) {
+            LocalDateTime now = LocalDateTime.ofEpochSecond((r.getTime() / 1000), 0, ZoneOffset.UTC)
+                    .truncatedTo(ChronoUnit.MINUTES);
+            LocalDateTime actualDateTime;
+            long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
+            long currentHourOfDay = now.getLong(ChronoField.HOUR_OF_DAY);
+
+            switch (resolution) {
+                case "30":
+                    long minutes = Math.abs(currentMinutesOfHour - 30);
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
+                    break;
+                case "60":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+                    break;
+                case "240":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
+                    break;
+                case "720":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
+                    break;
+                case "M":
+                    actualDateTime = now.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
+                    break;
+                default:
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+
+            }
+
+            t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            o.add(r.getOpen());
+            h.add(r.getHigh());
+            l.add(r.getLow());
+            c.add(r.getClose());
+            v.add(r.getVolume());
+        }
+        response.put("t", t);
+        response.put("o", o);
+        response.put("h", h);
+        response.put("l", l);
+        response.put("c", c);
+        response.put("v", v);
     }
 
 }

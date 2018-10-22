@@ -11,8 +11,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -36,7 +38,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 * * * *") //every hour
     public void retrieveCurrencies() {
         log.debug("Start retrieving stock exchange statistics at: " + LocalDateTime.now());
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
@@ -69,6 +71,11 @@ public class StockExchangeServiceImpl implements StockExchangeService {
     @Override
     public List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId) {
         return stockExchangeDao.getStockExchangeStatistics(currencyPairId);
+    }
+
+    @Override
+    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to) {
+        return stockExchangeDao.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
     }
 
     @PreDestroy

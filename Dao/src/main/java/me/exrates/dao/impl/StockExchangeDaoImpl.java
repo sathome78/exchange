@@ -9,10 +9,19 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -170,10 +179,40 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
         });
     }
 
+    @Override
+    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to) {
+        String sql = "SELECT stock_1.stock_exchange_id, " +
+                "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, stock_1.price_last, " +
+                "              stock_1.price_buy, stock_1.price_sell, stock_1.price_low, stock_1.price_high, stock_1.volume," +
+                "              stock_1.date FROM STOCK_EXRATE AS stock_1 " +
+                "              JOIN (SELECT currency_pair_id, stock_exchange_id, MAX(STOCK_EXRATE.date) AS date FROM STOCK_EXRATE " +
+                "              GROUP BY currency_pair_id, stock_exchange_id) AS stock_2 " +
+                "              ON stock_1.currency_pair_id = stock_2.currency_pair_id AND stock_1.stock_exchange_id = stock_2.stock_exchange_id " +
+                "              AND stock_1.date = stock_2.date " +
+                "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id AND STOCK_EXCHANGE.is_active = 1" +
+                "              JOIN CURRENCY_PAIR ON stock_1.currency_pair_id = CURRENCY_PAIR.id " +
+                "       WHERE stock_1.currency_pair_id = :currency_pair_id AND stock_1.date between :fromDate AND :toDate " +
+                "       ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("currency_pair_id", currencyPairId);
+        params.addValue("fromDate", from);
+        params.addValue("toDate", to);
 
-
-
-
-
+        return jdbcTemplate.query(sql, params, (resultSet, rowNum) -> {
+            StockExchangeStats stockExchangeStats = new StockExchangeStats();
+            StockExchange stockExchange = new StockExchange();
+            stockExchange.setId(resultSet.getInt("stock_exchange_id"));
+            stockExchange.setName(resultSet.getString("stock_exchange_name"));
+            stockExchangeStats.setStockExchange(stockExchange);
+            stockExchangeStats.setPriceLast(resultSet.getBigDecimal("price_last"));
+            stockExchangeStats.setPriceBuy(resultSet.getBigDecimal("price_buy"));
+            stockExchangeStats.setPriceSell(resultSet.getBigDecimal("price_sell"));
+            stockExchangeStats.setPriceLow(resultSet.getBigDecimal("price_low"));
+            stockExchangeStats.setPriceHigh(resultSet.getBigDecimal("price_high"));
+            stockExchangeStats.setVolume(resultSet.getBigDecimal("volume"));
+            stockExchangeStats.setDate(resultSet.getTimestamp("date").toLocalDateTime());
+            return stockExchangeStats;
+        });
+    }
 
 }
