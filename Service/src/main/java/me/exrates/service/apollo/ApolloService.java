@@ -60,7 +60,7 @@ public interface ApolloService extends IRefillable, IWithdrawable {
 
     @Override
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
-        return true;
+        return false;
     }
 
     RefillRequestAcceptDto createRequest(String address, BigDecimal amount, String hash);

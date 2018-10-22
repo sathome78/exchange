@@ -145,10 +145,10 @@ public class ApolloServiceImpl implements ApolloService {
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
-    @Override
+    /*@Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
         return new BigDecimal(10).setScale(3, RoundingMode.HALF_UP);
-    }
+    }*/
 
     @Override
     public Merchant getMerchant() {

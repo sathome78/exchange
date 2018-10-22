@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('Apollo', 'APL', 2, 'apolloServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('APL', 'Apollo', 0, 8, 8, 8);
+VALUES ('APL', 'Apollo', 0, 1, 0, 1);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='APL'));
 
@@ -39,7 +39,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='APL/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'APL'), (select id from CURRENCY where name = 'BTC'), 'APL/ETH', 160, 0, 'BTC', 'APL/ETH');
+VALUES((select id from CURRENCY where name = 'APL'), (select id from CURRENCY where name = 'ETH'), 'APL/ETH', 160, 0, 'BTC', 'APL/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
