@@ -31,10 +31,13 @@ import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolderImpl;
+import me.exrates.service.cache.ExchangeRatesHolderImpl;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -213,40 +216,74 @@ public class NgDashboardController {
     }
 
     /**
-     * Returns a list of user open orders
+     * Returns a list of user orders path variables status defines which order's status to be retrieved
+     * http method: get
+     * http url: http://exrates_domain.me/info/private/v2/dashboard/orders/{status}
      *
-     * @param currencyPairId - currency pair id must be valid
+     * returns:
+     * {
+     *     "count": number, -- entire quantity of items in storage
+     *     "items": [
+     *          {
+     *              "id": number,
+     *              "userId": number,
+     *              "operationType": string,
+     *              "operationTypeEnum": string, -- values: INPUT, OUTPUT, SELL, BUY, WALLET_INNER_TRANSFER, REFERRAL, STORNO, MANUAL, USER_TRANSFER
+     *              "stopRate": string, -- for stop orders
+     *              "exExchangeRate": string,
+     *              "amountBase": string,
+     *              "amountConvert": string,
+     *              "comissionId": number,
+     *              "commissionFixedAmount": string,
+     *              "amountWithCommission": string,
+     *              "userAcceptorId": number,
+     *              "dateCreation": Date,
+     *              "dateAcception": Date,
+     *              "status": string,  -- values INPROCESS, OPENED, CLOSED, CANCELLED, DELETED, DRAFT, SPLIT_CLOSED
+     *              "dateStatusModification": Date,
+     *              "commissionAmountForAcceptor": string,
+     *              "amountWithCommissionForAcceptor": string,
+     *              "currencyPairId": number,
+     *              "currencyPairName": string,
+     *              "statusString": string,
+     *              "orderBaseType": string  -- values: LIMIT, STOP_LIMIT, ICO
+     *          },
+     *          ...
+     *     ]
+     * }
+     * @param status - user’s order status
+     * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
      * @param page           - requested page, not required,  default 1
      * @param limit          - defines quantity rows per page, not required,  default 14
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
      * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
-     *                       "ALL" - both], not required,  default ""
-     * @param request        - HttpServletRequest
-     * @return - Pageable list of open orders with meta info about total orders' count
+     *                       "ALL" - both], not required,  default "" - created by user
+     * @param request        - HttpServletRequest, used by backend to resolve locale
+     * @return - Pageable list of defined orders with meta info about total orders' count
      * @throws - 403 bad request
      */
-    @GetMapping("/open_orders/{currencyPairId}")
+    @GetMapping("/orders/{status}")
     public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
-            @PathVariable("currencyPairId") Integer currencyPairId,
+            @PathVariable("status") String status,
+            @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope") String scope,
             HttpServletRequest request) {
         int userId = userService.getIdByEmail(getPrincipalEmail());
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        CurrencyPair currencyPair = currencyPairId > 0
+                ? currencyService.findCurrencyPairById(currencyPairId)
+                : null;
         Locale locale = localeResolver.resolveLocale(request);
-        if (currencyPair == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
         int offset = page > 1 ? page * limit : 0;
         Map<String, String> sortedColumns = sortByCreated.equals("DESC")
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
-
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, OrderStatus.OPENED, scope, offset,
+                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
                             limit, locale, sortedColumns);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
@@ -257,8 +294,6 @@ public class NgDashboardController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
-    @GetMapping("/history_orders/")
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
