@@ -9,7 +9,6 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
-import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -58,11 +57,13 @@ import javax.validation.Valid;
 import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -371,6 +372,11 @@ public class NgDashboardController {
             result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
             result.setPercentChange(currencyRate.get(0).getPercentChange());
             result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+
+            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
+            BigDecimal subtract = rateNow.subtract(rateYesterday);
+            result.setChangedValue(String.valueOf(subtract.intValue()));
             BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
             balanceByCurrency2 = balanceByCurrency1.multiply(rate);
         }
@@ -379,17 +385,36 @@ public class NgDashboardController {
         //get daily statistic by 2 ways ---  what way is correct ???
 
         //1 method
-        Date now = new Date();
-        Date minusDay = DateUtils.addDays(now, -1);
+        LocalDateTime now = LocalDateTime.now().withHour(18);
+        Date to = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
+        Date from = DateUtils.addDays(to, -1);
 
         List<StockExchangeStats> statistics =
-                stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, minusDay, now);
+                stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
 
-        //2 method
-        List<CoinmarketApiDto> coinmarketDataForActivePairs =
-                orderService.getDailyCoinmarketData(currencyPair.getName());
+        //set rateHigh
+        statistics.stream()
+                .map(StockExchangeStats::getPriceHigh)
+                .max(Comparator.naturalOrder())
+                .ifPresent(high -> result.setRateHigh(high.toString()));
 
-        result.setDailyStatistic(coinmarketDataForActivePairs);
+        //set rateLow
+        statistics.stream()
+                .map(StockExchangeStats::getPriceLow)
+                .max(Comparator.reverseOrder())
+                .ifPresent(low -> result.setRateLow(low.toString()));
+
+        //set volume24h
+        statistics.stream()
+                .map(StockExchangeStats::getVolume)
+                .max(Comparator.naturalOrder())
+                .ifPresent(volume -> result.setVolume24h(volume.toString()));
+
+//        //2 method
+//        List<CoinmarketApiDto> coinmarketDataForActivePairs =
+//                orderService.getDailyCoinmarketData(currencyPair.getName());
+//
+//        result.setDailyStatistic(coinmarketDataForActivePairs);
         result.setStatistic(statistics);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
