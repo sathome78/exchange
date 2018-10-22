@@ -16,6 +16,8 @@ public interface ChatService {
 
     ChatMessage persistMessage(String body, String email, ChatLang lang) throws IllegalChatMessageException;
 
+    ChatMessage persistPublicMessage(String body, String email, ChatLang lang) throws IllegalChatMessageException;
+
     SortedSet<ChatMessage> getLastMessages(ChatLang lang);
 
     void deleteMessage(ChatMessage message, ChatLang lang);

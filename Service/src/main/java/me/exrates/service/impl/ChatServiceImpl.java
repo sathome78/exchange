@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -95,6 +96,39 @@ public class ChatServiceImpl implements ChatService {
         message.setId(GENERATOR.incrementAndGet());
         message.setTime(LocalDateTime.now());
         final ChatComponent comp = chats.get(lang);
+        cacheMessage(message, comp);
+        return message;
+    }
+
+    @Override
+    public ChatMessage persistPublicMessage(final String body, final String email, ChatLang lang) throws IllegalChatMessageException {
+        if (body.isEmpty() || body.length() > MAX_MESSAGE || !deprecatedChars.test(body)) {
+            throw new IllegalChatMessageException("Message contains invalid symbols : " + body);
+        }
+        User user;
+        final ChatMessage message = new ChatMessage();
+        if (!isEmpty(email)) {
+            try {
+                user = userService.findByEmail(email);
+                message.setUserId(user.getId());
+                message.setNickname(user.getNickname());
+            } catch (Exception ex) {
+                message.setUserId(0);
+                message.setNickname("anonymous");
+            }
+        } else {
+            message.setUserId(0);
+            message.setNickname("anonymous");
+        }
+        message.setBody(body);
+        message.setId(GENERATOR.incrementAndGet());
+        message.setTime(LocalDateTime.now());
+        final ChatComponent comp = chats.get(lang);
+        cacheMessage(message, comp);
+        return message;
+    }
+
+    private void cacheMessage(ChatMessage message, ChatComponent comp) {
         try {
             comp.getLock().writeLock().lock();
             comp.getCache().add(message);
@@ -110,7 +144,6 @@ public class ChatServiceImpl implements ChatService {
         } finally {
             comp.getLock().writeLock().unlock();
         }
-        return message;
     }
 
     public NavigableSet<ChatMessage> getLastMessages(final ChatLang lang) {

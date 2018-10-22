@@ -103,7 +103,7 @@ public interface OrderDao {
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
 
-    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, Locale locale,
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                                 String scope, Integer offset, Integer limit, Map<String, String> sortedColumns);
 
     Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset, Integer limit, Locale locale);

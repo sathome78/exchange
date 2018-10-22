@@ -19,7 +19,7 @@ import static me.exrates.model.enums.ChatLang.*;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Configuration
-@PropertySource(value = "classpath:/websocket.properties")
+@PropertySource(value = "classpath:websocket.properties")
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 

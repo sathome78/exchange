@@ -1,9 +1,15 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
+import me.exrates.model.enums.ChatLang;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -13,10 +19,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.socket.TextMessage;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Supplier;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping(value = "/info/public/v2/",
@@ -27,12 +39,20 @@ public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
 
+    private final ChatService chatService;
+    private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final NotificationsSettingsService notificationsSettingsService;
 
     @Autowired
-    public NgPublicController(IpBlockingService ipBlockingService, UserService userService, NotificationsSettingsService notificationsSettingsService) {
+    public NgPublicController(ChatService chatService,
+                              EnumMap<ChatLang, ChatWebSocketHandler> handlers,
+                              IpBlockingService ipBlockingService,
+                              UserService userService,
+                              NotificationsSettingsService notificationsSettingsService) {
+        this.chatService = chatService;
+        this.handlers = handlers;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.notificationsSettingsService = notificationsSettingsService;
@@ -61,6 +81,41 @@ public class NgPublicController {
                 () -> userService.ifNicknameIsUnique(username));
         // we may use this elsewhere, so exists is opposite to unique
         return new ResponseEntity<>(!unique, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/chat/history")
+    @ResponseBody
+    public Set<ChatMessage> chatMessages(final @RequestParam("lang") String lang) {
+        try {
+            SortedSet<ChatMessage> lastMessages = chatService.getLastMessages(ChatLang.toInstance(lang));
+            return lastMessages;
+        } catch (Exception e) {
+            return Collections.emptyNavigableSet();
+        }
+    }
+
+    @PostMapping(value = "/chat")
+    public ResponseEntity<Void> sendChatMessage(@RequestBody Map<String, String> body) {
+        final ChatLang chatLang = ChatLang.toInstance(body.getOrDefault("LANG", "EN"));
+        String simpleMessage = body.get("MESSAGE");
+        String email = body.getOrDefault("EMAIL", "");
+        if (isEmpty(simpleMessage)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        final ChatMessage message;
+        try {
+            message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
+        } catch (IllegalChatMessageException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
+            try {
+                webSocketSession.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(message)));
+            } catch (IOException e) {
+                logger.info("Failed to send message: {} via websocket", message.getBody());
+            }
+        });
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,
