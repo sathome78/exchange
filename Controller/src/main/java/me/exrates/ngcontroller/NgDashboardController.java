@@ -8,11 +8,13 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
+import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -53,12 +55,20 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard/",
@@ -381,6 +391,151 @@ public class NgDashboardController {
         result.setStatistic(statistics);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/history")
+    public ResponseEntity getCandleChartHistoryData(
+            @QueryParam("symbol") String symbol,
+            @QueryParam("to") Long to,
+            @QueryParam("from") Long from,
+            @QueryParam("resolution") String resolution) {
+
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
+        List<CandleDto> result = new ArrayList<>();
+        if (currencyPair == null) {
+            HashMap<String, Object> errors = new HashMap<>();
+            errors.putAll(filterDataPeriod(result, from, to, resolution));
+            errors.put("s", "error");
+            errors.put("errmsg", "can not find currencyPair");
+            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
+        }
+
+        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
+        result = orderService.getCachedDataForCandle(currencyPair,
+                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
+                .stream().map(CandleDto::new).collect(Collectors.toList());
+        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
+    }
+
+    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
+        List<CandleDto> filteredData = new ArrayList<>(data);
+        HashMap<String, Object> filterDataResponse = new HashMap<>();
+        if (filteredData.isEmpty()) {
+            filterDataResponse.put("s", "ok");
+            getData(filterDataResponse, filteredData, resolution);
+            return filterDataResponse;
+        }
+
+        if ((filteredData.get(data.size() - 1).getTime() / 1000) < fromSeconds) {
+            filterDataResponse.put("s", "no_data");
+            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
+            return filterDataResponse;
+
+        }
+
+        int fromIndex = -1;
+        int toIndex = -1;
+
+        for (int i = 0; i < filteredData.size(); i++) {
+            long time = filteredData.get(i).getTime() / 1000;
+            if (fromIndex == -1 && time >= fromSeconds) {
+                fromIndex = i;
+            }
+            if (toIndex == -1 && time >= toSeconds) {
+                toIndex = time > toSeconds ? i - 1 : i;
+            }
+            if (fromIndex != -1 && toIndex != -1) {
+                break;
+            }
+        }
+
+        fromIndex = fromIndex > 0 ? fromIndex : 0;
+        toIndex = toIndex > 0 ? toIndex + 1 : filteredData.size();
+
+
+        toIndex = Math.min(fromIndex + 1000, toIndex); // do not send more than 1000 bars for server capacity reasons
+
+        String s = "ok";
+
+        if (toSeconds < filteredData.get(0).getTime() / 1000) {
+            s = "no_data";
+        }
+        filterDataResponse.put("s", s);
+
+        toIndex = Math.min(fromIndex + 1000, toIndex);
+
+        if (fromIndex > toIndex) {
+            filterDataResponse.put("s", "no_data");
+            filterDataResponse.put("nextTime", filteredData.get(data.size() - 1).getTime() / 1000);
+            return filterDataResponse;
+        }
+
+        filteredData = filteredData.subList(fromIndex, toIndex);
+        getData(filterDataResponse, filteredData, resolution);
+        return filterDataResponse;
+
+    }
+
+    private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
+        List<Long> t = new ArrayList<>();
+        List<BigDecimal> o = new ArrayList<>();
+        List<BigDecimal> h = new ArrayList<>();
+        List<BigDecimal> l = new ArrayList<>();
+        List<BigDecimal> c = new ArrayList<>();
+        List<BigDecimal> v = new ArrayList<>();
+
+        LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime() / 1000), 0, ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.DAYS);
+        t.add(first.toEpochSecond(ZoneOffset.UTC));
+        o.add(BigDecimal.ZERO);
+        h.add(BigDecimal.ZERO);
+        l.add(BigDecimal.ZERO);
+        c.add(BigDecimal.ZERO);
+        v.add(BigDecimal.ZERO);
+
+        for (CandleDto r : result) {
+            LocalDateTime now = LocalDateTime.ofEpochSecond((r.getTime() / 1000), 0, ZoneOffset.UTC)
+                    .truncatedTo(ChronoUnit.MINUTES);
+            LocalDateTime actualDateTime;
+            long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
+            long currentHourOfDay = now.getLong(ChronoField.HOUR_OF_DAY);
+
+            switch (resolution) {
+                case "30":
+                    long minutes = Math.abs(currentMinutesOfHour - 30);
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
+                    break;
+                case "60":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+                    break;
+                case "240":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
+                    break;
+                case "720":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
+                    break;
+                case "M":
+                    actualDateTime = now.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
+                    break;
+                default:
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+
+            }
+
+            t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            o.add(r.getOpen());
+            h.add(r.getHigh());
+            l.add(r.getLow());
+            c.add(r.getClose());
+            v.add(r.getVolume());
+        }
+        response.put("t", t);
+        response.put("o", o);
+        response.put("h", h);
+        response.put("l", l);
+        response.put("c", c);
+        response.put("v", v);
     }
 
 }
