@@ -1,5 +1,8 @@
 package me.exrates.security.filter;
 
+import org.apache.log4j.spi.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ExratesCorsFilter implements Filter {
 
+    private final static Logger logger = LogManager.getLogger(ExratesCorsFilter.class);
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
@@ -25,6 +30,7 @@ public class ExratesCorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
 
         URL reqUrl =   new URL(request.getRequestURL().toString());
+        logger.error("REQUEST HOST: {}", reqUrl.getHost());
 		if (!reqUrl.getHost().contains("dev4.exrates")) {
 			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 		} else {
