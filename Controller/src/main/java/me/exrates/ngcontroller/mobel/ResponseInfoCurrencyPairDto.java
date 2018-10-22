@@ -18,6 +18,7 @@ public class ResponseInfoCurrencyPairDto {
     private BigDecimal balanceByCurrency2;
     private String currencyRate;
     private String percentChange;
+    private String changedValue;
     private String lastCurrencyRate;
     private String volume24h;
     private String rateHigh;
