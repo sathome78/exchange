@@ -191,12 +191,10 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
                 "              AND stock_1.date = stock_2.date " +
                 "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id AND STOCK_EXCHANGE.is_active = 1" +
                 "              JOIN CURRENCY_PAIR ON stock_1.currency_pair_id = CURRENCY_PAIR.id " +
-                "       WHERE stock_1.currency_pair_id = :currency_pair_id AND stock_1.date between :fromDate AND :toDate " +
+                "       WHERE stock_1.currency_pair_id = :currency_pair_id stock_1.date > NOW() - INTERVAL 1 DAY " +
                 "       ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("currency_pair_id", currencyPairId);
-        params.addValue("fromDate", from);
-        params.addValue("toDate", to);
 
         return jdbcTemplate.query(sql, params, (resultSet, rowNum) -> {
             StockExchangeStats stockExchangeStats = new StockExchangeStats();
