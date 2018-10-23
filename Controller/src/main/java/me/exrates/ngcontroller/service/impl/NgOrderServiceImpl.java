@@ -7,6 +7,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.ngcontroller.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
@@ -39,10 +40,10 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     @Override
     public OrderCreateDto prepareOrder(InputCreateOrderDto inputOrder) {
-        OperationType operationType = inputOrder.getOperationType();
+        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
 
         if (operationType != OperationType.SELL && operationType != OperationType.BUY) {
-            throw new RuntimeException(String.format("OrderType %s not support here", operationType));
+            throw new NgDashboardException(String.format("OrderType %s not support here", operationType));
         }
 
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
@@ -50,7 +51,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (baseType == null) baseType = OrderBaseType.LIMIT;
 
         if (baseType == OrderBaseType.STOP_LIMIT && inputOrder.getStop() == null) {
-            throw new OrderParamsWrongException("Try to create stop-order without stop rate");
+            throw new NgDashboardException("Try to create stop-order without stop rate");
         }
 
         String email = userService.getUserEmailFromSecurityContext();
@@ -67,16 +68,16 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         Map<String, Object> errorMap = orderValidationDto.getErrors();
         if (!errorMap.isEmpty()) {
-            throw new OrderParamsWrongException();
+            throw new NgDashboardException(errorMap.toString());
         }
 
         if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0 ) {
-            throw new OrderParamsWrongException(String.format("Total value %.2f doesn't equal to calculate %.2f",
+            throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
                     inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
         }
 
         if (prepareNewOrder.getComission().compareTo(inputOrder.getCommission()) != 0) {
-            throw new OrderParamsWrongException(String.format("Commission %.2f doesn't equal to calculate %.2f",
+            throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
                     inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
         }
 
