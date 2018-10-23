@@ -48,7 +48,7 @@
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
                      data-submit-button-id=".start-withdraw"
-                     <c:if test="${!checkingBalance}">disabled</c:if>
+                     <c:if test="${checkingZeroBalance}">disabled</c:if>
               />
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">

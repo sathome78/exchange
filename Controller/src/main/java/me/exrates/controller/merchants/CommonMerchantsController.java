@@ -127,6 +127,8 @@ public class CommonMerchantsController {
       modelAndView.addObject("accessToOperationForUser", accessToOperationForUser);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
+      boolean checkingZeroBalance = wallet.getActiveBalance().signum()==0;
+      modelAndView.addObject("checkingZeroBalance", checkingZeroBalance);
       return modelAndView;
     } catch (Exception e) {
       ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
@@ -164,6 +166,8 @@ public class CommonMerchantsController {
       modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);*/
       List<String> warningCodeList = currencyService.getWarningsByTopic(TRANSFER_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
+      boolean checkingZeroBalance = wallet.getActiveBalance().signum()==0;
+      modelAndView.addObject("checkingZeroBalance", checkingZeroBalance);
       return modelAndView;
     } catch (Exception e) {
       ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
