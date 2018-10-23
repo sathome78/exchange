@@ -1456,7 +1456,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "xauServiceImpl")
     public EthTokenService xauService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x0df721639ca2f7ff0e1f618b918a65ffb199ac4e");
+        tokensList.add("0xadf07ae026c660968223f9f376a928523f248b69");
         return new EthTokenServiceImpl(
                 tokensList,
                 "XAU",
