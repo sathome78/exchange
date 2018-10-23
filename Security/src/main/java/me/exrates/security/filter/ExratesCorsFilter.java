@@ -35,16 +35,6 @@ public class ExratesCorsFilter implements Filter {
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 //        response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
 
-//        System.out.println("protocol " + reqUrl.getProtocol());
-//        System.out.println("domain " + reqUrl.getHost());
-//        System.out.println("req_port " + reqUrl.getPort());
-
-//        String path = String.join("", reqUrl.getProtocol(), "://", reqUrl.getHost());
-//        if (reqUrl.getHost().equals("localhost")) {
-//            path = String.join("", path, ":", String.valueOf(reqUrl.getPort()));
-//        }
-//        System.out.println("header path " + path);
-//        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
         response.setHeader("Access-Control-Max-Age", "3600");
