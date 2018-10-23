@@ -137,6 +137,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -380,7 +381,7 @@ public class OrderServiceImpl implements OrderService {
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
         List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
         Locale locale = Locale.ENGLISH;
-        dto.forEach(e -> {
+        dto.stream().filter(Objects::nonNull).forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
             e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
