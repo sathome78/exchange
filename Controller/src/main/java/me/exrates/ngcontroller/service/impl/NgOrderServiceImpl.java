@@ -78,7 +78,7 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         if (prepareNewOrder.getComission().compareTo(inputOrder.getCommission()) != 0) {
             throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
-                    inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
+                    inputOrder.getCommission(), prepareNewOrder.getComission()));
         }
 
         return prepareNewOrder;

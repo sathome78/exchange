@@ -135,9 +135,16 @@ public class NgDashboardController {
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
+        HashMap<String, String> resultMap = new HashMap<>();
 
-        return StringUtils.isEmpty(result) ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) :
-                new ResponseEntity<>(HttpStatus.CREATED);
+        if (StringUtils.isEmpty(result)) {
+            resultMap.put("message", "success");
+            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
+        } else {
+            resultMap.put("message", "fail");
+            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @DeleteMapping("/order/{id}")
