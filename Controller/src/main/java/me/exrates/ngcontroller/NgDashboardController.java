@@ -425,18 +425,35 @@ public class NgDashboardController {
         result.setBalanceByCurrency1(balanceByCurrency1);
 
         BigDecimal balanceByCurrency2 = new BigDecimal(0);
-        if (!currencyRate.isEmpty()) {
-            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
-            result.setPercentChange(currencyRate.get(0).getPercentChange());
-            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+            if (dto == null) continue;
 
-            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
-            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
+            result.setCurrencyRate(dto.getLastOrderRate());
+            result.setPercentChange(dto.getPercentChange());
+            result.setLastCurrencyRate(dto.getPredLastOrderRate());
+
+            BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+            BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
             BigDecimal subtract = rateNow.subtract(rateYesterday);
-            result.setChangedValue(String.valueOf(subtract.intValue()));
-            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+            result.setChangedValue(subtract.toString());
+            BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
             balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+
+            break;
+
         }
+//        if (!currencyRate.isEmpty()) {
+//            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
+//            result.setPercentChange(currencyRate.get(0).getPercentChange());
+//            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+//
+//            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+//            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
+//            BigDecimal subtract = rateNow.subtract(rateYesterday);
+//            result.setChangedValue(subtract.toString());
+//            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+//            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+//        }
         result.setBalanceByCurrency2(balanceByCurrency2);
 
         //get daily statistic by 2 ways ---  what way is correct ???
@@ -447,33 +464,37 @@ public class NgDashboardController {
         Date from = Date.from(fromLocalDate.atZone(ZoneId.systemDefault()).toInstant());
         Date to = Date.from(toLocalDate.atZone(ZoneId.systemDefault()).toInstant());
 
-        List<StockExchangeStats> statistics =
-                stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+        List<StockExchangeStats> statistics;
+        try {
+            statistics =
+                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+            //set rateHigh
+            statistics.stream()
+                    .map(StockExchangeStats::getPriceHigh)
+                    .max(Comparator.naturalOrder())
+                    .ifPresent(high -> result.setRateHigh(high.toString()));
 
-        //set rateHigh
-        statistics.stream()
-                .map(StockExchangeStats::getPriceHigh)
-                .max(Comparator.naturalOrder())
-                .ifPresent(high -> result.setRateHigh(high.toString()));
+            //set rateLow
+            statistics.stream()
+                    .map(StockExchangeStats::getPriceLow)
+                    .max(Comparator.reverseOrder())
+                    .ifPresent(low -> result.setRateLow(low.toString()));
 
-        //set rateLow
-        statistics.stream()
-                .map(StockExchangeStats::getPriceLow)
-                .max(Comparator.reverseOrder())
-                .ifPresent(low -> result.setRateLow(low.toString()));
-
-        //set volume24h
-        statistics.stream()
-                .map(StockExchangeStats::getVolume)
-                .max(Comparator.naturalOrder())
-                .ifPresent(volume -> result.setVolume24h(volume.toString()));
+            //set volume24h
+            statistics.stream()
+                    .map(StockExchangeStats::getVolume)
+                    .max(Comparator.naturalOrder())
+                    .ifPresent(volume -> result.setVolume24h(volume.toString()));
+        } catch (ArithmeticException e) {
+            logger.error("Error calculating max and min values");
+        }
 
 //        //2 method
 //        List<CoinmarketApiDto> coinmarketDataForActivePairs =
 //                orderService.getDailyCoinmarketData(currencyPair.getName());
 //
 //        result.setDailyStatistic(coinmarketDataForActivePairs);
-        result.setStatistic(statistics);
+//        result.setStatistic(statistics);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
