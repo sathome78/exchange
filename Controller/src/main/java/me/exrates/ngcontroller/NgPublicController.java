@@ -1,9 +1,9 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
+import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
@@ -18,17 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.socket.TextMessage;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping(value = "/info/public/v2/",
@@ -43,6 +41,7 @@ public class NgPublicController {
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
+    private final SimpMessagingTemplate messagingTemplate;
     private final NotificationsSettingsService notificationsSettingsService;
 
     @Autowired
@@ -50,11 +49,13 @@ public class NgPublicController {
                               EnumMap<ChatLang, ChatWebSocketHandler> handlers,
                               IpBlockingService ipBlockingService,
                               UserService userService,
+                              SimpMessagingTemplate messagingTemplate,
                               NotificationsSettingsService notificationsSettingsService) {
         this.chatService = chatService;
         this.handlers = handlers;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
         this.notificationsSettingsService = notificationsSettingsService;
     }
 
@@ -85,18 +86,19 @@ public class NgPublicController {
 
     @GetMapping(value = "/chat/history")
     @ResponseBody
-    public Set<ChatMessage> chatMessages(final @RequestParam("lang") String lang) {
+    public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
         try {
-            SortedSet<ChatMessage> lastMessages = chatService.getLastMessages(ChatLang.toInstance(lang));
-            return lastMessages;
+            List<ChatHistoryDto> messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
+            return messages;
         } catch (Exception e) {
-            return Collections.emptyNavigableSet();
+            return Collections.emptyList();
         }
     }
 
     @PostMapping(value = "/chat")
     public ResponseEntity<Void> sendChatMessage(@RequestBody Map<String, String> body) {
-        final ChatLang chatLang = ChatLang.toInstance(body.getOrDefault("LANG", "EN"));
+        String language = body.getOrDefault("LANG", "EN");
+        ChatLang chatLang = ChatLang.toInstance(language);
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
@@ -108,14 +110,17 @@ public class NgPublicController {
         } catch (IllegalChatMessageException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
-            try {
-                webSocketSession.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(message)));
-            } catch (IOException e) {
-                logger.info("Failed to send message: {} via websocket", message.getBody());
-            }
-        });
+        String destination = "/topic/chat/".concat(language.toLowerCase());
+        messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private ChatHistoryDto fromChatMessage(ChatMessage message) {
+        ChatHistoryDto dto = new ChatHistoryDto();
+        dto.setMessageTime(message.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        dto.setEmail(message.getNickname());
+        dto.setBody(message.getBody());
+        return dto;
     }
 
     private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,

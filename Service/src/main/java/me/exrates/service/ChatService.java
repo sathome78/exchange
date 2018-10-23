@@ -22,6 +22,8 @@ public interface ChatService {
 
     void deleteMessage(ChatMessage message, ChatLang lang);
 
+    List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang);
+
     void flushCache();
 
     List<ChatHistoryDto> getChatHistory(ChatLang chatLang);

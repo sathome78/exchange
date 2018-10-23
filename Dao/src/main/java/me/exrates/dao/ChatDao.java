@@ -16,7 +16,11 @@ public interface ChatDao {
 
     void persist(ChatLang lang, Set<ChatMessage> message);
 
+    ChatMessage persistPublic(ChatLang lang, ChatMessage message);
+
     void delete(ChatLang lang, ChatMessage message);
+
+    List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang);
 
     List<ChatHistoryDto> getChatHistory(ChatLang chatLang);
 }

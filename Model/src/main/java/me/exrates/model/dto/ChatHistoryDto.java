@@ -1,7 +1,9 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 import me.exrates.model.util.BigDecimalProcessing;

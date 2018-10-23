@@ -41,7 +41,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final ChatDao chatDao;
     private final UserService userService;
-    private final EnumMap<ChatLang,ChatComponent> chats;
+    private final EnumMap<ChatLang, ChatComponent> chats;
 
     private AtomicLong GENERATOR;
     private long flushCursor;
@@ -53,8 +53,7 @@ public class ChatServiceImpl implements ChatService {
     @Autowired
     public ChatServiceImpl(final ChatDao chatDao,
                            final UserService userService,
-                           final EnumMap<ChatLang, ChatComponent> chats)
-    {
+                           final EnumMap<ChatLang, ChatComponent> chats) {
         this.chatDao = chatDao;
         this.userService = userService;
         this.chats = chats;
@@ -64,7 +63,7 @@ public class ChatServiceImpl implements ChatService {
     public void cacheWarm() {
         final List<Long> ids = new ArrayList<>();
         Stream.of(ChatLang.values())
-                .map(lang -> new Pair<>(lang,new TreeSet<>(chatDao.findLastMessages(lang, MESSAGE_BARRIER))))
+                .map(lang -> new Pair<>(lang, new TreeSet<>(chatDao.findLastMessages(lang, MESSAGE_BARRIER))))
                 .forEach(pair -> {
                     final ChatComponent comp = chats.get(pair.getKey());
                     final NavigableSet<ChatMessage> cache = pair.getValue();
@@ -121,11 +120,10 @@ public class ChatServiceImpl implements ChatService {
             message.setNickname("anonymous");
         }
         message.setBody(body);
-        message.setId(GENERATOR.incrementAndGet());
         message.setTime(LocalDateTime.now());
-        final ChatComponent comp = chats.get(lang);
-        cacheMessage(message, comp);
-        return message;
+//        final ChatComponent comp = chats.get(lang);
+//        cacheMessage(message, comp);
+        return chatDao.persistPublic(lang, message);
     }
 
     private void cacheMessage(ChatMessage message, ChatComponent comp) {
@@ -159,6 +157,11 @@ public class ChatServiceImpl implements ChatService {
             comp.getLock().readLock().unlock();
         }
         return result;
+    }
+
+    @Override
+    public List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang) {
+        return chatDao.getPublicChatHistory(chatLang);
     }
 
     @Scheduled(fixedDelay = 1000L, initialDelay = 1000L)
