@@ -29,13 +29,16 @@ public class ExratesCorsFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         HttpServletRequest request = (HttpServletRequest) req;
 
-        URL reqUrl =   new URL(request.getRequestURL().toString());
+        URL reqUrl = new URL(request.getRequestURL().toString());
         logger.error("REQUEST HOST: {}", reqUrl.getHost());
-		if (!reqUrl.getHost().contains("dev4.exrates")) {
-			response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
-		} else {
-			response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
-		}
+        String domain = reqUrl.getHost();
+        if (domain.contains("local")) {
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+        } else if (domain.contains("172.10")) {
+            response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
+        } else {
+            response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
+        }
 //        System.out.println("protocol " + reqUrl.getProtocol());
 //        System.out.println("domain " + reqUrl.getHost());
 //        System.out.println("req_port " + reqUrl.getPort());
@@ -51,7 +54,7 @@ public class ExratesCorsFilter implements Filter {
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
-        if(!(request.getMethod().equalsIgnoreCase("OPTIONS"))) {
+        if (!(request.getMethod().equalsIgnoreCase("OPTIONS"))) {
             try {
                 chain.doFilter(req, resp);
             } catch (Exception e) {
