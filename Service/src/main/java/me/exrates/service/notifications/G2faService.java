@@ -1,6 +1,7 @@
 package me.exrates.service.notifications;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Set;
 
 public interface G2faService {
     String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
@@ -14,4 +15,6 @@ public interface G2faService {
     boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId);
 
     void setEnable2faGoogleAuth(Integer userId, Boolean connection);
+
+    Set<Integer> getUsersWithout2faGoogleAuth();
 }

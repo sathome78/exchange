@@ -4,17 +4,28 @@ import me.exrates.dao.G2faDao;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class G2faDaoImpl implements G2faDao {
 
+    private final NamedParameterJdbcTemplate npJdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
     @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    public G2faDaoImpl(NamedParameterJdbcTemplate npJdbcTemplate,
+                       JdbcTemplate jdbcTemplate) {
+        this.npJdbcTemplate = npJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public String getGoogleAuthSecretCodeByUser(Integer userId) {
@@ -22,7 +33,7 @@ public class G2faDaoImpl implements G2faDao {
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("user_id", userId);
         try {
-            return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
+            return npJdbcTemplate.queryForObject(sql, namedParameters, String.class);
         }catch (EmptyResultDataAccessException e){
             return "";
         }
@@ -35,7 +46,7 @@ public class G2faDaoImpl implements G2faDao {
             put("user_id", userId);
             put("secret", Base32.random());
         }};
-        jdbcTemplate.update(sql, namedParameters);
+        npJdbcTemplate.update(sql, namedParameters);
     }
 
     @Override
@@ -45,7 +56,7 @@ public class G2faDaoImpl implements G2faDao {
             put("user_id", userId);
             put("secret", Base32.random());
         }};
-        jdbcTemplate.update(sql, namedParameters);
+        npJdbcTemplate.update(sql, namedParameters);
     }
 
     @Override
@@ -55,7 +66,7 @@ public class G2faDaoImpl implements G2faDao {
             put("user_id", userId);
             put("connection", connection);
         }};
-        jdbcTemplate.update(sql, namedParameters);
+        npJdbcTemplate.update(sql, namedParameters);
     }
 
     @Override
@@ -64,9 +75,19 @@ public class G2faDaoImpl implements G2faDao {
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("user_id", userId);
         try {
-            return jdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
+            return npJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
         }catch (EmptyResultDataAccessException e){
             return false;
+        }
+    }
+
+    @Override
+    public Set<Integer> getUsersWithout2faGoogleAuth() {
+        String sql = "SELECT ga.user_id FROM 2FA_GOOGLE_AUTHENTICATOR ga WHERE ga.enable = FALSE";
+        try {
+            return new HashSet<>(jdbcTemplate.queryForList(sql, Integer.class));
+        }catch (EmptyResultDataAccessException ex){
+            return Collections.emptySet();
         }
     }
 }

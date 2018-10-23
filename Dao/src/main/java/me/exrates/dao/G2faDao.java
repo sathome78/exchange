@@ -1,5 +1,7 @@
 package me.exrates.dao;
 
+import java.util.Set;
+
 public interface G2faDao {
     String getGoogleAuthSecretCodeByUser(Integer userId);
 
@@ -10,4 +12,6 @@ public interface G2faDao {
     void setEnable2faGoogleAuth(Integer userId, Boolean connection);
 
     boolean isGoogleAuthenticatorEnable(Integer userId);
+
+    Set<Integer> getUsersWithout2faGoogleAuth();
 }

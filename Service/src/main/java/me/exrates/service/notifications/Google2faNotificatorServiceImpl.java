@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Set;
 
 @Log4j2(topic = "message_notify")
 @Component
@@ -97,6 +98,11 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         } else {
             notificationService.notifyUser(userId, NotificationEvent.ACCOUNT, "ga.2fa_enable_title", "message.g2fa.successEnable", null);
         }
+    }
+
+    @Override
+    public Set<Integer> getUsersWithout2faGoogleAuth() {
+        return g2faDao.getUsersWithout2faGoogleAuth();
     }
 
     private boolean isValidLong(String code) {
