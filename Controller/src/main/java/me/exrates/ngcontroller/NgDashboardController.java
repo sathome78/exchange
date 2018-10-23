@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.Currency;
@@ -19,6 +20,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -34,7 +36,6 @@ import me.exrates.service.cache.ExchangeRatesHolderImpl;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -43,8 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +56,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -305,15 +311,25 @@ public class NgDashboardController {
         int orderId = Integer.parseInt(inputOrder.getOrderId());
         OrderCreateDto stopOrder = stopOrderService.getOrderById(orderId, true);
 
+        if (stopOrder == null) {
+            throw new NgDashboardException("Order is not exist");
+        }
+
+        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
+
+        if (operationType != stopOrder.getOperationType()){
+            throw new NgDashboardException("Wrong operationType - " + operationType);
+        }
+
         if (stopOrder.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
-            throw new OrderParamsWrongException("Not support change currency pair");
+            throw new NgDashboardException("Not support change currency pair");
         }
 
         if (stopOrder.getUserId() != user.getId()) {
-            throw new OrderParamsWrongException();
+            throw new NgDashboardException("Order was created by another user");
         }
         if (stopOrder.getStatus() != OrderStatus.OPENED) {
-            throw new RuntimeException("Order status is not open");
+            throw new NgDashboardException("Order status is not open");
         }
 
         OrderCreateDto prepareOrder = ngOrderService.prepareOrder(inputOrder);
@@ -349,17 +365,24 @@ public class NgDashboardController {
 
         int orderId = Integer.parseInt(inputOrder.getOrderId());
         ExOrder order = orderService.getOrderById(orderId);
+        if (order == null) {
+            throw new NgDashboardException("Order is not exist");
+        }
+        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
 
+        if (operationType != order.getOperationType()){
+            throw new NgDashboardException("Wrong operationType - " + operationType);
+        }
 
         if (order.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
-            throw new OrderParamsWrongException("Not support change currency pair");
+            throw new NgDashboardException("Not support change currency pair");
         }
 
         if (order.getUserId() != user.getId()) {
-            throw new OrderParamsWrongException();
+            throw new NgDashboardException("Order was created by another user");
         }
         if (order.getStatus() != OrderStatus.OPENED) {
-            throw new RuntimeException("Order status is not open");
+            throw new NgDashboardException("Order status is not open");
         }
 
         OrderCreateDto prepareOrder = ngOrderService.prepareOrder(inputOrder);
@@ -420,9 +443,10 @@ public class NgDashboardController {
         //get daily statistic by 2 ways ---  what way is correct ???
 
         //1 method
-        LocalDateTime now = LocalDateTime.now().withHour(18);
-        Date to = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
-        Date from = DateUtils.addDays(to, -1);
+        LocalDateTime fromLocalDate = LocalDateTime.now().minusDays(1).withHour(1);
+        LocalDateTime toLocalDate = LocalDateTime.now().minusDays(1).withHour(23);
+        Date from = Date.from(fromLocalDate.atZone(ZoneId.systemDefault()).toInstant());
+        Date to = Date.from(toLocalDate.atZone(ZoneId.systemDefault()).toInstant());
 
         List<StockExchangeStats> statistics =
                 stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
@@ -598,6 +622,20 @@ public class NgDashboardController {
         response.put("l", l);
         response.put("c", c);
         response.put("v", v);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(NgDashboardException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandlerMethodArgumentNotValidException(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }

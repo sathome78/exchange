@@ -1,14 +1,12 @@
 package me.exrates.ngcontroller.mobel;
 
-import me.exrates.model.enums.OperationType;
-
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class InputCreateOrderDto {
 
     @NotNull
-    private OperationType orderType;
+    private String orderType;
 
     private String orderId;
 
@@ -34,16 +32,16 @@ public class InputCreateOrderDto {
     public InputCreateOrderDto() {
     }
 
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public OperationType getOperationType() {
+    public String getOrderType() {
         return orderType;
     }
 
-    public void setOperationType(OperationType operationType) {
-        this.orderType = operationType;
+    public void setOrderType(String orderType) {
+        this.orderType = orderType;
+    }
+
+    public String getOrderId() {
+        return orderId;
     }
 
     public void setOrderId(String orderId) {
