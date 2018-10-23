@@ -20,7 +20,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.OrderType;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -31,20 +30,15 @@ import me.exrates.service.OrderService;
 import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.cache.ExchangeRatesHolderImpl;
-import me.exrates.service.cache.ExchangeRatesHolderImpl;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -100,7 +94,6 @@ public class NgDashboardController {
     private final StopOrderDao stopOrderDao;
     private final OrderDao orderDao;
     private final StockExchangeService stockExchangeService;
-    private final ExchangeRatesHolderImpl exchangeRatesHolder;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -113,8 +106,7 @@ public class NgDashboardController {
                                  WalletService walletService,
                                  StopOrderDao stopOrderDao,
                                  OrderDao orderDao,
-                                 StockExchangeService stockExchangeService,
-                                 ExchangeRatesHolderImpl exchangeRatesHolder) {
+                                 StockExchangeService stockExchangeService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
@@ -126,7 +118,6 @@ public class NgDashboardController {
         this.stopOrderDao = stopOrderDao;
         this.orderDao = orderDao;
         this.stockExchangeService = stockExchangeService;
-        this.exchangeRatesHolder = exchangeRatesHolder;
     }
 
     @PostMapping("/order")
@@ -144,9 +135,16 @@ public class NgDashboardController {
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
+        HashMap<String, String> resultMap = new HashMap<>();
 
-        return StringUtils.isEmpty(result) ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) :
-                new ResponseEntity<>(HttpStatus.CREATED);
+        if (StringUtils.isEmpty(result)) {
+            resultMap.put("message", "success");
+            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
+        } else {
+            resultMap.put("message", "fail");
+            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @DeleteMapping("/order/{id}")
@@ -175,9 +173,9 @@ public class NgDashboardController {
                 result = processUpdateOrder(user, inputOrder);
                 break;
             case ICO:
-                throw new UnsupportedOperationException();
+                throw new NgDashboardException("Not supported type - ICO");
             default:
-                throw new RuntimeException();
+                throw new NgDashboardException("Unknown type - " + baseType);
         }
 
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
@@ -226,39 +224,40 @@ public class NgDashboardController {
      * Returns a list of user orders path variables status defines which order's status to be retrieved
      * http method: get
      * http url: http://exrates_domain.me/info/private/v2/dashboard/orders/{status}
-     *
+     * <p>
      * returns:
      * {
-     *     "count": number, -- entire quantity of items in storage
-     *     "items": [
-     *          {
-     *              "id": number,
-     *              "userId": number,
-     *              "operationType": string,
-     *              "operationTypeEnum": string, -- values: INPUT, OUTPUT, SELL, BUY, WALLET_INNER_TRANSFER, REFERRAL, STORNO, MANUAL, USER_TRANSFER
-     *              "stopRate": string, -- for stop orders
-     *              "exExchangeRate": string,
-     *              "amountBase": string,
-     *              "amountConvert": string,
-     *              "comissionId": number,
-     *              "commissionFixedAmount": string,
-     *              "amountWithCommission": string,
-     *              "userAcceptorId": number,
-     *              "dateCreation": Date,
-     *              "dateAcception": Date,
-     *              "status": string,  -- values INPROCESS, OPENED, CLOSED, CANCELLED, DELETED, DRAFT, SPLIT_CLOSED
-     *              "dateStatusModification": Date,
-     *              "commissionAmountForAcceptor": string,
-     *              "amountWithCommissionForAcceptor": string,
-     *              "currencyPairId": number,
-     *              "currencyPairName": string,
-     *              "statusString": string,
-     *              "orderBaseType": string  -- values: LIMIT, STOP_LIMIT, ICO
-     *          },
-     *          ...
-     *     ]
+     * "count": number, -- entire quantity of items in storage
+     * "items": [
+     * {
+     * "id": number,
+     * "userId": number,
+     * "operationType": string,
+     * "operationTypeEnum": string, -- values: INPUT, OUTPUT, SELL, BUY, WALLET_INNER_TRANSFER, REFERRAL, STORNO, MANUAL, USER_TRANSFER
+     * "stopRate": string, -- for stop orders
+     * "exExchangeRate": string,
+     * "amountBase": string,
+     * "amountConvert": string,
+     * "comissionId": number,
+     * "commissionFixedAmount": string,
+     * "amountWithCommission": string,
+     * "userAcceptorId": number,
+     * "dateCreation": Date,
+     * "dateAcception": Date,
+     * "status": string,  -- values INPROCESS, OPENED, CLOSED, CANCELLED, DELETED, DRAFT, SPLIT_CLOSED
+     * "dateStatusModification": Date,
+     * "commissionAmountForAcceptor": string,
+     * "amountWithCommissionForAcceptor": string,
+     * "currencyPairId": number,
+     * "currencyPairName": string,
+     * "statusString": string,
+     * "orderBaseType": string  -- values: LIMIT, STOP_LIMIT, ICO
+     * },
+     * ...
+     * ]
      * }
-     * @param status - user’s order status
+     *
+     * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
      * @param page           - requested page, not required,  default 1
      * @param limit          - defines quantity rows per page, not required,  default 14
@@ -317,7 +316,7 @@ public class NgDashboardController {
 
         OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
 
-        if (operationType != stopOrder.getOperationType()){
+        if (operationType != stopOrder.getOperationType()) {
             throw new NgDashboardException("Wrong operationType - " + operationType);
         }
 
@@ -370,7 +369,7 @@ public class NgDashboardController {
         }
         OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
 
-        if (operationType != order.getOperationType()){
+        if (operationType != order.getOperationType()) {
             throw new NgDashboardException("Wrong operationType - " + operationType);
         }
 
