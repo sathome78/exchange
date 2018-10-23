@@ -447,33 +447,37 @@ public class NgDashboardController {
         Date from = Date.from(fromLocalDate.atZone(ZoneId.systemDefault()).toInstant());
         Date to = Date.from(toLocalDate.atZone(ZoneId.systemDefault()).toInstant());
 
-        List<StockExchangeStats> statistics =
-                stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+        List<StockExchangeStats> statistics;
+        try {
+            statistics =
+                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+            //set rateHigh
+            statistics.stream()
+                    .map(StockExchangeStats::getPriceHigh)
+                    .max(Comparator.naturalOrder())
+                    .ifPresent(high -> result.setRateHigh(high.toString()));
 
-        //set rateHigh
-        statistics.stream()
-                .map(StockExchangeStats::getPriceHigh)
-                .max(Comparator.naturalOrder())
-                .ifPresent(high -> result.setRateHigh(high.toString()));
+            //set rateLow
+            statistics.stream()
+                    .map(StockExchangeStats::getPriceLow)
+                    .max(Comparator.reverseOrder())
+                    .ifPresent(low -> result.setRateLow(low.toString()));
 
-        //set rateLow
-        statistics.stream()
-                .map(StockExchangeStats::getPriceLow)
-                .max(Comparator.reverseOrder())
-                .ifPresent(low -> result.setRateLow(low.toString()));
-
-        //set volume24h
-        statistics.stream()
-                .map(StockExchangeStats::getVolume)
-                .max(Comparator.naturalOrder())
-                .ifPresent(volume -> result.setVolume24h(volume.toString()));
+            //set volume24h
+            statistics.stream()
+                    .map(StockExchangeStats::getVolume)
+                    .max(Comparator.naturalOrder())
+                    .ifPresent(volume -> result.setVolume24h(volume.toString()));
+        } catch (ArithmeticException e) {
+            logger.error("Error calculating max and min values");
+        }
 
 //        //2 method
 //        List<CoinmarketApiDto> coinmarketDataForActivePairs =
 //                orderService.getDailyCoinmarketData(currencyPair.getName());
 //
 //        result.setDailyStatistic(coinmarketDataForActivePairs);
-        result.setStatistic(statistics);
+//        result.setStatistic(statistics);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
