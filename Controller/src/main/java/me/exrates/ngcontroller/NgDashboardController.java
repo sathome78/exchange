@@ -137,7 +137,7 @@ public class NgDashboardController {
         }
         HashMap<String, String> resultMap = new HashMap<>();
 
-        if (StringUtils.isEmpty(result)) {
+        if (!StringUtils.isEmpty(result)) {
             resultMap.put("message", "success");
             return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
         } else {
