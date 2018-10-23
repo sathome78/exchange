@@ -2488,3 +2488,7 @@ input.copyable:hover{
     max-width: 90%;
     max-height: 90%;
 }
+
+.img-container {
+    pointer-events: none;
+}
