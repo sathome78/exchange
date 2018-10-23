@@ -433,7 +433,7 @@ public class NgDashboardController {
             BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
             BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
             BigDecimal subtract = rateNow.subtract(rateYesterday);
-            result.setChangedValue(String.valueOf(subtract.intValue()));
+            result.setChangedValue(subtract.toString());
             BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
             balanceByCurrency2 = balanceByCurrency1.multiply(rate);
         }
