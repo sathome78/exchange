@@ -425,18 +425,35 @@ public class NgDashboardController {
         result.setBalanceByCurrency1(balanceByCurrency1);
 
         BigDecimal balanceByCurrency2 = new BigDecimal(0);
-        if (!currencyRate.isEmpty()) {
-            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
-            result.setPercentChange(currencyRate.get(0).getPercentChange());
-            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+            if (dto == null) continue;
 
-            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
-            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
+            result.setCurrencyRate(dto.getLastOrderRate());
+            result.setPercentChange(dto.getPercentChange());
+            result.setLastCurrencyRate(dto.getPredLastOrderRate());
+
+            BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+            BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
             BigDecimal subtract = rateNow.subtract(rateYesterday);
             result.setChangedValue(subtract.toString());
-            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+            BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
             balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+
+            break;
+
         }
+//        if (!currencyRate.isEmpty()) {
+//            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
+//            result.setPercentChange(currencyRate.get(0).getPercentChange());
+//            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
+//
+//            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+//            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
+//            BigDecimal subtract = rateNow.subtract(rateYesterday);
+//            result.setChangedValue(subtract.toString());
+//            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
+//            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+//        }
         result.setBalanceByCurrency2(balanceByCurrency2);
 
         //get daily statistic by 2 ways ---  what way is correct ???
