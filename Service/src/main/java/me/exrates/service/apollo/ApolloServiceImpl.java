@@ -4,18 +4,16 @@ package me.exrates.service.apollo;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.CryptoUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -25,7 +23,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +49,8 @@ public class ApolloServiceImpl implements ApolloService {
     private RefillService refillService;
     @Autowired
     private AlgorithmService algorithmService;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     @PostConstruct
     public void init() {
@@ -163,5 +162,11 @@ public class ApolloServiceImpl implements ApolloService {
     @Override
     public String getMainAddress() {
         return MAIN_ADDRESS;
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(MAIN_ADDRESS, address);
     }
 }

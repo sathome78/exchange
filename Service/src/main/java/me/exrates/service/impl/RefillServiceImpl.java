@@ -1045,11 +1045,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public boolean checkAddressForAvailability(String address) {
-    return refillRequestDao.checkAddressForAvailability(address);
-  }
-
-  @Override
   public int getTxOffsetForAddress(String address) {
     return refillRequestDao.getTxOffsetForAddress(address);
   }

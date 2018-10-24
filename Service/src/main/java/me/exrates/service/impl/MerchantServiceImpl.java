@@ -445,6 +445,17 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
+  public boolean isValidDestinationAddress(Integer merchantId, String address) {
+
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(merchantId);
+    if (merchantService instanceof IWithdrawable) {
+      return ((IWithdrawable) merchantService).isValidDestinationAddress(address);
+    } else {
+      return true;
+    }
+  }
+
+  @Override
   public List<String> getWarningsForMerchant(OperationType operationType, Integer merchantId, Locale locale) {
     UserCommentTopicEnum commentTopic;
     switch (operationType) {

@@ -14,6 +14,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +56,9 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Autowired
   private CoreWalletService bitcoinWalletService;
+
+  @Autowired
+  private WithdrawUtils withdrawUtils;
 
   private String backupFolder;
 
@@ -592,6 +596,12 @@ public class BitcoinServiceImpl implements BitcoinService {
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
     return merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
+  }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
   }
 
   @PreDestroy

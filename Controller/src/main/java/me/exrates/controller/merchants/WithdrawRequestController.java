@@ -55,7 +55,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class WithdrawRequestController {
 
-    private static final Logger log = LogManager.getLogger("withdraw");
+  private static final Logger log = LogManager.getLogger("withdraw");
 
   @Autowired
   private MessageSource messageSource;
@@ -70,13 +70,9 @@ public class WithdrawRequestController {
   @Autowired
   private InputOutputService inputOutputService;
   @Autowired
-  private CommissionService commissionService;
-  @Autowired
   private LocaleResolver localeResolver;
   @Autowired
   private SecureService secureServiceImpl;
-  @Autowired
-  private RefillService refillService;
 
   private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
@@ -199,9 +195,10 @@ public class WithdrawRequestController {
     }
 
   @ResponseBody
-  @RequestMapping(value = "/withdraw/check", method = POST)
-  public Boolean checkWalletAddress( @RequestParam String wallet, Principal principal, HttpServletRequest request) {
-    return refillService.checkAddressForAvailability(wallet);
+  @RequestMapping(value = "/withdraw/check", method = GET)
+  public Boolean checkWalletAddress(@RequestParam String wallet, @RequestParam Integer merchant) {
+
+      return merchantService.isValidDestinationAddress(merchant, wallet);
   }
 
   @AdminLoggable

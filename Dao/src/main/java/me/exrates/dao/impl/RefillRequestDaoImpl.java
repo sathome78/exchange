@@ -1096,17 +1096,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public boolean checkAddressForAvailability(String address) {
-    String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where address = :address";
-    int size = namedParameterJdbcTemplate.queryForList(sql, singletonMap("address", address)).size();
-    if (size > 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
   public int getTxOffsetForAddress(String address) {
     String sql = "SELECT confirmed_tx_offset FROM REFILL_REQUEST_ADDRESS where address = :address";
     return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("address", address), Integer.class);

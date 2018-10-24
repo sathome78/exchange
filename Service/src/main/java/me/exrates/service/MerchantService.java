@@ -85,6 +85,8 @@ public interface MerchantService {
 
     void checkDestinationTag(Integer merchantId, String memo);
 
+    boolean isValidDestinationAddress(Integer merchantId, String address);
+
     List<String> getWarningsForMerchant(OperationType operationType, Integer merchantId, Locale locale);
 
     List<Integer> getIdsByProcessType(List<String> processType);

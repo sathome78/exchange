@@ -169,25 +169,23 @@ $(function withdrawCreation() {
                 if (!checkWithdrawParamsEnter(destination)) {
                     return;
                 }
-                var data = destination;
                 $.ajax({
-                    url: '/withdraw/check?wallet=' + destination,
+                    url: '/withdraw/check?wallet=' + destination + '&merchant=' + merchant,
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
-                    type: 'POST',
-                    data: data
+                    type: 'GET'
                 }).success(function (result) {
-                    if(result){
+                    if (result) {
+                        $withdrawParamsDialog.one('hidden.bs.modal', function () {
+                            performWithdraw();
+                        });
+                        $withdrawParamsDialog.modal("hide");
+                    } else {
                         $walletAddressDialog.modal({
                             backdrop: 'static'
                         });
                         $withdrawParamsDialog.modal("hide");
-                    } else {
-                     $withdrawParamsDialog.one('hidden.bs.modal', function () {
-                             performWithdraw();
-                     });
-                $withdrawParamsDialog.modal("hide");
                     }
                 });
             });
