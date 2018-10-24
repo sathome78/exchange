@@ -298,9 +298,10 @@ function setBlockForAll(operationType, blockStatus) {
             contentType: false,
             processData: false,
             success: function () {
-                var $targetIcons = $('#merchant-options-table').find('tr td:nth-child(' + columnNumber + ') i');
-                $($targetIcons).toggleClass('fa-lock red', blockStatus);
-                $($targetIcons).toggleClass('fa-unlock', !blockStatus);
+                window.location.href = '/2a8fy7b07dxe44/merchantAccess';
+                // var $targetIcons = $('#merchant-options-table').find('tr td:nth-child(' + columnNumber + ') i');
+                // $($targetIcons).toggleClass('fa-lock red', blockStatus);
+                // $($targetIcons).toggleClass('fa-unlock', !blockStatus);
             }
         });
     }

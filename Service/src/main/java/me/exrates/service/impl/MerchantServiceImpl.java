@@ -294,7 +294,13 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   @Transactional
   public void setBlockForAll(OperationType operationType, boolean blockStatus) {
-    merchantDao.setBlockForAllNonTransfer(operationType, blockStatus);
+
+    if (blockStatus) {
+      merchantDao.backupBlockState(operationType);
+      merchantDao.setBlockForAllNonTransfer(operationType);
+    } else {
+      merchantDao.restoreBlockState(operationType);
+    }
   }
 
   @Override
