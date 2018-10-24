@@ -1,11 +1,15 @@
 package me.exrates.config;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
+import org.nem.core.model.primitive.Supply;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -320,4 +324,17 @@ public class CryptocurrencyConfig {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
 
+
+
+    @Bean(name = "digicServiceImpl")
+    public XemMosaicService npxsService() {
+        return new XemMosaicServiceImpl(
+                "DIGIT",
+                "DIGIT",
+                new MosaicIdDto("digit", "coin"),
+                1000000,
+                6,
+                new Supply(8999999999L),
+                10);
+    }
 }
