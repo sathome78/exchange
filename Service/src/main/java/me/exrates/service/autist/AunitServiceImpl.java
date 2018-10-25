@@ -5,6 +5,8 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -26,7 +29,7 @@ import java.util.Random;
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @Service
-@PropertySource("classpath:/merchants/aunit.properties")
+/*@PropertySource("classpath:/merchants/aunit.properties")*/
 @Log4j2(topic = "aunit_log") //todo config in xml
 public class AunitServiceImpl implements AunitService {
 
@@ -44,6 +47,8 @@ public class AunitServiceImpl implements AunitService {
     private static final String AUNIT_CURRENCY = "AUNIT";
     private static final String AUNIT_MERCHANT = "Aunit";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
+    private Merchant merchant;
+    private Currency currency;
 
     /*generate 9 digits(Unsigned Integer) for identifying payment */
     @Override
@@ -59,8 +64,8 @@ public class AunitServiceImpl implements AunitService {
     }
 
     private Integer generateUniqDestinationTag(int userId) {
-        Currency currency = currencyService.findByName(AUNIT_CURRENCY); //cache it
-        Merchant merchant = merchantService.findByName(AUNIT_MERCHANT);
+        currency = currencyService.findByName(AUNIT_CURRENCY); //cache it
+        merchant = merchantService.findByName(AUNIT_MERCHANT);
         Optional<Integer> id;
         int destinationTag;
         do {
@@ -85,8 +90,6 @@ public class AunitServiceImpl implements AunitService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName(AUNIT_CURRENCY);
-        Merchant merchant = merchantService.findByName(AUNIT_MERCHANT);
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -96,35 +99,59 @@ public class AunitServiceImpl implements AunitService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
+    }
+
+    @Override
+    public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+            log.error("aunit transaction allready received!!! {}", hash);
+            throw new RuntimeException("tron transaction allready received!!!");
+        }
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .address(address)
+                .merchantId(merchant.getId())
+                .currencyId(currency.getId())
+                .amount(amount)
+                .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                .build();
+        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+        return requestAcceptDto;
+    }
+
+    @Override
+    public void putOnBchExam(RefillRequestAcceptDto requestAcceptDto) {
         try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            refillService.putOnBchExamRefillRequest(
+                    RefillRequestPutOnBchExamDto.builder()
+                            .requestId(requestAcceptDto.getRequestId())
+                            .merchantId(merchant.getId())
+                            .currencyId(currency.getId())
+                            .address(requestAcceptDto.getAddress())
+                            .amount(requestAcceptDto.getAmount())
+                            .hash(requestAcceptDto.getMerchantTransactionId())
+                            .build());
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestAppropriateNotFoundException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            log.error(e);
         }
     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        return null;
+        throw new RuntimeException("Not supported");
     }
 
-    @Override
-    public Boolean additionalTagForWithdrawAddressIsUsed() {
-        return false;
-    }
-
-    @Override
-    public Boolean withdrawTransferringConfirmNeeded() {
-        return false;
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
     //Example for decrypting memo
     public static void main(String[] args) {
         String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
-                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
+                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394359322886950\",\"message\":\"5cb68485625d5a9e95ad47d10f422bcf\"}");
         System.out.println(s);
     }
 }

@@ -1,14 +1,21 @@
 package me.exrates.service.autist;
 
+import lombok.Synchronized;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.websocket.*;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+
+import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @ClientEndpoint
 @Service
@@ -17,6 +24,13 @@ public class AunitNodeServiceImpl {
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
+    /*todo get it from outer file*/
+    String privateKey = "";
+
+    private long latIrreversableBlocknumber = 0;
+
+    @Autowired
+    private AunitService aunitService;
 
     @PostConstruct
     public void init() {
@@ -83,11 +97,6 @@ public class AunitNodeServiceImpl {
         subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(true)));
 
 
-        JSONObject block = new JSONObject();
-        block.put("id", 10);
-        block.put("method", "call");
-        block.put("params", new JSONArray().put(2).put("get_block").put(new JSONArray().put(2568997)));
-
         System.out.println(login);
         endpoint.sendText(login.toString());
 
@@ -112,14 +121,48 @@ public class AunitNodeServiceImpl {
         System.out.println(get_object);
         endpoint.sendText(get_object.toString());
 
-        System.out.println("block with tx " + block.toString());
-        endpoint.sendText(block.toString());
+       /* System.out.println("block with tx " + block.toString());
+        endpoint.sendText(block.toString());*/
 
     }
 
     @OnMessage
     public void onMessage(String msg) {
         System.out.println(msg);
+       /* if (msg.contains("trx")) {
 
+        } else if (msg.contains("last_irreversible_block_num")) {
+            parseAndSetIrreversableBlock(msg);
+        }*/
+    }
+
+    private void processTransaction(String trx) {
+        String memo = "";
+        String message = decryptBTSmemo(privateKey, memo);
+        long rawAmount = 1;
+        String txHash = "fwefwef";
+        long txBlock = 2;
+        BigDecimal amount = reduceAmount(rawAmount);
+        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(txHash, message, );
+        if (txBlock >= latIrreversableBlocknumber) {
+            aunitService.processPayment();
+        } else {
+            aunitService.putOnBchExam();
+        }
+
+    }
+
+    private BigDecimal reduceAmount(long amount) {
+        return new BigDecimal(amount).multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
+    }
+
+    private void parseAndSetIrreversableBlock(String msg) {
+        JSONObject message = new JSONObject(msg);
+        long blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getLong("last_irreversible_block_num");
+        synchronized (this) {
+            if (blockNumber > latIrreversableBlocknumber) {
+                latIrreversableBlocknumber = blockNumber;
+            }
+        }
     }
 }
