@@ -58,14 +58,9 @@ public class NeoServiceImpl implements NeoService {
 
     private String mainAccount;
     private Integer minConfirmations;
-    @Autowired
-    private MessageSource messageSource;
 
     @Autowired
     private WithdrawUtils withdrawUtils;
-
-    private @Value("${neo.main.address}") String mainAccount;
-    private @Value("${neo.min.confirmations}") Integer minConfirmations;
 
     private Map<String, AssetMerchantCurrencyDto> neoAssetMap;
     private final String neoSpecParamName = "LastRecievedBlock";
