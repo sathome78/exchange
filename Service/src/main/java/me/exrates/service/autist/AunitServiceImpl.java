@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
+
 @Service
 @PropertySource("classpath:/merchants/aunit.properties")
 @Log4j2(topic = "aunit)log") //todo config in xml
@@ -106,7 +108,7 @@ public class AunitServiceImpl implements AunitService {
 
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         return null;
     }
 
@@ -118,5 +120,12 @@ public class AunitServiceImpl implements AunitService {
     @Override
     public Boolean withdrawTransferringConfirmNeeded() {
         return false;
+    }
+
+    //Example for decrypting memo
+    public static void main(String[] args) {
+        String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
+                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
+        System.out.println(s);
     }
 }
