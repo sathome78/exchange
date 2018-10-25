@@ -6,16 +6,20 @@ import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
 import me.exrates.model.dto.openAPI.OrderParamsDto;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
@@ -46,6 +51,12 @@ public class OpenApiOrderController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserOperationService userOperationService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * @api {post} /openapi/v1/orders/create Create order
@@ -72,6 +83,12 @@ public class OpenApiOrderController {
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
         String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
+        }
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
                 orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
         return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
@@ -119,6 +136,12 @@ public class OpenApiOrderController {
         String orderIdString = retrieveParamFormBody(params, "order_id", true);
         Integer orderId = Integer.parseInt(orderIdString);
         String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
+        }
         orderService.acceptOrder(userEmail, orderId);
         return Collections.singletonMap("success", true);
     }
