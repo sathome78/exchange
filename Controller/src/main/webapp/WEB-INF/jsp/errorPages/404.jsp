@@ -20,7 +20,7 @@
 
     <%----------------------------------------%>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+  <%--  <%@include file="../tools/alexa.jsp" %>--%>
     <%--<%@include file="tools/yandex.jsp" %>--%>
 
     <%--INTERCOM CHAT--%>

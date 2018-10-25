@@ -6,7 +6,7 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@include file="../tools/google_head.jsp"%>
-<%@include file="../tools/alexa.jsp" %>
+<%--<%@include file="../tools/alexa.jsp" %>--%>
 <%-- <%@include file="../tools/yandex.jsp" %> --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -19,12 +19,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
 <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+<link rel="stylesheet" href="<c:url value="/client/css/jqueryDatatables.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/select.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/buttons.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
@@ -33,14 +32,11 @@
 <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
 
-<%--<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
-
-<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>--%>
 
 <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
 
 
-<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/datatables.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.select.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.buttons.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/buttons.html5.min.js'/>"></script>
@@ -63,7 +59,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
 
 
-<script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>

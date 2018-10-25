@@ -1,22 +1,40 @@
 package me.exrates.config;
 
+import info.blockchain.api.exchangerates.Currency;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
+import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.neo.NeoService;
+import me.exrates.service.neo.NeoServiceImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.nem.core.model.primitive.Supply;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Log4j2(topic = "config")
 @Configuration
 public class CryptocurrencyConfig {
+
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
@@ -337,4 +355,29 @@ public class CryptocurrencyConfig {
                 new Supply(8999999999L),
                 10);
     }
+    //NEO and Forks
+    @Bean(name = "neoServiceImpl")
+    public NeoService neoService() {
+        Merchant mainMerchant = merchantService.findByName(NeoAsset.NEO.name());
+        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.NEO.name());
+        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+            put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, mainMerchant, mainCurrency));
+            put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantService.findByName(NeoAsset.GAS.name()), currencyService.findByName(NeoAsset.GAS.name())));
+        }};
+        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/neo.properties");
+    }
+
+    @Bean(name = "kazeServiceImpl")
+    public NeoService kazeService() {
+        Merchant mainMerchant = merchantService.findByName(NeoAsset.KAZE.name());
+        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.KAZE.name());
+        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+            put(NeoAsset.KAZE.getId(), new AssetMerchantCurrencyDto(NeoAsset.KAZE, mainMerchant, mainCurrency));
+            put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
+        }};
+        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
+    }
+
+
+
 }

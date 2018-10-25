@@ -20,14 +20,14 @@
     <%--INTERCOM CHAT--%>
     <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
-    <%@include file="../tools/alexa.jsp" %>
+   <%-- <%@include file="../tools/alexa.jsp" %>--%>
 
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value='/client/js/jquery_1.11.3.min.js'/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/font-awesome.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
@@ -45,7 +45,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
 
     <%----%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
@@ -57,7 +57,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>

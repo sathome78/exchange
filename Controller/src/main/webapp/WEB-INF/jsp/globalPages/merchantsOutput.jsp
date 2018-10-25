@@ -20,7 +20,7 @@
     <%--INTERCOM CHAT--%>
     <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
-    <%@include file="../tools/alexa.jsp" %>
+    <%--<%@include file="../tools/alexa.jsp" %>--%>
 
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
@@ -41,7 +41,7 @@
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/withdrawCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
@@ -54,7 +54,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/submits/finPassCheck.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
 
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>

@@ -20,7 +20,7 @@
     <%--ZOPIM CHAT--%>
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
-    <%@include file="../tools/alexa.jsp" %>
+    <%--<%@include file="../tools/alexa.jsp" %>--%>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -40,7 +40,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/news-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
@@ -51,10 +51,9 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
-    <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+    <script type="text/javascript" src="<c:url value='/client/js/tinymce.min.js'/>"></script>
     <%----------%>
     <%--... Alerts --%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
