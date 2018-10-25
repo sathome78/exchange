@@ -27,7 +27,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @Service
 @PropertySource("classpath:/merchants/aunit.properties")
-@Log4j2(topic = "aunit)log") //todo config in xml
+@Log4j2(topic = "aunit_log") //todo config in xml
 public class AunitServiceImpl implements AunitService {
 
     private String systemAddress = "some0adm0address";
@@ -105,7 +105,6 @@ public class AunitServiceImpl implements AunitService {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
     }
-
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
