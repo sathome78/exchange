@@ -82,7 +82,6 @@ public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
@@ -90,9 +89,6 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final StopOrderService stopOrderService;
     private final NgOrderService ngOrderService;
-    private final WalletService walletService;
-    private final StopOrderDao stopOrderDao;
-    private final OrderDao orderDao;
     private final StockExchangeService stockExchangeService;
 
     @Autowired
@@ -103,9 +99,6 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  StopOrderService stopOrderService,
                                  NgOrderService ngOrderService,
-                                 WalletService walletService,
-                                 StopOrderDao stopOrderDao,
-                                 OrderDao orderDao,
                                  StockExchangeService stockExchangeService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
@@ -114,9 +107,6 @@ public class NgDashboardController {
         this.localeResolver = localeResolver;
         this.stopOrderService = stopOrderService;
         this.ngOrderService = ngOrderService;
-        this.walletService = walletService;
-        this.stopOrderDao = stopOrderDao;
-        this.orderDao = orderDao;
         this.stockExchangeService = stockExchangeService;
     }
 
@@ -167,10 +157,10 @@ public class NgDashboardController {
         boolean result;
         switch (baseType) {
             case STOP_LIMIT:
-                result = processUpdateStopOrder(user, inputOrder);
+                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
                 break;
             case LIMIT:
-                result = processUpdateOrder(user, inputOrder);
+                result = ngOrderService.processUpdateOrder(user, inputOrder);
                 break;
             case ICO:
                 throw new NgDashboardException("Not supported type - ICO");
@@ -305,110 +295,6 @@ public class NgDashboardController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    private boolean processUpdateStopOrder(User user, InputCreateOrderDto inputOrder) {
-        boolean result = false;
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
-        OrderCreateDto stopOrder = stopOrderService.getOrderById(orderId, true);
-
-        if (stopOrder == null) {
-            throw new NgDashboardException("Order is not exist");
-        }
-
-        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
-
-        if (operationType != stopOrder.getOperationType()) {
-            throw new NgDashboardException("Wrong operationType - " + operationType);
-        }
-
-        if (stopOrder.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
-            throw new NgDashboardException("Not support change currency pair");
-        }
-
-        if (stopOrder.getUserId() != user.getId()) {
-            throw new NgDashboardException("Order was created by another user");
-        }
-        if (stopOrder.getStatus() != OrderStatus.OPENED) {
-            throw new NgDashboardException("Order status is not open");
-        }
-
-        OrderCreateDto prepareOrder = ngOrderService.prepareOrder(inputOrder);
-
-        int outWalletId;
-        BigDecimal outAmount;
-
-        if (prepareOrder.getOperationType() == OperationType.BUY) {
-            outWalletId = prepareOrder.getWalletIdCurrencyConvert();
-            outAmount = prepareOrder.getTotalWithComission();
-        } else {
-            outWalletId = prepareOrder.getWalletIdCurrencyBase();
-            outAmount = prepareOrder.getAmount();
-        }
-
-        if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
-            ExOrder exOrder = new ExOrder(prepareOrder);
-            OrderBaseType orderBaseType = prepareOrder.getOrderBaseType();
-            if (orderBaseType == null) {
-                CurrencyPairType type = exOrder.getCurrencyPair().getPairType();
-                orderBaseType = type == CurrencyPairType.ICO ? OrderBaseType.ICO : OrderBaseType.LIMIT;
-                exOrder.setOrderBaseType(orderBaseType);
-            }
-            StopOrder order = new StopOrder(exOrder);
-            result = stopOrderDao.updateOrder(orderId, order);
-        }
-        return result;
-    }
-
-    private boolean processUpdateOrder(User user, InputCreateOrderDto inputOrder) {
-
-        boolean result = false;
-
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
-        ExOrder order = orderService.getOrderById(orderId);
-        if (order == null) {
-            throw new NgDashboardException("Order is not exist");
-        }
-        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
-
-        if (operationType != order.getOperationType()) {
-            throw new NgDashboardException("Wrong operationType - " + operationType);
-        }
-
-        if (order.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
-            throw new NgDashboardException("Not support change currency pair");
-        }
-
-        if (order.getUserId() != user.getId()) {
-            throw new NgDashboardException("Order was created by another user");
-        }
-        if (order.getStatus() != OrderStatus.OPENED) {
-            throw new NgDashboardException("Order status is not open");
-        }
-
-        OrderCreateDto prepareOrder = ngOrderService.prepareOrder(inputOrder);
-
-        int outWalletId;
-        BigDecimal outAmount;
-        if (prepareOrder.getOperationType() == OperationType.BUY) {
-            outWalletId = prepareOrder.getWalletIdCurrencyConvert();
-            outAmount = prepareOrder.getTotalWithComission();
-        } else {
-            outWalletId = prepareOrder.getWalletIdCurrencyBase();
-            outAmount = prepareOrder.getAmount();
-        }
-
-        if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
-            ExOrder exOrder = new ExOrder(prepareOrder);
-            OrderBaseType orderBaseType = prepareOrder.getOrderBaseType();
-            if (orderBaseType == null) {
-                CurrencyPairType type = exOrder.getCurrencyPair().getPairType();
-                orderBaseType = type == CurrencyPairType.ICO ? OrderBaseType.ICO : OrderBaseType.LIMIT;
-                exOrder.setOrderBaseType(orderBaseType);
-            }
-            result = orderDao.updateOrder(orderId, exOrder);
-        }
-        return result;
-    }
-
 
     @GetMapping("/info/{currencyPairId}")
     public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
@@ -488,13 +374,6 @@ public class NgDashboardController {
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values");
         }
-
-//        //2 method
-//        List<CoinmarketApiDto> coinmarketDataForActivePairs =
-//                orderService.getDailyCoinmarketData(currencyPair.getName());
-//
-//        result.setDailyStatistic(coinmarketDataForActivePairs);
-//        result.setStatistic(statistics);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
