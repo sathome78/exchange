@@ -48,6 +48,10 @@ public interface MerchantDao {
 
   void setBlockForAllNonTransfer(OperationType operationType);
 
+  boolean isBlockStateBackupValid(OperationType operationType);
+
+  boolean isBlockStateValid(OperationType operationType);
+
   void backupBlockState(OperationType operationType);
 
   void restoreBlockState(OperationType operationType);

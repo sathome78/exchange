@@ -296,10 +296,15 @@ public class MerchantServiceImpl implements MerchantService {
   public void setBlockForAll(OperationType operationType, boolean blockStatus) {
 
     if (blockStatus) {
-      merchantDao.backupBlockState(operationType);
+      if(merchantDao.isBlockStateValid(operationType)){
+        merchantDao.backupBlockState(operationType);
+      }
       merchantDao.setBlockForAllNonTransfer(operationType);
     } else {
-      merchantDao.restoreBlockState(operationType);
+      //check for do not restore all 1 or all 0
+      if(merchantDao.isBlockStateBackupValid(operationType)){
+        merchantDao.restoreBlockState(operationType);
+      }
     }
   }
 

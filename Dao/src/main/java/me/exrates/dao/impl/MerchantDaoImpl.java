@@ -386,6 +386,27 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
+  public boolean isBlockStateBackupValid(OperationType operationType) {
+
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "select distinct MC." + blockField + "_backup from MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "WHERE M.process_type != 'TRANSFER'";
+    return jdbcTemplate.queryForList(sql).size() > 1;
+  }
+
+  @Override
+  public boolean isBlockStateValid(OperationType operationType) {
+
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "select distinct MC." + blockField + " from MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "WHERE M.process_type != 'TRANSFER'";
+    return jdbcTemplate.queryForList(sql).size() > 1;
+  }
+
+
+  @Override
   public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
     String blockField = resolveBlockFieldByOperationType(operationType);
     String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block" +
