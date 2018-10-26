@@ -114,7 +114,7 @@ public class AunitNodeServiceImpl {
         JSONObject subscribe = new JSONObject();
         subscribe.put("id", 7);
         subscribe.put("method", "call");
-        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(true)));
+        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(false)));
 
 
         System.out.println(login);
