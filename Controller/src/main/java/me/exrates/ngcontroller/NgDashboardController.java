@@ -14,21 +14,25 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.ngcontroller.service.impl.OrderMockService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +49,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.QueryParam;
@@ -55,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -66,12 +72,17 @@ public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
+    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS;
+    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS;
+
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
+    private final OrderMockService orderMockService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${angular.write.mode}")
     private boolean WRITE_MODE;
@@ -82,20 +93,38 @@ public class NgDashboardController {
                                  OrderService orderService,
                                  UserService userService,
                                  LocaleResolver localeResolver,
-                                 NgOrderService ngOrderService) {
+                                 NgOrderService ngOrderService,
+                                 OrderMockService orderMockService,
+                                 ApplicationEventPublisher eventPublisher) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
+        this.orderMockService = orderMockService;
+        this.eventPublisher = eventPublisher;
+    }
+
+    @PostConstruct
+    private void initData() {
+        orderMockService.initOpenOrders(OPEN_ORDERS);
+        orderMockService.initClosedOrders(CLOSED_ORDERS);
     }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        String result = ngOrderService.createOrder(inputOrder);
+        String result;
+        if (!WRITE_MODE) {
+            result = ngOrderService.createOrder(inputOrder);
+        } else {
+            result = "TEST_MODE";
+            eventPublisher.publishEvent(new CreateOrderEvent(orderMockService.mockOrderFromInputOrderDTO(inputOrder)));
+
+        }
         HashMap<String, String> resultMap = new HashMap<>();
+
         if (!StringUtils.isEmpty(result)) {
             resultMap.put("message", "success");
             return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
@@ -107,7 +136,13 @@ public class NgDashboardController {
 
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
-        Integer result = (Integer) orderService.deleteOrderByAdmin(id);
+        Integer result;
+        if (!WRITE_MODE) {
+            result = (Integer) orderService.deleteOrderByAdmin(id);
+        } else {
+            result = 0;
+        }
+
         return result == 1 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
@@ -123,17 +158,22 @@ public class NgDashboardController {
 
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
-        switch (baseType) {
-            case STOP_LIMIT:
-                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
-                break;
-            case LIMIT:
-                result = ngOrderService.processUpdateOrder(user, inputOrder);
-                break;
-            case ICO:
-                throw new NgDashboardException("Not supported type - ICO");
-            default:
-                throw new NgDashboardException("Unknown type - " + baseType);
+
+        if (!WRITE_MODE) {
+            switch (baseType) {
+                case STOP_LIMIT:
+                    result = ngOrderService.processUpdateStopOrder(user, inputOrder);
+                    break;
+                case LIMIT:
+                    result = ngOrderService.processUpdateOrder(user, inputOrder);
+                    break;
+                case ICO:
+                    throw new NgDashboardException("Not supported type - ICO");
+                default:
+                    throw new NgDashboardException("Unknown type - " + baseType);
+            }
+        } else {
+            result = true;
         }
 
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
