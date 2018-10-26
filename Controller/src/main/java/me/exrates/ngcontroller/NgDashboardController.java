@@ -24,6 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +61,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@PropertySource("classpath:angular.properties")
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
@@ -69,6 +72,9 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
+
+    @Value("${angular.write.mode}")
+    private boolean WRITE_MODE;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -90,7 +96,6 @@ public class NgDashboardController {
 
         String result = ngOrderService.createOrder(inputOrder);
         HashMap<String, String> resultMap = new HashMap<>();
-
         if (!StringUtils.isEmpty(result)) {
             resultMap.put("message", "success");
             return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
