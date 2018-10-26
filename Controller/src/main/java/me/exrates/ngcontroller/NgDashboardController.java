@@ -4,10 +4,8 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
-import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
@@ -51,16 +49,13 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard/",
@@ -71,8 +66,8 @@ public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS;
-    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS;
+//    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS;
+//    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS;
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -105,11 +100,11 @@ public class NgDashboardController {
         this.eventPublisher = eventPublisher;
     }
 
-    @PostConstruct
-    private void initData() {
-        ngMockService.initOpenOrders(OPEN_ORDERS);
-        ngMockService.initClosedOrders(CLOSED_ORDERS);
-    }
+//    @PostConstruct
+//    private void initData() {
+//        ngMockService.initOpenOrders(OPEN_ORDERS);
+//        ngMockService.initClosedOrders(CLOSED_ORDERS);
+//    }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
@@ -302,30 +297,6 @@ public class NgDashboardController {
         ResponseInfoCurrencyPairDto result = ngOrderService.getCurrencyPairInfo(currencyPairId, user);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @GetMapping("/history")
-    public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
-
-        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
-        List<CandleDto> result = new ArrayList<>();
-        if (currencyPair == null) {
-            HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(ngOrderService.filterDataPeriod(result, from, to, resolution));
-            errors.put("s", "error");
-            errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
-        }
-
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
