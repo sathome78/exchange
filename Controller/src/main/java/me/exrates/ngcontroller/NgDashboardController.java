@@ -14,7 +14,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.service.impl.OrderMockService;
+import me.exrates.ngcontroller.service.impl.NgMockService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -32,7 +32,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -81,7 +80,7 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
-    private final OrderMockService orderMockService;
+    private final NgMockService ngMockService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Value("${angular.write.mode}")
@@ -94,7 +93,7 @@ public class NgDashboardController {
                                  UserService userService,
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
-                                 OrderMockService orderMockService,
+                                 NgMockService ngMockService,
                                  ApplicationEventPublisher eventPublisher) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
@@ -102,14 +101,14 @@ public class NgDashboardController {
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.orderMockService = orderMockService;
+        this.ngMockService = ngMockService;
         this.eventPublisher = eventPublisher;
     }
 
     @PostConstruct
     private void initData() {
-        orderMockService.initOpenOrders(OPEN_ORDERS);
-        orderMockService.initClosedOrders(CLOSED_ORDERS);
+        ngMockService.initOpenOrders(OPEN_ORDERS);
+        ngMockService.initClosedOrders(CLOSED_ORDERS);
     }
 
     @PostMapping("/order")
@@ -120,7 +119,7 @@ public class NgDashboardController {
             result = ngOrderService.createOrder(inputOrder);
         } else {
             result = "TEST_MODE";
-            eventPublisher.publishEvent(new CreateOrderEvent(orderMockService.mockOrderFromInputOrderDTO(inputOrder)));
+            eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
 
         }
         HashMap<String, String> resultMap = new HashMap<>();
@@ -304,7 +303,6 @@ public class NgDashboardController {
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
-
 
     @GetMapping("/history")
     public ResponseEntity getCandleChartHistoryData(

@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.service.impl;
 
+import com.sun.tools.javac.util.List;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -15,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class OrderMockService {
+public class NgMockService {
 
     @Autowired
     OrderService orderService;
@@ -29,9 +32,10 @@ public class OrderMockService {
     CurrencyService currencyService;
 
     public void initOpenOrders(Map<CurrencyPair, Set<OrderWideListDto>> openOrders) {
-        currencyService
-                .findPermitedCurrencyPairs(CurrencyPairType.MAIN)
-                .forEach(cp -> openOrders.putIfAbsent(cp, new LinkedHashSet<>()));
+//        currencyService
+//                .findPermitedCurrencyPairs(CurrencyPairType.MAIN)
+//                .forEach(cp -> openOrders.putIfAbsent(cp, new LinkedHashSet<>()));
+        openOrders.putAll(getOpenOrders());
     }
 
     public void initClosedOrders(Map<CurrencyPair, Set<OrderWideListDto>> openOrders) {
@@ -40,7 +44,11 @@ public class OrderMockService {
                 .forEach(cp -> openOrders.putIfAbsent(cp, new LinkedHashSet<>()));
     }
 
-    private LinkedHashSet<OrderWideListDto> getOpenOrders() {
+    private Map<CurrencyPair, Set<OrderWideListDto>> getOpenOrders() {
+
+        Map<CurrencyPair, Set<OrderWideListDto>> openOrders = new ConcurrentHashMap<>();
+
+        CurrencyPair currencyPairByIdBtcUsd = currencyService.findCurrencyPairById(1);
 
         OrderWideListDto order1 = new OrderWideListDto();
         order1.setId(1);
@@ -117,6 +125,9 @@ public class OrderMockService {
         order5.setCurrencyPairName("BTC/USD");
         order5.setDateCreation(LocalDateTime.now().minusHours(2));
 
+        Set<OrderWideListDto> usdBtc = new HashSet<>(List.of(order1, order2, order3, order4, order5));
+        openOrders.put(currencyPairByIdBtcUsd, usdBtc);
+
         OrderWideListDto order6 = new OrderWideListDto();
         order6.setId(6);
         order6.setOperationType(OperationType.SELL.name());
@@ -146,6 +157,10 @@ public class OrderMockService {
         order7.setCurrencyPairId(2);
         order7.setCurrencyPairName("BTC/EUR");
         order7.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(8));
+
+        CurrencyPair btcEur = currencyService.findCurrencyPairById(2);
+        Set<OrderWideListDto> usdBtcSet = new HashSet<>(List.of(order6, order7));
+        openOrders.put(btcEur, usdBtcSet);
 
         OrderWideListDto order8 = new OrderWideListDto();
         order8.setId(8);
@@ -192,7 +207,11 @@ public class OrderMockService {
         order10.setCurrencyPairName("ETH/BTC");
         order10.setDateCreation(LocalDateTime.now().minusHours(2).minusMinutes(2));
 
-        return null;
+        CurrencyPair ethBtc = currencyService.findCurrencyPairById(41);
+        Set<OrderWideListDto> ethBtcSet = new HashSet<>(List.of(order8, order9, order10));
+        openOrders.put(ethBtc, ethBtcSet);
+
+        return openOrders;
     }
 
     public ExOrder mockOrderFromInputOrderDTO(InputCreateOrderDto inputOrder) {
