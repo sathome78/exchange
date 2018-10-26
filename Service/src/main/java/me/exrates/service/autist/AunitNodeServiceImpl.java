@@ -1,8 +1,13 @@
 package me.exrates.service.autist;
 
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
@@ -10,6 +15,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -26,12 +32,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static me.exrates.service.autist.AunitServiceImpl.AUNIT_CURRENCY;
+import static me.exrates.service.autist.AunitServiceImpl.AUNIT_MERCHANT;
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @Log4j2(topic = "aunit")
 @PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
+@Scope(scopeName = "prototype")
 public class AunitNodeServiceImpl {
 
     private @Value("${aunit.node.ws}")String wsUrl;
@@ -40,10 +49,19 @@ public class AunitNodeServiceImpl {
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
-    /*todo get it from outer file*/
-    String privateKey = "";
+    private final Merchant merchaintId;
+    private final Currency currencyId;
 
-    private long latIrreversableBlocknumber = 0;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+
+    /*todo get it from outer file*/
+    String privateKey = "5J15nNH6AvjLY6kryEA1VNZ9s6zkqFsFzHZGGtYBwL3BF5gG9Qd";
+    final String accountAddress = "1.2.20683"; //todo
+
+    private int latIrreversableBlocknumber = 0;
 
     @Autowired
     private AunitService aunitService;
@@ -52,11 +70,15 @@ public class AunitNodeServiceImpl {
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    public AunitNodeServiceImpl() {
+        this.merchaintId = merchantService.findByName(AUNIT_CURRENCY);
+        this.currencyId = currencyService.findByName(AUNIT_MERCHANT);;
+    }
+
     @PostConstruct
     public void init() {
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
-        scheduler.scheduleAtFixedRate(this::checkUnconfirmed, 3, 5, TimeUnit.MINUTES);
     }
 
     private void connectAndSubscribe() {
@@ -147,47 +169,54 @@ public class AunitNodeServiceImpl {
 
     }
 
-    @OnMessage
+    @OnMessage()
     public void onMessage(String msg) {
-        System.out.println(msg);
-        /*todo define type of message and call right method*/
-       /* if (msg.contains("trx")) {
+        String attributes = new JSONObject(msg).names().toString();
 
-        } else if (msg.contains("last_irreversible_block_num")) {
-            parseAndSetIrreversableBlock(msg);
-        }*/
+        if(attributes.contains("method")) setIrreversableBlock(msg);
+        else if (attributes.contains("id")) processIrreversebleBlock(msg);
+        else log.error("Unrecognized msg from node: " + msg);
+
+        System.out.println(msg);
     }
 
-    private void parseAndProcessTransaction(String trx) {
-        /*-----------------------------*/
-        /*todo parse tx*/
-        String memo = "";
-        String address = decryptBTSmemo(privateKey, memo);
-        long rawAmount = 1;
-        String txHash = "fwefwef";
-        long txBlock = 2;
-        /*-------------*/
-        BigDecimal amount = reduceAmount(rawAmount);
-        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(txHash, address, amount);
-        if (txBlock >= latIrreversableBlocknumber) {
-            prepareAndProcessTx(txHash, address, amount);
-        } else {
-            aunitService.putOnBchExam(requestAcceptDto);
+    @SneakyThrows
+    private String getBlock(int blockNum) {
+        JSONObject get_object = new JSONObject();
+        get_object.put("id", 6);
+        get_object.put("method", "call");
+        get_object.put("params", new JSONArray().put(2).put("get_objects").put(new JSONArray().put(new JSONArray().put("2.1.0"))));
+        endpoint.sendText(get_object.toString());
+    }
+
+    private void processIrreversebleBlock(String trx) {
+        JSONObject block = new JSONObject(trx);
+        JSONArray transactions = block.getJSONObject("result").getJSONArray("operations");
+        List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchaintId.getId(), currencyId.getId());
+
+        for (int i = 0; i < transactions.length(); i++) {
+            JSONObject transaction = transactions.getJSONArray(i).getJSONObject(1);
+            if(!transaction.getString("to").equals(accountAddress)){
+                System.out.println("Not our accountAddress, continue");
+                continue;
+            }
+            makeRefill(lisfOfMemo, transaction);
         }
 
     }
 
-    private void checkUnconfirmed() {
-        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(aunitService.getMerchant().getId(), aunitService.getCurrency().getId());
-        dtos.forEach(p->{
-            try {
-                if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
-                   prepareAndProcessTx(p.getAddress(), p.getMerchantTransactionId(), p.getAmount());
-                }
-            } catch (Exception e) {
-                log.error(e);
+    @SneakyThrows
+    private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
+        JSONObject memo = transaction.getJSONObject("memo");
+        try {
+            String memoText = decryptBTSmemo(privateKey, memo.toString());
+            if(lisfOfMemo.contains(memoText)){
+                BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
+                prepareAndProcessTx(transaction.getString("signatures"), memoText, amount);
             }
-        });
+        } catch (NoSuchAlgorithmException e){
+            System.out.println(e.getClass());
+        }
     }
 
     private void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
@@ -202,21 +231,17 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    /*todo*/
-    private boolean checkIsTransactionConfirmed(String txHash) {
-        return true;
-    }
-
-    private BigDecimal reduceAmount(long amount) {
+    private BigDecimal reduceAmount(int amount) {
         return new BigDecimal(amount).multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
-    private void parseAndSetIrreversableBlock(String msg) {
+    private void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
-        long blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getLong("last_irreversible_block_num");
+        int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt("last_irreversible_block_num");
         synchronized (this) {
             if (blockNumber > latIrreversableBlocknumber) {
                 latIrreversableBlocknumber = blockNumber;
+                getBlock(latIrreversableBlocknumber);
             }
         }
     }

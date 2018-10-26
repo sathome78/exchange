@@ -197,6 +197,11 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
+  public List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId){
+    return refillRequestDao.getListOfValidAddressByMerchantIdAndCurrency(merchantId, currencyId);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId) {
     return refillRequestDao.findMerchantIdByAddressAndCurrencyAndUser(address, currencyId, userId);

@@ -6,7 +6,6 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -16,11 +15,13 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,11 +47,21 @@ public class AunitServiceImpl implements AunitService {
     private RefillService refillService;
 
 
-    private static final String AUNIT_CURRENCY = "AUNIT";
-    private static final String AUNIT_MERCHANT = "Aunit";
+    static final String AUNIT_CURRENCY = "AUNIT";
+    static final String AUNIT_MERCHANT = "Aunit";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    private Merchant merchant;
-    private Currency currency;
+    private final Merchant merchant;
+    private final Currency currency;
+
+    public AunitServiceImpl() {
+        currency = currencyService.findByName(AUNIT_CURRENCY);
+        merchant = merchantService.findByName(AUNIT_MERCHANT);
+    }
+
+    @Bean
+    public AunitNodeServiceImpl aunitNodeService(){
+        return new AunitNodeServiceImpl()
+    }
 
     @Override
     public Merchant getMerchant() {
@@ -70,14 +81,13 @@ public class AunitServiceImpl implements AunitService {
                 new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
         DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
-            put("address", myFormatter.format(destinationTag));
+            put("accountAddress", myFormatter.format(destinationTag));
             put("message", message);
         }};
     }
 
     private Integer generateUniqDestinationTag(int userId) {
-        currency = currencyService.findByName(AUNIT_CURRENCY); //cache it
-        merchant = merchantService.findByName(AUNIT_MERCHANT);
+
         Optional<Integer> id;
         int destinationTag;
         do {
@@ -100,7 +110,7 @@ public class AunitServiceImpl implements AunitService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        String address = params.get("address");
+        String address = params.get("accountAddress");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -118,7 +128,7 @@ public class AunitServiceImpl implements AunitService {
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
             log.error("aunit transaction allready received!!! {}", hash);
-            throw new RuntimeException("tron transaction allready received!!!");
+            throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -161,7 +171,7 @@ public class AunitServiceImpl implements AunitService {
     }
 
     //Example for decrypting memo
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
                 "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394359322886950\",\"message\":\"5cb68485625d5a9e95ad47d10f422bcf\"}");
         System.out.println(s);

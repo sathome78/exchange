@@ -31,7 +31,7 @@ public class PublicKey implements ByteTransformable {
     public PublicKey(String address) {
         if (address != null && !"".equals(address)) {
             if (address.length() != 55) {
-                LOGGER.error("The provided address '{}' has an invalid length and will not be set.", address);
+                LOGGER.error("The provided accountAddress '{}' has an invalid length and will not be set.", address);
                 this.setPublicKey(null);
             } else {
                 this.prefix = address.substring(0, 5);
@@ -49,7 +49,7 @@ public class PublicKey implements ByteTransformable {
                 this.setPublicKey(ECKey.fromPublicOnly(potentialPublicKey));
             }
         } else {
-            LOGGER.warn("An empty address has been provided. This can cause some problems if you plan to broadcast this key.");
+            LOGGER.warn("An empty accountAddress has been provided. This can cause some problems if you plan to broadcast this key.");
             this.setPublicKey(null);
         }
 
@@ -73,7 +73,7 @@ public class PublicKey implements ByteTransformable {
         try {
             return this.prefix + org.bitcoinj.core.Base58.encode(Bytes.concat(new byte[][]{this.toByteArray(), Arrays.copyOfRange(this.calculateChecksum(this.toByteArray()), 0, 4)}));
         } catch (NullPointerException | SteemInvalidTransactionException var2) {
-            LOGGER.debug("An error occured while generating an address from a public key.", var2);
+            LOGGER.debug("An error occured while generating an accountAddress from a public key.", var2);
             return "";
         }
     }

@@ -73,13 +73,13 @@ public class GrapheneUtils {
         return actualChecksum;
     }
 
-    // use this method to retrieve the address representation of the public key
+    // use this method to retrieve the accountAddress representation of the public key
     // associated with a particular private key
     // prefix = STM, BTS, EOS, GLS, etc...
     // privKey is the ECKey object holding the associated private key
     public static String getAddressFromPublicKey(String prefix, eu.bittrade.crypto.core.ECKey privKey) {
         try {
-            // Recreate the address from the public key.
+            // Recreate the accountAddress from the public key.
             byte [] pubBytes;
             if (privKey.isCompressed()) pubBytes = privKey.getPubKey(); else
                 pubBytes = org.bitcoinj.core.ECKey.fromPublicOnly(org.bitcoinj.core.ECKey.compressPoint(privKey.getPubKeyPoint())).getPubKey();
