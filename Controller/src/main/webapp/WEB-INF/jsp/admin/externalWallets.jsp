@@ -97,7 +97,6 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div id="reserved-wallets-id">
-                            <c:forEach var="rw" items="reservedWallets"
                             <%--<div id="reserve-wallet-1">--%>
                                 <%--<div class="col-md-4">--%>
                                     <%--<input name="wallet" type="text" placeholder="Address/Name">--%>

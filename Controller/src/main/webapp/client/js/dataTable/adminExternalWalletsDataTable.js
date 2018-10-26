@@ -1,6 +1,5 @@
 var externalWalletsDataTable;
 var globalTitle;
-var reservedWallets = [];
 
 $(document).ready(function () {
 
@@ -13,8 +12,6 @@ $(document).ready(function () {
     getSummaryInUSD();
     getSummaryInBTC();
     $($externalWalletsTable).find('tbody').on('click', 'tr', function () {
-        // var titleElement = document.getElementsByClassName("modal-title");
-
         var rowData = externalWalletsDataTable.row(this).data();
         var currencyId = rowData.currencyId;
         var currencyName = rowData.currencyName;
@@ -30,20 +27,20 @@ $(document).ready(function () {
 
         getReservedWallets(currencyId);
 
-        $($editExternalWalletsForm).find('input[name="currencyId"]').val(currencyId);
-        // $('#currency-name').val(currencyName);
-        $($editExternalWalletsForm).find('input[name="usdRate"]').val(usdRate);
-        $($editExternalWalletsForm).find('input[name="btcRate"]').val(btcRate);
-        $($editExternalWalletsForm).find('input[name="mainBalance"]').val(mainBalance);
-        $($editExternalWalletsForm).find('input[name="reservedBalance"]').val(reservedBalance);
-        $('#editBalanceModal').modal();
+        // $($editExternalWalletsForm).find('input[name="currencyId"]').val(currencyId);
+        // // $('#currency-name').val(currencyName);
+        // $($editExternalWalletsForm).find('input[name="usdRate"]').val(usdRate);
+        // $($editExternalWalletsForm).find('input[name="btcRate"]').val(btcRate);
+        // $($editExternalWalletsForm).find('input[name="mainBalance"]').val(mainBalance);
+        // $($editExternalWalletsForm).find('input[name="reservedBalance"]').val(reservedBalance);
+        // $('#editBalanceModal').modal();
     });
 
 
-    $('#submitNewBalance').click(function (e) {
-        e.preventDefault();
-        submitNewBalance()
-    });
+    // $('#submitNewBalance').click(function (e) {
+    //     e.preventDefault();
+    //     submitNewBalance()
+    // });
 
 });
 
@@ -148,25 +145,25 @@ function numbroWithCommas(value) {
     return numbro(value).format('0.00[000000]').toString().replace(/\./g, ',');
 }
 
-function submitNewBalance() {
-    var formData = $('#edit-external-wallets-form').serialize();
-    $.ajax({
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        url: '/2a8fy7b07dxe44/externalWallets/submit',
-        type: 'POST',
-        data: formData,
-        success: function () {
-            updateExternalWalletsTable();
-            $('#editBalanceModal').modal('hide');
-        },
-        error: function (error) {
-            $('#editBalanceModal').modal('hide');
-            console.log(error);
-        }
-    });
-}
+// function submitNewBalance() {
+//     var formData = $('#edit-external-wallets-form').serialize();
+//     $.ajax({
+//         headers: {
+//             'X-CSRF-Token': $("input[name='_csrf']").val()
+//         },
+//         url: '/2a8fy7b07dxe44/externalWallets/submit',
+//         type: 'POST',
+//         data: formData,
+//         success: function () {
+//             updateExternalWalletsTable();
+//             $('#editBalanceModal').modal('hide');
+//         },
+//         error: function (error) {
+//             $('#editBalanceModal').modal('hide');
+//             console.log(error);
+//         }
+//     });
+// }
 
 function getSummaryInUSD() {
     $.ajax({
@@ -212,7 +209,9 @@ var id = 0;
 function addFile() {
     id++;
     var html = '<input name="wallet" type="text" placeholder="Address/Name">' +
-        '       <input name="balance" type="number" min="0" placeholder="0">' +
+        '       <input name="balance" type="number" min="0" placeholder="Balance">' +
+        '       <input name="remove" type="button" onclick="javascript:saveAsAddress(this); return false;" value="Save as address">' +
+        '       <input name="remove" type="button" onclick="javascript:saveAsName(this); return false;" value="Save as name">' +
         '       <input name="remove" type="button" onclick="javascript:removeElement(this); return false;" value="Remove">';
     addElement('reserved-wallets-id', 'div', id, html);
 }
@@ -236,5 +235,11 @@ function addElement(parentId, elementTag, id, html) {
 function removeElement(item) {
     var element = document.getElementById('reserve-wallet-' + item.id);
     element.parentNode.removeChild(element);
+}
+
+function saveAsAddress(item) {
+}
+
+function saveAsName(item) {
 }
 
