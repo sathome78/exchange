@@ -40,18 +40,18 @@ public class TelegramBotService  extends TelegramLongPollingBot {
     static {ApiContextInitializer.init();}
 
 
-    @PostConstruct
-    private void init() {
-        if (Stream.of("exrates_local_test_bot", "exrates_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
-            log.debug("init telegram bot {}", botName);
-            TelegramBotsApi botsApi = new TelegramBotsApi();
-            try {
-                botsApi.registerBot(this);
-            } catch (TelegramApiException e) {
-                log.error("error while initialize bot {}", e);
-            }
-        }
-    }
+//    @PostConstruct
+//    private void init() {
+//        if (Stream.of("exrates_local_test_bot", "exrates_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
+//            log.debug("init telegram bot {}", botName);
+//            TelegramBotsApi botsApi = new TelegramBotsApi();
+//            try {
+//                botsApi.registerBot(this);
+//            } catch (TelegramApiException e) {
+//                log.error("error while initialize bot {}", e);
+//            }
+//        }
+//    }
 
     public void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage()
