@@ -1,5 +1,7 @@
 package me.exrates.service.autist;
 
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.RefillService;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -50,6 +52,10 @@ public interface AunitService extends IRefillable , IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    Merchant getMerchant();
+
+    Currency getCurrency();
 
     RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount);
 

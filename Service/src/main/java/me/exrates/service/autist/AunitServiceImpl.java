@@ -14,6 +14,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,8 @@ import java.util.Random;
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @Service
-/*@PropertySource("classpath:/merchants/aunit.properties")*/
-@Log4j2(topic = "aunit_log") //todo config in xml
+@PropertySource("classpath:/merchants/aunit.properties")
+@Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
     private String systemAddress = "some0adm0address";
@@ -44,11 +45,23 @@ public class AunitServiceImpl implements AunitService {
     @Autowired
     private RefillService refillService;
 
+
+    private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
     private static final String AUNIT_CURRENCY = "AUNIT";
     private static final String AUNIT_MERCHANT = "Aunit";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
     private Merchant merchant;
     private Currency currency;
+
+    @Override
+    public Merchant getMerchant() {
+        return merchant;
+    }
+
+    @Override
+    public Currency getCurrency() {
+        return currency;
+    }
 
     /*generate 9 digits(Unsigned Integer) for identifying payment */
     @Override

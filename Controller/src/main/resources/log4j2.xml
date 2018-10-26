@@ -555,6 +555,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="aunit_log" fileName="${sys:catalina.home}/logs/crypto/aunit_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/aunit_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -789,6 +798,9 @@
             <AppenderRef ref="etherinc_log"/>
         </logger>
         <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
+        </logger>
+        <logger name="aunit" level="ALL" additivity="false">
+            <AppenderRef ref="aunit_log"/>
         </logger>
 
         <Root level="INFO">

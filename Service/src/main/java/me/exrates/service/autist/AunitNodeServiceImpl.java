@@ -1,10 +1,15 @@
 package me.exrates.service.autist;
 
-import lombok.Synchronized;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.service.RefillService;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -14,12 +19,22 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
+@Log4j2(topic = "aunit")
+@PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
 public class AunitNodeServiceImpl {
+
+    private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
     private String wsUrl = "ws://ec2-18-223-213-72.us-east-2.compute.amazonaws.com:8090";
     private URI WS_SERVER_URL;
     private Session session;
@@ -31,11 +46,16 @@ public class AunitNodeServiceImpl {
 
     @Autowired
     private AunitService aunitService;
+    @Autowired
+    private RefillService refillService;
+
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
     public void init() {
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
+        scheduler.scheduleAtFixedRate(this::checkUnconfirmed, 3, 5, TimeUnit.MINUTES);
     }
 
     private void connectAndSubscribe() {
@@ -136,20 +156,50 @@ public class AunitNodeServiceImpl {
         }*/
     }
 
-    private void processTransaction(String trx) {
+    private void parseAndProcessTransaction(String trx) {
         String memo = "";
-        String message = decryptBTSmemo(privateKey, memo);
+        String address = decryptBTSmemo(privateKey, memo);
         long rawAmount = 1;
         String txHash = "fwefwef";
         long txBlock = 2;
         BigDecimal amount = reduceAmount(rawAmount);
-        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(txHash, message, );
+        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(txHash, address, amount);
         if (txBlock >= latIrreversableBlocknumber) {
-            aunitService.processPayment();
+            prepareAndProcessTx(txHash, address, amount);
         } else {
-            aunitService.putOnBchExam();
+            aunitService.putOnBchExam(requestAcceptDto);
         }
 
+    }
+
+    private void checkUnconfirmed() {
+        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(aunitService.getMerchant().getId(), aunitService.getCurrency().getId());
+        dtos.forEach(p->{
+            try {
+                if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
+                   prepareAndProcessTx(p.getAddress(), p.getMerchantTransactionId(), p.getAmount());
+                }
+            } catch (Exception e) {
+                log.error(e);
+            }
+        });
+    }
+
+    private void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
+        Map<String, String> map = new HashMap<>();
+        map.put("address", address);
+        map.put("hash", hash);
+        map.put("amount", amount.toString());
+        try {
+            aunitService.processPayment(map);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error(e);
+        }
+    }
+
+    /*todo*/
+    private boolean checkIsTransactionConfirmed(String txHash) {
+        return true;
     }
 
     private BigDecimal reduceAmount(long amount) {
@@ -165,4 +215,5 @@ public class AunitNodeServiceImpl {
             }
         }
     }
+
 }
