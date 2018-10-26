@@ -296,6 +296,11 @@ public class CryptocurrencyConfig {
                 "CBC", "CBC", 4, 20, false, false);
     }
 
+    @Bean(name = "abbcServiceImpl")
+    public BitcoinService abbcService() {
+        return new BitcoinServiceImpl("merchants/abbc_wallet.properties", "ABBC", "ABBC", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
