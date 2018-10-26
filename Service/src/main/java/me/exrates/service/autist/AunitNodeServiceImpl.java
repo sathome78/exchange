@@ -34,8 +34,9 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Service
 public class AunitNodeServiceImpl {
 
-    private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
-    private String wsUrl = "ws://ec2-18-223-213-72.us-east-2.compute.amazonaws.com:8090";
+    private @Value("${aunit.node.ws}")String wsUrl;
+    private @Value("${aunit.mainAddress}")String systemAddress;
+    private @Value("${aunit.pk.path}")String pkFilePath;
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
@@ -149,6 +150,7 @@ public class AunitNodeServiceImpl {
     @OnMessage
     public void onMessage(String msg) {
         System.out.println(msg);
+        /*todo define type of message and call right method*/
        /* if (msg.contains("trx")) {
 
         } else if (msg.contains("last_irreversible_block_num")) {
@@ -157,11 +159,14 @@ public class AunitNodeServiceImpl {
     }
 
     private void parseAndProcessTransaction(String trx) {
+        /*-----------------------------*/
+        /*todo parse tx*/
         String memo = "";
         String address = decryptBTSmemo(privateKey, memo);
         long rawAmount = 1;
         String txHash = "fwefwef";
         long txBlock = 2;
+        /*-------------*/
         BigDecimal amount = reduceAmount(rawAmount);
         RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(txHash, address, amount);
         if (txBlock >= latIrreversableBlocknumber) {

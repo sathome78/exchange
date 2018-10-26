@@ -34,7 +34,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
-    private String systemAddress = "some0adm0address";
+    private @Value("${aunit.mainAddress}")String systemAddress;
 
     @Autowired
     private MerchantService merchantService;
@@ -46,7 +46,6 @@ public class AunitServiceImpl implements AunitService {
     private RefillService refillService;
 
 
-    private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
     private static final String AUNIT_CURRENCY = "AUNIT";
     private static final String AUNIT_MERCHANT = "Aunit";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
