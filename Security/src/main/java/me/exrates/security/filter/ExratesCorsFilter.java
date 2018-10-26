@@ -29,15 +29,11 @@ public class ExratesCorsFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         HttpServletRequest request = (HttpServletRequest) req;
 
-        URL reqUrl = new URL(request.getRequestURL().toString());
+//        URL reqUrl = new URL(request.getRequestURL().toString());
 //        logger.error("REQUEST HOST: {}", reqUrl.getHost());
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 //        response.setHeader("Access-Control-Allow-Origin", "http://dev4.exrates.tech");
 //        response.setHeader("Access-Control-Allow-Origin", "http://promo.exrates.top");
-
-//        System.out.println("protocol " + reqUrl.getProtocol());
-//        System.out.println("domain " + reqUrl.getHost());
-//        System.out.println("req_port " + reqUrl.getPort());
 
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
@@ -61,10 +57,8 @@ public class ExratesCorsFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
-    public void destroy() {
-    }
+    public void destroy() {}
 }
