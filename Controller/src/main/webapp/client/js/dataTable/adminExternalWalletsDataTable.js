@@ -1,32 +1,46 @@
-/**
- * Created by OLEG on 23.09.2016.
- */
 var externalWalletsDataTable;
+var globalTitle;
+var reservedWallets = [];
+
 $(document).ready(function () {
 
     var $externalWalletsTable = $('#external-wallets-table');
     var $editExternalWalletsForm = $('#edit-external-wallets-form');
 
+    globalTitle = document.getElementsByClassName("modal-title")[0].innerText;
+
     updateExternalWalletsTable();
+    getSummaryInUSD();
+    getSummaryInBTC();
     $($externalWalletsTable).find('tbody').on('click', 'tr', function () {
+        // var titleElement = document.getElementsByClassName("modal-title");
+
         var rowData = externalWalletsDataTable.row(this).data();
         var currencyId = rowData.currencyId;
         var currencyName = rowData.currencyName;
-        var rateUsdAdditional = rowData.rateUsdAdditional;
-        var mainWalletBalance = rowData.mainWalletBalance;
-        var reservedWalletBalance = rowData.reservedWalletBalance;
-        var coldWalletBalance = rowData.coldWalletBalance;
+        var usdRate = rowData.usdRate;
+        var btcRate = rowData.btcRate;
+        var mainBalance = rowData.mainBalance;
+        var reservedBalance = rowData.reservedBalance;
+
+        $('.modal-title').text(globalTitle.concat(' ').concat(currencyName));
+        $('#usd-rate-label').text(usdRate);
+        $('#btc-rate-label').text(btcRate);
+        $('#main-balance-label').text(mainBalance);
+
+        getReservedWallets(currencyId);
+
         $($editExternalWalletsForm).find('input[name="currencyId"]').val(currencyId);
-        $('#currency-name').val(currencyName);
-        $($editExternalWalletsForm).find('input[name="rateUsdAdditional"]').val(rateUsdAdditional);
-        $($editExternalWalletsForm).find('input[name="mainWalletBalance"]').val(mainWalletBalance);
-        $($editExternalWalletsForm).find('input[name="reservedWalletBalance"]').val(reservedWalletBalance);
-        $($editExternalWalletsForm).find('input[name="coldWalletBalance"]').val(coldWalletBalance);
+        // $('#currency-name').val(currencyName);
+        $($editExternalWalletsForm).find('input[name="usdRate"]').val(usdRate);
+        $($editExternalWalletsForm).find('input[name="btcRate"]').val(btcRate);
+        $($editExternalWalletsForm).find('input[name="mainBalance"]').val(mainBalance);
+        $($editExternalWalletsForm).find('input[name="reservedBalance"]').val(reservedBalance);
         $('#editBalanceModal').modal();
     });
 
 
-    $('#submitNewBalance').click(function(e) {
+    $('#submitNewBalance').click(function (e) {
         e.preventDefault();
         submitNewBalance()
     });
@@ -54,13 +68,13 @@ function updateExternalWalletsTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currencyId"
+                    "data": "currencyId"
                 },
                 {
                     "data": "currencyName"
                 },
                 {
-                    "data": "rateUsdAdditional",
+                    "data": "usdRate",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -69,7 +83,7 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "mainWalletBalance",
+                    "data": "btcRate",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -78,7 +92,7 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "mainWalletBalanceUSD",
+                    "data": "mainBalance",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -87,7 +101,7 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "reservedWalletBalance",
+                    "data": "reservedBalance",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -96,7 +110,7 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "coldWalletBalance",
+                    "data": "totalBalance",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -105,7 +119,7 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "totalWalletsBalance",
+                    "data": "totalBalanceUSD",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -114,13 +128,16 @@ function updateExternalWalletsTable() {
                     }
                 },
                 {
-                    "data": "totalWalletsBalanceUSD",
+                    "data": "totalBalanceBTC",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
                         }
                         return data;
                     }
+                },
+                {
+                    "data": "lastUpdatedDate"
                 }
             ]
         });
@@ -128,12 +145,11 @@ function updateExternalWalletsTable() {
 }
 
 function numbroWithCommas(value) {
-
     return numbro(value).format('0.00[000000]').toString().replace(/\./g, ',');
 }
 
 function submitNewBalance() {
-    var formData =  $('#edit-external-wallets-form').serialize();
+    var formData = $('#edit-external-wallets-form').serialize();
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -150,5 +166,75 @@ function submitNewBalance() {
             console.log(error);
         }
     });
+}
+
+function getSummaryInUSD() {
+    $.ajax({
+        type: "GET",
+        url: "/2a8fy7b07dxe44/externalWallets/retrieve/summaryUSD",
+        success: function (data) {
+            $('#summary-in-usd').text(data);
+        },
+        error: function (data) {
+            alert('Something happened wrong');
+        }
+    });
+}
+
+function getSummaryInBTC() {
+    $.ajax({
+        type: "GET",
+        url: "/2a8fy7b07dxe44/externalWallets/retrieve/summaryBTC",
+        success: function (data) {
+            $('#summary-in-btc').text(data);
+        },
+        error: function (data) {
+            alert('Something happened wrong');
+        }
+    });
+}
+
+function getReservedWallets(currencyId) {
+    $.ajax({
+        type: "GET",
+        url: "/2a8fy7b07dxe44/externalWallets/retrieve/reservedWallets/" + currencyId,
+        success: function (data) {
+            reservedWallets = data;
+        },
+        error: function (data) {
+            alert('Something happened wrong');
+        }
+    });
+}
+
+var id = 0;
+
+function addFile() {
+    id++;
+    var html = '<input name="wallet" type="text" placeholder="Address/Name">' +
+        '       <input name="balance" type="number" min="0" placeholder="0">' +
+        '       <input name="remove" type="button" onclick="javascript:removeElement(this); return false;" value="Remove">';
+    addElement('reserved-wallets-id', 'div', id, html);
+}
+
+function addElement(parentId, elementTag, id, html) {
+    var parent = document.getElementById(parentId);
+    var newElement = document.createElement(elementTag);
+    newElement.setAttribute('id', 'reserve-wallet-' + id);
+    newElement.innerHTML = html;
+
+    var children = newElement.children;
+    for (i = 0; i < children.length; i++) {
+        var child = children[i];
+        if (child.type === 'button') {
+            child.id = id;
+        }
+    }
+    parent.appendChild(newElement);
+}
+
+function removeElement(item) {
+    var element = document.getElementById('reserve-wallet-' + item.id);
+    element.parentNode.removeChild(element);
 }
 

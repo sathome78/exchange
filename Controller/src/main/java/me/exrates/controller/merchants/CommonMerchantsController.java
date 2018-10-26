@@ -172,7 +172,7 @@ public class CommonMerchantsController {
     @ResponseBody
     List<MerchantCurrency> getMerchantsData() {
         List<Integer> currenciesId = currencyService
-                .getAllCurrencies()
+                .getAllActiveCurrencies()
                 .stream()
                 .mapToInt(Currency::getId)
                 .boxed()

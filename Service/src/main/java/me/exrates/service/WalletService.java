@@ -4,8 +4,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.dataTable.DataTable;
-import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -120,9 +118,17 @@ public interface WalletService {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
-    List<ExternalWalletsDto> getExternalWallets();
+    List<ExternalWalletDto> getExternalWallets();
 
-    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+    void updateExternalWallet(ExternalWalletDto externalWalletDto);
 
-    List<ExternalWalletsDto> getBalancesWithExternalWallets();
+    List<ExternalWalletDto> getBalancesWithExternalWallets();
+
+    void updateBalances();
+
+    BigDecimal retrieveSummaryUSD();
+
+    BigDecimal retrieveSummaryBTC();
+
+    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
 }

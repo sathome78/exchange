@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: OLEG
-  Date: 23.09.2016
-  Time: 12:30
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -16,7 +9,8 @@
 <head>
     <title><loc:message code="admin.externalWallets.title"/></title>
     <%@include file='links_scripts.jsp' %>
-    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminExternalWalletsDataTable.js'/>"></script>
+    <script type="text/javascript"
+            src="<c:url value='/client/js/dataTable/adminExternalWalletsDataTable.js'/>"></script>
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
@@ -27,26 +21,41 @@
             <div class="text-center"><h4><loc:message code="admin.externalWallets.title"/></h4></div>
             <div class="tab-content">
                 <div class="col-md-12 text-center">
-
                     <table id="external-wallets-table">
                         <thead>
                         <tr>
                             <th><loc:message code="admin.currency.id"/></th>
                             <th><loc:message code="admin.externalWallets.name"/></th>
                             <th><loc:message code="admin.rate.to.usd"/></th>
+                            <th><loc:message code="admin.rate.to.btc"/></th>
                             <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
-                            <th><loc:message code="admin.externalWallets.mainWalletBalanceUSD"/></th>
-                            <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
-                            <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
+                            <th><loc:message code="admin.externalWallets.allReservedWalletBalances"/></th>
                             <th><loc:message code="admin.externalWallets.totalWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.totalWalletBalanceUSD"/></th>
+                            <th><loc:message code="admin.externalWallets.totalWalletBalanceBTC"/></th>
+                            <th><loc:message code="admin.externalWallets.lastUpdatedDate"/></th>
                         </tr>
                         </thead>
+                        <tfoot>
+                        <tr>
+                            <th><loc:message code="admin.externalWallets.summary"/></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th><span id="summary-in-usd"></span></th>
+                            <th><span id="summary-in-btc"></span></th>
+                            <th></th>
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
         </div>
 </main>
+
 <div id="editBalanceModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
@@ -55,46 +64,56 @@
                         aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title"><loc:message code="admin.externalWallets.modalTitle"/></h4>
             </div>
-            <div class="modal-body">
-                <form id="edit-external-wallets-form" class="form_full_width form_auto_height">
-                    <input type="hidden" name="currencyId">
+            <div class="modal-body" style="height: content-box;">
+                <form enctype="multipart/form-data" action="" method="post">
                     <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message
-                                    code="admin.rate.to.usd"/></label>
+                        <div class="col-md-6">
+                            <label><loc:message code="admin.rate.to.usd"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="rateUsdAdditional" class="input-block-wrapper__input" type="number" min="0">
+                        <div class="col-md-6">
+                            <label id="usd-rate-label"></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message
-                                    code="admin.externalWallets.mainWalletBalance"/></label>
+                        <div class="col-md-6">
+                            <label><loc:message code="admin.rate.to.btc"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="mainWalletBalance" class="input-block-wrapper__input" type="number" min="0">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message
-                                    code="admin.externalWallets.reservedWalletBalance"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="reservedWalletBalance" class="input-block-wrapper__input" type="number" min="0">
+                        <div class="col-md-6">
+                            <label id="btc-rate-label"></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.externalWallets.coldWalletBalance"/></label>
+                        <div class="col-md-6">
+                            <label><loc:message code="admin.externalWallets.mainWalletBalance"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper" >
-                            <input  name="coldWalletBalance" class="input-block-wrapper__input" type="number" min="0" style="align-content: center">
+                        <div class="col-md-6">
+                            <label id="main-balance-label"></label>
                         </div>
                     </div>
-                    <button id="submitNewBalance" class="blue-box admin-form-submit" type="submit"><loc:message
-                            code="admin.refSubmitEditCommonRoot"/></button>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-12">
+                            <label><loc:message code="admin.externalWallets.reservedWalletsBalances"/></label>
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div id="reserved-wallets-id">
+                            <c:forEach var="rw" items="reservedWallets"
+                            <%--<div id="reserve-wallet-1">--%>
+                                <%--<div class="col-md-4">--%>
+                                    <%--<input name="wallet" type="text" placeholder="Address/Name">--%>
+                                <%--</div>--%>
+                                <%--<div class="col-md-4">--%>
+                                    <%--<input name="balance" type="number" min="0" placeholder="0">--%>
+                                <%--</div>--%>
+                                <%--<div class="col-md-4">--%>
+                                    <%--<input name="remove" type="button"--%>
+                                           <%--onclick="javascript:removeElement(this.id); return false;"--%>
+                                           <%--value="Remove">--%>
+                                <%--</div>--%>
+                            <%--</div>--%>
+                        </div>
+                        <p><input type="button" value="Add File" onclick="addFile();"/></p>
+                    </div>
                 </form>
             </div>
         </div>

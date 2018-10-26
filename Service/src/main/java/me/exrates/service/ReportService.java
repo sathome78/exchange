@@ -62,7 +62,7 @@ public interface ReportService {
 
   void sendReportMail();
 
-  List<ExternalWalletsDto> getBalancesWithExternalWallets();
+  List<ExternalWalletDto> getBalancesWithExternalWallets();
 
     List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 

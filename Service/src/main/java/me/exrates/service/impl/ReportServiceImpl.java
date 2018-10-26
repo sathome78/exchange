@@ -470,7 +470,7 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
+    public List<ExternalWalletDto> getBalancesWithExternalWallets(){
         return walletService.getBalancesWithExternalWallets();
     }
 
