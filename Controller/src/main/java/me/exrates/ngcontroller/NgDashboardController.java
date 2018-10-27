@@ -4,26 +4,29 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
-import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.ngcontroller.service.impl.NgMockService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,25 +46,28 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@PropertySource("classpath:angular.properties")
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
+
+//    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS;
+//    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS;
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -69,6 +75,11 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
+    private final NgMockService ngMockService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${angular.write.mode}")
+    private boolean WRITE_MODE;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -76,19 +87,36 @@ public class NgDashboardController {
                                  OrderService orderService,
                                  UserService userService,
                                  LocaleResolver localeResolver,
-                                 NgOrderService ngOrderService) {
+                                 NgOrderService ngOrderService,
+                                 NgMockService ngMockService,
+                                 ApplicationEventPublisher eventPublisher) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
+        this.ngMockService = ngMockService;
+        this.eventPublisher = eventPublisher;
     }
+
+//    @PostConstruct
+//    private void initData() {
+//        ngMockService.initOpenOrders(OPEN_ORDERS);
+//        ngMockService.initClosedOrders(CLOSED_ORDERS);
+//    }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        String result = ngOrderService.createOrder(inputOrder);
+        String result;
+        if (!WRITE_MODE) {
+            result = ngOrderService.createOrder(inputOrder);
+        } else {
+            result = "TEST_MODE";
+            eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
+
+        }
         HashMap<String, String> resultMap = new HashMap<>();
 
         if (!StringUtils.isEmpty(result)) {
@@ -102,7 +130,13 @@ public class NgDashboardController {
 
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
-        Integer result = (Integer) orderService.deleteOrderByAdmin(id);
+        Integer result;
+        if (!WRITE_MODE) {
+            result = (Integer) orderService.deleteOrderByAdmin(id);
+        } else {
+            result = 0;
+        }
+
         return result == 1 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
@@ -118,17 +152,22 @@ public class NgDashboardController {
 
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
-        switch (baseType) {
-            case STOP_LIMIT:
-                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
-                break;
-            case LIMIT:
-                result = ngOrderService.processUpdateOrder(user, inputOrder);
-                break;
-            case ICO:
-                throw new NgDashboardException("Not supported type - ICO");
-            default:
-                throw new NgDashboardException("Unknown type - " + baseType);
+
+        if (!WRITE_MODE) {
+            switch (baseType) {
+                case STOP_LIMIT:
+                    result = ngOrderService.processUpdateStopOrder(user, inputOrder);
+                    break;
+                case LIMIT:
+                    result = ngOrderService.processUpdateOrder(user, inputOrder);
+                    break;
+                case ICO:
+                    throw new NgDashboardException("Not supported type - ICO");
+                default:
+                    throw new NgDashboardException("Unknown type - " + baseType);
+            }
+        } else {
+            result = true;
         }
 
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
@@ -258,31 +297,6 @@ public class NgDashboardController {
         ResponseInfoCurrencyPairDto result = ngOrderService.getCurrencyPairInfo(currencyPairId, user);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-
-    @GetMapping("/history")
-    public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
-
-        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
-        List<CandleDto> result = new ArrayList<>();
-        if (currencyPair == null) {
-            HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(ngOrderService.filterDataPeriod(result, from, to, resolution));
-            errors.put("s", "error");
-            errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
-        }
-
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

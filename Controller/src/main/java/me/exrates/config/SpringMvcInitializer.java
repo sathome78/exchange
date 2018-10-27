@@ -46,13 +46,13 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
         try {
             final ClassLoader classLoader = getClass().getClassLoader();
             final Properties properties = new Properties();
-            properties.load(classLoader.getResourceAsStream("uploadfiles.properties"));
+            properties.load(this.getClass().getClassLoader().getResourceAsStream("uploadfiles.properties"));
             final String location = properties.getProperty("upload.uploadDir");
             final long maxFile = Long.parseLong(properties.getProperty("upload.maxFile"));
             final long maxRequest = Long.parseLong(properties.getProperty("upload.maxRequest"));
             final int threshold = Integer.parseInt(properties.getProperty("upload.threshold"));
             return new MultipartConfigElement(location, maxFile, maxRequest, threshold);
-        } catch (final IOException e) {
+        } catch ( IOException e) {
             LOG.error(e);
             throw new RuntimeException("Can not load uploadfiles.properties." + e);
         }
