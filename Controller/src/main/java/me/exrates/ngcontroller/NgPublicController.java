@@ -38,8 +38,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,6 +92,12 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
+    }
+
+    @PostConstruct
+    private void initCheckVersion(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        logger.error ("Build at: " +  LocalDateTime.now().format(formatter));
     }
 
     @GetMapping(value = "/if_email_exists")
