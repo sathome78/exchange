@@ -939,10 +939,10 @@ public class OrderDaoImpl implements OrderDao {
         pageClause += limit != 14 ? String.valueOf(limit) : "14";
         pageClause += offset > 0 ? " OFFSET " + String.valueOf(offset) : "";
 
-        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
+        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
                 "  FROM EXORDERS " +
                 currencyPairClauseJoin +
-                "  WHERE (status_id = :statusId) " +
+                " INNER JOIN COMMISSION com ON commission_id = com.id  WHERE (status_id = :statusId) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
                 currencyPairClauseWhere +
                 userFilterClause +
@@ -967,6 +967,7 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setComissionId(rs.getInt("commission_id"));
             orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
             BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
+            orderWideListDto.setCommissionValue(rs.getDouble("commission_value"));
             if (orderWideListDto.getOperationTypeEnum() == OperationType.SELL) {
                 amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
             } else if (orderWideListDto.getOperationTypeEnum() == OperationType.BUY) {
