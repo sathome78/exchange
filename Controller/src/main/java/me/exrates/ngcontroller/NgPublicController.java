@@ -33,8 +33,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,6 +87,12 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
+    }
+
+    @PostConstruct
+    private void initCheckVersion(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        logger.error ("Build at: " +  LocalDateTime.now().format(formatter));
     }
 
     @GetMapping(value = "/if_email_exists")
@@ -168,12 +176,12 @@ public class NgPublicController {
 
     @GetMapping("/history")
     public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") Integer symbol,
+            @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(symbol);
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
