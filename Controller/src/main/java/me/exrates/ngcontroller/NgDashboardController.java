@@ -61,13 +61,13 @@ import java.util.Set;
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@PropertySource("classpath:angular.properties")
+@PropertySource("classpath:/angular.properties")
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-//    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS;
-//    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS;
+    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS = new HashMap<>();
+    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS = new HashMap<>();
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -100,11 +100,11 @@ public class NgDashboardController {
         this.eventPublisher = eventPublisher;
     }
 
-//    @PostConstruct
-//    private void initData() {
-//        ngMockService.initOpenOrders(OPEN_ORDERS);
-//        ngMockService.initClosedOrders(CLOSED_ORDERS);
-//    }
+    @PostConstruct
+    private void initData() {
+            ngMockService.initOpenOrders(OPEN_ORDERS);
+            ngMockService.initClosedOrders(CLOSED_ORDERS);
+    }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {

@@ -39,6 +39,8 @@ public class OrderWideListDto extends OnlineTableDto{
     private String statusString;
     private OrderBaseType orderBaseType;
 
+    private Double commissionValue;
+
 
     /*constructors*/
 
@@ -251,5 +253,13 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public String getOperationType() {
         return operationType;
+    }
+
+    public Double getCommissionValue() {
+        return commissionValue;
+    }
+
+    public void setCommissionValue(Double commissionValue) {
+        this.commissionValue = commissionValue;
     }
 }
