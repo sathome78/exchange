@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
 import java.time.format.DateTimeFormatter;
@@ -85,6 +86,13 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
+    }
+
+    @PostConstruct
+    private void initCheckVersion(){
+        System.out.println("-------------------------------------------------------------");
+        System.out.println("Build 27.10.2018");
+        System.out.println("-------------------------------------------------------------");
     }
 
     @GetMapping(value = "/if_email_exists")
