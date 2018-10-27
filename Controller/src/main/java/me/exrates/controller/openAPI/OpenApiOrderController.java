@@ -227,6 +227,12 @@ public class OpenApiOrderController {
         return new OpenApiError(ErrorCode.ORDER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(FORBIDDEN)
+    @ExceptionHandler(UserOperationAccessException.class)
+    @ResponseBody
+    public OpenApiError userOperationAccessExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.BLOCED_TRADING, req.getRequestURL(), exception);
+    }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
