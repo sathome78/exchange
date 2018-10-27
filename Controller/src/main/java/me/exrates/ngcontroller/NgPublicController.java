@@ -168,12 +168,12 @@ public class NgPublicController {
 
     @GetMapping("/history")
     public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") Integer symbol,
+            @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(symbol);
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
