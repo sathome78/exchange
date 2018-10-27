@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -49,7 +48,7 @@ public class NgMockService {
 
         Map<CurrencyPair, Set<OrderWideListDto>> openOrders = new ConcurrentHashMap<>();
 
-        CurrencyPair currencyPairByIdBtcUsd = currencyService.findCurrencyPairById(1);
+        CurrencyPair currencyPairBtcUsd = currencyService.findCurrencyPairById(1);
 
         OrderWideListDto order1 = new OrderWideListDto();
         order1.setId(1);
@@ -127,7 +126,7 @@ public class NgMockService {
         order5.setDateCreation(LocalDateTime.now().minusHours(2));
 
         Set<OrderWideListDto> usdBtc = new HashSet<>(ImmutableList.of(order1, order2, order3, order4, order5));
-        openOrders.put(currencyPairByIdBtcUsd, usdBtc);
+        openOrders.put(currencyPairBtcUsd, usdBtc);
 
         OrderWideListDto order6 = new OrderWideListDto();
         order6.setId(6);

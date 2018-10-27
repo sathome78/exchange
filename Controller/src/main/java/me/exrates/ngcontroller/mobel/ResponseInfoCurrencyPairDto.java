@@ -23,7 +23,4 @@ public class ResponseInfoCurrencyPairDto {
     private String volume24h;
     private String rateHigh;
     private String rateLow;
-
-    private List<CoinmarketApiDto> dailyStatistic;
-    private List<StockExchangeStats> statistic;
 }
