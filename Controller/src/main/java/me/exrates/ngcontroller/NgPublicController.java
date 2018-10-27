@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,9 +91,8 @@ public class NgPublicController {
 
     @PostConstruct
     private void initCheckVersion(){
-        System.out.println("-------------------------------------------------------------");
-        System.out.println("Build 27.10.2018");
-        System.out.println("-------------------------------------------------------------");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        logger.error ("Build at: " +  LocalDateTime.now().format(formatter));
     }
 
     @GetMapping(value = "/if_email_exists")
