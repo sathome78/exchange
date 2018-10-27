@@ -174,28 +174,4 @@ public class NgPublicController {
         return result;
     }
 
-    @GetMapping("/history")
-    public ResponseEntity getCandleChartHistoryData(
-            @QueryParam("symbol") String symbol,
-            @QueryParam("to") Long to,
-            @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
-
-        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
-        List<CandleDto> result = new ArrayList<>();
-        if (currencyPair == null) {
-            HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(ngOrderService.filterDataPeriod(result, from, to, resolution));
-            errors.put("s", "error");
-            errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
-        }
-
-        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
-        result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
-    }
-
 }
