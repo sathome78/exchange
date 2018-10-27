@@ -1,6 +1,6 @@
 package me.exrates.ngcontroller.service.impl;
 
-import com.sun.tools.javac.util.List;
+import com.google.common.collect.ImmutableList;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -125,7 +126,7 @@ public class NgMockService {
         order5.setCurrencyPairName("BTC/USD");
         order5.setDateCreation(LocalDateTime.now().minusHours(2));
 
-        Set<OrderWideListDto> usdBtc = new HashSet<>(List.of(order1, order2, order3, order4, order5));
+        Set<OrderWideListDto> usdBtc = new HashSet<>(ImmutableList.of(order1, order2, order3, order4, order5));
         openOrders.put(currencyPairByIdBtcUsd, usdBtc);
 
         OrderWideListDto order6 = new OrderWideListDto();
@@ -159,7 +160,7 @@ public class NgMockService {
         order7.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(8));
 
         CurrencyPair btcEur = currencyService.findCurrencyPairById(2);
-        Set<OrderWideListDto> usdBtcSet = new HashSet<>(List.of(order6, order7));
+        Set<OrderWideListDto> usdBtcSet = new HashSet<>(ImmutableList.of(order6, order7));
         openOrders.put(btcEur, usdBtcSet);
 
         OrderWideListDto order8 = new OrderWideListDto();
@@ -208,7 +209,7 @@ public class NgMockService {
         order10.setDateCreation(LocalDateTime.now().minusHours(2).minusMinutes(2));
 
         CurrencyPair ethBtc = currencyService.findCurrencyPairById(41);
-        Set<OrderWideListDto> ethBtcSet = new HashSet<>(List.of(order8, order9, order10));
+        Set<OrderWideListDto> ethBtcSet = new HashSet<>(ImmutableList.of(order8, order9, order10));
         openOrders.put(ethBtc, ethBtcSet);
 
         return openOrders;
