@@ -2,6 +2,7 @@ package me.exrates.service.autist;
 
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -56,23 +57,26 @@ public class AunitNodeServiceImpl {
     private MerchantService merchantService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private MerchantSpecParamsDao merchantSpecParamsDao;
+    @Autowired
+    private AunitService aunitService;
+    @Autowired
+    private RefillService refillService;
 
     /*todo get it from outer file*/
     String privateKey = "5J15nNH6AvjLY6kryEA1VNZ9s6zkqFsFzHZGGtYBwL3BF5gG9Qd";
     final String accountAddress = "1.2.20683"; //todo
 
     private int latIrreversableBlocknumber = 0;
-
-    @Autowired
-    private AunitService aunitService;
-    @Autowired
-    private RefillService refillService;
+    private final String lastIrreversebleBlock = "last_irreverseble_block";
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public AunitNodeServiceImpl() {
         this.merchaintId = merchantService.findByName(AUNIT_CURRENCY);
-        this.currencyId = currencyService.findByName(AUNIT_MERCHANT);;
+        this.currencyId = currencyService.findByName(AUNIT_MERCHANT);
+        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantNameAndParamName(merchaintId.getName(), lastIrreversebleBlock).getParamValue());
     }
 
     @PostConstruct
