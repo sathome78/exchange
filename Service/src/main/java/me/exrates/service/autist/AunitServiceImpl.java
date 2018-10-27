@@ -29,30 +29,31 @@ import java.util.Random;
 
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
-@Service
+@Service("aunitServiceImpl")
 @PropertySource("classpath:/merchants/aunit.properties")
 @Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
     private @Value("${aunit.mainAddress}")String systemAddress;
 
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private RefillService refillService;
+    private final MerchantService merchantService;
+    private final CurrencyService currencyService;
+    private final MessageSource messageSource;
+    private final RefillService refillService;
 
 
-    static final String AUNIT_CURRENCY = "AUNIT";
-    static final String AUNIT_MERCHANT = "Aunit";
+    static final String AUNIT_CURRENCY = "AUTIST";
+    static final String AUNIT_MERCHANT = "AUTIST";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
     private final Merchant merchant;
     private final Currency currency;
 
-    public AunitServiceImpl() {
+    @Autowired
+    public AunitServiceImpl(MerchantService merchantService, CurrencyService currencyService, MessageSource messageSource, RefillService refillService) {
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+        this.messageSource = messageSource;
+        this.refillService = refillService;
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
     }

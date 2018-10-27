@@ -64,6 +64,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
                 return dto;
             });
         } catch (DataAccessException e) {
+            System.out.println(e);
             return null;
         }
     }

@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -39,7 +38,6 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
-@Scope(scopeName = "prototype")
 public class AunitNodeServiceImpl {
 
     private @Value("${aunit.node.ws}")String wsUrl;
@@ -48,19 +46,14 @@ public class AunitNodeServiceImpl {
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
-    private final Merchant merchaintId;
-    private final Currency currencyId;
+    private final Merchant merchant;
+    private final Currency currency;
 
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private MerchantSpecParamsDao merchantSpecParamsDao;
-    @Autowired
-    private AunitService aunitService;
-    @Autowired
-    private RefillService refillService;
+    private final MerchantService merchantService;
+    private final CurrencyService currencyService;
+    private final MerchantSpecParamsDao merchantSpecParamsDao;
+    private final AunitService aunitService;
+    private final RefillService refillService;
 
     /*todo get it from outer file*/
     String privateKey = "5J15nNH6AvjLY6kryEA1VNZ9s6zkqFsFzHZGGtYBwL3BF5gG9Qd";
@@ -71,10 +64,16 @@ public class AunitNodeServiceImpl {
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public AunitNodeServiceImpl() {
-        this.merchaintId = merchantService.findByName(AUNIT_CURRENCY);
-        this.currencyId = currencyService.findByName(AUNIT_MERCHANT);
-        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantNameAndParamName(merchaintId.getName(), lastIrreversebleBlock).getParamValue());
+    @Autowired
+    public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) {
+        this.merchant = merchantService.findByName(AUNIT_MERCHANT);
+        this.currency = currencyService.findByName(AUNIT_CURRENCY);
+        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+        this.merchantSpecParamsDao = merchantSpecParamsDao;
+        this.aunitService = aunitService;
+        this.refillService = refillService;
     }
 
     @PostConstruct
@@ -173,10 +172,8 @@ public class AunitNodeServiceImpl {
 
     @OnMessage()
     public void onMessage(String msg) {
-        String attributes = new JSONObject(msg).names().toString();
-
-        if(attributes.contains("method")) setIrreversableBlock(msg);
-        else if (attributes.contains("id")) processIrreversebleBlock(msg);
+        if(msg.contains("notice")) setIrreversableBlock(msg);
+        else if (msg.contains("previous")) processIrreversebleBlock(msg);
         else log.error("Unrecognized msg from node: " + msg);
 
         System.out.println(msg);
@@ -192,9 +189,13 @@ public class AunitNodeServiceImpl {
     }
 
     private void processIrreversebleBlock(String trx) {
+        System.out.println("json for process trx \n " + trx);
         JSONObject block = new JSONObject(trx);
+
+        if(!trx.contains("operations"))return;;//todo
+
         JSONArray transactions = block.getJSONObject("result").getJSONArray("operations");
-        List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchaintId.getId(), currencyId.getId());
+        List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
 
         for (int i = 0; i < transactions.length(); i++) {
             JSONObject transaction = transactions.getJSONArray(i).getJSONObject(1);
@@ -242,10 +243,10 @@ public class AunitNodeServiceImpl {
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt("last_irreversible_block_num");
         synchronized (this) {
             if (blockNumber > latIrreversableBlocknumber) {
-                for (int from = blockNumber; from <= latIrreversableBlocknumber; from++){
-                    getBlock(from);
+                for (;latIrreversableBlocknumber <= blockNumber; latIrreversableBlocknumber++){
+                    getBlock(latIrreversableBlocknumber);
                 }
-                latIrreversableBlocknumber = blockNumber;
+                merchantSpecParamsDao.updateParam(merchant.getName(), lastIrreversebleBlock, String.valueOf(latIrreversableBlocknumber));
             }
         }
     }
@@ -257,5 +258,12 @@ public class AunitNodeServiceImpl {
         } catch (IOException e) {
             log.error("error closing session");
         }
+    }
+
+    public static void main(String[] args) {
+        String toParse = "{\"id\":22,\"jsonrpc\":\"2.0\",\"result\":{\"ref_block_num\":19644,\"ref_block_prefix\":3511477450,\"expiration\":\"2018-10-23T18:45:00\",\"operations\":[[0,{\"fee\":{\"amount\":12022,\"asset_id\":\"1.3.0\"},\"from\":\"1.2.20683\",\"to\":\"1.2.23845\",\"amount\":{\"amount\":1,\"asset_id\":\"1.3.0\"},\"memo\":{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT5kCUGorUo7KCT5uCRP8BdLMqVaDPukpbKayJ9WXXFXoDSmUKBp\",\"nonce\":\"394321991978825\",\"message\":\"a71db7dd9930357813c510f3be1ca608\"},\"extensions\":[]}]],\"extensions\":[],\"signatures\":[\"1f78f043114ec90ffe7c928755a6bf63bab8fac7336568765f06e61b4af39682ee430041e3a1c62de338b5e917cf69fe22d13028c412b821bc6b231cf37ce60acf\"],\"operation_results\":[[0,{}]]}}\n";
+        JSONObject block = new JSONObject(toParse);
+        JSONArray transactions = block.getJSONObject("result").getJSONArray("operations");
+        System.out.println(transactions);
     }
 }
