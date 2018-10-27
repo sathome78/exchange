@@ -15,7 +15,6 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -56,11 +55,6 @@ public class AunitServiceImpl implements AunitService {
     public AunitServiceImpl() {
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
-    }
-
-    @Bean
-    public AunitNodeServiceImpl aunitNodeService(){
-        return new AunitNodeServiceImpl()
     }
 
     @Override

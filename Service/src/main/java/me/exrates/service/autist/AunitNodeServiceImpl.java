@@ -4,8 +4,6 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -19,6 +17,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_CURRENCY;
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_MERCHANT;
@@ -181,12 +179,12 @@ public class AunitNodeServiceImpl {
     }
 
     @SneakyThrows
-    private String getBlock(int blockNum) {
-        JSONObject get_object = new JSONObject();
-        get_object.put("id", 6);
-        get_object.put("method", "call");
-        get_object.put("params", new JSONArray().put(2).put("get_objects").put(new JSONArray().put(new JSONArray().put("2.1.0"))));
-        endpoint.sendText(get_object.toString());
+    private void getBlock(int blockNum) {
+        JSONObject block = new JSONObject();
+        block.put("id", 10);
+        block.put("method", "call");
+        block.put("params", new JSONArray().put(2).put("get_block").put(new JSONArray().put(blockNum)));
+        endpoint.sendText(block.toString());
     }
 
     private void processIrreversebleBlock(String trx) {
@@ -240,10 +238,20 @@ public class AunitNodeServiceImpl {
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt("last_irreversible_block_num");
         synchronized (this) {
             if (blockNumber > latIrreversableBlocknumber) {
+                for (int from = blockNumber; from <= latIrreversableBlocknumber; from++){
+                    getBlock(from);
+                }
                 latIrreversableBlocknumber = blockNumber;
-                getBlock(latIrreversableBlocknumber);
             }
         }
     }
 
+    @PreDestroy
+    public void onShutdown() {
+        try {
+            session.close();
+        } catch (IOException e) {
+            log.error("error closing session");
+        }
+    }
 }
