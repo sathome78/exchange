@@ -15,5 +15,5 @@ public interface StockExchangeService {
     void retrieveCurrencies();
 
     List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId);
-    List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to);
+    List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId);
 }
