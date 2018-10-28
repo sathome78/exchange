@@ -74,8 +74,8 @@ public class StockExchangeServiceImpl implements StockExchangeService {
     }
 
     @Override
-    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to) {
-        return stockExchangeDao.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId) {
+        return stockExchangeDao.getStockExchangeStatisticsByPeriod(currencyPairId);
     }
 
     @PreDestroy
