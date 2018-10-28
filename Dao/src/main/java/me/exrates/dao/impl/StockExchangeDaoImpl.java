@@ -180,7 +180,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     }
 
     @Override
-    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId, Date from, Date to) {
+    public List<StockExchangeStats> getStockExchangeStatisticsByPeriod(Integer currencyPairId) {
         String sql = "SELECT stock_1.stock_exchange_id, " +
                 "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, stock_1.price_last, " +
                 "              stock_1.price_buy, stock_1.price_sell, stock_1.price_low, stock_1.price_high, stock_1.volume," +
