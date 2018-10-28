@@ -357,6 +357,16 @@ public class RefillServiceImpl implements RefillService {
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
+
+  @Override
+  public Optional<Integer> getRequestIdReadyForAutoAccept(String address, Integer merchantId, Integer currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
+    return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
+            address,
+            merchantId,
+            currencyId,
+            statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
   /**
    * findUnpaidBtcPayments
    */
@@ -1107,4 +1117,5 @@ public class RefillServiceImpl implements RefillService {
   public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
     refillRequestDao.invalidateAddress(address, merchantId, currencyId);
   }
+
 }
