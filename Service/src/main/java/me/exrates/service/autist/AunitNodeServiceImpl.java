@@ -192,7 +192,7 @@ public class AunitNodeServiceImpl {
         System.out.println("json for process trx \n " + trx);
         JSONObject block = new JSONObject(trx);
 
-        if(!trx.contains("operations"))return;;//todo
+        if(!trx.contains("operations"))return;//todo
 
         JSONArray transactions = block.getJSONObject("result").getJSONArray("operations");
         List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
