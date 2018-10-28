@@ -145,7 +145,7 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Wrong operationType - " + operationType);
         }
 
-        if (order.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
+        if (order.getCurrencyPairId() != inputOrder.getCurrencyPairId()) {
             throw new NgDashboardException("Not support change currency pair");
         }
 
