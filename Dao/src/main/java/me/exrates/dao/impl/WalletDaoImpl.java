@@ -40,8 +40,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -57,6 +59,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.SELL;
 
 @Repository
@@ -1302,11 +1305,26 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public void createWalletAddress(int currencyId){
+        final String sql = "INSERT INTO COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS (currency_id) VALUES (:currency_id)";
+
+        jdbcTemplate.update(sql, singletonMap("currency_id", currencyId));
+    }
+
+    @Override
+    public void deleteWalletAddress(int id){
+        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS where id = :id";
+
+        jdbcTemplate.update(sql, singletonMap("id", id));
+    }
+
+    @Override
     public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
-        final String sql = "INSERT INTO COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS (currency_id, wallet_address, balance)" +
-                " VALUES (:currency_id, :wallet_address, :balance)";
+        final String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, wallet_address=:wallet_address, " +
+                "balance=:balance WHERE id=:id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
+                put("id", externalReservedWalletAddressDto.getId());
                 put("currency_id", externalReservedWalletAddressDto.getCurrencyId());
                 put("wallet_address", externalReservedWalletAddressDto.getWalletAddress());
                 put("balance", externalReservedWalletAddressDto.getBalance());
@@ -1357,14 +1375,16 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {
-        String sql = "SELECT cwera.currency_id, cwera.wallet_address, cwera.balance" +
+        String sql = "SELECT cwera.id, cwera.currency_id, cwera.name, cwera.wallet_address, cwera.balance" +
                 " FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera" +
                 " WHERE cwera.currency_id = :currency_id";
 
         Map<String, String> params = Collections.singletonMap("currency_id", currencyId);
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> ExternalReservedWalletAddressDto.builder()
+                .id(rs.getInt("id"))
                 .currencyId(rs.getInt("currency_id"))
+                .name(rs.getString("name"))
                 .walletAddress(rs.getString("wallet_address"))
                 .balance(rs.getBigDecimal("balance"))
                 .build());

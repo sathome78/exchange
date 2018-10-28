@@ -106,6 +106,10 @@ public interface WalletDao {
 
     void updateBalances(ExternalWalletDto externalWalletDto);
 
+    void createWalletAddress(int currencyId);
+
+    void deleteWalletAddress(int currencyId);
+
     void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
 
     List<ExternalWalletDto> getBalancesWithExternalWallets();

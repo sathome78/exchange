@@ -122,6 +122,12 @@ public interface WalletService {
 
     void updateExternalWallet(ExternalWalletDto externalWalletDto);
 
+    void createWalletAddress(int currencyId);
+
+    void deleteWalletAddress(int currencyId);
+
+    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+
     List<ExternalWalletDto> getBalancesWithExternalWallets();
 
     void updateBalances();

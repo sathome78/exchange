@@ -527,6 +527,21 @@ public class WalletServiceImpl implements WalletService {
         walletDao.updateBalances(externalWalletDto);
     }
 
+    @Override
+    public void createWalletAddress(int currencyId){
+        walletDao.createWalletAddress(currencyId);
+    }
+
+    @Override
+    public void deleteWalletAddress(int currencyId){
+        walletDao.deleteWalletAddress(currencyId);
+    }
+
+    @Override
+    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
+        walletDao.updateWalletAddress(externalReservedWalletAddressDto);
+    }
+
 
     @Override
     public List<ExternalWalletDto> getBalancesWithExternalWallets() {
