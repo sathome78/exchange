@@ -42,8 +42,8 @@ public class AunitServiceImpl implements AunitService {
     private final RefillService refillService;
 
 
-    static final String AUNIT_CURRENCY = "AUTIST";
-    static final String AUNIT_MERCHANT = "AUTIST";
+    static final String AUNIT_CURRENCY = "AUNIT";
+    static final String AUNIT_MERCHANT = "AUNIT";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
     private final Merchant merchant;
     private final Currency currency;
