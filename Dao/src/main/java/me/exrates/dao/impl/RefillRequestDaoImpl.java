@@ -515,6 +515,24 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public List<String> getListOfValidAddressByMerchantIdAndCurrency(
+          Integer merchantId,
+          Integer currencyId) {
+    final String sql = "SELECT RRA.address " +
+            " FROM REFILL_REQUEST_ADDRESS RRA " +
+            " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id is_valid = 1";
+    MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("currency_id", currencyId)
+            .addValue("merchant_id", merchantId);
+    try {
+      return namedParameterJdbcTemplate.queryForList(sql, params, String.class);
+    } catch (EmptyResultDataAccessException e) {
+      return new LinkedList<>();
+    }
+  }
+
+
+  @Override
   public void setStatusById(Integer id, InvoiceStatus newStatus) {
     final String sql = "UPDATE REFILL_REQUEST " +
         "  SET status_id = :new_status_id, " +

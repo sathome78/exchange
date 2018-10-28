@@ -28,7 +28,9 @@ public interface RefillService {
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-    @Transactional(readOnly = true)
+  List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId);
+
+  @Transactional(readOnly = true)
     Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
 
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
