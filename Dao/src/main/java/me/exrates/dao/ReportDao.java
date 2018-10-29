@@ -1,5 +1,8 @@
 package me.exrates.dao;
 
+import me.exrates.model.dto.BalancesReportDto;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.List;
 
 public interface ReportDao {
@@ -16,4 +19,8 @@ public interface ReportDao {
     void addReportSubscriber(String email);
 
     void deleteReportSubscriber(String email);
+
+    void addNewBalancesReport(BalancesReportDto balancesReportDto);
+
+    BalancesReportDto getBalancesReportByFileName(String fileName);
 }

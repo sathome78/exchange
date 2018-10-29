@@ -3,12 +3,28 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.ExternalReservedWalletAddressDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
+import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.TransferDto;
+import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.WalletFormattedDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.ReportGroupUserRole;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +43,7 @@ public interface WalletService {
 
     /**
      * Return list the user wallets data
+     *
      * @param email is email to determine user
      * @return list the user wallets data
      */
@@ -118,17 +135,23 @@ public interface WalletService {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
-    List<ExternalWalletDto> getExternalWallets();
+    List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
-    void updateExternalWallet(ExternalWalletDto externalWalletDto);
+    List<InternalWalletBalancesDto> getInternalWalletBalances();
+
+    List<InternalWalletBalancesDto> getWalletBalances();
+
+    void updateExternalWallet(ExternalWalletBalancesDto externalWalletBalancesDto);
 
     List<ExternalWalletDto> getBalancesWithExternalWallets();
-
-    void updateBalances();
 
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
 
     List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
+
+    void updateExternalWalletBalances();
+
+    void updateInternalWalletBalances();
 }

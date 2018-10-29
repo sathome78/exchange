@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.ReportDao;
+import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.enums.AdminAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,7 +10,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ReportDaoImpl implements ReportDao {
@@ -20,7 +23,6 @@ public class ReportDaoImpl implements ReportDao {
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
 
 
     @Override
@@ -51,7 +53,7 @@ public class ReportDaoImpl implements ReportDao {
 
     @Override
     public List<String> retrieveReportSubscribersList(boolean selectWithPremissions) {
-        final String premissionsClause =  String.join(" ", " JOIN USER U ON U.email = RS.email ",
+        final String premissionsClause = String.join(" ", " JOIN USER U ON U.email = RS.email ",
                 " JOIN USER_ADMIN_AUTHORITY UAA ON UAA.user_id = U.id ",
                 " WHERE UAA.admin_authority_id = ? AND UAA.enabled = TRUE ");
         String sql = "SELECT RS.email FROM REPORT_SUBSCRIBERS RS ";
@@ -75,5 +77,27 @@ public class ReportDaoImpl implements ReportDao {
         namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", email));
     }
 
+    @Override
+    public void addNewBalancesReport(BalancesReportDto balancesReportDto) {
+        final String sql = "INSERT INTO BALANCES_REPORT (file_name, content, created_at) VALUES (:file_name, :content, current_date)";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("file_name", balancesReportDto.getFileName());
+                put("content", balancesReportDto.getContent());
+            }
+        };
+        namedParameterJdbcTemplate.update(sql, params);
+    }
 
+    @Override
+    public BalancesReportDto getBalancesReportByFileName(String fileName) {
+        String sql = "SELECT br.file_name, br.content, br.created_at" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.file_name = :file_name";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("file_name", fileName), (rs, row) -> BalancesReportDto.builder()
+                .fileName(rs.getString("file_name"))
+                .content(rs.getBytes("content"))
+                .createdAt(rs.getDate("created_at").toLocalDate())
+                .build());
+    }
 }

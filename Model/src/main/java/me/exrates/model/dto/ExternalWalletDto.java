@@ -5,33 +5,33 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@Builder(builderClassName = "Builder")
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class ExternalWalletDto {
 
-    private Integer merchantId;
-
     private Integer currencyId;
+    private Integer merchantId;
     private String currencyName;
-    private BigDecimal usdRate;
-    private BigDecimal btcRate;
+    private BigDecimal reservedWalletBalance;
+    private BigDecimal coldWalletBalance;
+    private BigDecimal mainWalletBalance = BigDecimal.ZERO;
+    private BigDecimal mainWalletBalanceUSD = BigDecimal.ZERO;
+    private BigDecimal totalReal;
+    private BigDecimal rateUsdAdditional;
 
-    private BigDecimal mainBalance;
-    private BigDecimal reservedBalance;
-
-    private BigDecimal totalBalance;
-    private BigDecimal totalBalanceUSD;
-    private BigDecimal totalBalanceBTC;
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime lastUpdatedDate;
+    private BigDecimal totalWalletsBalance;
+    private BigDecimal totalWalletsBalanceUSD;
+    private BigDecimal totalWalletsDifference;
+    private BigDecimal totalWalletsDifferenceUSD;
 }

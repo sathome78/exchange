@@ -67,4 +67,6 @@ public interface ReportService {
     List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     List<UserTotalCommissionDto> getUserTotalCommissionInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+  void generateWalletBalancesReport();
 }

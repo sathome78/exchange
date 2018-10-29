@@ -3,7 +3,9 @@ package me.exrates.dao;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.dto.UserGroupBalanceDto;
@@ -102,11 +104,17 @@ public interface WalletDao {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
-    List<ExternalWalletDto> getExternalWallets();
+    List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
-    void updateBalances(ExternalWalletDto externalWalletDto);
+    List<InternalWalletBalancesDto> getInternalWalletBalances();
 
-    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+    List<InternalWalletBalancesDto> getWalletBalances();
+
+    void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto);
+
+    void updateInternalWalletBalances(InternalWalletBalancesDto internalWalletBalancesDto);
+
+    void addReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
 
     List<ExternalWalletDto> getBalancesWithExternalWallets();
 

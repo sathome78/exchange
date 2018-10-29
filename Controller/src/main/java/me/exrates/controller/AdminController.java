@@ -28,7 +28,7 @@ import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
-import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
@@ -999,8 +999,8 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
     @ResponseBody
-    public List<ExternalWalletDto> retrieveExternalWallets() {
-        return walletService.getExternalWallets();
+    public List<ExternalWalletBalancesDto> retrieveExternalWalletBalances() {
+        return walletService.getExternalWalletBalances();
     }
 
     @AdminLoggable
@@ -1033,14 +1033,14 @@ public class AdminController {
 //                                                      @RequestParam BigDecimal coldWalletBalance,
                                                       @RequestParam BigDecimal rateUsdAdditional) {
 
-        ExternalWalletDto externalWalletDto = new ExternalWalletDto();
-        externalWalletDto.setCurrencyId(currencyId);
-        externalWalletDto.setMainBalance(mainWalletBalance);
-        externalWalletDto.setReservedBalance(reservedWalletBalance);
+        ExternalWalletBalancesDto externalWalletBalancesDto = new ExternalWalletBalancesDto();
+        externalWalletBalancesDto.setCurrencyId(currencyId);
+        externalWalletBalancesDto.setMainBalance(mainWalletBalance);
+        externalWalletBalancesDto.setReservedBalance(reservedWalletBalance);
 //        externalWalletDto.setColdWalletBalance(coldWalletBalance);
 //        externalWalletDto.setRateUsdAdditional(rateUsdAdditional);
 
-        walletService.updateExternalWallet(externalWalletDto);
+        walletService.updateExternalWallet(externalWalletBalancesDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
