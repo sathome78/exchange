@@ -67,4 +67,4 @@ INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('AUNIT/USD', 'AUNIT/BTC'));
 
 INSERT IGNORE INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'AUNIT'), 'LastBlockTime', 0 );
+  ((SELECT id FROM MERCHANT WHERE name = 'AUNIT'), 'last_irreversible_block_num', 2736365);
