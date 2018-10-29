@@ -79,7 +79,7 @@ public class AunitNodeServiceImpl {
 
     @PostConstruct
     public void init() {
-        System.out.println("AUNIT init method start");
+        System.out.println("AUNIT init method start with wsURL " + wsUrl);
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
     }
