@@ -1,6 +1,8 @@
 package me.exrates.config;
 
 import me.exrates.controller.interceptor.WsHandshakeInterceptor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,8 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSocketMessageBroker
 public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
+    private static final Logger logger = LogManager.getLogger(StompWsConfig.class);
 
     @Value("${ws.origin}")
     private String allowedOrigins;
@@ -44,7 +48,7 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 ? allowedOrigins.split(",")
                 : new String[] {allowedOrigins};
 
-        System.out.println("*************************** Origins for WebSockets: " + Arrays.toString(origins) + " ****************");
+        logger.error("*************************** Orginis for WebSockets: " + Arrays.toString(origins) + " ****************");
         registry
                 .addEndpoint("/public_socket")
                 .setAllowedOrigins(origins)

@@ -157,8 +157,8 @@ public class OrderDaoImpl implements OrderDao {
     public boolean updateOrder(int orderId, ExOrder exOrder) {
 
         String sql = "UPDATE EXORDERS SET" +
-                " user_id = :userId, currency_pair_id = :currency_pair_id, operation_type_id = :operation_type_id," +
-                " exrate = :exrates, amount_base = :amount_base, amount_convert = :amount_convert, commission_id = :commission_id," +
+                " user_id = :user_id, currency_pair_id = :currency_pair_id, operation_type_id = :operation_type_id," +
+                " exrate = :exrate, amount_base = :amount_base, amount_convert = :amount_convert, commission_id = :commission_id," +
                 " commission_fixed_amount = :commission_fixed_amount, status_id = :status_id, order_source_id = :order_source_id," +
                 " base_type = :base_type" +
                 "  WHERE id = :id ";
