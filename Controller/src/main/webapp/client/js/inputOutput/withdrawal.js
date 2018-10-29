@@ -111,10 +111,10 @@ $(function () {
 
     $withdrawalPage = $('#withdraw-requests-admin');
     $withdrawalTable = $('#withdrawalTable');
-    tableViewType = "FOR_WORK";
+    tableViewType = "TO_VERIFY";
     filterParams = '';
     withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?viewType=';
-    $('#withdraw-requests-manual').addClass('active');
+    $('#withdraw-requests-to-verify').addClass('active');
 
 
     $('#withdraw-requests-new').click(function () {
@@ -140,6 +140,9 @@ $(function () {
     });
     $('#withdraw-requests-All').click(function () {
         changeTableViewType(this, "ALL")
+    });
+    $('#withdraw-requests-to-verify').click(function () {
+        changeTableViewType(this, "TO_VERIFY")
     });
 
     function changeTableViewType($elem, newStatus) {
@@ -341,6 +344,7 @@ function fillModal($modal, rowData) {
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $modal.find('#info-userFullName').text(rowData.userFullName);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);
+    $modal.find('#info-analytic-email').text(rowData.analyticHolderEmail);
 }
 
 

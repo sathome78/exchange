@@ -33,6 +33,7 @@ public class WithdrawRequestFlatDto {
   private Integer currencyId;
   private Integer merchantId;
   private Integer adminHolderId;
+  private Integer analyticHolderId;
   private InvoiceOperationPermission invoiceOperationPermission;
   private String transactionHash;
   private String additionalParams;

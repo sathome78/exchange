@@ -54,6 +54,10 @@
                             <td id="info-userFullName"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="merchants.withdrawDetails.analyticEmail"/></td>
+                            <td id="info-analytic-email"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="merchants.invoiceDetails.remark"/></td>
                             <td id="info-remark"><textarea class="textarea non-resize" readonly></textarea></td>
                         </tr>

@@ -61,6 +61,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
     withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
     withdrawRequestFlatDto.setTransactionHash(rs.getString("transaction_hash"));
+    withdrawRequestFlatDto.setAnalyticHolderId(rs.getInt("analytic_holder_id"));
     withdrawRequestFlatDto.setAdditionalParams(rs.getString("additional_params"));
     return withdrawRequestFlatDto;
   };
@@ -318,10 +319,12 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "   USER.email AS user_email, " +
         "   ADMIN.email AS admin_email, " +
         "   M.name AS merchant_name, " +
+        "   ANALYTIC.email AS analytic_email, " +
         "   MC.subtract_merchant_commission_for_withdraw " +
         " FROM WITHDRAW_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN USER USER ON (USER.id = WR.user_id) " +
+        " LEFT JOIN USER ANALYTIC ON ANALYTIC.id = WR.analytic_holder_id" +
         " LEFT JOIN USER ADMIN ON (ADMIN.id = WR.admin_holder_id) " +
         " JOIN MERCHANT M ON (M.id = WR.merchant_id)" +
         " JOIN MERCHANT_CURRENCY MC ON CUR.id = MC.currency_id AND M.id = MC.merchant_id " +
@@ -330,6 +333,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           WithdrawRequestFlatAdditionalDataDto withdrawRequestFlatAdditionalDataDto = new WithdrawRequestFlatAdditionalDataDto();
           withdrawRequestFlatAdditionalDataDto.setUserEmail(rs.getString("user_email"));
           withdrawRequestFlatAdditionalDataDto.setAdminHolderEmail(rs.getString("admin_email"));
+          withdrawRequestFlatAdditionalDataDto.setAnalyticHolderEmail(rs.getString("analytic_email"));
           withdrawRequestFlatAdditionalDataDto.setCurrencyName(rs.getString("currency_name"));
           withdrawRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
           withdrawRequestFlatAdditionalDataDto.setIsMerchantCommissionSubtractedForWithdraw(
@@ -347,6 +351,17 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("admin_holder_id", holderId);
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setAnalyticHolderById(int requestId, Integer adminId) {
+    final String sql = "UPDATE WITHDRAW_REQUEST " +
+            "  SET analytic_holder_id = :analytic_holder_id " +
+            "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", requestId);
+    params.put("analytic_holder_id", adminId);
     jdbcTemplate.update(sql, params);
   }
 

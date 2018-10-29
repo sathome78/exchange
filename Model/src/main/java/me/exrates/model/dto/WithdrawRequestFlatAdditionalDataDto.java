@@ -12,5 +12,6 @@ public class WithdrawRequestFlatAdditionalDataDto {
   private String currencyName;
   private String merchantName;
   private String adminHolderEmail;
+  private String analyticHolderEmail;
   private Boolean isMerchantCommissionSubtractedForWithdraw;
 }
