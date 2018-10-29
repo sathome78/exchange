@@ -7,6 +7,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -30,6 +31,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -154,6 +156,18 @@ public class NgPublicController {
         String destination = "/topic/chat/".concat(language.toLowerCase());
         messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // /info/public/v2/currencies/min-max/{currencyPairId}
+    @GetMapping("/currencies/min-max/{currencyPairId}")
+    public ResponseEntity<Map<String, OrderListDto>> getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
+        try {
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            Map<String, OrderListDto> values = orderService.getLastMinAndMaxOrderFor(currencyPair);
+            return ResponseEntity.ok(values);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     private ChatHistoryDto fromChatMessage(ChatMessage message) {

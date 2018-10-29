@@ -44,7 +44,7 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 ? allowedOrigins.split(",")
                 : new String[] {allowedOrigins};
 
-        System.out.println("*************************** Orginis for WebSockets: " + Arrays.toString(origins) + " ****************");
+        System.out.println("*************************** Origins for WebSockets: " + Arrays.toString(origins) + " ****************");
         registry
                 .addEndpoint("/public_socket")
                 .setAllowedOrigins(origins)

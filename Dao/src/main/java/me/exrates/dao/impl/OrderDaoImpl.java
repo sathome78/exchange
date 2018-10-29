@@ -80,6 +80,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static me.exrates.model.enums.OperationType.BUY;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
@@ -208,7 +209,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
-        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
+        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, " +
+                " amount_convert, commission_fixed_amount, date_creation, date_acception" +
                 "  FROM EXORDERS " +
                 (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 3 and currency_pair_id=:currency_pair_id" +
@@ -218,21 +220,13 @@ public class OrderDaoImpl implements OrderDao {
         if (filterRole != null) {
             namedParameters.put("user_role_id", filterRole.getRole());
         }
-        return slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-            OrderListDto order = new OrderListDto();
-            order.setId(rs.getInt("id"));
-            order.setUserId(rs.getInt("user_id"));
-            order.setOrderType(OperationType.convert(rs.getInt("operation_type_id")));
-            order.setExrate(rs.getString("exrate"));
-            order.setAmountBase(rs.getString("amount_base"));
-            order.setAmountConvert(rs.getString("amount_convert"));
-            return order;
-        });
+        return slaveJdbcTemplate.query(sql, namedParameters, orderListDtoRowMapper());
     }
 
     @Override
     public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
-        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
+        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, " +
+                "commission_fixed_amount, date_creation, date_acception" +
                 "  FROM EXORDERS " +
                 (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 4 and currency_pair_id=:currency_pair_id" +
@@ -242,7 +236,42 @@ public class OrderDaoImpl implements OrderDao {
         if (filterRole != null) {
             namedParameters.put("user_role_id", filterRole.getRole());
         }
-        return slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, namedParameters, orderListDtoRowMapper());
+    }
+
+    @Override
+    public OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType ... baseTypes) {
+        String join = operationType == BUY
+                ? " INNER JOIN (SELECT MAX(exrate) as exrate"
+                : " INNER JOIN (SELECT MIN(exrate) as exrate";
+        String sql = "SELECT t1.id as id, t1.user_id as user_id, t1.currency_pair_id as currency_pair_id, t1.operation_type_id as operation_type_id," +
+                "  t1.exrate as exrate, t1.amount_base as amount_base, t1.amount_convert as amount_convert," +
+                "  t1.commission_fixed_amount as commission_fixed_amount, t1.date_creation as date_creation, t1.date_acception as date_acception" +
+                "  FROM EXORDERS t1 " +
+                join +
+                "            FROM EXORDERS" +
+                "            WHERE status_id = 3" +
+                "                 AND currency_pair_id = :currency_pair_id" +
+                "                 AND operation_type_id = :operation_type_id" +
+                "                 AND base_type IN (:base_types)" +
+                "                 AND date_acception IS NOT NULL " +
+                "                 AND date_acception - INTERVAL 1 DAY) t2" +
+                "  ON t1.exrate = t2.exrate" +
+                " ORDER BY t1.date_acception DESC LIMIT 1";
+        List<String> bases = Arrays.stream(baseTypes).map(String::valueOf).collect(Collectors.toList());
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+        namedParameters.addValue("currency_pair_id", pair.getId());
+        namedParameters.addValue("operation_type_id", operationType.getType());
+        namedParameters.addValue("base_types", bases);
+        try {
+            return slaveJdbcTemplate.queryForObject(sql, namedParameters, orderListDtoRowMapper());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private RowMapper<OrderListDto> orderListDtoRowMapper(){
+        return (rs, rowNum) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
             order.setUserId(rs.getInt("user_id"));
@@ -250,8 +279,10 @@ public class OrderDaoImpl implements OrderDao {
             order.setExrate(rs.getString("exrate"));
             order.setAmountBase(rs.getString("amount_base"));
             order.setAmountConvert(rs.getString("amount_convert"));
+            order.setCreated(rs.getTimestamp("date_creation").toLocalDateTime());
+            order.setAccepted(rs.getTimestamp("date_acception").toLocalDateTime());
             return order;
-        });
+        };
     }
 
     @Override

@@ -2097,6 +2097,14 @@ public class OrderServiceImpl implements OrderService {
 
         return orderDao.getOrderTransactions(userId, orderId);
     }
+
+    @Override
+    public Map<String, OrderListDto> getLastMinAndMaxOrderFor(CurrencyPair pair) {
+        Map<String, OrderListDto> values = new HashMap<>();
+        values.put("MIN", orderDao.getLastOrder(pair, OperationType.SELL, OrderBaseType.LIMIT, OrderBaseType.STOP_LIMIT));
+        values.put("MAX", orderDao.getLastOrder(pair, OperationType.BUY, OrderBaseType.LIMIT, OrderBaseType.STOP_LIMIT));
+        return values;
+    }
 }
 
 

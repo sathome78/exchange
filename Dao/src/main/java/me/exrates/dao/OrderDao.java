@@ -50,6 +50,8 @@ public interface OrderDao {
 
     boolean updateOrder(int orderId, ExOrder order);
 
+    OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType... baseTypes);
+
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);

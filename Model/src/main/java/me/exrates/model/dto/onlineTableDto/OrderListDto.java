@@ -6,6 +6,10 @@ import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 /**
  * Created by Valk on 14.04.16.
  */
@@ -19,6 +23,8 @@ public class OrderListDto extends OnlineTableDto {
   private String amountBase;
   private String amountConvert;
   private String ordersIds;
+  private LocalDateTime created;
+  private LocalDateTime accepted;
 
   public OrderListDto(String ordersIds, String exrate, String amountBase, String amountConvert, OperationType orderType, boolean needRefresh) {
     this.ordersIds = ordersIds;
