@@ -39,7 +39,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @ClientEndpoint
 @Service
 public class AunitNodeServiceImpl {
-
+//
     private @Value("${aunit.node.ws}")String wsUrl;
     private @Value("${aunit.mainAddress}")String systemAddress;
     private @Value("${aunit.pk.path}")String pkFilePath;
