@@ -59,7 +59,7 @@ public class AunitNodeServiceImpl {
     final String accountAddress = "1.2.20683"; //todo
 
     private int latIrreversableBlocknumber = 0;
-    private final String lastIrreversebleBlock = "last_irreverseble_block";
+    private final String lastIrreversebleBlock = "last_irreversible_block_num";
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
