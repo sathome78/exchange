@@ -143,6 +143,12 @@ public interface WalletService {
 
     void updateExternalWallet(ExternalWalletBalancesDto externalWalletBalancesDto);
 
+    void createWalletAddress(int currencyId);
+
+    void deleteWalletAddress(int currencyId);
+
+    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+
     List<ExternalWalletDto> getBalancesWithExternalWallets();
 
     BigDecimal retrieveSummaryUSD();

@@ -14,7 +14,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class ExternalReservedWalletAddressDto {
 
+    private Integer id;
     private Integer currencyId;
+    private String name;
     private String walletAddress;
     private BigDecimal balance;
 }

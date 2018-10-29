@@ -263,11 +263,13 @@ public class CryptocurrencyConfig {
         return new LiskRestClientImpl();
     }
 
+    /*
     @Bean
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
     }
+    */
 
 
     // WAVES-like

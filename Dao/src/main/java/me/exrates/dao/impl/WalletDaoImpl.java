@@ -59,6 +59,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.SELL;
 
 @Repository
@@ -1275,6 +1276,57 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public void updateBalances(ExternalWalletDto externalWalletDto) {
+        final String sql = "UPDATE COMPANY_WALLET_EXTERNAL cwe" +
+                " SET cwe.usd_rate = :usd_rate, cwe.btc_rate = :btc_rate, " +
+                "cwe.main_balance = IFNULL(:main_balance, 0), " +
+                "cwe.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
+                "cwe.total_balance = cwe.main_balance + cwe.reserved_balance, " +
+                "cwe.total_balance_usd = cwe.total_balance * cwe.usd_rate, " +
+                "cwe.total_balance_btc = cwe.total_balance * cwe.btc_rate, " +
+                "cwe.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE cwe.currency_id = :currency_id";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("currency_id", externalWalletDto.getCurrencyId());
+                put("usd_rate", externalWalletDto.getUsdRate());
+                put("btc_rate", externalWalletDto.getBtcRate());
+                put("main_balance", externalWalletDto.getMainBalance());
+            }
+        };
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void createWalletAddress(int currencyId) {
+        final String sql = "INSERT INTO COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS (currency_id) VALUES (:currency_id)";
+
+        jdbcTemplate.update(sql, singletonMap("currency_id", currencyId));
+    }
+
+    @Override
+    public void deleteWalletAddress(int id) {
+        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS where id = :id";
+
+        jdbcTemplate.update(sql, singletonMap("id", id));
+    }
+
+    @Override
+    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
+        final String sql = "INSERT INTO COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS (currency_id, wallet_address, balance)" +
+                " VALUES (:currency_id, :wallet_address, :balance)";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("id", externalReservedWalletAddressDto.getId());
+                put("currency_id", externalReservedWalletAddressDto.getCurrencyId());
+                put("wallet_address", externalReservedWalletAddressDto.getWalletAddress());
+                put("balance", externalReservedWalletAddressDto.getBalance());
+            }
+        };
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         String sql = "SELECT iwb.currency_id, " +
                 "cur.name AS currency_name, " +
@@ -1410,14 +1462,16 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {
-        String sql = "SELECT cwera.currency_id, cwera.wallet_address, cwera.balance" +
+        String sql = "SELECT cwera.id, cwera.currency_id, cwera.name, cwera.wallet_address, cwera.balance" +
                 " FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera" +
                 " WHERE cwera.currency_id = :currency_id";
 
         Map<String, String> params = Collections.singletonMap("currency_id", currencyId);
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> ExternalReservedWalletAddressDto.builder()
+                .id(rs.getInt("id"))
                 .currencyId(rs.getInt("currency_id"))
+                .name(rs.getString("name"))
                 .walletAddress(rs.getString("wallet_address"))
                 .balance(rs.getBigDecimal("balance"))
                 .build());

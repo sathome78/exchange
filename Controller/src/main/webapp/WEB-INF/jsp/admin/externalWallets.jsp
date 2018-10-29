@@ -65,7 +65,7 @@
                 <h4 class="modal-title"><loc:message code="admin.externalWallets.modalTitle"/></h4>
             </div>
             <div class="modal-body" style="height: content-box;">
-                <form enctype="multipart/form-data" action="" method="post">
+                <label id="currencyIdForPopUp" style="display: none"></label>
                     <div class="input-block-wrapper">
                         <div class="col-md-6">
                             <label><loc:message code="admin.rate.to.usd"/></label>
@@ -92,28 +92,31 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-12">
-                            <label><loc:message code="admin.externalWallets.reservedWalletsBalances"/></label>
+                            <label id="labelReservedWalletBalance"><loc:message code="admin.externalWallets.reservedWalletsBalances"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
-                        <div id="reserved-wallets-id">
-                            <%--<div id="reserve-wallet-1">--%>
-                                <%--<div class="col-md-4">--%>
-                                    <%--<input name="wallet" type="text" placeholder="Address/Name">--%>
-                                <%--</div>--%>
-                                <%--<div class="col-md-4">--%>
-                                    <%--<input name="balance" type="number" min="0" placeholder="0">--%>
-                                <%--</div>--%>
-                                <%--<div class="col-md-4">--%>
-                                    <%--<input name="remove" type="button"--%>
-                                           <%--onclick="javascript:removeElement(this.id); return false;"--%>
-                                           <%--value="Remove">--%>
-                                <%--</div>--%>
-                            <%--</div>--%>
-                        </div>
-                        <p><input type="button" value="Add File" onclick="addFile();"/></p>
+                        <table id="reservedWallets"
+                               class="admin-table table table-hover table-striped"
+                               style="width:100%">
+                            <thead>
+                            <tr>
+                                <%--Index--%>
+                                <th></th>
+                                <%--walletAddress--%>
+                                <th></th>
+                                <%--balance--%>
+                                <th></th>
+                                <%--Id--%>
+                                <th></th>
+                            </tr>
+                            </thead>
+                        </table>
+
                     </div>
-                </form>
+                    <div class="input-block-wrapper">
+                        <input id="addNewReserdedWallet" type="button" value="Add reserved wallet"/>
+                    </div>
             </div>
         </div>
     </div>
