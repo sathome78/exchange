@@ -28,7 +28,9 @@ public interface RefillService {
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-    @Transactional(readOnly = true)
+  List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId);
+
+  @Transactional(readOnly = true)
     Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
 
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
@@ -38,6 +40,8 @@ public interface RefillService {
   void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
 
   List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+
+  Optional<Integer> getRequestIdReadyForAutoAccept(String address, Integer merchantId, Integer currencyId);
 
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
@@ -143,4 +147,5 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
 
     void invalidateAddress(String address, Integer merchantId, Integer currencyId);
+
 }
