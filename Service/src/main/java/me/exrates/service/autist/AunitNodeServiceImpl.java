@@ -1,7 +1,6 @@
 package me.exrates.service.autist;
 
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -71,6 +70,12 @@ public class AunitNodeServiceImpl {
         System.out.println("ok merchantService.findByName(AUNIT_MERCHANT)");
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
         System.out.println("ok currencyService.findByName(AUNIT_CURRENCY)");
+
+
+        System.out.println(merchantSpecParamsDao);
+        System.out.println(merchant);
+        System.out.println(lastIrreversebleBlock);
+        System.out.println(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock));
         latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
         System.out.println("ok Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName");
         this.merchantService = merchantService;
