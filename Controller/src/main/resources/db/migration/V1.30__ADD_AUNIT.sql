@@ -3,7 +3,7 @@ VALUES ('Aunit Coin', 'AUNIT', 2, 'aunitServiceImpl', 'CRYPTO');
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('AUNIT', 'Aunit Coin', 0, 5, 5, 5);
 
-INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ADK'));
+INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='AUNIT'));
 
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
