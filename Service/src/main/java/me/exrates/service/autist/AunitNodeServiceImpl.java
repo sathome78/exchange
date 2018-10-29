@@ -39,7 +39,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @ClientEndpoint
 @Service
 public class AunitNodeServiceImpl {
-
+//
     private @Value("${aunit.node.ws}")String wsUrl;
     private @Value("${aunit.mainAddress}")String systemAddress;
     private @Value("${aunit.pk.path}")String pkFilePath;
@@ -74,10 +74,12 @@ public class AunitNodeServiceImpl {
         this.merchantSpecParamsDao = merchantSpecParamsDao;
         this.aunitService = aunitService;
         this.refillService = refillService;
+        System.out.println("AUNIT construcor finished");
     }
 
     @PostConstruct
     public void init() {
+        System.out.println("AUNIT init method start");
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
     }
@@ -91,6 +93,7 @@ public class AunitNodeServiceImpl {
             session.setMaxIdleTimeout(Long.MAX_VALUE);
 
             endpoint = session.getBasicRemote();
+            System.out.println("start AUNIT subscribeToTransactions");
             subscribeToTransactions();
         } catch (Exception e) {
             System.out.println("gabella");
