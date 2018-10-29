@@ -21,9 +21,12 @@ package me.exrates.service.autist;// GrapheneUtils.java, by @alexpmorris, 2018-0
 
 
 import com.google.common.primitives.Bytes;
-import eu.bittrade.crypto.core.*;
-import eu.bittrade.crypto.core.base58.*;
-import eu.bittrade.libs.steemj.base.models.*;
+import eu.bittrade.crypto.core.CryptoUtils;
+import eu.bittrade.crypto.core.DumpedPrivateKey;
+import eu.bittrade.crypto.core.ECKey;
+import eu.bittrade.crypto.core.Sha256Hash;
+import eu.bittrade.crypto.core.base58.Base58;
+import eu.bittrade.crypto.core.base58.Sha256ChecksumProvider;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 import org.spongycastle.util.encoders.Base64;
 
@@ -77,7 +80,7 @@ public class GrapheneUtils {
     // associated with a particular private key
     // prefix = STM, BTS, EOS, GLS, etc...
     // privKey is the ECKey object holding the associated private key
-    public static String getAddressFromPublicKey(String prefix, eu.bittrade.crypto.core.ECKey privKey) {
+    public static String getAddressFromPublicKey(String prefix, ECKey privKey) {
         try {
             // Recreate the accountAddress from the public key.
             byte [] pubBytes;
@@ -91,19 +94,19 @@ public class GrapheneUtils {
     }
 
     // returns a graphene Wif from the byte representation of a private key
-    public static String getGrapheneWifFromPrivateKey(eu.bittrade.crypto.core.ECKey pKey) {
+    public static String getGrapheneWifFromPrivateKey(ECKey pKey) {
         return pKey.getPrivateKeyEncoded(128).toBase58();
     }
 
     // returns an ECKey object holding a byte representation of a private key from a graphene Wif
-    public static eu.bittrade.crypto.core.ECKey GrapheneWifToPrivateKey(String Wif) {
-        eu.bittrade.crypto.core.ECKey pKey = DumpedPrivateKey.fromBase58(null, Wif, new Sha256ChecksumProvider()).getKey();
+    public static ECKey GrapheneWifToPrivateKey(String Wif) {
+        ECKey pKey = DumpedPrivateKey.fromBase58(null, Wif, new Sha256ChecksumProvider()).getKey();
         //System.out.println(pKey.getPrivateKeyEncoded(128).toBase58());
         //System.out.println(getAddressFromPublicKey("STM", pKey));
         return pKey;
     }
 
-    public static String SignMessage(String message, eu.bittrade.crypto.core.ECKey privKey) {
+    public static String SignMessage(String message, ECKey privKey) {
         Sha256Hash messageAsHash = Sha256Hash.of(message.getBytes());
         ECKey.ECDSASignature sigObj = privKey.sign(messageAsHash);
 
@@ -132,7 +135,7 @@ public class GrapheneUtils {
         } catch (Exception e) { return false; }
     }
 
-    public static String SignEosMessage(String message, eu.bittrade.crypto.core.ECKey privKey) {
+    public static String SignEosMessage(String message, ECKey privKey) {
         Sha256Hash messageAsHash = Sha256Hash.of(message.getBytes());
         ECKey.ECDSASignature sigObj = privKey.sign(messageAsHash);
 

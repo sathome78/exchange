@@ -32,7 +32,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Service("aunitServiceImpl")
 @PropertySource("classpath:/merchants/aunit.properties")
 @Log4j2(topic = "aunit")
-public class AunitServiceImpl implements AunitService{
+public class AunitServiceImpl implements AunitService {
 
     private @Value("${aunit.mainAddress}")String systemAddress;
 
@@ -159,6 +159,9 @@ public class AunitServiceImpl implements AunitService{
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("Not supported");
     }
+
+
+
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)

@@ -51,6 +51,11 @@ public interface AunitService extends IRefillable , IWithdrawable {
         return false;
     }
 
+    @Override
+    default boolean isValidDestinationAddress(String address) {
+        return false;
+    }
+
     Merchant getMerchant();
 
     Currency getCurrency();
