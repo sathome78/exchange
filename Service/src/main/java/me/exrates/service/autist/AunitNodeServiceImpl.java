@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -199,11 +198,9 @@ public class AunitNodeServiceImpl {
 
         for (int i = 0; i < transactions.length(); i++) {
             JSONObject transaction = transactions.getJSONArray(i).getJSONObject(1);
-            if(!transaction.getString("to").equals(accountAddress)){
-                System.out.println("Not our accountAddress, continue");
-                continue;
-            }
-            makeRefill(lisfOfMemo, transaction);
+
+            if(transaction.getString("to").equals(accountAddress)) makeRefill(lisfOfMemo, transaction);
+
         }
 
     }
@@ -260,16 +257,16 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    public static void main(String[] args) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String encode = passwordEncoder.encode("123");
-        System.out.println(encode);
-
-        String toParse = " {\"id\":10,\"jsonrpc\":\"2.0\",\"result\":{\"previous\":\"0029564fb47083cc42fe0b05e910534c852dfe45\",\"timestamp\":\"2018-10-28T10:02:15\",\"witness\":\"1.6.6\",\"transaction_merkle_root\":\"be7dfcf9be45931b1e61aaac065a75e0ce7c1071\",\"extensions\":[],\"witness_signature\":\"1f7077350fb0e1f16b159bb583c6d6ffd9cc612d68128d88c97a3ed17e75524f284c5340ce476e5b0cc3be159bb385029a3d637c94a36eb33a20f2a5e2c5edce46\",\"transactions\":[{\"ref_block_num\":22095,\"ref_block_prefix\":3431166132,\"expiration\":\"2018-10-28T10:02:42\",\"operations\":[[5,{\"fee\":{\"amount\":0,\"asset_id\":\"1.3.0\"},\"registrar\":\"1.2.26\",\"referrer\":\"1.2.26\",\"referrer_percent\":0,\"name\":\"aaf34f095-b3c7-4887-a4fe-e51f43527b0b\",\"owner\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT6yrSfbXL5Swg6zQ5nh23t4EDey7pB2AxU4j41ruxXdrMhJuRET\",1]],\"address_auths\":[]},\"active\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",1]],\"address_auths\":[]},\"options\":{\"memo_key\":\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",\"voting_account\":\"1.2.5\",\"num_witness\":0,\"num_committee\":0,\"votes\":[],\"extensions\":[]},\"extensions\":{}}]],\"extensions\":[],\"signatures\":[\"202a7693667ecdc7084ed6f6e7de38d783f168a0358a5bb41d2e75c3cb02ea569d189a9a42eec332dad63ae97138d37c2b091eb2f558640ae577583a26d87a6e69\"],\"operation_results\":[[1,\"1.2.26471\"]]}]}}\n";
-
-        JSONObject block = new JSONObject(toParse);
-        JSONObject result = block.getJSONObject("result");
-        JSONArray transactions = result.getJSONArray("operations");
-        System.out.println(transactions);
-    }
+//    public static void main(String[] args) {
+//        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        String encode = passwordEncoder.encode("123");
+//        System.out.println(encode);
+//
+//        String toParse = " {\"id\":10,\"jsonrpc\":\"2.0\",\"result\":{\"previous\":\"0029564fb47083cc42fe0b05e910534c852dfe45\",\"timestamp\":\"2018-10-28T10:02:15\",\"witness\":\"1.6.6\",\"transaction_merkle_root\":\"be7dfcf9be45931b1e61aaac065a75e0ce7c1071\",\"extensions\":[],\"witness_signature\":\"1f7077350fb0e1f16b159bb583c6d6ffd9cc612d68128d88c97a3ed17e75524f284c5340ce476e5b0cc3be159bb385029a3d637c94a36eb33a20f2a5e2c5edce46\",\"transactions\":[{\"ref_block_num\":22095,\"ref_block_prefix\":3431166132,\"expiration\":\"2018-10-28T10:02:42\",\"operations\":[[5,{\"fee\":{\"amount\":0,\"asset_id\":\"1.3.0\"},\"registrar\":\"1.2.26\",\"referrer\":\"1.2.26\",\"referrer_percent\":0,\"name\":\"aaf34f095-b3c7-4887-a4fe-e51f43527b0b\",\"owner\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT6yrSfbXL5Swg6zQ5nh23t4EDey7pB2AxU4j41ruxXdrMhJuRET\",1]],\"address_auths\":[]},\"active\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",1]],\"address_auths\":[]},\"options\":{\"memo_key\":\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",\"voting_account\":\"1.2.5\",\"num_witness\":0,\"num_committee\":0,\"votes\":[],\"extensions\":[]},\"extensions\":{}}]],\"extensions\":[],\"signatures\":[\"202a7693667ecdc7084ed6f6e7de38d783f168a0358a5bb41d2e75c3cb02ea569d189a9a42eec332dad63ae97138d37c2b091eb2f558640ae577583a26d87a6e69\"],\"operation_results\":[[1,\"1.2.26471\"]]}]}}\n";
+//
+//        JSONObject block = new JSONObject(toParse);
+//        JSONObject result = block.getJSONObject("result");
+//        JSONArray transactions = result.getJSONArray("operations");
+//        System.out.println(transactions);
+//    }
 }
