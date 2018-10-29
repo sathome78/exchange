@@ -1050,8 +1050,8 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.DELETE)
     @ResponseBody
-    public ResponseEntity<Void> deleteWalletAddress(@RequestParam int currencyId) {
-        walletService.deleteWalletAddress(currencyId);
+    public ResponseEntity<Void> deleteWalletAddress(@RequestParam int id) {
+        walletService.deleteWalletAddress(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -1087,11 +1087,13 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Void> submitWalletAddressAsName(@RequestParam int id,
                                                     @RequestParam int currencyId,
+                                                    @RequestParam String name,
                                                     @RequestParam String walletAddress,
                                                     @RequestParam BigDecimal reservedWalletBalance) {
 
         ExternalReservedWalletAddressDto externalReservedWalletAddressDto = new ExternalReservedWalletAddressDto();
         externalReservedWalletAddressDto.setId(id);
+        externalReservedWalletAddressDto.setName(name);
         externalReservedWalletAddressDto.setCurrencyId(currencyId);
         externalReservedWalletAddressDto.setWalletAddress(walletAddress);
         externalReservedWalletAddressDto.setBalance(reservedWalletBalance);
