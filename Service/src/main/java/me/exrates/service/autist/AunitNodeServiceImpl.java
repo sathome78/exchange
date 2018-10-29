@@ -65,30 +65,18 @@ public class AunitNodeServiceImpl {
 
     @Autowired
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) {
-        System.out.println("AUNIT constructor started");
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
-        System.out.println("ok merchantService.findByName(AUNIT_MERCHANT)");
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
-        System.out.println("ok currencyService.findByName(AUNIT_CURRENCY)");
-
-
-        System.out.println(merchantSpecParamsDao);
-        System.out.println(merchant);
-        System.out.println(lastIrreversebleBlock);
-        System.out.println(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock));
         latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
-        System.out.println("ok Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName");
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.merchantSpecParamsDao = merchantSpecParamsDao;
         this.aunitService = aunitService;
         this.refillService = refillService;
-        System.out.println("AUNIT construcor finished");
     }
 
     @PostConstruct
     public void init() {
-        System.out.println("AUNIT init method start with wsURL " + wsUrl);
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
     }
@@ -102,7 +90,6 @@ public class AunitNodeServiceImpl {
             session.setMaxIdleTimeout(Long.MAX_VALUE);
 
             endpoint = session.getBasicRemote();
-            System.out.println("start AUNIT subscribeToTransactions");
             subscribeToTransactions();
         } catch (Exception e) {
             System.out.println("gabella");
