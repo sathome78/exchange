@@ -1,6 +1,6 @@
-package me.exrates.api.service;
+package me.exrates.service.util;
 
-import me.exrates.api.dao.UserDao;
+import me.exrates.dao.ApiRateLimitDao;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,18 +33,18 @@ public class ApiRateLimitService {
     private final Map<String, Integer> userLimits = new ConcurrentHashMap<>();
 
     @Autowired
-    private UserDao userApiDao;
+    private ApiRateLimitDao userApiDao;
 
     @Scheduled(initialDelay = 30 * 60 * 1000, fixedDelay = 30 * 60 * 1000)
     public void clearExpiredRequests() {
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug(">> clearExpiredRequests");
         }
         new HashMap<>(userTimes).forEach((k, v) -> {
-            if (v.stream().filter(p -> p.isAfter(LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS))).count() == 0) {
+            if (v.stream().noneMatch(p -> p.isAfter(LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS)))) {
                 userTimes.remove(k);
-                if(log.isDebugEnabled()){
-                    log.debug("Removed from cache: "+ k);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed from cache: " + k);
                 }
             }
         });
@@ -97,13 +96,5 @@ public class ApiRateLimitService {
             userLimits.put(userEmail, limit);
             return limit;
         }
-    }
-
-    Map<String, Integer> getUserLimits() {
-        return Collections.unmodifiableMap(userLimits);
-    }
-
-    public static Integer getDefaultAttemps() {
-        return DEFAULT_ATTEMPS;
     }
 }

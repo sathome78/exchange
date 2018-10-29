@@ -1,17 +1,17 @@
-package me.exrates.api.dao;
+package me.exrates.dao.impl;
 
+import me.exrates.dao.ApiRateLimitDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by Yuriy Berezin on 14.09.2018.
  */
 @Repository
-public class UserDao {
+public class ApiRateLimitDaoImpl implements ApiRateLimitDao {
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -25,6 +25,7 @@ public class UserDao {
     private static final String INSERT_DEF_ATTEMPTS = "INSERT INTO USER_API (user_id, attempts) " +
             "VALUES ((SELECT id FROM USER WHERE email = :email), :attempts)";
 
+    @Override
     public Integer getRequestsLimit(String email) {
         try {
             return namedParameterJdbcTemplate.queryForObject(SELECT_ATTEMPTS,
@@ -34,6 +35,7 @@ public class UserDao {
         }
     }
 
+    @Override
     public void updateRequestsLimit(String email, Integer limit) {
 
         MapSqlParameterSource parameterSource =  new MapSqlParameterSource();
@@ -43,6 +45,7 @@ public class UserDao {
         namedParameterJdbcTemplate.update(UPDATE_ATTEMPTS, parameterSource);
     }
 
+    @Override
     public void setRequestsDefaultLimit(String email, Integer limit) {
 
         MapSqlParameterSource parameterSource =  new MapSqlParameterSource();

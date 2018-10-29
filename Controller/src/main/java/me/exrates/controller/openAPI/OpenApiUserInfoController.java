@@ -1,7 +1,7 @@
 package me.exrates.controller.openAPI;
 
-import me.exrates.api.ApiRequestsLimitExceedException;
-import me.exrates.api.aspect.ApiRateLimitCheck;
+import me.exrates.service.exception.api.ApiRequestsLimitExceedException;
+import me.exrates.controller.annotation.ApiRateLimitCheck;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;

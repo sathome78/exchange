@@ -2,7 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.api.service.ApiRateLimitService;
+import me.exrates.service.util.ApiRateLimitService;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;

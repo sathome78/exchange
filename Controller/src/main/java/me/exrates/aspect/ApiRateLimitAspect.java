@@ -1,7 +1,7 @@
-package me.exrates.api.aspect;
+package me.exrates.aspect;
 
-import me.exrates.api.service.ApiRateLimitService;
-import me.exrates.api.ApiRequestsLimitExceedException;
+import me.exrates.service.util.ApiRateLimitService;
+import me.exrates.service.exception.api.ApiRequestsLimitExceedException;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ public class ApiRateLimitAspect {
     @Autowired
     private ApiRateLimitService rateLimitService;
 
-    @Before(value = "@annotation(me.exrates.api.aspect.ApiRateLimitCheck)")
+    @Before(value = "@annotation(me.exrates.controller.annotation.ApiRateLimitCheck)")
     public void checkRateLimit() throws ApiRequestsLimitExceedException {
 
         rateLimitService.registerRequest();

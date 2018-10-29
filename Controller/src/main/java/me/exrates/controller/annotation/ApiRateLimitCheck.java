@@ -1,4 +1,4 @@
-package me.exrates.api.aspect;
+package me.exrates.controller.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
