@@ -18,9 +18,41 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(PUT_FOR_MANUAL, WAITING_MANUAL_POSTING);
+      schemaMap.put(PUT_FOR_MANUAL, WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_AUTO, WAITING_AUTO_POSTING);
-      schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_CONFIRM, WAITING_CONFIRMATION);
+      schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_CONFIRM, WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO);
+    }
+  },
+  WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL(22) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ANALYTICS_FOR_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+    }
+  },
+  WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO(23) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ANALYTICS_SEMI_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+    }
+  },
+  IN_WORK_OF_ANALYTICS_FOR_MANUAL(24) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ANALYTICS_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_ADMIN, WAITING_MANUAL_POSTING);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+    }
+  },
+  IN_WORK_OF_ANALYTICS_SEMI_AUTO(25) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ANALYTICS_SEMI_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_ADMIN, WAITING_CONFIRMATION);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
   WAITING_MANUAL_POSTING(2) {
@@ -68,6 +100,16 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     }
   },
   DECLINED_ADMIN(8) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+    }
+  },
+  DECLINED_ANALYTICS_MANUAL(28) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+    }
+  },
+  DECLINED_ANALYTICS_SEMI_AUTO(29) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }

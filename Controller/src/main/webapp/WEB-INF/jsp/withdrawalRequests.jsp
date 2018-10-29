@@ -33,6 +33,8 @@
         <div class="col-md-8 col-sm-offset-1 content admin-container">
             <div class="row text-right">
                 <div style="float: left; display: inline-block">
+                    <button id="withdraw-requests-to-verify" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.withdraw.to.verify"/></button>
                     <button id="withdraw-requests-manual" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.manual"/></button>
                     <button id="withdraw-requests-confirm" class="myorders__button blue-box margin-box">

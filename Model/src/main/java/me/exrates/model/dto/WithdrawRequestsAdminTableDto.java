@@ -41,6 +41,8 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private String destinationTag;
   private Integer adminHolderId;
   private String adminHolderEmail;
+  private Integer analyticHolderId;
+  private String analyticHolderEmail;
   private String recipientBankName;
   private String recipientBankCode;
   private String userFullName;
@@ -76,6 +78,8 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.destinationTag = withdrawRequestFlatDto.getDestinationTag();
     this.adminHolderId = withdrawRequestFlatDto.getAdminHolderId();
     this.adminHolderEmail = withdrawRequestFlatAdditionalDataDto.getAdminHolderEmail();
+    this.analyticHolderId = withdrawRequestFlatDto.getAnalyticHolderId();
+    this.analyticHolderEmail = withdrawRequestFlatAdditionalDataDto.getAnalyticHolderEmail();
     this.recipientBankName = withdrawRequestFlatDto.getRecipientBankName();
     this.recipientBankCode = withdrawRequestFlatDto.getRecipientBankCode();
     this.userFullName = withdrawRequestFlatDto.getUserFullName();

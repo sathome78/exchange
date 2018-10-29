@@ -59,4 +59,6 @@ public interface WithdrawRequestDao {
     List<Integer> getWithdrawalStatistic(String startDate, String endDate);
 
     WithdrawRequestInfoDto findWithdrawInfo(Integer id);
+
+    void setAnalyticHolderById(int requestId, Integer requesterAdminId);
 }

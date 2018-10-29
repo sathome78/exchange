@@ -254,7 +254,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     output.setData(result.getData().stream()
         .map(e -> new WithdrawRequestsAdminTableDto(e, withdrawRequestDao.getAdditionalDataForId(e.getId())))
         .peek(e -> {
-          boolean authorizedUserIsHolder = authorizedUserId.equals(e.getAdminHolderId());
+          boolean authorizedUserIsHolder = authorizedUserId.equals(e.getStatus() == WithdrawStatusEnum.IN_WORK_OF_ADMIN ? e.getAdminHolderId() : e.getAnalyticHolderId());
           e.setButtons(
                   inputOutputService.generateAndGetButtonsSet(
                           e.getStatus(),
@@ -263,7 +263,6 @@ public class WithdrawServiceImpl implements WithdrawService {
                           locale)
           );
           e.setAuthorizedUserIsHolder(authorizedUserIsHolder);
-
         })
         .collect(Collectors.toList())
     );
@@ -319,7 +318,20 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+    switch (newStatus) {
+      case IN_WORK_OF_ADMIN: {
+        withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+        break;
+      }
+      case IN_WORK_OF_ANALYTICS_SEMI_AUTO:{
+        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
+        break;
+      }
+      case IN_WORK_OF_ANALYTICS_FOR_MANUAL: {
+        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
+        break;
+      }
+    }
   }
 
   @Override
@@ -331,7 +343,20 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    withdrawRequestDao.setHolderById(requestId, null);
+    switch (newStatus) {
+      case WAITING_MANUAL_POSTING: {
+        withdrawRequestDao.setHolderById(requestId, null);
+        break;
+      }
+      case WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL:{
+        withdrawRequestDao.setAnalyticHolderById(requestId, null);
+        break;
+      }
+      case WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO: {
+        withdrawRequestDao.setAnalyticHolderById(requestId, null);
+        break;
+      }
+    }
   }
 
   @Override
@@ -384,7 +409,20 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+    switch (newStatus) {
+      case WAITING_CONFIRMED_POSTING : {
+        withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+        break;
+      }
+      case WAITING_MANUAL_POSTING : {
+        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
+        break;
+      }
+      case WAITING_CONFIRMATION : {
+        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
+        break;
+      }
+    }
   }
 
   @Override
@@ -670,7 +708,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
-    Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());
+    Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getStatus() == WithdrawStatusEnum.IN_WORK_OF_ADMIN ? withdrawRequest.getAdminHolderId() : withdrawRequest.getAnalyticHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
         requesterAdminId,
         withdrawRequest.getCurrencyId(),
