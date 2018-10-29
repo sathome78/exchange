@@ -145,7 +145,7 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Wrong operationType - " + operationType);
         }
 
-        if (order.getCurrencyPair().getId() != inputOrder.getCurrencyPairId()) {
+        if (order.getCurrencyPairId() != inputOrder.getCurrencyPairId()) {
             throw new NgDashboardException("Not support change currency pair");
         }
 
@@ -263,8 +263,9 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     @Override
     public ResponseInfoCurrencyPairDto getCurrencyPairInfo(int currencyPairId, User user) {
-
         ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
+        try {
+
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         BigDecimal balanceByCurrency1 =
                 dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
@@ -291,32 +292,12 @@ public class NgOrderServiceImpl implements NgOrderService {
             break;
 
         }
-//        if (!currencyRate.isEmpty()) {
-//            result.setCurrencyRate(currencyRate.get(0).getLastOrderRate());
-//            result.setPercentChange(currencyRate.get(0).getPercentChange());
-//            result.setLastCurrencyRate(currencyRate.get(0).getPredLastOrderRate());
-//
-//            BigDecimal rateNow = new BigDecimal(currencyRate.get(0).getLastOrderRate());
-//            BigDecimal rateYesterday = new BigDecimal(currencyRate.get(0).getPredLastOrderRate());
-//            BigDecimal subtract = rateNow.subtract(rateYesterday);
-//            result.setChangedValue(subtract.toString());
-//            BigDecimal rate = new BigDecimal(currencyRate.get(0).getLastOrderRate());
-//            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
-//        }
+
         result.setBalanceByCurrency2(balanceByCurrency2);
 
-        //get daily statistic by 2 ways ---  what way is correct ???
-
-        //1 method
-        LocalDateTime fromLocalDate = LocalDateTime.now().minusDays(1).withHour(1);
-        LocalDateTime toLocalDate = LocalDateTime.now().minusDays(1).withHour(23);
-        Date from = Date.from(fromLocalDate.atZone(ZoneId.systemDefault()).toInstant());
-        Date to = Date.from(toLocalDate.atZone(ZoneId.systemDefault()).toInstant());
-
         List<StockExchangeStats> statistics;
-        try {
             statistics =
-                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId, from, to);
+                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
             //set rateHigh
             statistics.stream()
                     .map(StockExchangeStats::getPriceHigh)
@@ -336,8 +317,8 @@ public class NgOrderServiceImpl implements NgOrderService {
                     .ifPresent(volume -> result.setVolume24h(volume.toString()));
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values");
+            throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
         }
-
         return result;
     }
 

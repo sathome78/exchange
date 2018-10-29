@@ -1,11 +1,13 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -21,16 +23,21 @@ import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -149,6 +156,18 @@ public class NgPublicController {
         String destination = "/topic/chat/".concat(language.toLowerCase());
         messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // /info/public/v2/currencies/min-max/{currencyPairId}
+    @GetMapping("/currencies/min-max/{currencyPairId}")
+    public ResponseEntity<Map<String, OrderListDto>> getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
+        try {
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            Map<String, OrderListDto> values = orderService.getLastMinAndMaxOrderFor(currencyPair);
+            return ResponseEntity.ok(values);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     private ChatHistoryDto fromChatMessage(ChatMessage message) {

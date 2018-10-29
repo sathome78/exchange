@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
@@ -61,7 +62,7 @@ import java.util.Set;
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@PropertySource("classpath:/angular.properties")
+@PropertySource("classpath:angular.properties")
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
