@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -67,11 +66,10 @@ public class AunitServiceImpl implements AunitService {
         System.out.println("desitanion tag = " + destinationTag);
         String message = messageSource.getMessage("merchants.refill.xrp",
                 new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
-        DecimalFormat myFormatter = new DecimalFormat("###.##");
-        System.out.println("After fromat = " + myFormatter.format(destinationTag));
         return new HashMap<String, String>() {{
-            put("accountAddress", myFormatter.format(destinationTag));
+            put("accountAddress", String.valueOf(destinationTag));
             put("message", message);
+            put("qr", systemAddress);
         }};
     }
 
