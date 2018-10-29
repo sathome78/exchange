@@ -275,6 +275,7 @@ function saveAsName(elem) {
         data: {
             "id": data.id,
             "currencyId": data.currencyId,
+            "name": data.name,
             "walletAddress": data.walletAddress,
             "balance": data.balance
         },
