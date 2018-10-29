@@ -31,7 +31,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
 @Service("aunitServiceImpl")
 @PropertySource("classpath:/merchants/aunit.properties")
-@Log4j2(topic = "aunit")
+//@Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
     private @Value("${aunit.mainAddress}")String systemAddress;
@@ -122,7 +122,8 @@ public class AunitServiceImpl implements AunitService {
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-            log.error("aunit transaction allready received!!! {}", hash);
+//            log.error("aunit transaction allready received!!! {}", hash);
+            System.out.println("aunit transaction allready received!! " + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -151,7 +152,7 @@ public class AunitServiceImpl implements AunitService {
                             .hash(requestAcceptDto.getMerchantTransactionId())
                             .build());
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error(e);
+            e.printStackTrace();
         }
     }
 

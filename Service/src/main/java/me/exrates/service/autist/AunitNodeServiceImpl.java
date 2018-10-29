@@ -34,7 +34,7 @@ import static me.exrates.service.autist.AunitServiceImpl.AUNIT_CURRENCY;
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_MERCHANT;
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
-@Log4j2(topic = "aunit")
+//@Log4j2(topic = "aunit")
 @PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
@@ -178,7 +178,7 @@ public class AunitNodeServiceImpl {
     public void onMessage(String msg) {
         if(msg.contains("notice")) setIrreversableBlock(msg);
         else if (msg.contains("previous")) processIrreversebleBlock(msg);
-        else log.error("Unrecognized msg from node: " + msg);
+        else System.out.println("unrecogrinzed msg aunit \n" + msg);;
 
         System.out.println(msg);
     }
@@ -231,7 +231,7 @@ public class AunitNodeServiceImpl {
         try {
             aunitService.processPayment(map);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error(e);
+            e.printStackTrace();
         }
     }
 
@@ -257,7 +257,8 @@ public class AunitNodeServiceImpl {
         try {
             session.close();
         } catch (IOException e) {
-            log.error("error closing session");
+            e.printStackTrace();
+//            log.error("error closing session");
         }
     }
 
