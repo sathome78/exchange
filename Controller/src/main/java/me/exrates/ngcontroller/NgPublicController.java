@@ -139,10 +139,10 @@ public class NgPublicController {
     public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
         List<ChatHistoryDto> messages;
         try {
-            if (!WRITE_MODE){
-                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
-            } else {
+            if (WRITE_MODE){
                 messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
+            } else {
+                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
             }
             return messages;
         } catch (Exception e) {
