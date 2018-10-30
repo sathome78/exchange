@@ -1617,17 +1617,6 @@ public class AdminController {
         return walletService.getReservedWalletsByCurrencyId(currencyId);
     }
 
-//    @AdminLoggable
-//    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
-//    @ResponseBody
-//    public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
-//                                                      @RequestParam BigDecimal mainWalletBalance,
-//                                                      @RequestParam BigDecimal reservedWalletBalance,
-//                                                      @RequestParam BigDecimal coldWalletBalance,
-//                                                      @RequestParam BigDecimal rateUsdAdditional) {
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
-
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/create", method = RequestMethod.POST)
     @ResponseBody
