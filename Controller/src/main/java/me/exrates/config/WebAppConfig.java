@@ -1483,6 +1483,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TTP", false, ExConvert.Unit.FINNEY);
     }
 
+    @Bean(name = "vaiServiceImpl")
+    public EthTokenService vaiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd4078bdb652610ad5383a747d130cbe905911102");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "VAI",
+                "VAI", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "mgxServiceImpl")
     public EthTokenService mgxService() {
         List<String> tokensList = new ArrayList<>();
