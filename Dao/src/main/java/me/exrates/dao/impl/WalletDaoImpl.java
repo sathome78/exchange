@@ -13,7 +13,8 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
-import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.dto.UserGroupBalanceDto;
@@ -34,16 +35,15 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -1246,28 +1246,23 @@ public class WalletDaoImpl implements WalletDao {
         });
     }
 
+
     @Override
-    public List<ExternalWalletDto> getExternalWallets() {
-        String sql = "SELECT cwe.currency_id, " +
-                "cur.name as currency_name, " +
-                "cwe.usd_rate, " +
-                "cwe.btc_rate, " +
-                "cwe.main_balance, " +
-                "cwe.reserved_balance, " +
-                "cwe.total_balance, " +
-                "cwe.total_balance_usd, " +
-                "cwe.total_balance_btc, " +
-                "cwe.last_updated_at, " +
-                "IFNULL(mc.merchant_id, 0) as merchant_id" +
-                " FROM COMPANY_WALLET_EXTERNAL cwe" +
-                " JOIN CURRENCY cur on (cwe.currency_id = cur.id AND cur.hidden = 0)" +
-                " LEFT JOIN" +
-                "    (SELECT merchant_id, currency_id" +
-                "     FROM MERCHANT_CURRENCY" +
-                "     JOIN MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id)" +
-                "     WHERE process_type = 'CRYPTO') as mc on mc.currency_id = cur.id" +
-                " ORDER BY cwe.currency_id";
-        return slaveJdbcTemplate.query(sql, (rs, row) -> ExternalWalletDto.builder()
+    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
+        String sql = "SELECT cewb.currency_id, " +
+                "cur.name AS currency_name, " +
+                "cewb.usd_rate, " +
+                "cewb.btc_rate, " +
+                "cewb.main_balance, " +
+                "cewb.reserved_balance, " +
+                "cewb.total_balance, " +
+                "cewb.total_balance_usd, " +
+                "cewb.total_balance_btc, " +
+                "cewb.last_updated_at" +
+                " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
+                " JOIN CURRENCY cur on (cewb.currency_id = cur.id AND cur.hidden = 0)" +
+                " ORDER BY cewb.currency_id";
+        return slaveJdbcTemplate.query(sql, (rs, row) -> ExternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
                 .usdRate(rs.getBigDecimal("usd_rate"))
@@ -1278,54 +1273,99 @@ public class WalletDaoImpl implements WalletDao {
                 .totalBalanceUSD(rs.getBigDecimal("total_balance_usd"))
                 .totalBalanceBTC(rs.getBigDecimal("total_balance_btc"))
                 .lastUpdatedDate(rs.getTimestamp("last_updated_at").toLocalDateTime())
-                .merchantId(rs.getInt("merchant_id"))
                 .build());
     }
 
     @Override
-    public void updateBalances(ExternalWalletDto externalWalletDto) {
-        final String sql = "UPDATE COMPANY_WALLET_EXTERNAL cwe" +
-                " SET cwe.usd_rate = :usd_rate, cwe.btc_rate = :btc_rate, " +
-                "cwe.main_balance = IFNULL(:main_balance, 0), " +
-                "cwe.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
-                "cwe.total_balance = cwe.main_balance + cwe.reserved_balance, " +
-                "cwe.total_balance_usd = cwe.total_balance * cwe.usd_rate, " +
-                "cwe.total_balance_btc = cwe.total_balance * cwe.btc_rate, " +
-                "cwe.last_updated_at = CURRENT_TIMESTAMP" +
-                " WHERE cwe.currency_id = :currency_id";
+    public void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto) {
+        final String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
+                " SET cewb.usd_rate = :usd_rate, cewb.btc_rate = :btc_rate, " +
+                "cewb.main_balance = IFNULL(:main_balance, 0), " +
+                "cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
+                "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
+                "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
+                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
+                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE cewb.currency_id = :currency_id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
-                put("currency_id", externalWalletDto.getCurrencyId());
-                put("usd_rate", externalWalletDto.getUsdRate());
-                put("btc_rate", externalWalletDto.getBtcRate());
-                put("main_balance", externalWalletDto.getMainBalance());
+                put("currency_id", externalWalletBalancesDto.getCurrencyId());
+                put("usd_rate", externalWalletBalancesDto.getUsdRate());
+                put("btc_rate", externalWalletBalancesDto.getBtcRate());
+                put("main_balance", externalWalletBalancesDto.getMainBalance());
             }
         };
         jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void createWalletAddress(int currencyId){
+    public List<InternalWalletBalancesDto> getInternalWalletBalances() {
+        String sql = "SELECT iwb.currency_id, " +
+                "cur.name AS currency_name, " +
+                "iwb.usd_rate, " +
+                "iwb.btc_rate, " +
+                "iwb.total_balance, " +
+                "iwb.total_balance_usd, " +
+                "iwb.total_balance_btc, " +
+                "iwb.last_updated_at" +
+                " FROM INTERNAL_WALLET_BALANCES iwb" +
+                " JOIN CURRENCY cur on (iwb.currency_id = cur.id AND cur.hidden = 0)" +
+                " ORDER BY iwb.currency_id";
+        return slaveJdbcTemplate.query(sql, (rs, row) -> InternalWalletBalancesDto.builder()
+                .currencyId(rs.getInt("currency_id"))
+                .currencyName(rs.getString("currency_name"))
+                .usdRate(rs.getBigDecimal("usd_rate"))
+                .btcRate(rs.getBigDecimal("btc_rate"))
+                .totalBalance(rs.getBigDecimal("total_balance"))
+                .totalBalanceUSD(rs.getBigDecimal("total_balance_usd"))
+                .totalBalanceBTC(rs.getBigDecimal("total_balance_btc"))
+                .lastUpdatedDate(rs.getTimestamp("last_updated_at").toLocalDateTime())
+                .build());
+    }
+
+    @Override
+    public void updateInternalWalletBalances(InternalWalletBalancesDto internalWalletBalancesDto) {
+        final String sql = "UPDATE INTERNAL_WALLET_BALANCES iwb" +
+                " SET iwb.usd_rate = :usd_rate, iwb.btc_rate = :btc_rate, " +
+                "iwb.total_balance = IFNULL(:total_balance, 0), " +
+                "iwb.total_balance_usd = iwb.total_balance * iwb.usd_rate, " +
+                "iwb.total_balance_btc = iwb.total_balance * iwb.btc_rate, " +
+                "iwb.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE iwb.currency_id = :currency_id";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("currency_id", internalWalletBalancesDto.getCurrencyId());
+                put("usd_rate", internalWalletBalancesDto.getUsdRate());
+                put("btc_rate", internalWalletBalancesDto.getBtcRate());
+                put("total_balance", internalWalletBalancesDto.getTotalBalance());
+            }
+        };
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void createReservedWalletAddress(int currencyId) {
         final String sql = "INSERT INTO COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS (currency_id) VALUES (:currency_id)";
 
         jdbcTemplate.update(sql, singletonMap("currency_id", currencyId));
     }
 
     @Override
-    public void deleteWalletAddress(int id){
-        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS where id = :id";
+    public void deleteReservedWalletAddress(int id) {
+        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.id = :id";
 
         jdbcTemplate.update(sql, singletonMap("id", id));
     }
 
     @Override
-    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
-        String nameSql = "";
-        if(externalReservedWalletAddressDto.getName() != null){
-            nameSql = "name:name, ";
-        }
-        String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, "+nameSql+"wallet_address=:wallet_address, " +
-                "balance=:balance WHERE id=:id";
+    public void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
+            String nameSql = StringUtils.EMPTY;
+            if(externalReservedWalletAddressDto.getName() != null){
+                nameSql = "name:name, ";
+            }
+            String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, "+nameSql+"wallet_address=:wallet_address, " +
+                    "balance=:balance WHERE id=:id";
+
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", externalReservedWalletAddressDto.getId());
@@ -1336,46 +1376,6 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         jdbcTemplate.update(sql, params);
-    }
-
-    @Override
-    public List<ExternalWalletDto> getBalancesWithExternalWallets() {
-        String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, rate_usd_additional, AGR.total_balance, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id \n" +
-                "FROM (   SELECT STRAIGHT_JOIN W.currency_id, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance   \n" +
-                "FROM WALLET W     JOIN USER U ON U.id = W.user_id     JOIN USER_ROLE UR ON U.roleid = UR.id     \n" +
-                "JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id AND UR.user_role_report_group_feature_id IN (1,2)   GROUP BY W.currency_id   ) AGR   \n" +
-                "JOIN CURRENCY CUR ON AGR.currency_id = CUR.id AND CUR.hidden = 0 \n" +
-                "JOIN COMPANY_WALLET_EXTERNAL CWE ON CUR.id = CWE.currency_id\n" +
-                "LEFT JOIN \n" +
-                "(SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY\n" +
-                "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
-                "where process_type = 'CRYPTO') as MC on MC.currency_id = CUR.id\n" +
-                "  ORDER BY currency_id";
-        return slaveJdbcTemplate.query(sql, (rs, row) -> {
-            ExternalWalletDto dto = new ExternalWalletDto();
-            dto.setCurrencyId(rs.getInt("currency_id"));
-            dto.setMerchantId(rs.getInt("merchant_id"));
-            dto.setCurrencyName(rs.getString("currency_name"));
-//      dto.setRateUsdAdditional(rs.getBigDecimal("rate_usd_additional"));
-//      dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
-//      dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
-//      dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
-//      dto.setTotalReal(rs.getBigDecimal("total_balance"));
-
-            return dto;
-        });
-    }
-
-    @Override
-    public BigDecimal retrieveSummaryUSD() {
-        String sql = "SELECT SUM(cwe.total_balance_usd) FROM COMPANY_WALLET_EXTERNAL cwe";
-        return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
-    }
-
-    @Override
-    public BigDecimal retrieveSummaryBTC() {
-        String sql = "SELECT SUM(cwe.total_balance_btc) FROM COMPANY_WALLET_EXTERNAL cwe";
-        return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
     }
 
     @Override
@@ -1393,5 +1393,32 @@ public class WalletDaoImpl implements WalletDao {
                 .walletAddress(rs.getString("wallet_address"))
                 .balance(rs.getBigDecimal("balance"))
                 .build());
+    }
+
+    @Override
+    public List<InternalWalletBalancesDto> getWalletBalances() {
+        String sql = "SELECT cur.name AS currency_name, " +
+                "SUM(w.active_balance + w.reserved_balance) AS total_balance" +
+                " FROM WALLET w" +
+                " JOIN CURRENCY cur on (w.currency_id = cur.id AND cur.hidden = 0)" +
+                " GROUP BY w.currency_id" +
+                " ORDER BY w.currency_id";
+
+        return slaveJdbcTemplate.query(sql, (rs, row) -> InternalWalletBalancesDto.builder()
+                .currencyName(rs.getString("currency_name"))
+                .totalBalance(rs.getBigDecimal("total_balance"))
+                .build());
+    }
+
+    @Override
+    public BigDecimal retrieveSummaryUSD() {
+        String sql = "SELECT SUM(cewb.total_balance_usd) FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb";
+        return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
+    }
+
+    @Override
+    public BigDecimal retrieveSummaryBTC() {
+        String sql = "SELECT SUM(cewb.total_balance_btc) FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb";
+        return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
     }
 }

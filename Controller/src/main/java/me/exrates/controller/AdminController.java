@@ -28,7 +28,7 @@ import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
-import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
@@ -99,7 +99,12 @@ import me.exrates.service.UserTransferService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NotCreatableOrderException;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.OrderCreationException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
@@ -175,6 +180,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
@@ -986,120 +992,6 @@ public class AdminController {
         }
     }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets", method = RequestMethod.GET)
-    public ModelAndView externalWallets() {
-        return new ModelAndView("admin/externalWallets");
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
-    @ResponseBody
-    public List<ExternalWalletDto> retrieveExternalWallets() {
-        return walletService.getExternalWallets();
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/summaryUSD", method = RequestMethod.GET)
-    @ResponseBody
-    public BigDecimal retrieveSummaryUSD() {
-        return walletService.retrieveSummaryUSD();
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/summaryBTC", method = RequestMethod.GET)
-    @ResponseBody
-    public BigDecimal retrieveSummaryBTC() {
-        return walletService.retrieveSummaryBTC();
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/reservedWallets/{currency_id}", method = RequestMethod.GET)
-    @ResponseBody
-    public List<ExternalReservedWalletAddressDto> getReservedWallets(@PathVariable("currency_id") String currencyId) {
-        return walletService.getReservedWalletsByCurrencyId(currencyId);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
-                                                      @RequestParam BigDecimal mainWalletBalance,
-                                                      @RequestParam BigDecimal reservedWalletBalance,
-//                                                      @RequestParam BigDecimal coldWalletBalance,
-                                                      @RequestParam BigDecimal rateUsdAdditional) {
-
-        ExternalWalletDto externalWalletDto = new ExternalWalletDto();
-        externalWalletDto.setCurrencyId(currencyId);
-        externalWalletDto.setMainBalance(mainWalletBalance);
-        externalWalletDto.setReservedBalance(reservedWalletBalance);
-//        externalWalletDto.setColdWalletBalance(coldWalletBalance);
-//        externalWalletDto.setRateUsdAdditional(rateUsdAdditional);
-
-        walletService.updateExternalWallet(externalWalletDto);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/create", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> createWalletAddress(@RequestParam int currencyId) {
-        walletService.createWalletAddress(currencyId);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> deleteWalletAddress(@RequestParam("id") int id) {
-        walletService.deleteWalletAddress(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<String> submitWalletAddressAsAddress(@RequestParam int id,
-                                                    @RequestParam int currencyId,
-                                                    @RequestParam String walletAddress,
-                                                    Locale locale) {
-        //TODO change mock
-        String test = "0.5";
-        if (test != null) {
-            BigDecimal reservedWalletBalance = new BigDecimal(test);
-
-            ExternalReservedWalletAddressDto externalReservedWalletAddressDto = new ExternalReservedWalletAddressDto();
-            externalReservedWalletAddressDto.setId(id);
-            externalReservedWalletAddressDto.setCurrencyId(currencyId);
-            externalReservedWalletAddressDto.setWalletAddress(walletAddress);
-            externalReservedWalletAddressDto.setBalance(reservedWalletBalance);
-
-            walletService.updateWalletAddress(externalReservedWalletAddressDto);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(messageSource.getMessage("user.settings.changePassword.fail", null, locale), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsName/submit", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> submitWalletAddressAsName(@RequestParam int id,
-                                                    @RequestParam int currencyId,
-                                                    @RequestParam(required = false) String name,
-                                                    @RequestParam String walletAddress,
-                                                    @RequestParam BigDecimal reservedWalletBalance) {
-
-        ExternalReservedWalletAddressDto externalReservedWalletAddressDto = new ExternalReservedWalletAddressDto();
-        externalReservedWalletAddressDto.setId(id);
-        externalReservedWalletAddressDto.setName(name);
-        externalReservedWalletAddressDto.setCurrencyId(currencyId);
-        externalReservedWalletAddressDto.setWalletAddress(walletAddress);
-        externalReservedWalletAddressDto.setBalance(reservedWalletBalance);
-
-        walletService.updateWalletAddress(externalReservedWalletAddressDto);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
     public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
@@ -1691,6 +1583,109 @@ public class AdminController {
         return merchantService.retrieveCoreWallets(locale);
     }
 
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets", method = RequestMethod.GET)
+    public ModelAndView externalWallets() {
+        return new ModelAndView("admin/externalWallets");
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
+    @ResponseBody
+    public List<ExternalWalletBalancesDto> retrieveExternalWalletBalances() {
+        return walletService.getExternalWalletBalances();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/summaryUSD", method = RequestMethod.GET)
+    @ResponseBody
+    public BigDecimal retrieveSummaryUSD() {
+        return walletService.retrieveSummaryUSD();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/summaryBTC", method = RequestMethod.GET)
+    @ResponseBody
+    public BigDecimal retrieveSummaryBTC() {
+        return walletService.retrieveSummaryBTC();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve/reservedWallets/{currency_id}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<ExternalReservedWalletAddressDto> getReservedWallets(@PathVariable("currency_id") String currencyId) {
+        return walletService.getReservedWalletsByCurrencyId(currencyId);
+    }
+
+//    @AdminLoggable
+//    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
+//    @ResponseBody
+//    public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
+//                                                      @RequestParam BigDecimal mainWalletBalance,
+//                                                      @RequestParam BigDecimal reservedWalletBalance,
+//                                                      @RequestParam BigDecimal coldWalletBalance,
+//                                                      @RequestParam BigDecimal rateUsdAdditional) {
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/create", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> createWalletAddress(@RequestParam int currencyId) {
+        walletService.createWalletAddress(currencyId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity deleteWalletAddress(@RequestParam("id") int id) {
+        walletService.deleteWalletAddress(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> submitWalletAddressAsAddress(@RequestParam int id,
+                                                               @RequestParam int currencyId,
+                                                               @RequestParam String walletAddress,
+                                                               Locale locale) {
+        final BigDecimal reservedWalletBalance = walletService.getExternalReservedWalletBalance(currencyId, walletAddress);
+        if (nonNull(reservedWalletBalance)) {
+            ExternalReservedWalletAddressDto externalReservedWalletAddressDto = ExternalReservedWalletAddressDto.builder()
+                    .id(id)
+                    .currencyId(currencyId)
+                    .walletAddress(walletAddress)
+                    .balance(reservedWalletBalance)
+                    .build();
+            walletService.updateWalletAddress(externalReservedWalletAddressDto);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(messageSource.getMessage("user.settings.changePassword.fail", null, locale), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsName/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> submitWalletAddressAsName(@RequestParam int id,
+                                                          @RequestParam int currencyId,
+                                                          @RequestParam(required = false) String name,
+                                                          @RequestParam String walletAddress,
+                                                          @RequestParam BigDecimal reservedWalletBalance) {
+
+        ExternalReservedWalletAddressDto externalReservedWalletAddressDto = ExternalReservedWalletAddressDto.builder()
+                .id(id)
+                .name(name)
+                .currencyId(currencyId)
+                .walletAddress(walletAddress)
+                .balance(reservedWalletBalance)
+                .build();
+
+        walletService.updateWalletAddress(externalReservedWalletAddressDto);
+        return ResponseEntity.ok().build();
+    }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,

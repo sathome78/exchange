@@ -16,21 +16,18 @@ import java.time.LocalDateTime;
 @Builder(builderClassName = "Builder")
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExternalWalletDto {
-
-    private Integer merchantId;
+public class InternalWalletBalancesDto {
 
     private Integer currencyId;
     private String currencyName;
+
     private BigDecimal usdRate;
     private BigDecimal btcRate;
-
-    private BigDecimal mainBalance;
-    private BigDecimal reservedBalance;
 
     private BigDecimal totalBalance;
     private BigDecimal totalBalanceUSD;
     private BigDecimal totalBalanceBTC;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastUpdatedDate;
