@@ -1048,9 +1048,9 @@ public class AdminController {
     }
 
     @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> deleteWalletAddress(@RequestParam int id) {
+    public ResponseEntity<Void> deleteWalletAddress(@RequestParam("id") int id) {
         walletService.deleteWalletAddress(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1058,10 +1058,10 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> submitWalletAddressAsAddress(@RequestParam int id,
+    public ResponseEntity<String> submitWalletAddressAsAddress(@RequestParam int id,
                                                     @RequestParam int currencyId,
                                                     @RequestParam String walletAddress,
-                                                             RedirectAttributes redirectAttributes) {
+                                                    Locale locale) {
         //TODO change mock
         String test = "0.5";
         if (test != null) {
@@ -1076,9 +1076,7 @@ public class AdminController {
             walletService.updateWalletAddress(externalReservedWalletAddressDto);
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
-            //TODO add localization for message
-            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            throw new AddressNotFoundException("Address not found");
+            return new ResponseEntity<>(messageSource.getMessage("user.settings.changePassword.fail", null, locale), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -1087,7 +1085,7 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Void> submitWalletAddressAsName(@RequestParam int id,
                                                     @RequestParam int currencyId,
-                                                    @RequestParam String name,
+                                                    @RequestParam(required = false) String name,
                                                     @RequestParam String walletAddress,
                                                     @RequestParam BigDecimal reservedWalletBalance) {
 

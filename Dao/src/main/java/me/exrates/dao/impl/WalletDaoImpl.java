@@ -1320,7 +1320,11 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
-        final String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, name=:name, wallet_address=:wallet_address, " +
+        String nameSql = "";
+        if(externalReservedWalletAddressDto.getName() != null){
+            nameSql = "name:name, ";
+        }
+        String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, "+nameSql+"wallet_address=:wallet_address, " +
                 "balance=:balance WHERE id=:id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
