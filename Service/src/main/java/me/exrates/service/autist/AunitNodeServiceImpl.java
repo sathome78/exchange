@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +58,7 @@ public class AunitNodeServiceImpl {
     private final MerchantSpecParamsDao merchantSpecParamsDao;
     private final AunitService aunitService;
     private final RefillService refillService;
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
     /*todo get it from outer file*/
     static String privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
@@ -67,7 +70,7 @@ public class AunitNodeServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) {
+    public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
         MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
@@ -223,7 +226,8 @@ public class AunitNodeServiceImpl {
             System.out.println("decoded memo = " + memoText);
             if(lisfOfMemo.contains(memoText)){
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
-                prepareAndProcessTx("", memoText, amount);
+
+                prepareAndProcessTx(String.valueOf(digest.digest(memoText.getBytes(StandardCharsets.UTF_8))), memoText, amount);
             }
         } catch (NoSuchAlgorithmException e){
             System.out.println(e.getClass());
