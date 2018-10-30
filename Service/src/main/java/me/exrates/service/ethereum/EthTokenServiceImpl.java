@@ -31,8 +31,10 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -88,6 +90,8 @@ public class EthTokenServiceImpl implements EthTokenService {
     @Qualifier(value = "ethereumServiceImpl")
     @Autowired
     private EthereumCommonService ethereumCommonService;
+    @Autowired
+    private EthAccountsHolder ethAccountsHolder;
 
     @Override
     public Integer currencyId() {
@@ -120,11 +124,9 @@ public class EthTokenServiceImpl implements EthTokenService {
     public void init() {
         merchant = merchantService.findByName(merchantName);
         currency = currencyService.findByName(currencyName);
-
         currentBlockNumber = new BigInteger("0");
         pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
-
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
@@ -133,7 +135,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     log.error(e);
                 }
             }
-        }, 3, 10, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -259,6 +261,7 @@ public class EthTokenServiceImpl implements EthTokenService {
     }
 
     private void transferFundsToMainAccount(){
+        log.debug("Start method transferFundsToMainAccount...");
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto){
             try {
@@ -281,7 +284,8 @@ public class EthTokenServiceImpl implements EthTokenService {
                     BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
                     BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
 
-                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+                    if (/*balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0 ||*/ false){
+                        /*back money to comission account*/
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
 
@@ -295,10 +299,17 @@ public class EthTokenServiceImpl implements EthTokenService {
 
                     BigInteger futureAllowance = contract.allowance(credentials.getAddress(),
                             ethereumCommonService.getCredentialsMain().getAddress()).send();
-                    if (futureAllowance.compareTo(balance) < 0 && ethBalance.compareTo(feeAmount) < 0) {
+                    if (futureAllowance.compareTo(balance) < 0 && ethBalance.compareTo(feeAmount) < 0 || true) {
+                        /*send money to acc for transfer approve*/
+                        EthTransferAcc transferAcc = ethAccountsHolder.getAccForUse();
+                        log.debug("transfer acc " + transferAcc);
+                        log.debug("send eth from {} to account {} ", ethereumCommonService.getCredentialsMain().getAddress(), credentials.getAddress());
                         Transfer.sendFunds(
-                                ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
-                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
+                                transferAcc.getWeb3j(), transferAcc.getCredentials(),
+                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync().handle((res, ex)-> {
+                                    transferAcc.returnFromUse();
+                                    return null;
+                                });
 
                         contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), ExConvert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
                     }else if (futureAllowance.compareTo(balance) < 0){
@@ -309,7 +320,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                             ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance)).send();
 
                     log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance.subtract(minWalletBalance)), unit) + " sent to main account!!!");
-                }else {
+                } else {
 
                     ethTokenNotERC20 contract = (ethTokenNotERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), credentials, GAS_PRICE, GAS_LIMIT);
                     log.debug("contract {} for address {}", contractAddress.get(0), credentials.getAddress());
@@ -317,7 +328,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
                     log.debug("balance {}", balance);
                     log.debug("eth balance of address {}", ethBalance);
-                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+                    if (/*balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0 ||*/ false){
                         log.debug("balance is lower than min for transfer ");
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
@@ -331,12 +342,18 @@ public class EthTokenServiceImpl implements EthTokenService {
                         continue;
                     }
 
-                    if (ethBalance.compareTo(feeAmount) < 0) {
-                        log.debug("send eth from {} to account {} ", ethereumCommonService.getCredentialsMain().getAddress(), credentials.getAddress());
+                    if (ethBalance.compareTo(feeAmount) < 0 || true) {
+                        EthTransferAcc transferAcc = ethAccountsHolder.getAccForUse();
+                        log.debug("transfer acc " + transferAcc);
+                        log.debug("send eth to account {} ", credentials.getAddress());
                         Transfer.sendFunds(
-                                ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
-                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
+                                transferAcc.getWeb3j(), transferAcc.getCredentials(),
+                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync().handle((res, ex)-> {
+                                    transferAcc.returnFromUse();
+                                    return null;
+                                });
                     }
+
                     log.debug("send token from {} to account {} ", ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance));
 
                     contract.transfer(ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance)).send();

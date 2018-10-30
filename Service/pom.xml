@@ -109,11 +109,6 @@
     </dependency>
     <dependency>
       <groupId>org.web3j</groupId>
-      <artifactId>core</artifactId>
-      <version>3.4.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.web3j</groupId>
       <artifactId>codegen</artifactId>
       <version>3.4.0</version>
     </dependency>
