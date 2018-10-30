@@ -7,10 +7,10 @@ import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
 import me.exrates.model.dto.BalancesReportDto;
+import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.ExternalWalletDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.InvoiceReportDto;
@@ -521,12 +521,6 @@ public class ReportServiceImpl implements ReportService {
         });
     }
 
-
-    @Override
-    public List<ExternalWalletDto> getBalancesWithExternalWallets() {
-        return walletService.getBalancesWithExternalWallets();
-    }
-
     @Override
     public List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         Preconditions.checkArgument(!userRoles.isEmpty(), "At least one role must be specified");
@@ -561,6 +555,64 @@ public class ReportServiceImpl implements ReportService {
         BalancesReportDto balancesReportDto = ExcelGeneratorUtil.generateReportBalances(balances);
 
         reportDao.addNewBalancesReport(balancesReportDto);
+    }
+
+    @Override
+    public List<BalancesDto> getBalancesSliceStatistic() {
+        List<String> curNames = currencyService.getAllCurrencies().stream().map(Currency::getName).collect(toList());
+
+        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
+                .collect(toMap(
+                        ExternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()));
+        final Map<String, InternalWalletBalancesDto> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+                .collect(toMap(
+                        InternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()));
+
+        final LocalDateTime lastUpdated = LocalDateTime.now();
+
+        return curNames.stream()
+                .map(name -> {
+                    ExternalWalletBalancesDto externalWalletBalancesDto = externalWalletBalances.get(name);
+                    InternalWalletBalancesDto internalWalletBalancesDto = internalWalletBalances.get(name);
+
+                    final Integer currencyId = externalWalletBalancesDto.getCurrencyId();
+                    final String currencyName = externalWalletBalancesDto.getCurrencyName();
+
+                    final BigDecimal usdRate = externalWalletBalancesDto.getUsdRate();
+                    final BigDecimal btcRate = externalWalletBalancesDto.getBtcRate();
+
+                    final BigDecimal externalTotalBalance = externalWalletBalancesDto.getTotalBalance();
+                    final BigDecimal externalTotalBalanceUSD = externalWalletBalancesDto.getTotalBalanceUSD();
+                    final BigDecimal externalTotalBalanceBTC = externalWalletBalancesDto.getTotalBalanceBTC();
+
+                    final BigDecimal internalTotalBalance = internalWalletBalancesDto.getTotalBalance();
+                    final BigDecimal internalTotalBalanceUSD = internalWalletBalancesDto.getTotalBalanceUSD();
+                    final BigDecimal internalTotalBalanceBTC = internalWalletBalancesDto.getTotalBalanceBTC();
+
+                    final BigDecimal deviation = externalTotalBalance.subtract(internalTotalBalance);
+                    final BigDecimal deviationUSD = externalTotalBalanceUSD.subtract(internalTotalBalanceUSD);
+                    final BigDecimal deviationBTC = externalTotalBalanceBTC.subtract(internalTotalBalanceBTC);
+
+                    return BalancesDto.builder()
+                            .currencyId(currencyId)
+                            .currencyName(currencyName)
+                            .usdRate(usdRate)
+                            .btcRate(btcRate)
+                            .totalWalletBalance(externalTotalBalance)
+                            .totalWalletBalanceUSD(externalTotalBalanceUSD)
+                            .totalWalletBalanceBTC(externalTotalBalanceBTC)
+                            .totalExratesBalance(internalTotalBalance)
+                            .totalExratesBalanceUSD(internalTotalBalanceUSD)
+                            .totalExratesBalanceBTC(internalTotalBalanceBTC)
+                            .deviation(deviation)
+                            .deviationUSD(deviationUSD)
+                            .deviationBTC(deviationBTC)
+                            .lastUpdatedDate(lastUpdated)
+                            .build();
+                })
+                .collect(toList());
     }
 
     @Transactional(readOnly = true)

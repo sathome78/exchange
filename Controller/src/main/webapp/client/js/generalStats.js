@@ -6,7 +6,7 @@ $(function () {
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
     const $balancesTable = $('#total-balances-table');
-    const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
+    const $balancesSliceStatisticTable = $('#balances-slice-statistic-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
     const dateFormat = 'YYYY-MM-DD';
@@ -17,7 +17,7 @@ $(function () {
 
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
-    var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
+    var balancesSliceStatisticUrl = '/2a8fy7b07dxe44/generalStats/balancesSliceStatistic';
 
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
@@ -192,13 +192,13 @@ $(function () {
 
     }
 
-    if ($.fn.dataTable.isDataTable('#balances-external-wallets-table')) {
-        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable();
+    if ($.fn.dataTable.isDataTable('#balances-slice-statistic-table')) {
+        balancesExternalWalletsDataTable = $($balancesSliceStatisticTable).DataTable();
         balancesExternalWalletsDataTable.ajax.reload();
     } else {
         var options = {
             "ajax": {
-                "url": balancesExternalWalletsUrl,
+                "url": balancesSliceStatisticUrl,
                 "dataSrc": ""
             },
             "paging": false,
@@ -209,13 +209,13 @@ $(function () {
             "order": [],
             "columns": [
                 {
-                    data: 'currencyId'
+                    "data": 'currencyId'
                 },
                 {
-                    data: 'currencyName'
+                    "data": 'currencyName'
                 },
                 {
-                    data: 'totalReal',
+                    "data": 'usdRate',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -224,7 +224,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'mainWalletBalance',
+                    "data": 'btcRate',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -233,7 +233,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'reservedWalletBalance',
+                    "data": 'totalWalletBalance',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -242,7 +242,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'coldWalletBalance',
+                    "data": 'totalWalletBalanceUSD',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -251,7 +251,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'totalWalletsDifference',
+                    "data": 'totalWalletBalanceBTC',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -260,13 +260,61 @@ $(function () {
                     }
                 },
                 {
-                    data: 'totalWalletsDifferenceUSD',
+                    "data": 'totalExratesBalance',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
                         }
                         return data;
                     }
+                },
+                {
+                    "data": 'totalExratesBalanceUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'totalExratesBalanceBTC',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviation',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviationUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviationBTC',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "lastUpdatedDate"
                 }
 
             ],
@@ -279,17 +327,17 @@ $(function () {
             }]
         };
 
-        $($balancesExternalWalletsTable).find('th').filter(function (index) {
-            return index > 7
-        }).map(function () {
-            return $.trim($(this).text());
-        }).get().forEach(function (item) {
-            options['columns'].push({
-                data: 'balances.' + item
-            });
-        });
+        // $($balancesSliceStatisticTable).find('th').filter(function (index) {
+        //     return index > 7
+        // }).map(function () {
+        //     return $.trim($(this).text());
+        // }).get().forEach(function (item) {
+        //     options['columns'].push({
+        //         data: 'balances.' + item
+        //     });
+        // });
 
-        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
+        balancesExternalWalletsDataTable = $($balancesSliceStatisticTable).DataTable(options);
 
     }
 });

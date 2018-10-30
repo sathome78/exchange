@@ -10,11 +10,9 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.ExternalWalletDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.RatesUSDForReportDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.UserGroupBalanceDto;
 import me.exrates.model.dto.UserRoleBalanceDto;
@@ -516,29 +514,6 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
         return walletDao.getWalletIdAndBlock(userId, currencyId);
-    }
-
-    @Override
-    public List<ExternalWalletDto> getBalancesWithExternalWallets() {
-        List<ExternalWalletDto> externalWalletDtos = walletDao.getBalancesWithExternalWallets();
-
-        Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
-        Map<Integer, RatesUSDForReportDto> ratesList = orderService.getRatesToUSDForReport();
-
-        externalWalletDtos.forEach(w -> {
-            mapCryptoCurrencyBalances.forEach((k, v) -> {
-                if (w.getMerchantId().equals(k)) {
-                    try {
-                        w.setMainWalletBalance(new BigDecimal(v));
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
-                }
-            });
-            w.setTotalWalletsDifference((w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())).subtract(w.getTotalReal()));
-            w.setTotalWalletsDifferenceUSD((ratesList.get(w.getCurrencyId()) == null ? w.getRateUsdAdditional() : ratesList.get(w.getCurrencyId()).getRate()).multiply(w.getTotalWalletsDifference()));
-        });
-        return externalWalletDtos;
     }
 
     @Transactional

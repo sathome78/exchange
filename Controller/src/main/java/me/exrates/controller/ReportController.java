@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
@@ -298,9 +298,9 @@ public class ReportController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesExternalWallets", method = GET)
-    public Future<List<ExternalWalletDto>> getBalancesExternalWallets() {
-        return CompletableFuture.supplyAsync(() -> reportService.getBalancesWithExternalWallets());
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesSliceStatistic", method = GET)
+    public Future<List<BalancesDto>> getBalancesExternalWallets() {
+        return CompletableFuture.supplyAsync(() -> reportService.getBalancesSliceStatistic());
     }
 
     @ResponseBody

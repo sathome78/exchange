@@ -208,17 +208,23 @@
 
 
                     <div class="col-md-8">
-                        <table id="balances-external-wallets-table">
+                        <table id="balances-slice-statistic-table">
                             <thead>
                             <tr>
                                 <th><loc:message code="admin.currency.id"/></th>
-                                <th><loc:message code="transaction.currency"/></th>
-                                <th><loc:message code="admin.stats.allRealUsers"/></th>
-                                <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
-                                <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
-                                <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
-                                <th><loc:message code="admin.externalWallets.totalWalletDifference"/></th>
-                                <th><loc:message code="admin.externalWallets.totalWalletDifferenceUSD"/></th>
+                                <th><loc:message code="admin.externalWallets.name"/></th>
+                                <th><loc:message code="admin.rate.to.usd"/></th>
+                                <th><loc:message code="admin.rate.to.btc"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletBalanceUSD"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletBalanceBTC"/></th>
+                                <th><loc:message code="admin.externalWallets.totalExratesBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.totalExratesBalanceUSD"/></th>
+                                <th><loc:message code="admin.externalWallets.totalExratesBalanceBTC"/></th>
+                                <th><loc:message code="admin.externalWallets.deviation"/></th>
+                                <th><loc:message code="admin.externalWallets.deviationUSD"/></th>
+                                <th><loc:message code="admin.externalWallets.deviationBTC"/></th>
+                                <th><loc:message code="admin.externalWallets.lastUpdatedDate"/></th>
                             </tr>
                             </thead>
                         </table>

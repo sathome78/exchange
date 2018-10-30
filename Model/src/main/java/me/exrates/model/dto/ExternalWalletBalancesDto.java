@@ -20,6 +20,7 @@ public class ExternalWalletBalancesDto {
 
     private Integer currencyId;
     private String currencyName;
+
     private BigDecimal usdRate;
     private BigDecimal btcRate;
 
@@ -29,6 +30,7 @@ public class ExternalWalletBalancesDto {
     private BigDecimal totalBalance;
     private BigDecimal totalBalanceUSD;
     private BigDecimal totalBalanceBTC;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastUpdatedDate;

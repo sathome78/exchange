@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder(builderClassName = "Builder")
 @AllArgsConstructor
 @NoArgsConstructor
-public class InternalWalletBalancesDto {
+public class BalancesDto {
 
     private Integer currencyId;
     private String currencyName;
@@ -24,9 +24,17 @@ public class InternalWalletBalancesDto {
     private BigDecimal usdRate;
     private BigDecimal btcRate;
 
-    private BigDecimal totalBalance;
-    private BigDecimal totalBalanceUSD;
-    private BigDecimal totalBalanceBTC;
+    private BigDecimal totalWalletBalance;
+    private BigDecimal totalWalletBalanceUSD;
+    private BigDecimal totalWalletBalanceBTC;
+
+    private BigDecimal totalExratesBalance;
+    private BigDecimal totalExratesBalanceUSD;
+    private BigDecimal totalExratesBalanceBTC;
+
+    private BigDecimal deviation;
+    private BigDecimal deviationUSD;
+    private BigDecimal deviationBTC;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)

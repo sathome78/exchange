@@ -1,9 +1,9 @@
 package me.exrates.service;
 
+import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExternalWalletDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
@@ -79,7 +79,7 @@ public interface ReportService {
 
     void sendReportMail();
 
-    List<ExternalWalletDto> getBalancesWithExternalWallets();
+    List<BalancesDto> getBalancesSliceStatistic();
 
     List<UserActivitiesInPeriodDto> getUserActivitiesInPeriod(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 

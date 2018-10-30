@@ -4,7 +4,6 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.ExternalWalletDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
@@ -126,6 +125,4 @@ public interface WalletDao {
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
-
-    List<ExternalWalletDto> getBalancesWithExternalWallets();
 }
