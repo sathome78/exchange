@@ -37,12 +37,12 @@ $(document).ready(function () {
         $('#editBalanceModal').modal();
     });
 
-    $(window).on('shown.bs.modal', function() {
+    $(window).on('shown.bs.modal', function () {
         $('#editBalanceModal').modal('show');
         updateReservedWallets();
     });
 
-    $( "#editBalanceModal" ).on('shown', function(){
+    $("#editBalanceModal").on('shown', function () {
         alert("I want this to appear after the modal has opened!");
     });
 
@@ -219,14 +219,10 @@ function removeReservedWallet(elem) {
         var data = $(idReservedWalletsTable).dataTable().fnGetData(row);
 
         $.ajax({
-            url: '/2a8fy7b07dxe44/externalWallets/address/delete',
-            type: 'POST',
-            contentType: "application/json",
+            url: '/2a8fy7b07dxe44/externalWallets/address/delete/' + data.id,
+            type: 'DELETE',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            data: {
-                "id": data.id
             },
             success: function () {
                 updateReservedWallets();
@@ -243,7 +239,7 @@ function saveAsAddress(elem) {
     var data = $(idReservedWalletsTable).dataTable().fnGetData(row);
 
 
-    var walletAddress = "#inputWalletAddress"+data.id;
+    var walletAddress = "#inputWalletAddress" + data.id;
 
     $.ajax({
         url: '/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit',
@@ -270,8 +266,8 @@ function saveAsName(elem) {
     var row = $(elem).parents('tr');
     var data = $(idReservedWalletsTable).dataTable().fnGetData(row);
 
-    var walletAddress = "#inputWalletAddress"+data.id;
-    var balance = "#inputBalanceForWalletAddress"+data.id;
+    var walletAddress = "#inputWalletAddress" + data.id;
+    var balance = "#inputBalanceForWalletAddress" + data.id;
 
     $.ajax({
         url: '/2a8fy7b07dxe44/externalWallets/address/saveAsName/submit',
@@ -297,10 +293,31 @@ function saveAsName(elem) {
 function saveGeneral(elem) {
     var row = $(elem).parents('tr');
     var data = $(idReservedWalletsTable).dataTable().fnGetData(row);
+    var rowId = row.index() + 1;
+
+    var nameReservedWallet = $("#labelReservedWalletBalance").text() + rowId;
 
     var name = "#inputNameWalletAddress" + data.id;
-    var walletAddress = "#inputWalletAddress"+data.id;
-    var balance = "#inputBalanceForWalletAddress"+data.id;
+    var walletAddress = "#inputWalletAddress" + data.id;
+    var balance = "#inputBalanceForWalletAddress" + data.id;
+
+    var dataForRequest;
+    if ($(name).val() === nameReservedWallet) {
+        dataForRequest = {
+            "id": data.id,
+            "currencyId": data.currencyId,
+            "walletAddress": $(walletAddress).val(),
+            "reservedWalletBalance": $(balance).val()
+        };
+    } else {
+        dataForRequest = {
+            "id": data.id,
+            "currencyId": data.currencyId,
+            "name": $(name).val(),
+            "walletAddress": $(walletAddress).val(),
+            "reservedWalletBalance": $(balance).val()
+        };
+    }
 
     $.ajax({
         url: '/2a8fy7b07dxe44/externalWallets/address/saveAsName/submit',
@@ -308,13 +325,7 @@ function saveGeneral(elem) {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        data: {
-            "id": data.id,
-            "currencyId": data.currencyId,
-            "name": $(name).val(),
-            "walletAddress": $(walletAddress).val(),
-            "reservedWalletBalance": $(balance).val()
-        },
+        data: dataForRequest,
         success: function () {
             updateReservedWallets();
         },
@@ -332,12 +343,12 @@ function changeReservedWallet(elem) {
     var tdWalletAddress = "td:nth-child(2)";
     var tdWalletBalance = "td:nth-child(3)";
 
-    var textNameReserverWallet = "#nameReservedWallet"+data.id;
+    var textNameReserverWallet = "#nameReservedWallet" + data.id;
 
-    row.find(tdName).html('<input name="currencyId" id="inputNameWalletAddress'+data.id+'" style="width: 100%; text-align: justify;" value="'+$(textNameReserverWallet).text()+'"/>');
-    row.find(tdWalletAddress).html('<input name="walletAddress" id="inputWalletAddress' + data.id + '" value="'+data.walletAddress+'" style="text-align:right;"/>'+
+    row.find(tdName).html('<input name="currencyId" id="inputNameWalletAddress' + data.id + '" style="width: 100%; text-align: justify;" value="' + $(textNameReserverWallet).text() + '"/>');
+    row.find(tdWalletAddress).html('<input name="walletAddress" id="inputWalletAddress' + data.id + '" value="' + data.walletAddress + '" style="text-align:right;"/>' +
         '<button id="buttonSaveAsName' + data.id + '" onclick="saveGeneral(this)" style="float: left; width: 100%; height: 14px; font-size: 8px;">Save</button>');
-    row.find(tdWalletBalance).html('<input name="balance" id="inputBalanceForWalletAddress' + data.id + '" value="'+data.balance+'" style="text-align:right;"/>');
+    row.find(tdWalletBalance).html('<input name="balance" id="inputBalanceForWalletAddress' + data.id + '" value="' + data.balance + '" style="text-align:right;"/>');
 
 }
 
@@ -364,16 +375,16 @@ function updateReservedWallets() {
                     "data": "name",
                     "render": function (data, type, full, meta) {
                         var text = $("#labelReservedWalletBalance").text();
-                        if(full.walletAddress!=null){
+                        if (full.walletAddress != null) {
 
                             var htmlTextWalletAddress;
-                            if(data==null){
-                                htmlTextWalletAddress = '<span id="nameReservedWallet'+full.id+'">'+ text + (meta.row + 1) + '</span><br/>';
+                            if (data == null) {
+                                htmlTextWalletAddress = '<span id="nameReservedWallet' + full.id + '">' + text + (meta.row + 1) + '</span><br/>';
                             } else {
-                                htmlTextWalletAddress = '<span id="nameReservedWallet'+full.id+'">'+ data + '</span><br/>';
+                                htmlTextWalletAddress = '<span id="nameReservedWallet' + full.id + '">' + data + '</span><br/>';
                             }
 
-                            return htmlTextWalletAddress +''
+                            return htmlTextWalletAddress + ''
                                 + '<button id="buttonChangeReservedWallet' + full.id + '" onclick="changeReservedWallet(this)" style="float: left; width: 50%; height: 14px; font-size: 8px;">Change</button>'
                                 + '<button id="buttonRemoveReservedWallet' + full.id + '" onclick="removeReservedWallet(this)" style="float: right; width: 50%; height:14px; font-size: 8px;">Remove</button>';
                         } else {
@@ -383,18 +394,18 @@ function updateReservedWallets() {
                 },
                 {
                     "data": "walletAddress",
-                    "render": function (data, type, row){
-                        if (data ==  null) {
-                            return '<input name="walletAddress" id="inputWalletAddress'+row.id+'" style="width: 100%; text-align: justify;"/>'
-                                +'<button id="buttonSaveAsAddress'+row.id+'" onclick="saveAsAddress(this)" style="float: left; width: 50%; height:14px; font-size: 8px;">Save as address</button>'
-                                +'<button id="buttonSaveAsName'+row.id+'" onclick="saveAsName(this)" style="float: right; width: 50%; height:14px; font-size: 8px;">Save as name</button>';
+                    "render": function (data, type, row) {
+                        if (data == null) {
+                            return '<input name="walletAddress" id="inputWalletAddress' + row.id + '" style="width: 100%; text-align: justify;"/>'
+                                + '<button id="buttonSaveAsAddress' + row.id + '" onclick="saveAsAddress(this)" style="float: left; width: 50%; height:14px; font-size: 8px;">Save as address</button>'
+                                + '<button id="buttonSaveAsName' + row.id + '" onclick="saveAsName(this)" style="float: right; width: 50%; height:14px; font-size: 8px;">Save as name</button>';
                         } else return data;
                     }
                 },
                 {
                     "data": "balance",
-                    "render": function (data, type, row){
-                        if(row.walletAddress!=null){
+                    "render": function (data, type, row) {
+                        if (row.walletAddress != null) {
                             return '<span style="float:right;">' + data + '</span>';
                         } else {
                             return '<input name="balance" id="inputBalanceForWalletAddress' + row.id + '" value="' + data + '" style="text-align:right;"/>';

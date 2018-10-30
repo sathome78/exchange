@@ -1620,15 +1620,15 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/create", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> createWalletAddress(@RequestParam int currencyId) {
+    public ResponseEntity createWalletAddress(@RequestParam int currencyId) {
         walletService.createWalletAddress(currencyId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete/{id}", method = RequestMethod.DELETE)
     @ResponseBody
-    public ResponseEntity deleteWalletAddress(@RequestParam("id") int id) {
+    public ResponseEntity deleteWalletAddress(@PathVariable int id) {
         walletService.deleteWalletAddress(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -1658,12 +1658,11 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsName/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> submitWalletAddressAsName(@RequestParam int id,
+    public ResponseEntity submitWalletAddressAsName(@RequestParam int id,
                                                           @RequestParam int currencyId,
                                                           @RequestParam(required = false) String name,
                                                           @RequestParam String walletAddress,
                                                           @RequestParam BigDecimal reservedWalletBalance) {
-
         ExternalReservedWalletAddressDto externalReservedWalletAddressDto = ExternalReservedWalletAddressDto.builder()
                 .id(id)
                 .name(name)
@@ -1671,7 +1670,6 @@ public class AdminController {
                 .walletAddress(walletAddress)
                 .balance(reservedWalletBalance)
                 .build();
-
         walletService.updateWalletAddress(externalReservedWalletAddressDto);
         return ResponseEntity.ok().build();
     }

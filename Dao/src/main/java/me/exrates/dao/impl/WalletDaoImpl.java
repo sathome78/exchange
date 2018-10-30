@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.OperationType.SELL;
 
 @Repository
@@ -1352,19 +1353,20 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public void deleteReservedWalletAddress(int id) {
-        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.id = :id";
+        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS WHERE id = :id";
 
         jdbcTemplate.update(sql, singletonMap("id", id));
     }
 
     @Override
     public void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
-            String nameSql = StringUtils.EMPTY;
-            if(externalReservedWalletAddressDto.getName() != null){
-                nameSql = "name:name, ";
-            }
-            String sql = "UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS SET currency_id=:currency_id, "+nameSql+"wallet_address=:wallet_address, " +
-                    "balance=:balance WHERE id=:id";
+        String nameSql = StringUtils.EMPTY;
+        if (nonNull(externalReservedWalletAddressDto.getName())) {
+            nameSql = "cwera.name = :name,";
+        }
+        String sql = String.format("UPDATE COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera" +
+                " SET cwera.currency_id = :currency_id, %s cwera.wallet_address = :wallet_address, cwera.balance = :balance" +
+                " WHERE cwera.id = :id", nameSql);
 
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
