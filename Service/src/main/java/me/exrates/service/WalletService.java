@@ -137,11 +137,15 @@ public interface WalletService {
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
+    List<ExternalWalletDto> getBalancesWithExternalWallets();
+
+    void updateExternalWalletBalances();
+
+    void updateInternalWalletBalances();
+
     List<InternalWalletBalancesDto> getInternalWalletBalances();
 
     List<InternalWalletBalancesDto> getWalletBalances();
-
-    void updateExternalWallet(ExternalWalletBalancesDto externalWalletBalancesDto);
 
     void createWalletAddress(int currencyId);
 
@@ -149,15 +153,11 @@ public interface WalletService {
 
     void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
 
-    List<ExternalWalletDto> getBalancesWithExternalWallets();
+    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
 
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
 
-    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
-
-    void updateExternalWalletBalances();
-
-    void updateInternalWalletBalances();
+    BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
 }

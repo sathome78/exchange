@@ -1,6 +1,7 @@
 $(function () {
     const $datetimepickerStart = $('#datetimepicker_start');
     const $datetimepickerEnd = $('#datetimepicker_end');
+    const $datepickerBalances = $('#datepicker-balances');
     const $timepickerMailing = $('#timepicker_mailtime');
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
@@ -8,6 +9,7 @@ $(function () {
     const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
+    const dateFormat = 'YYYY-MM-DD';
     const timeFormat = 'HH:mm';
 
     var emailsDataTable;
@@ -16,7 +18,6 @@ $(function () {
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
     var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
-
 
 
     $.datetimepicker.setDateFormatter({
@@ -32,35 +33,45 @@ $(function () {
 
     $($datetimepickerStart).datetimepicker({
         format: datetimeFormat,
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
-        lang:'ru',
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        lang: 'ru',
         defaultDate: moment().subtract(1, 'days').toDate(),
         defaultTime: '00:00'
     });
     $($datetimepickerEnd).datetimepicker({
         format: datetimeFormat,
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
-        lang:'ru',
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $($datepickerBalances).datetimepicker({
+        format: datetimeFormat,
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        changeMonth: true,
+        changeYear: true,
+        pickTime: false,
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
     $($timepickerMailing).datetimepicker({
-        datepicker:false,
+        datepicker: false,
         format: timeFormat,
         formatTime: timeFormat,
-        lang:'ru',
+        lang: 'ru',
         defaultTime: '00:00'
     });
 
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
     $($datetimepickerStart).val(moment($($datetimepickerStart).datetimepicker('getValue')).format(datetimeFormat));
+    $($datepickerBalances).val(moment($($datepickerBalances).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
     refreshUsersNumber();
     refreshMailingTime();
     refreshMailingStatus();
-
 
 
     $('#refresh-users').click(refreshUsersNumber);
@@ -157,14 +168,14 @@ $(function () {
                 extend: 'csv',
                 text: 'CSV',
                 fieldSeparator: ';',
-                bom:true,
+                bom: true,
                 charset: 'UTF8'
             }]
         };
 
-       $($balancesTable).find('th').filter(function (index) {
+        $($balancesTable).find('th').filter(function (index) {
             return index > 3
-        }).map(function(){
+        }).map(function () {
             return $.trim($(this).text());
         }).get().forEach(function (item) {
             options['columns'].push({
@@ -264,14 +275,14 @@ $(function () {
                 extend: 'csv',
                 text: 'CSV',
                 fieldSeparator: ';',
-                bom:true,
+                bom: true,
                 charset: 'UTF8'
             }]
         };
 
         $($balancesExternalWalletsTable).find('th').filter(function (index) {
             return index > 7
-        }).map(function(){
+        }).map(function () {
             return $.trim($(this).text());
         }).get().forEach(function (item) {
             options['columns'].push({
@@ -282,9 +293,52 @@ $(function () {
         balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
     }
-
-
 });
+
+function getArchiveBalances() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReports/' + $('#datepicker-balances').val().replace(' ', '_');
+
+    if ($.fn.dataTable.isDataTable('#archive-balances-table')) {
+        $('#archive-balances-table').DataTable().ajax.url(url).load();
+    } else {
+        $('#archive-balances-table').DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "file_name",
+                    "render": function (data, type, full, meta) {
+                        return '<a href="javascript:void(0)" onclick="getContentToDownload(' + full.id + ')">' + data + '</a>';
+                    }
+                }
+            ]
+        });
+    }
+}
+
+function getContentToDownload(id) {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link=document.createElement('a');
+        link.href=window.URL.createObjectURL(blob);
+        link.download=header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
 
 function refreshUsersNumber() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/newUsers?' + getTimeParams();
@@ -325,7 +379,7 @@ function getTotalBalancesForRoles() {
 function getInputOutputSummaryWithCommissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+        saveToDisk(data, extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
 }
@@ -336,8 +390,9 @@ function getUserActivities() {
         saveToDisk(data, extendsReportName('userActivities.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
+
 function getUserTotalCommission() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/userTotalCommission?'+ getTimeParams() + '&' + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/userTotalCommission?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, extendsReportName('userTotalCommission.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
@@ -350,7 +405,7 @@ function getTimeParams() {
 }
 
 function getRoleParams() {
-   return 'roles=' + $('.roleFilter').filter(function (i, elem) {
+    return 'roles=' + $('.roleFilter').filter(function (i, elem) {
         return $(elem).prop('checked')
     }).map(function (i, elem) {
         return $(elem).attr('name')
@@ -377,7 +432,6 @@ function refreshMailingStatus() {
 
     })
 }
-
 
 function updateMailingTime() {
     var data = {
@@ -445,9 +499,8 @@ function deleteSubscriberEmail(email, datatable) {
 }
 
 
-
 function getStartDateFromPicker() {
-   return getDateFromPicker($('#datetimepicker_start'))
+    return getDateFromPicker($('#datetimepicker_start'))
 }
 
 

@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -90,14 +91,27 @@ public class ReportDaoImpl implements ReportDao {
     }
 
     @Override
-    public BalancesReportDto getBalancesReportByFileName(String fileName) {
+    public BalancesReportDto getBalancesReportById(int id) {
         String sql = "SELECT br.file_name, br.content, br.created_at" +
                 " FROM BALANCES_REPORT br" +
-                " WHERE br.file_name = :file_name";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("file_name", fileName), (rs, row) -> BalancesReportDto.builder()
+                " WHERE br.id = :id";
+
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), (rs, row) -> BalancesReportDto.builder()
                 .fileName(rs.getString("file_name"))
                 .content(rs.getBytes("content"))
                 .createdAt(rs.getDate("created_at").toLocalDate())
+                .build());
+    }
+
+    @Override
+    public List<BalancesReportDto> getBalancesReportsNames(LocalDate date) {
+        String sql = "SELECT br.id, br.file_name" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.created_at = :date";
+
+        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("date", date), (rs, row) -> BalancesReportDto.builder()
+                .id(rs.getInt("id"))
+                .fileName(rs.getString("file_name"))
                 .build());
     }
 }

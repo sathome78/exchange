@@ -68,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -560,6 +561,18 @@ public class ReportServiceImpl implements ReportService {
         BalancesReportDto balancesReportDto = ExcelGeneratorUtil.generateReportBalances(balances);
 
         reportDao.addNewBalancesReport(balancesReportDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BalancesReportDto> getArchiveBalancesReports(LocalDate date) {
+        return reportDao.getBalancesReportsNames(date);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BalancesReportDto getArchiveBalancesReportFile(Integer id) {
+        return reportDao.getBalancesReportById(id);
     }
 
     private void rescheduleMailJob(LocalTime newMailTime) {

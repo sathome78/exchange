@@ -104,31 +104,28 @@ public interface WalletDao {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
+
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
-
-    List<InternalWalletBalancesDto> getInternalWalletBalances();
-
-    void updateBalances(ExternalWalletDto externalWalletDto);
-
-    void createWalletAddress(int currencyId);
-
-    void deleteWalletAddress(int currencyId);
-
-    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
-
-    List<InternalWalletBalancesDto> getWalletBalances();
 
     void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto);
 
+    List<InternalWalletBalancesDto> getInternalWalletBalances();
+
     void updateInternalWalletBalances(InternalWalletBalancesDto internalWalletBalancesDto);
 
-    void addReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+    void createReservedWalletAddress(int currencyId);
 
-    List<ExternalWalletDto> getBalancesWithExternalWallets();
+    void deleteReservedWalletAddress(int currencyId);
+
+    void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+
+    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
+
+    List<InternalWalletBalancesDto> getWalletBalances();
 
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
 
-    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
+    List<ExternalWalletDto> getBalancesWithExternalWallets();
 }

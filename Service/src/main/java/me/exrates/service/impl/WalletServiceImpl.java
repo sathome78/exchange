@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -517,45 +518,6 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getWalletIdAndBlock(userId, currencyId);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
-        return walletDao.getExternalWalletBalances();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<InternalWalletBalancesDto> getInternalWalletBalances() {
-        return walletDao.getInternalWalletBalances();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<InternalWalletBalancesDto> getWalletBalances() {
-        return walletDao.getWalletBalances();
-    }
-
-    @Override
-    public void updateExternalWallet(ExternalWalletBalancesDto externalWalletBalancesDto) {
-        walletDao.updateExternalWalletBalances(externalWalletBalancesDto);
-    }
-
-    @Override
-    public void createWalletAddress(int currencyId){
-        walletDao.createWalletAddress(currencyId);
-    }
-
-    @Override
-    public void deleteWalletAddress(int currencyId){
-        walletDao.deleteWalletAddress(currencyId);
-    }
-
-    @Override
-    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
-        walletDao.updateWalletAddress(externalReservedWalletAddressDto);
-    }
-
-
     @Override
     public List<ExternalWalletDto> getBalancesWithExternalWallets() {
         List<ExternalWalletDto> externalWalletDtos = walletDao.getBalancesWithExternalWallets();
@@ -577,24 +539,6 @@ public class WalletServiceImpl implements WalletService {
             w.setTotalWalletsDifferenceUSD((ratesList.get(w.getCurrencyId()) == null ? w.getRateUsdAdditional() : ratesList.get(w.getCurrencyId()).getRate()).multiply(w.getTotalWalletsDifference()));
         });
         return externalWalletDtos;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public BigDecimal retrieveSummaryUSD() {
-        return walletDao.retrieveSummaryUSD();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public BigDecimal retrieveSummaryBTC() {
-        return walletDao.retrieveSummaryBTC();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {
-        return walletDao.getReservedWalletsByCurrencyId(currencyId);
     }
 
     @Transactional
@@ -662,5 +606,66 @@ public class WalletServiceImpl implements WalletService {
                     .build();
             walletDao.updateInternalWalletBalances(inWallet);
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
+        return walletDao.getExternalWalletBalances();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<InternalWalletBalancesDto> getInternalWalletBalances() {
+        return walletDao.getInternalWalletBalances();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<InternalWalletBalancesDto> getWalletBalances() {
+        return walletDao.getWalletBalances();
+    }
+
+    @Override
+    public void createWalletAddress(int currencyId) {
+        walletDao.createReservedWalletAddress(currencyId);
+    }
+
+    @Override
+    public void deleteWalletAddress(int currencyId) {
+        walletDao.deleteReservedWalletAddress(currencyId);
+    }
+
+    @Override
+    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
+        walletDao.updateReservedWalletAddress(externalReservedWalletAddressDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {
+        return walletDao.getReservedWalletsByCurrencyId(currencyId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal retrieveSummaryUSD() {
+        return walletDao.retrieveSummaryUSD();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal retrieveSummaryBTC() {
+        return walletDao.retrieveSummaryBTC();
+    }
+
+    @Override
+    public BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress) {
+        Currency currency = currencyService.findById(currencyId);
+        if (isNull(currency)) {
+            log.info("Currency with id: {} not found", currencyId);
+            return null;
+        }
+        return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
     }
 }

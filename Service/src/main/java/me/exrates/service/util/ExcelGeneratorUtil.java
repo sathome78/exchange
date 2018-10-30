@@ -356,14 +356,14 @@ public class ExcelGeneratorUtil {
         cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-        final String fileName = String.format("report_balances_%s.xlsx", now.format(FORMATTER_FOR_NAME));
+        final String fileName = String.format("report_balances_%s", now.format(FORMATTER_FOR_NAME));
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             workbook.write(bos);
             bos.close();
 
-            FileUtils.writeByteArrayToFile(new File(fileName), bos.toByteArray());
+//            FileUtils.writeByteArrayToFile(new File(fileName), bos.toByteArray());
         } catch (IOException ex) {
             log.warn("Problem with convert workbook to byte array. Return empty file");
             return new BalancesReportDto(fileName, new byte[]{});

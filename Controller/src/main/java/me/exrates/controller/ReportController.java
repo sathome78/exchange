@@ -1,14 +1,36 @@
 package me.exrates.controller;
 
+import com.google.common.io.ByteSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.BalancesReportDto;
+import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.InputOutputCommissionSummaryDto;
+import me.exrates.model.dto.InvoiceReportDto;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.SummaryInOutReportDto;
+import me.exrates.model.dto.UserActivitiesInPeriodDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.UserTotalCommissionDto;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -322,4 +345,34 @@ public class ReportController {
         reportService.deleteReportSubscriber(email);
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReports/{date}", method = GET)
+    public ResponseEntity<List<BalancesReportDto>> getArchiveBalancesReports(@PathVariable("date") String dateString) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        final LocalDate date = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(dateString)).toLocalDate();
+
+        return ResponseEntity.ok(reportService.getArchiveBalancesReports(date));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReport/{id}", method = GET)
+    public ResponseEntity getArchiveBalancesReportFile(@PathVariable Integer id) {
+        BalancesReportDto balancesReportDto = reportService.getArchiveBalancesReportFile(id);
+        final byte[] content = balancesReportDto.getContent();
+        final String fileName = balancesReportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error("Downloaded file is corrupted");
+        }
+
+        return ResponseEntity.noContent().build();
+    }
 }

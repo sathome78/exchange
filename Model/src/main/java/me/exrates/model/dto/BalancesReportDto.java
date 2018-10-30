@@ -14,6 +14,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BalancesReportDto {
 
+    private int id;
+
     @JsonProperty("file_name")
     private String fileName;
 
