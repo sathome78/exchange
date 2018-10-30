@@ -176,6 +176,11 @@ public class AunitServiceImpl implements AunitService {
         throw new RuntimeException("Not supported");
     }
 
+    @Override
+    public String getMainAddress() {
+        return systemAddress;
+    }
+
 //    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
 //        return StringUtils.isEmpty(hash)
 //                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
