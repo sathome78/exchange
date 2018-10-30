@@ -49,7 +49,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
 
     @Override
     public MerchantSpecParamDto getByMerchantIdAndParamName(int merchantId, String paramName) {
-        String sql = " SELECT MSP.* FROM MERCHANT_SPEC_PARAMETERS MSP INNER JOIN MERCHANT M ON M.id = MSP.merchant_id  WHERE M.id = :merchant_id AND MSP.param_name = :param_name ";
+        String sql = "SELECT MSP.* FROM MERCHANT_SPEC_PARAMETERS MSP INNER JOIN MERCHANT M ON M.id = MSP.merchant_id  WHERE M.id = :merchant_id AND MSP.param_name = :param_name";
         Map<String, Object> params = new HashMap<>();
         params.put("merchant_id", merchantId);
         params.put("param_name", paramName);

@@ -4,11 +4,14 @@ import lombok.SneakyThrows;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +41,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @ClientEndpoint
 @Service
 public class AunitNodeServiceImpl {
-//
+
     private @Value("${aunit.node.ws}")String wsUrl;
     private @Value("${aunit.mainAddress}")String systemAddress;
     private @Value("${aunit.pk.path}")String pkFilePath;
@@ -55,8 +58,8 @@ public class AunitNodeServiceImpl {
     private final RefillService refillService;
 
     /*todo get it from outer file*/
-    String privateKey = "5J15nNH6AvjLY6kryEA1VNZ9s6zkqFsFzHZGGtYBwL3BF5gG9Qd";
-    final String accountAddress = "1.2.20683"; //todo
+    static String privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
+    static final String accountAddress = "1.2.23845"; //todo
 
     private int latIrreversableBlocknumber = 0;
     private final String lastIrreversebleBlock = "last_irreversible_block_num";
@@ -67,7 +70,8 @@ public class AunitNodeServiceImpl {
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) {
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
-        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
+        MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
+        latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.merchantSpecParamsDao = merchantSpecParamsDao;
@@ -187,31 +191,39 @@ public class AunitNodeServiceImpl {
         endpoint.sendText(block.toString());
     }
 
-    private void processIrreversebleBlock(String trx) {
+    private  void processIrreversebleBlock(String trx) {
         System.out.println("json for process trx \n " + trx);
         JSONObject block = new JSONObject(trx);
-        if(!block.has("operations")) return;
+        if(block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
+        JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
 
-        JSONArray transactions = block.getJSONObject("result").getJSONArray("operations");
         List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
-
+    try {
         for (int i = 0; i < transactions.length(); i++) {
-            JSONObject transaction = transactions.getJSONArray(i).getJSONObject(1);
+            JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
 
             if(transaction.getString("to").equals(accountAddress)) makeRefill(lisfOfMemo, transaction);
 
         }
 
+    } catch (JSONException e){
+        System.out.println("JSON exception while parsing \n " + trx);
+        e.printStackTrace();
     }
+
+    }
+
 
     @SneakyThrows
     private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
+        System.out.println("start make refill");
         JSONObject memo = transaction.getJSONObject("memo");
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString());
+            System.out.println("decoded memo = " + memoText);
             if(lisfOfMemo.contains(memoText)){
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
-                prepareAndProcessTx(transaction.getString("signatures"), memoText, amount);
+                prepareAndProcessTx("", memoText, amount);
             }
         } catch (NoSuchAlgorithmException e){
             System.out.println(e.getClass());
@@ -223,6 +235,7 @@ public class AunitNodeServiceImpl {
         map.put("address", address);
         map.put("hash", hash);
         map.put("amount", amount.toString());
+        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(hash, address, amount);
         try {
             aunitService.processPayment(map);
         } catch (RefillRequestAppropriateNotFoundException e) {
@@ -257,16 +270,19 @@ public class AunitNodeServiceImpl {
         }
     }
 
-//    public static void main(String[] args) {
-//        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        String encode = passwordEncoder.encode("123");
-//        System.out.println(encode);
+//    public static void main(String[] args) throws NoSuchAlgorithmException {
+//        String memoText = decryptBTSmemo(privateKey, "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394455594312810\",\"message\":\"b823f75a3f2572bbc327ab3423d0cbf9\"}");
 //
-//        String toParse = " {\"id\":10,\"jsonrpc\":\"2.0\",\"result\":{\"previous\":\"0029564fb47083cc42fe0b05e910534c852dfe45\",\"timestamp\":\"2018-10-28T10:02:15\",\"witness\":\"1.6.6\",\"transaction_merkle_root\":\"be7dfcf9be45931b1e61aaac065a75e0ce7c1071\",\"extensions\":[],\"witness_signature\":\"1f7077350fb0e1f16b159bb583c6d6ffd9cc612d68128d88c97a3ed17e75524f284c5340ce476e5b0cc3be159bb385029a3d637c94a36eb33a20f2a5e2c5edce46\",\"transactions\":[{\"ref_block_num\":22095,\"ref_block_prefix\":3431166132,\"expiration\":\"2018-10-28T10:02:42\",\"operations\":[[5,{\"fee\":{\"amount\":0,\"asset_id\":\"1.3.0\"},\"registrar\":\"1.2.26\",\"referrer\":\"1.2.26\",\"referrer_percent\":0,\"name\":\"aaf34f095-b3c7-4887-a4fe-e51f43527b0b\",\"owner\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT6yrSfbXL5Swg6zQ5nh23t4EDey7pB2AxU4j41ruxXdrMhJuRET\",1]],\"address_auths\":[]},\"active\":{\"weight_threshold\":1,\"account_auths\":[],\"key_auths\":[[\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",1]],\"address_auths\":[]},\"options\":{\"memo_key\":\"AUNIT86gxHFtfxxWPYgfic5garspzHK2wxTg4mPBJDw3Esye9798Lqb\",\"voting_account\":\"1.2.5\",\"num_witness\":0,\"num_committee\":0,\"votes\":[],\"extensions\":[]},\"extensions\":{}}]],\"extensions\":[],\"signatures\":[\"202a7693667ecdc7084ed6f6e7de38d783f168a0358a5bb41d2e75c3cb02ea569d189a9a42eec332dad63ae97138d37c2b091eb2f558640ae577583a26d87a6e69\"],\"operation_results\":[[1,\"1.2.26471\"]]}]}}\n";
+//        System.out.println(memoText);
 //
-//        JSONObject block = new JSONObject(toParse);
-//        JSONObject result = block.getJSONObject("result");
-//        JSONArray transactions = result.getJSONArray("operations");
-//        System.out.println(transactions);
+//
 //    }
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
+                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
+        System.out.println(s);
+    }
+
 }
+

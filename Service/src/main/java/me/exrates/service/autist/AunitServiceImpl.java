@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -67,7 +66,7 @@ public class AunitServiceImpl implements AunitService {
         String message = messageSource.getMessage("merchants.refill.xrp",
                 new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("accountAddress", String.valueOf(destinationTag));
+            put("address", String.valueOf(destinationTag));
             put("message", message);
             put("qr", systemAddress);
         }};
@@ -95,9 +94,25 @@ public class AunitServiceImpl implements AunitService {
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
     }
 
+//    @Override
+//    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+//        String address = params.get("accountAddress");
+//        String hash = params.get("hash");
+//        BigDecimal amount = new BigDecimal(params.get("amount"));
+//        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+//                .address(address)
+//                .merchantId(merchant.getId())
+//                .currencyId(currency.getId())
+//                .amount(amount)
+//                .merchantTransactionId(hash)
+//                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+//                .build();
+//        refillService.autoAcceptRefillRequest(requestAcceptDto);
+//    }
+
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        String address = params.get("accountAddress");
+        String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -108,16 +123,24 @@ public class AunitServiceImpl implements AunitService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
+        try {
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+//            log.debug("RefillRequestNotFountException: " + params);
+            System.out.println("RefillRequestNotFountException: " + params);
+            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        }
     }
 
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
-        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-//            log.error("aunit transaction allready received!!! {}", hash);
-            System.out.println("aunit transaction allready received!! " + hash);
-            throw new RuntimeException("aunit transaction allready received!!!");
-        }
+//        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+////            log.error("aunit transaction allready received!!! {}", hash);
+//            System.out.println("aunit transaction allready received!! " + hash);
+//            throw new RuntimeException("aunit transaction allready received!!!");
+//        }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -153,13 +176,10 @@ public class AunitServiceImpl implements AunitService {
         throw new RuntimeException("Not supported");
     }
 
-
-
-
-    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
-        return StringUtils.isEmpty(hash)
-                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
-    }
+//    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+//        return StringUtils.isEmpty(hash)
+//                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
+//    }
 
 //    //Example for decrypting memo
 //    public static void main(String[] args) throws NoSuchAlgorithmException {
