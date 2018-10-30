@@ -1,7 +1,6 @@
 package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.CommissionDao;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
@@ -69,8 +68,6 @@ import static me.exrates.model.enums.OperationType.SELL;
 @Log4j2
 public class WalletDaoImpl implements WalletDao {
 
-    @Autowired
-    private CommissionDao commissionDao;
     @Autowired
     private TransactionDao transactionDao;
     @Autowired

@@ -558,6 +558,12 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating external wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
+        return walletDao.getExternalWalletBalances();
+    }
+
     @Transactional
     @Override
     public void updateInternalWalletBalances() {
@@ -599,12 +605,6 @@ public class WalletServiceImpl implements WalletService {
             walletDao.updateInternalWalletBalances(inWallet);
         }
         log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
-        return walletDao.getExternalWalletBalances();
     }
 
     @Transactional(readOnly = true)

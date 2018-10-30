@@ -138,9 +138,9 @@ public interface WalletService {
 
     void updateExternalWalletBalances();
 
-    void updateInternalWalletBalances();
-
     List<InternalWalletBalancesDto> getInternalWalletBalances();
+
+    void updateInternalWalletBalances();
 
     List<InternalWalletBalancesDto> getWalletBalances();
 
