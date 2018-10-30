@@ -45,6 +45,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange(data) {
+        getOrderCommissions();
         if (data) {
             currentPair = data.name;
         }

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -666,7 +667,11 @@ public class OnlineRestController {
      * @author ValkSam
      */
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public OrderCommissionsDto getOrderCommissions() {
+    public OrderCommissionsDto getOrderCommissions(HttpServletRequest request) {
+        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        if (currencyPair.getName().contains("EDR")) {
+            return OrderCommissionsDto.zeroComissions();
+        }
         OrderCommissionsDto result = orderService.getCommissionForOrder();
         return result;
     }

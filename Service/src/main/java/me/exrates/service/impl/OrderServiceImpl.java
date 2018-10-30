@@ -436,6 +436,11 @@ public class OrderServiceImpl implements OrderService {
             walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
             walletsAndCommissions.setCommissionId(24);
         }
+        /*todo 0 comission for the edr pairs, temporary*/
+        if (orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
+            walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
+            walletsAndCommissions.setCommissionId(24);
+        }
         if (orderType == OperationType.SELL) {
             orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
             orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());

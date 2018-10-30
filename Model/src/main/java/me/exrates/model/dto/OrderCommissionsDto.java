@@ -25,4 +25,11 @@ public class OrderCommissionsDto {
     public void setBuyCommission(BigDecimal buyCommission) {
         this.buyCommission = buyCommission;
     }
+
+    public static OrderCommissionsDto zeroComissions() {
+        OrderCommissionsDto orderCommissionsDto = new OrderCommissionsDto();
+        orderCommissionsDto.setSellCommission(BigDecimal.ZERO);
+        orderCommissionsDto.setBuyCommission(BigDecimal.ZERO);
+        return orderCommissionsDto;
+    }
 }
