@@ -122,11 +122,25 @@
       <artifactId>rxjava</artifactId>
       <version>1.2.9</version>
     </dependency>
-    <dependency>
-      <groupId>stellar</groupId>
-      <artifactId>stellar-sdk</artifactId>
-      <version>0.1.14</version>
-    </dependency>
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>20.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>stellar</groupId>
+          <artifactId>stellar-sdk</artifactId>
+          <version>0.1.14</version>
+
+          <exclusions>
+              <exclusion>
+                  <groupId>com.google.common</groupId>
+                  <artifactId>guava</artifactId>
+              </exclusion>
+          </exclusions>
+
+      </dependency>
     <dependency>
       <groupId>nem</groupId>
       <artifactId>nem-core</artifactId>

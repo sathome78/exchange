@@ -520,7 +520,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           Integer currencyId) {
     final String sql = "SELECT RRA.address " +
             " FROM REFILL_REQUEST_ADDRESS RRA " +
-            " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id is_valid = 1";
+            " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND is_valid = 1";
     MapSqlParameterSource params = new MapSqlParameterSource()
             .addValue("currency_id", currencyId)
             .addValue("merchant_id", merchantId);

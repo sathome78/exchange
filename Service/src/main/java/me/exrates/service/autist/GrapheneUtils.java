@@ -22,8 +22,6 @@ package me.exrates.service.autist;// GrapheneUtils.java, by @alexpmorris, 2018-0
 
 import com.google.common.primitives.Bytes;
 import eu.bittrade.crypto.core.CryptoUtils;
-import eu.bittrade.crypto.core.DumpedPrivateKey;
-import eu.bittrade.crypto.core.ECKey;
 import eu.bittrade.crypto.core.Sha256Hash;
 import eu.bittrade.crypto.core.base58.Base58;
 import eu.bittrade.crypto.core.base58.Sha256ChecksumProvider;

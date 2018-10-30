@@ -4,7 +4,6 @@ import com.google.common.primitives.Bytes;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
-import eu.bittrade.crypto.core.ECKey;
 import org.spongycastle.util.encoders.Base64;
 
 import java.math.BigInteger;
