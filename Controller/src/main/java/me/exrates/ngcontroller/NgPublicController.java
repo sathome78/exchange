@@ -20,9 +20,12 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,6 +64,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
+@PropertySource("classpath:angular.properties")
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
@@ -74,6 +78,9 @@ public class NgPublicController {
     private final CurrencyService currencyService;
     private final NgOrderService ngOrderService;
     private final OrderService orderService;
+
+    @Value("${angular.write.mode}")
+    private boolean WRITE_MODE;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -130,8 +137,13 @@ public class NgPublicController {
     @GetMapping(value = "/chat/history")
     @ResponseBody
     public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
+        List<ChatHistoryDto> messages;
         try {
-            List<ChatHistoryDto> messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
+            if (!WRITE_MODE){
+                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
+            } else {
+                messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
+            }
             return messages;
         } catch (Exception e) {
             return Collections.emptyList();
@@ -149,7 +161,14 @@ public class NgPublicController {
         }
         final ChatMessage message;
         try {
-            message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
+            if (WRITE_MODE) {
+                message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
+            } else {
+                message = new ChatMessage();
+                message.setNickname("anonymous" + RandomStringUtils.randomNumeric(5));
+                message.setBody(simpleMessage);
+                message.setId(Long.parseLong(RandomStringUtils.randomNumeric(5)));
+            }
         } catch (IllegalChatMessageException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
