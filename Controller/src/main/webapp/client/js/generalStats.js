@@ -19,7 +19,6 @@ $(function () {
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
     var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
 
-
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
@@ -314,6 +313,10 @@ function getArchiveBalances() {
             "bInfo": false,
             "columns": [
                 {
+                    "data": "id",
+                    "visible": false
+                },
+                {
                     "data": "file_name",
                     "render": function (data, type, full, meta) {
                         return '<a href="javascript:void(0)" onclick="getContentToDownload(' + full.id + ')">' + data + '</a>';
@@ -332,9 +335,9 @@ function getContentToDownload(id) {
     req.onload = function (event) {
         var blob = req.response;
         var header = req.getResponseHeader('Content-Disposition');
-        var link=document.createElement('a');
-        link.href=window.URL.createObjectURL(blob);
-        link.download=header.match(/filename="(.+)"/)[1];
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
         link.click();
     };
     req.send();
