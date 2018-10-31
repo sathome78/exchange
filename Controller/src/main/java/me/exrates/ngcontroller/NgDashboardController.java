@@ -142,7 +142,7 @@ public class NgDashboardController {
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        if (StringUtils.isEmpty(inputOrder.getOrderId()) || !StringUtils.isNumeric(inputOrder.getOrderId())) {
+        if (inputOrder.getOrderId() == null) {
             throw new OrderParamsWrongException();
         }
 
