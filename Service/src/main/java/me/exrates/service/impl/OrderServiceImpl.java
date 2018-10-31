@@ -432,12 +432,8 @@ public class OrderServiceImpl implements OrderService {
         orderCreateDto.setSourceId(sourceId);
         orderCreateDto.setOrderBaseType(baseType);
         /*todo get 0 comission values from db*/
-        if (baseType == OrderBaseType.ICO) {
-            walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
-            walletsAndCommissions.setCommissionId(24);
-        }
         /*todo 0 comission for the edr pairs, temporary*/
-        if (orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
+        if (baseType == OrderBaseType.ICO || orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
             walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
             walletsAndCommissions.setCommissionId(24);
         }
@@ -963,7 +959,16 @@ public class OrderServiceImpl implements OrderService {
             comissionForCreator.setId(exOrder.getComissionId());
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
             OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
-            Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
+            Commission comissionForAcceptor;
+            /*todo: zero comissions from db*/
+            CurrencyPair cp = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+            exOrder.setCurrencyPair(cp);
+            if (exOrder.getOrderBaseType() == OrderBaseType.ICO || exOrder.getCurrencyPair().getName().contains("EDR")) {
+                comissionForAcceptor = Commission.zeroComission();
+            } else {
+                comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
+            }
+            /*-------------------------*/
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;

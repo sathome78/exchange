@@ -2,6 +2,7 @@ package me.exrates.jdbc;
 
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -25,6 +26,7 @@ public class OrderExtractor implements ResultSetExtractor<ExOrder> {
         exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
         exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
         exOrder.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+        exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
         LocalDateTime dateAcception = LocalDateTime.MIN;
         if (rs.getTimestamp("date_acception") != null) {
             dateAcception = rs.getTimestamp("date_acception").toLocalDateTime();
