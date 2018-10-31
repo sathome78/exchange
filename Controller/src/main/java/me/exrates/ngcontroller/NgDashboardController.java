@@ -5,7 +5,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
@@ -103,20 +102,19 @@ public class NgDashboardController {
 
     @PostConstruct
     private void initData() {
-            ngMockService.initOpenOrders(OPEN_ORDERS);
-            ngMockService.initClosedOrders(CLOSED_ORDERS);
+        ngMockService.initOpenOrders(OPEN_ORDERS);
+        ngMockService.initClosedOrders(CLOSED_ORDERS);
     }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
         String result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = ngOrderService.createOrder(inputOrder);
         } else {
             result = "TEST_MODE";
             eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
-
         }
         HashMap<String, String> resultMap = new HashMap<>();
 
@@ -132,7 +130,7 @@ public class NgDashboardController {
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = (Integer) orderService.deleteOrderByAdmin(id);
         } else {
             result = 0;
@@ -144,7 +142,7 @@ public class NgDashboardController {
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        if (StringUtils.isEmpty(inputOrder.getOrderId()) || !StringUtils.isNumeric(inputOrder.getOrderId())) {
+        if (inputOrder.getOrderId() == null) {
             throw new OrderParamsWrongException();
         }
 
@@ -154,7 +152,7 @@ public class NgDashboardController {
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
 
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             switch (baseType) {
                 case STOP_LIMIT:
                     result = ngOrderService.processUpdateStopOrder(user, inputOrder);

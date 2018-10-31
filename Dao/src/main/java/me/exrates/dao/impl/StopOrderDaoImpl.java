@@ -116,7 +116,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
                 .addValue("amount_convert", order.getAmountConvert())
                 .addValue("commission_id", order.getComissionId())
                 .addValue("commission_fixed_amount", order.getCommissionFixedAmount())
-                .addValue("status_id", OrderStatus.INPROCESS.getStatus())
+                .addValue("status_id", order.getStatus().getStatus())
                 .addValue("id", orderId);
 
         return namedParameterJdbcTemplate.update(sql, parameters) > 0;
