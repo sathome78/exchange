@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,9 +32,12 @@ public class ExchangeApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ExchangeApi(@Value("${api.exchange.url}") String url) {
+    public ExchangeApi(@Value("${api.exchange.url}") String url,
+                       @Value("${api.exchange.username}") String username,
+                       @Value("${api.exchange.password}") String password) {
         this.url = url;
         this.restTemplate = new RestTemplate();
+        this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
     public Map<String, Pair<BigDecimal, BigDecimal>> getRates() {

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,9 +33,12 @@ public class WalletsApi {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public WalletsApi(@Value("${api.wallets.url}") String url) {
+    public WalletsApi(@Value("${api.wallets.url}") String url,
+                      @Value("${api.wallets.username}") String username,
+                      @Value("${api.wallets.password}") String password) {
         this.url = url;
         this.restTemplate = new RestTemplate();
+        this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
     public Map<String, BigDecimal> getBalances() {
