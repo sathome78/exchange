@@ -76,6 +76,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
             String messageText = update.getMessage().getText();
+            Integer messageId = update.getMessage().getMessageId();
 
             Integer userId = update.getMessage().getFrom().getId();
             String userName = update.getMessage().getFrom().getUserName();
@@ -93,6 +94,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             ChatLang language = ChatLang.EN;
 
             ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setId(messageId);
             chatMessage.setUserId(userIdTEST);
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
