@@ -171,6 +171,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatHistoryDateWrapperDto> getPublicChatHistoryByDate(ChatLang chatLang){
         List<ChatHistoryDto> messages = getPublicChatHistory(chatLang);
+        messages.sort(Comparator.comparing(ChatHistoryDto::getWhen));
         Map<LocalDate, List<ChatHistoryDto>> items = messages
                 .stream()
                 .collect(Collectors.groupingBy(msg -> msg.getWhen().toLocalDate()));
@@ -204,7 +205,8 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<ChatHistoryDateWrapperDto> getChatHistoryByDate(ChatLang chatLang) {
-        List<ChatHistoryDto> messages = getChatHistory(chatLang);
+        List<ChatHistoryDto> messages = chatDao.getChatHistoryQuick(chatLang);
+        messages.sort(Comparator.comparing(ChatHistoryDto::getWhen));
         Map<LocalDate, List<ChatHistoryDto>> items = messages
                 .stream()
                 .collect(Collectors.groupingBy(msg -> msg.getWhen().toLocalDate()));
