@@ -29,6 +29,7 @@ import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.stopOrder.StopOrderService;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,7 +155,14 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Order status is not open");
         }
 
+        if (StringUtils.isEmpty(inputOrder.getStatus())) {
+            throw new NgDashboardException("Input status is null");
+        }
+
+        OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
+
         OrderCreateDto prepareOrder = prepareOrder(inputOrder);
+        prepareOrder.setStatus(orderStatus);
 
         int outWalletId;
         BigDecimal outAmount;
@@ -208,7 +214,14 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Order status is not open");
         }
 
+        if (StringUtils.isEmpty(inputOrder.getStatus())) {
+            throw new NgDashboardException("Input status is null");
+        }
+
+        OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
+
         OrderCreateDto prepareOrder = prepareOrder(inputOrder);
+        prepareOrder.setStatus(orderStatus);
 
         int outWalletId;
         BigDecimal outAmount;
@@ -266,36 +279,36 @@ public class NgOrderServiceImpl implements NgOrderService {
         ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
         try {
 
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BigDecimal balanceByCurrency1 =
-                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            BigDecimal balanceByCurrency1 =
+                    dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
 
-        List<ExOrderStatisticsShortByPairsDto> currencyRate =
-                orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
-        result.setBalanceByCurrency1(balanceByCurrency1);
+            List<ExOrderStatisticsShortByPairsDto> currencyRate =
+                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+            result.setBalanceByCurrency1(balanceByCurrency1);
 
-        BigDecimal balanceByCurrency2 = new BigDecimal(0);
-        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-            if (dto == null) continue;
+            BigDecimal balanceByCurrency2 = new BigDecimal(0);
+            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+                if (dto == null) continue;
 
-            result.setCurrencyRate(dto.getLastOrderRate());
-            result.setPercentChange(dto.getPercentChange());
-            result.setLastCurrencyRate(dto.getPredLastOrderRate());
+                result.setCurrencyRate(dto.getLastOrderRate());
+                result.setPercentChange(dto.getPercentChange());
+                result.setLastCurrencyRate(dto.getPredLastOrderRate());
 
-            BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
-            BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
-            BigDecimal subtract = rateNow.subtract(rateYesterday);
-            result.setChangedValue(subtract.toString());
-            BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+                BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+                BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
+                BigDecimal subtract = rateNow.subtract(rateYesterday);
+                result.setChangedValue(subtract.toString());
+                BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
+                balanceByCurrency2 = balanceByCurrency1.multiply(rate);
 
-            break;
+                break;
 
-        }
+            }
 
-        result.setBalanceByCurrency2(balanceByCurrency2);
+            result.setBalanceByCurrency2(balanceByCurrency2);
 
-        List<StockExchangeStats> statistics;
+            List<StockExchangeStats> statistics;
             statistics =
                     stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
             //set rateHigh

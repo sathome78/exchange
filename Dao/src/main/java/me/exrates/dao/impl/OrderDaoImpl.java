@@ -171,7 +171,7 @@ public class OrderDaoImpl implements OrderDao {
                 .addValue("amount_convert", exOrder.getAmountConvert())
                 .addValue("commission_id", exOrder.getComissionId())
                 .addValue("commission_fixed_amount", exOrder.getCommissionFixedAmount())
-                .addValue("status_id", OrderStatus.INPROCESS.getStatus())
+                .addValue("status_id", exOrder.getStatus().getStatus())
                 .addValue("order_source_id", exOrder.getSourceId())
                 .addValue("base_type", exOrder.getOrderBaseType().name())
                 .addValue("id", orderId);
