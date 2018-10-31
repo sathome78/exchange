@@ -39,6 +39,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static String CHAT_ID_EXRATES_OFFICIAL = "-1001195048692";
     private final static String USER_EMAIL_TEST = "promo@exrates.me";
+    private final static Integer NUMBER_FOR_SET_UNIQ_MESSAGE_ID = 1800000000;
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
 
@@ -91,10 +92,11 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             }
 
             int userIdTEST = userService.getIdByEmail(USER_EMAIL_TEST);
+            Integer messageIdForBd = messageId+NUMBER_FOR_SET_UNIQ_MESSAGE_ID;
             ChatLang language = ChatLang.EN;
 
             ChatMessage chatMessage = new ChatMessage();
-            chatMessage.setId(messageId);
+            chatMessage.setId(messageIdForBd);
             chatMessage.setUserId(userIdTEST);
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
