@@ -539,14 +539,13 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            final BigDecimal mainBalance = balances.get(currencyName);
-
-            if (isNull(pairRates) || isNull(mainBalance)) {
+            if (isNull(pairRates)) {
                 continue;
             }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
 
+            final BigDecimal mainBalance = balances.get(currencyName);
 
             ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
@@ -583,13 +582,13 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            final BigDecimal totalBalance = balances.get(currencyName);
-
-            if (isNull(pairRates) || isNull(totalBalance)) {
+            if (isNull(pairRates)) {
                 continue;
             }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
+
+            final BigDecimal totalBalance = balances.get(currencyName);
 
             InternalWalletBalancesDto inWallet = InternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
