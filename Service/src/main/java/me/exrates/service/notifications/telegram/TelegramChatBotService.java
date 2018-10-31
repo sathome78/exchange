@@ -108,7 +108,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, fromChatMessage(chatMessage));
-                LOG.info("Send chat message from TELEGRAM. Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
+                LOG.info("Send chat message from TELEGRAM. Message id in DB:"+messageIdForBd+" | Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
             }
         }
     }
