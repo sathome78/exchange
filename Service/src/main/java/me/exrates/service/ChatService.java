@@ -2,13 +2,11 @@ package me.exrates.service;
 
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.exception.IllegalChatMessageException;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 
 /**
@@ -26,9 +24,11 @@ public interface ChatService {
 
     List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang);
 
-    Map<LocalDate, List<ChatHistoryDto>> getPublicChatHistoryByDate(ChatLang chatLang);
+    List<ChatHistoryDateWrapperDto> getPublicChatHistoryByDate(ChatLang chatLang);
 
     void flushCache();
 
     List<ChatHistoryDto> getChatHistory(ChatLang chatLang);
+
+    List<ChatHistoryDateWrapperDto> getChatHistoryByDate(ChatLang chatLang);
 }
