@@ -39,6 +39,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static String CHAT_ID_EXRATES_OFFICIAL = "-1001195048692";
     private final static String USER_EMAIL_TEST = "promo@exrates.me";
+    private final static Integer NUMBER_FOR_SET_UNIQ_MESSAGE_ID = 1800000000;
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
 
@@ -76,6 +77,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
             String messageText = update.getMessage().getText();
+            Integer messageId = update.getMessage().getMessageId();
 
             Integer userId = update.getMessage().getFrom().getId();
             String userName = update.getMessage().getFrom().getUserName();
@@ -90,9 +92,11 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             }
 
             int userIdTEST = userService.getIdByEmail(USER_EMAIL_TEST);
+            Integer messageIdForBd = messageId+NUMBER_FOR_SET_UNIQ_MESSAGE_ID;
             ChatLang language = ChatLang.EN;
 
             ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setId(messageIdForBd);
             chatMessage.setUserId(userIdTEST);
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
@@ -104,7 +108,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, fromChatMessage(chatMessage));
-                LOG.info("Send chat message from TELEGRAM. Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
+                LOG.info("Send chat message from TELEGRAM. Message id in DB:"+messageIdForBd+" | Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
             }
         }
     }
