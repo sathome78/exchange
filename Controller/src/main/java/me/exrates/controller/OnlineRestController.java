@@ -1052,13 +1052,30 @@ public class OnlineRestController {
         }
         String email = principal.getName();
         /**/
-        return referralService.getRefsContainerForReq(action, userId, userService.getIdByEmail(email), onPage, page, refFilterData);
+        RefsListContainer container = referralService.getRefsContainerForReq(action, userId,
+                userService.getIdByEmail(email), onPage, page, refFilterData);
+        hideEmails(container.getReferralInfoDtos());
+        return container;
     }
 
     @ResponseBody
     @RequestMapping(value = "/dashboard/getAllCurrencies")
     public List getAllCurrencies() {
         return currencyService.findAllCurrenciesWithHidden();
+    }
+
+    private void hideEmails(List<ReferralInfoDto> referralInfoDtos) {
+
+        for (ReferralInfoDto dto : referralInfoDtos) {
+            String email = dto.getEmail();
+            StringBuilder buf = new StringBuilder(email);
+            int start = 2;
+            int end = email.length() - 5;
+            for (int i = start; i < end; i++) {
+                buf.setCharAt(i, '*');
+            }
+            dto.setEmail(buf.toString());
+        }
     }
 
 }

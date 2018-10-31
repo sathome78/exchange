@@ -303,22 +303,7 @@ public class ReferralServiceImpl implements ReferralService {
             default:return new RefsListContainer(Collections.emptyList());
         }
         container.setCurrentLevel(refLevel);
-        hideEmails(container.getReferralInfoDtos());
         return container;
-    }
-
-    private void hideEmails(List<ReferralInfoDto> referralInfoDtos) {
-
-        for (ReferralInfoDto dto : referralInfoDtos) {
-            String email = dto.getEmail();
-            StringBuilder buf = new StringBuilder(email);
-            int start = 2;
-            int end = email.length() - 5;
-            for (int i = start; i < end; i++) {
-                buf.setCharAt(i, '*');
-            }
-            dto.setEmail(buf.toString());
-        }
     }
 
     private RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber, RefFilterData refFilterData) {
