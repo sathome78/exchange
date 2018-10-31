@@ -1,14 +1,12 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
-import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -26,13 +24,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,22 +35,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.QueryParam;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -136,15 +127,13 @@ public class NgPublicController {
 
     @GetMapping(value = "/chat/history")
     @ResponseBody
-    public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
-        List<ChatHistoryDto> messages;
+    public  List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
             if (WRITE_MODE){
-                messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
+                return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
             } else {
-                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
+                return chatService.getChatHistoryByDate(ChatLang.toInstance(lang));
             }
-            return messages;
         } catch (Exception e) {
             return Collections.emptyList();
         }

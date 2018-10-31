@@ -91,14 +91,14 @@ public class ChatDaoImpl implements ChatDao {
     @Override
     public List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang) {
         final String sql = "SELECT c.nickname as email, c.body, c.message_time FROM PUBLIC_CHAT_" + chatLang.val +
-                " as c ORDER BY c.message_time DESC LIMIT 50";
+                " as c ORDER BY c.message_time ASC LIMIT 50";
         return jdbcTemplate.query(sql, getRowMapper());
     }
 
     @Override
     public List<ChatHistoryDto> getChatHistory(ChatLang chatLang) {
         final String sql = "SELECT c.id, c.body, c.message_time, USER.email FROM CHAT_" + chatLang.val +
-                " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.id DESC";
+                " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.id ASC";
         return jdbcTemplate.query(sql, getRowMapper());
     }
 
@@ -108,6 +108,7 @@ public class ChatDaoImpl implements ChatDao {
             dto.setBody(rs.getString("body"));
             dto.setEmail(rs.getString("email"));
             dto.setMessageTime(getMessageTime(rs));
+            dto.setWhen(rs.getTimestamp("message_time").toLocalDateTime());
             return dto;
         };
     }
