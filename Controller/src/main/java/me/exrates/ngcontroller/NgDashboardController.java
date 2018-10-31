@@ -111,12 +111,11 @@ public class NgDashboardController {
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
         String result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = ngOrderService.createOrder(inputOrder);
         } else {
             result = "TEST_MODE";
             eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
-
         }
         HashMap<String, String> resultMap = new HashMap<>();
 
@@ -132,7 +131,7 @@ public class NgDashboardController {
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = (Integer) orderService.deleteOrderByAdmin(id);
         } else {
             result = 0;
@@ -154,7 +153,7 @@ public class NgDashboardController {
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
 
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             switch (baseType) {
                 case STOP_LIMIT:
                     result = ngOrderService.processUpdateStopOrder(user, inputOrder);
