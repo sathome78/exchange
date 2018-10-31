@@ -51,6 +51,7 @@ import me.exrates.service.job.report.ReportMailingJob;
 import me.exrates.service.util.ExcelGeneratorUtil;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
@@ -79,9 +80,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
@@ -537,6 +542,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public void generateWalletBalancesReport() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of generating report #4 start...");
+
         List<String> curNames = currencyService.getAllCurrencies().stream().map(Currency::getName).collect(toList());
 
         final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
@@ -550,11 +558,13 @@ public class ReportServiceImpl implements ReportService {
 
         List<Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto>> balances = curNames.stream()
                 .map(name -> Pair.of(externalWalletBalances.get(name), internalWalletBalances.get(name)))
+                .filter(pair -> nonNull(pair.getKey()) && nonNull(pair.getValue()))
                 .collect(toList());
 
         BalancesReportDto balancesReportDto = ExcelGeneratorUtil.generateReportBalances(balances);
 
         reportDao.addNewBalancesReport(balancesReportDto);
+        log.info("Process of generating report #4 end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Override
@@ -576,6 +586,10 @@ public class ReportServiceImpl implements ReportService {
                 .map(name -> {
                     ExternalWalletBalancesDto externalWalletBalancesDto = externalWalletBalances.get(name);
                     InternalWalletBalancesDto internalWalletBalancesDto = internalWalletBalances.get(name);
+
+                    if (isNull(externalWalletBalancesDto) || isNull(internalWalletBalancesDto)) {
+                        return null;
+                    }
 
                     final Integer currencyId = externalWalletBalancesDto.getCurrencyId();
                     final String currencyName = externalWalletBalancesDto.getCurrencyName();
@@ -612,6 +626,7 @@ public class ReportServiceImpl implements ReportService {
                             .lastUpdatedDate(lastUpdated)
                             .build();
                 })
+                .filter(Objects::nonNull)
                 .collect(toList());
     }
 
