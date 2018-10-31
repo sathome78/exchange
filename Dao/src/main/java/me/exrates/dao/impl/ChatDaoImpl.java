@@ -108,6 +108,7 @@ public class ChatDaoImpl implements ChatDao {
             dto.setBody(rs.getString("body"));
             dto.setEmail(rs.getString("email"));
             dto.setMessageTime(getMessageTime(rs));
+            dto.setWhen(rs.getTimestamp("message_time").toLocalDateTime());
             return dto;
         };
     }

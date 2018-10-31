@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -129,12 +131,11 @@ public class NgPublicController {
 
     @GetMapping(value = "/chat/history")
     @ResponseBody
-    public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
+    public  Map<LocalDate, List<ChatHistoryDto>> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            List<ChatHistoryDto> messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
-            return messages;
+            return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
         } catch (Exception e) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 

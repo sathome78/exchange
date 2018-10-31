@@ -18,11 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
@@ -162,6 +164,16 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang) {
         return chatDao.getPublicChatHistory(chatLang);
+    }
+
+    @Override
+    public Map<LocalDate, List<ChatHistoryDto>> getPublicChatHistoryByDate(ChatLang chatLang){
+        List<ChatHistoryDto> messages = getPublicChatHistory(chatLang);
+        Map<LocalDate, Set<ChatHistoryDto>> values = new TreeMap<>();
+
+        return messages
+                .stream()
+                .collect(Collectors.groupingBy(msg -> msg.getWhen().toLocalDate()));
     }
 
     @Scheduled(fixedDelay = 1000L, initialDelay = 1000L)

@@ -1,5 +1,6 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,9 @@ public class ChatHistoryDto  {
     private String  email;
     private String  body;
     private String messageTime;
+
+    @JsonIgnore
+    private LocalDateTime when;
 
     public static String getTitle() {
         return Stream.of("email", "body", "message_time")

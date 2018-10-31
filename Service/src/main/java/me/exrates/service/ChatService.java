@@ -5,7 +5,9 @@ import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.exception.IllegalChatMessageException;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -23,6 +25,8 @@ public interface ChatService {
     void deleteMessage(ChatMessage message, ChatLang lang);
 
     List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang);
+
+    Map<LocalDate, List<ChatHistoryDto>> getPublicChatHistoryByDate(ChatLang chatLang);
 
     void flushCache();
 
