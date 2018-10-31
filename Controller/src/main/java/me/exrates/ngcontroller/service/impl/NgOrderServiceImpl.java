@@ -133,7 +133,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     public boolean processUpdateOrder(User user, InputCreateOrderDto inputOrder) {
         boolean result = false;
 
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
+        int orderId = inputOrder.getOrderId();
         ExOrder order = orderService.getOrderById(orderId);
         if (order == null) {
             throw new NgDashboardException("Order is not exist");
@@ -156,7 +156,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         }
 
         if (StringUtils.isEmpty(inputOrder.getStatus())) {
-            throw new NgDashboardException("Input status is null");
+            throw new NgDashboardException("Input order status is null");
         }
 
         OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
@@ -190,7 +190,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     @Override
     public boolean processUpdateStopOrder(User user, InputCreateOrderDto inputOrder) {
         boolean result = false;
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
+        int orderId = inputOrder.getOrderId();
         OrderCreateDto stopOrder = stopOrderService.getOrderById(orderId, true);
 
         if (stopOrder == null) {
@@ -215,7 +215,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         }
 
         if (StringUtils.isEmpty(inputOrder.getStatus())) {
-            throw new NgDashboardException("Input status is null");
+            throw new NgDashboardException("Input order status is null");
         }
 
         OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());

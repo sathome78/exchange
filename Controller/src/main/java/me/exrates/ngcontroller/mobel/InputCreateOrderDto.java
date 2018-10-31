@@ -8,7 +8,7 @@ public class InputCreateOrderDto {
     @NotNull
     private String orderType;
 
-    private String orderId;
+    private Integer orderId;
 
     @NotNull
     private Integer currencyPairId;
@@ -42,11 +42,11 @@ public class InputCreateOrderDto {
         this.orderType = orderType;
     }
 
-    public String getOrderId() {
+    public Integer getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(String orderId) {
+    public void setOrderId(Integer orderId) {
         this.orderId = orderId;
     }
 
