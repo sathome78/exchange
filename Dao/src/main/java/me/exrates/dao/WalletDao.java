@@ -1,10 +1,18 @@
 package me.exrates.dao;
 
-import me.exrates.model.PagingData;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.*;
-import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.ExternalReservedWalletAddressDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
+import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.UserGroupBalanceDto;
+import me.exrates.model.dto.UserRoleBalanceDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.WalletFormattedDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -82,8 +90,8 @@ public interface WalletDao {
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
-  
-  void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
+
+    void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId, List<Integer> roleIds);
 
@@ -95,9 +103,26 @@ public interface WalletDao {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
-    List<ExternalWalletsDto> getExternalWallets();
 
-    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+    List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
-    List<ExternalWalletsDto> getBalancesWithExternalWallets();
+    void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto);
+
+    List<InternalWalletBalancesDto> getInternalWalletBalances();
+
+    void updateInternalWalletBalances(InternalWalletBalancesDto internalWalletBalancesDto);
+
+    void createReservedWalletAddress(int currencyId);
+
+    void deleteReservedWalletAddress(int currencyId);
+
+    void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+
+    List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
+
+    List<InternalWalletBalancesDto> getWalletBalances();
+
+    BigDecimal retrieveSummaryUSD();
+
+    BigDecimal retrieveSummaryBTC();
 }

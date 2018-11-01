@@ -46,7 +46,7 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     @Transactional(readOnly = true)
     public List<CompanyWallet> getCompanyWallets() {
         List<CompanyWallet> compWalletList = new ArrayList<CompanyWallet>();
-        List<Currency> currList = currencyService.getAllCurrencies();
+        List<Currency> currList = currencyService.getAllActiveCurrencies();
         for (Currency c : currList) {
             CompanyWallet cw = this.findByCurrency(c);
             if (cw != null) {

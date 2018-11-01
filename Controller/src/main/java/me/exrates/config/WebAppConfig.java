@@ -1359,6 +1359,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "PHI", true, ExConvert.Unit.ETHER);
     }
 
+    //todo: disable to debug
     @Bean(name = "retServiceImpl")
     public EthTokenService retService() {
         List<String> tokensList = new ArrayList<>();

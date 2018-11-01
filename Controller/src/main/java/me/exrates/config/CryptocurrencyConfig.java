@@ -217,6 +217,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
     }*/
 
+   /*
     @Bean(name = "clxServiceImpl")
     public BitcoinService clxService() {
         return new BitcoinServiceImpl("merchants/clx_wallet.properties",
@@ -228,6 +229,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/qrk_wallet.properties",
                 "QRK", "QRK", 4, 20, false, false);
     }
+    */
 
     // LISK-like cryptos
 
@@ -263,11 +265,13 @@ public class CryptocurrencyConfig {
         return new LiskRestClientImpl();
     }
 
+    /*
     @Bean
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
     }
+    */
 
 
     // WAVES-like

@@ -9,7 +9,11 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,37 +21,39 @@ import java.util.Optional;
 
 public interface CurrencyDao {
 
-  List<Currency> getCurrList();
+    List<Currency> getAllActiveCurrencies();
 
-  int getCurrencyId(int walletId);
+    List<Currency> getAllCurrencies();
 
-  String getCurrencyName(int currencyId);
+    int getCurrencyId(int walletId);
 
-  Currency findByName(String name);
+    String getCurrencyName(int currencyId);
 
-  Currency findById(int id);
+    Currency findByName(String name);
 
-  List<Currency> findAllCurrencies();
+    Currency findById(int id);
 
-  List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
+    List<Currency> findAllCurrencies();
 
-  List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId);
+    List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
 
-  BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
+    List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId);
 
-  void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
+    BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-  List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
 
-  CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
+    List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
-  CurrencyPair findCurrencyPairById(int currencyPairId);
+    CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
-  List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
+    CurrencyPair findCurrencyPairById(int currencyPairId);
 
-  List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
+    List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
 
-  List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
+    List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
+
+    List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
     List<String> getWarningsByTopic(UserCommentTopicEnum currencyWarningTopicEnum);
 
@@ -55,29 +61,30 @@ public interface CurrencyDao {
 
     CurrencyPair findCurrencyPairByOrderId(int orderId);
 
-  CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
+    CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
 
-  List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
+    List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
 
-  void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
-                            BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
+    void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
+                              BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
 
-  List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
+    List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
 
-  List<Currency> findAllCurrenciesWithHidden();
+    List<Currency> findAllCurrenciesWithHidden();
 
-  MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
+    MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
 
-  CurrencyPair findCurrencyPairByName(String currencyPair);
+    CurrencyPair findCurrencyPairByName(String currencyPair);
 
-  List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
+    List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
+    List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
 
     CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
 
     boolean isCurrencyIco(Integer currencyId);
+
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 
-  Optional<Integer> findOpenCurrencyPairIdByName(String pairName);
+    Optional<Integer> findOpenCurrencyPairIdByName(String pairName);
 }
