@@ -43,7 +43,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
 
-    private final static String KEY = "761047135:AAHNoioHBoR7Jm67-fbVHLTuQm2incR_yQU";
+    private final static String KEY = "761047135:AAFlP0mhxQcyrUlffjt1V2L5C4YAKNetqhk";
     private final static String BOT_NAME = "exrates_official";
 
     private final UserService userService;
@@ -95,6 +95,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setId(messageIdForBd);
             chatMessage.setUserId(userIdTEST);
+            chatMessage.setNickname(nickNameForDb);
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
 
