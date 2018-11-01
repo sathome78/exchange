@@ -60,15 +60,15 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     static {ApiContextInitializer.init();}
 
-    @PostConstruct
-    private void initBot() {
-        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-        try {
-            telegramBotsApi.registerBot(this);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    @PostConstruct
+//    private void initBot() {
+//        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+//        try {
+//            telegramBotsApi.registerBot(this);
+//        } catch (TelegramApiException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     @Override
     public void onUpdateReceived(Update update) {
