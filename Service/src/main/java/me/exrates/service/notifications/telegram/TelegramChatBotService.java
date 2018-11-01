@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -33,9 +34,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 
-@PropertySource("classpath:telegram_chat_bot.properties")
 @Log4j2(topic = "message_notify")
-@Component
+@Service
 public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static String CHAT_ID_EXRATES_OFFICIAL = "-1001195048692";
@@ -43,6 +43,9 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private final static Integer NUMBER_FOR_SET_UNIQ_MESSAGE_ID = 1800000000;
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
+
+    private final static String KEY = "761047135:AAHNoioHBoR7Jm67-fbVHLTuQm2incR_yQU";
+    private final static String BOT_NAME = "exrates_official";
 
     private final UserService userService;
     private final ChatDao chatDao;
@@ -54,12 +57,6 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
     }
-
-    @Value("${telegram.bot.key}")
-    private String key;
-
-    @Value("${telegram.bot.username}")
-    private String botName;
 
     static {ApiContextInitializer.init();}
 
@@ -133,12 +130,12 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return botName;
+        return BOT_NAME;
     }
 
     @Override
     public String getBotToken() {
-        return key;
+        return KEY;
     }
 
 
