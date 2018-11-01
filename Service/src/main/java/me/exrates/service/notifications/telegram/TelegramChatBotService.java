@@ -1,5 +1,6 @@
 package me.exrates.service.notifications.telegram;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
@@ -108,17 +109,26 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, fromChatMessage(chatMessage));
+//                messagingTemplate.convertAndSend(destination, "fromChatMessage(chatMessage)");
                 LOG.info("Send chat message from TELEGRAM. Message id in DB:"+messageIdForBd+" | Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
             }
         }
     }
 
-    private ChatHistoryDto fromChatMessage(ChatMessage message) {
+    private String fromChatMessage(ChatMessage message) {
+        String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();
         dto.setMessageTime(message.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         dto.setEmail(message.getNickname());
         dto.setBody(message.getBody());
-        return dto;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            send = mapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            LOG.info("Failed to convert to json {}", dto.getBody());
+        }
+        return send;
     }
 
     @Override

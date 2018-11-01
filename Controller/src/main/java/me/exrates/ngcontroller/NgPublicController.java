@@ -1,5 +1,7 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
@@ -155,7 +157,7 @@ public class NgPublicController {
                 message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
             } else {
                 message = new ChatMessage();
-                message.setNickname("anonymous" + RandomStringUtils.randomNumeric(5));
+                message.setNickname("anonymous");
                 message.setBody(simpleMessage);
                 message.setId(Long.parseLong(RandomStringUtils.randomNumeric(5)));
             }
@@ -166,6 +168,11 @@ public class NgPublicController {
         messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+//    @MessageMapping("/topic/chat/{lang}")
+//    public void onReceivedNewMessage(@DestinationVariable String lang, String message){
+//        this.template.convertAndSend("/topic/chat/" + lang, message);
+//    }
 
     // /info/public/v2/currencies/min-max/{currencyPairId}
     @GetMapping("/currencies/min-max/{currencyPairId}")
@@ -179,12 +186,20 @@ public class NgPublicController {
         }
     }
 
-    private ChatHistoryDto fromChatMessage(ChatMessage message) {
+    private String fromChatMessage(ChatMessage message) {
+        String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();
         dto.setMessageTime(message.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         dto.setEmail(message.getNickname());
         dto.setBody(message.getBody());
-        return dto;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            send = mapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            logger.info("Failed to convert to json {}", dto.getBody());
+        }
+        return send;
     }
 
     private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,
