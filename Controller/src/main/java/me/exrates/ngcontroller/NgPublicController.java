@@ -160,6 +160,7 @@ public class NgPublicController {
                 message.setNickname("anonymous");
                 message.setBody(simpleMessage);
                 message.setId(Long.parseLong(RandomStringUtils.randomNumeric(5)));
+                message.setTime(LocalDateTime.now());
             }
         } catch (IllegalChatMessageException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
