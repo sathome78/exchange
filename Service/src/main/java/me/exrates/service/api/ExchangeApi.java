@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import me.exrates.service.exception.ExchangeApiException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 
 @PropertySource(value = {"classpath:/external-apis.properties"})
+@Slf4j
 @Component
 public class ExchangeApi {
 
@@ -48,6 +50,7 @@ public class ExchangeApi {
                 throw new ExchangeApiException("Exchange server is not available");
             }
         } catch (Exception ex) {
+            log.warn("Exchange service did not return valid data: server not available");
             return Collections.emptyMap();
         }
         ExchangeData body = responseEntity.getBody();

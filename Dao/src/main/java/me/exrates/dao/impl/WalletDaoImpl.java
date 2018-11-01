@@ -1285,7 +1285,6 @@ public class WalletDaoImpl implements WalletDao {
         final String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
                 " SET cewb.usd_rate = :usd_rate, cewb.btc_rate = :btc_rate, " +
                 "cewb.main_balance = IFNULL(:main_balance, 0), " +
-                "cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
                 "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
                 "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
                 "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
@@ -1357,9 +1356,23 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public void deleteReservedWalletAddress(int id) {
-        final String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS WHERE id = :id";
+        String sql = "SELECT cwera.currency_id FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE id = :id";
+
+        final Integer currencyId = slaveJdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
+
+        sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS WHERE id = :id";
 
         jdbcTemplate.update(sql, singletonMap("id", id));
+
+        sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
+                " SET cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
+                "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
+                "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
+                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
+                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE cewb.currency_id = :currency_id";
+
+        jdbcTemplate.update(sql, singletonMap("currency_id", currencyId));
     }
 
     @Override
@@ -1372,13 +1385,28 @@ public class WalletDaoImpl implements WalletDao {
                 " SET cwera.currency_id = :currency_id, %s cwera.wallet_address = :wallet_address, cwera.balance = :balance" +
                 " WHERE cwera.id = :id", nameSql);
 
-        final Map<String, Object> params = new HashMap<String, Object>() {
+        Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", externalReservedWalletAddressDto.getId());
                 put("currency_id", externalReservedWalletAddressDto.getCurrencyId());
                 put("name", externalReservedWalletAddressDto.getName());
                 put("wallet_address", externalReservedWalletAddressDto.getWalletAddress());
                 put("balance", externalReservedWalletAddressDto.getBalance());
+            }
+        };
+        jdbcTemplate.update(sql, params);
+
+        sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
+                " SET cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
+                "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
+                "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
+                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
+                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE cewb.currency_id = :currency_id";
+
+        params = new HashMap<String, Object>() {
+            {
+                put("currency_id", externalReservedWalletAddressDto.getCurrencyId());
             }
         };
         jdbcTemplate.update(sql, params);
@@ -1406,7 +1434,8 @@ public class WalletDaoImpl implements WalletDao {
         String sql = "SELECT cur.name AS currency_name, " +
                 "SUM(w.active_balance + w.reserved_balance) AS total_balance" +
                 " FROM WALLET w" +
-                " JOIN CURRENCY cur on (w.currency_id = cur.id AND cur.hidden = 0)" +
+                " JOIN CURRENCY cur ON cur.id = w.currency_id AND cur.hidden = 0" +
+                " JOIN USER u ON u.id = w.user_id AND u.roleid <> 10" +
                 " GROUP BY w.currency_id" +
                 " ORDER BY w.currency_id";
 

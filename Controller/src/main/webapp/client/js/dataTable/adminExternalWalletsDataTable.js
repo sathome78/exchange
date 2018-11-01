@@ -204,6 +204,7 @@ function addReservedWallet(currencyIdForPopUp) {
         },
         success: function () {
             updateReservedWallets();
+            updateExternalWalletsTable();
         },
         error: function (err) {
             console.log(err);
@@ -226,6 +227,7 @@ function removeReservedWallet(elem) {
             },
             success: function () {
                 updateReservedWallets();
+                updateExternalWalletsTable();
             },
             error: function (err) {
                 console.log(err);
@@ -254,6 +256,7 @@ function saveAsAddress(elem) {
         },
         success: function () {
             updateReservedWallets();
+            updateExternalWalletsTable();
         },
         error: function (err) {
             errorNoty(err);
@@ -283,6 +286,7 @@ function saveAsName(elem) {
         },
         success: function () {
             updateReservedWallets();
+            updateExternalWalletsTable();
         },
         error: function (err) {
             console.log(err);
@@ -328,6 +332,7 @@ function saveGeneral(elem) {
         data: dataForRequest,
         success: function () {
             updateReservedWallets();
+            updateExternalWalletsTable();
         },
         error: function (err) {
             console.log(err);
