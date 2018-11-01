@@ -105,7 +105,7 @@ public class ChatDaoImpl implements ChatDao {
     @Override
     public List<ChatHistoryDto> getChatHistoryQuick(ChatLang chatLang) {
         final String sql = "SELECT c.id, c.body, c.message_time, USER.email FROM CHAT_" + chatLang.val +
-                " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.message_time ASC LIMIT 30";
+                " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.message_time DESC LIMIT 30";
         return jdbcTemplate.query(sql, getRowMapper());
     }
 
