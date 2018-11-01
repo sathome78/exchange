@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
@@ -16,10 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -31,16 +29,16 @@ public class NgMockService {
     @Autowired
     CurrencyService currencyService;
 
-    public void initOpenOrders(Map<CurrencyPair, Set<OrderWideListDto>> openOrders) {
+    public void initOpenOrders(Map<CurrencyPair, List<OrderWideListDto>> openOrders) {
         openOrders.putAll(getOpenOrders());
     }
 
-    public void initClosedOrders(Map<CurrencyPair, Set<OrderWideListDto>> closedOrder) {
+    public void initClosedOrders(Map<CurrencyPair, List<OrderWideListDto>> closedOrder) {
         closedOrder.putAll(getClosedOrders());
     }
 
-    private Map<CurrencyPair, Set<OrderWideListDto>> getClosedOrders(){
-        Map<CurrencyPair, Set<OrderWideListDto>> closedOrders = new ConcurrentHashMap<>();
+    private Map<CurrencyPair, List<OrderWideListDto>> getClosedOrders() {
+        Map<CurrencyPair, List<OrderWideListDto>> closedOrders = new ConcurrentHashMap<>();
         CurrencyPair currencyPairByIdBtcUsd = currencyService.findCurrencyPairById(1);
         OrderWideListDto order1 = new OrderWideListDto();
         order1.setId(1);
@@ -55,6 +53,7 @@ public class NgMockService {
         order1.setStatusString(OrderStatus.CLOSED.toString());
         order1.setCurrencyPairId(1);
         order1.setCurrencyPairName("BTC/USD");
+        order1.setCommissionValue(0.2d);
         order1.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(15));
 
 
@@ -70,6 +69,7 @@ public class NgMockService {
         order2.setStatus(OrderStatus.CLOSED);
         order2.setStatusString(OrderStatus.CLOSED.toString());
         order2.setCurrencyPairId(1);
+        order2.setCommissionValue(0.2d);
         order2.setCurrencyPairName("BTC/USD");
         order2.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(30));
 
@@ -86,6 +86,7 @@ public class NgMockService {
         order3.setStatusString(OrderStatus.CLOSED.toString());
         order3.setCurrencyPairId(1);
         order3.setCurrencyPairName("BTC/USD");
+        order3.setCommissionValue(0.2d);
         order3.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(50));
 
 
@@ -102,6 +103,7 @@ public class NgMockService {
         order4.setStatusString(OrderStatus.CLOSED.toString());
         order4.setCurrencyPairId(1);
         order4.setCurrencyPairName("BTC/USD");
+        order4.setCommissionValue(0.2d);
         order4.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(55));
 
         OrderWideListDto order5 = new OrderWideListDto();
@@ -116,10 +118,11 @@ public class NgMockService {
         order5.setStatus(OrderStatus.CLOSED);
         order5.setStatusString(OrderStatus.CLOSED.toString());
         order5.setCurrencyPairId(1);
+        order5.setCommissionValue(0.2d);
         order5.setCurrencyPairName("BTC/USD");
         order5.setDateCreation(LocalDateTime.now().minusHours(2));
 
-        Set<OrderWideListDto> usdBtc = new HashSet<>(ImmutableList.of(order1, order2, order3, order4, order5));
+        List<OrderWideListDto> usdBtc = new ArrayList<>(ImmutableList.of(order1, order2, order3, order4, order5));
         closedOrders.put(currencyPairByIdBtcUsd, usdBtc);
 
         OrderWideListDto order6 = new OrderWideListDto();
@@ -135,6 +138,7 @@ public class NgMockService {
         order6.setStatusString(OrderStatus.CLOSED.toString());
         order6.setCurrencyPairId(2);
         order6.setCurrencyPairName("BTC/EUR");
+        order6.setCommissionValue(0.2d);
         order6.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(5));
 
         OrderWideListDto order7 = new OrderWideListDto();
@@ -150,10 +154,11 @@ public class NgMockService {
         order7.setStatusString(OrderStatus.CLOSED.toString());
         order7.setCurrencyPairId(2);
         order7.setCurrencyPairName("BTC/EUR");
+        order7.setCommissionValue(0.2d);
         order7.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(8));
 
         CurrencyPair btcEur = currencyService.findCurrencyPairById(2);
-        Set<OrderWideListDto> usdBtcSet = new HashSet<>(ImmutableList.of(order6, order7));
+        List<OrderWideListDto> usdBtcSet = new ArrayList<>(ImmutableList.of(order6, order7));
         closedOrders.put(btcEur, usdBtcSet);
 
         OrderWideListDto order8 = new OrderWideListDto();
@@ -169,6 +174,7 @@ public class NgMockService {
         order8.setStatusString(OrderStatus.CLOSED.toString());
         order8.setCurrencyPairId(41);
         order8.setCurrencyPairName("ETH/BTC");
+        order8.setCommissionValue(0.2d);
         order8.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(22));
 
         OrderWideListDto order9 = new OrderWideListDto();
@@ -184,6 +190,7 @@ public class NgMockService {
         order9.setStatusString(OrderStatus.CLOSED.toString());
         order9.setCurrencyPairId(41);
         order9.setCurrencyPairName("ETH/BTC");
+        order9.setCommissionValue(0.2d);
         order9.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(33));
 
         OrderWideListDto order10 = new OrderWideListDto();
@@ -199,19 +206,19 @@ public class NgMockService {
         order10.setStatusString(OrderStatus.CLOSED.toString());
         order10.setCurrencyPairId(41);
         order10.setCurrencyPairName("ETH/BTC");
+        order10.setCommissionValue(0.2d);
         order10.setDateCreation(LocalDateTime.now().minusHours(2).minusMinutes(2));
 
         CurrencyPair ethBtc = currencyService.findCurrencyPairById(41);
-        Set<OrderWideListDto> ethBtcSet = new HashSet<>(ImmutableList.of(order8, order9, order10));
+        List<OrderWideListDto> ethBtcSet = new ArrayList<>(ImmutableList.of(order8, order9, order10));
         closedOrders.put(ethBtc, ethBtcSet);
-
 
         return closedOrders;
     }
 
-    private Map<CurrencyPair, Set<OrderWideListDto>> getOpenOrders() {
+    private Map<CurrencyPair, List<OrderWideListDto>> getOpenOrders() {
 
-        Map<CurrencyPair, Set<OrderWideListDto>> openOrders = new ConcurrentHashMap<>();
+        Map<CurrencyPair, List<OrderWideListDto>> openOrders = new ConcurrentHashMap<>();
 
         CurrencyPair currencyPairByIdBtcUsd = currencyService.findCurrencyPairById(1);
 
@@ -228,6 +235,7 @@ public class NgMockService {
         order1.setStatusString(OrderStatus.OPENED.toString());
         order1.setCurrencyPairId(1);
         order1.setCurrencyPairName("BTC/USD");
+        order1.setCommissionValue(0.2d);
         order1.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(15));
 
         OrderWideListDto order2 = new OrderWideListDto();
@@ -243,6 +251,7 @@ public class NgMockService {
         order2.setStatusString(OrderStatus.OPENED.toString());
         order2.setCurrencyPairId(1);
         order2.setCurrencyPairName("BTC/USD");
+        order2.setCommissionValue(0.2d);
         order2.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(30));
 
         OrderWideListDto order3 = new OrderWideListDto();
@@ -258,6 +267,7 @@ public class NgMockService {
         order3.setStatusString(OrderStatus.OPENED.toString());
         order3.setCurrencyPairId(1);
         order3.setCurrencyPairName("BTC/USD");
+        order3.setCommissionValue(0.2d);
         order3.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(50));
 
         OrderWideListDto order4 = new OrderWideListDto();
@@ -273,6 +283,7 @@ public class NgMockService {
         order4.setStatusString(OrderStatus.OPENED.toString());
         order4.setCurrencyPairId(1);
         order4.setCurrencyPairName("BTC/USD");
+        order4.setCommissionValue(0.2d);
         order4.setDateCreation(LocalDateTime.now().minusHours(1).minusMinutes(55));
 
         OrderWideListDto order5 = new OrderWideListDto();
@@ -288,9 +299,10 @@ public class NgMockService {
         order5.setStatusString(OrderStatus.OPENED.toString());
         order5.setCurrencyPairId(1);
         order5.setCurrencyPairName("BTC/USD");
+        order5.setCommissionValue(0.2d);
         order5.setDateCreation(LocalDateTime.now().minusHours(2));
 
-        Set<OrderWideListDto> usdBtc = new HashSet<>(ImmutableList.of(order1, order2, order3, order4, order5));
+        List<OrderWideListDto> usdBtc = new ArrayList<>(ImmutableList.of(order1, order2, order3, order4, order5));
         openOrders.put(currencyPairByIdBtcUsd, usdBtc);
 
         OrderWideListDto order6 = new OrderWideListDto();
@@ -305,6 +317,7 @@ public class NgMockService {
         order6.setStatus(OrderStatus.OPENED);
         order6.setStatusString(OrderStatus.OPENED.toString());
         order6.setCurrencyPairId(2);
+        order6.setCommissionValue(0.2d);
         order6.setCurrencyPairName("BTC/EUR");
         order6.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(5));
 
@@ -320,11 +333,12 @@ public class NgMockService {
         order7.setStatus(OrderStatus.OPENED);
         order7.setStatusString(OrderStatus.OPENED.toString());
         order7.setCurrencyPairId(2);
+        order7.setCommissionValue(0.2d);
         order7.setCurrencyPairName("BTC/EUR");
         order7.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(8));
 
         CurrencyPair btcEur = currencyService.findCurrencyPairById(2);
-        Set<OrderWideListDto> usdBtcSet = new HashSet<>(ImmutableList.of(order6, order7));
+        List<OrderWideListDto> usdBtcSet = new ArrayList<>(ImmutableList.of(order6, order7));
         openOrders.put(btcEur, usdBtcSet);
 
         OrderWideListDto order8 = new OrderWideListDto();
@@ -340,6 +354,7 @@ public class NgMockService {
         order8.setStatusString(OrderStatus.OPENED.toString());
         order8.setCurrencyPairId(41);
         order8.setCurrencyPairName("ETH/BTC");
+        order8.setCommissionValue(0.2d);
         order8.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(22));
 
         OrderWideListDto order9 = new OrderWideListDto();
@@ -355,6 +370,7 @@ public class NgMockService {
         order9.setStatusString(OrderStatus.OPENED.toString());
         order9.setCurrencyPairId(41);
         order9.setCurrencyPairName("ETH/BTC");
+        order9.setCommissionValue(0.2d);
         order9.setDateCreation(LocalDateTime.now().minusHours(1).plusMinutes(33));
 
         OrderWideListDto order10 = new OrderWideListDto();
@@ -370,10 +386,11 @@ public class NgMockService {
         order10.setStatusString(OrderStatus.OPENED.toString());
         order10.setCurrencyPairId(41);
         order10.setCurrencyPairName("ETH/BTC");
+        order10.setCommissionValue(0.2d);
         order10.setDateCreation(LocalDateTime.now().minusHours(2).minusMinutes(2));
 
         CurrencyPair ethBtc = currencyService.findCurrencyPairById(41);
-        Set<OrderWideListDto> ethBtcSet = new HashSet<>(ImmutableList.of(order8, order9, order10));
+        List<OrderWideListDto> ethBtcSet = new ArrayList<>(ImmutableList.of(order8, order9, order10));
         openOrders.put(ethBtc, ethBtcSet);
 
         return openOrders;
