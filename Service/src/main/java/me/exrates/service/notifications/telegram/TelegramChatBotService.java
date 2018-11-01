@@ -30,7 +30,9 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Log4j2(topic = "message_notify")
@@ -45,6 +47,9 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static String KEY = "761047135:AAFlP0mhxQcyrUlffjt1V2L5C4YAKNetqhk";
     private final static String BOT_NAME = "exrates_official";
+
+    public static List<ChatHistoryDto> chatHistoryDtoListFromTelegram = new ArrayList<>();
+    public final static Integer COUNT_OF_MESSAGE_FOR_VIEW = 30;
 
     private final UserService userService;
     private final ChatDao chatDao;
@@ -99,11 +104,12 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
 
-            Set<ChatMessage> setCollectionChatMessage = new HashSet<>();
-            setCollectionChatMessage.add(chatMessage);
+//            Set<ChatMessage> setCollectionChatMessage = new HashSet<>();
+//            setCollectionChatMessage.add(chatMessage);
 
             if(String.valueOf(chatId).equals(CHAT_ID_EXRATES_OFFICIAL)){
-                chatDao.persist(language, setCollectionChatMessage);
+                chatHistoryDtoListFromTelegram.add(fromChatMessage(chatMessage));
+//                chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, fromChatMessage(chatMessage));
                 LOG.info("Send chat message from TELEGRAM. Message id in DB:"+messageIdForBd+" | Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);

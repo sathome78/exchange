@@ -19,6 +19,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -142,7 +143,11 @@ public class NgPublicController {
             if (WRITE_MODE){
                 messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
             } else {
-                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
+                //TODO test data
+                int startFrom=TelegramChatBotService.chatHistoryDtoListFromTelegram.size()-TelegramChatBotService.COUNT_OF_MESSAGE_FOR_VIEW;
+                messages = TelegramChatBotService.chatHistoryDtoListFromTelegram.subList(startFrom, TelegramChatBotService.chatHistoryDtoListFromTelegram.size());
+                //End TO DO
+//                messages = chatService.getChatHistory(ChatLang.toInstance(lang));
             }
             return messages;
         } catch (Exception e) {
