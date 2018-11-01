@@ -95,6 +95,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setId(messageIdForBd);
+            chatMessage.setNickname("anonymous_bot");
             chatMessage.setUserId(userIdTEST);
             chatMessage.setBody(messageText);
             chatMessage.setTime(LocalDateTime.now());
