@@ -8,10 +8,10 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -56,7 +56,7 @@ public interface UserService {
     @Transactional(rollbackFor = Exception.class)
     boolean createUserRest(User user, Locale locale);
 
-    int verifyUserEmail(String token);
+    int verifyUserEmail(String token, TokenType tokenType);
 
     List<UserRole> getAllRoles();
 
@@ -203,4 +203,6 @@ public interface UserService {
     boolean checkPassword(int userId, String password);
 
     long countUserIps(String userEmail);
+
+    String processIpOnLogin(HttpServletRequest request, String email, Locale locale);
 }

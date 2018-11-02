@@ -9,7 +9,6 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -21,6 +20,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -152,10 +151,13 @@ public class UserServiceImpl implements UserService {
    * if there are jobs for deleted tokens in scheduler, they will be deleted from queue.
    */
   @Transactional(rollbackFor = Exception.class)
-  public int verifyUserEmail(String token) {
+  public int verifyUserEmail(String token, TokenType tokenType) {
     TemporalToken temporalToken = userDao.verifyToken(token);
+    if (temporalToken == null || !temporalToken.getTokenType().equals(tokenType)) {
+      return 0;
+    }
     //deleting all tokens related with current through userId and tokenType
-    return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
+    return deleteTokensAndUpdateUser(temporalToken);
   }
 
   private int deleteTokensAndUpdateUser(TemporalToken temporalToken) {
@@ -801,6 +803,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
+    }
+
+    @Override
+    public String processIpOnLogin(HttpServletRequest request, String email, Locale locale) {
+      String ip = request.getHeader("X-FORWARDED-FOR");
+      if (ip == null) {
+        ip = IpUtils.getClientIpAddress(request, 100);
+      }
+      UserIpDto userIpDto = getUserIpState(email, ip);
+      if (userIpDto.getUserIpState() == UserIpState.NEW) {
+        insertIp(email, ip);
+        me.exrates.model.User u = new me.exrates.model.User();
+        u.setId(userIpDto.getUserId());
+        u.setEmail(email);
+        u.setIp(ip);
+        sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
+      }
+      setLastRegistrationDate(userIpDto.getUserId(), ip);
+      return ip;
     }
 
 }

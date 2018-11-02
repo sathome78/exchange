@@ -96,6 +96,7 @@ public class SendMailServiceImpl implements SendMailService{
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	@Override
 	public void sendInfoMail(Email email) {
+		System.out.println(email);
 		if (allowedOnly) {
 			String[] allowedEmails = allowedEmailsList.split(",");
 			if (Stream.of(allowedEmails).noneMatch(mail -> mail.equals(email.getTo()))) {

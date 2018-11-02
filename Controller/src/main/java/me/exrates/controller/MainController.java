@@ -1,6 +1,6 @@
 package me.exrates.controller;
 
-import com.captcha.botdetect.web.servlet.Captcha;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.exception.PasswordCreationException;
@@ -17,16 +17,18 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.service.SecureService;
+import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
+import me.exrates.service.autist.Preconditions;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bitcoinj.crypto.MnemonicCode;
@@ -36,7 +38,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +55,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
+@Log4j2(topic = "reg_log")
 @Controller
 @PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
 public class MainController {
@@ -99,9 +100,7 @@ public class MainController {
     @Autowired
     private ReferralService referralService;
     @Autowired
-    private SendMailService sendMailService;
-    @Autowired
-    private SecureService secureService;
+    private IpBlockingService ipBlockingService;
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
@@ -238,8 +237,8 @@ public class MainController {
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
     public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
-        mav.addObject("view", view);
         mav.addObject("user", WebUtils.getRequiredSessionAttribute(request, "reg_user"));
+        mav.addObject("view", view);
         return mav;
     }
 
@@ -249,24 +248,35 @@ public class MainController {
                                        BindingResult result,
                                        HttpServletRequest request,
                                        RedirectAttributes attr) {
+        User sessionUser = (User) WebUtils.getRequiredSessionAttribute(request, "reg_user");
+        request.getSession().removeAttribute("reg_user");
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
             throw new PasswordCreationException("Error while creating password.");
         } else {
-            User sessionUser = (User) WebUtils.getRequiredSessionAttribute(request, "reg_user");
-            User userUpdate = userService.findByEmail(sessionUser.getEmail());
-            UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+            User userFromDb = userService.findByEmail(sessionUser.getEmail());
+            Preconditions.checkArgument(userFromDb.getStatus().equals(UserStatus.REGISTERED) && userFromDb.getRole().equals(UserRole.USER) && StringUtils.isEmpty(userFromDb.getPassword()));
+            UpdateUserDto updateUserDto = new UpdateUserDto(userFromDb.getId());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-            WebUtils.setSessionAttribute(request, "reg_user", null);
+            /*login new user*/
+            String ip = userService.processIpOnLogin(request, userFromDb.getEmail(), localeResolver.resolveLocale(request));
+            WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
+            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+            org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                    user.getEmail(), updateUserDto.getPassword(), true, true, true, true, authList);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+            /*----------*/
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            log.debug("user {} succesfully regitred and login from ip {} ", updateUserDto.getEmail(), ip);
             if (view != null && view.equals("ico_dashboard")) {
-                return new ModelAndView("redirect:/ico_dashboard?login");
+                return new ModelAndView("redirect:/ico_dashboard");
             }
-            return new ModelAndView("redirect:/dashboard?login");
+            return new ModelAndView("redirect:/dashboard");
         }
     }
 
@@ -277,7 +287,7 @@ public class MainController {
                                     RedirectAttributes attr) {
         ModelAndView model = new ModelAndView();
         try {
-            int userId = userService.verifyUserEmail(token);
+            int userId = userService.verifyUserEmail(token, TokenType.REGISTRATION);
             if (userId != 0) {
                 User user = userService.getUserById(userId);
                 WebUtils.setSessionAttribute(request, "reg_user", user);
@@ -352,22 +362,6 @@ public class MainController {
         return new ModelAndView(new RedirectView("/dashboard"));
 
     }
-
-    /*@ResponseBody
-    @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
-    public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
-        response.setCharacterEncoding("UTF-8");
-        Object auth = request.getSession().getAttribute("authentication");
-        if (auth == null) {
-            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
-        }
-        Authentication authentication = (Authentication) auth;
-        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(res);
-    }*/
 
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)

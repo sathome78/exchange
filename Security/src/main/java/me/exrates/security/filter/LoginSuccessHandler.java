@@ -64,21 +64,11 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             request.getSession().removeAttribute("successNoty");
         /**/
             String email = authentication.getName();
-            String ip = request.getHeader("X-FORWARDED-FOR");
-            if (ip == null) {
-                ip = IpUtils.getClientIpAddress(request, 100);
-            }
-            UserIpDto userIpDto = userService.getUserIpState(email, ip);
-            if (userIpDto.getUserIpState() == UserIpState.NEW) {
-                userService.insertIp(email, ip);
-                me.exrates.model.User u = new me.exrates.model.User();
-                u.setId(userIpDto.getUserId());
-                u.setEmail(email);
-                u.setIp(ip);
-                userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
-            }
-            userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
+
+            String ip = userService.processIpOnLogin(request, email, locale);
+
             ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
+
             String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
             request.getSession().removeAttribute("lastPageBeforeLogin");
             if (!StringUtils.isEmpty(lastPage)) {
