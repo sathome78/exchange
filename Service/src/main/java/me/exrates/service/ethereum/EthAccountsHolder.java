@@ -39,7 +39,7 @@ public class EthAccountsHolder {
     private void init() {
         accs.addAll(loadAllAccounts(Collections.singletonList(true)));
         log.debug("init accs size {}", accs.size());
-        scheduler.scheduleAtFixedRate(this::loadAndCheckFreshAccounts, 1, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::loadAndCheckFreshAccounts, 6, 5, TimeUnit.MINUTES);
     }
 
     private Set<EthTransferAcc> loadAllAccounts(List<Boolean> states) {
@@ -57,7 +57,7 @@ public class EthAccountsHolder {
         } catch (Exception e) {
             log.error(e);
         }
-        return /*ethBalance.compareTo(feeAmount) >= 0*/true;
+        return ethBalance.compareTo(feeAmount) >= 0;
     }
 
     private EthTransferAcc findMostUnloadedAcc() {
