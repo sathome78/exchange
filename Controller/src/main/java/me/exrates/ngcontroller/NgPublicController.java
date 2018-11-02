@@ -2,7 +2,6 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
@@ -10,7 +9,6 @@ import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
-import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -18,7 +16,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
-import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -71,7 +68,6 @@ public class NgPublicController {
     private final NotificationsSettingsService notificationsSettingsService;
     private final CurrencyService currencyService;
     private final TelegramChatBotService telegramChatBotService;
-    private final NgOrderService ngOrderService;
     private final OrderService orderService;
 
     @Value("${angular.write.mode}")
@@ -85,7 +81,7 @@ public class NgPublicController {
                               SimpMessagingTemplate messagingTemplate,
                               NotificationsSettingsService notificationsSettingsService,
                               CurrencyService currencyService,
-                              TelegramChatBotService telegramChatBotService, NgOrderService ngOrderService,
+                              TelegramChatBotService telegramChatBotService,
                               OrderService orderService) {
         this.chatService = chatService;
         this.handlers = handlers;
@@ -95,7 +91,6 @@ public class NgPublicController {
         this.notificationsSettingsService = notificationsSettingsService;
         this.currencyService = currencyService;
         this.telegramChatBotService = telegramChatBotService;
-        this.ngOrderService = ngOrderService;
         this.orderService = orderService;
     }
 
