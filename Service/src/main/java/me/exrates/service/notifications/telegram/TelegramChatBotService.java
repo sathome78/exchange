@@ -5,25 +5,15 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDto;
-import me.exrates.model.dto.TelegramSubscription;
 import me.exrates.model.enums.ChatLang;
-import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.MessageUndeliweredException;
-import me.exrates.service.exception.TelegramSubscriptionException;
-import me.exrates.service.notifications.Subscribable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -47,6 +37,10 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private final static String KEY = "698963124:AAENi1yq5gnqY8S2Fzlfd9smAYCGBmCSFY4";
     private final static String BOT_NAME = "exrates_official_test";
 
+    static {
+        ApiContextInitializer.init();
+    }
+
     private final UserService userService;
     private final ChatDao chatDao;
     private final SimpMessagingTemplate messagingTemplate;
@@ -57,8 +51,6 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
     }
-
-    static {ApiContextInitializer.init();}
 
     @PostConstruct
     private void initBot() {
@@ -83,14 +75,14 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             String lastName = update.getMessage().getFrom().getLastName();
 
             String nickNameForDb;
-            if(userName!=null){
+            if (userName != null) {
                 nickNameForDb = userName;
             } else {
                 nickNameForDb = firstName + " " + lastName;
             }
 
             int userIdTEST = userService.getIdByEmail(USER_EMAIL_TEST);
-            Integer messageIdForBd = messageId+NUMBER_FOR_SET_UNIQ_MESSAGE_ID;
+            Integer messageIdForBd = messageId + NUMBER_FOR_SET_UNIQ_MESSAGE_ID;
             ChatLang language = ChatLang.EN;
 
             ChatMessage chatMessage = new ChatMessage();
@@ -103,12 +95,12 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             Set<ChatMessage> setCollectionChatMessage = new HashSet<>();
             setCollectionChatMessage.add(chatMessage);
 
-            if(String.valueOf(chatId).equals(CHAT_ID_EXRATES_OFFICIAL)){
+            if (String.valueOf(chatId).equals(CHAT_ID_EXRATES_OFFICIAL)) {
                 chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, fromChatMessage(chatMessage));
 //                messagingTemplate.convertAndSend(destination, "fromChatMessage(chatMessage)");
-                LOG.info("Send chat message from TELEGRAM. Message id in DB:"+messageIdForBd+" | Chat id: "+chatId+" | From user (userId in Telegram):"+userId+" | User name:"+nickNameForDb+" | Message text"+messageText);
+                LOG.info("Send chat message from TELEGRAM. Message id in DB:" + messageIdForBd + " | Chat id: " + chatId + " | From user (userId in Telegram):" + userId + " | User name:" + nickNameForDb + " | Message text" + messageText);
             }
         }
     }
