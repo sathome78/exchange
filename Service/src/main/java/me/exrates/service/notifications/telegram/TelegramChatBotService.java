@@ -44,8 +44,8 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
 
-    private final static String KEY = "761047135:AAFlP0mhxQcyrUlffjt1V2L5C4YAKNetqhk";
-    private final static String BOT_NAME = "exrates_official";
+    private final static String KEY = "698963124:AAENi1yq5gnqY8S2Fzlfd9smAYCGBmCSFY4";
+    private final static String BOT_NAME = "exrates_official_test";
 
     private final UserService userService;
     private final ChatDao chatDao;
