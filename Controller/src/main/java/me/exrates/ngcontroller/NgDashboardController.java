@@ -12,20 +12,16 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.service.impl.NgMockService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,11 +42,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -61,13 +55,10 @@ import java.util.Map;
 @RequestMapping(value = "/info/private/v2/dashboard/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@PropertySource("classpath:angular.properties")
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-    private static Map<CurrencyPair, List<OrderWideListDto>> OPEN_ORDERS = new HashMap<>();
-    private static Map<CurrencyPair, List<OrderWideListDto>> CLOSED_ORDERS = new HashMap<>();
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -75,11 +66,6 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
-    private final NgMockService ngMockService;
-    private final ApplicationEventPublisher eventPublisher;
-
-    @Value("${angular.write.mode}")
-    private boolean WRITE_MODE;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -87,35 +73,19 @@ public class NgDashboardController {
                                  OrderService orderService,
                                  UserService userService,
                                  LocaleResolver localeResolver,
-                                 NgOrderService ngOrderService,
-                                 NgMockService ngMockService,
-                                 ApplicationEventPublisher eventPublisher) {
+                                 NgOrderService ngOrderService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.ngMockService = ngMockService;
-        this.eventPublisher = eventPublisher;
-    }
-
-    @PostConstruct
-    private void initData() {
-        ngMockService.initOpenOrders(OPEN_ORDERS);
-        ngMockService.initClosedOrders(CLOSED_ORDERS);
     }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        String result;
-        if (WRITE_MODE) {
-            result = ngOrderService.createOrder(inputOrder);
-        } else {
-            result = "TEST_MODE";
-            eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
-        }
+        String result = ngOrderService.createOrder(inputOrder);
         HashMap<String, String> resultMap = new HashMap<>();
 
         if (!StringUtils.isEmpty(result)) {
@@ -129,13 +99,7 @@ public class NgDashboardController {
 
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
-        Integer result;
-        if (WRITE_MODE) {
-            result = (Integer) orderService.deleteOrderByAdmin(id);
-        } else {
-            result = 0;
-        }
-
+        Integer result = (Integer) orderService.deleteOrderByAdmin(id);
         return result == 1 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
@@ -152,21 +116,17 @@ public class NgDashboardController {
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
 
-        if (WRITE_MODE) {
-            switch (baseType) {
-                case STOP_LIMIT:
-                    result = ngOrderService.processUpdateStopOrder(user, inputOrder);
-                    break;
-                case LIMIT:
-                    result = ngOrderService.processUpdateOrder(user, inputOrder);
-                    break;
-                case ICO:
-                    throw new NgDashboardException("Not supported type - ICO");
-                default:
-                    throw new NgDashboardException("Unknown type - " + baseType);
-            }
-        } else {
-            result = true;
+        switch (baseType) {
+            case STOP_LIMIT:
+                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
+                break;
+            case LIMIT:
+                result = ngOrderService.processUpdateOrder(user, inputOrder);
+                break;
+            case ICO:
+                throw new NgDashboardException("Not supported type - ICO");
+            default:
+                throw new NgDashboardException("Unknown type - " + baseType);
         }
 
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
@@ -261,44 +221,29 @@ public class NgDashboardController {
             HttpServletRequest request) {
 
         OrderStatus orderStatus = OrderStatus.valueOf(status);
-        if (WRITE_MODE) {
 
-            int userId = userService.getIdByEmail(getPrincipalEmail());
-            CurrencyPair currencyPair = currencyPairId > 0
-                    ? currencyService.findCurrencyPairById(currencyPairId)
-                    : null;
-            Locale locale = localeResolver.resolveLocale(request);
-            int offset = page > 1 ? page * limit : 0;
-            Map<String, String> sortedColumns = sortByCreated.equals("DESC")
-                    ? Collections.emptyMap()
-                    : Collections.singletonMap("date_creation", sortByCreated);
-            try {
-                Map<Integer, List<OrderWideListDto>> ordersMap =
-                        this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
-                                limit, locale, sortedColumns);
-                PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-                pagedResult.setCount(ordersMap.keySet().iterator().next());
-                pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
-
-                return ResponseEntity.ok(pagedResult);
-            } catch (Exception ex) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-        } else {
+        int userId = userService.getIdByEmail(getPrincipalEmail());
+        CurrencyPair currencyPair = currencyPairId > 0
+                ? currencyService.findCurrencyPairById(currencyPairId)
+                : null;
+        Locale locale = localeResolver.resolveLocale(request);
+        int offset = page > 1 ? page * limit : 0;
+        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
+                ? Collections.emptyMap()
+                : Collections.singletonMap("date_creation", sortByCreated);
+        try {
+            Map<Integer, List<OrderWideListDto>> ordersMap =
+                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
+                            limit, locale, sortedColumns);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-            if (orderStatus == OrderStatus.OPENED) {
-                List<OrderWideListDto> list = new ArrayList<>();
-                OPEN_ORDERS.values().forEach(list::addAll);
-                pagedResult.setCount(list.size());
-                pagedResult.setItems(list);
-            } else if (orderStatus == OrderStatus.CLOSED) {
-                List<OrderWideListDto> list = new ArrayList<>();
-                CLOSED_ORDERS.values().forEach(list::addAll);
-                pagedResult.setCount(list.size());
-                pagedResult.setItems(list);
-            }
+            pagedResult.setCount(ordersMap.keySet().iterator().next());
+            pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
+
             return ResponseEntity.ok(pagedResult);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
     }
 
     private String getPrincipalEmail() {

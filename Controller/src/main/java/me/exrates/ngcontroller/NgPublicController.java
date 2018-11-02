@@ -18,12 +18,9 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +40,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -55,49 +51,39 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
-@PropertySource("classpath:angular.properties")
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
 
     private final ChatService chatService;
-    private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final NotificationsSettingsService notificationsSettingsService;
     private final CurrencyService currencyService;
     private final TelegramChatBotService telegramChatBotService;
     private final OrderService orderService;
 
-    @Value("${angular.write.mode}")
-    private boolean WRITE_MODE;
-
     @Autowired
     public NgPublicController(ChatService chatService,
-                              EnumMap<ChatLang, ChatWebSocketHandler> handlers,
                               IpBlockingService ipBlockingService,
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
-                              NotificationsSettingsService notificationsSettingsService,
                               CurrencyService currencyService,
                               TelegramChatBotService telegramChatBotService,
                               OrderService orderService) {
         this.chatService = chatService;
-        this.handlers = handlers;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
-        this.notificationsSettingsService = notificationsSettingsService;
         this.currencyService = currencyService;
         this.telegramChatBotService = telegramChatBotService;
         this.orderService = orderService;
     }
 
     @PostConstruct
-    private void initCheckVersion(){
+    private void initCheckVersion() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-        logger.error ("Build at: " +  LocalDateTime.now().format(formatter));
+        logger.error("Build at: " + LocalDateTime.now().format(formatter));
     }
 
     @GetMapping(value = "/if_email_exists")
@@ -127,7 +113,7 @@ public class NgPublicController {
 
     @GetMapping(value = "/chat/history")
     @ResponseBody
-    public  List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
+    public List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
             List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatBotService.getMessages());
             return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
@@ -147,15 +133,7 @@ public class NgPublicController {
         }
         final ChatMessage message;
         try {
-            if (WRITE_MODE) {
-                message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
-            } else {
-                message = new ChatMessage();
-                message.setNickname("anonymous");
-                message.setBody(simpleMessage);
-                message.setId(Long.parseLong(RandomStringUtils.randomNumeric(5)));
-                message.setTime(LocalDateTime.now());
-            }
+            message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
         } catch (IllegalChatMessageException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -164,7 +142,6 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // /info/public/v2/currencies/min-max/{currencyPairId}
     @GetMapping("/currencies/min-max/{currencyPairId}")
     public ResponseEntity<Map<String, OrderListDto>> getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
         try {
