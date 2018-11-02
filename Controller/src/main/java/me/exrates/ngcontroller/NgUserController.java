@@ -80,7 +80,7 @@ public class NgUserController {
             user = userService.findByEmail(authenticationDto.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
         }
 
         // todo
