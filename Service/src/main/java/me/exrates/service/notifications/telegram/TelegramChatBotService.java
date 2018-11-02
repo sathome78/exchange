@@ -77,6 +77,8 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, toJson(chatMessage));
                 logger.info("Send chat message from TELEGRAM. Chat id: "+chatId+" | From user (userId in Telegram) name:"+nickNameForDb+" | Message text"+messageText);
+            } else {
+               logger.info("Received message {} but for chat id: {}",  messageText, chatId);
             }
         }
     }
