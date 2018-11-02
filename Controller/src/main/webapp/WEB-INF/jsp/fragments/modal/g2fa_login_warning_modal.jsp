@@ -63,10 +63,6 @@
                             <loc:message code="message.modal.prevent.phishing"/>
                         </div>
                     </div>
-                    <label style="position: relative; -ms-align-self: center;align-self: center;">
-                        <input class="custom-inp-check" type="checkbox" name="2fa" value="">
-                        <div style="" class="custom-check"></div>
-                    </label>
                 </div>
                 <!-- row end -->
                 <!-- row start -->
@@ -88,10 +84,6 @@
                             <loc:message code="message.modal.never.install"/>
                         </div>
                     </div>
-                    <label style="position: relative; -ms-align-self: center;align-self: center;">
-                        <input class="custom-inp-check" type="checkbox" name="2fa" value="">
-                        <div style="" class="custom-check"></div>
-                    </label>
                 </div>
                 <!-- row end -->
                 <!-- row start -->
@@ -116,10 +108,6 @@
                             <loc:message code="message.modal.never.call"/>
                         </div>
                     </div>
-                    <label style="position: relative; -ms-align-self: center;align-self: center;">
-                        <input class="custom-inp-check" type="checkbox" name="2fa" value="">
-                        <div style="" class="custom-check"></div>
-                    </label>
                 </div>
                 <!-- row end -->
                 <!-- row start -->
@@ -141,10 +129,6 @@
                             <loc:message code="message.modal.never.tell"/>
                         </div>
                     </div>
-                    <label style="position: relative; -ms-align-self: center;align-self: center;">
-                        <input class="custom-inp-check" type="checkbox" name="2fa" value="">
-                        <div style="" class="custom-check"></div>
-                    </label>
                 </div>
                 <!-- row end -->
                 <!-- row start -->
@@ -168,14 +152,9 @@
                             <loc:message code="message.modal.never.send"/>
                         </div>
                     </div>
-                    <label style="position: relative; -ms-align-self: center;align-self: center;">
-                        <input class="custom-inp-check" type="checkbox" name="2fa" value="">
-                        <div style="" class="custom-check"></div>
-                    </label>
                 </div>
                 <!-- row end -->
-                <div style="text-align: center; font-size: 14px; margin: 16px 0;"><loc:message code="message.modal.besure"/></div>
-                <div style="text-align: center;"><button class="safety_agree_button btn btn-default" disabled=""><loc:message code="message.modal.understand"/> &gt;&gt;</button></div>
+                <div style="text-align: center;"><button class="safety_agree_button btn btn-default"><loc:message code="message.modal.understand"/> &gt;&gt;</button></div>
 
             </div>
         </div>
