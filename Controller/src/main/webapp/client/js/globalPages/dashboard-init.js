@@ -161,20 +161,6 @@ function subscribeStatistics() {
     }
 }
 
-/*function subscribeChart() {
-    if (chartSubscription != undefined) {
-        chartSubscription.unsubscribe();
-    }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
-        }, headers);
-    }
-}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -524,7 +510,6 @@ $(function dashdoardInit() {
                 backdrop: 'static',
                 keyboard: false
             });
-            checkAgreeButton();
         }
         /*end 2fa notify*/
     } catch (e) {
@@ -537,22 +522,11 @@ $(function dashdoardInit() {
     $('#ga-btn').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    $('.custom-inp-check').on('change', function () {
-        checkAgreeButton();
-    });
     $('.safety_agree_button').on('click', function () {
         $infoModal.modal('hide');
     });
 
 });
-
-function checkAgreeButton() {
-    if ($('.custom-inp-check').not(':checked').length === 0) {
-        $('.safety_agree_button').removeAttr('disabled');
-    } else {
-        $('.safety_agree_button').attr('disabled', true);
-    }
-}
 
 function showPage(pageId) {
     if (!pageId) {
