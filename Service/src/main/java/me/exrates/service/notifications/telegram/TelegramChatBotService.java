@@ -35,18 +35,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@PropertySource("classpath:telegram_chat_bot.properties")
 @Log4j2(topic = "message_notify")
 @Service
 public class TelegramChatBotService extends TelegramLongPollingBot {
 
-    private final static String CHAT_ID_EXRATES_OFFICIAL = "-1001195048692";
-    private final static String USER_EMAIL_TEST = "promo@exrates.me";
     private final static Integer NUMBER_FOR_SET_UNIQ_MESSAGE_ID = 1800000000;
+    private final static String USER_EMAIL_TEST = "promo@exrates.me";
 
     private final static Logger LOG = LogManager.getLogger(TelegramChatBotService.class);
-
-    private final static String KEY = "698963124:AAENi1yq5gnqY8S2Fzlfd9smAYCGBmCSFY4";
-    private final static String BOT_NAME = "exrates_official_test";
 
     public static List<ChatHistoryDto> chatHistoryDtoListFromTelegram = new ArrayList<>();
     public final static Integer COUNT_OF_MESSAGE_FOR_VIEW = 30;
@@ -54,6 +51,13 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private final UserService userService;
     private final ChatDao chatDao;
     private final SimpMessagingTemplate messagingTemplate;
+
+    @Value("${telegram.chat_bot.key}")
+    private String key;
+    @Value("${telegram.chat_bot.username}")
+    private String botName;
+    @Value("${telegram.chat_bot.chat.id}")
+    private String chatCommunityId;
 
     @Autowired
     public TelegramChatBotService(ChatDao chatDao, UserService userService, SimpMessagingTemplate messagingTemplate) {
@@ -107,7 +111,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 //            Set<ChatMessage> setCollectionChatMessage = new HashSet<>();
 //            setCollectionChatMessage.add(chatMessage);
 
-            if(String.valueOf(chatId).equals(CHAT_ID_EXRATES_OFFICIAL)){
+            if(String.valueOf(chatId).equals(chatCommunityId)){
                 chatHistoryDtoListFromTelegram.add(fromChatMessage(chatMessage));
 //                chatDao.persist(language, setCollectionChatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
@@ -127,12 +131,12 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return BOT_NAME;
+        return botName;
     }
 
     @Override
     public String getBotToken() {
-        return KEY;
+        return key;
     }
 
 
