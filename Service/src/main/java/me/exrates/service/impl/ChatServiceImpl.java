@@ -1,10 +1,12 @@
 package me.exrates.service.impl;
 
+import com.google.common.collect.Lists;
 import javafx.util.Pair;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
@@ -18,11 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
@@ -164,6 +168,19 @@ public class ChatServiceImpl implements ChatService {
         return chatDao.getPublicChatHistory(chatLang);
     }
 
+    @Override
+    public List<ChatHistoryDateWrapperDto> getPublicChatHistoryByDate(ChatLang chatLang){
+        List<ChatHistoryDto> messages = getPublicChatHistory(chatLang);
+        messages.sort(Comparator.comparing(ChatHistoryDto::getWhen));
+        Map<LocalDate, List<ChatHistoryDto>> items = messages
+                .stream()
+                .collect(Collectors.groupingBy(msg -> msg.getWhen().toLocalDate()));
+        List<ChatHistoryDateWrapperDto> dateWrapperDtos = new ArrayList<>();
+
+        items.forEach((date, its) -> dateWrapperDtos.add(new ChatHistoryDateWrapperDto(date, its)));
+        return dateWrapperDtos;
+    }
+
     @Scheduled(fixedDelay = 1000L, initialDelay = 1000L)
     public void flushCache() {
         for (ChatLang lang : ChatLang.values()) {
@@ -184,6 +201,19 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatHistoryDto> getChatHistory(ChatLang chatLang) {
         return chatDao.getChatHistory(chatLang);
+    }
+
+    @Override
+    public List<ChatHistoryDateWrapperDto> getChatHistoryByDate(ChatLang chatLang) {
+        List<ChatHistoryDto> messages = chatDao.getChatHistoryQuick(chatLang);
+        messages.sort(Comparator.comparing(ChatHistoryDto::getWhen));
+        Map<LocalDate, List<ChatHistoryDto>> items = messages
+                .stream()
+                .collect(Collectors.groupingBy(msg -> msg.getWhen().toLocalDate()));
+        List<ChatHistoryDateWrapperDto> dateWrapperDtos = new ArrayList<>();
+
+        items.forEach((date, its) -> dateWrapperDtos.add(new ChatHistoryDateWrapperDto(date, its)));
+        return dateWrapperDtos;
     }
 
     @Override

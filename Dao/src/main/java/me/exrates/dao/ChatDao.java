@@ -23,4 +23,6 @@ public interface ChatDao {
     List<ChatHistoryDto> getPublicChatHistory(ChatLang chatLang);
 
     List<ChatHistoryDto> getChatHistory(ChatLang chatLang);
+
+    List<ChatHistoryDto> getChatHistoryQuick(ChatLang chatLang);
 }

@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -14,7 +15,7 @@ public class ChatMessage implements Comparable<ChatMessage> {
     private Integer userId;
     private String  nickname;
     private String  body;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm")
     private LocalDateTime time;
     private long id;
 

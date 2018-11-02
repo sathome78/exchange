@@ -50,12 +50,12 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard/",
@@ -66,8 +66,8 @@ public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-    private static Map<CurrencyPair, Set<OrderWideListDto>> OPEN_ORDERS = new HashMap<>();
-    private static Map<CurrencyPair, Set<OrderWideListDto>> CLOSED_ORDERS = new HashMap<>();
+    private static Map<CurrencyPair, List<OrderWideListDto>> OPEN_ORDERS = new HashMap<>();
+    private static Map<CurrencyPair, List<OrderWideListDto>> CLOSED_ORDERS = new HashMap<>();
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -102,20 +102,19 @@ public class NgDashboardController {
 
     @PostConstruct
     private void initData() {
-            ngMockService.initOpenOrders(OPEN_ORDERS);
-            ngMockService.initClosedOrders(CLOSED_ORDERS);
+        ngMockService.initOpenOrders(OPEN_ORDERS);
+        ngMockService.initClosedOrders(CLOSED_ORDERS);
     }
 
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
         String result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = ngOrderService.createOrder(inputOrder);
         } else {
             result = "TEST_MODE";
             eventPublisher.publishEvent(new CreateOrderEvent(ngMockService.mockOrderFromInputOrderDTO(inputOrder)));
-
         }
         HashMap<String, String> resultMap = new HashMap<>();
 
@@ -131,7 +130,7 @@ public class NgDashboardController {
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result;
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             result = (Integer) orderService.deleteOrderByAdmin(id);
         } else {
             result = 0;
@@ -143,7 +142,7 @@ public class NgDashboardController {
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        if (StringUtils.isEmpty(inputOrder.getOrderId()) || !StringUtils.isNumeric(inputOrder.getOrderId())) {
+        if (inputOrder.getOrderId() == null) {
             throw new OrderParamsWrongException();
         }
 
@@ -153,7 +152,7 @@ public class NgDashboardController {
         OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
         boolean result;
 
-        if (!WRITE_MODE) {
+        if (WRITE_MODE) {
             switch (baseType) {
                 case STOP_LIMIT:
                     result = ngOrderService.processUpdateStopOrder(user, inputOrder);
@@ -260,27 +259,45 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope") String scope,
             HttpServletRequest request) {
-        int userId = userService.getIdByEmail(getPrincipalEmail());
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-        CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
-        Locale locale = localeResolver.resolveLocale(request);
-        int offset = page > 1 ? page * limit : 0;
-        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
-                ? Collections.emptyMap()
-                : Collections.singletonMap("date_creation", sortByCreated);
-        try {
-            Map<Integer, List<OrderWideListDto>> ordersMap =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
-                            limit, locale, sortedColumns);
-            PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-            pagedResult.setCount(ordersMap.keySet().iterator().next());
-            pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
 
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        if (WRITE_MODE) {
+
+            int userId = userService.getIdByEmail(getPrincipalEmail());
+            CurrencyPair currencyPair = currencyPairId > 0
+                    ? currencyService.findCurrencyPairById(currencyPairId)
+                    : null;
+            Locale locale = localeResolver.resolveLocale(request);
+            int offset = page > 1 ? page * limit : 0;
+            Map<String, String> sortedColumns = sortByCreated.equals("DESC")
+                    ? Collections.emptyMap()
+                    : Collections.singletonMap("date_creation", sortByCreated);
+            try {
+                Map<Integer, List<OrderWideListDto>> ordersMap =
+                        this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
+                                limit, locale, sortedColumns);
+                PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
+                pagedResult.setCount(ordersMap.keySet().iterator().next());
+                pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
+
+                return ResponseEntity.ok(pagedResult);
+            } catch (Exception ex) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
+            if (orderStatus == OrderStatus.OPENED) {
+                List<OrderWideListDto> list = new ArrayList<>();
+                OPEN_ORDERS.values().forEach(list::addAll);
+                pagedResult.setCount(list.size());
+                pagedResult.setItems(list);
+            } else if (orderStatus == OrderStatus.CLOSED) {
+                List<OrderWideListDto> list = new ArrayList<>();
+                CLOSED_ORDERS.values().forEach(list::addAll);
+                pagedResult.setCount(list.size());
+                pagedResult.setItems(list);
+            }
             return ResponseEntity.ok(pagedResult);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -1,13 +1,15 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.controller.exception.ErrorInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
-import me.exrates.model.enums.ChartTimeFramesEnum;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -19,38 +21,35 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.QueryParam;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -59,6 +58,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
+@PropertySource("classpath:angular.properties")
 public class NgPublicController {
 
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
@@ -72,6 +72,9 @@ public class NgPublicController {
     private final CurrencyService currencyService;
     private final NgOrderService ngOrderService;
     private final OrderService orderService;
+
+    @Value("${angular.write.mode}")
+    private boolean WRITE_MODE;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -127,10 +130,13 @@ public class NgPublicController {
 
     @GetMapping(value = "/chat/history")
     @ResponseBody
-    public List<ChatHistoryDto> chatMessages(final @RequestParam("lang") String lang) {
+    public  List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            List<ChatHistoryDto> messages = chatService.getPublicChatHistory(ChatLang.toInstance(lang));
-            return messages;
+            if (WRITE_MODE){
+                return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
+            } else {
+                return chatService.getChatHistoryByDate(ChatLang.toInstance(lang));
+            }
         } catch (Exception e) {
             return Collections.emptyList();
         }
@@ -147,7 +153,15 @@ public class NgPublicController {
         }
         final ChatMessage message;
         try {
-            message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
+            if (WRITE_MODE) {
+                message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
+            } else {
+                message = new ChatMessage();
+                message.setNickname("anonymous");
+                message.setBody(simpleMessage);
+                message.setId(Long.parseLong(RandomStringUtils.randomNumeric(5)));
+                message.setTime(LocalDateTime.now());
+            }
         } catch (IllegalChatMessageException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -156,12 +170,37 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    private ChatHistoryDto fromChatMessage(ChatMessage message) {
+//    @MessageMapping("/topic/chat/{lang}")
+//    public void onReceivedNewMessage(@DestinationVariable String lang, String message){
+//        this.template.convertAndSend("/topic/chat/" + lang, message);
+//    }
+
+    // /info/public/v2/currencies/min-max/{currencyPairId}
+    @GetMapping("/currencies/min-max/{currencyPairId}")
+    public ResponseEntity<Map<String, OrderListDto>> getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
+        try {
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            Map<String, OrderListDto> values = orderService.getLastMinAndMaxOrderFor(currencyPair);
+            return ResponseEntity.ok(values);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private String fromChatMessage(ChatMessage message) {
+        String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();
         dto.setMessageTime(message.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         dto.setEmail(message.getNickname());
         dto.setBody(message.getBody());
-        return dto;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            send = mapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            logger.info("Failed to convert to json {}", dto.getBody());
+        }
+        return send;
     }
 
     private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,

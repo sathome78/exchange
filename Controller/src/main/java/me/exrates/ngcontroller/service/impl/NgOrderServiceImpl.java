@@ -18,6 +18,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
@@ -29,25 +30,29 @@ import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.stopOrder.StopOrderService;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@PropertySource("classpath:angular.properties")
 @Service
 public class NgOrderServiceImpl implements NgOrderService {
 
@@ -62,6 +67,9 @@ public class NgOrderServiceImpl implements NgOrderService {
     private final StopOrderService stopOrderService;
     private final StockExchangeService stockExchangeService;
     private final DashboardService dashboardService;
+
+    @Value("${angular.write.mode}")
+    private boolean WRITE_MODE;
 
     @Autowired
     public NgOrderServiceImpl(UserService userService,
@@ -134,7 +142,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     public boolean processUpdateOrder(User user, InputCreateOrderDto inputOrder) {
         boolean result = false;
 
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
+        int orderId = inputOrder.getOrderId();
         ExOrder order = orderService.getOrderById(orderId);
         if (order == null) {
             throw new NgDashboardException("Order is not exist");
@@ -156,7 +164,14 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Order status is not open");
         }
 
+        if (StringUtils.isEmpty(inputOrder.getStatus())) {
+            throw new NgDashboardException("Input order status is null");
+        }
+
+        OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
+
         OrderCreateDto prepareOrder = prepareOrder(inputOrder);
+        prepareOrder.setStatus(orderStatus);
 
         int outWalletId;
         BigDecimal outAmount;
@@ -184,7 +199,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     @Override
     public boolean processUpdateStopOrder(User user, InputCreateOrderDto inputOrder) {
         boolean result = false;
-        int orderId = Integer.parseInt(inputOrder.getOrderId());
+        int orderId = inputOrder.getOrderId();
         OrderCreateDto stopOrder = stopOrderService.getOrderById(orderId, true);
 
         if (stopOrder == null) {
@@ -208,7 +223,14 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException("Order status is not open");
         }
 
+        if (StringUtils.isEmpty(inputOrder.getStatus())) {
+            throw new NgDashboardException("Input order status is null");
+        }
+
+        OrderStatus orderStatus = OrderStatus.valueOf(inputOrder.getStatus());
+
         OrderCreateDto prepareOrder = prepareOrder(inputOrder);
+        prepareOrder.setStatus(orderStatus);
 
         int outWalletId;
         BigDecimal outAmount;
@@ -266,36 +288,53 @@ public class NgOrderServiceImpl implements NgOrderService {
         ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
         try {
 
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        BigDecimal balanceByCurrency1 =
-                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+            BigDecimal balanceByCurrency2 = new BigDecimal(0);
+            BigDecimal balanceByCurrency1 = new BigDecimal(0);
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            List<ExOrderStatisticsShortByPairsDto> currencyRate =
+                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+            if (WRITE_MODE) {
 
-        List<ExOrderStatisticsShortByPairsDto> currencyRate =
-                orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
-        result.setBalanceByCurrency1(balanceByCurrency1);
+                balanceByCurrency1 =
+                        dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
 
-        BigDecimal balanceByCurrency2 = new BigDecimal(0);
-        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-            if (dto == null) continue;
+                result.setBalanceByCurrency1(balanceByCurrency1);
 
-            result.setCurrencyRate(dto.getLastOrderRate());
-            result.setPercentChange(dto.getPercentChange());
-            result.setLastCurrencyRate(dto.getPredLastOrderRate());
+                balanceByCurrency2 = new BigDecimal(0);
+                for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+                    if (dto == null) continue;
 
-            BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
-            BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
-            BigDecimal subtract = rateNow.subtract(rateYesterday);
-            result.setChangedValue(subtract.toString());
-            BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-            balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+                    result.setCurrencyRate(dto.getLastOrderRate());
+                    result.setPercentChange(dto.getPercentChange());
+                    result.setLastCurrencyRate(dto.getPredLastOrderRate());
 
-            break;
+                    BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+                    BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
+                    BigDecimal subtract = rateNow.subtract(rateYesterday);
+                    result.setChangedValue(subtract.toString());
+                    BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
+                    balanceByCurrency2 = balanceByCurrency1.multiply(rate);
 
-        }
+                    break;
+                }
+            } else {
+                for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+                    if (dto == null) continue;
+                    String mockBalanceString = RandomStringUtils.randomNumeric(3);
+                    balanceByCurrency1 = new BigDecimal(mockBalanceString);
+                    BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+                    balanceByCurrency1= BigDecimalProcessing.normalize(balanceByCurrency1, RoundingMode.HALF_UP);
+                    balanceByCurrency2 = balanceByCurrency1.multiply(rateNow);
+                    balanceByCurrency2 = BigDecimalProcessing.normalize(balanceByCurrency2, RoundingMode.HALF_UP);
+                    result.setBalanceByCurrency1(balanceByCurrency1);
+                    break;
+                }
 
-        result.setBalanceByCurrency2(balanceByCurrency2);
+            }
+            result.setBalanceByCurrency2(balanceByCurrency2);
 
-        List<StockExchangeStats> statistics;
+
+            List<StockExchangeStats> statistics;
             statistics =
                     stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
             //set rateHigh
