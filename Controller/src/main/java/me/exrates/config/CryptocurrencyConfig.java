@@ -273,7 +273,11 @@ public class CryptocurrencyConfig {
                 "DDX", "DDX", 4, 20, false, true);
     }
 
-
+    @Bean(name = "dimeServiceImpl")
+    public BitcoinService dimeServiceImpl() {
+        return new BitcoinServiceImpl("merchants/dime_wallet.properties",
+                "DIME", "DIME", 2000, 20, false, false);
+    }
     // LISK-like cryptos
 
 
