@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
@@ -20,6 +20,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -70,6 +71,7 @@ public class NgPublicController {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationsSettingsService notificationsSettingsService;
     private final CurrencyService currencyService;
+    private final TelegramChatBotService telegramChatBotService;
     private final NgOrderService ngOrderService;
     private final OrderService orderService;
 
@@ -84,7 +86,7 @@ public class NgPublicController {
                               SimpMessagingTemplate messagingTemplate,
                               NotificationsSettingsService notificationsSettingsService,
                               CurrencyService currencyService,
-                              NgOrderService ngOrderService,
+                              TelegramChatBotService telegramChatBotService, NgOrderService ngOrderService,
                               OrderService orderService) {
         this.chatService = chatService;
         this.handlers = handlers;
@@ -93,6 +95,7 @@ public class NgPublicController {
         this.messagingTemplate = messagingTemplate;
         this.notificationsSettingsService = notificationsSettingsService;
         this.currencyService = currencyService;
+        this.telegramChatBotService = telegramChatBotService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
     }
@@ -132,11 +135,8 @@ public class NgPublicController {
     @ResponseBody
     public  List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            if (WRITE_MODE){
-                return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
-            } else {
-                return chatService.getChatHistoryByDate(ChatLang.toInstance(lang));
-            }
+            List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatBotService.getMessages());
+            return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
         }
@@ -169,11 +169,6 @@ public class NgPublicController {
         messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-//    @MessageMapping("/topic/chat/{lang}")
-//    public void onReceivedNewMessage(@DestinationVariable String lang, String message){
-//        this.template.convertAndSend("/topic/chat/" + lang, message);
-//    }
 
     // /info/public/v2/currencies/min-max/{currencyPairId}
     @GetMapping("/currencies/min-max/{currencyPairId}")
