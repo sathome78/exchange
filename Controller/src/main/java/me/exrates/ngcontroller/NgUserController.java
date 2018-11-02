@@ -64,11 +64,16 @@ public class NgUserController {
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
-//        try {
-//            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-//        } catch (BannedIpException ban) {
-//            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
-//        }
+        try {
+            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        } catch (BannedIpException ban) {
+            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+        }
+
+         if (authenticationDto.getEmail().startsWith("promo@ex") ||
+                 authenticationDto.getEmail().startsWith("dev@exrat")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
+         }
 
         User user;
         try {

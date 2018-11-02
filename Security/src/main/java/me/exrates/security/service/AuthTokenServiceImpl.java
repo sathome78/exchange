@@ -97,13 +97,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (!notificationService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
                 throw new IncorrectPinException("Incorrect google auth code");
             }
-        } else if (dto.getPin().length() != 6) {
-            throw new IncorrectPinException("Incorrect pin");
+        } else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
+            throw new IncorrectPinException(res);
         }
-//        else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-//            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
-//            throw new IncorrectPinException(res);
-//        }
         return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
