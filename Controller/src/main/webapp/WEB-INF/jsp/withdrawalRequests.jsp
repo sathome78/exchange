@@ -32,7 +32,7 @@
         <%@include file='admin/left_side_menu.jsp' %>
         <div class="col-md-8 col-sm-offset-1 content admin-container">
             <div class="row text-right">
-                <div style="float: left; display: inline-block">
+                <div style="padding-left: 15px; float: left; display: inline-block">
                     <button id="withdraw-requests-to-verify" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.to.verify"/></button>
                     <button id="withdraw-requests-manual" class="myorders__button blue-box margin-box">
@@ -43,6 +43,7 @@
                         <loc:message code="admin.withdraw.auto"/></button>
                     <button id="withdraw-requests-All" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.All"/></button>
+                    <br>
                     <button id="withdraw-requests-accepted" class="myorders__button green-box margin-box">
                         <loc:message code="admin.withdraw.accepted"/></button>
                     <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
