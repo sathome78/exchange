@@ -384,7 +384,7 @@ public class EntryController {
     public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != 0) {
+            if (userService.verifyUserEmail(token, TokenType.CONFIRM_NEW_IP) != 0) {
                 req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
             } else {
                 req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
