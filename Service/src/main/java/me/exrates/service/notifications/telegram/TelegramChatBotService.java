@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 
-@PropertySource("classpath:telegram_chat_bot.properties")
-@Log4j2(topic = "message_notify")
 @Service
+@Log4j2(topic = "message_notify")
+@PropertySource("classpath:telegram_chat_bot.properties")
 public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static Logger logger = LogManager.getLogger(TelegramChatBotService.class);
