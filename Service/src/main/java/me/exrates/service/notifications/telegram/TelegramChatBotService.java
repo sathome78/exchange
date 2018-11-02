@@ -15,9 +15,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.exceptions.TelegramApiException;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Queue;
@@ -50,6 +53,16 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     }
 
     static {ApiContextInitializer.init();}
+
+    @PostConstruct
+    private void initBot() {
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+        try {
+            telegramBotsApi.registerBot(this);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
