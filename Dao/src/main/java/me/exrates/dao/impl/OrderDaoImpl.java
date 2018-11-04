@@ -279,10 +279,19 @@ public class OrderDaoImpl implements OrderDao {
             order.setExrate(rs.getString("exrate"));
             order.setAmountBase(rs.getString("amount_base"));
             order.setAmountConvert(rs.getString("amount_convert"));
-            order.setCreated(rs.getTimestamp("date_creation").toLocalDateTime());
-            order.setAccepted(rs.getTimestamp("date_acception").toLocalDateTime());
+            rs.getTimestamp("date_creation");
+            order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
+            order.setAccepted(convertTimeStampToLocalDateTime(rs,"date_acception"));
             return order;
         };
+    }
+    
+    private LocalDateTime convertTimeStampToLocalDateTime(ResultSet rs, String columnName) throws SQLException {
+        Timestamp timestamp = rs.getTimestamp(columnName);
+        if (timestamp == null) {
+            return null;
+        }
+        return timestamp.toLocalDateTime();
     }
 
     @Override
@@ -940,8 +949,8 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                                        String scope, Integer offset, Integer limit, Map<String, String> sortedColumns) {
         String userFilterClause;
-        String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
-        String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String currencyPairClauseJoin = currencyPair == null ? "" : " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
+        String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
 
         switch (scope) {
             case "ALL":
