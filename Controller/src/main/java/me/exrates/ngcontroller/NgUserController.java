@@ -64,11 +64,11 @@ public class NgUserController {
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
-        try {
-            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-        } catch (BannedIpException ban) {
-            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
-        }
+//        try {
+//            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//        } catch (BannedIpException ban) {
+//            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+//        }
 
          if (authenticationDto.getEmail().startsWith("promo@ex") ||
                  authenticationDto.getEmail().startsWith("dev@exrat")) {
@@ -81,6 +81,13 @@ public class NgUserController {
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
+        }
+
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            return new ResponseEntity<>(HttpStatus.GONE); // 410
         }
 
         // todo
@@ -101,18 +108,12 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =
                 authTokenResult.orElseThrow(() -> new Exception("Failed to authenticate user with email: " + authenticationDto.getEmail()));
 
-        if (user.getStatus() == UserStatus.REGISTERED) {
-            return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
-        }
-        if (user.getStatus() == UserStatus.DELETED) {
-            return new ResponseEntity<>(HttpStatus.GONE); // 410
-        }
         authTokenDto.setNickname(user.getNickname());
         authTokenDto.setUserId(user.getId());
         authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
