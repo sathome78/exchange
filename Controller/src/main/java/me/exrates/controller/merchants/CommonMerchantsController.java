@@ -123,7 +123,7 @@ public class CommonMerchantsController {
             ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
             Currency currency = currencyService.findByName(currencyName);
             modelAndView.addObject("currency", currency);
-            Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
+            Wallet wallet = walletService.findByUserAndCurrencyOrDefault(userService.findByEmail(principal.getName()).getId(), currency.getId());
             modelAndView.addObject("wallet", wallet);
             modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
             Payment payment = new Payment();
@@ -160,7 +160,7 @@ public class CommonMerchantsController {
             ModelAndView modelAndView = new ModelAndView("globalPages/transfer");
             Currency currency = currencyService.findByName(currencyName);
             modelAndView.addObject("currency", currency);
-            Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
+            Wallet wallet = walletService.findByUserAndCurrencyOrDefault(userService.findByEmail(principal.getName()).getId(), currency.getId());
             modelAndView.addObject("wallet", wallet);
             modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
             Payment payment = new Payment();

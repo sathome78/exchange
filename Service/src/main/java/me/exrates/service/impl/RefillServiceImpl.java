@@ -651,7 +651,9 @@ public class RefillServiceImpl implements RefillService {
       }
       profileData.setTime1();
       /**/
-      Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
+
+      Integer userWalletId = walletService.getOrCreateWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
+
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);

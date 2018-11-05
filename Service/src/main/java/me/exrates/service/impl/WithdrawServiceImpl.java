@@ -297,7 +297,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+    Integer userWalletId = walletService.getOrCreateWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
     String description = transactionDescription.get(currentStatus, action);
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
@@ -348,7 +348,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       withdrawRequestDao.setHolderById(requestId, requesterAdminId);
       profileData.setTime1();
       /**/
-      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      Integer userWalletId = walletService.getOrCreateWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
       String description = transactionDescription.get(currentStatus, action);
       WalletTransferStatus result = walletService.walletInnerTransfer(
           userWalletId,
@@ -396,7 +396,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     if (LocalDateTime.now().isAfter(rejectTimeLimit)) {
       InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_ERROR);
       withdrawRequestDao.setStatusById(requestId, newStatus);
-      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      Integer userWalletId = walletService.getOrCreateWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
       String description = transactionDescription.get(withdrawRequest.getStatus(), REJECT_ERROR);
       WalletTransferStatus result = walletService.walletInnerTransfer(
           userWalletId,
@@ -567,7 +567,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       withdrawRequest.setAdminHolderId(requesterAdminId);
       profileData.setTime1();
       /**/
-      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      Integer userWalletId = walletService.getOrCreateWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
       String description = transactionDescription.get(currentStatus, action);
       WalletTransferStatus result = walletService.walletInnerTransfer(
           userWalletId,

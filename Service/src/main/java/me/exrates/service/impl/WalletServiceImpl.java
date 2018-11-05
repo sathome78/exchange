@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -164,9 +165,21 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
     }
 
+    private Map<Integer, Object> synchronizers = new ConcurrentHashMap<>();
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
-    public int getWalletId(int userId, int currencyId) {
-        return walletDao.getWalletId(userId, currencyId);
+    public int getOrCreateWalletId(int userId, int currencyId) {
+        int id = walletDao.getWalletId(userId, currencyId);
+        if (id == 0) {
+            synchronized (synchronizers.computeIfAbsent(currencyId, k -> new Object())) {
+                if (!isWalletExist(userId, currencyId)) {
+                    id = create(userId, currencyId).getId();
+                }
+                synchronizers.remove(userId);
+            }
+        }
+        return id;
     }
 
     @Override
@@ -206,9 +219,19 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    public Wallet findByUserAndCurrencyOrDefault(int userId, int currencyId) {
+       Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
+       if (wallet == null) {
+           wallet = Wallet.nullWallet(userId, currencyId);
+       }
+       return wallet;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Wallet findByUserAndCurrency(User user, Currency currency) {
-        return walletDao.findByUserAndCurrency(user.getId(), currency.getId());
+        int wId = this.getOrCreateWalletId(user.getId(), currency.getId());
+        return walletDao.findById(wId);
     }
 
     @Override
@@ -216,6 +239,13 @@ public class WalletServiceImpl implements WalletService {
         final Wallet wallet = walletDao.createWallet(user, currency.getId());
         wallet.setName(currency.getName());
         return wallet;
+    }
+
+    /*todo */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public Wallet create(int userId, int currencyId) {
+            return walletDao.createWallet(new User(userId), currencyId);
     }
 
     @Override
@@ -315,7 +345,8 @@ public class WalletServiceImpl implements WalletService {
         if (amount.equals(BigDecimal.ZERO)) {
             return;
         }
-        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
+        int wId = this.getOrCreateWalletId(userId, currencyId);
+        Wallet wallet = walletDao.findById(wId);
         if (amount.signum() == -1 && amount.abs().compareTo(wallet.getActiveBalance()) > 0) {
             throw new InvalidAmountException("Negative amount exceeds current balance!");
         }
@@ -373,10 +404,11 @@ public class WalletServiceImpl implements WalletService {
         if (inputAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
             throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
         }
-        Wallet toUserWallet = walletDao.findByUserAndCurrency(toUserId, currencyId);
-        if (toUserWallet == null) {
+        int wId = this.getOrCreateWalletId(toUserId, currencyId);
+        if (wId == 0) {
             throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
         }
+        Wallet toUserWallet = walletDao.findById(wId);
         changeWalletActiveBalance(amount, fromUserWallet, OperationType.OUTPUT,
                 TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
         changeWalletActiveBalance(inputAmount, toUserWallet, OperationType.INPUT,
@@ -420,19 +452,6 @@ public class WalletServiceImpl implements WalletService {
                 "transfer.received", new Object[]{notyAmount, currencyName});
     }
 
-
-    @Transactional(rollbackFor = Exception.class)
-    public void performTransferCostsToUser(Wallet fromUserWallet, Wallet toUserWallet,
-                                           BigDecimal initialAmount, BigDecimal totalAmount, BigDecimal commissionAmount,
-                                           Integer sourceId, TransactionSourceType sourceType, Locale locale) {
-        if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
-            throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
-        }
-        if (Integer.compare(fromUserWallet.getCurrencyId(), toUserWallet.getCurrencyId()) != 0) {
-            throw new BalanceChangeException("ncorrect wallets");
-        }
-
-    }
 
     @Override
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
@@ -515,7 +534,8 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
-        return walletDao.getWalletIdAndBlock(userId, currencyId);
+        int wId = this.getOrCreateWalletId(userId, currencyId);
+        return walletDao.blockById(wId);
     }
 
     @Transactional
@@ -660,5 +680,10 @@ public class WalletServiceImpl implements WalletService {
             return null;
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
+    }
+
+    @Override
+    public boolean isWalletExist(int userId, int currencyId) {
+        return walletDao.isWalletExist(userId, currencyId);
     }
 }

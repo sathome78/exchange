@@ -197,12 +197,11 @@ public class WalletDaoImpl implements WalletDao {
     public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
         String typeClause = "";
         final String sql =
-                " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
-                        " FROM USER " +
-                        "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
-                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                        " WHERE USER.email = :email  AND CURRENCY.hidden != 1 " + typeClause +
-                        " ORDER BY active_balance DESC, CURRENCY.name ASC ";
+                "SELECT CURRENCY.name, CURRENCY.description, IFNULL(WALLET.active_balance, 0) as active_balance, IFNULL((WALLET.reserved_balance + WALLET.active_balance), 0) as total_balance " +
+                "  FROM CURRENCY " +
+                " LEFT JOIN WALLET ON WALLET.currency_id = CURRENCY.id AND wallet.user_id = (SELECT id FROM USER WHERE email = :email) " +
+                " WHERE  CURRENCY.hidden != 1 " +
+                " ORDER BY active_balance DESC, CURRENCY.name ASC ";
         final Map<String, Object> params = new HashMap() {{
             put("email", email);
         }};
@@ -219,11 +218,10 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds) {
         final String sql =
-                " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
-                        " FROM USER " +
-                        "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
-                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                        " WHERE USER.email = :email  AND CURRENCY.hidden != 1 AND  CURRENCY.id IN (:currencies) " +
+                "SELECT CURRENCY.name, CURRENCY.description, IFNULL(WALLET.active_balance, 0) as active_balance, IFNULL((WALLET.reserved_balance + WALLET.active_balance), 0) as total_balance " +
+                        "  FROM CURRENCY " +
+                        " LEFT JOIN WALLET ON WALLET.currency_id = CURRENCY.id AND wallet.user_id = (SELECT id FROM USER WHERE email = :email) " +
+                        " WHERE  CURRENCY.hidden != 1 AND  CURRENCY.id IN (:currencies) " +
                         " ORDER BY active_balance DESC, CURRENCY.name ASC ";
         final Map<String, Object> params = new HashMap() {{
             put("email", email);
@@ -233,8 +231,10 @@ public class WalletDaoImpl implements WalletDao {
             MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
             myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
             myWalletsStatisticsDto.setDescription(rs.getString("description"));
-            myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
-            myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
+            BigDecimal activeBalance = rs.getBigDecimal("active_balance");
+            BigDecimal reservedBalance = rs.getBigDecimal("total_balance");
+            myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(activeBalance == null ? BigDecimal.ZERO : activeBalance, true));
+            myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(reservedBalance == null ? BigDecimal.ZERO : reservedBalance, true));
             return myWalletsStatisticsDto;
         });
     }
@@ -574,6 +574,15 @@ public class WalletDaoImpl implements WalletDao {
                         "  " +
                         " UNION ALL " +
                         "  " +
+                        " SELECT 0, 0, CU.id AS currency_id, CU.name AS currency_name, CU.description AS currency_description, 0, 0,   " +
+                        " 0, 0, 0, " +
+                        " 0, 0, " +
+                        " 0, 0, 0, 0 " +
+                        " FROM CURRENCY CU " +
+                        " WHERE CU.id NOT IN (SELECT W.currency_id FROM WALLET W JOIN USER U ON U.id = W.user_id WHERE U.email = :email)  " +
+                        " AND CU.hidden != 1 " + currencyFilterClause +
+                        " UNION ALL " +
+                        "  " +
                         " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, CURRENCY.description AS currency_description, " +
                         " WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
                         " 0 AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
@@ -671,7 +680,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet createWallet(User user, int currencyId) {
-        final String sql = "INSERT INTO WALLET (currency_id,user_id) VALUES(:currId,:userId)";
+        final String sql = "INSERT INTO WALLET (currency_id, user_id) VALUES(:currId, :userId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", currencyId)
@@ -1452,5 +1461,21 @@ public class WalletDaoImpl implements WalletDao {
     public BigDecimal retrieveSummaryBTC() {
         String sql = "SELECT SUM(cewb.total_balance_btc) FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb";
         return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
+    }
+
+    @Override
+    public boolean isWalletExist(int userId, int currencyId) {
+        final String sql = "SELECT COUNT(id) FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId";
+        HashMap<String, Object> params = new HashMap<String, Object>() {{
+            put("userId", userId);
+            put("currencyId", currencyId);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, Integer.class) > 0;
+    }
+
+    @Override
+    public int blockById(int id) {
+        final String sql = "SELECT id FROM WALLET WHERE id = :id FOR UPDATE";
+        return jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), Integer.class);
     }
 }

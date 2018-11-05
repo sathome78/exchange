@@ -230,7 +230,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         }
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setOperationType(OperationType.OUTPUT);
-        walletOperationData.setWalletId(walletService.getWalletId(userId, currencyService.findByName(CURRENCY_NAME).getId()));
+        walletOperationData.setWalletId(walletService.getOrCreateWalletId(userId, currencyService.findByName(CURRENCY_NAME).getId()));
         walletOperationData.setBalanceType(ACTIVE);
         walletOperationData.setCommissionAmount(feeAmount);
         walletOperationData.setAmount(totalAmount);

@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import lombok.ToString;
+
 import java.math.BigDecimal;
 
 /**
@@ -11,6 +13,7 @@ import java.math.BigDecimal;
  *
  * @author ValkSam
  */
+@ToString
 public class WalletsForOrderAcceptionDto {
     int orderId;
     int orderStatusId;

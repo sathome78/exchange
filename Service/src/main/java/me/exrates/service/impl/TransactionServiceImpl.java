@@ -145,10 +145,11 @@ public class TransactionServiceImpl implements TransactionService {
     transactionDao.updateTransactionConfirmations(transactionId, confirmations);
   }
 
+  /*Deprecated method, not provide tx's now*/
   @Override
   @Transactional(propagation = Propagation.REQUIRED)
   public void provideTransaction(Transaction transaction) {
-    switch (transaction.getOperationType()) {
+   /* switch (transaction.getOperationType()) {
       case INPUT:
         walletService.depositActiveBalance(transaction.getUserWallet(), transaction.getAmount());
         companyWalletService.deposit(transaction.getCompanyWallet(), transaction.getAmount(),
@@ -162,7 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
     if (!transactionDao.provide(transaction.getId())) {
       throw new TransactionProvidingException("Failed to provide transaction #" + transaction.getId());
-    }
+    }*/
   }
 
   @Override

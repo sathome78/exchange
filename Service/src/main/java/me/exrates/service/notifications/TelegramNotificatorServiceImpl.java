@@ -158,7 +158,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setCommissionAmount(fee);
         walletOperationData.setOperationType(operationType);
-        walletOperationData.setWalletId(walletService.getWalletId(userId, currency.getId()));
+        walletOperationData.setWalletId(walletService.getOrCreateWalletId(userId, currency.getId()));
         walletOperationData.setBalanceType(ACTIVE);
         walletOperationData.setAmount(fee);
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);

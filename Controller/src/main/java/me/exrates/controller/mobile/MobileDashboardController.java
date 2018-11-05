@@ -837,7 +837,7 @@ public class MobileDashboardController {
    /* @RequestMapping(value = "/myWalletByCurrency", method = GET)
     public MyWalletsStatisticsApiDto getMyWalletDataByCurrency(@RequestParam Integer currencyId) {
         int userId = userService.getIdByEmail(getAuthenticatedUserEmail());
-        int walletId = walletService.getWalletId(userId, currencyId);
+        int walletId = walletService.getOrCreateWalletId(userId, currencyId);
         return walletService.getUserWalletShortStatistics(walletId);
 
 

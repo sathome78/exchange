@@ -125,4 +125,8 @@ public interface WalletDao {
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
+
+    boolean isWalletExist(int userId, int currencyId);
+
+    int blockById(int id);
 }

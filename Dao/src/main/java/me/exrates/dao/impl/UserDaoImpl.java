@@ -141,10 +141,11 @@ public class UserDaoImpl implements UserDao {
     return result > 0;
   }
 
+  /*todo delete commented wallets create*/
   public boolean create(User user) {
     String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
         "values(:nickname,:email,:password,:phone,:status,:roleid)";
-    String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
+    /*String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";*/
     String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
         "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
     String sqlUserOperationAuthority = "INSERT INTO USER_OPERATION_AUTHORITY (user_id, user_operation_id) " +
@@ -171,8 +172,8 @@ public class UserDaoImpl implements UserDao {
     int userId = keyHolder.getKey().intValue();
     Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
-    return namedParameterJdbcTemplate.update(sqlWallet, userIdParamMap) > 0
-        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0
+    return /*namedParameterJdbcTemplate.update(sqlWallet, userIdParamMap) > 0
+        &&*/ namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0
             && namedParameterJdbcTemplate.update(sqlUserOperationAuthority, userIdParamMap) > 0;
   }
 

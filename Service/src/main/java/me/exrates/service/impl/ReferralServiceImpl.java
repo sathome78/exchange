@@ -117,6 +117,9 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void processReferral(final ExOrder exOrder, final BigDecimal commissionAmount, Currency currency, int userId) {
+        if (commissionAmount.equals(BigDecimal.ZERO)) {
+            return;
+        }
         final List<ReferralLevel> levels = referralLevelDao.findAll();
         CompanyWallet cWallet = companyWalletService.findByCurrency(currency);
         Integer parent = null;
@@ -132,17 +135,12 @@ public class ReferralServiceImpl implements ReferralService {
                 referralTransaction.setReferralLevel(level);
                 referralTransaction.setUserId(parent);
                 referralTransaction.setInitiatorId(userId);
-                int walletId = walletService.getWalletId(parent, currency.getId()); // Mutable variable
-                if (walletId == 0) { // Wallet is absent, creating new wallet
-                    final Wallet wallet = new Wallet();
-                    wallet.setActiveBalance(ZERO);
-                    wallet.setCurrencyId(currency.getId());
-                    wallet.setUser(userService.getUserById(parent));
-                    wallet.setReservedBalance(ZERO);
-                    walletId = walletService.createNewWallet(wallet); // Changing mutable variable state
-                }
+                int walletId = walletService.getOrCreateWalletId(parent, currency.getId()); // Mutable variable
                 final ReferralTransaction createdRefTransaction = referralTransactionDao.create(referralTransaction);
                 final BigDecimal amount = doAction(commissionAmount, level.getPercent(), ActionType.MULTIPLY_PERCENT);
+                if (amount.equals(BigDecimal.ZERO)) {
+                    continue;
+                }
                 final WalletOperationData wod = new WalletOperationData();
                 wod.setCommissionAmount(this.commission.getValue());
                 wod.setCommission(this.commission);

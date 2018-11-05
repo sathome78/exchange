@@ -50,7 +50,7 @@ public interface WalletService {
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type);
 
-    int getWalletId(int userId, int currencyId);
+    int getOrCreateWalletId(int userId, int currencyId);
 
     BigDecimal getWalletABalance(int walletId);
 
@@ -62,9 +62,13 @@ public interface WalletService {
 
     int getUserIdFromWallet(int walletId);
 
+    Wallet findByUserAndCurrencyOrDefault(int userId, int currencyId);
+
     Wallet findByUserAndCurrency(User user, Currency currency);
 
     Wallet create(User user, Currency currency);
+
+    Wallet create(int userId, int currencyId);
 
     void depositActiveBalance(Wallet wallet, BigDecimal sum);
 
@@ -157,4 +161,6 @@ public interface WalletService {
     BigDecimal retrieveSummaryBTC();
 
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
+
+    boolean isWalletExist(int userId, int currencyId);
 }

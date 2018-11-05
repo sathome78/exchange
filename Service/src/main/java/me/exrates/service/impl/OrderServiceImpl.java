@@ -119,6 +119,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -908,9 +909,7 @@ public class OrderServiceImpl implements OrderService {
     private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
         try {
             ExOrder exOrder = this.getOrderById(orderId);
-
             checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
-
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletService.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
             String descriptionForCreator = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPTED);
             String descriptionForAcceptor = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPT);
@@ -920,8 +919,10 @@ public class OrderServiceImpl implements OrderService {
             }
             /**/
             int createdWalletId;
+
             if (exOrder.getOperationType() == OperationType.BUY) {
                 if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
+                    System.out.println("no wallet for " + orderId);
                     createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userService.getUserById(exOrder.getUserId()), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{exOrder.getUserId()}, locale));
@@ -929,6 +930,7 @@ public class OrderServiceImpl implements OrderService {
                     walletsForOrderAcceptionDto.setUserCreatorInWalletId(createdWalletId);
                 }
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
+                    System.out.println("no wallet for " + orderId);
                     createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userService.getUserById(userAcceptorId), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{userAcceptorId}, locale));
@@ -937,6 +939,7 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
             if (exOrder.getOperationType() == OperationType.SELL) {
+                System.out.println("no wallet for " + orderId);
                 if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
                     createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userService.getUserById(exOrder.getUserId()), new BigDecimal(0)));
                     if (createdWalletId == 0) {
@@ -945,6 +948,7 @@ public class OrderServiceImpl implements OrderService {
                     walletsForOrderAcceptionDto.setUserCreatorInWalletId(createdWalletId);
                 }
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
+                    System.out.println("no wallet for " + orderId);
                     createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userService.getUserById(userAcceptorId), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{userAcceptorId}, locale));
@@ -960,15 +964,13 @@ public class OrderServiceImpl implements OrderService {
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
             OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
             Commission comissionForAcceptor;
-            /*todo: zero comissions from db*/
-            CurrencyPair cp = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
-            exOrder.setCurrencyPair(cp);
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+            exOrder.setCurrencyPair(currencyPair);
             if (exOrder.getOrderBaseType() == OrderBaseType.ICO || exOrder.getCurrencyPair().getName().contains("EDR")) {
                 comissionForAcceptor = Commission.zeroComission();
             } else {
                 comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
             }
-            /*-------------------------*/
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;
@@ -1113,6 +1115,7 @@ public class OrderServiceImpl implements OrderService {
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
+
       /*if (sendNotification) {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
             "acceptorder.message", new Object[]{exOrder.getId()});
@@ -1122,6 +1125,7 @@ public class OrderServiceImpl implements OrderService {
             /*action for refresh orders*/
             eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
             throw e;
         }
@@ -2094,6 +2098,7 @@ public class OrderServiceImpl implements OrderService {
 
         return orderDao.getOrderTransactions(userId, orderId);
     }
+
 }
 
 

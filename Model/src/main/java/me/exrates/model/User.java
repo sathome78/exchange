@@ -28,6 +28,10 @@ public class User  {
 	private List<UserFile> userFiles = Collections.emptyList();
 
 
+	public User(int id) {
+		this.id = id;
+	}
+
 	public User() {
 	}
 

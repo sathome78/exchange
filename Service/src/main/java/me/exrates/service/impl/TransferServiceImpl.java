@@ -236,7 +236,7 @@ public class TransferServiceImpl implements TransferService {
   private void revokeTransferRequest(TransferRequestFlatDto transferRequest, InvoiceActionTypeEnum action, TransferStatusEnum newStatus) {
     transferRequestDao.setStatusById(transferRequest.getId(), newStatus);
     /**/
-    Integer userWalletId = walletService.getWalletId(transferRequest.getUserId(), transferRequest.getCurrencyId());
+    Integer userWalletId = walletService.getOrCreateWalletId(transferRequest.getUserId(), transferRequest.getCurrencyId());
     String description = transactionDescription.get(transferRequest.getStatus(), action);
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
