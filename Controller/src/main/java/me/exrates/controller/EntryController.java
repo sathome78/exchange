@@ -334,9 +334,9 @@ public class EntryController {
     }
 
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@RequestPart("nickname")String newNickName, BindingResult result,
+    public ModelAndView submitsettingsNickname(@RequestParam("nickname")String newNickName, BindingResult result,
                                                HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
-        registerFormValidation.validateNickname(newNickName, result, localeResolver.resolveLocale(request));
+//        registerFormValidation.validateNickname(newNickName, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
