@@ -1,82 +1,91 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.PageLayoutSettingsDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
-import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.ngcontroller.mobel.ExceptionDto;
+import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
+import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
 import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
 import me.exrates.ngcontroller.service.UserVerificationService;
-import me.exrates.service.*;
+import me.exrates.service.NotificationService;
+import me.exrates.service.PageLayoutSettingsService;
+import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/settings/",
-        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-)
+@RequestMapping(value = "/info/private/v2/settings/")
 public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
+
     private static final String NICKNAME = "nickname";
     private static final String SESSION_INTERVAL = "sessionInterval";
     private static final String EMAIL_NOTIFICATION = "notifications";
     private static final String COLOR_SCHEME = "color-schema";
     private static final String IS_COLOR_BLIND = "isLowColorEnabled";
-    private static final String USER_FILES = "userFiles";
-
     private static final String STATE = "STATE";
-
-    @Value("${contacts.feedbackEmail}")
-    String feedbackEmail;
 
     private final UserService userService;
     private final NotificationService notificationService;
     private final SessionParamsService sessionService;
     private final PageLayoutSettingsService layoutSettingsService;
-    private final NotificationsSettingsService settingsService;
-    private final UserFilesService userFilesService;
     private final UserVerificationService verificationService;
+
+    @Value("${contacts.feedbackEmail}")
+    String feedbackEmail;
 
     @Autowired
     public NgUserSettingsController(UserService userService,
                                     NotificationService notificationService,
                                     SessionParamsService sessionService,
                                     PageLayoutSettingsService layoutSettingsService,
-                                    NotificationsSettingsService settingsService,
-                                    UserFilesService userFilesService, UserVerificationService verificationService) {
+                                    UserVerificationService verificationService) {
         this.userService = userService;
         this.notificationService = notificationService;
         this.sessionService = sessionService;
         this.layoutSettingsService = layoutSettingsService;
-        this.settingsService = settingsService;
-        this.userFilesService = userFilesService;
         this.verificationService = verificationService;
     }
 
-    @PutMapping(value = "/updateMainPassword")
+    @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
@@ -103,7 +112,7 @@ public class NgUserSettingsController {
         return ResponseEntity.ok(Collections.singletonMap(NICKNAME, nickname));
     }
 
-    @PutMapping(value = NICKNAME)
+    @PutMapping(value = NICKNAME, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateNickName(@RequestBody Map<String, String> body) {
         User user = userService.findByEmail(getPrincipalEmail());
         if (body.containsKey(NICKNAME)) {
@@ -125,7 +134,7 @@ public class NgUserSettingsController {
         return params.getSessionTimeMinutes();
     }
 
-    @PutMapping(value = SESSION_INTERVAL)
+    @PutMapping(value = SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body) {
         try {
             int interval = body.get(SESSION_INTERVAL);
@@ -156,7 +165,7 @@ public class NgUserSettingsController {
         }
     }
 
-    @PutMapping(value = EMAIL_NOTIFICATION)
+    @PutMapping(value = EMAIL_NOTIFICATION, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserNotification(@RequestBody List<NotificationOption> options) {
         try {
             int userId = userService.getIdByEmail(getPrincipalEmail());
@@ -175,7 +184,7 @@ public class NgUserSettingsController {
         return dto != null && dto.isLowColorEnabled();
     }
 
-    @PutMapping(IS_COLOR_BLIND)
+    @PutMapping(value = IS_COLOR_BLIND, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserColorDepth(@RequestBody Map<String, Boolean> params) {
         if (params.containsKey(STATE)) {
             User user = userService.findByEmail(getPrincipalEmail());
@@ -193,7 +202,7 @@ public class NgUserSettingsController {
         return this.layoutSettingsService.getColorScheme(user);
     }
 
-    @PutMapping(COLOR_SCHEME)
+    @PutMapping(value = COLOR_SCHEME, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {
         if (params.containsKey("SCHEME")) {
             Integer userId = userService.getIdByEmail(getPrincipalEmail());
@@ -209,23 +218,41 @@ public class NgUserSettingsController {
         }
     }
 
-    @PostMapping(USER_FILES)
-    public ResponseEntity<Void> uploadUserVerification(@RequestBody UserInfoVerificationDto data) {
+    @PostMapping(value = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity uploadUserVerification(@RequestBody @Valid UserInfoVerificationDto data) {
+        logger.info("UserInfoVerificationDto - {}", data);
         int userId = userService.getIdByEmail(getPrincipalEmail());
-
         data.setUserId(userId);
 
-       UserInfoVerificationDto attempt = verificationService.save(data);
+        UserInfoVerificationDto attempt = verificationService.save(data);
         if (attempt != null) {
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping(USER_FILES + "/docs")
-    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody UserDocVerificationDto data) {
+    @PostMapping("/userFiles/docs/{type}")
+    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestParam("file") MultipartFile file,
+                                                           @PathVariable("type") String type) {
+
+        VerificationDocumentType documentType = VerificationDocumentType.of(type);
+
         int userId = userService.getIdByEmail(getPrincipalEmail());
-        data.setUserId(userId);
+
+        if (file.getSize() == 0) {
+            logger.error("uploadUserVerificationDocs() error, file is empty");
+            throw new RuntimeException("File is empty");
+        }
+
+        String doc;
+        try {
+            doc = new String(file.getBytes());
+        } catch (IOException e) {
+            logger.error("uploadUserVerificationDocs() Error get data from file");
+            throw new RuntimeException("Error get data from file");
+        }
+
+        UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, doc);
 
         UserDocVerificationDto attempt = verificationService.save(data);
         if (attempt != null) {
@@ -377,11 +404,11 @@ public class NgUserSettingsController {
         return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
     }
 
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
-    public ResponseEntity<Object> UnavailableFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ResponseEntity<>("Service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+    public ResponseEntity<Object> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
+        return ResponseEntity.ok(new ExceptionDto(HttpStatus.BAD_REQUEST.toString(), e.getMessage()));
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
