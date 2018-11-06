@@ -202,6 +202,23 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest) {
+
+        String sql = "UPDATE CURRENCY_LIMIT SET min_sum = :min_sum, max_daily_request = :max_daily_request " +
+                "WHERE currency_id = :currency_id " +
+                "AND operation_type_id = :operation_type_id";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("min_sum", minAmount);
+                put("currency_id", currencyId);
+                put("operation_type_id", operationType.getType());
+                put("max_daily_request", maxDailyRequest);
+            }
+        };
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
         String typeClause = "";
         if (type != null && type != CurrencyPairType.ALL) {

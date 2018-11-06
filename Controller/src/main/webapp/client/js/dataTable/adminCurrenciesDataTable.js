@@ -96,15 +96,32 @@ function updateCurrencyLimitsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currency.id",
-                    "visible": false
+                    "data":"currency.id"
                 },
                 {
                     "data": "currency.name"
                 },
                 {
+                    "data": "currencyUsdRate",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
                     "data": "minSum",
-                    "render": function (data, type, row) {
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "minSumUsdRate",
+                    "render": function (data, type) {
                         if (type === 'display') {
                             return numbro(data).format('0.00[000000]');
                         }

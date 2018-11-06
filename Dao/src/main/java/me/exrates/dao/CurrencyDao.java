@@ -43,6 +43,8 @@ public interface CurrencyDao {
 
     void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
 
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest);
+
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
     CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);

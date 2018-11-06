@@ -59,11 +59,13 @@
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
-                                <th></th>
+                                <th><loc:message code="admin.currencyLimits.id"/></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
+                                <th><loc:message code="admin.currencyLimits.usdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                            <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
-                        </tr>
+                                <th><loc:message code="admin.currencyLimits.minLimitUsdRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
+                            </tr>
                             </thead>
                         </table>
                     </div>
@@ -122,7 +124,7 @@
                         aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title"><loc:message code="admin.currencyLimits.modalTitle"/></h4>
             </div>
-            <div class="modal-body">
+            <div>
                 <form id="edit-currency-limit-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyId">
                     <div class="input-block-wrapper">
@@ -148,6 +150,8 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input name="roleName" class="input-block-wrapper__input" readonly type="text">
+                            <input type='checkbox' id="allRolesEdit" name="allRolesEdit"/>
+                            <label class="input-block-wrapper__label"><loc:message code="admin.currencyLimits.allRoles"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">

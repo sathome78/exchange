@@ -10,34 +10,26 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.util.Objects.isNull;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -54,7 +46,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     UserRoleService userRoleService;
 
-    private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
+    @Autowired
+    private ExchangeApi exchangeApi;
+
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
             add("EDRC");
@@ -107,8 +101,34 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest) {
+
+        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, maxDailyRequest);
+    }
+
+    @Override
     public List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType) {
-        return currencyDao.retrieveCurrencyLimitsForRoles(userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), operationType);
+
+        List<CurrencyLimit> currencyLimits = currencyDao.retrieveCurrencyLimitsForRoles(
+                userRoleService.getRealUserRoleIdByBusinessRoleList(roleName),
+                operationType);
+
+        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+
+        for (CurrencyLimit currencyLimit : currencyLimits) {
+            String currencyName = currencyLimit.getCurrency().getName();
+            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+            if (isNull(pairRates)) {
+                continue;
+            }
+            BigDecimal usdRate = pairRates.getLeft();
+            currencyLimit.setCurrencyUsdRate(usdRate);
+
+            BigDecimal minSumUSDRate = currencyLimit.getMinSum().multiply(usdRate);
+            currencyLimit.setMinSumUsdRate(minSumUSDRate);
+        }
+
+        return currencyLimits;
     }
 
     @Override

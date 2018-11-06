@@ -957,9 +957,13 @@ public class AdminController {
                                                   @RequestParam OperationType operationType,
                                                   @RequestParam String roleName,
                                                   @RequestParam BigDecimal minAmount,
-                                                  @RequestParam Integer maxDailyRequest) {
-
+                                                  @RequestParam Integer maxDailyRequest,
+                                                  @RequestParam(required = false) Object allRolesEdit) {
+        if (allRolesEdit != null) {
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, maxDailyRequest);
+        } else {
         currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

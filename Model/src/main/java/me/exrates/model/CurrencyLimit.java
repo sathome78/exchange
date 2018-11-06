@@ -13,6 +13,8 @@ public class CurrencyLimit {
     private BigDecimal minSum;
     private BigDecimal maxSum;
     private Integer maxDailyRequest;
+    private BigDecimal currencyUsdRate;
+    private BigDecimal minSumUsdRate;
 
     public Currency getCurrency() {
         return currency;
@@ -54,14 +56,19 @@ public class CurrencyLimit {
         this.maxDailyRequest = maxDailyRequest;
     }
 
-    @Override
-    public String toString() {
-        return "CurrencyLimit{" +
-                "currency=" + currency +
-                ", operationType=" + operationType +
-                ", minSum=" + minSum +
-                ", maxSum=" + maxSum +
-                ", maxDailyRequest=" + maxDailyRequest +
-                '}';
+    public BigDecimal getCurrencyUsdRate() {
+        return currencyUsdRate;
+    }
+
+    public void setCurrencyUsdRate(BigDecimal currencyUsdRate) {
+        this.currencyUsdRate = currencyUsdRate;
+    }
+
+    public BigDecimal getMinSumUsdRate() {
+        return minSumUsdRate;
+    }
+
+    public void setMinSumUsdRate(BigDecimal minSumUsdRate) {
+        this.minSumUsdRate = minSumUsdRate;
     }
 }

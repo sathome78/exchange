@@ -40,6 +40,8 @@ public interface CurrencyService {
 
     void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest);
 
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest);
+
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
