@@ -365,4 +365,8 @@ public class BigDecimalProcessing {
   }
 
 
+  public static boolean moreThanZero(BigDecimal value) {
+    return value.compareTo(BigDecimal.ZERO) > 0;
+  }
+
 }

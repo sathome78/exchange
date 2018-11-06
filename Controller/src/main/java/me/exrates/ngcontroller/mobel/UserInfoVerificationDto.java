@@ -1,30 +1,43 @@
 package me.exrates.ngcontroller.mobel;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import me.exrates.model.serializer.LocalDateDeserializer;
-import me.exrates.model.serializer.LocalDateSerializer;
-import me.exrates.ngcontroller.util.NgUtil;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
 @Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor(suppressConstructorProperties = true)
 public class UserInfoVerificationDto {
 
     private Integer userId;
+
+    @NotNull
     private String firstName;
+
+    @NotNull
     private String lastName;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = NgUtil.DATE_PATTERN)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate born;
+
+    @NotNull
     private String residentialAddress;
+
+    @NotNull
     private String postalCode;
+
+    @NotNull
     private String country;
+
+    @NotNull
     private String city;
 }

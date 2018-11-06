@@ -42,7 +42,7 @@ public class UserInfoVerificationDaoImpl implements UserInfoVerificationDao {
     @Override
     public UserInfoVerificationDto save(UserInfoVerificationDto verificationDto) {
         String sql = "INSERT INTO " + INFO_TABLE_NAME + " (" + getInfoInsertColumns() + ")"
-                + " VALUES (:userId, :firstName, :lastName, :born, :resAddr, :postCode, :country, :city, :path)"
+                + " VALUES (:userId, :firstName, :lastName, :born, :resAddr, :postCode, :country, :city)"
                 + " ON DUPLICATE KEY UPDATE " + getInfoUpdateColumns();
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue(USER_ID_KEY, verificationDto.getUserId())
@@ -88,9 +88,9 @@ public class UserInfoVerificationDaoImpl implements UserInfoVerificationDao {
     }
 
     private String getInfoUpdateColumns() {
-        return FIRST_NAME_COL + "= :firstName, " + LAST_NAME_COL + "= :lastName"
-                + BORN_COL + "=:born, " + RES_ADDR_COL + "=:resAddr, " + POST_CODE_COL + "=:postal_code, "
-                + COUNTRY_COL + "=:country, " + CITY_COL + "=:city, ";
+        return FIRST_NAME_COL + "= :firstName, " + LAST_NAME_COL + "= :lastName, "
+                + BORN_COL + "=:born, " + RES_ADDR_COL + "=:resAddr, " + POST_CODE_COL + "=:postCode, "
+                + COUNTRY_COL + "=:country, " + CITY_COL + "=:city";
     }
 
     private java.sql.Date getDBDate(LocalDate when) {

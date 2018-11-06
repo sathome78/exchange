@@ -1,7 +1,6 @@
 package me.exrates.ngcontroller.mobel.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -27,7 +26,7 @@ public enum VerificationDocumentType {
         } else if (value.equalsIgnoreCase(PHOTO.toString())) {
             return PHOTO;
         }
-        return null;
+        throw new RuntimeException("VerificationDocumentType error - " + value);
     }
 
     @JsonValue
