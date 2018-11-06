@@ -303,9 +303,11 @@ public class NgOrderServiceImpl implements NgOrderService {
                 BigDecimal subtract = rateNow.subtract(rateYesterday);
                 subtract = BigDecimalProcessing.normalize(subtract);
                 result.setChangedValue(subtract.toString());
-                BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-                balanceByCurrency2 = balanceByCurrency1.multiply(rate);
-
+                if (dto.getLastOrderRate() != null &&
+                         BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
+                    BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
+                    balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+                }
                 break;
             }
             result.setBalanceByCurrency2(balanceByCurrency2);
@@ -331,7 +333,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                     .max(Comparator.naturalOrder())
                     .ifPresent(volume -> result.setVolume24h(volume.toString()));
         } catch (ArithmeticException e) {
-            logger.error("Error calculating max and min values");
+            logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
             throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
         }
         return result;
