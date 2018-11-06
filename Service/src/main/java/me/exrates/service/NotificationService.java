@@ -49,15 +49,11 @@ public interface NotificationService {
 
   List<NotificationOption> getNotificationOptionsByUser(Integer userId);
 
-  void updateUserNotifications(List<NotificationOption> options);
-
   void updateNotificationOptionsForUser(int userId, List<NotificationOption> options);
 
   String getGoogleAuthenticatorCode(Integer userId);
 
   void updateGoogleAuthenticatorSecretCodeForUser(Integer userId);
-
-  boolean isGoogleAuthenticatorEnable(Integer userId);
 
   boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId);
 

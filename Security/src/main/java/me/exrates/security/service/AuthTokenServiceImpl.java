@@ -9,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.SessionParams;
-import me.exrates.model.User;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
@@ -19,6 +18,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,9 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -75,7 +73,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Autowired
     private SessionParamsService sessionParamsService;
     @Autowired
-    private NotificationService notificationService;
+    private G2faService g2faService;
 
     private Map<String, LocalDateTime> usersForPincheck = new ConcurrentHashMap<>();
 
@@ -94,7 +92,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
         if (isGoogleTwoFAEnabled) {
             Integer userId = userService.getIdByEmail(dto.getEmail());
-            if (!notificationService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
+            if (!g2faService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
                 throw new IncorrectPinException("Incorrect google auth code");
             }
         } else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
@@ -104,24 +102,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
-    @Override
-    public Optional<AuthTokenDto> retrieveToken(String username, String encodedPassword) {
-        if (username == null || encodedPassword == null) {
-            throw new MissingCredentialException("Credentials missing");
-        }
-        String password;
-        if (username.equals("avto12@i.ua")) {
-            password = encodedPassword;
-        } else {
-            password = RestApiUtils.decodePassword(encodedPassword);
-        }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            return prepareAuthToken(userDetails);
-        } else {
-            throw new IncorrectPasswordException("Incorrect password");
-        }
-    }
     private Optional<AuthTokenDto> prepareAuthTokenNg(UserDetails userDetails, HttpServletRequest request, String clientIp) {
         ApiAuthToken token = createAuthToken(userDetails.getUsername());
         Map<String, Object> tokenData = new HashMap<>();
@@ -241,18 +221,4 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
     }
 
-    @Override
-    public String getUsernameFromToken(HttpServletRequest request) {
-        String token = request.getHeader("Exrates-Rest-Token");
-        if (token == null) {
-            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-        }
-        DefaultClaims claims;
-        try {
-            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
-            return claims.getSubject();
-        } catch (Exception ex) {
-            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-        }
-    }
 }

@@ -15,6 +15,7 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -49,26 +50,28 @@ public class NgUserController {
     private final ReferralService referralService;
     private final SecureService secureService;
     private final NotificationsSettingsService notificationsSettingsService;
+    private final G2faService g2faService;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService, SecureService secureService, NotificationsSettingsService notificationsSettingsService, NotificationService notificationService) {
+                            UserService userService, ReferralService referralService, SecureService secureService, NotificationsSettingsService notificationsSettingsService, NotificationService notificationService, G2faService g2faService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.referralService = referralService;
         this.secureService = secureService;
         this.notificationsSettingsService = notificationsSettingsService;
+        this.g2faService = g2faService;
     }
 
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
-//        try {
-//            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-//        } catch (BannedIpException ban) {
-//            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
-//        }
+        try {
+            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        } catch (BannedIpException ban) {
+            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
+        }
 
          if (authenticationDto.getEmail().startsWith("promo@ex") ||
                  authenticationDto.getEmail().startsWith("dev@exrat")) {
@@ -90,9 +93,7 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.GONE); // 410
         }
 
-        // todo
-        boolean shouldLoginWithGoogle = false;
-//        boolean shouldLoginWithGoogle = notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
             if(!shouldLoginWithGoogle) {
                 secureService.sendLoginPincode(user, request);
@@ -108,7 +109,7 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =
@@ -122,7 +123,7 @@ public class NgUserController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-//        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 

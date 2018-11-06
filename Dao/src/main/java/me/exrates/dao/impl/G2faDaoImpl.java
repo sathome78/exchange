@@ -39,6 +39,17 @@ public class G2faDaoImpl implements G2faDao {
     }
 
     @Override
+    public void setGoogleAuthSecretCode(Integer userId, String secretCode) {
+        String sql = "REPLACE INTO 2FA_GOOGLE_AUTHENTICATOR (user_id, enable, secret_code) "
+                + " VALUES (:user_id, true, :secret)";
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("secret", secretCode);
+        }};
+        jdbcTemplate.update(sql, namedParameters);
+    }
+
+    @Override
     public void set2faGoogleAuthenticator(Integer userId) {
         String sql = "INSERT INTO 2FA_GOOGLE_AUTHENTICATOR (user_id, enable, secret_code) VALUES (:user_id, false, :secret) ";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
@@ -68,5 +79,17 @@ public class G2faDaoImpl implements G2faDao {
         }catch (EmptyResultDataAccessException e){
             return false;
         }
+    }
+
+    @Override
+    public void setEnable2faGoogleAuthNg(Integer userId, Boolean enabled) {
+        String sql = "REPLACE INTO 2FA_GOOGLE_AUTHENTICATOR (user_id, enable, secret_code) " +
+                " VALUES (:user_id, :enabled, :secret)";
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("enabled", enabled);
+            put("secret", enabled ? Base32.random() : "");
+        }};
+        jdbcTemplate.update(sql, namedParameters);
     }
 }
