@@ -1,30 +1,24 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.NotificationDao;
-import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.Email;
 import me.exrates.model.Notification;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
-import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -181,11 +175,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void updateUserNotifications(List<NotificationOption> options) {
-        notificationDao.updateNotificationOptions(options);
-    }
-
-    @Override
     public void updateNotificationOptionsForUser(int userId, List<NotificationOption> options) {
         throw new UnsupportedOperationException();
     }
@@ -197,11 +186,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void updateGoogleAuthenticatorSecretCodeForUser(Integer userId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isGoogleAuthenticatorEnable(Integer userId) {
         throw new UnsupportedOperationException();
     }
 

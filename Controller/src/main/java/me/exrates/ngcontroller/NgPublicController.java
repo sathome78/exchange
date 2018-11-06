@@ -15,6 +15,8 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
+import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,6 +60,7 @@ public class NgPublicController {
     private final SimpMessagingTemplate messagingTemplate;
     private final CurrencyService currencyService;
     private final OrderService orderService;
+    private final G2faService g2faService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -65,13 +68,15 @@ public class NgPublicController {
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
-                              OrderService orderService) {
+                              OrderService orderService,
+                              G2faService g2faService) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
         this.currencyService = currencyService;
         this.orderService = orderService;
+        this.g2faService = g2faService;
     }
 
     @PostConstruct
@@ -91,10 +96,7 @@ public class NgPublicController {
     @GetMapping("/is_google_2fa_enabled")
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
-        User user = userService.findByEmail(email);
-        return false;
-        // todo
-//        return notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        return g2faService.isGoogleAuthenticatorEnable(email);
     }
 
     @GetMapping(value = "/if_username_exists")

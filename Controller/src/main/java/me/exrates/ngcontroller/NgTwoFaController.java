@@ -1,14 +1,13 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,12 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.web3j.abi.datatypes.Int;
 
-import java.io.UnsupportedEncodingException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/2FaOptions/",
@@ -34,114 +31,68 @@ public class NgTwoFaController {
 
     private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
 
-    private static final String GOOGLE_2FA = "google2fa";
-    private static final String VERIFY_GOOGLE = "verify_google2fa";
-
-
-    private final NotificationService notificationService;
-    private final NotificationsSettingsService notificationsSettingsService;
     private final UserService userService;
+    private final G2faService g2faService;
 
     @Autowired
-    public NgTwoFaController(NotificationService notificationService, NotificationsSettingsService notificationsSettingsService, UserService userService) {
-        this.notificationService = notificationService;
-        this.notificationsSettingsService = notificationsSettingsService;
+    public NgTwoFaController(UserService userService,
+                             G2faService g2faService) {
         this.userService = userService;
+        this.g2faService = g2faService;
     }
 
-    @GetMapping(GOOGLE_2FA)
-    @ResponseBody
-    public Generic2faResponseDto getGoogle2FA() throws UnsupportedEncodingException {
-        throw new UnsupportedOperationException();
-//        return new Generic2faResponseDto(notificationService.generateQRUrl(getPrincipalEmail()));
-    }
-
-    @GetMapping(GOOGLE_2FA + "/hash")
+    @GetMapping("/google2fa/hash")
     @ResponseBody
     public Generic2faResponseDto getSecurityCode() {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        Generic2faResponseDto result = new Generic2faResponseDto("", "");
-        try {
-            result.setMessage(this.notificationService.getGoogleAuthenticatorCode(userId));
-        } catch (Exception e) {
-            logger.info("Failed to retrieve secret code for user with id: {}, as {} ",
-                    userId, e.getLocalizedMessage());
-            result.setError(e.getLocalizedMessage());
-        }
-        return result;
+        return g2faService.getGoogleAuthenticatorCodeNg(userId);
     }
 
-    @GetMapping(GOOGLE_2FA + "/verify")
-    public ResponseEntity<Void> verifyGoogleAuthenticatorConnect(@RequestParam String code) {
+    @GetMapping("/google2fa/pin")
+    @ResponseBody
+    public ResponseEntity<Void> getSecurityPinCode(HttpServletRequest request) {
         User user = userService.findByEmail(getPrincipalEmail());
-        if (notificationService.checkGoogle2faVerifyCode(code, user.getId())) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        g2faService.sendGoogleAuthPinConfirm(user, request);
+        return ResponseEntity.ok().build();
     }
 
-    @PatchMapping(GOOGLE_2FA)
+    @PostMapping("/google2fa/submit")
+    public ResponseEntity<Void> submitGoogleSecret(@RequestBody Map<String, String> body) {
+        User user = userService.findByEmail(getPrincipalEmail());
+        boolean result = g2faService.submitGoogleSecret(user, body);
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PutMapping("/google2fa")
     public ResponseEntity<Void> toggleGoogleTwoFaAuthentication(@RequestBody Map<String, Boolean> params) {
         boolean enabled = params.containsKey("STATE") && params.get("STATE");
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
-
         try {
             if (enabled) {
-                notificationService.getGoogleAuthenticatorCode(userId);
-                notificationService.updateGoogleAuthenticatorSecretCodeForUser(userId);
+//                g2faService.updateGoogleAuthenticatorSecretCodeForUser(userId);
             }
-            notificationService.setEnable2faGoogleAuth(userId, enabled);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            g2faService.setEnable2faGoogleAuthNg(userId, enabled);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            logger.info("Failed to update user (id: {}) 2 fa settings to {}", userId, enabled);
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    @GetMapping(value = VERIFY_GOOGLE)
+    @GetMapping(value = "/verify_google2fa")
     @ResponseBody
-    public String verifyGoogleAuthenticatorConnect(@RequestParam String code,
-                                                   @RequestParam boolean connected) {
+    public ResponseEntity<Boolean> verifyGoogleAuthenticatorCode(@RequestParam String code) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        if (!notificationService.checkGoogle2faVerifyCode(code, userId)) {
-            throw new IncorrectPinException("");
+        if (g2faService.checkGoogle2faVerifyCode(code, userId)) {
+            return ResponseEntity.ok(Boolean.TRUE);
         }
-        if (connected) {
-            notificationService.setEnable2faGoogleAuth(userId, connected);
-        } else {
-            notificationService.setEnable2faGoogleAuth(userId, false);
-            notificationService.updateGoogleAuthenticatorSecretCodeForUser(userId);
-        }
-        return "OK";
-    }
-
-    @GetMapping(GOOGLE_2FA + "/user")
-    @ResponseBody
-    public Map<NotificationMessageEventEnum, Boolean> getUserNotifications() {
-        try {
-            User user = userService.findByEmail(getPrincipalEmail());
-            throw new UnsupportedOperationException();
-//            return notificationsSettingsService.getUserTwoFASettings(user);
-        } catch (Exception e) {
-            return Collections.emptyMap();
-        }
-    }
-
-    @PutMapping(GOOGLE_2FA + "/user")
-    public ResponseEntity<Void> updateUser2FaNotificationSettings(@RequestBody NotificationsUserSetting setting) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-        try {
-            setting.setUserId(userId);
-            throw new UnsupportedOperationException();
-//            this.notificationsSettingsService.createOrUpdate(setting);
-//            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
-            logger.info("Failed to update user settings for userId: {}, as {}", userId, e.getLocalizedMessage());
-        }
-        return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        return ResponseEntity.badRequest().build();
     }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
 }
