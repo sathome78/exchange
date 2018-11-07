@@ -222,7 +222,7 @@ public class NgUserSettingsController {
         }
     }
 
-    @PostMapping(value = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/docs")
     public ResponseEntity uploadUserVerification(@RequestBody @Valid UserInfoVerificationDto data) {
         logger.info("UserInfoVerificationDto - {}", data);
         int userId = userService.getIdByEmail(getPrincipalEmail());
