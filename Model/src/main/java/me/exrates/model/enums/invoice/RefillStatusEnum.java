@@ -288,7 +288,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
 
   private Integer code;
 
-  RefillStatusEnum(Integer code) {
+  ARefillStatusEnum(Integer code) {
     this.code = code;
   }
 
