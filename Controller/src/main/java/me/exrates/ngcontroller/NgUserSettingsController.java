@@ -18,6 +18,7 @@ import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/settings/")
+@RequestMapping(value = "/info/private/v2/settings/",
+        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
+)
 public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
@@ -232,27 +236,18 @@ public class NgUserSettingsController {
     }
 
     @PostMapping("/userFiles/docs/{type}")
-    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestParam("file") MultipartFile file,
-                                                           @PathVariable("type") String type) {
+    public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody Map<String, String> body,
+                                                           @RequestParam("type") String type) {
 
         VerificationDocumentType documentType = VerificationDocumentType.of(type);
-
         int userId = userService.getIdByEmail(getPrincipalEmail());
+        String encoded = body.getOrDefault("BASE_64", "");
 
-        if (file.getSize() == 0) {
-            logger.error("uploadUserVerificationDocs() error, file is empty");
-            throw new RuntimeException("File is empty");
-        }
-
-        String doc;
-        try {
-            doc = new String(file.getBytes());
-        } catch (IOException e) {
+        if (StringUtils.isEmpty(encoded)) {
             logger.error("uploadUserVerificationDocs() Error get data from file");
             throw new RuntimeException("Error get data from file");
         }
-
-        UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, doc);
+        UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, encoded);
 
         UserDocVerificationDto attempt = verificationService.save(data);
         if (attempt != null) {
