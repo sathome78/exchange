@@ -160,11 +160,11 @@ public class CryptocurrencyConfig {
 //                "BitDollar", "XBD", 4, 20, false, false);
 //    }
 //
-//    @Bean(name = "beetServiceImpl")
-//    public BitcoinService beetService() {
-//        return new BitcoinServiceImpl("merchants/beet_wallet.properties",
-//                "BEET", "BEET", 4, 20, false, false);
-//    }
+    @Bean(name = "beetServiceImpl")
+    public BitcoinService beetService() {
+        return new BitcoinServiceImpl("merchants/beet_wallet.properties",
+                "BEET", "BEET", 4, 20, false, false);
+    }
 //
 //    @Bean(name = "nycoinServiceImpl")
 //    public BitcoinService nycoinService() {
@@ -255,17 +255,17 @@ public class CryptocurrencyConfig {
 //        return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
 //    }
 //
-//    @Bean(name="mbcServiceImpl")
-//    public BitcoinService mbcService(){
-//        return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 4, 20, false, true);
-//    }
-//
-//
-//    @Bean(name = "ddxServiceImpl")
-//    public BitcoinService ddxService() {
-//        return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
-//                "DDX", "DDX", 1, 20, false, true);
-//    }
+    @Bean(name="mbcServiceImpl")
+    public BitcoinService mbcService(){
+        return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 4, 20, false, true);
+    }
+
+
+    @Bean(name = "ddxServiceImpl")
+    public BitcoinService ddxService() {
+        return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
+                "DDX", "DDX", 1, 20, false, true);
+    }
 
 
 
@@ -284,11 +284,11 @@ public class CryptocurrencyConfig {
 //        return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
 //    }
 //
-//    @Bean(name = "crypServiceImpl")
-//    public BitcoinService crypService() {
-//        return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
-//    }
-//
+    @Bean(name = "crypServiceImpl")
+    public BitcoinService crypService() {
+        return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 4, 20, false, true);
+    }
+
     @Bean(name = "cbcServiceImpl")
     public BitcoinService cbcService() {
         return new BitcoinServiceImpl("merchants/cbc_wallet.properties",
