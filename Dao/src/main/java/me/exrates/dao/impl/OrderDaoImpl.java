@@ -63,6 +63,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -766,7 +767,10 @@ public class OrderDaoImpl implements OrderDao {
             orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
             orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
             orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
-            orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
+            String amountBase = rs.getString("amount_base");
+            BigDecimal bigDecimal = new BigDecimal(amountBase);
+            BigDecimal normalize = BigDecimalProcessing.normalize(bigDecimal, RoundingMode.HALF_UP);
+            orderAcceptedHistoryDto.setAmountBase(normalize.toString());
             orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
             return orderAcceptedHistoryDto;
         });
