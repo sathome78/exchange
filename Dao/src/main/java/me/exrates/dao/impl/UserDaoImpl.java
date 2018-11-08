@@ -1106,4 +1106,27 @@ public class UserDaoImpl implements UserDao {
       return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
   }
 
+  @Override
+  public List<Integer> findFavouriteCurrencyPairsById(int userId) {
+    String sql = "SELECT currency_pair_id FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("user_id", userId);
+    }};
+    return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
+  }
+
+    @Override
+    public boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete) {
+        String sql = "INSERT IGNORE INTO USER_FAVORITE_CURRENCY_PAIRS (user_id, currency_pair_id) " +
+                        " VALUES(:userId, :currencyPairId)";
+        if (delete) {
+            sql = "DELETE FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId AND currency_pair_id = :currencyPairId";
+        }
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("currency_pair_id", currencyPairId);
+        }};
+        return namedParameterJdbcTemplate.update(sql, params) >= 0;
+    }
+
 }

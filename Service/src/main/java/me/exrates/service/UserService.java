@@ -205,4 +205,8 @@ public interface UserService {
     long countUserIps(String userEmail);
 
     boolean isGlobal2FaActive();
+
+    List<Integer> getUserFavouriteCurrencyPairs(String email);
+
+    boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
 }
