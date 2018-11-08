@@ -1110,7 +1110,7 @@ public class UserDaoImpl implements UserDao {
   public List<Integer> findFavouriteCurrencyPairsById(int userId) {
     String sql = "SELECT currency_pair_id FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId";
     Map<String, Object> params = new HashMap<String, Object>() {{
-      put("user_id", userId);
+      put("userId", userId);
     }};
     return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
   }
@@ -1123,8 +1123,8 @@ public class UserDaoImpl implements UserDao {
             sql = "DELETE FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId AND currency_pair_id = :currencyPairId";
         }
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("user_id", userId);
-            put("currency_pair_id", currencyPairId);
+            put("userId", userId);
+            put("currencyPairId", currencyPairId);
         }};
         return namedParameterJdbcTemplate.update(sql, params) >= 0;
     }
