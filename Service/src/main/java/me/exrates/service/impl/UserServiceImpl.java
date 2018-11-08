@@ -2,14 +2,15 @@ package me.exrates.service.impl;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.ControlPhraseDao;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.impl.ControlPhraseDaoImpl;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -36,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -75,6 +75,9 @@ public class UserServiceImpl implements UserService {
   private NotificationsSettingsService settingsService;
   @Autowired
   private G2faService g2faService;
+  @Autowired
+  private ControlPhraseDao controlPhraseDao;
+
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -98,7 +101,7 @@ public class UserServiceImpl implements UserService {
     add("AR");
   }};
 
-  @Override
+    @Override
   public List<String> getLocalesList() {
     return LOCALES_LIST;
   }
@@ -802,5 +805,15 @@ public class UserServiceImpl implements UserService {
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
     }
+
+    @Override
+    public String getControlPhrase(String email) {
+        return controlPhraseDao.getByUserId(getIdByEmail(email));
+    }
+
+    @Override
+    public void changeControlPhrase(long userId, String phrase) {
+    controlPhraseDao.updatePhrese(userId, phrase);
+  }
 
 }

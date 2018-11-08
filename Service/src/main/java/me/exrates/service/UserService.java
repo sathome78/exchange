@@ -203,4 +203,8 @@ public interface UserService {
     boolean checkPassword(int userId, String password);
 
     long countUserIps(String userEmail);
+
+    String getControlPhrase(String email);
+
+    void changeControlPhrase(long userId, String phrase);
 }

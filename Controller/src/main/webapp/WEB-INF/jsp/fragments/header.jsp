@@ -241,6 +241,12 @@
                             ${pinError}
                     </div>
                 </c:if>
+                <c:if test="${controlPhrase != null && controlPhrase != ''}">
+                    <div>
+                        <loc:message code="login.controlPhrase"/><br>
+                        <h3><b><div>${controlPhrase}</div></b></h3>
+                    </div>
+                </c:if>
                 <form id="pin_2fa_login_form" action="${loginUrl}" method="post" class="form">
                     <div class="field">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
