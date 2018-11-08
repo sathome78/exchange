@@ -237,15 +237,15 @@ public class NgUserSettingsController {
 
     @PostMapping("/userFiles/docs/{type}")
     public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody Map<String, String> body,
-                                                           @RequestParam("type") String type) {
+                                                           @PathVariable("type") String type) {
 
         VerificationDocumentType documentType = VerificationDocumentType.of(type);
         int userId = userService.getIdByEmail(getPrincipalEmail());
         String encoded = body.getOrDefault("BASE_64", "");
 
         if (StringUtils.isEmpty(encoded)) {
-            logger.error("uploadUserVerificationDocs() Error get data from file");
-            throw new RuntimeException("Error get data from file");
+            logger.info("uploadUserVerificationDocs() Error get data from file");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, encoded);
 
@@ -254,6 +254,23 @@ public class NgUserSettingsController {
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/currency_pair/favourites")
+    @ResponseBody
+    public List<Integer> getUserFavouriteCurrencyPairs() {
+        return userService.getUserFavouriteCurrencyPairs(getPrincipalEmail());
+    }
+
+    @PutMapping("/currency_pair/favourites")
+    public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody  Map <Integer, Boolean> params) {
+        int currencyPairId = params.entrySet().iterator().next().getKey();
+        boolean toDelete = params.get(currencyPairId);
+        boolean result = userService.manageUserFavouriteCurrencyPair(getPrincipalEmail(), currencyPairId, toDelete);
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     //        }

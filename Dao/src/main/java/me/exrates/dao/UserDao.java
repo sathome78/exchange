@@ -176,11 +176,15 @@ public interface UserDao {
 
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
-    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+  Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
   User getUserByTemporalToken(String token);
 
-    String getPassword(int userId);
+  String getPassword(int userId);
 
-    long countUserEntrance(String email);
+  long countUserEntrance(String email);
+
+  List<Integer> findFavouriteCurrencyPairsById(int userId);
+
+  boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
 }

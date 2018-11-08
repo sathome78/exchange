@@ -9,7 +9,6 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -36,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -809,6 +807,24 @@ public class UserServiceImpl implements UserService {
   @Override
   public boolean isGlobal2FaActive() {
     return false;
+  }
+
+  @Override
+  public List<Integer> getUserFavouriteCurrencyPairs(String email) {
+    User user = findByEmail(email);
+    if (user == null) {
+      return Collections.emptyList();
+    }
+    return userDao.findFavouriteCurrencyPairsById(user.getId());
+  }
+
+  @Override
+  public boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete) {
+    User user = findByEmail(email);
+    if (user == null) {
+      return false;
+    }
+    return userDao.manageUserFavouriteCurrencyPair(user.getId(), currencyPairId, delete);
   }
 
 }
