@@ -50,7 +50,8 @@ public class NgChartController {
             @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
+            @QueryParam("resolution") String resolution,
+            @QueryParam("countback") String countback) {
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
         List<CandleDto> result = new ArrayList<>();
@@ -74,9 +75,10 @@ public class NgChartController {
             @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
-            @QueryParam("resolution") String resolution) {
+            @QueryParam("resolution") String resolution,
+            @QueryParam("countback") String countback) {
 
-        return getCandleChartHistoryData(symbol, to, from, resolution);
+        return getCandleChartHistoryData(symbol, to, from, resolution, countback);
     }
 
     @GetMapping(value = "/config")
