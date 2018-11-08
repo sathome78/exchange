@@ -303,8 +303,9 @@ public class NgOrderServiceImpl implements NgOrderService {
                 BigDecimal subtract = rateNow.subtract(rateYesterday);
                 subtract = BigDecimalProcessing.normalize(subtract);
                 result.setChangedValue(subtract.toString());
-                if (dto.getLastOrderRate() != null &&
-                         BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
+                if (dto.getLastOrderRate() != null
+                        && balanceByCurrency1 != null
+                        && BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
                     BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
                     balanceByCurrency2 = balanceByCurrency1.multiply(rate);
                 }
