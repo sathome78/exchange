@@ -27,11 +27,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -79,10 +83,10 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
         }
 
-         if (authenticationDto.getEmail().startsWith("promo@ex") ||
-                 authenticationDto.getEmail().startsWith("dev@exrat")) {
+        if (authenticationDto.getEmail().startsWith("promo@ex") ||
+                authenticationDto.getEmail().startsWith("dev@exrat")) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
-         }
+        }
 
         User user;
         try {
@@ -139,7 +143,19 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/register")
-    public void register() {
+    public void register(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        String email = body.get("email");
+
+        if (!processIpBlocking(request, "email", email,
+                () -> userService.ifEmailIsUnique(email))) {
+            throw new NgDashboardException("email is exist or banned");
+        }
+
+
+
+
+
+
         throw new UnsupportedOperationException("not yet");
     }
 
@@ -158,6 +174,21 @@ public class NgUserController {
         } else {
             ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             logger.debug("Authentication pincode for user with email: %s is needed!", email);
+        }
+        return result;
+    }
+
+    private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,
+                                      String value, Supplier<Boolean> operation) {
+        String clientIpAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+        Boolean result = operation.get();
+        if (!result) {
+            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            logger.debug("New user's %s %s is already stored!", logMessageValue, value);
+        } else {
+            ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            logger.debug("New user's %s %s is not stored yet!", logMessageValue, value);
         }
         return result;
     }
