@@ -10,7 +10,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
-import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.mobel.ResponseUserBalances;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -256,7 +255,7 @@ public class NgDashboardController {
 
         String userName = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(userName);
-        ResponseInfoCurrencyPairDto result = ngOrderService.getCurrencyPairInfo(currencyPairId, user);
+        ResponseUserBalances result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

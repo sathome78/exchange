@@ -22,6 +22,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.mobel.ResponseUserBalances;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -276,21 +277,13 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     @Override
-    public ResponseInfoCurrencyPairDto getCurrencyPairInfo(int currencyPairId, User user) {
+    public ResponseInfoCurrencyPairDto getCurrencyPairInfo(int currencyPairId) {
         ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
         try {
 
-            BigDecimal balanceByCurrency1;
-            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
             List<ExOrderStatisticsShortByPairsDto> currencyRate =
                     orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
 
-            balanceByCurrency1 =
-                    dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
-
-            result.setBalanceByCurrency1(balanceByCurrency1);
-
-            BigDecimal balanceByCurrency2 = new BigDecimal(0);
             for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
                 if (dto == null) continue;
 
@@ -303,14 +296,9 @@ public class NgOrderServiceImpl implements NgOrderService {
                 BigDecimal subtract = rateNow.subtract(rateYesterday);
                 subtract = BigDecimalProcessing.normalize(subtract);
                 result.setChangedValue(subtract.toString());
-                if (dto.getLastOrderRate() != null &&
-                         BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
-                    BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-                    balanceByCurrency2 = balanceByCurrency1.multiply(rate);
-                }
+
                 break;
             }
-            result.setBalanceByCurrency2(balanceByCurrency2);
 
             List<StockExchangeStats> statistics;
             statistics =
@@ -332,6 +320,44 @@ public class NgOrderServiceImpl implements NgOrderService {
                     .map(StockExchangeStats::getVolume)
                     .max(Comparator.naturalOrder())
                     .ifPresent(volume -> result.setVolume24h(volume.toString()));
+        } catch (ArithmeticException e) {
+            logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
+            throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public ResponseUserBalances getBalanceByCurrencyPairId(int currencyPairId, User user) {
+        ResponseUserBalances result = new ResponseUserBalances();
+
+        try {
+
+        BigDecimal balanceByCurrency1;
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        List<ExOrderStatisticsShortByPairsDto> currencyRate =
+                orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+
+        balanceByCurrency1 =
+                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+
+        result.setBalanceByCurrency1(balanceByCurrency1);
+
+        BigDecimal balanceByCurrency2 = new BigDecimal(0);
+        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+            if (dto == null) continue;
+
+            if (dto.getLastOrderRate() != null
+                    && balanceByCurrency1 != null
+                    && BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
+                BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
+                balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+            }
+            break;
+        }
+
+        result.setBalanceByCurrency2(balanceByCurrency2);
+
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
             throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
