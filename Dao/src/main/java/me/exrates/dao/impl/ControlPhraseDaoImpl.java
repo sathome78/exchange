@@ -60,4 +60,14 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
         jdbcTemplate.update(deleteSql, params);
     }
 
+    @Override
+    public void addPhrase(long userId, String phrase) {
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("phrase", phrase);
+        }};
+
+        jdbcTemplate.update("INSERT INTO CONTROL_PHRASE values(:user_id, :phrase)", params);
+    }
+
 }
