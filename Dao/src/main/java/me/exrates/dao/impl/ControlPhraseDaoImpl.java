@@ -6,6 +6,7 @@ import me.exrates.model.ControlPhrase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -41,7 +42,8 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
         }
     }
 
-    @CacheEvict(cacheNames = "phrase", key = "#userId")
+    @CacheEvict(cacheNames = "phrase", key = "#userId", beforeInvocation = true)
+    @CachePut(cacheNames = "phrase", key = "#userId")
     public void updatePhrese(long userId, String phrase) throws PhraseNotAllowedException {
         if(phrase == null || phrase.length() == 0 || phrase.trim().length() == 0) throw new PhraseNotAllowedException();
         Map<String, Object> params = new HashMap<String, Object>() {{
