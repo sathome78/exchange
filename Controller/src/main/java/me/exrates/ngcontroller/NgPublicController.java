@@ -3,11 +3,11 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -15,7 +15,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
-import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -61,6 +60,7 @@ public class NgPublicController {
     private final CurrencyService currencyService;
     private final OrderService orderService;
     private final G2faService g2faService;
+    private final NgOrderService ngOrderService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -69,7 +69,8 @@ public class NgPublicController {
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
                               OrderService orderService,
-                              G2faService g2faService) {
+                              G2faService g2faService,
+                              NgOrderService ngOrderService) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
@@ -77,6 +78,7 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
+        this.ngOrderService = ngOrderService;
     }
 
     @PostConstruct
@@ -146,6 +148,11 @@ public class NgPublicController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/info/{currencyPairId}")
+    public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
+        return new ResponseEntity<>(ngOrderService.getCurrencyPairInfo(currencyPairId), HttpStatus.OK);
     }
 
     private String fromChatMessage(ChatMessage message) {
