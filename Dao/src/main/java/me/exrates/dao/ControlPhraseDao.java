@@ -1,8 +1,11 @@
 package me.exrates.dao;
 
 import me.exrates.dao.exception.ControlPhraseNotFoundException;
+import me.exrates.dao.exception.PhraseNotAllowedException;
 
 public interface ControlPhraseDao {
-    String getByUserId(long userId) throws ControlPhraseNotFoundException;
-    void updatePharese(long userId, String phrase);
+    String getByUserId(long userId);
+    void updatePhrese(long userId, String phrase) throws PhraseNotAllowedException;
+
+    void deletePhrase(long userId);
 }

@@ -18,6 +18,7 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = {"classpath:/cache.properties"})
 public class CachingConfig extends CachingConfigurerSupport {
 
+    public static final int phraseAlive = 60 * 60 * 24 * 7;
     @Value("${currencyPairStatistics.timeToLiveSeconds}")
     Integer currencyPairStatisticsTimeToLiveSeconds;
 
@@ -98,6 +99,13 @@ public class CachingConfig extends CachingConfigurerSupport {
         cacheConfiguration = new CacheConfiguration();
         cacheConfiguration.setName("twitter");
         cacheConfiguration.setTimeToLiveSeconds(twitterTimeLineTimeToLiveSeconds);
+        cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
+        cacheConfiguration.setMaxEntriesLocalHeap(1000);
+        config.addCache(cacheConfiguration);
+        /**/
+        cacheConfiguration = new CacheConfiguration();
+        cacheConfiguration.setName("phrase");
+        cacheConfiguration.setTimeToLiveSeconds(phraseAlive);
         cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
         cacheConfiguration.setMaxEntriesLocalHeap(1000);
         config.addCache(cacheConfiguration);

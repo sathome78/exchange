@@ -205,4 +205,8 @@ public interface UserService {
     long countUserIps(String userEmail);
 
     String processIpOnLogin(HttpServletRequest request, String email, Locale locale);
+
+    String getControlPhrase(String email);
+
+    void changeControlPhrase(long userId, String phrase);
 }
