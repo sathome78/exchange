@@ -2,7 +2,6 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.ControlPhraseDao;
 import me.exrates.dao.exception.PhraseNotAllowedException;
-import me.exrates.model.ControlPhrase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,8 +19,8 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final static String updateSql = "UPDATE CONTROL_PHRASE SET PHRASE = :phrase WHERE user_id = :user_id";
-    private final static String selectSql = "SELECT phrase from CONTROL_PHRASE WHERE user_id = :user_id";
-    private static final String deleteSql = "DELETE FROM CONTROL_PHRASE where user_id = :user_id";
+    private final static String selectSql = "SELECT phrase FROM CONTROL_PHRASE WHERE user_id = :user_id";
+    private static final String deleteSql = "DELETE FROM CONTROL_PHRASE WHERE user_id = :user_id";
 
     @Autowired
     public ControlPhraseDaoImpl(@Qualifier(value = "masterTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
@@ -44,7 +43,7 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
 
     @CacheEvict(cacheNames = "phrase", key = "#userId", beforeInvocation = true)
     @CachePut(cacheNames = "phrase", key = "#userId")
-    public void updatePhrese(long userId, String phrase) throws PhraseNotAllowedException {
+    public void updatePhrase(long userId, String phrase) throws PhraseNotAllowedException {
         if(phrase == null || phrase.length() == 0 || phrase.trim().length() == 0) throw new PhraseNotAllowedException();
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("phrase", phrase);

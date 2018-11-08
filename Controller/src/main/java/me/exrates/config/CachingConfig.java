@@ -18,7 +18,9 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = {"classpath:/cache.properties"})
 public class CachingConfig extends CachingConfigurerSupport {
 
-    public static final int phraseAlive = 60 * 60 * 24 * 7;
+    @Value("${controlPhrase.timeToLive}")
+    private Integer phraseAlive;
+
     @Value("${currencyPairStatistics.timeToLiveSeconds}")
     Integer currencyPairStatisticsTimeToLiveSeconds;
 
