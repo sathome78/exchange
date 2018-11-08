@@ -14,8 +14,6 @@ import java.util.List;
 @Setter
 public class ResponseInfoCurrencyPairDto {
 
-    private BigDecimal balanceByCurrency1;
-    private BigDecimal balanceByCurrency2;
     private String currencyRate;
     private String percentChange;
     private String changedValue;

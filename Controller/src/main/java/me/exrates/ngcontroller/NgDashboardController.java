@@ -14,7 +14,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
-import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.mobel.ResponseUserBalances;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
@@ -269,7 +269,7 @@ public class NgDashboardController {
 
         String userName = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(userName);
-        ResponseInfoCurrencyPairDto result = ngOrderService.getCurrencyPairInfo(currencyPairId, user);
+        ResponseUserBalances result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
