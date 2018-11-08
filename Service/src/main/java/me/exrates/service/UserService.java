@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.dao.exception.PhraseNotAllowedException;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -206,5 +207,5 @@ public interface UserService {
 
     String getControlPhrase(String email);
 
-    void changeControlPhrase(long userId, String phrase);
+    void changeControlPhrase(long userId, String phrase) throws PhraseNotAllowedException;
 }
