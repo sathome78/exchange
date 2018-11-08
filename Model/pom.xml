@@ -17,6 +17,12 @@
   </properties>
  
  <dependencies>
+     <dependency>
+         <groupId>kds</groupId>
+         <artifactId>Dao</artifactId>
+         <version>0.0.1-SNAPSHOT</version>
+         <scope>compile</scope>
+     </dependency>
  </dependencies>
  
 </project>
