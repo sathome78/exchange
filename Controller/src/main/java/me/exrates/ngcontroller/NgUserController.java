@@ -2,9 +2,11 @@ package me.exrates.ngcontroller;
 
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
+import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.ngcontroller.service.UserVerificationService;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
@@ -18,6 +20,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,13 +61,19 @@ public class NgUserController {
     private final SecureService secureService;
     private final NotificationsSettingsService notificationsSettingsService;
     private final G2faService g2faService;
+    private final UserVerificationService userVerificationService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
-                            UserService userService, ReferralService referralService, SecureService secureService, NotificationsSettingsService notificationsSettingsService, NotificationService notificationService, G2faService g2faService) {
+                            UserService userService, ReferralService referralService,
+                            SecureService secureService,
+                            NotificationsSettingsService notificationsSettingsService,
+                            NotificationService notificationService,
+                            G2faService g2faService,
+                            UserVerificationService userVerificationService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
@@ -72,6 +81,7 @@ public class NgUserController {
         this.secureService = secureService;
         this.notificationsSettingsService = notificationsSettingsService;
         this.g2faService = g2faService;
+        this.userVerificationService = userVerificationService;
     }
 
     @PostMapping(value = "/authenticate")
@@ -143,17 +153,13 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/register")
-    public void register(@RequestBody Map<String, String> body, HttpServletRequest request) {
-        String email = body.get("email");
+    public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
-        if (!processIpBlocking(request, "email", email,
-                () -> userService.ifEmailIsUnique(email))) {
+        if (!processIpBlocking(request, "email", userEmailDto.getEmail(),
+                () -> userService.ifEmailIsUnique(userEmailDto.getEmail()))) {
             throw new NgDashboardException("email is exist or banned");
         }
-
-
-
-
+        userVerificationService.saveUser(userEmailDto, request);
 
 
         throw new UnsupportedOperationException("not yet");

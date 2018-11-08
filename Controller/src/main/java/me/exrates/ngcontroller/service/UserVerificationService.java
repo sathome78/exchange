@@ -1,10 +1,12 @@
 package me.exrates.ngcontroller.service;
 
 import me.exrates.model.User;
+import me.exrates.model.UserEmailDto;
 import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
 import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
 import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface UserVerificationService {
@@ -22,4 +24,8 @@ public interface UserVerificationService {
     UserDocVerificationDto findByUserAndDocumentType(User user, VerificationDocumentType type);
 
     List<UserDocVerificationDto> findDocsByUser(User user);
+
+    boolean saveUser(UserEmailDto userEmailDto, HttpServletRequest request);
+
+    boolean confirmRegistrationUser(String token);
 }
