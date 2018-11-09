@@ -140,7 +140,7 @@ public class UserVerificationServiceImpl implements UserVerificationService {
         Email email = new Email();
         StringBuilder confirmationUrl = new StringBuilder("?t=" + token.getValue());
 
-        String rootUrl = "url";
+        String rootUrl = "http://dev4.exrates.tech/final-registration/token";
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +

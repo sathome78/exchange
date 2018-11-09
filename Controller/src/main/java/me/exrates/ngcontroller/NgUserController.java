@@ -155,14 +155,12 @@ public class NgUserController {
     @PostMapping(value = "/register")
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
-        if (!processIpBlocking(request, "email", userEmailDto.getEmail(),
-                () -> userService.ifEmailIsUnique(userEmailDto.getEmail()))) {
+        if (!userService.ifEmailIsUnique(userEmailDto.getEmail())) {
             throw new NgDashboardException("email is exist or banned");
         }
         userVerificationService.saveUser(userEmailDto, request);
 
-
-        throw new UnsupportedOperationException("not yet");
+        return ResponseEntity.ok().build();
     }
 
     private String getAvatarPathPrefix(HttpServletRequest request) {
