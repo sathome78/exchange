@@ -3,11 +3,12 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -15,7 +16,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
-import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
@@ -72,7 +72,8 @@ public class NgPublicController {
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
                               OrderService orderService,
-                              G2faService g2faService) {
+                              G2faService g2faService,
+                              NgOrderService ngOrderService) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
@@ -80,6 +81,7 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
+        this.ngOrderService = ngOrderService;
     }
 
     @PostConstruct
@@ -149,6 +151,18 @@ public class NgPublicController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/info/{currencyPairId}")
+    public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
+        try {
+            ResponseInfoCurrencyPairDto currencyPairInfo = ngOrderService.getCurrencyPairInfo(currencyPairId);
+            return new ResponseEntity<>(currencyPairInfo, HttpStatus.OK);
+        } catch (Exception e){
+            logger.error("Error - {}", e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     private String fromChatMessage(ChatMessage message) {

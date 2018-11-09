@@ -21,6 +21,8 @@ import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
+@PropertySource(value = {"classpath:/angular.properties"})
 public class NgUserController {
 
     private static final Logger logger = LogManager.getLogger(NgUserController.class);
@@ -51,6 +54,9 @@ public class NgUserController {
     private final SecureService secureService;
     private final NotificationsSettingsService notificationsSettingsService;
     private final G2faService g2faService;
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
@@ -106,11 +112,16 @@ public class NgUserController {
         }
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
-        if (isEmpty(authenticationDto.getPin())) {
-            if(!shouldLoginWithGoogle) {
-                secureService.sendLoginPincode(user, request);
+
+        if (!DEV_MODE) {
+
+            if (isEmpty(authenticationDto.getPin())) {
+
+                if (!shouldLoginWithGoogle) {
+                    secureService.sendLoginPincode(user, request);
+                }
+                return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
             }
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
         authenticationDto.setPinRequired(true);
