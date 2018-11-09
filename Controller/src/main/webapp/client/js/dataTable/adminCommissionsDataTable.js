@@ -123,6 +123,9 @@ function updateMerchantCommissionsDataTable() {
             "bInfo": false,
             "columns": [
                 {
+                    "data": "ordinalNumber"
+                },
+                {
                     "data": "merchantName"
                 },
                 {
