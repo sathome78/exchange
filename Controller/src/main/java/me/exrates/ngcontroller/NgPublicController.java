@@ -1,7 +1,6 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
@@ -16,6 +15,8 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
+import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -62,6 +62,8 @@ public class NgPublicController {
     private final CurrencyService currencyService;
     private final TelegramChatBotService telegramChatBotService;
     private final OrderService orderService;
+    private final G2faService g2faService;
+    private final NgOrderService ngOrderService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -69,15 +71,15 @@ public class NgPublicController {
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
-                              TelegramChatBotService telegramChatBotService,
-                              OrderService orderService) {
+                              OrderService orderService,
+                              G2faService g2faService) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
         this.currencyService = currencyService;
-        this.telegramChatBotService = telegramChatBotService;
         this.orderService = orderService;
+        this.g2faService = g2faService;
     }
 
     @PostConstruct
@@ -97,10 +99,7 @@ public class NgPublicController {
     @GetMapping("/is_google_2fa_enabled")
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
-        User user = userService.findByEmail(email);
-        return false;
-        // todo
-//        return notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        return g2faService.isGoogleAuthenticatorEnable(email);
     }
 
     @GetMapping(value = "/if_username_exists")
@@ -115,8 +114,7 @@ public class NgPublicController {
     @ResponseBody
     public List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatBotService.getMessages());
-            return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
+            return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
         } catch (Exception e) {
             return Collections.emptyList();
         }
