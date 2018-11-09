@@ -60,7 +60,6 @@ public class NgPublicController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final CurrencyService currencyService;
-    private final TelegramChatBotService telegramChatBotService;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
