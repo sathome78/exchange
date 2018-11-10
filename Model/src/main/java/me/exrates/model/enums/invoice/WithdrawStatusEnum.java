@@ -3,6 +3,7 @@ package me.exrates.model.enums.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.exceptions.*;
+import org.telegram.telegrambots.api.objects.payments.Invoice;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -23,21 +24,21 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
       schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_CONFIRM, WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO);
     }
   },
-  WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL(22) {
+  WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL(22, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ANALYTICS_FOR_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
-  WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO(23) {
+  WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO(23, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ANALYTICS_SEMI_AUTO);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
-  IN_WORK_OF_ANALYTICS_FOR_MANUAL(24) {
+  IN_WORK_OF_ANALYTICS_FOR_MANUAL(24, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ANALYTICS_MANUAL);
@@ -46,7 +47,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
-  IN_WORK_OF_ANALYTICS_SEMI_AUTO(25) {
+  IN_WORK_OF_ANALYTICS_SEMI_AUTO(25, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ANALYTICS_SEMI_AUTO);
@@ -104,12 +105,12 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  DECLINED_ANALYTICS_MANUAL(28) {
+  DECLINED_ANALYTICS_MANUAL(28, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  DECLINED_ANALYTICS_SEMI_AUTO(29) {
+  DECLINED_ANALYTICS_SEMI_AUTO(29, InvoiceUserType.ANLYTIC) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
@@ -307,13 +308,26 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
 
   private Integer code;
 
+  private InvoiceUserType invoiceUserType;
+
   WithdrawStatusEnum(Integer code) {
     this.code = code;
+    this.invoiceUserType = InvoiceUserType.ADMIN;
+  }
+
+  WithdrawStatusEnum(Integer code, InvoiceUserType invoiceUserType) {
+    this.code = code;
+    this.invoiceUserType = invoiceUserType;
   }
 
   @Override
   public Integer getCode() {
     return code;
+  }
+
+  @Override
+  public InvoiceUserType getInvoiceUserType() {
+    return invoiceUserType;
   }
 
   public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
