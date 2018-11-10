@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
@@ -17,6 +18,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -62,6 +65,7 @@ public class NgPublicController {
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
+    private final TelegramChatBotService telegramChatBotService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -71,7 +75,8 @@ public class NgPublicController {
                               CurrencyService currencyService,
                               OrderService orderService,
                               G2faService g2faService,
-                              NgOrderService ngOrderService) {
+                              NgOrderService ngOrderService,
+                              TelegramChatBotService telegramChatBotService1) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
@@ -80,6 +85,7 @@ public class NgPublicController {
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
+        this.telegramChatBotService = telegramChatBotService1;
     }
 
     @PostConstruct
@@ -114,9 +120,11 @@ public class NgPublicController {
     @ResponseBody
     public List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            return chatService.getPublicChatHistoryByDate(ChatLang.toInstance(lang));
+            List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatBotService.getMessages());
+            return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
+
         }
     }
 
