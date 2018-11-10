@@ -27,7 +27,7 @@ import java.util.Queue;
 
 @Service
 @Log4j2(topic = "message_notify")
-@PropertySource("classpath:telegram_chat_bot.properties")
+@PropertySource("classpath:/telegram_chat_bot.properties")
 public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static Logger logger = LogManager.getLogger(TelegramChatBotService.class);
