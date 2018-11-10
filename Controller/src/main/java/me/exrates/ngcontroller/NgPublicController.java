@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -149,7 +150,7 @@ public class NgPublicController {
     @GetMapping("/currencies/fast")
     @ResponseBody
     public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
-        return exchangeRatesHolder.getAllRates();
+        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
     }
 
     @GetMapping("/info/{currencyPairId}")
