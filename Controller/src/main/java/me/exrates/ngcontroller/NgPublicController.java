@@ -148,15 +148,10 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/currencies/min-max/{currencyPairId}")
-    public ResponseEntity<Map<String, OrderListDto>> getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
-        try {
-            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-            Map<String, OrderListDto> values = orderService.getLastMinAndMaxOrderFor(currencyPair);
-            return ResponseEntity.ok(values);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping("/currencies/fast")
+    @ResponseBody
+    public String getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
     @GetMapping("/info/{currencyPairId}")
