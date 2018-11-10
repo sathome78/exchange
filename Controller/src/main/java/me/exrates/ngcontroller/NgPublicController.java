@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -16,6 +17,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -60,8 +62,10 @@ public class NgPublicController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final CurrencyService currencyService;
-    private final TelegramChatBotService telegramChatBotService;
     private final OrderService orderService;
+    private final G2faService g2faService;
+    private final NgOrderService ngOrderService;
+    private final TelegramChatBotService telegramChatBotService;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -69,15 +73,19 @@ public class NgPublicController {
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
-                              TelegramChatBotService telegramChatBotService,
-                              OrderService orderService) {
+                              OrderService orderService,
+                              G2faService g2faService,
+                              NgOrderService ngOrderService,
+                              TelegramChatBotService telegramChatBotService1) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
         this.currencyService = currencyService;
-        this.telegramChatBotService = telegramChatBotService;
         this.orderService = orderService;
+        this.g2faService = g2faService;
+        this.ngOrderService = ngOrderService;
+        this.telegramChatBotService = telegramChatBotService1;
     }
 
     @PostConstruct
@@ -97,10 +105,7 @@ public class NgPublicController {
     @GetMapping("/is_google_2fa_enabled")
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
-        User user = userService.findByEmail(email);
-        return false;
-        // todo
-//        return notificationsSettingsService.isGoogleTwoFALoginEnabled(user);
+        return g2faService.isGoogleAuthenticatorEnable(email);
     }
 
     @GetMapping(value = "/if_username_exists")
@@ -119,6 +124,7 @@ public class NgPublicController {
             return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
+
         }
     }
 
@@ -151,6 +157,18 @@ public class NgPublicController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/info/{currencyPairId}")
+    public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
+        try {
+            ResponseInfoCurrencyPairDto currencyPairInfo = ngOrderService.getCurrencyPairInfo(currencyPairId);
+            return new ResponseEntity<>(currencyPairInfo, HttpStatus.OK);
+        } catch (Exception e){
+            logger.error("Error - {}", e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     private String fromChatMessage(ChatMessage message) {

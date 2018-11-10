@@ -9,16 +9,18 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.SessionParams;
-import me.exrates.model.User;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.security.exception.*;
-import me.exrates.service.NotificationService;
+import me.exrates.security.exception.IncorrectPasswordException;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.MissingCredentialException;
+import me.exrates.security.exception.TokenException;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,9 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -46,19 +50,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @Service
-@PropertySource(value = {"classpath:/mobile.properties"})
+@PropertySource(value = {"classpath:/mobile.properties", "classpath:/angular.properties"})
 public class AuthTokenServiceImpl implements AuthTokenService {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
-
+    private static final int PIN_WAIT_MINUTES = 20;
     @Value("${token.key}")
     private String TOKEN_KEY;
     @Value("${token.duration}")
     private long TOKEN_DURATION_TIME;
     @Value("${token.max.duration}")
     private long TOKEN_MAX_DURATION_TIME;
-    private static final int PIN_WAIT_MINUTES = 20;
-
-
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -75,7 +78,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Autowired
     private SessionParamsService sessionParamsService;
     @Autowired
-    private NotificationService notificationService;
+    private G2faService g2faService;
 
     private Map<String, LocalDateTime> usersForPincheck = new ConcurrentHashMap<>();
 
@@ -94,34 +97,20 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
         if (isGoogleTwoFAEnabled) {
             Integer userId = userService.getIdByEmail(dto.getEmail());
-            if (!notificationService.checkGoogle2faVerifyCode(dto.getPin(), userId)){
-                throw new IncorrectPinException("Incorrect google auth code");
+            if (!g2faService.checkGoogle2faVerifyCode(dto.getPin(), userId)) {
+                if (!DEV_MODE) {
+                    throw new IncorrectPinException("Incorrect google auth code");
+                }
             }
-        } else if(!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-            PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
-            throw new IncorrectPinException(res);
+        } else if (!DEV_MODE) {
+            if (!userService.checkPin(dto.getEmail(), dto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                PinDto res = secureService.reSendLoginMessage(request, dto.getEmail(), true);
+                throw new IncorrectPinException(res);
+            }
         }
         return prepareAuthTokenNg(userDetails, request, clientIp);
     }
 
-    @Override
-    public Optional<AuthTokenDto> retrieveToken(String username, String encodedPassword) {
-        if (username == null || encodedPassword == null) {
-            throw new MissingCredentialException("Credentials missing");
-        }
-        String password;
-        if (username.equals("avto12@i.ua")) {
-            password = encodedPassword;
-        } else {
-            password = RestApiUtils.decodePassword(encodedPassword);
-        }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            return prepareAuthToken(userDetails);
-        } else {
-            throw new IncorrectPasswordException("Incorrect password");
-        }
-    }
     private Optional<AuthTokenDto> prepareAuthTokenNg(UserDetails userDetails, HttpServletRequest request, String clientIp) {
         ApiAuthToken token = createAuthToken(userDetails.getUsername());
         Map<String, Object> tokenData = new HashMap<>();
@@ -133,7 +122,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         Optional<SessionParams> params = Optional.of(sessionParamsService.getByEmailOrDefault(userDetails.getUsername()));
         Date expiration = params
                 .map(p -> getExpirationTime(p.getSessionTimeMinutes()))
-                .orElseGet(() -> getExpirationTime(TOKEN_MAX_DURATION_TIME/60));
+                .orElseGet(() -> getExpirationTime(TOKEN_MAX_DURATION_TIME / 60));
         tokenData.put("expiration", expiration.getTime());
         jwtBuilder.setClaims(tokenData);
         AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
@@ -241,18 +230,4 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
     }
 
-    @Override
-    public String getUsernameFromToken(HttpServletRequest request) {
-        String token = request.getHeader("Exrates-Rest-Token");
-        if (token == null) {
-            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-        }
-        DefaultClaims claims;
-        try {
-            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
-            return claims.getSubject();
-        } catch (Exception ex) {
-            throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
-        }
-    }
 }
