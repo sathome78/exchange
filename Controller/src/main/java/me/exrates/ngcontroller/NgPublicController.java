@@ -3,19 +3,18 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
-import me.exrates.model.dto.onlineTableDto.OrderListDto;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
@@ -59,9 +58,9 @@ public class NgPublicController {
 
     private final ChatService chatService;
     private final IpBlockingService ipBlockingService;
+    private final ExchangeRatesHolder exchangeRatesHolder;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final CurrencyService currencyService;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
@@ -70,18 +69,17 @@ public class NgPublicController {
     @Autowired
     public NgPublicController(ChatService chatService,
                               IpBlockingService ipBlockingService,
-                              UserService userService,
+                              ExchangeRatesHolder exchangeRatesHolder, UserService userService,
                               SimpMessagingTemplate messagingTemplate,
-                              CurrencyService currencyService,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatBotService telegramChatBotService1) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
+        this.exchangeRatesHolder = exchangeRatesHolder;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
-        this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
@@ -150,8 +148,8 @@ public class NgPublicController {
 
     @GetMapping("/currencies/fast")
     @ResponseBody
-    public String getMinAndMaxOrdersSell() {
-        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
+    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
+        return exchangeRatesHolder.getAllRates();
     }
 
     @GetMapping("/info/{currencyPairId}")
