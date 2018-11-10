@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * Created by Maks on 05.10.2017.
  */
-@PropertySource("classpath:telegram_bot.properties")
+@PropertySource("classpath:/telegram_bot.properties")
 @Log4j2(topic = "message_notify")
 @Component
 public class TelegramBotService  extends TelegramLongPollingBot {
