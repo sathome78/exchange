@@ -201,6 +201,11 @@ public enum TransferStatusEnum implements InvoiceStatus {
     return code;
   }
 
+  @Override
+  public InvoiceUserType getInvoiceUserType() {
+    return InvoiceUserType.ADMIN;
+  }
+
   public InvoiceActionTypeEnum getStartAction(Boolean isVoucher) {
     if (isVoucher) {
       return POSTPONE;
@@ -208,6 +213,8 @@ public enum TransferStatusEnum implements InvoiceStatus {
       return POST;
     }
   }
+
+
 
 }
 

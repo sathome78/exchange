@@ -297,6 +297,11 @@ public enum RefillStatusEnum implements InvoiceStatus {
     return code;
   }
 
+  @Override
+  public InvoiceUserType getInvoiceUserType() {
+    return InvoiceUserType.ADMIN;
+  }
+
   public InvoiceActionTypeEnum getStartAction(Merchant merchant) {
     if (merchant.getProcessType() == MerchantProcessType.INVOICE) {
       return PUT_FOR_CONFIRM_USER;
@@ -304,6 +309,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
       return PUT_FOR_PENDING;
     }
   }
+
 
 }
 

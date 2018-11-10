@@ -44,4 +44,5 @@ public interface InvoiceStatus {
 
   String name();
 
+    InvoiceUserType getInvoiceUserType();
 }
