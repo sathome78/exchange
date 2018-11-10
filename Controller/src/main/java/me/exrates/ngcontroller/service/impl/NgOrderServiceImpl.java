@@ -294,9 +294,10 @@ public class NgOrderServiceImpl implements NgOrderService {
                 BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
                 BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
                 BigDecimal subtract = rateNow.subtract(rateYesterday);
-                subtract = BigDecimalProcessing.normalize(subtract);
-                result.setChangedValue(subtract.toString());
-
+                if (subtract != null) {
+                    subtract = BigDecimalProcessing.normalize(subtract);
+                    result.setChangedValue(subtract.toString());
+                }
                 break;
             }
 
@@ -333,30 +334,30 @@ public class NgOrderServiceImpl implements NgOrderService {
 
         try {
 
-        BigDecimal balanceByCurrency1;
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        List<ExOrderStatisticsShortByPairsDto> currencyRate =
-                orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+            BigDecimal balanceByCurrency1;
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            List<ExOrderStatisticsShortByPairsDto> currencyRate =
+                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
 
-        balanceByCurrency1 =
-                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+            balanceByCurrency1 =
+                    dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
 
-        result.setBalanceByCurrency1(balanceByCurrency1);
+            result.setBalanceByCurrency1(balanceByCurrency1);
 
-        BigDecimal balanceByCurrency2 = new BigDecimal(0);
-        for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-            if (dto == null) continue;
+            BigDecimal balanceByCurrency2 = new BigDecimal(0);
+            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+                if (dto == null) continue;
 
-            if (dto.getLastOrderRate() != null
-                    && balanceByCurrency1 != null
-                    && BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
-                BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-                balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+                if (dto.getLastOrderRate() != null
+                        && balanceByCurrency1 != null
+                        && BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
+                    BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
+                    balanceByCurrency2 = balanceByCurrency1.multiply(rate);
+                }
+                break;
             }
-            break;
-        }
 
-        result.setBalanceByCurrency2(balanceByCurrency2);
+            result.setBalanceByCurrency2(balanceByCurrency2);
 
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());

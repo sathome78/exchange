@@ -7,6 +7,7 @@ import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
@@ -152,7 +153,14 @@ public class NgPublicController {
 
     @GetMapping("/info/{currencyPairId}")
     public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
-        return new ResponseEntity<>(ngOrderService.getCurrencyPairInfo(currencyPairId), HttpStatus.OK);
+        try {
+            ResponseInfoCurrencyPairDto currencyPairInfo = ngOrderService.getCurrencyPairInfo(currencyPairId);
+            return new ResponseEntity<>(currencyPairInfo, HttpStatus.OK);
+        } catch (Exception e){
+            logger.error("Error - {}", e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     private String fromChatMessage(ChatMessage message) {
