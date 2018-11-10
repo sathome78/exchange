@@ -150,7 +150,7 @@ public class NgPublicController {
 
     @GetMapping("/currencies/fast")
     @ResponseBody
-    public String getMinAndMaxOrdersSell(@PathVariable int currencyPairId) {
+    public String getMinAndMaxOrdersSell() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
