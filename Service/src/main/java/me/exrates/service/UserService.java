@@ -209,5 +209,5 @@ public interface UserService {
 
     String getControlPhrase(String email);
 
-    void changeControlPhrase(long userId, String phrase) throws PhraseNotAllowedException;
+    void changeControlPhrase(String userId, String phrase) throws PhraseNotAllowedException;
 }
