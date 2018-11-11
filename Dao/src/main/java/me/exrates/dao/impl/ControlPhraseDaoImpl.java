@@ -36,7 +36,7 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
         }};
         try {
             return jdbcTemplate.queryForObject(selectSql, params, String.class);
-        } catch (IncorrectResultSizeDataAccessException e){
+        } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
     }
@@ -44,25 +44,27 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
     @CacheEvict(cacheNames = "phrase", key = "#userId")
     @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20")
     public void updatePhrase(long userId, String phrase) throws PhraseNotAllowedException {
-        if(phrase == null || phrase.length() == 0 || phrase.trim().length() == 0 || phrase.length() > 20) throw new PhraseNotAllowedException(); //todo handle
+        if (phrase == null || phrase.length() == 0 || phrase.trim().length() == 0 || phrase.length() > 20)
+            throw new PhraseNotAllowedException(); //todo handle
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("phrase", phrase);
             put("user_id", userId);
         }};
 
-        jdbcTemplate.update(updateSql, params);
+        if(jdbcTemplate.update(updateSql, params) == 0) addPhrase(userId, phrase);
     }
 
     @CacheEvict(cacheNames = "phrase", key = "#userId")
     @Override
-    public void deletePhrase(long userId){
+    public void deletePhrase(long userId) {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
         }};
         jdbcTemplate.update(deleteSql, params);
     }
 
-    @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20") //todo check
+    @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20")
+    //todo check
     @Override
     public void addPhrase(long userId, String phrase) {
         Map<String, Object> params = new HashMap<String, Object>() {{
@@ -70,7 +72,7 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
             put("phrase", phrase);
         }};
 
-        jdbcTemplate.update("INSERT INTO CONTROL_PHRASE values(:user_id, :phrase)", params);
+        jdbcTemplate.update("INSERT INTO CONTROL_PHRASE(user_id, phrase) values(:user_id, :phrase)", params);
     }
 
 }
