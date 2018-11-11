@@ -7,6 +7,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.dao.exception.PhraseNotAllowedException;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
@@ -298,6 +299,7 @@ public class EntryController {
        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
+        mav.addObject("controlPhrase", new ControlPhrase((userService.getControlPhrase(principal.getName()))));
        /* mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);*/
         return mav;
@@ -426,6 +428,14 @@ public class EntryController {
         return redirectView;
     }
 */
+   @PostMapping("/settings/controlPhrase/update")
+   public RedirectView updateControlPhrase(@ModelAttribute("controlPhrase") ControlPhrase controlPhrase, RedirectAttributes redirectAttributes, Principal principal) throws PhraseNotAllowedException {
+       RedirectView redirectView = new RedirectView("/settings");
+       userService.changeControlPhrase(principal.getName(), controlPhrase.getPhrase());
+       redirectAttributes.addFlashAttribute("activeTabId", "control-phrase-wrapper");
+       return redirectView;
+   }
+
     @RequestMapping("/settings/sessionOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {

@@ -813,8 +813,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changeControlPhrase(long userId, String phrase) throws PhraseNotAllowedException {
-        controlPhraseDao.updatePhrase(userId, phrase);
+    public void changeControlPhrase(String email, String phrase) throws PhraseNotAllowedException {
+        controlPhraseDao.updatePhrase(getIdByEmail(email), phrase);
     }
 
 }

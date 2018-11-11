@@ -9,7 +9,6 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -207,5 +206,5 @@ public interface UserService {
 
     String getControlPhrase(String email);
 
-    void changeControlPhrase(long userId, String phrase) throws PhraseNotAllowedException;
+    void changeControlPhrase(String userId, String phrase) throws PhraseNotAllowedException;
 }
