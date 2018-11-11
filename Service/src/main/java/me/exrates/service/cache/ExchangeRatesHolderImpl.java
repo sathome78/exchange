@@ -53,7 +53,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         return pairs;
     }
 
-
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id) {
         if (id == null || id.isEmpty()) {
@@ -78,7 +77,10 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private String getPriceInUsd(BigDecimal dealPrice, int pairID) {
-        BigDecimal lastRateForBtcUsd = new BigDecimal(ratesMap.get(pairID).getLastOrderRate());
-        return lastRateForBtcUsd.multiply(dealPrice).toPlainString();
+        if (ratesMap.containsKey(pairID)) {
+            BigDecimal lastRateForBtcUsd = new BigDecimal(ratesMap.get(pairID).getLastOrderRate());
+            return lastRateForBtcUsd.multiply(dealPrice).toPlainString();
+        }
+        return "417";
     }
 }
