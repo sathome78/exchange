@@ -48,8 +48,11 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllRates() {
-        return new ArrayList<>(ratesMap.values());
+        List<ExOrderStatisticsShortByPairsDto> pairs = new ArrayList<>(ratesMap.values());
+        pairs.forEach(this::calculatePriceInUSD);
+        return pairs;
     }
+
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id) {
@@ -59,5 +62,23 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         List<ExOrderStatisticsShortByPairsDto> result = new ArrayList<>();
         id.forEach(p-> result.add(ratesMap.get(p)));
         return result;
+    }
+
+    private void calculatePriceInUSD(ExOrderStatisticsShortByPairsDto pair) {
+        if (pair.getMarket().equalsIgnoreCase("USD")) {
+            pair.setPriceInUSD(pair.getLastOrderRate());
+            return;
+        }
+        BigDecimal dealPrice = new BigDecimal(pair.getLastOrderRate());
+        if (pair.getMarket().equalsIgnoreCase("BTC")) {
+            pair.setPriceInUSD(getPriceInUsd(dealPrice, 1));
+        } else if (pair.getMarket().equalsIgnoreCase("ETH")) {
+            pair.setPriceInUSD(getPriceInUsd(dealPrice, 14));
+        }
+    }
+
+    private String getPriceInUsd(BigDecimal dealPrice, int pairID) {
+        BigDecimal lastRateForBtcUsd = new BigDecimal(ratesMap.get(pairID).getLastOrderRate());
+        return lastRateForBtcUsd.multiply(dealPrice).toPlainString();
     }
 }
