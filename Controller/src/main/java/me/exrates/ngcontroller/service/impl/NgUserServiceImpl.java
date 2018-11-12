@@ -85,11 +85,13 @@ public class NgUserServiceImpl implements NgUserService {
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
+        String host = getHost(request);
+
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                localeResolver.resolveLocale(request));
+                localeResolver.resolveLocale(request), host);
 
         return true;
     }
@@ -136,7 +138,12 @@ public class NgUserServiceImpl implements NgUserService {
 
 
     @Transactional(rollbackFor = Exception.class)
-    public void sendEmailWithToken(User user, TokenType tokenType, String emailSubject, String emailText, Locale locale) {
+    public void sendEmailWithToken(User user,
+                                   TokenType tokenType,
+                                   String emailSubject,
+                                   String emailText,
+                                   Locale locale,
+                                   String host) {
         TemporalToken token = new TemporalToken();
         token.setUserId(user.getId());
         token.setValue(UUID.randomUUID().toString());
@@ -149,17 +156,21 @@ public class NgUserServiceImpl implements NgUserService {
         Email email = new Email();
         String confirmationUrl = "?t=" + token.getValue();
 
-        String rootUrl = "http://dev4.exrates.tech/final-registration/token";
-
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        rootUrl + confirmationUrl +
+                        host + "/" + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
         sendMailService.sendMail(email);
+    }
+
+    private String getHost(HttpServletRequest request){
+        StringBuffer url = request.getRequestURL();
+        String uri = request.getRequestURI();
+        return url.substring(0, url.indexOf(uri));
     }
 }
