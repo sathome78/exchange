@@ -20,7 +20,6 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
-import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
@@ -96,10 +94,10 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
         }
 
-         if (authenticationDto.getEmail().startsWith("promo@ex") ||
-                 authenticationDto.getEmail().startsWith("dev@exrat")) {
+        if (authenticationDto.getEmail().startsWith("promo@ex") ||
+                authenticationDto.getEmail().startsWith("dev@exrat")) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
-         }
+        }
 
         User user;
         try {
