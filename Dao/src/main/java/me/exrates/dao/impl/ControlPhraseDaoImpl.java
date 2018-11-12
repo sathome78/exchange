@@ -18,8 +18,8 @@ import java.util.Map;
 public class ControlPhraseDaoImpl implements ControlPhraseDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final static String updateSql = "UPDATE CONTROL_PHRASE SET PHRASE = :phrase WHERE user_id = :user_id";
-    private final static String selectSql = "SELECT phrase FROM CONTROL_PHRASE WHERE user_id = :user_id";
+    private final static String UPDATE_SQL = "UPDATE CONTROL_PHRASE SET PHRASE = :phrase WHERE user_id = :user_id";
+    private final static String SELECT_SQL = "SELECT phrase FROM CONTROL_PHRASE WHERE user_id = :user_id";
 
     @Autowired
     public ControlPhraseDaoImpl(@Qualifier(value = "masterTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
@@ -29,12 +29,11 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
     @Override
     @Cacheable(cacheNames = "phrase", key = "#userId")
     public String getByUserId(long userId) {
-        System.out.println("cache get");
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
         }};
         try {
-            return jdbcTemplate.queryForObject(selectSql, params, String.class);
+            return jdbcTemplate.queryForObject(SELECT_SQL, params, String.class);
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
@@ -50,7 +49,7 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
             put("user_id", userId);
         }};
 
-        if(jdbcTemplate.update(updateSql, params) == 0) addPhrase(userId, phrase);
+        if(jdbcTemplate.update(UPDATE_SQL, params) == 0) addPhrase(userId, phrase);
     }
 
     @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20")
