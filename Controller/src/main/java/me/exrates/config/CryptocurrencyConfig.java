@@ -306,7 +306,12 @@ public class CryptocurrencyConfig {
                 "DIME", "DIME", 2000, 20, false, false);
     }
 
-    // LISK-like cryptos
+    @Bean(name = "zalupaServiceImpl")
+	public BitcoinService zalupaServiceImpl() {
+		return new BitcoinServiceImpl("merchants/zalupa_wallet.properties","ZALUPA","ZALUPA", 100, 20, false, false);
+	}
+
+	// LISK-like cryptos
 
 
     @Bean(name = "liskServiceImpl")
