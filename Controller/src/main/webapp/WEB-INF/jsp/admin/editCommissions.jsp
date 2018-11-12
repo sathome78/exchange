@@ -66,7 +66,8 @@
                         <table id="merchant-commissions-table">
                             <thead>
                             <tr>
-                                <th><loc:message code="withdrawal.merchant"/> </th>
+                                <th>Id</th>
+                                <th><loc:message code="admin.merchantsCommissions.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>

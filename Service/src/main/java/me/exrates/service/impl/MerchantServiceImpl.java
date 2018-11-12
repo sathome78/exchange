@@ -214,7 +214,13 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
-    return merchantDao.findMerchantCurrencyOptions(processTypes);
+
+    List<MerchantCurrencyOptionsDto> dtos = merchantDao.findMerchantCurrencyOptions(processTypes);
+    int count = 0;
+    for (MerchantCurrencyOptionsDto dto : dtos) {
+      dto.setOrdinalNumber(++count);
+    }
+    return dtos;
   }
 
   @Override
