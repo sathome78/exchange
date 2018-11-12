@@ -1,11 +1,13 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.mobel.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.BannedIpException;
@@ -28,7 +30,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -83,10 +91,10 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
         }
 
-         if (authenticationDto.getEmail().startsWith("promo@ex") ||
-                 authenticationDto.getEmail().startsWith("dev@exrat")) {
+        if (authenticationDto.getEmail().startsWith("promo@ex") ||
+                authenticationDto.getEmail().startsWith("dev@exrat")) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
-         }
+        }
 
          if (authenticationDto.getEmail().startsWith("promo@ex") ||
                  authenticationDto.getEmail().startsWith("dev@exrat")) {
@@ -176,5 +184,12 @@ public class NgUserController {
                                         HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(NgDashboardException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 }
