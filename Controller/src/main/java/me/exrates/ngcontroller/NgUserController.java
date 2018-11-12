@@ -84,7 +84,9 @@ public class NgUserController {
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
         try {
-            ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            if (!DEV_MODE) {
+                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            }
         } catch (BannedIpException ban) {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
         }
