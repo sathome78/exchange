@@ -24,8 +24,4 @@ public interface UserVerificationService {
     UserDocVerificationDto findByUserAndDocumentType(User user, VerificationDocumentType type);
 
     List<UserDocVerificationDto> findDocsByUser(User user);
-
-    boolean saveUser(UserEmailDto userEmailDto, HttpServletRequest request);
-
-    boolean confirmRegistrationUser(String token);
 }

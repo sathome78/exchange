@@ -6,7 +6,8 @@ import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.ngcontroller.service.UserVerificationService;
+import me.exrates.ngcontroller.mobel.PasswordCreateDto;
+import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
@@ -14,13 +15,10 @@ import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
-import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.util.IpUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -59,9 +56,8 @@ public class NgUserController {
     private final UserService userService;
     private final ReferralService referralService;
     private final SecureService secureService;
-    private final NotificationsSettingsService notificationsSettingsService;
     private final G2faService g2faService;
-    private final UserVerificationService userVerificationService;
+    private final NgUserService ngUserService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -70,18 +66,15 @@ public class NgUserController {
     public NgUserController(IpBlockingService ipBlockingService, AuthTokenService authTokenService,
                             UserService userService, ReferralService referralService,
                             SecureService secureService,
-                            NotificationsSettingsService notificationsSettingsService,
-                            NotificationService notificationService,
                             G2faService g2faService,
-                            UserVerificationService userVerificationService) {
+                            NgUserService ngUserService) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
         this.referralService = referralService;
         this.secureService = secureService;
-        this.notificationsSettingsService = notificationsSettingsService;
         this.g2faService = g2faService;
-        this.userVerificationService = userVerificationService;
+        this.ngUserService = ngUserService;
     }
 
     @PostMapping(value = "/authenticate")
@@ -155,12 +148,13 @@ public class NgUserController {
     @PostMapping(value = "/register")
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
-        if (!userService.ifEmailIsUnique(userEmailDto.getEmail())) {
-            throw new NgDashboardException("email is exist or banned");
-        }
-        userVerificationService.saveUser(userEmailDto, request);
+        boolean result = ngUserService.registerUser(userEmailDto, request);
 
-        return ResponseEntity.ok().build();
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     private String getAvatarPathPrefix(HttpServletRequest request) {
@@ -168,32 +162,10 @@ public class NgUserController {
                 ":" + request.getServerPort() + "/rest";
     }
 
-    private Boolean processIpBlocking(HttpServletRequest request, String email, Supplier<Boolean> operation) {
-        String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-        Boolean result = operation.get();
-        if (!result) {
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            logger.debug("Authentication pincode for user with email: %s is not needed!", email);
-        } else {
-            ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            logger.debug("Authentication pincode for user with email: %s is needed!", email);
-        }
-        return result;
-    }
-
-    private Boolean processIpBlocking(HttpServletRequest request, String logMessageValue,
-                                      String value, Supplier<Boolean> operation) {
-        String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
-        Boolean result = operation.get();
-        if (!result) {
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            logger.debug("New user's %s %s is already stored!", logMessageValue, value);
-        } else {
-            ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            logger.debug("New user's %s %s is not stored yet!", logMessageValue, value);
-        }
-        return result;
+    @PostMapping("/createPassword")
+    private ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
+                                        HttpServletRequest request) {
+        AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
+        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
 }
