@@ -142,9 +142,14 @@ function updateMerchantCommissionsDataTable() {
                 },
                 {
                     "data": "isMerchantCommissionSubtractedForWithdraw",
-                    "render": function (data) {
+                    "render": function ( data, type) {
+                        if (type === "sort" || type === 'type') {
+                            return data;
+                        }
+                        else {
                         return '<span>'.concat(data ? '<i class="fa fa-check green text-1_5"></i>' : '<i class="fa fa-close red text-1_5"></i>')
                             .concat('</span>');
+                        }
                     },
                     "className": "text-center"
                 }
