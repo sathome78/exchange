@@ -22,15 +22,17 @@
                             <tbody>
                             <tr>
                                 <td><loc:message code="controlPhrase.input"/></td>
-                                <td><form:input path="phrase" id="controlPhrase" value="${controlPhrase.phrase}"/><br>
+                                <td><form:input path="phrase" id="controlPhraseInput" value="${controlPhrase.phrase}" maxlength="20"/><br>
                                     <div><loc:message code="controlPhrase.lenght.from{0}To{1}Char" arguments="1, 20"/></div>
                                 </td>
                             </tr>
                             </tbody>
                         </table>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box"><loc:message code="button.update"/></button>
+                        <div id="control_phrase_wrong" class="field__error" style="display: none;">
+                            <loc:message code="controlPhrase.error" arguments="1, 20"/>
+                        </div>
+                        <button id="submitPhraseButton" type="submit" class="blue-box"><loc:message code="button.update"/></button>
                     </form:form>
-
             </div>
         </div>
 

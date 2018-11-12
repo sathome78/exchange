@@ -179,6 +179,22 @@ function SettingsClass() {
         checkDisconnectButton()
     });
 
+    $( "#controlPhraseInput" ).keyup(function() {
+        var sizeVariable = $('#controlPhraseInput').val();
+
+        if (sizeVariable != null && (sizeVariable.length < 1)){
+            $("#control_phrase_wrong").show();
+            $( "#submitPhraseButton" ).prop( "disabled", true );
+            $( "#submitPhraseButton" ).css( "cursor", "not-allowed" );
+            $( "#submitPhraseButton" ).css( "background", "#969faf" );
+        } else {
+            $("#control_phrase_wrong").hide();
+            $( "#submitPhraseButton" ).prop( "disabled", false );
+            $( "#submitPhraseButton" ).css( "cursor", "default" );
+            $( "#submitPhraseButton" ).css( "background", "#5c6a80" );
+        }
+    });
+
     function checkConnectButton() {
         var code = $('#2fa_user_code').val();
         var pass = $('#2fa_user_pass').val();
