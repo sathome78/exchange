@@ -8,7 +8,5 @@ public interface ControlPhraseDao {
 
     void updatePhrase(long userId, String phrase) throws PhraseNotAllowedException;
 
-    void deletePhrase(long userId);
-
     void addPhrase(long userId, String phrase);
 }
