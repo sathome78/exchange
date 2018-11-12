@@ -345,11 +345,11 @@ public class WithdrawServiceImpl implements WithdrawService {
     /**/
     switch (oldSattus.getInvoiceUserType()) {
       case ADMIN : {
-        withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+        withdrawRequestDao.setHolderById(requestId, null);
         break;
       }
       case ANLYTIC : {
-        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
+        withdrawRequestDao.setAnalyticHolderById(requestId, null);
         break;
       }
     }
