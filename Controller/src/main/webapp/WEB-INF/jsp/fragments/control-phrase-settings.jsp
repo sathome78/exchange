@@ -31,7 +31,7 @@
                         <div id="control_phrase_wrong" class="field__error" style="display: none;">
                             <loc:message code="controlPhrase.error" arguments="1, 20"/>
                         </div>
-                        <button id="submitPhraseButton" type="submit" class="blue-box"><loc:message code="button.update"/></button>
+                        <button id="submitPhraseButton" type="submit" class="blue-box" cursor="not-allowed" background = "#969faf"><loc:message code="button.update"/></button>
                     </form:form>
             </div>
         </div>
