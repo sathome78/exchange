@@ -91,12 +91,24 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
         }
 
+         if (authenticationDto.getEmail().startsWith("promo@ex") ||
+                 authenticationDto.getEmail().startsWith("dev@exrat")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
+         }
+
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
+        }
+
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            return new ResponseEntity<>(HttpStatus.GONE); // 410
         }
 
         if (user.getStatus() == UserStatus.REGISTERED) {
@@ -127,7 +139,7 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =

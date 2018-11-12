@@ -112,6 +112,7 @@ public class WsContorller {
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
+//            log.error("Currency pair not found {} ", currencyPair);
             return null;
         }
         JSONArray objectsArray = new JSONArray();

@@ -1,16 +1,20 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
+import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
-import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.mobel.ResponseUserBalances;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
@@ -22,10 +26,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +49,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +71,7 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -73,13 +79,15 @@ public class NgDashboardController {
                                  OrderService orderService,
                                  UserService userService,
                                  LocaleResolver localeResolver,
-                                 NgOrderService ngOrderService) {
+                                 NgOrderService ngOrderService,
+                                 SimpMessagingTemplate messagingTemplate) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/order")
@@ -129,7 +137,12 @@ public class NgDashboardController {
                 throw new NgDashboardException("Unknown type - " + baseType);
         }
 
-        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        if (result) {
+            String destination = "/topic/myorders/".concat(userName);
+            messagingTemplate.convertAndSend(destination, fromResult(result));
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/balance/{currency}")
@@ -256,7 +269,7 @@ public class NgDashboardController {
 
         String userName = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(userName);
-        ResponseInfoCurrencyPairDto result = ngOrderService.getCurrencyPairInfo(currencyPairId, user);
+        ResponseUserBalances result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -273,6 +286,17 @@ public class NgDashboardController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandlerMethodArgumentNotValidException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private String fromResult(boolean result) {
+        String send = "";
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            send = mapper.writeValueAsString(result);
+        } catch (Exception e) {
+            logger.info("Failed to convert result value {}", result);
+        }
+        return send;
     }
 
 }

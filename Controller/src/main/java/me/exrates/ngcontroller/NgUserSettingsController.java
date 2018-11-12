@@ -237,15 +237,15 @@ public class NgUserSettingsController {
 
     @PostMapping("/userFiles/docs/{type}")
     public ResponseEntity<Void> uploadUserVerificationDocs(@RequestBody Map<String, String> body,
-                                                           @RequestParam("type") String type) {
+                                                           @PathVariable("type") String type) {
 
         VerificationDocumentType documentType = VerificationDocumentType.of(type);
         int userId = userService.getIdByEmail(getPrincipalEmail());
         String encoded = body.getOrDefault("BASE_64", "");
 
         if (StringUtils.isEmpty(encoded)) {
-            logger.error("uploadUserVerificationDocs() Error get data from file");
-            throw new RuntimeException("Error get data from file");
+            logger.info("uploadUserVerificationDocs() Error get data from file");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         UserDocVerificationDto data = new UserDocVerificationDto(userId, documentType, encoded);
 
@@ -256,130 +256,29 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    //        }
-    //            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-    //        } else {
-    //            return new ResponseEntity<>(HttpStatus.OK);
-    //        if (userService.update(getUpdateUserDto(user), locale)){
-    //        }
-    //            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    //        if (!user.getFinpassword().equals(user.getConfirmFinPassword())) {
-    //
-    //        user.setConfirmFinPassword(confirmFinpassword);
-    //        user.setFinpassword(finpassword);
-    //        }
-    //            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    //        if(finpassword.isEmpty() || confirmFinpassword.isEmpty()){
-    //
-    //        String confirmFinpassword = body.getOrDefault("confirmFinpassword", "");
-    //        String finpassword = body.getOrDefault("finpassword", "");
-    //        Locale locale = userService.getUserLocaleForMobile(email);
-    //        User user = userService.findByEmail(email);
-    //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-    //    public ResponseEntity<Void> updateFinPassword(@RequestBody Map<String, String> body, HttpServletRequest request){
-//    @PutMapping(value = "/updateFinPassword", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping("currency_pair/favourites")
+    @ResponseBody
+    public List<Integer> getUserFavouriteCurrencyPairs() {
+        return userService.getUserFavouriteCurrencyPairs(getPrincipalEmail());
+    }
 
-//    }
-    //        }
-    //            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-    //        } catch (Exception e) {
-    //            return new ResponseEntity<>(settings, HttpStatus.OK);
-    //                    new HashMap<>(settingsService.getUser2FactorSettings(userId));
-    //            Map<NotificationMessageEventEnum, NotificationTypeEnum> settings =
-    //            int userId = userService.getIdByEmail(userEmail);
-    //        try {
-    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-    //    public ResponseEntity<Map<NotificationMessageEventEnum, NotificationTypeEnum>> getAuthSettings(HttpServletRequest request){
-    //    @GetMapping(value = "/user2FactorAuthSettings", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    //
-    //    }
-    //        }
-    //            return ResponseEntity.unprocessableEntity().build();
-    //        } catch (Exception e) {
-    //            return ResponseEntity.ok().build();
-    //            settingsService.updateUser2FactorSettings(userId, body);
-    //            int userId = userService.getIdByEmail(userEmail);
-    //        try {
-    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-    //    public ResponseEntity<Void> updateAuthorization(@RequestBody Map<String, String> body){
-//    @PutMapping(value = "/updateAuthorization", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-
-//    }
-//    @PutMapping(value = "/updateDocuments", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Void> updateDocuments(@RequestBody Map<String, Boolean> body, HttpServletRequest request){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//
-//        return null;
-//    }
-
-    //            return new ResponseEntity<>(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-//        }
-    //        } catch (Exception e) {
-    //            return new ResponseEntity<>(HttpStatus.OK);
-    //            notificationService.updateNotificationOptionsForUser(userId, options);
-    //            int userId = userService.getIdByEmail(email);
-    //        try {
-    //        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-    //    public ResponseEntity<Void> updateNotifications(@RequestBody  List<NotificationOption> options){
-//    @PutMapping(value = "/updateNotifications", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-
-//    }
-    //        return docs;
-    //        });
-    //            docs.add(uf.getPath().toFile());
-    //        userService.findUserDoc(userId).forEach(uf -> {
-    //        List<File> docs = new ArrayList<>();
-    //        int userId = userService.getIdByEmail(userEmail);
-    //        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-    //    public List<File> getUserFiles() throws Exception {
-//    @GetMapping(value = "/userFiles")
-
-//    }
-    //                .body(resource);
-    //                .contentType(MediaType.parseMediaType("application/octet-stream"))
-    //                .contentLength(imagePath.toFile().length())
-    //        return ResponseEntity.ok()
-    //
-    //        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
-    //        Path imagePath = userFilesService.getUserFilePath(fileName, userId);
-    //
-    //        System.out.println("fileName: " + fileName);
-    //                                                   @PathVariable String fileName) throws NoSuchFileException, IOException {
-    //    public ResponseEntity<Resource> getSingleImage(@PathVariable Integer userId,
-//    @GetMapping(value = "/userFiles/{userId}/{fileName:.+}")
-
-//    }
-
-//    @DeleteMapping(value = "/userFiles/delete")
-//    public ResponseEntity<List<File>> deleteUserFile(@RequestParam("filePath") String filePath) throws Exception {
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        if(filePath.contains("/")) {
-//            filePath = filePath.substring(filePath.lastIndexOf("/")+1);
-//        }
-//        int userId = userService.getIdByEmail(userEmail);
-//        userFilesService.deleteUserFile(filePath, userId);
-//        return new ResponseEntity<>(getUserFiles(), HttpStatus.OK);
-//    }
-
-//    @PutMapping(value = "/userLanguage/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Void> updateUserLanguage(@RequestBody Map<String, String> body){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        if(userService.setPreferredLang(email, body.get("lang").toLowerCase())){
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-//        }
-//    }
-
-//    @GetMapping(value = "/userLanguage", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public ResponseEntity<Map<String, String>> getUserPreferredLanguage(){
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        try {
-//            return ResponseEntity.ok().body(Collections.singletonMap("lang", userService.getPreferedLangByEmail(email)));
-//        } catch (Exception e) {
-//            throw new NotFoundException("Fail to get preferred langauge for user: " + email);
-//        }
-//    }
+    @PutMapping("currency_pair/favourites")
+    public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody  Map <String, String> params) {
+        int currencyPairId;
+        boolean toDelete;
+         try {
+            currencyPairId = Integer.parseInt(params.get("PAIR_ID"));
+            toDelete = Boolean.valueOf(params.get("TO_DELETE"));
+         } catch (Exception e) {
+             logger.info("Failed to convert attributes as {}", e.getMessage());
+             return ResponseEntity.badRequest().build();
+         }
+        boolean result = userService.manageUserFavouriteCurrencyPair(getPrincipalEmail(), currencyPairId, toDelete);
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
     private UpdateUserDto getUpdateUserDto(User user) {
         UpdateUserDto dto = new UpdateUserDto(user.getId());

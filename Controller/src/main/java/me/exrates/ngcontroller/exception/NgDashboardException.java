@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller;
+package me.exrates.ngcontroller.exception;
 
 public class NgDashboardException extends RuntimeException {
     public NgDashboardException(String message) {
