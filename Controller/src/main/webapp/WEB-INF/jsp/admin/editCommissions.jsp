@@ -67,8 +67,8 @@
                             <thead>
                             <tr>
                                 <th>Id</th>
-                                <th><loc:message code="withdrawal.merchant"/> </th>
-                                <th><loc:message code="withdrawal.currency"/> </th>
+                                <th><loc:message code="admin.merchantsCommissions.merchant"/> </th>
+                                <th><loc:message code="withdrawal.currency"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
