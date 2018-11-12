@@ -44,7 +44,7 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
     @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20")
     public void updatePhrase(long userId, String phrase) throws PhraseNotAllowedException {
         if (phrase == null || phrase.length() == 0 || phrase.trim().length() == 0 || phrase.length() > 20)
-            throw new PhraseNotAllowedException(); //todo handle
+            throw new PhraseNotAllowedException();
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("phrase", phrase);
             put("user_id", userId);
@@ -54,7 +54,6 @@ public class ControlPhraseDaoImpl implements ControlPhraseDao {
     }
 
     @CachePut(cacheNames = "phrase", key = "#userId", unless = "#phrase == null || #phrase.length() == 0 || #phrase.trim().length() == 0 || #phrase.length() > 20")
-    //todo check
     @Override
     public void addPhrase(long userId, String phrase) {
         Map<String, Object> params = new HashMap<String, Object>() {{
