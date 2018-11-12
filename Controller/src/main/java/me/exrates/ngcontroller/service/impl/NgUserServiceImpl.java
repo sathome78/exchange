@@ -10,7 +10,7 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.ngcontroller.NgDashboardException;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.mobel.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -154,8 +154,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        rootUrl +
-                        confirmationUrl.toString() +
+                        rootUrl + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
