@@ -3,16 +3,15 @@ package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.model.User;
 import me.exrates.ngcontroller.dao.UserDocVerificationDao;
+import me.exrates.ngcontroller.dao.UserInfoVerificationDao;
 import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
 import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
 import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
-import me.exrates.ngcontroller.dao.UserInfoVerificationDao;
 import me.exrates.ngcontroller.service.UserVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class UserVerificationServiceImpl implements UserVerificationService {

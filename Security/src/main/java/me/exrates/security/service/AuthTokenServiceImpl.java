@@ -21,6 +21,7 @@ import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -228,6 +229,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         } catch (Exception ex) {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
+    }
+
+    @Override
+    public Optional<AuthTokenDto> retrieveTokenNg(String email, HttpServletRequest request) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        return prepareAuthTokenNg(userDetails, request, ipAddress);
     }
 
 }
