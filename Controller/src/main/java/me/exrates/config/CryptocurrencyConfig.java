@@ -306,6 +306,11 @@ public class CryptocurrencyConfig {
                 "DIME", "DIME", 2000, 20, false, false);
     }
 
+	@Bean(name = "quickServiceImpl")
+	public BitcoinService quickServiceImpl() {
+		return new BitcoinServiceImpl("merchants/quick_wallet.properties","QUICK","QUICK", 4, 20, false, true);
+	}
+
 	// LISK-like cryptos
 
 
