@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -110,27 +111,31 @@ public class BtcGenerator {
             "node.bitcoind.notification.wallet.port = $wallet\n";
 
     private static void generate(String ticker, String description, int minConf, boolean fee, boolean isZmq, String host, int port, int blockPort) throws IOException {
-//        File cryptoCurrency = new File(new File("").getAbsoluteFile() + "/Controller/src/main/java/me/exrates/config/" + "CryptocurrencyConfig.java");
-//
-//        FileReader reader = new FileReader(cryptoCurrency);
-//        int c;
-//        StringBuilder builder = new StringBuilder();
-//        while ((c = reader.read()) != -1){
-//            builder.append((char)c);
-//        }
-//        String s = "// LISK-like cryptos";
-//        String bean = "@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n\tpublic BitcoinService " + ticker.toLowerCase()
-//                + "ServiceImpl() {\n\t\treturn new BitcoinServiceImpl(\"merchants/"+ticker.toLowerCase()+"_wallet.properties\","
-//                + "\"" + ticker + "\"," + "\"" + ticker + "\", " + minConf +", 20, false, " + fee + ");\n\t}" + "\n\n\t"+s;
-//        String replace = builder.toString().replace(s, bean);
-//
-//        FileWriter writer = new FileWriter(cryptoCurrency, false);
-//        writer.append(replace).flush();
-//
-//        String newSql = SQL_PATCH.replace("TICKER", ticker).replace("ticker", ticker.toLowerCase());
-//
-
+        createBean(ticker, minConf, fee);
         createSql(ticker, description);
+        createProps(ticker, isZmq, host, port, blockPort);
+    }
+
+    private static void createBean(String ticker, int minConf, boolean fee) throws IOException {
+        File cryptoCurrency = new File(new File("").getAbsoluteFile() + "/Controller/src/main/java/me/exrates/config/" + "CryptocurrencyConfig.java");
+
+        FileReader reader = new FileReader(cryptoCurrency);
+        int c;
+        StringBuilder builder = new StringBuilder();
+        while ((c = reader.read()) != -1){
+            builder.append((char)c);
+        }
+        String s = "// LISK-like cryptos";
+        String bean = "@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n\tpublic BitcoinService " + ticker.toLowerCase()
+                + "ServiceImpl() {\n\t\treturn new BitcoinServiceImpl(\"merchants/"+ticker.toLowerCase()+"_wallet.properties\","
+                + "\"" + ticker + "\"," + "\"" + ticker + "\", " + minConf +", 20, false, " + fee + ");\n\t}" + "\n\n\t"+s;
+        String replace = builder.toString().replace(s, bean);
+
+        FileWriter writer = new FileWriter(cryptoCurrency, false);
+        writer.append(replace).flush();
+    }
+
+    private static void createProps(String ticker, boolean isZmq, String host, int port, int blockPort) throws IOException {
         for (String env : ENVS) {
             File merchantProps = new File(new File("").getAbsoluteFile() + "/Controller/src/main/" + env + "/merchants/" + ticker.toLowerCase() + "_wallet.properties");
             if(!merchantProps.createNewFile()) throw new RuntimeException("Can not create file with pass " + merchantProps.getAbsolutePath() + "\n maybe have not permission!");
@@ -142,7 +147,6 @@ public class BtcGenerator {
             writer.append(NODE_CONFIG.replace("$host", host).replace("$port", String.valueOf(port)).replace("$block", String.valueOf(blockPort))
             .replace("$wallet", String.valueOf(blockPort + 1))).flush();
         }
-
     }
 
     private static void createSql(String ticker, String description) throws IOException {
