@@ -211,6 +211,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("KML", "kmlCoin", 100, false, false, "host", 8090, 10100);
+        generate("QUICK", "Quick", 4, true, true, "172.10.13.245", 8333, 10001);
     }
 }
