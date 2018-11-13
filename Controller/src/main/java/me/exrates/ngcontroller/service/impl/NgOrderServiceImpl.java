@@ -9,10 +9,13 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -36,6 +39,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,6 +52,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class NgOrderServiceImpl implements NgOrderService {
@@ -276,51 +281,82 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ResponseInfoCurrencyPairDto getCurrencyPairInfo(int currencyPairId) {
         ResponseInfoCurrencyPairDto result = new ResponseInfoCurrencyPairDto();
         try {
 
-            List<ExOrderStatisticsShortByPairsDto> currencyRate =
-                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            Optional<BigDecimal> currentRateOptional =
+                    orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, OperationType.BUY);
 
-            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-                if (dto == null) continue;
-
-                result.setCurrencyRate(dto.getLastOrderRate());
-                result.setPercentChange(dto.getPercentChange());
-                result.setLastCurrencyRate(dto.getPredLastOrderRate());
-
-                BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
-                BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
-                BigDecimal subtract = rateNow.subtract(rateYesterday);
-                if (subtract != null) {
-                    subtract = BigDecimalProcessing.normalize(subtract);
-                    result.setChangedValue(subtract.toString());
-                }
-                break;
+            if (currentRateOptional.isPresent()) {
+                BigDecimal rateNow = currentRateOptional.get();
+                result.setCurrencyRate(rateNow.toString());
             }
 
-            List<StockExchangeStats> statistics;
-            statistics =
-                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
-            //set rateHigh
-            statistics.stream()
-                    .map(StockExchangeStats::getPriceHigh)
-                    .max(Comparator.naturalOrder())
-                    .ifPresent(high -> result.setRateHigh(high.toString()));
+            ExOrderStatisticsDto orderStatistic =
+                    orderService.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval(), null);
+            if (orderStatistic != null) {
+                result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??
+                result.setRateLow(orderStatistic.getMinRate());
+                result.setRateHigh(orderStatistic.getMaxRate());
+                result.setVolume24h(orderStatistic.getSumBase());
 
-            //set rateLow
-            statistics.stream()
-                    .map(StockExchangeStats::getPriceLow)
-                    .max(Comparator.reverseOrder())
-                    .ifPresent(low -> result.setRateLow(low.toString()));
+                if (currentRateOptional.isPresent()) {
+                    BigDecimal currentRate = currentRateOptional.get();
+                    BigDecimal lastRate = new BigDecimal(orderStatistic.getFirstOrderRate()); //or orderStatistic.getLastOrderRate() ??
+                    BigDecimal percentGrowth = BigDecimalProcessing.doAction(
+                            currentRate,
+                            BigDecimalProcessing.normalize(lastRate),
+                            ActionType.PERCENT_GROWTH);
+                    result.setPercentChange(percentGrowth.toString());
+                    BigDecimal subtract = BigDecimalProcessing.doAction(currentRate, lastRate, ActionType.SUBTRACT);
+                    result.setChangedValue(subtract.toString());
+                }
+            }
 
-            //set volume24h
-            statistics.stream()
-                    .map(StockExchangeStats::getVolume)
-                    .max(Comparator.naturalOrder())
-                    .ifPresent(volume -> result.setVolume24h(volume.toString()));
+//            List<ExOrderStatisticsShortByPairsDto> currencyRate =
+//                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
+//
+//            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
+//                if (dto == null) continue;
+//
+//                result.setCurrencyRate(dto.getLastOrderRate());
+//                result.setPercentChange(dto.getPercentChange());
+//                result.setLastCurrencyRate(dto.getPredLastOrderRate());
+//
+//                BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
+//                BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
+//                BigDecimal subtract = rateNow.subtract(rateYesterday);
+//                if (subtract != null) {
+//                    subtract = BigDecimalProcessing.normalize(subtract);
+//                    result.setChangedValue(subtract.toString());
+//                }
+//                break;
+//            }
+//
+//            List<StockExchangeStats> statistics;
+//            statistics =
+//                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
+//            //set rateHigh
+//            statistics.stream()
+//                    .map(StockExchangeStats::getPriceHigh)
+//                    .max(Comparator.naturalOrder())
+//                    .ifPresent(high -> result.setRateHigh(high.toString()));
+//
+//            //set rateLow
+//            statistics.stream()
+//                    .map(StockExchangeStats::getPriceLow)
+//                    .max(Comparator.reverseOrder())
+//                    .ifPresent(low -> result.setRateLow(low.toString()));
+//
+//            //set volume24h
+//            statistics.stream()
+//                    .map(StockExchangeStats::getVolume)
+//                    .max(Comparator.naturalOrder())
+//                    .ifPresent(volume -> result.setVolume24h(volume.toString()));
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
             throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
