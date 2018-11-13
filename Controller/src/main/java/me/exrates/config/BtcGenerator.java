@@ -96,7 +96,7 @@ public class BtcGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TICKER');";
 
-    private static final String WALLET_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
+    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
             "node.propertySource=node_config/node_config_zalupa.properties\n" +
             "node.zmqEnabled=isZmq\n" +
             "node.supportInstantSend=false\n" +
@@ -110,8 +110,8 @@ public class BtcGenerator {
             "node.bitcoind.notification.block.port = $block\n" +
             "node.bitcoind.notification.wallet.port = $wallet\n";
 
-    private static void generate(String ticker, String description, int minConf, boolean fee, boolean isZmq, String host, int port, int blockPort) throws IOException {
-        createBean(ticker, minConf, fee);
+    private static void generate(String ticker, String description, int minConf, boolean isSubstructFee, boolean isZmq, String host, int port, int blockPort) throws IOException {
+        createBean(ticker, minConf, isSubstructFee);
         createSql(ticker, description);
         createProps(ticker, isZmq, host, port, blockPort);
     }
@@ -140,7 +140,7 @@ public class BtcGenerator {
             File merchantProps = new File(new File("").getAbsoluteFile() + "/Controller/src/main/" + env + "/merchants/" + ticker.toLowerCase() + "_wallet.properties");
             if(!merchantProps.createNewFile()) throw new RuntimeException("Can not create file with pass " + merchantProps.getAbsolutePath() + "\n maybe have not permission!");
             FileWriter writer = new FileWriter(merchantProps);
-            writer.append(WALLET_PROPERTIES.replace("zalupa", ticker.toLowerCase()).replace("isZmq", String.valueOf(isZmq))).flush();
+            writer.append(WALLET_SCRIPT_PROPERTIES.replace("zalupa", ticker.toLowerCase()).replace("isZmq", String.valueOf(isZmq))).flush();
 
             File nodeConfig = new File(new File("").getAbsoluteFile() + "/Controller/src/main/" + env + "/node_config/node_config_" + ticker.toLowerCase() + ".properties");
             writer = new FileWriter(nodeConfig);
@@ -174,7 +174,43 @@ public class BtcGenerator {
         return "V" + version + "__Bitcoin_fork_" + ticker;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static void main(String[] args) throws IOException {
-        generate("ZALUPA", "zalupaCoin", 100, false, false, "host", 8090, 10100);
+        generate("KML", "kmlCoin", 100, false, false, "host", 8090, 10100);
     }
 }
