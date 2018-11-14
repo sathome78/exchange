@@ -109,6 +109,7 @@ public class withdrawRequestJob {
         }
         catch (Exception e) {
           log.error(ExceptionUtils.getStackTrace(e));
+          withdrawService.rejectToReview(withdrawRequest.getId());
         }
       }
     }
