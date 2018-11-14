@@ -2,12 +2,14 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.CurrencyPair;
 
 /**
  * Created by Valk on 12.04.16.
  */
 @Getter @Setter
+@ToString
 public class ExOrderStatisticsDto {
     private CurrencyPair currencyPair;
     private String firstOrderAmountBase;
