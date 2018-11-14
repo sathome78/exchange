@@ -325,7 +325,6 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        ModelAndView model = new ModelAndView();
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
@@ -340,6 +339,8 @@ public class MainController {
                 } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
+                    String email = ((org.springframework.security.core.userdetails.User) ((UsernamePasswordAuthenticationToken) httpSession.getAttribute("authentication")).getPrincipal()).getUsername();
+                    attr.addFlashAttribute("controlPhrase", userService.getControlPhrase(email));
                 } else if (exceptionClass.equals("IncorrectPinException")) {
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
