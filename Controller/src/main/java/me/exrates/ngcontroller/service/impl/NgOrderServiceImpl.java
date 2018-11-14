@@ -302,7 +302,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                 result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??
                 result.setRateLow(orderStatistic.getMinRate());
                 result.setRateHigh(orderStatistic.getMaxRate());
-                result.setVolume24h(orderStatistic.getSumConvert());
+                result.setVolume24h(orderStatistic.getSumBase());
 
                 if (currentRateOptional.isPresent()) {
                     BigDecimal currentRate = currentRateOptional.get();
@@ -312,8 +312,8 @@ public class NgOrderServiceImpl implements NgOrderService {
                         result.setChangedValue(currentRate.toString());
                     } else {
                         BigDecimal percentGrowth = BigDecimalProcessing.doAction(
-                                BigDecimalProcessing.normalize(lastRate),
                                 currentRate,
+                                BigDecimalProcessing.normalize(lastRate),
                                 ActionType.PERCENT_GROWTH);
                         result.setPercentChange(percentGrowth.toString());
                         BigDecimal subtract = BigDecimalProcessing.doAction(currentRate, lastRate, ActionType.SUBTRACT);
