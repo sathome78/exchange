@@ -392,7 +392,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
     return jdbcTemplate.query(sql, params, (rs, row) -> {
       InOutReportDto dto = new InOutReportDto();
-      dto.setOrderNum(row + 1);
+//      dto.setOrderNum(row + 1);
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setInput(rs.getBigDecimal("input"));
       dto.setOutput(rs.getBigDecimal("output"));

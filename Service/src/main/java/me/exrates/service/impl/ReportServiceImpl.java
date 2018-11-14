@@ -406,19 +406,19 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
-    @Override
-    public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
-                                                                     List<UserRole> roleList) {
-        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-        List<InOutReportDto> report = inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
-
-        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-
-        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrencyName())) ? BigDecimal.ZERO : rates.get(s.getCurrencyName()).getLeft()));
-        //
-        return report;
-    }
+//    @Override
+//    public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+//                                                                     List<UserRole> roleList) {
+//        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+//        List<InOutReportDto> report = inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
+//                .map(UserRole::getRole).collect(Collectors.toList()));
+//
+//        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+//
+//        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrencyName())) ? BigDecimal.ZERO : rates.get(s.getCurrencyName()).getLeft()));
+//        //
+//        return report;
+//    }
 
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
@@ -539,7 +539,6 @@ public class ReportServiceImpl implements ReportService {
         });
     }
 
-    @Transactional
     @Override
     public void generateWalletBalancesReportObject() {
         StopWatch stopWatch = StopWatch.createStarted();
@@ -645,13 +644,13 @@ public class ReportServiceImpl implements ReportService {
                 .collect(toList());
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<ReportDto> getArchiveBalancesReports(LocalDate date) {
         return reportDao.getBalancesReportsNames(date.atTime(LocalTime.MIN), date.atTime(LocalTime.MAX));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public ReportDto getArchiveBalancesReportFile(Integer id) throws Exception {
         ReportDto balancesReport = reportDao.getBalancesReportById(id);
@@ -670,7 +669,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional
     @Override
     public void generateInputOutputSummaryReportObject() {
         StopWatch stopWatch = StopWatch.createStarted();
@@ -699,13 +697,13 @@ public class ReportServiceImpl implements ReportService {
         log.info("Process of generating report object as byte array end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<ReportDto> getArchiveInputOutputReports(LocalDate date) {
         return reportDao.getInOutReportsNames(date.atTime(LocalTime.MIN), date.atTime(LocalTime.MAX));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public ReportDto getArchiveInputOutputReportFile(Integer id) throws Exception {
         ReportDto inOutReport = reportDao.getInOutReportById(id);
@@ -722,7 +720,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getInputOutputSummaryReport(LocalDateTime startTime,
                                                  LocalDateTime endTime,
@@ -748,7 +745,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
                                                          LocalDateTime endTime,
@@ -789,7 +785,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getDifferenceBetweenBalancesReportsWithInOut(LocalDateTime startTime,
                                                                   LocalDateTime endTime,

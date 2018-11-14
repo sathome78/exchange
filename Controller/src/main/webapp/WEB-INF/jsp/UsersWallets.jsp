@@ -53,23 +53,23 @@
                 <b><loc:message code="admin.usersWallet"/> <span class='value'></span></b>
               </h4>
             </div>
-          <div class="row">
-              <button id="upload-users-ip-info" class="blue-box pull-right"
-                      onclick="uploadUserIps()" type="submit"><loc:message
-                      code="wallets.downloadUserIps"/></button>
-          </div>
+          <%--<div class="row">--%>
+              <%--<button id="upload-users-ip-info" class="blue-box pull-right"--%>
+                      <%--onclick="uploadUserIps()" type="submit"><loc:message--%>
+                      <%--code="wallets.downloadUserIps"/></button>--%>
+          <%--</div>--%>
           <div class="row">
               <button id="upload-users-wallets" class="blue-box pull-right"
                       onclick="uploadUserWallets()" type="submit"><loc:message
                       code="wallets.download"/></button>
           </div>
 
-          <div class="row">
-              <button id="upload-users-wallets-inout" class="blue-box pull-right"
-                      onclick="uploadUserWalletsInOut()" type="submit">
-                  <loc:message
-                          code="wallets.downloadInputOutput"/></button>
-          </div>
+          <%--<div class="row">--%>
+              <%--<button id="upload-users-wallets-inout" class="blue-box pull-right"--%>
+                      <%--onclick="uploadUserWalletsInOut()" type="submit">--%>
+                  <%--<loc:message--%>
+                          <%--code="wallets.downloadInputOutput"/></button>--%>
+          <%--</div>--%>
 
           <div class="row">
               <button id="upload-users-wallets-orders" class="blue-box pull-right"
@@ -77,12 +77,12 @@
                   <loc:message
                           code="wallets.downloadOrders"/></button>
           </div>
-          <div class="row">
-              <button id="upload-users-wallets-orders-by-currency-pairs" class="blue-box pull-right"
-                      onclick="uploadUserWalletsOrdersByCurrencyPairs()" type="submit">
-                  <loc:message
-                          code="wallets.downloadOrdersByCurrencyPairs"/></button>
-          </div>
+          <%--<div class="row">--%>
+              <%--<button id="upload-users-wallets-orders-by-currency-pairs" class="blue-box pull-right"--%>
+                      <%--onclick="uploadUserWalletsOrdersByCurrencyPairs()" type="submit">--%>
+                  <%--<loc:message--%>
+                          <%--code="wallets.downloadOrdersByCurrencyPairs"/></button>--%>
+          <%--</div>--%>
 
             <div class="row">
               <button id="download-input-output-summery-report" class="blue-box pull-right"

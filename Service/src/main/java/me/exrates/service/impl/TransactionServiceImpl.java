@@ -362,6 +362,7 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.getPayedRefTransactionsByOrderId(orderId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         return transactionDao.getInOutInSummaryByPeriodAndRoles(startTime, endTime, userRoles);
