@@ -314,8 +314,8 @@ public class NgOrderServiceImpl implements NgOrderService {
                         result.setChangedValue(currentRate.toString());
                     } else {
                         BigDecimal percentGrowth = BigDecimalProcessing.doAction(
-                                currentRate,
                                 BigDecimalProcessing.normalize(lastRate),
+                                currentRate,
                                 ActionType.PERCENT_GROWTH);
                         result.setPercentChange(percentGrowth.toString());
                         BigDecimal subtract = BigDecimalProcessing.doAction(currentRate, lastRate, ActionType.SUBTRACT);
