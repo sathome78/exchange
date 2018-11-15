@@ -180,9 +180,6 @@ public class AunitNodeServiceImpl {
     public void onMessage(String msg) {
         if(msg.contains("notice")) setIrreversableBlock(msg);
         else if (msg.contains("previous")) processIrreversebleBlock(msg);
-        else System.out.println("unrecogrinzed msg aunit \n" + msg);;
-
-        System.out.println(msg);
     }
 
     @SneakyThrows
