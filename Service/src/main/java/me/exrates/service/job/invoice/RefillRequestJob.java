@@ -52,7 +52,7 @@ public class RefillRequestJob {
       }
   }
 
-  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 1) //todo
+  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5) //todo
   public void refillPaymentsForNonSupportedCoins() {
       try {
           String[] merchantNames = new String[]{"QUICK"}; //todo rename QUICK to Q
@@ -61,7 +61,7 @@ public class RefillRequestJob {
               List<BtcTransactionHistoryDto> transactions = service.listAllTransactions();
 
               for (BtcTransactionHistoryDto transaction : transactions) {
-                  if (transaction.getConfirmations() > service.minConfirmationsRefill()) {
+                  if (transaction.getConfirmations() >= service.minConfirmationsRefill()) {
                       Map<String, String> params = new LinkedHashMap<>();
                       params.put("txId", transaction.getTxId());
                       params.put("address", transaction.getAddress());
