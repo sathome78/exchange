@@ -1506,7 +1506,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "uncServiceImpl")
     public EthTokenService uncService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x806fc6007a27247d0c33b890069b4cb51075320f");
+        tokensList.add("0x882fbbe226f293037fa5c06459b1f4e871b70e94");
         return new EthTokenServiceImpl(
                 tokensList,
                 "UNC",
