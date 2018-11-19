@@ -16,6 +16,7 @@ import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -60,6 +62,7 @@ public class NgPublicController {
     private final ChatService chatService;
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
+    private final ExchangeRatesHolder exchangeRatesHolder;
     private final SimpMessagingTemplate messagingTemplate;
     private final CurrencyService currencyService;
     private final OrderService orderService;
@@ -73,7 +76,7 @@ public class NgPublicController {
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               CurrencyService currencyService,
-                              OrderService orderService,
+                              ExchangeRatesHolder exchangeRatesHolder, OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatBotService telegramChatBotService1) {
@@ -81,6 +84,7 @@ public class NgPublicController {
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
+        this.exchangeRatesHolder = exchangeRatesHolder;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
@@ -148,8 +152,12 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/currencies/fast")
-    @ResponseBody
+//    @GetMapping("/currencies/fast")
+//    @ResponseBody
+//    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
+//        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
+//    }
+
     public String getMinAndMaxOrdersSell() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
