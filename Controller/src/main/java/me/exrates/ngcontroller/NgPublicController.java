@@ -153,11 +153,11 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/currencies/fast")
-    @ResponseBody
-    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
-        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
-    }
+//    @GetMapping("/currencies/fast")
+//    @ResponseBody
+//    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
+//        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
+//    }
 
     public String getMinAndMaxOrdersSell() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
@@ -175,7 +175,7 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping("/info/all")
+    @GetMapping("/currencies/fast")
     @ResponseBody
     public List<StatisticForMarket> getCurrencyPairInfoAll() {
         return orderService.getAllCurrenciesMarkersForAllPairsModel();
