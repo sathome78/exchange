@@ -19,6 +19,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.telegram.TelegramChatBotService;
@@ -71,6 +72,7 @@ public class NgPublicController {
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
     private final TelegramChatBotService telegramChatBotService;
+    private final MarketRatesHolder marketRatesHolder;
 
     @Autowired
     public NgPublicController(ChatService chatService,
@@ -80,7 +82,7 @@ public class NgPublicController {
                               CurrencyService currencyService, OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
-                              TelegramChatBotService telegramChatBotService1) {
+                              TelegramChatBotService telegramChatBotService1, MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.exchangeRatesHolder = exchangeRatesHolder;
@@ -91,6 +93,7 @@ public class NgPublicController {
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
         this.telegramChatBotService = telegramChatBotService1;
+        this.marketRatesHolder = marketRatesHolder;
     }
 
     @PostConstruct
@@ -179,6 +182,12 @@ public class NgPublicController {
     @ResponseBody
     public List<StatisticForMarket> getCurrencyPairInfoAll() {
         return orderService.getAllCurrenciesMarkersForAllPairsModel();
+    }
+
+    @GetMapping("/currencies/fromdb")
+    @ResponseBody
+    public List<StatisticForMarket> getCurrencyPairInfoAllFromDb() {
+        return marketRatesHolder.getAllFromDb();
     }
 
     private String fromChatMessage(ChatMessage message) {
