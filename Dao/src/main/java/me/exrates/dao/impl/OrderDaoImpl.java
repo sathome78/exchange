@@ -1857,7 +1857,7 @@ public class OrderDaoImpl implements OrderDao {
                 "       WHERE" +
                 "         (PRED_LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
                 "         (PRED_LASTORDER.status_id = AGRIGATE.status_id) AND (PRED_LASTORDER.date_creation >= NOW() - INTERVAL 24 HOUR)" +
-                "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC" +
+                "       ORDER BY PRED_LASTORDER.date_acception ASC, PRED_LASTORDER.id ASC" +
                 "       LIMIT 1, 1)                            AS pred_last_exrate" +
                 "    FROM (" +
                 "           SELECT DISTINCT" +
