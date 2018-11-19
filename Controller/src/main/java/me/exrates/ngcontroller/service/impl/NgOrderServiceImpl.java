@@ -289,7 +289,7 @@ public class NgOrderServiceImpl implements NgOrderService {
 
             CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
             Optional<BigDecimal> currentRateOptional =
-                    orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, OperationType.BUY);
+                    orderService.getLastOrderPriceByCurrencyPair(currencyPair);
 
             if (currentRateOptional.isPresent()) {
                 logger.info("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());

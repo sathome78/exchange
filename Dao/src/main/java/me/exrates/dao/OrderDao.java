@@ -55,6 +55,8 @@ public interface OrderDao {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
+
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     ExOrder getOrderById(int orderid);
