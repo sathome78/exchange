@@ -169,6 +169,17 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
+    @GetMapping("/info/all")
+    @ResponseBody
+    public String getCurrencyPairInfoAll() {
+        try {
+            return orderService.getAllCurrenciesMarkersForAllPairs();
+        } catch (Exception e){
+            logger.error("Error - {}", e);
+        }
+        return "";
+    }
+
     private String fromChatMessage(ChatMessage message) {
         String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();
