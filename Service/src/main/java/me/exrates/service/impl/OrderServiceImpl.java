@@ -1939,6 +1939,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<StatisticForMarket> getAllCurrenciesMarkersForAllPairsModel() {
+        return marketRatesHolder.getAll();
+    }
+
+    @Override
     public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
         System.out.println("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
