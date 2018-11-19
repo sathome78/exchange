@@ -6,6 +6,8 @@ import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
@@ -61,8 +63,8 @@ public class NgPublicController {
 
     private final ChatService chatService;
     private final IpBlockingService ipBlockingService;
-    private final UserService userService;
     private final ExchangeRatesHolder exchangeRatesHolder;
+    private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final CurrencyService currencyService;
     private final OrderService orderService;
@@ -73,18 +75,17 @@ public class NgPublicController {
     @Autowired
     public NgPublicController(ChatService chatService,
                               IpBlockingService ipBlockingService,
-                              UserService userService,
+                              ExchangeRatesHolder exchangeRatesHolder, UserService userService,
                               SimpMessagingTemplate messagingTemplate,
-                              CurrencyService currencyService,
-                              ExchangeRatesHolder exchangeRatesHolder, OrderService orderService,
+                              CurrencyService currencyService, OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatBotService telegramChatBotService1) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
+        this.exchangeRatesHolder = exchangeRatesHolder;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
-        this.exchangeRatesHolder = exchangeRatesHolder;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
@@ -176,13 +177,8 @@ public class NgPublicController {
 
     @GetMapping("/info/all")
     @ResponseBody
-    public String getCurrencyPairInfoAll() {
-        try {
-            return orderService.getAllCurrenciesMarkersForAllPairs();
-        } catch (Exception e){
-            logger.error("Error - {}", e);
-        }
-        return "";
+    public List<StatisticForMarket> getCurrencyPairInfoAll() {
+        return orderService.getAllCurrenciesMarkersForAllPairsModel();
     }
 
     private String fromChatMessage(ChatMessage message) {

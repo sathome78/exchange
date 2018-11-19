@@ -19,6 +19,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -409,6 +410,8 @@ public interface OrderService {
     String getAllCurrenciesStatForRefreshForAllPairs();
 
     String getAllCurrenciesMarkersForAllPairs();
+
+    List<StatisticForMarket> getAllCurrenciesMarkersForAllPairsModel();
 
     Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
