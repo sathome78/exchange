@@ -20,11 +20,14 @@ public class ChatHistoryDto  {
     private String  body;
     private String messageTime;
 
+    private String messageReplyUsername;
+    private String messageReplyText;
+
     @JsonIgnore
     private LocalDateTime when;
 
     public static String getTitle() {
-        return Stream.of("email", "body", "message_time")
+        return Stream.of("email", "body", "message_time", "messageReplyUsername", "messageReplyText")
                 .collect(Collectors.joining(";", "", "\r\n"));
     }
 
@@ -33,7 +36,9 @@ public class ChatHistoryDto  {
         return Stream.of(
                 email,
                 body,
-                messageTime
+                messageTime,
+                messageReplyUsername,
+                messageReplyText
         ).collect(Collectors.joining(";", "", "\r\n"));
     }
 }
