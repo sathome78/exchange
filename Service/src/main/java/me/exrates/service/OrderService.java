@@ -398,6 +398,8 @@ public interface OrderService {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
+
     String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
     String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);

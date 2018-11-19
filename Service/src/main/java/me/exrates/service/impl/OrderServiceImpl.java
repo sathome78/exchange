@@ -1859,6 +1859,12 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair) {
+        return orderDao.getLastOrderPriceByCurrencyPair(currencyPair.getId());
+    }
+
     @Transactional(transactionManager = "slaveTxManager")
     @Override
     public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
