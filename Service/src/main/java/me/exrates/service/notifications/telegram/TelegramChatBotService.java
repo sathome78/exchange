@@ -23,6 +23,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.Queue;
 
 @Service
@@ -74,9 +75,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             String firstName = update.getMessage().getFrom().getFirstName();
             String lastName = update.getMessage().getFrom().getLastName();
 
-            String nickNameForDb = userName != null
-                    ?  userName
-                    : firstName + " " + lastName;
+            String nickNameForDb = Optional.ofNullable(userName).orElse(firstName+ " "+lastName);
 
             ChatLang language = ChatLang.EN;
 
@@ -84,6 +83,12 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             chatMessage.setBody(messageText);
             chatMessage.setEmail(nickNameForDb);
             chatMessage.setMessageTime(LocalDateTime.now().format(FORMATTER));
+
+            Optional.ofNullable(update.getMessage().getReplyToMessage()).ifPresent(message -> {
+                chatMessage.setMessageReplyUsername(Optional.ofNullable(message.getFrom().getUserName())
+                        .orElse(message.getFrom().getFirstName()+ " "+message.getFrom().getLastName()));
+                chatMessage.setMessageReplyText(message.getText());
+            });
 
             if(String.valueOf(chatId).equals(chatCommunityId)){
                 messages.add(chatMessage);
