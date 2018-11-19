@@ -20,12 +20,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.WebUtils;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.*;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -57,6 +56,20 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 //    @Value("${auth.server.url}")
     private String authServiceUrl = "172.50.10.115";
 
+    @PostConstruct
+    public void test(){
+        Client cl;
+        Form form = new Form();
+        form.param("username", "a");
+        form.param("password", "b");
+        form.param("grant_type", "password");
+        WebTarget target = client.target("172.50.10.115" + "/oauth/token");
+        Invocation.Builder request = target.
+                request();
+        Response resp = request.header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
+        ));
+    }
+
     public LoginSuccessHandler() {
 
     }
@@ -73,16 +86,9 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             form.param("username", principal.getUsername());
             form.param("password", cleanPassword);
             form.param("grant_type", "password");
-            Response resp = null;
-            try {
-                resp = client.target(authServiceUrl + "/oauth/token").
-                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.MULTIPART_FORM_DATA
+            Response resp = resp = client.target(authServiceUrl + "/oauth/token").
+                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
                 ));
-            } catch (Throwable e){
-                System.out.println(e);
-            } finally {
-               if(resp != null) System.out.println(resp.readEntity(String.class));
-            }
             log.info("Authentication succeeded for user: " + principal.getUsername());
             request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
