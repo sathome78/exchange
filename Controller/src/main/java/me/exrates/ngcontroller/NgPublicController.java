@@ -153,6 +153,10 @@ public class NgPublicController {
         return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
     }
 
+    public String getMinAndMaxOrdersSell() {
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
+    }
+
     @GetMapping("/info/{currencyPairId}")
     public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
         try {

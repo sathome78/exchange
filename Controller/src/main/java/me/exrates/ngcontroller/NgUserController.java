@@ -144,7 +144,7 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =

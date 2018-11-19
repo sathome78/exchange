@@ -14,6 +14,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -150,4 +151,6 @@ public interface OrderDao {
     List<ExOrder> getOpenedOrdersByCurrencyPair(Integer userId, String currencyPair);
 
     List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId);
+
+    List<StatisticForMarket> getOrderStatisticForNewMarkets();
 }

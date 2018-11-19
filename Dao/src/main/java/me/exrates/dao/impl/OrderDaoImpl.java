@@ -19,6 +19,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -1811,4 +1812,81 @@ public class OrderDaoImpl implements OrderDao {
                 .build());
     }
 
+    @Override
+    public List<StatisticForMarket> getOrderStatisticForNewMarkets() {
+
+        String sql = "SELECT" +
+                "  RESULT.currency_pair_name," +
+                "  RESULT.market," +
+                "  RESULT.currency_pair_id," +
+                "  RESULT.last_exrate," +
+                "  RESULT.pred_last_exrate," +
+                "  RESULT.volume" +
+                " FROM" +
+                "  ((SELECT" +
+                "      CURRENCY_PAIR.name                      AS currency_pair_name," +
+                "      CURRENCY_PAIR.market                    AS market," +
+                "      CURRENCY_PAIR.id                        AS currency_pair_id," +
+                "      (SELECT SUM(EX.amount_base)" +
+                "       FROM EXORDERS EX" +
+                "       WHERE" +
+                "         (EX.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
+                "         (EX.status_id = AGRIGATE.status_id) AND (EX.date_creation >= NOW() - INTERVAL 24 HOUR)) AS volume," +
+                "      (SELECT LASTORDER.exrate" +
+                "       FROM EXORDERS LASTORDER" +
+                "       WHERE" +
+                "         (LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
+                "         (LASTORDER.status_id = AGRIGATE.status_id)" +
+                "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC" +
+                "       LIMIT 1)                               AS last_exrate," +
+                "      (SELECT PRED_LASTORDER.exrate" +
+                "       FROM EXORDERS PRED_LASTORDER" +
+                "       WHERE" +
+                "         (PRED_LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
+                "         (PRED_LASTORDER.status_id = AGRIGATE.status_id)" +
+                "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC" +
+                "       LIMIT 1, 1)                            AS pred_last_exrate" +
+                "    FROM (" +
+                "           SELECT DISTINCT" +
+                "             EXORDERS.status_id        AS status_id," +
+                "             EXORDERS.currency_pair_id AS currency_pair_id" +
+                "           FROM EXORDERS" +
+                "           WHERE EXORDERS.status_id = :status_id" +
+                "         )" +
+                "         AGRIGATE" +
+                "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1)" +
+                "    ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
+                "   UNION ALL (" +
+                "     SELECT" +
+                "       CP.name   AS currency_pair_name," +
+                "       CP.market AS market," +
+                "       CP.id     AS currency_pair_id," +
+                "       0         AS volume," +
+                "       0         AS last_exrate," +
+                "       0         AS pred_last_exrate" +
+                "     FROM CURRENCY_PAIR CP" +
+                "     WHERE CP.id NOT IN (SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id" +
+                "                         FROM EXORDERS" +
+                "                         WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0" +
+                "   )) RESULT";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("status_id", 3);
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            StatisticForMarket statisticForMarket = new StatisticForMarket();
+
+            statisticForMarket.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            statisticForMarket.setCurrencyPairName(rs.getString("currency_pair_name"));
+            statisticForMarket.setMarket(rs.getString("market"));
+            statisticForMarket.setLastOrderRate(rs.getBigDecimal("last_exrate"));
+            statisticForMarket.setPredLastOrderRate(rs.getBigDecimal("pred_last_exrate"));
+            if (rs.getObject("volume") != null) {
+                statisticForMarket.setVolume(rs.getBigDecimal("volume"));
+            } else {
+                statisticForMarket.setVolume(BigDecimal.ZERO);
+            }
+            return statisticForMarket;
+        });
+    }
 }
