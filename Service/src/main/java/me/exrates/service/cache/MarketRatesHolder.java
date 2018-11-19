@@ -37,6 +37,10 @@ public class MarketRatesHolder {
         markets.forEach(p -> ratesMarketMap.put(p.getCurrencyPairId(), p));
     }
 
+    public List<StatisticForMarket> getAllFromDb(){
+        return orderDao.getOrderStatisticForNewMarkets().stream().peek(this::processPercentChange).collect(Collectors.toList());
+    }
+
     public List<StatisticForMarket> getAll() {
         return ratesMarketMap.values().stream().peek(this::processPercentChange).collect(Collectors.toList());
     }
