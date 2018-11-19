@@ -33,6 +33,7 @@ import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
@@ -87,6 +88,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -232,6 +234,9 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+
+    @Autowired
+    private MarketRatesHolder marketRatesHolder;
 
     @PostConstruct
     public void init() {
@@ -1906,6 +1911,20 @@ public class OrderServiceImpl implements OrderService {
         try {
             return new JSONArray() {{
                 put(objectMapper.writeValueAsString(wrapper));
+            }}.toString();
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return null;
+        }
+    }
+
+    @Override
+    public String getAllCurrenciesMarkersForAllPairs() {
+        List<StatisticForMarket> all = marketRatesHolder.getAll();
+
+        try {
+            return new JSONArray() {{
+                put(objectMapper.writeValueAsString(all));
             }}.toString();
         } catch (JsonProcessingException e) {
             log.error(e);

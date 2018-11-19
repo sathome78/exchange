@@ -406,6 +406,8 @@ public interface OrderService {
 
     String getAllCurrenciesStatForRefreshForAllPairs();
 
+    String getAllCurrenciesMarkersForAllPairs();
+
     Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,

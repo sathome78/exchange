@@ -71,6 +71,11 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
+    @SubscribeMapping("/marketsNew")
+    public String subscribeMarkets() {
+        return orderService.getAllCurrenciesMarkersForAllPairs();
+    }
+
     @SubscribeMapping("/statistics/{type}")
     public String subscribeStatistic(@DestinationVariable String type) {
         RefreshObjectsEnum refreshObjectsEnum = RefreshObjectsEnum.valueOf(type);
