@@ -24,6 +24,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -48,8 +54,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Autowired
     Client client;
 
-    @Value("${auth-server.url}")
-    private String authServiceUrl;
+//    @Value("${auth.server.url}")
+    private String authServiceUrl = "172.50.10.115";
 
     public LoginSuccessHandler() {
 
@@ -59,13 +65,24 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
         try {
+            User principal = (User) authentication.getPrincipal();
+
             String cleanPassword = (String) request.getSession().getAttribute("clean_password");
             request.getSession().removeAttribute("clean_password");
-            client.target(authServiceUrl + "/oauth/token").queryParam("", "")
-                    .request().get();
-
-
-            User principal = (User) authentication.getPrincipal();
+            Form form = new Form();
+            form.param("username", principal.getUsername());
+            form.param("password", cleanPassword);
+            form.param("grant_type", "password");
+            Response resp = null;
+            try {
+                resp = client.target(authServiceUrl + "/oauth/token").
+                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.MULTIPART_FORM_DATA
+                ));
+            } catch (Throwable e){
+                System.out.println(e);
+            } finally {
+               if(resp != null) System.out.println(resp.readEntity(String.class));
+            }
             log.info("Authentication succeeded for user: " + principal.getUsername());
             request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
@@ -94,5 +111,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         }
     }
 
+    public static void main(String[] args) {
+        Client client = ClientBuilder.newClient();
+        Response resp = client.target("172.50.10.115" + "/oauth/token").queryParam("grant_type", "password")
+                .queryParam("username", "mikita.malykov@upholding.biz").queryParam("password", "123").
+                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE
+                        ));
+        System.out.println(resp.readEntity(String.class));
+    }
 
 }
