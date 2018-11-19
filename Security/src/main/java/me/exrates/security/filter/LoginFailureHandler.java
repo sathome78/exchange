@@ -34,7 +34,7 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
-        if (!(exception instanceof BannedIpException)) {
+         if (!(exception instanceof BannedIpException)) {
             String ipAddress = IpUtils.getClientIpAddress(request);
             ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
         }

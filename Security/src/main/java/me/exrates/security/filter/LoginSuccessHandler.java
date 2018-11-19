@@ -10,6 +10,7 @@ import me.exrates.service.SurveyService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -29,7 +31,7 @@ import java.util.Locale;
  * Created by Valk on 28.04.2016.
  */
 @Log4j2
-@PropertySource("classpath:session.properties")
+@PropertySource({"classpath:session.properties", "classpath:microservices.properties"})
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
 
@@ -43,7 +45,11 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     private UserService userService;
     @Autowired
     private IpBlockingService ipBlockingService;
+    @Autowired
+    Client client;
 
+    @Value("${auth-server.url}")
+    private String authServiceUrl;
 
     public LoginSuccessHandler() {
 
@@ -53,6 +59,12 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
         try {
+            String cleanPassword = (String) request.getSession().getAttribute("clean_password");
+            request.getSession().removeAttribute("clean_password");
+            client.target(authServiceUrl + "/oauth/token").queryParam("", "")
+                    .request().get();
+
+
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
             request.getSession().setMaxInactiveInterval(0);
