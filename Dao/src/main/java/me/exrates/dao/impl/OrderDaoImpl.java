@@ -1844,7 +1844,7 @@ public class OrderDaoImpl implements OrderDao {
                 "       FROM EXORDERS EX" +
                 "       WHERE" +
                 "         (EX.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
-                "         (EX.status_id = AGRIGATE.status_id) AND (EX.date_creation >= NOW() - INTERVAL 24 HOUR)) AS volume," +
+                "         (EX.status_id = AGRIGATE.status_id) AND (EX.date_creation >= NOW() - INTERVAL 24 HOUR) GROUP BY currency_pair_id) AS volume," +
                 "      (SELECT LASTORDER.exrate" +
                 "       FROM EXORDERS LASTORDER" +
                 "       WHERE" +
