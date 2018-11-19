@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
@@ -171,13 +172,8 @@ public class NgPublicController {
 
     @GetMapping("/info/all")
     @ResponseBody
-    public String getCurrencyPairInfoAll() {
-        try {
-            return orderService.getAllCurrenciesMarkersForAllPairs();
-        } catch (Exception e){
-            logger.error("Error - {}", e);
-        }
-        return "";
+    public List<StatisticForMarket> getCurrencyPairInfoAll() {
+        return orderService.getAllCurrenciesMarkersForAllPairsModel();
     }
 
     private String fromChatMessage(ChatMessage message) {
