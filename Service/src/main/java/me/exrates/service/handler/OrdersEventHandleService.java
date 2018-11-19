@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
@@ -27,6 +28,8 @@ public class OrdersEventHandleService  {
     private ExchangeRatesHolder ratesHolder;
     @Autowired
     private CurrencyStatisticsHandler currencyStatisticsHandler;
+    @Autowired
+    private MarketRatesHolder marketRatesHolder;
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -60,6 +63,7 @@ public class OrdersEventHandleService  {
         handleMyTrades(order);
         handleChart(order);
         ratesHolder.onRatesChange(order.getCurrencyPairId(), order.getExRate());
+        marketRatesHolder.setRateMarket(order.getCurrencyPairId(), order.getExRate());
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
