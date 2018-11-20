@@ -242,7 +242,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType ... baseTypes) {
+    public OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType... baseTypes) {
         String join = operationType == BUY
                 ? " INNER JOIN (SELECT MAX(exrate) as exrate"
                 : " INNER JOIN (SELECT MIN(exrate) as exrate";
@@ -272,7 +272,7 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    private RowMapper<OrderListDto> orderListDtoRowMapper(){
+    private RowMapper<OrderListDto> orderListDtoRowMapper() {
         return (rs, rowNum) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
@@ -282,12 +282,12 @@ public class OrderDaoImpl implements OrderDao {
             order.setAmountBase(rs.getString("amount_base"));
             order.setAmountConvert(rs.getString("amount_convert"));
             rs.getTimestamp("date_creation");
-            order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
-            order.setAccepted(convertTimeStampToLocalDateTime(rs,"date_acception"));
+            order.setCreated(convertTimeStampToLocalDateTime(rs, "date_creation"));
+            order.setAccepted(convertTimeStampToLocalDateTime(rs, "date_acception"));
             return order;
         };
     }
-    
+
     private LocalDateTime convertTimeStampToLocalDateTime(ResultSet rs, String columnName) throws SQLException {
         Timestamp timestamp = rs.getTimestamp(columnName);
         if (timestamp == null) {
@@ -1452,15 +1452,15 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<RatesUSDForReportDto> getRatesToUSDForReport() {
 
-        String sqlBtc = "SELECT EX.exrate AS exrate\n" +
-                " FROM EXORDERS EX\n" +
-                "INNER JOIN\n" +
-                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                "AND (CP.name LIKE '%BTC/USD')\n" +
-                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;\n";
+        String sqlBtc = "SELECT EX.exrate AS exrate" +
+                " FROM EXORDERS EX" +
+                "INNER JOIN" +
+                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST" +
+                "ON EX.currency_pair_id = EX_LAST.currency_pair_id" +
+                "AND EX.date_acception = EX_LAST.max_date_acception" +
+                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)" +
+                "AND (CP.name LIKE '%BTC/USD')" +
+                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
 
         int btc;
         try {
@@ -1470,14 +1470,14 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         String sqlEtc =
-                "SELECT EX.exrate AS exrate\n" +
-                        " FROM EXORDERS EX\n" +
-                        "INNER JOIN\n" +
-                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                        "AND (CP.name LIKE '%ETH/USD')\n" +
+                "SELECT EX.exrate AS exrate" +
+                        " FROM EXORDERS EX" +
+                        "INNER JOIN" +
+                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST" +
+                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id" +
+                        "AND EX.date_acception = EX_LAST.max_date_acception" +
+                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)" +
+                        "AND (CP.name LIKE '%ETH/USD')" +
                         "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
 
         int eth;
@@ -1492,22 +1492,22 @@ public class OrderDaoImpl implements OrderDao {
         params.put("eth", eth);
 
         String sql =
-                " select distinct CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
-                        "(select id, \n" +
-                        "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
-                        "when name LIKE '%/ETH' then exrate*:eth \n" +
-                        "when name LIKE '%/USD' then exrate end) as rate\n" +
-                        "\n" +
-                        "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate \n" +
-                        " FROM EXORDERS EX\n" +
-                        "INNER JOIN\n" +
-                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                        "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')\n" +
-                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY\n" +
-                        "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
+                " select distinct CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from " +
+                        "(select id, " +
+                        "avg(case when name LIKE '%/BTC' then exrate*:btc" +
+                        "when name LIKE '%/ETH' then exrate*:eth " +
+                        "when name LIKE '%/USD' then exrate end) as rate" +
+                        "" +
+                        "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate " +
+                        " FROM EXORDERS EX" +
+                        "INNER JOIN" +
+                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST" +
+                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id" +
+                        "AND EX.date_acception = EX_LAST.max_date_acception" +
+                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)" +
+                        "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')" +
+                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY" +
+                        "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)" +
                         "join CURRENCY CR on (CWE.currency_id = CR.id);";
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> {

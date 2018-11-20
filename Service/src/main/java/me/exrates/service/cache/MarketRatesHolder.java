@@ -2,6 +2,7 @@ package me.exrates.service.cache;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
+
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.StatisticForMarket;
@@ -35,7 +36,7 @@ public class MarketRatesHolder {
         this.orderDao = orderDao;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") //every night on 00-00
+   @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
     @PostConstruct
     private void init() {
         log.info("Start fill ratesMarketMap, time = {}", new Date());
