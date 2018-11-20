@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -74,9 +75,9 @@ public class RefillRequestController {
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
   public Map<String, Object> createRefillRequest(
-      @RequestBody RefillRequestParamsDto requestParamsDto,
-      Principal principal,
-      Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+          @RequestBody RefillRequestParamsDto requestParamsDto,
+          Principal principal,
+          Locale locale, HttpServletRequest servletRequest, HttpSession session) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
