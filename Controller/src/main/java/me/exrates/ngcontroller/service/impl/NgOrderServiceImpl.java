@@ -552,7 +552,9 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     private BigDecimal getAmount(List<OrderListDto> list) {
         BigDecimal amount = new BigDecimal(0);
-        list.forEach(item -> amount.add(new BigDecimal(item.getAmountBase())));
+        for (OrderListDto item : list) {
+            amount = amount.add(new BigDecimal(item.getAmountBase()));
+        }
         return amount;
     }
 
