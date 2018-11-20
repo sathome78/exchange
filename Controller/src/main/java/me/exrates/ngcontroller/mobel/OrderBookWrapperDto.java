@@ -13,5 +13,6 @@ public class OrderBookWrapperDto {
     private OrderType orderType;
     private String lastExrate;
     private boolean positive;
+    private String total;
     private List<SimpleOrderBookItem> orderBookItems;
 }

@@ -517,6 +517,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                 .builder()
                 .orderType(orderType)
                 .orderBookItems(simpleOrderBookItems)
+                .total(getWrapperTotal(simpleOrderBookItems))
                 .build();
         StatisticForMarket marketStatistic = marketRatesHolder.getRatesMarketMap().get(currencyId);
         if (marketStatistic != null) {
@@ -524,6 +525,15 @@ public class NgOrderServiceImpl implements NgOrderService {
             dto.setPositive(marketStatistic.getLastOrderRate().compareTo(marketStatistic.getPredLastOrderRate()) > 0);
         }
         return dto;
+    }
+
+    private String getWrapperTotal(List<SimpleOrderBookItem> items) {
+        Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
+        BigDecimal total = BigDecimal.ZERO;
+        if (max.isPresent()) {
+            total = max.get().getTotal();
+        }
+        return total.toPlainString();
     }
 
     private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
@@ -543,18 +553,23 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (!items.isEmpty()) {
             if (orderType == OrderType.SELL) {
                 items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
-                for (int i = 0; i < items.size(); i++) {
-                    if (i == 0) {
-                        items.get(i).setTotal(items.get(i).getAmount());
-                    } else {
-                        items.get(i).setTotal(items.get(i).getAmount().add(items.get(i -1).getTotal()));
-                    }
-                }
+                countTotal(items);
             } else {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
+                countTotal(items);
             }
         }
         return items.stream().limit(8).collect(Collectors.toList());
+    }
+
+    private void countTotal(List<SimpleOrderBookItem> items) {
+        for (int i = 0; i < items.size(); i++) {
+            if (i == 0) {
+                items.get(i).setTotal(items.get(i).getAmount());
+            } else {
+                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i -1).getTotal()));
+            }
+        }
     }
 
     private BigDecimal getAmount(List<OrderListDto> list) {
