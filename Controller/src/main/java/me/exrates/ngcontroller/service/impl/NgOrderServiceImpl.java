@@ -553,21 +553,31 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (!items.isEmpty()) {
             if (orderType == OrderType.SELL) {
                 items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
-                countTotal(items);
+                countTotal(items, orderType);
             } else {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
-                countTotal(items);
+                countTotal(items, orderType);
             }
         }
         return items.stream().limit(8).collect(Collectors.toList());
     }
 
-    private void countTotal(List<SimpleOrderBookItem> items) {
-        for (int i = 0; i < items.size(); i++) {
-            if (i == 0) {
-                items.get(i).setTotal(items.get(i).getAmount());
-            } else {
-                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i -1).getTotal()));
+    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
+        if (orderType == OrderType.BUY) {
+            for (int i = items.size(); i >= 0; i--) {
+                if (i == (items.size() - 1)) {
+                    items.get(i).setTotal(items.get(i).getAmount());
+                } else {
+                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
+                }
+            }
+        } else {
+            for (int i = 0; i < items.size(); i++) {
+                if (i == 0) {
+                    items.get(i).setTotal(items.get(i).getAmount());
+                } else {
+                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
+                }
             }
         }
     }
