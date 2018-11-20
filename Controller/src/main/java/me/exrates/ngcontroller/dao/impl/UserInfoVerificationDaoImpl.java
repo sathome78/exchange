@@ -2,7 +2,6 @@ package me.exrates.ngcontroller.dao.impl;
 
 import me.exrates.ngcontroller.dao.UserInfoVerificationDao;
 import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
-import me.exrates.ngcontroller.util.NgUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -13,8 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.time.LocalDate;
-
-import static me.exrates.ngcontroller.util.NgUtil.FORMATTER;
 
 @Repository
 public class UserInfoVerificationDaoImpl implements UserInfoVerificationDao {

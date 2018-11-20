@@ -281,9 +281,8 @@ public class OrderDaoImpl implements OrderDao {
             order.setExrate(rs.getString("exrate"));
             order.setAmountBase(rs.getString("amount_base"));
             order.setAmountConvert(rs.getString("amount_convert"));
-            rs.getTimestamp("date_creation");
-            order.setCreated(convertTimeStampToLocalDateTime(rs, "date_creation"));
-            order.setAccepted(convertTimeStampToLocalDateTime(rs, "date_acception"));
+            order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
+            order.setAccepted(convertTimeStampToLocalDateTime(rs,"date_acception"));
             return order;
         };
     }
@@ -1901,5 +1900,31 @@ public class OrderDaoImpl implements OrderDao {
             }
             return statisticForMarket;
         });
+    }
+
+    @Override
+    public List<OrderListDto> findAllByOrderTypeAndCurrencyId(OrderType orderType, Integer currencyId) {
+        String sql = "SELECT id, currency_pair_id, operation_type_id, exrate, amount_base, " +
+                " amount_convert, commission_fixed_amount, date_creation, date_acception" +
+                "  FROM EXORDERS " +
+                "  WHERE status_id = 2 AND operation_type_id = :operationTypeId AND currency_pair_id=:currency_pair_id" +
+                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
+                "  ORDER BY exrate ASC";
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", currencyId);
+        namedParameters.put("operationTypeId", orderType.getOperationType().getType());
+        return slaveJdbcTemplate.query(sql, namedParameters, openOrderListDtoRowMapper());
+    }
+
+    private RowMapper<OrderListDto> openOrderListDtoRowMapper(){
+        return (rs, rowNum) -> {
+            OrderListDto order = new OrderListDto();
+            order.setId(rs.getInt("id"));
+            order.setOrderType(OperationType.convert(rs.getInt("operation_type_id")));
+            order.setExrate(rs.getString("exrate"));
+            order.setAmountBase(rs.getString("amount_base"));
+            order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
+            return order;
+        };
     }
 }

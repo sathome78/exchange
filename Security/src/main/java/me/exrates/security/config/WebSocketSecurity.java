@@ -36,6 +36,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
        /* -----------------------------------------------------------------------------------------------------------*/
        messages.nullDestMatcher().permitAll()
                 .simpSubscribeDestMatchers("/topic/chat**").permitAll()
+                .simpSubscribeDestMatchers("/open_orders/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/statistic**").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()
@@ -44,6 +45,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/balance/*/*").permitAll()
                 .simpSubscribeDestMatchers("/topic/chat/**").permitAll()
+               .simpSubscribeDestMatchers("/topic/open-orders/*/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpDestMatchers("/app/topic/**").authenticated()

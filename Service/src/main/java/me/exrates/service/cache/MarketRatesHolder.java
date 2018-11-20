@@ -57,6 +57,10 @@ public class MarketRatesHolder {
         return ratesMarketMap.values().stream().peek(this::processPercentChange).collect(Collectors.toList());
     }
 
+    public Map<Integer, StatisticForMarket> getRatesMarketMap() {
+        return ratesMarketMap;
+    }
+
     private void processPercentChange(StatisticForMarket o) {
         BigDecimal lastExrate = o.getLastOrderRate();
         BigDecimal predLast = o.getPredLastOrderRate() != null ? o.getPredLastOrderRate() : BigDecimal.ZERO;

@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
@@ -11,6 +12,8 @@ import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.OrderType;
+import me.exrates.ngcontroller.mobel.OrderBookWrapperDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -81,7 +84,8 @@ public class NgPublicController {
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
-                              TelegramChatBotService telegramChatBotService1, MarketRatesHolder marketRatesHolder) {
+                              TelegramChatBotService telegramChatBotService1,
+                              MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.exchangeRatesHolder = exchangeRatesHolder;
@@ -154,11 +158,19 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-//    @GetMapping("/currencies/fast")
-//    @ResponseBody
-//    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
-//        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
-//    }
+    @GetMapping(value = "/open-orders/{pairId}/{precision}")
+    @ResponseBody
+    public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
+        return ImmutableList.of(
+                ngOrderService.findAllOrderBookItems(OrderType.BUY, pairId, precision),
+                ngOrderService.findAllOrderBookItems(OrderType.SELL, pairId, precision));
+    }
+
+    @GetMapping("/currencies/fast")
+    @ResponseBody
+    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
+        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
+    }
 
     public String getMinAndMaxOrdersSell() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
