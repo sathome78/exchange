@@ -550,16 +550,16 @@ public class NgOrderServiceImpl implements NgOrderService {
                 .orderType(orderType)
                 .amount(getAmount(value))
                 .build()));
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
-        if (!preparedItems.isEmpty()) {
+
+        if (!items.isEmpty()) {
             if (orderType == OrderType.SELL) {
-                preparedItems.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
-                countTotal(preparedItems, orderType);
+                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
             } else {
-                preparedItems.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
-                countTotal(preparedItems, orderType);
+                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
             }
         }
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
+        countTotal(preparedItems, orderType);
         return preparedItems;
     }
 
