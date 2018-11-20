@@ -1,5 +1,6 @@
 package me.exrates.service.cache;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.enums.ActionType;
@@ -11,12 +12,14 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Log4j2
 @EnableScheduling
 @Service
 public class MarketRatesHolder {
@@ -32,12 +35,17 @@ public class MarketRatesHolder {
     @Scheduled(cron = "0 0 0 * * ?") //every night on 00-00
     @PostConstruct
     private void init() {
+        log.info("Start fill ratesMarketMap, time = {}", new Date());
+        if (!ratesMarketMap.isEmpty()) ratesMarketMap.clear();
         List<StatisticForMarket> markets = orderDao.getOrderStatisticForNewMarkets();
-        markets.forEach(this::processPercentChange);
-        markets.forEach(p -> ratesMarketMap.put(p.getCurrencyPairId(), p));
+        markets.forEach(o -> {
+            processPercentChange(o);
+            ratesMarketMap.put(o.getCurrencyPairId(), o);
+        });
+        log.info("Finish fill ratesMarketMap, time = {}", new Date());
     }
 
-    public List<StatisticForMarket> getAllFromDb(){
+    public List<StatisticForMarket> getAllFromDb() {
         return orderDao.getOrderStatisticForNewMarkets().stream().peek(this::processPercentChange).collect(Collectors.toList());
     }
 
@@ -55,17 +63,17 @@ public class MarketRatesHolder {
         o.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, Locale.ENGLISH, 2));
     }
 
-    public void setRateMarket(int currencyPairId, BigDecimal rate) {
-        this.setRatesMarketMap(currencyPairId, rate);
+    public void setRateMarket(int currencyPairId, BigDecimal rate, BigDecimal amount) {
+        this.setRatesMarketMap(currencyPairId, rate, amount);
     }
 
-    private synchronized void setRatesMarketMap(int currencyPairId, BigDecimal rate) {
+    private synchronized void setRatesMarketMap(int currencyPairId, BigDecimal rate, BigDecimal amount) {
         if (ratesMarketMap.containsKey(currencyPairId)) {
             StatisticForMarket statisticForMarket = ratesMarketMap.get(currencyPairId);
-            BigDecimal lastExrate = statisticForMarket.getLastOrderRate();
-            statisticForMarket.setPredLastOrderRate(lastExrate);
             statisticForMarket.setLastOrderRate(rate);
+            BigDecimal volume = BigDecimalProcessing.doAction(statisticForMarket.getVolume(), amount, ActionType.ADD);
+            statisticForMarket.setVolume(volume);
+            this.processPercentChange(statisticForMarket);
         }
     }
-
 }
