@@ -37,9 +37,8 @@ import java.util.Locale;
  * Created by Valk on 28.04.2016.
  */
 @Log4j2
-@PropertySource({"classpath:session.properties", "classpath:microservices.properties"})
+@PropertySource({"classpath:session.properties"})
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
-
 
     @Autowired
     private SessionParamsService sessionParamsService;
@@ -54,26 +53,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Autowired
     Client client;
 
-//    @Value("${auth.server.url}")
-    private String authServiceUrl = "172.50.10.115";
-
-    @PostConstruct
-    public void test(){
-        Client cl;
-        Form form = new Form();
-        form.param("username", "a");
-        form.param("password", "b");
-        form.param("grant_type", "password");
-        WebTarget target = client.target("http://172.50.10.115" + "/oauth/token");
-        Invocation.Builder request = target.
-                request();
-        Response resp = request.header(HttpHeaders.AUTHORIZATION, "Basic Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
-        ));
-    }
-
-    public LoginSuccessHandler() {
-
-    }
+    @Value("${auth.server.url}")
+    private String authServiceUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
