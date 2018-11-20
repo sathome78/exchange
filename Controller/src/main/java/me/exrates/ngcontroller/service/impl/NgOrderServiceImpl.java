@@ -527,13 +527,13 @@ public class NgOrderServiceImpl implements NgOrderService {
         return dto;
     }
 
-    private String getWrapperTotal(List<SimpleOrderBookItem> items) {
+    private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
         Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
         BigDecimal total = BigDecimal.ZERO;
         if (max.isPresent()) {
             total = max.get().getTotal();
         }
-        return total.toPlainString();
+        return total;
     }
 
     private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,

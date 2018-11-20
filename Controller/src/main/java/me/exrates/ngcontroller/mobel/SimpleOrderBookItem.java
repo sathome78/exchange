@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import me.exrates.model.enums.OrderType;
-import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
+import me.exrates.ngcontroller.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
 
@@ -16,12 +16,12 @@ public class SimpleOrderBookItem {
 
     private OrderType orderType;
 
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal exrate;
 
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal amount;
 
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal total;
 }
