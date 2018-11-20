@@ -94,11 +94,11 @@ public class CryptocurrencyConfig {
 //                "BCD", "BCD", 4, 20, false);
 //    }
 //
-//    @Bean(name = "plcServiceImpl")
-//    public BitcoinService pbtcService() {
-//        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
-//                "PLC", "PLC", 4, 20, false);
-//    }
+    @Bean(name = "plcServiceImpl")
+    public BitcoinService pbtcService() {
+        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
+                "PLC", "PLC", 4, 20, false);
+    }
 //
 //    @Bean(name = "bcxServiceImpl")
 //    public BitcoinService bcxService() {
