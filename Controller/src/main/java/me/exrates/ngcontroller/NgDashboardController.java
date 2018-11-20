@@ -11,7 +11,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.InputCreateOrderDto;
+import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.ResponseUserBalances;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
