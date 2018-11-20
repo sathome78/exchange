@@ -316,7 +316,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     try {
       return listSinceBlockExChecked(blockHash, merchantId, currencyId);
     } catch (Exception e) {
-      log.error(e);
+      log.error(e + "\n merchantId + " + merchantId);
       return Collections.emptyList();
     }
   }
