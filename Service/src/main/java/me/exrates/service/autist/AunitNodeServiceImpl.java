@@ -192,7 +192,6 @@ public class AunitNodeServiceImpl {
     }
 
     private  void processIrreversebleBlock(String trx) {
-        System.out.println("json for process trx \n " + trx);
         JSONObject block = new JSONObject(trx);
         if(block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
         JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
@@ -207,7 +206,6 @@ public class AunitNodeServiceImpl {
         }
 
     } catch (JSONException e){
-        System.out.println("JSON exception while parsing \n " + trx);
         e.printStackTrace();
     }
 
