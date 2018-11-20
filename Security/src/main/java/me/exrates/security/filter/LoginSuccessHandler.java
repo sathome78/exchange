@@ -9,6 +9,7 @@ import me.exrates.service.SessionParamsService;
 import me.exrates.service.SurveyService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -63,10 +64,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         form.param("username", "a");
         form.param("password", "b");
         form.param("grant_type", "password");
-        WebTarget target = client.target("172.50.10.115" + "/oauth/token");
+        WebTarget target = client.target("http://172.50.10.115" + "/oauth/token");
         Invocation.Builder request = target.
                 request();
-        Response resp = request.header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
+        Response resp = request.header(HttpHeaders.AUTHORIZATION, "Basic Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
         ));
     }
 
@@ -79,16 +80,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         super.setAlwaysUseDefaultTargetUrl(false);
         try {
             User principal = (User) authentication.getPrincipal();
+            setAuthTokens(request, principal);
 
-            String cleanPassword = (String) request.getSession().getAttribute("clean_password");
-            request.getSession().removeAttribute("clean_password");
-            Form form = new Form();
-            form.param("username", principal.getUsername());
-            form.param("password", cleanPassword);
-            form.param("grant_type", "password");
-            Response resp = resp = client.target(authServiceUrl + "/oauth/token").
-                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
-                ));
             log.info("Authentication succeeded for user: " + principal.getUsername());
             request.getSession().setMaxInactiveInterval(0);
             sessionParamsService.setSessionLifeParams(request);
@@ -115,6 +108,22 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             log.error(e);
             authentication.setAuthenticated(false);
         }
+    }
+
+    private void setAuthTokens(HttpServletRequest request, User principal) {
+        String cleanPassword = (String) request.getSession().getAttribute("clean_password");
+        request.getSession().removeAttribute("clean_password");
+        Form form = new Form();
+        form.param("username", principal.getUsername());
+        form.param("password", cleanPassword);
+        form.param("grant_type", "password");
+        JSONObject tokensJson = new JSONObject(client.target(authServiceUrl + "/oauth/token").
+                    request().header(HttpHeaders.AUTHORIZATION, "Basic Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
+            )).readEntity(String.class));
+
+        request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
+        request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
+        log.info(tokensJson.toString());
     }
 
     public static void main(String[] args) {

@@ -133,6 +133,10 @@
                   <groupId>com.google.common</groupId>
                   <artifactId>guava</artifactId>
               </exclusion>
+              <exclusion>
+                  <groupId>javax.ws.rs</groupId>
+                  <artifactId>javax.ws.rs-api</artifactId>
+              </exclusion>
           </exclusions>
 
       </dependency>
