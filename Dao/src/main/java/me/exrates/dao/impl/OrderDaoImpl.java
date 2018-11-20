@@ -1834,31 +1834,34 @@ public class OrderDaoImpl implements OrderDao {
                 "  RESULT.currency_pair_id," +
                 "  RESULT.last_exrate," +
                 "  RESULT.pred_last_exrate," +
-                "  RESULT.volume" +
+                "  RESULT.volume," +
+                "  RESULT.type" +
                 " FROM" +
                 "  ((SELECT" +
-                "      CURRENCY_PAIR.name                      AS currency_pair_name," +
-                "      CURRENCY_PAIR.market                    AS market," +
-                "      CURRENCY_PAIR.id                        AS currency_pair_id," +
+                "      CURRENCY_PAIR.name          AS currency_pair_name," +
+                "      CURRENCY_PAIR.market        AS market," +
+                "      CURRENCY_PAIR.id            AS currency_pair_id," +
+                "      CURRENCY_PAIR.type                      AS type," +
                 "      (SELECT SUM(EX.amount_base)" +
                 "       FROM EXORDERS EX" +
                 "       WHERE" +
                 "         (EX.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
-                "         (EX.status_id = AGRIGATE.status_id) AND (EX.date_creation >= NOW() - INTERVAL 24 HOUR) GROUP BY currency_pair_id) AS volume," +
+                "         (EX.status_id = AGRIGATE.status_id) AND (EX.date_creation >= NOW() - INTERVAL 24 HOUR)) AS volume," +
                 "      (SELECT LASTORDER.exrate" +
                 "       FROM EXORDERS LASTORDER" +
                 "       WHERE" +
                 "         (LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
                 "         (LASTORDER.status_id = AGRIGATE.status_id)" +
                 "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC" +
-                "       LIMIT 1)                               AS last_exrate," +
+                "       LIMIT 1)  AS last_exrate," +
                 "      (SELECT PRED_LASTORDER.exrate" +
                 "       FROM EXORDERS PRED_LASTORDER" +
                 "       WHERE" +
                 "         (PRED_LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id) AND" +
-                "         (PRED_LASTORDER.status_id = AGRIGATE.status_id) AND (PRED_LASTORDER.date_creation >= NOW() - INTERVAL 24 HOUR)" +
+                "         (PRED_LASTORDER.status_id = AGRIGATE.status_id) AND" +
+                "         (PRED_LASTORDER.date_creation >= NOW() - INTERVAL 24 HOUR)" +
                 "       ORDER BY PRED_LASTORDER.date_acception ASC, PRED_LASTORDER.id DESC" +
-                "       LIMIT 1) AS pred_last_exrate" +
+                "       LIMIT 1)  AS pred_last_exrate" +
                 "    FROM (" +
                 "           SELECT DISTINCT" +
                 "             EXORDERS.status_id        AS status_id," +
@@ -1874,6 +1877,7 @@ public class OrderDaoImpl implements OrderDao {
                 "       CP.name   AS currency_pair_name," +
                 "       CP.market AS market," +
                 "       CP.id     AS currency_pair_id," +
+                "       CP.type   AS type," +
                 "       0         AS volume," +
                 "       0         AS last_exrate," +
                 "       0         AS pred_last_exrate" +
@@ -1899,6 +1903,7 @@ public class OrderDaoImpl implements OrderDao {
             } else {
                 statisticForMarket.setVolume(BigDecimal.ZERO);
             }
+            statisticForMarket.setType(CurrencyPairType.valueOf(rs.getString("type")));
             return statisticForMarket;
         });
     }

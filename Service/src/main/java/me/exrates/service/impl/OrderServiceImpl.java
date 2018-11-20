@@ -365,8 +365,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
+    public List<StatisticForMarket> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
+        List<StatisticForMarket> dto = marketRatesHolder.getAll();
         switch (refreshObjectsEnum) {
             case ICO_CURRENCIES_STATISTIC: {
                 dto = dto.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
@@ -398,6 +398,10 @@ public class OrderServiceImpl implements OrderService {
             e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
         });
         return dto;
+    }
+
+    public List<StatisticForMarket> getStatisticForSomeCurrenciesV2(List<Integer> pairsIds) {
+        return marketRatesHolder.getStatisticForMarketsByIds(pairsIds);
     }
 
     @Transactional
@@ -1912,7 +1916,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String getAllCurrenciesStatForRefreshForAllPairs() {
-        OrdersListWrapper wrapper = new OrdersListWrapper(this.processStatistic(exchangeRatesHolder.getAllRates()),
+        OrdersListWrapper wrapper = new OrdersListWrapper(marketRatesHolder.getAll(),
                 RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
         try {
             return new JSONArray() {{
@@ -1949,6 +1953,36 @@ public class OrderServiceImpl implements OrderService {
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
         List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
+        Map<RefreshObjectsEnum, String> res = new HashMap<>();
+        if (!icos.isEmpty()) {
+            OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
+            res.put(RefreshObjectsEnum.ICO_CURRENCY_STATISTIC, new JSONArray() {{
+                try {
+                    put(objectMapper.writeValueAsString(wrapper));
+                } catch (JsonProcessingException e) {
+                    logger.error(e);
+                }
+            }}.toString());
+        }
+        if (!mains.isEmpty()) {
+            OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
+            res.put(RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC, new JSONArray() {{
+                try {
+                    put(objectMapper.writeValueAsString(wrapper));
+                } catch (JsonProcessingException e) {
+                    log.error(e);
+                }
+            }}.toString());
+        }
+        return res;
+    }
+
+    @Override
+    public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefreshV2(List<Integer> currencyIds) {
+        System.out.println("curencies for refresh size " + currencyIds.size());
+        List<StatisticForMarket> dtos = this.getStatisticForSomeCurrenciesV2(currencyIds);
+        List<StatisticForMarket> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
+        List<StatisticForMarket> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
         Map<RefreshObjectsEnum, String> res = new HashMap<>();
         if (!icos.isEmpty()) {
             OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());

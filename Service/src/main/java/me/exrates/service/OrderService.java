@@ -61,7 +61,7 @@ import java.util.Optional;
 public interface OrderService {
 
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
+    List<StatisticForMarket> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
 
@@ -414,6 +414,8 @@ public interface OrderService {
     List<StatisticForMarket> getAllCurrenciesMarkersForAllPairsModel();
 
     Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+
+    Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefreshV2(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);

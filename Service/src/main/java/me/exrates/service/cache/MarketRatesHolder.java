@@ -2,7 +2,6 @@ package me.exrates.service.cache;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
-
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.StatisticForMarket;
@@ -16,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -36,7 +37,7 @@ public class MarketRatesHolder {
         this.orderDao = orderDao;
     }
 
-   @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
+    @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
     @PostConstruct
     private void init() {
         log.info("Start fill ratesMarketMap, time = {}", new Date());
@@ -87,5 +88,18 @@ public class MarketRatesHolder {
             statisticForMarket.setVolume(volume);
             this.processPercentChange(statisticForMarket);
         }
+    }
+
+    public List<StatisticForMarket> getStatisticForMarketsByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<StatisticForMarket> result = new ArrayList<>();
+        ids.forEach(p -> {
+            StatisticForMarket statistic = ratesMarketMap.get(p);
+            this.processPercentChange(statistic);
+            result.add(statistic);
+        });
+        return result;
     }
 }
