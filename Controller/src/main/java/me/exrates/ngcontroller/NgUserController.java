@@ -14,7 +14,6 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -83,9 +82,12 @@ public class NgUserController {
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
+
+        logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
+                authenticationDto.getClientIp());
         try {
             if (!DEV_MODE) {
-                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             }
         } catch (BannedIpException ban) {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
