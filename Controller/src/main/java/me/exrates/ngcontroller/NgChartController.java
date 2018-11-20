@@ -6,13 +6,11 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.notifications.NotificationsSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.json.Json;
@@ -30,17 +28,14 @@ import java.util.stream.Collectors;
 public class NgChartController {
 
     private final CurrencyService currencyService;
-    private final NotificationsSettingsService notificationsSettingsService;
     private final NgOrderService ngOrderService;
     private final OrderService orderService;
 
     @Autowired
     public NgChartController(CurrencyService currencyService,
-                             NotificationsSettingsService notificationsSettingsService,
                              NgOrderService ngOrderService,
                              OrderService orderService) {
         this.currencyService = currencyService;
-        this.notificationsSettingsService = notificationsSettingsService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
     }
@@ -123,7 +118,7 @@ public class NgChartController {
                                 .add("name", "All types")
                                 .add("value", "")))
                 .add("supported_resolutions", Json.createArrayBuilder()
-                        .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .build();
     }
 
@@ -147,7 +142,7 @@ public class NgChartController {
                 .add("ticker", symbol)
                 .add("timezone", "UTC")
                 .add("supported_resolutions", Json.createArrayBuilder()
-                        .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)
                 .add("has_weekly_and_monthly", true)

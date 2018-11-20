@@ -28,7 +28,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.InputCreateOrderDto;
+import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
 import me.exrates.ngcontroller.mobel.OrderBookWrapperDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.mobel.ResponseUserBalances;
@@ -37,7 +37,6 @@ import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
-import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.MarketRatesHolder;
@@ -78,13 +77,11 @@ public class NgOrderServiceImpl implements NgOrderService {
     private final UserService userService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
-    private final NgOrderService ngOrderService;
     private final OrderDao orderDao;
     private final ObjectMapper objectMapper;
     private final WalletService walletService;
     private final StopOrderDao stopOrderDao;
     private final StopOrderService stopOrderService;
-    private final StockExchangeService stockExchangeService;
     private final DashboardService dashboardService;
     private final MarketRatesHolder marketRatesHolder;
     private final SimpMessagingTemplate messagingTemplate;
@@ -93,25 +90,23 @@ public class NgOrderServiceImpl implements NgOrderService {
     public NgOrderServiceImpl(UserService userService,
                               CurrencyService currencyService,
                               OrderService orderService,
-                              NgOrderService ngOrderService, OrderDao orderDao,
-                              ObjectMapper objectMapper, WalletService walletService,
+                              OrderDao orderDao,
+                              ObjectMapper objectMapper,
+                              WalletService walletService,
                               StopOrderDao stopOrderDao,
                               StopOrderService stopOrderService,
                               DashboardService dashboardService,
-                              StockExchangeService stockExchangeService,
                               MarketRatesHolder marketRatesHolder,
                               SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
         this.currencyService = currencyService;
         this.orderService = orderService;
-        this.ngOrderService = ngOrderService;
         this.orderDao = orderDao;
         this.objectMapper = objectMapper;
         this.walletService = walletService;
         this.stopOrderDao = stopOrderDao;
         this.stopOrderService = stopOrderService;
         this.dashboardService = dashboardService;
-        this.stockExchangeService = stockExchangeService;
         this.marketRatesHolder = marketRatesHolder;
         this.messagingTemplate = messagingTemplate;
     }
@@ -538,15 +533,15 @@ public class NgOrderServiceImpl implements NgOrderService {
         MathContext mathContext = new MathContext(precision);
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
                 .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext),  Collectors.toList()));
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
         List<SimpleOrderBookItem> items = Lists.newArrayList();
         groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
-                                .builder()
-                                .exrate(new BigDecimal(key.toString()))
-                                .currencyPairId(currencyPairId)
-                                .orderType(orderType)
-                                .amount(getAmount(value))
-                                .build()));
+                .builder()
+                .exrate(new BigDecimal(key.toString()))
+                .currencyPairId(currencyPairId)
+                .orderType(orderType)
+                .amount(getAmount(value))
+                .build()));
         if (!items.isEmpty()) {
             if (orderType == OrderType.SELL) {
                 items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
@@ -578,8 +573,8 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     private String convertToString(int currencyId, int precision) throws JsonProcessingException {
         JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(ngOrderService.findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
-        objectsArray.put(objectMapper.writeValueAsString(ngOrderService.findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
         return objectsArray.toString();
     }
 
