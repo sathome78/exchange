@@ -45,7 +45,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,41 +73,40 @@ public class NgOrderServiceImpl implements NgOrderService {
     private static final Logger logger = LogManager.getLogger(NgOrderServiceImpl.class);
     private static final Executor executor = Executors.newSingleThreadExecutor();
 
-    private final UserService userService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
     private final OrderDao orderDao;
     private final ObjectMapper objectMapper;
-    private final WalletService walletService;
     private final StopOrderDao stopOrderDao;
-    private final StopOrderService stopOrderService;
     private final DashboardService dashboardService;
     private final MarketRatesHolder marketRatesHolder;
     private final SimpMessagingTemplate messagingTemplate;
+    private final StopOrderService stopOrderService;
+    private final UserService userService;
+    private final WalletService walletService;
 
-    @Autowired
-    public NgOrderServiceImpl(UserService userService,
-                              CurrencyService currencyService,
+    public NgOrderServiceImpl(CurrencyService currencyService,
                               OrderService orderService,
                               OrderDao orderDao,
                               ObjectMapper objectMapper,
-                              WalletService walletService,
                               StopOrderDao stopOrderDao,
-                              StopOrderService stopOrderService,
                               DashboardService dashboardService,
                               MarketRatesHolder marketRatesHolder,
-                              SimpMessagingTemplate messagingTemplate) {
-        this.userService = userService;
+                              SimpMessagingTemplate messagingTemplate,
+                              StopOrderService stopOrderService,
+                              UserService userService,
+                              WalletService walletService) {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.orderDao = orderDao;
         this.objectMapper = objectMapper;
-        this.walletService = walletService;
         this.stopOrderDao = stopOrderDao;
-        this.stopOrderService = stopOrderService;
         this.dashboardService = dashboardService;
         this.marketRatesHolder = marketRatesHolder;
         this.messagingTemplate = messagingTemplate;
+        this.stopOrderService = stopOrderService;
+        this.userService = userService;
+        this.walletService = walletService;
     }
 
     @Override
