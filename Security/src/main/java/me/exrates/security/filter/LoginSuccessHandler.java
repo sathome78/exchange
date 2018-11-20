@@ -1,14 +1,15 @@
 package me.exrates.security.filter;
 
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.enums.UserIpState;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.SessionParamsService;
-import me.exrates.service.SurveyService;
 import me.exrates.service.UserService;
-import me.exrates.service.util.IpUtils;
+import org.apache.http.HttpHeaders;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,14 +23,9 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -50,12 +46,28 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     private UserService userService;
     @Autowired
     private IpBlockingService ipBlockingService;
-    @Autowired
-    Client client;
+//    @Autowired
+//    Client client;
 
     @Value("${auth.server.url}")
     private String authServiceUrl;
 
+    @PostConstruct
+    public void zalupa() throws IOException {
+        OkHttpClient cl = new OkHttpClient();
+
+        Request req = new Request.Builder()
+                .url("http://" + "172.50.10.115" + "/oauth/token?grant_type=password&username=" + "sold0767@gmail.com" + "&password=" + "aa11223344")
+                .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
+                .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
+                .addHeader("cache-control", "no-cache")
+                .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED)
+                .build();
+
+        Response response = cl.newCall(req).execute();
+
+        System.out.println(response.body().string());
+    }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
@@ -95,20 +107,29 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         try {
             String cleanPassword = (String) request.getSession().getAttribute("clean_password");
             request.getSession().removeAttribute("clean_password");
-            Form form = new Form();
-            form.param("username", principal.getUsername());
-            form.param("password", cleanPassword);
-            form.param("grant_type", "password");
-            JSONObject tokensJson = new JSONObject(client.target("http://" + authServiceUrl + "/oauth/token").
-                    request().header(HttpHeaders.AUTHORIZATION, "Basic Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
-            )).readEntity(String.class));
+
+            OkHttpClient cl = new OkHttpClient();
+
+            Request req = new Request.Builder()
+                    .url("http://" + "172.50.10.115" + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + cleanPassword)
+                    .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
+                    .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
+                    .addHeader("cache-control", "no-cache")
+                    .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED)
+                    .build();
+
+            Response response = cl.newCall(req).execute();
+
+            JSONObject tokensJson = new JSONObject(response.body().string());
+
+            System.out.println(tokensJson.toString());
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
             request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
-            System.out.println(tokensJson.toString());
         } catch (Throwable e){
             System.out.println(e);
         }
     }
+
 
 }
