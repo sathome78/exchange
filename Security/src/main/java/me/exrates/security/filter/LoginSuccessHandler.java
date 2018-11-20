@@ -126,13 +126,4 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         log.info(tokensJson.toString());
     }
 
-    public static void main(String[] args) {
-        Client client = ClientBuilder.newClient();
-        Response resp = client.target("172.50.10.115" + "/oauth/token").queryParam("grant_type", "password")
-                .queryParam("username", "mikita.malykov@upholding.biz").queryParam("password", "123").
-                        request().header(HttpHeaders.AUTHORIZATION, "Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE
-                        ));
-        System.out.println(resp.readEntity(String.class));
-    }
-
 }
