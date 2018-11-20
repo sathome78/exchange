@@ -543,6 +543,13 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (!items.isEmpty()) {
             if (orderType == OrderType.SELL) {
                 items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
+                for (int i = 0; i < items.size(); i++) {
+                    if (i == 0) {
+                        items.get(i).setTotal(items.get(i).getAmount());
+                    } else {
+                        items.get(i).setTotal(items.get(i).getAmount().add(items.get(i -1).getTotal()));
+                    }
+                }
             } else {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
             }

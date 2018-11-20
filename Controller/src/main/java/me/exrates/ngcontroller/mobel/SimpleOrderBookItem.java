@@ -21,4 +21,7 @@ public class SimpleOrderBookItem {
 
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal amount;
+
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    private BigDecimal total;
 }
