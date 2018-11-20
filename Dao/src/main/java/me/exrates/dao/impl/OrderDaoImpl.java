@@ -1884,7 +1884,7 @@ public class OrderDaoImpl implements OrderDao {
                 "   )) RESULT";
 
         Map<String, Object> params = new HashMap<>();
-        params.put(":status_id", 3);
+        params.put("status_id", 3);
 
         return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
             StatisticForMarket statisticForMarket = new StatisticForMarket();

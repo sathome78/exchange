@@ -32,7 +32,7 @@ public class MarketRatesHolder {
         this.orderDao = orderDao;
     }
 
-    @Scheduled(cron = "0 0 * * *") //every night on 00-00
+    @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
     @PostConstruct
     private void init() {
         log.info("Start fill ratesMarketMap, time = {}", new Date());
