@@ -30,17 +30,14 @@ import java.util.stream.Collectors;
 public class NgChartController {
 
     private final CurrencyService currencyService;
-    private final NotificationsSettingsService notificationsSettingsService;
     private final NgOrderService ngOrderService;
     private final OrderService orderService;
 
     @Autowired
     public NgChartController(CurrencyService currencyService,
-                             NotificationsSettingsService notificationsSettingsService,
                              NgOrderService ngOrderService,
                              OrderService orderService) {
         this.currencyService = currencyService;
-        this.notificationsSettingsService = notificationsSettingsService;
         this.ngOrderService = ngOrderService;
         this.orderService = orderService;
     }
