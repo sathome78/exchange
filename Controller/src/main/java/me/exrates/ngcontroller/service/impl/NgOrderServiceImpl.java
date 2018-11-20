@@ -37,7 +37,6 @@ import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
-import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.MarketRatesHolder;
@@ -75,47 +74,41 @@ public class NgOrderServiceImpl implements NgOrderService {
     private static final Logger logger = LogManager.getLogger(NgOrderServiceImpl.class);
     private static final Executor executor = Executors.newSingleThreadExecutor();
 
-    private final UserService userService;
     private final CurrencyService currencyService;
-    private final OrderService orderService;
-    private final NgOrderService ngOrderService;
-    private final OrderDao orderDao;
-    private final ObjectMapper objectMapper;
-    private final WalletService walletService;
-    private final StopOrderDao stopOrderDao;
-    private final StopOrderService stopOrderService;
-    private final StockExchangeService stockExchangeService;
     private final DashboardService dashboardService;
     private final MarketRatesHolder marketRatesHolder;
+    private final ObjectMapper objectMapper;
+    private final OrderDao orderDao;
+    private final OrderService orderService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final StopOrderDao stopOrderDao;
+    private final StopOrderService stopOrderService;
+    private final UserService userService;
+    private final WalletService walletService;
 
     @Autowired
-    public NgOrderServiceImpl(UserService userService,
-                              CurrencyService currencyService,
-                              OrderService orderService,
-                              NgOrderService ngOrderService,
-                              OrderDao orderDao,
+    public NgOrderServiceImpl(CurrencyService currencyService,
+                              DashboardService dashboardService,
+                              MarketRatesHolder marketRatesHolder,
                               ObjectMapper objectMapper,
-                              WalletService walletService,
+                              OrderDao orderDao,
+                              OrderService orderService,
+                              SimpMessagingTemplate messagingTemplate,
                               StopOrderDao stopOrderDao,
                               StopOrderService stopOrderService,
-                              DashboardService dashboardService,
-                              StockExchangeService stockExchangeService,
-                              MarketRatesHolder marketRatesHolder,
-                              SimpMessagingTemplate messagingTemplate) {
-        this.userService = userService;
+                              UserService userService,
+                              WalletService walletService) {
         this.currencyService = currencyService;
-        this.orderService = orderService;
-        this.ngOrderService = ngOrderService;
-        this.orderDao = orderDao;
+        this.dashboardService = dashboardService;
+        this.marketRatesHolder = marketRatesHolder;
         this.objectMapper = objectMapper;
-        this.walletService = walletService;
+        this.orderDao = orderDao;
+        this.orderService = orderService;
+        this.messagingTemplate = messagingTemplate;
         this.stopOrderDao = stopOrderDao;
         this.stopOrderService = stopOrderService;
-        this.dashboardService = dashboardService;
-        this.stockExchangeService = stockExchangeService;
-        this.marketRatesHolder = marketRatesHolder;
-        this.messagingTemplate = messagingTemplate;
+        this.userService = userService;
+        this.walletService = walletService;
     }
 
     @Override
@@ -580,8 +573,8 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     private String convertToString(int currencyId, int precision) throws JsonProcessingException {
         JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(ngOrderService.findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
-        objectsArray.put(objectMapper.writeValueAsString(ngOrderService.findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
         return objectsArray.toString();
     }
 
