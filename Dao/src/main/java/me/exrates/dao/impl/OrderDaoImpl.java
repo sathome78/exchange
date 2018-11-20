@@ -1913,7 +1913,7 @@ public class OrderDaoImpl implements OrderDao {
                 " amount_convert, commission_fixed_amount, date_creation, date_acception" +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = 2 AND operation_type_id = :operationTypeId AND currency_pair_id=:currency_pair_id" +
-                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
+//                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
                 "  ORDER BY exrate ASC";
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyId);
