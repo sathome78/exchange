@@ -105,9 +105,9 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
             request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
-            log.info(tokensJson.toString());
+            System.out.println(tokensJson.toString());
         } catch (Throwable e){
-            log.error(e);
+            System.out.println(e);
         }
     }
 
