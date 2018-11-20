@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -70,11 +71,14 @@ public class AunitNodeServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
+    Environment environment;
+
+    @Autowired
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
         MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
-        latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
+//        if(environment.getActiveProfiles()[1].equals("prod"))latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.merchantSpecParamsDao = merchantSpecParamsDao;
