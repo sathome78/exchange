@@ -155,4 +155,6 @@ public interface OrderDao {
     List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId);
 
     List<StatisticForMarket> getOrderStatisticForNewMarkets();
+
+    List<OrderListDto> findAllByOrderTypeAndCurrencyId(OrderType orderType, Integer currencyId);
 }
