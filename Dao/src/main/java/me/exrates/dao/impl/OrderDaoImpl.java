@@ -242,7 +242,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType ... baseTypes) {
+    public OrderListDto getLastOrder(CurrencyPair pair, OperationType operationType, OrderBaseType... baseTypes) {
         String join = operationType == BUY
                 ? " INNER JOIN (SELECT MAX(exrate) as exrate"
                 : " INNER JOIN (SELECT MIN(exrate) as exrate";
@@ -272,7 +272,7 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
-    private RowMapper<OrderListDto> orderListDtoRowMapper(){
+    private RowMapper<OrderListDto> orderListDtoRowMapper() {
         return (rs, rowNum) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
@@ -282,8 +282,8 @@ public class OrderDaoImpl implements OrderDao {
             order.setAmountBase(rs.getString("amount_base"));
             order.setAmountConvert(rs.getString("amount_convert"));
             rs.getTimestamp("date_creation");
-            order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
-            order.setAccepted(convertTimeStampToLocalDateTime(rs,"date_acception"));
+            order.setCreated(convertTimeStampToLocalDateTime(rs, "date_creation"));
+            order.setAccepted(convertTimeStampToLocalDateTime(rs, "date_acception"));
             return order;
         };
     }
@@ -1827,7 +1827,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<StatisticForMarket> getOrderStatisticForNewMarkets() {
-        
+
         String sql = "SELECT" +
                 "  RESULT.currency_pair_name," +
                 "  RESULT.market," +
@@ -1835,7 +1835,7 @@ public class OrderDaoImpl implements OrderDao {
                 "  RESULT.last_exrate," +
                 "  RESULT.pred_last_exrate," +
                 "  RESULT.volume" +
-                "FROM" +
+                " FROM" +
                 "  ((SELECT" +
                 "      CURRENCY_PAIR.name                      AS currency_pair_name," +
                 "      CURRENCY_PAIR.market                    AS market," +
@@ -1893,18 +1893,14 @@ public class OrderDaoImpl implements OrderDao {
             statisticForMarket.setCurrencyPairName(rs.getString("currency_pair_name"));
             statisticForMarket.setMarket(rs.getString("market"));
             statisticForMarket.setLastOrderRate(rs.getBigDecimal("last_exrate"));
-            statisticForMarket.setPredLastExrate(rs.getBigDecimal("pred_last_exrate"));
-            if (rs.getObject("volume") != null){
+            statisticForMarket.setPredLastOrderRate(rs.getBigDecimal("pred_last_exrate"));
+            if (rs.getObject("volume") != null) {
                 statisticForMarket.setVolume(rs.getBigDecimal("volume"));
             } else {
                 statisticForMarket.setVolume(BigDecimal.ZERO);
             }
             return statisticForMarket;
         });
-
-
-
-        
     }
 
 }
