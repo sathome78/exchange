@@ -1,9 +1,9 @@
 package me.exrates.ngcontroller.service;
 
 import me.exrates.model.User;
-import me.exrates.ngcontroller.mobel.UserDocVerificationDto;
-import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
-import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
+import me.exrates.ngcontroller.model.UserDocVerificationDto;
+import me.exrates.ngcontroller.model.UserInfoVerificationDto;
+import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
 
 import java.util.List;
 

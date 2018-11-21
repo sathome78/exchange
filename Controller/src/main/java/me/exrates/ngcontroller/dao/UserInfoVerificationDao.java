@@ -1,6 +1,6 @@
 package me.exrates.ngcontroller.dao;
 
-import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
+import me.exrates.ngcontroller.model.UserInfoVerificationDto;
 
 public interface UserInfoVerificationDao {
 

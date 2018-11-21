@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.mobel;
+package me.exrates.ngcontroller.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

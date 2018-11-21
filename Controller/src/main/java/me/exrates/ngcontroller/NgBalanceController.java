@@ -2,8 +2,10 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.User;
 import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.ngcontroller.mobel.UserBalancesDto;
+import me.exrates.ngcontroller.model.RefillPendingRequestDto;
+import me.exrates.ngcontroller.model.UserBalancesDto;
 import me.exrates.ngcontroller.service.BalanceService;
+import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.MarketRatesHolder;
@@ -11,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,6 +34,9 @@ public class NgBalanceController {
 
     @Autowired
     private MarketRatesHolder marketRatesHolder;
+
+    @Autowired
+    RefillPendingRequestService refillPendingRequestService;
 
     @GetMapping
     public ResponseEntity<PagedResult<UserBalancesDto>> getBalances(@RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
@@ -57,5 +59,10 @@ public class NgBalanceController {
 
         });
         return ResponseEntity.ok(new PagedResult<>(userBalances.size(), userBalances));
+    }
+
+    @GetMapping("/getPendingRequests")
+    public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
+        return refillPendingRequestService.getPendingRefillRequests(userId);
     }
 }
