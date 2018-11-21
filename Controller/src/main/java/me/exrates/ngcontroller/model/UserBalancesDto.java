@@ -18,7 +18,6 @@ public class UserBalancesDto implements RowMapper<UserBalancesDto> {
     private String coinDescription;
     private String processType;
     private String merchantDescription;
-    private String description;
     private BigDecimal availableBalance;
     private BigDecimal reservedBalance;
     private BigDecimal usdRate;
@@ -40,9 +39,6 @@ public class UserBalancesDto implements RowMapper<UserBalancesDto> {
                 .usdRate(resultSet.getBigDecimal("usd_rate"))
                 .availableBalance(resultSet.getBigDecimal("active_balance_in_usd"))
                 .reservedBalanceInUSD(resultSet.getBigDecimal("reserved_balance_in_usd"))
-                .description(resultSet.getString("description"))
-                .processType(resultSet.getString("process_type"))
                 .build();
     }
-
 }
