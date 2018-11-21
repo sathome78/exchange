@@ -37,10 +37,7 @@ public class NgBalanceController {
     private MarketRatesHolder marketRatesHolder;
 
     @Autowired
-    RefillPendingRequestService refillPendingRequestService;
-
-    @Autowired
-    private MerchantService merchantService;
+    private RefillPendingRequestService refillPendingRequestService;
 
     @GetMapping
     public ResponseEntity<PagedResult<UserBalancesDto>> getBalances(@RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
@@ -53,17 +50,14 @@ public class NgBalanceController {
         List<UserBalancesDto> userBalances = balanceService.getUserBalances(tickerName, sortByCreated, page, limit, user.getId());
         Map<Integer, StatisticForMarket> collect = marketRatesHolder.getAll().stream().collect(Collectors.toMap(StatisticForMarket::getCurrencyPairId, v -> v));
 
-//        Map<String,Object> merchantData = merchantService.getMerchantData(userBalances.stream().map(element->element.getCurrencyId()).collect(Collectors.toList()).stream().collect(Collectors.toMap(element->element.getCurrencyId),element->element))
-//        userBalances.forEach(element-> {
-//            StatisticForMarket statisticForMarket = collect.get(element.getCurrencyId());
-//            BigDecimal result = statisticForMarket.
-//                    getLastOrderRate().
-//                    multiply(new BigDecimal(100)).
-//                    divide(statisticForMarket.getPredLastOrderRate()).
-//                    subtract(new BigDecimal(100));
-//            element.setChartChanges(result);
-//        element.setMerchantDescription(merchantData.get(element.getCurrencyId()));
-//        element.set(merchantData.get(element.getCurrencyId()));
+        userBalances.forEach(element-> {
+            StatisticForMarket statisticForMarket = collect.get(element.getCurrencyId());
+            BigDecimal result = statisticForMarket.
+                    getLastOrderRate().
+                    multiply(new BigDecimal(100)).
+                    divide(statisticForMarket.getPredLastOrderRate()).
+                    subtract(new BigDecimal(100));
+            element.setChartChanges(result);
         });
         return ResponseEntity.ok(new PagedResult<>(userBalances.size(), userBalances));
     }
@@ -72,9 +66,5 @@ public class NgBalanceController {
     public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
         return refillPendingRequestService.getPendingRefillRequests(userId);
     }
-//    иду в мерчант по каренси получаю айди,
-//    -> cur id
-//    -> cur id merch id merch process type merchant name merchant description
-//
-//    dto -> foreach -> process type(mechant crypto)
+
 }
