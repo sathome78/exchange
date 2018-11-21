@@ -53,6 +53,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   };
 
+  protected static RowMapper<CurrencyPair> currencyPairRowShort = (rs, row) -> {
+    CurrencyPair currencyPair = new CurrencyPair();
+    currencyPair.setId(rs.getInt("id"));
+    currencyPair.setName(rs.getString("name"));
+    currencyPair.setPairType(CurrencyPairType.valueOf(rs.getString("type")));
+    currencyPair.setMarket(rs.getString("market"));
+    return currencyPair;
+  };
+
   public List<Currency> getCurrList() {
     String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
     List<Currency> currList;
@@ -108,6 +117,24 @@ public class CurrencyDaoImpl implements CurrencyDao {
   public List<Currency> findAllCurrencies() {
     final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE order by name";
     return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+  }
+
+  @Override
+  public List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName) {
+    final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT('%/', :part) AND hidden = 0 order by name";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("part", partName.toUpperCase());
+    }};
+    return jdbcTemplate.query(sql, params, currencyPairRowShort);
+  }
+
+  @Override
+  public List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName) {
+    final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT(:part, '/%') AND hidden = 0 order by name";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("part", partName.toUpperCase());
+    }};
+    return jdbcTemplate.query(sql, params, currencyPairRowShort);
   }
 
   @Override

@@ -29,7 +29,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
@@ -42,7 +41,6 @@ public class NgUserServiceImpl implements NgUserService {
     private static final Logger logger = LogManager.getLogger(NgUserServiceImpl.class);
     private final UserDao userDao;
     private final UserService userService;
-    private final LocaleResolver localeResolver;
     private final MessageSource messageSource;
     private final SendMailService sendMailService;
     private final PasswordEncoder passwordEncoder;
@@ -53,11 +51,14 @@ public class NgUserServiceImpl implements NgUserService {
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
                              UserService userService,
-                             LocaleResolver localeResolver,
-                             MessageSource messageSource, SendMailService sendMailService, PasswordEncoder passwordEncoder, AuthTokenService authTokenService, ReferralService referralService, IpBlockingService ipBlockingService) {
+                             MessageSource messageSource,
+                             SendMailService sendMailService,
+                             PasswordEncoder passwordEncoder,
+                             AuthTokenService authTokenService,
+                             ReferralService referralService,
+                             IpBlockingService ipBlockingService) {
         this.userDao = userDao;
         this.userService = userService;
-        this.localeResolver = localeResolver;
         this.messageSource = messageSource;
         this.sendMailService = sendMailService;
         this.passwordEncoder = passwordEncoder;
@@ -91,7 +92,7 @@ public class NgUserServiceImpl implements NgUserService {
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                localeResolver.resolveLocale(request), host);
+                Locale.ENGLISH, host, "final-registration/token?t=");
 
         return true;
     }
@@ -129,11 +130,30 @@ public class NgUserServiceImpl implements NgUserService {
 
             authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
             ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
+            userService.deleteTempTokenByValue(tempToken);
             return authTokenDto;
         } else {
             logger.error("Update fail, user id - {}, email - {}", user.getId(), user.getEmail());
             throw new NgDashboardException("Error while creating password");
         }
+    }
+
+    @Override
+    public boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request) {
+
+        String emailIncome = userEmailDto.getEmail();
+        User user = userDao.findByEmail(emailIncome);
+
+        String host = getHost(request);
+
+        sendEmailWithToken(user,
+                TokenType.CHANGE_PASSWORD,
+                "emailsubmitResetPassword.subject",
+                "emailsubmitResetPassword.text",
+                Locale.ENGLISH, host,
+                "final-registration/token?t="); //must be changed
+
+        return true;
     }
 
 
@@ -143,7 +163,8 @@ public class NgUserServiceImpl implements NgUserService {
                                    String emailSubject,
                                    String emailText,
                                    Locale locale,
-                                   String host) {
+                                   String host,
+                                   String confirmationUrl) {
         TemporalToken token = new TemporalToken();
         token.setUserId(user.getId());
         token.setValue(UUID.randomUUID().toString());
@@ -155,7 +176,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         Email email = new Email();
 
-        String confirmationUrl = "final-registration/token?t=" + token.getValue();
+        confirmationUrl = confirmationUrl + token.getValue();
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
@@ -174,4 +195,5 @@ public class NgUserServiceImpl implements NgUserService {
         String uri = request.getRequestURI();
         return url.substring(0, url.indexOf(uri));
     }
+
 }

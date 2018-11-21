@@ -209,4 +209,6 @@ public interface UserService {
     List<Integer> getUserFavouriteCurrencyPairs(String email);
 
     boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
+
+    boolean deleteTempTokenByValue(String value);
 }
