@@ -5,11 +5,13 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.enums.UserIpState;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import org.apache.http.HttpHeaders;
+import me.exrates.service.util.IpUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,18 +24,20 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.WebUtils;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
 import java.util.Locale;
 
 /**
  * Created by Valk on 28.04.2016.
  */
+
+/**
+ * Created by Valk on 28.04.2016.
+ */
 @Log4j2
-@PropertySource({"classpath:session.properties"})
+@PropertySource("classpath:/auth_server.properties")
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Autowired
@@ -46,28 +50,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     private UserService userService;
     @Autowired
     private IpBlockingService ipBlockingService;
-//    @Autowired
-//    Client client;
 
-    @Value("${auth.server.url}")
-    private String authServiceUrl;
+    @Value("${auth.server.host}")
+    private String authServiceHost;
 
-    @PostConstruct
-    public void zalupa() throws IOException {
-        OkHttpClient cl = new OkHttpClient();
-
-        Request req = new Request.Builder()
-                .url("http://" + "172.50.10.115" + "/oauth/token?grant_type=password&username=" + "sold0767@gmail.com" + "&password=" + "aa11223344")
-                .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
-                .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
-                .addHeader("cache-control", "no-cache")
-                .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED)
-                .build();
-
-        Response response = cl.newCall(req).execute();
-
-        System.out.println(response.body().string());
-    }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
@@ -80,16 +66,26 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
-        /**/
+            /**/
             request.getSession().removeAttribute("errorNoty");
             request.getSession().removeAttribute("successNoty");
-        /**/
+            /**/
             String email = authentication.getName();
-
-            String ip = userService.processIpOnLogin(request, email, locale);
-
+            String ip = request.getHeader("X-FORWARDED-FOR");
+            if (ip == null) {
+                ip = IpUtils.getClientIpAddress(request, 100);
+            }
+            UserIpDto userIpDto = userService.getUserIpState(email, ip);
+            if (userIpDto.getUserIpState() == UserIpState.NEW) {
+                userService.insertIp(email, ip);
+                me.exrates.model.User u = new me.exrates.model.User();
+                u.setId(userIpDto.getUserId());
+                u.setEmail(email);
+                u.setIp(ip);
+                userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
+            }
+            userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
             ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
-
             String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
             request.getSession().removeAttribute("lastPageBeforeLogin");
             if (!StringUtils.isEmpty(lastPage)) {
@@ -105,13 +101,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
     private void setAuthTokens(HttpServletRequest request, User principal) {
         try {
-            String cleanPassword = (String) request.getSession().getAttribute("clean_password");
-            request.getSession().removeAttribute("clean_password");
+            String rawPassword = (String) request.getSession().getAttribute("raw_password");
+            request.getSession().removeAttribute("raw_password");
 
             OkHttpClient cl = new OkHttpClient();
 
             Request req = new Request.Builder()
-                    .url("http://" + "172.50.10.115" + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + cleanPassword)
+                    .url("http://" + authServiceHost + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rawPassword)
                     .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
                     .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
                     .addHeader("cache-control", "no-cache")
@@ -119,17 +115,16 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                     .build();
 
             Response response = cl.newCall(req).execute();
-
             JSONObject tokensJson = new JSONObject(response.body().string());
 
-            System.out.println(tokensJson.toString());
+            log.info("User " + principal.getUsername() + " getted tokens");
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
             request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
-        } catch (Throwable e){
-            System.out.println(e);
+        } catch (Throwable e) {
+            log.error(e);
         }
     }
 
-
 }
+
