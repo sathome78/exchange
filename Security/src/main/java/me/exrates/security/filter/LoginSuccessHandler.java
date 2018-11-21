@@ -37,7 +37,7 @@ import java.util.Locale;
  * Created by Valk on 28.04.2016.
  */
 @Log4j2
-@PropertySource("classpath:/auth_server.properties")
+@PropertySource("classpath:/job.properties")
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Autowired
