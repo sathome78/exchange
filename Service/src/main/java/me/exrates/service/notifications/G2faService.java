@@ -25,8 +25,6 @@ public interface G2faService {
 
     void setEnable2faGoogleAuth(Integer userId, Boolean connection);
 
-    void setEnable2faGoogleAuthNg(Integer userId, Boolean connection);
-
     boolean submitGoogleSecret(User user, Map<String, String> body);
 
     boolean disableGoogleAuth(User user, Map<String, String> body);
