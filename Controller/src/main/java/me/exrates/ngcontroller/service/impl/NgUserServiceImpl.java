@@ -154,7 +154,8 @@ public class NgUserServiceImpl implements NgUserService {
         userService.createTemporalToken(token);
 
         Email email = new Email();
-        String confirmationUrl = "?t=" + token.getValue();
+
+        String confirmationUrl = "final-registration/token?t=" + token.getValue();
 
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
@@ -168,7 +169,7 @@ public class NgUserServiceImpl implements NgUserService {
         sendMailService.sendMail(email);
     }
 
-    private String getHost(HttpServletRequest request){
+    private String getHost(HttpServletRequest request) {
         StringBuffer url = request.getRequestURL();
         String uri = request.getRequestURI();
         return url.substring(0, url.indexOf(uri));
