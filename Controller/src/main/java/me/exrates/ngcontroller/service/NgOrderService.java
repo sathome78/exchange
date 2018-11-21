@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.service;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -33,4 +34,8 @@ public interface NgOrderService {
     Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
+
+    List<CurrencyPair> getAllPairsByFirstPartName(String pathName);
+
+    List<CurrencyPair> getAllPairsBySecondPartName(String pathName);
 }

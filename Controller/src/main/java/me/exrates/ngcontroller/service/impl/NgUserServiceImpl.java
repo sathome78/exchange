@@ -54,7 +54,12 @@ public class NgUserServiceImpl implements NgUserService {
     public NgUserServiceImpl(UserDao userDao,
                              UserService userService,
                              LocaleResolver localeResolver,
-                             MessageSource messageSource, SendMailService sendMailService, PasswordEncoder passwordEncoder, AuthTokenService authTokenService, ReferralService referralService, IpBlockingService ipBlockingService) {
+                             MessageSource messageSource,
+                             SendMailService sendMailService,
+                             PasswordEncoder passwordEncoder,
+                             AuthTokenService authTokenService,
+                             ReferralService referralService,
+                             IpBlockingService ipBlockingService) {
         this.userDao = userDao;
         this.userService = userService;
         this.localeResolver = localeResolver;
@@ -129,11 +134,33 @@ public class NgUserServiceImpl implements NgUserService {
 
             authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
             ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
+            userService.deleteTempTokenByValue(tempToken);
             return authTokenDto;
         } else {
             logger.error("Update fail, user id - {}, email - {}", user.getId(), user.getEmail());
             throw new NgDashboardException("Error while creating password");
         }
+    }
+
+    @Override
+    public boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request) {
+
+        String emailIncome = userEmailDto.getEmail();
+        User user = userDao.findByEmail(emailIncome);
+
+        TemporalToken token = new TemporalToken();
+        token.setUserId(user.getId());
+        token.setValue(UUID.randomUUID().toString());
+        token.setTokenType(TokenType.CHANGE_PASSWORD);
+        token.setCheckIp(user.getIp());
+        token.setAlreadyUsed(false);
+
+        if (!userService.createTemporalToken(token)) {
+            logger.error("Error while creating temporal token, user id - {}, email - {}", user.getId(), user.getEmail());
+            throw new NgDashboardException("Error while creating tempora");
+        }
+
+        return false;
     }
 
 
@@ -174,4 +201,5 @@ public class NgUserServiceImpl implements NgUserService {
         String uri = request.getRequestURI();
         return url.substring(0, url.indexOf(uri));
     }
+
 }
