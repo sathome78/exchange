@@ -121,7 +121,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName) {
-    final String sql = "SELECT * FROM currency_pair WHERE name LIKE CONCAT('%/', :part) AND hidden = 0 order by name";
+    final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT('%/', :part) AND hidden = 0 order by name";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("part", partName.toUpperCase());
     }};
@@ -130,7 +130,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName) {
-    final String sql = "SELECT * FROM currency_pair WHERE name LIKE CONCAT(:part, '/%') AND hidden = 0 order by name";
+    final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT(:part, '/%') AND hidden = 0 order by name";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("part", partName.toUpperCase());
     }};
