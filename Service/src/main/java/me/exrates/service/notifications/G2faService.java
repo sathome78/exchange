@@ -29,5 +29,7 @@ public interface G2faService {
 
     boolean submitGoogleSecret(User user, Map<String, String> body);
 
+    boolean disableGoogleAuth(User user, Map<String, String> body);
+
     void sendGoogleAuthPinConfirm(User user, HttpServletRequest reques);
 }

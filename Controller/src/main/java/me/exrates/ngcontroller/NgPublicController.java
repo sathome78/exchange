@@ -166,12 +166,6 @@ public class NgPublicController {
                 ngOrderService.findAllOrderBookItems(OrderType.SELL, pairId, precision));
     }
 
-//    @GetMapping("/currencies/fast")
-//    @ResponseBody
-//    public List<ExOrderStatisticsShortByPairsDto> getFastPairs() {
-//        return exchangeRatesHolder.getAllRates().stream().limit(100).collect(Collectors.toList());
-//    }
-
     public String getMinAndMaxOrdersSell() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }

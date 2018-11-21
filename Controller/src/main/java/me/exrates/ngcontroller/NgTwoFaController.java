@@ -66,6 +66,16 @@ public class NgTwoFaController {
         return ResponseEntity.badRequest().build();
     }
 
+    @PutMapping("/google2fa/disable")
+    public ResponseEntity<Void> disableGoogleAuthentication(@RequestBody Map<String, String> body) {
+        User user = userService.findByEmail(getPrincipalEmail());
+        boolean result = g2faService.disableGoogleAuth(user, body);
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
 //    @PutMapping("/google2fa")
 //    public ResponseEntity<Void> toggleGoogleTwoFaAuthentication(@RequestBody Map<String, Boolean> params) {
 //        boolean enabled = params.containsKey("STATE") && params.get("STATE");
