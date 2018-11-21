@@ -522,7 +522,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         StatisticForMarket marketStatistic = marketRatesHolder.getRatesMarketMap().get(currencyId);
         if (marketStatistic != null) {
             dto.setLastExrate(marketStatistic.getLastOrderRate().toString());
-            dto.setPositive(marketStatistic.getLastOrderRate().compareTo(marketStatistic.getPredLastOrderRate()) > 0);
+            dto.setPositive(safeCompareBigDecimals(marketStatistic.getLastOrderRate(), marketStatistic.getPredLastOrderRate()));
         }
         return dto;
     }
@@ -619,6 +619,16 @@ public class NgOrderServiceImpl implements NgOrderService {
         objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
         objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
         return objectsArray.toString();
+    }
+
+    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
+        if (last == null && beforeLast == null || last == null) {
+            return false;
+        } else if (beforeLast == null) {
+            return true;
+        } else {
+            return last.compareTo(beforeLast) > 0;
+        }
     }
 
     private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
