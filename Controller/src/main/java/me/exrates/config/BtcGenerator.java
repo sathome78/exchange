@@ -211,6 +211,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("BCHSV", "Bitcoin Cash SV", 4, true, true, "172.10.13.247  ", 8332, 11501);
+        generate("BCHABC", "Bitcoin Cash ABC", 4, true, true, "172.10.13.22", 8332, 11601);
     }
 }
