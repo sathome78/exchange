@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.mobel;
+package me.exrates.ngcontroller.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;

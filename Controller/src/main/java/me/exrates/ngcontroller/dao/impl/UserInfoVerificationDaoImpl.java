@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller.dao.impl;
 
 import me.exrates.ngcontroller.dao.UserInfoVerificationDao;
-import me.exrates.ngcontroller.mobel.UserInfoVerificationDto;
+import me.exrates.ngcontroller.model.UserInfoVerificationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;

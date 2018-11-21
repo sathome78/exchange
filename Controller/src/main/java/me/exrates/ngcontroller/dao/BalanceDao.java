@@ -1,6 +1,6 @@
 package me.exrates.ngcontroller.dao;
 
-import me.exrates.ngcontroller.mobel.UserBalancesDto;
+import me.exrates.ngcontroller.model.UserBalancesDto;
 
 import java.util.List;
 

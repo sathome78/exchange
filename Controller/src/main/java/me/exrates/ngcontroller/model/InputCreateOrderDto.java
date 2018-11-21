@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.mobel;
+package me.exrates.ngcontroller.model;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
