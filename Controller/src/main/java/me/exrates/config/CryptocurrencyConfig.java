@@ -311,6 +311,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/quick_wallet.properties","QUICK","QUICK", 4, 20, false, true);
 	}
 
+	@Bean(name = "bchsvServiceImpl")
+	public BitcoinService bchsvServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bchsv_wallet.properties","BCHSV","BCHSV", 4, 20, false, true);
+	}
+
 	// LISK-like cryptos
 
 
