@@ -62,7 +62,6 @@ public class NgBalanceController {
     }
 
     @GetMapping
-    @ResponseBody
     public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
         return refillPendingRequestService.getPendingRefillRequests(userId);
     }
