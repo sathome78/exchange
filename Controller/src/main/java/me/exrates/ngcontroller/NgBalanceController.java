@@ -61,7 +61,7 @@ public class NgBalanceController {
         return ResponseEntity.ok(new PagedResult<>(userBalances.size(), userBalances));
     }
 
-    @GetMapping
+    @GetMapping("/getPendingRequests")
     public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
         return refillPendingRequestService.getPendingRefillRequests(userId);
     }
