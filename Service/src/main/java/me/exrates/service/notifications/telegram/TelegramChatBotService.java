@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -68,14 +69,15 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            Long chatId = update.getMessage().getChatId();
-            String messageText = update.getMessage().getText();
+            Message message = update.getMessage();
 
-            String userName = update.getMessage().getFrom().getUserName();
-            String firstName = update.getMessage().getFrom().getFirstName();
-            String lastName = update.getMessage().getFrom().getLastName();
+            Long chatId = message.getChatId();
+            String messageText = message.getText();
 
-            String nickNameForDb = Optional.ofNullable(userName).orElse(firstName+ " "+lastName);
+            String firstName = message.getFrom().getFirstName();
+            String lastName = message.getFrom().getLastName();
+
+            String nickNameForDb = firstName+" "+Optional.ofNullable(lastName).orElse("");
 
             ChatLang language = ChatLang.EN;
 
@@ -84,10 +86,10 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             chatMessage.setEmail(nickNameForDb);
             chatMessage.setMessageTime(LocalDateTime.now().format(FORMATTER));
 
-            Optional.ofNullable(update.getMessage().getReplyToMessage()).ifPresent(message -> {
-                chatMessage.setMessageReplyUsername(Optional.ofNullable(message.getFrom().getUserName())
-                        .orElse(message.getFrom().getFirstName()+ " "+message.getFrom().getLastName()));
-                chatMessage.setMessageReplyText(message.getText());
+            Optional.ofNullable(update.getMessage().getReplyToMessage()).ifPresent(messageReply -> {
+                chatMessage.setMessageReplyUsername(messageReply.getFrom().getFirstName()+" "
+                        +Optional.ofNullable(messageReply.getFrom().getLastName()).orElse(""));
+                chatMessage.setMessageReplyText(messageReply.getText());
             });
 
             if(String.valueOf(chatId).equals(chatCommunityId)){
