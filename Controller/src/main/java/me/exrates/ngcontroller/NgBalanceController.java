@@ -7,6 +7,7 @@ import me.exrates.ngcontroller.model.UserBalancesDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.MarketRatesHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,25 +39,31 @@ public class NgBalanceController {
     @Autowired
     RefillPendingRequestService refillPendingRequestService;
 
+    @Autowired
+    private MerchantService merchantService;
+
     @GetMapping
     public ResponseEntity<PagedResult<UserBalancesDto>> getBalances(@RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
                                                                     @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
                                                                     @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
-                                                                    @RequestParam(required = false, name = "tikerName", defaultValue = "") String tikerName) {
+                                                                    @RequestParam(required = false, name = "tickerName", defaultValue = "") String tickerName) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(email);
 
-        List<UserBalancesDto> userBalances = balanceService.getUserBalances(tikerName, sortByCreated, page, limit, user.getId());
+        List<UserBalancesDto> userBalances = balanceService.getUserBalances(tickerName, sortByCreated, page, limit, user.getId());
         Map<Integer, StatisticForMarket> collect = marketRatesHolder.getAll().stream().collect(Collectors.toMap(StatisticForMarket::getCurrencyPairId, v -> v));
-        userBalances.forEach(element->{
-            StatisticForMarket statisticForMarket = collect.get(element.getCurrencyId());
-            BigDecimal result = statisticForMarket.
-                    getLastOrderRate().
-                    multiply(new BigDecimal(100)).
-                    divide(statisticForMarket.getPredLastOrderRate()).
-                    subtract(new BigDecimal(100));
-            element.setChartChanges(result);
 
+//        Map<String,Object> merchantData = merchantService.getMerchantData(userBalances.stream().map(element->element.getCurrencyId()).collect(Collectors.toList()).stream().collect(Collectors.toMap(element->element.getCurrencyId),element->element))
+//        userBalances.forEach(element-> {
+//            StatisticForMarket statisticForMarket = collect.get(element.getCurrencyId());
+//            BigDecimal result = statisticForMarket.
+//                    getLastOrderRate().
+//                    multiply(new BigDecimal(100)).
+//                    divide(statisticForMarket.getPredLastOrderRate()).
+//                    subtract(new BigDecimal(100));
+//            element.setChartChanges(result);
+//        element.setMerchantDescription(merchantData.get(element.getCurrencyId()));
+//        element.set(merchantData.get(element.getCurrencyId()));
         });
         return ResponseEntity.ok(new PagedResult<>(userBalances.size(), userBalances));
     }
@@ -65,4 +72,9 @@ public class NgBalanceController {
     public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
         return refillPendingRequestService.getPendingRefillRequests(userId);
     }
+//    иду в мерчант по каренси получаю айди,
+//    -> cur id
+//    -> cur id merch id merch process type merchant name merchant description
+//
+//    dto -> foreach -> process type(mechant crypto)
 }

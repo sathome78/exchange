@@ -16,6 +16,8 @@ public class UserBalancesDto implements RowMapper<UserBalancesDto> {
     private Integer currencyId;
     private String coinName;
     private String coinDescription;
+    private String processType;
+    private String merchantDescription;
     private BigDecimal availableBalance;
     private BigDecimal reservedBalance;
     private BigDecimal usdRate;
