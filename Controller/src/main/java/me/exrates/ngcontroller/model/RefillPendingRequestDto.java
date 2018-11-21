@@ -12,12 +12,12 @@ import java.sql.SQLException;
 @Builder
 public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDto> {
 
-    private String date;
-    private String currency;
-    private double amount;
-    private double commission;
-    private String system;
-    private String status;
+    String date;
+    String currency;
+    double amount;
+    double commission;
+    String system;
+    String status;
 
 
     @Override

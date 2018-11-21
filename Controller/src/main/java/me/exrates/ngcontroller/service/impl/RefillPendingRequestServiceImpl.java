@@ -12,7 +12,7 @@ import java.util.List;
 public class RefillPendingRequestServiceImpl implements RefillPendingRequestService {
 
     @Autowired
-    private RefillPendingRequestDAO refillPendingRequestDAO;
+    RefillPendingRequestDAO refillPendingRequestDAO;
 
     @Override
     public List<RefillPendingRequestDto> getPendingRefillRequests(long userId) {
