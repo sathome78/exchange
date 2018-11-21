@@ -1,6 +1,6 @@
 package me.exrates.ngcontroller.service;
 
-import me.exrates.ngcontroller.mobel.UserBalancesDto;
+import me.exrates.ngcontroller.model.UserBalancesDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package me.exrates.ngcontroller.service;
 
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
-import me.exrates.ngcontroller.mobel.PasswordCreateDto;
+import me.exrates.ngcontroller.model.PasswordCreateDto;
 
 import javax.servlet.http.HttpServletRequest;
 

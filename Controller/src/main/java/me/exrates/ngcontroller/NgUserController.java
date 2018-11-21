@@ -8,7 +8,7 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.mobel.PasswordCreateDto;
+import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;

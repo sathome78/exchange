@@ -1,9 +1,9 @@
-package me.exrates.ngcontroller.mobel;
+package me.exrates.ngcontroller.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import me.exrates.ngcontroller.mobel.enums.VerificationDocumentType;
+import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
 
 @Data
 @Builder

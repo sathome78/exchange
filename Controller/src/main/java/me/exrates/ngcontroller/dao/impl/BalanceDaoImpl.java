@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller.dao.impl;
 
 import me.exrates.ngcontroller.dao.BalanceDao;
-import me.exrates.ngcontroller.mobel.UserBalancesDto;
+import me.exrates.ngcontroller.model.UserBalancesDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.mobel.enums;
+package me.exrates.ngcontroller.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

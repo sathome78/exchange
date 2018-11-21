@@ -11,7 +11,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.mobel.PasswordCreateDto;
+import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
