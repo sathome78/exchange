@@ -3,11 +3,6 @@ package me.exrates.ngcontroller.mobel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.StockExchangeStats;
-import me.exrates.model.dto.CoinmarketApiDto;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Data
 @Getter

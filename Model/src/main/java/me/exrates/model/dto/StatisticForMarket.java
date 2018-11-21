@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import me.exrates.model.enums.CurrencyPairType;
 
 import java.math.BigDecimal;
 
@@ -20,4 +21,5 @@ public class StatisticForMarket {
     private String percentChange;
     private int page = 0;
     private boolean needToRefresh = true;
+    private CurrencyPairType type;
 }

@@ -19,6 +19,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<Integer, ExOrderStatisticsShortByPairsDto> ratesMap = new ConcurrentHashMap<>();
 
     private final OrderDao orderDao;
+    private static Integer ETH_USD_ID = 0;
+    private static Integer BTC_USD_ID = 0;
 
     @Autowired
     public ExchangeRatesHolderImpl(OrderDao orderDao) {
@@ -28,7 +30,14 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @PostConstruct
     private void init() {
         List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs();
-        list.forEach(p-> ratesMap.put(p.getCurrencyPairId(), p));
+        list.forEach(p-> {
+            ratesMap.put(p.getCurrencyPairId(), p);
+            if (p.getCurrencyPairName().equalsIgnoreCase("BTC/USD")) {
+                BTC_USD_ID = p.getCurrencyPairId();
+            } else if (p.getCurrencyPairName().equalsIgnoreCase("ETH/USD")) {
+                 ETH_USD_ID = p.getCurrencyPairId();
+            }
+        });
     }
 
     @Override
@@ -48,7 +57,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllRates() {
-        return new ArrayList<>(ratesMap.values());
+        List<ExOrderStatisticsShortByPairsDto> pairs = new ArrayList<>(ratesMap.values());
+        pairs.forEach(this::calculatePriceInUSD);
+        return pairs;
     }
 
     @Override
@@ -59,5 +70,28 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         List<ExOrderStatisticsShortByPairsDto> result = new ArrayList<>();
         id.forEach(p-> result.add(ratesMap.get(p)));
         return result;
+    }
+
+    private void calculatePriceInUSD(ExOrderStatisticsShortByPairsDto pair) {
+        if (pair.getMarket().equalsIgnoreCase("USD")) {
+            pair.setPriceInUSD(pair.getLastOrderRate());
+            return;
+        }
+        BigDecimal dealPrice = new BigDecimal(pair.getLastOrderRate());
+        if (pair.getMarket().equalsIgnoreCase("BTC")) {
+            pair.setPriceInUSD(getPriceInUsd(dealPrice, BTC_USD_ID));
+        } else if (pair.getMarket().equalsIgnoreCase("ETH")) {
+            pair.setPriceInUSD(getPriceInUsd(dealPrice, ETH_USD_ID));
+        }
+    }
+
+    private String getPriceInUsd(BigDecimal dealPrice, int pairId) {
+        if (pairId == 0) {
+            return "7.77";
+        } else  if (ratesMap.containsKey(pairId)) {
+            BigDecimal lastRateForBtcUsd = new BigDecimal(ratesMap.get(pairId).getLastOrderRate());
+            return lastRateForBtcUsd.multiply(dealPrice).toPlainString();
+        }
+        return "417";
     }
 }

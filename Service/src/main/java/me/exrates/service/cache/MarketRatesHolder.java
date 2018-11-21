@@ -2,8 +2,11 @@ package me.exrates.service.cache;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +58,10 @@ public class MarketRatesHolder {
         return ratesMarketMap.values().stream().peek(this::processPercentChange).collect(Collectors.toList());
     }
 
+    public Map<Integer, StatisticForMarket> getRatesMarketMap() {
+        return ratesMarketMap;
+    }
+
     private void processPercentChange(StatisticForMarket o) {
         BigDecimal lastExrate = o.getLastOrderRate();
         BigDecimal predLast = o.getPredLastOrderRate() != null ? o.getPredLastOrderRate() : BigDecimal.ZERO;
@@ -69,11 +78,32 @@ public class MarketRatesHolder {
 
     private synchronized void setRatesMarketMap(int currencyPairId, BigDecimal rate, BigDecimal amount) {
         if (ratesMarketMap.containsKey(currencyPairId)) {
+
+            CurrencyPair currencyPair = new CurrencyPair();
+            currencyPair.setId(currencyPairId);
+
+            ExOrderStatisticsDto statistic = orderDao.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval());
+
             StatisticForMarket statisticForMarket = ratesMarketMap.get(currencyPairId);
             statisticForMarket.setLastOrderRate(rate);
+            BigDecimal predLastRate = new BigDecimal(statistic.getFirstOrderRate());
+            statisticForMarket.setPredLastOrderRate(BigDecimalProcessing.normalize(predLastRate));
             BigDecimal volume = BigDecimalProcessing.doAction(statisticForMarket.getVolume(), amount, ActionType.ADD);
             statisticForMarket.setVolume(volume);
             this.processPercentChange(statisticForMarket);
         }
+    }
+
+    public List<StatisticForMarket> getStatisticForMarketsByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<StatisticForMarket> result = new ArrayList<>();
+        ids.forEach(p -> {
+            StatisticForMarket statistic = ratesMarketMap.get(p);
+            this.processPercentChange(statistic);
+            result.add(statistic);
+        });
+        return result;
     }
 }

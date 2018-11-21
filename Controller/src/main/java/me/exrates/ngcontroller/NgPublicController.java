@@ -1,21 +1,24 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.OrderType;
+import me.exrates.ngcontroller.mobel.OrderBookWrapperDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -67,7 +70,6 @@ public class NgPublicController {
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final CurrencyService currencyService;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
@@ -79,16 +81,16 @@ public class NgPublicController {
                               IpBlockingService ipBlockingService,
                               ExchangeRatesHolder exchangeRatesHolder, UserService userService,
                               SimpMessagingTemplate messagingTemplate,
-                              CurrencyService currencyService, OrderService orderService,
+                              OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
-                              TelegramChatBotService telegramChatBotService1, MarketRatesHolder marketRatesHolder) {
+                              TelegramChatBotService telegramChatBotService1,
+                              MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
-        this.currencyService = currencyService;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
@@ -154,6 +156,14 @@ public class NgPublicController {
         String destination = "/topic/chat/".concat(language.toLowerCase());
         messagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/open-orders/{pairId}/{precision}")
+    @ResponseBody
+    public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
+        return ImmutableList.of(
+                ngOrderService.findAllOrderBookItems(OrderType.BUY, pairId, precision),
+                ngOrderService.findAllOrderBookItems(OrderType.SELL, pairId, precision));
     }
 
 //    @GetMapping("/currencies/fast")

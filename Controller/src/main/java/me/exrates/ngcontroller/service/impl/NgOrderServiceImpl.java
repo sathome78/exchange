@@ -1,19 +1,23 @@
 package me.exrates.ngcontroller.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
-import me.exrates.model.StockExchangeStats;
 import me.exrates.model.StopOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.CurrencyPairType;
@@ -21,27 +25,32 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.mobel.InputCreateOrderDto;
+import me.exrates.ngcontroller.mobel.OrderBookWrapperDto;
 import me.exrates.ngcontroller.mobel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.mobel.ResponseUserBalances;
+import me.exrates.ngcontroller.mobel.SimpleOrderBookItem;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
-import me.exrates.service.StockExchangeService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.json.JSONArray;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
@@ -53,41 +62,51 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class NgOrderServiceImpl implements NgOrderService {
 
     private static final Logger logger = LogManager.getLogger(NgOrderServiceImpl.class);
+    private static final Executor executor = Executors.newSingleThreadExecutor();
 
-    private final UserService userService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
     private final OrderDao orderDao;
-    private final WalletService walletService;
+    private final ObjectMapper objectMapper;
     private final StopOrderDao stopOrderDao;
-    private final StopOrderService stopOrderService;
-    private final StockExchangeService stockExchangeService;
     private final DashboardService dashboardService;
+    private final MarketRatesHolder marketRatesHolder;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final StopOrderService stopOrderService;
+    private final UserService userService;
+    private final WalletService walletService;
 
-    @Autowired
-    public NgOrderServiceImpl(UserService userService,
-                              CurrencyService currencyService,
+    public NgOrderServiceImpl(CurrencyService currencyService,
                               OrderService orderService,
                               OrderDao orderDao,
-                              WalletService walletService,
+                              ObjectMapper objectMapper,
                               StopOrderDao stopOrderDao,
-                              StopOrderService stopOrderService,
                               DashboardService dashboardService,
-                              StockExchangeService stockExchangeService) {
-        this.userService = userService;
+                              MarketRatesHolder marketRatesHolder,
+                              SimpMessagingTemplate messagingTemplate,
+                              StopOrderService stopOrderService,
+                              UserService userService,
+                              WalletService walletService) {
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.orderDao = orderDao;
-        this.walletService = walletService;
+        this.objectMapper = objectMapper;
         this.stopOrderDao = stopOrderDao;
-        this.stopOrderService = stopOrderService;
         this.dashboardService = dashboardService;
-        this.stockExchangeService = stockExchangeService;
+        this.marketRatesHolder = marketRatesHolder;
+        this.messagingTemplate = messagingTemplate;
+        this.stopOrderService = stopOrderService;
+        this.userService = userService;
+        this.walletService = walletService;
     }
 
     @Override
@@ -190,6 +209,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                 exOrder.setOrderBaseType(orderBaseType);
             }
             result = orderDao.updateOrder(orderId, exOrder);
+            emitOpenOrderMessage(prepareOrder);
         }
         return result;
     }
@@ -292,24 +312,26 @@ public class NgOrderServiceImpl implements NgOrderService {
                     orderService.getLastOrderPriceByCurrencyPair(currencyPair);
 
             if (currentRateOptional.isPresent()) {
-                BigDecimal rateNow = currentRateOptional.get();
-                result.setCurrencyRate(rateNow.toString());
+                logger.info("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());
+                BigDecimal rateNow = BigDecimalProcessing.normalize(currentRateOptional.get());
+                result.setCurrencyRate(rateNow.toPlainString());
             }
 
             ExOrderStatisticsDto orderStatistic =
                     orderService.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval(), null);
+            logger.info("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
             if (orderStatistic != null) {
                 result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??
                 result.setRateLow(orderStatistic.getMinRate());
                 result.setRateHigh(orderStatistic.getMaxRate());
-                result.setVolume24h(orderStatistic.getSumConvert());
+                result.setVolume24h(orderStatistic.getSumBase());
 
                 if (currentRateOptional.isPresent()) {
                     BigDecimal currentRate = currentRateOptional.get();
                     BigDecimal lastRate = new BigDecimal(orderStatistic.getFirstOrderRate()); //or orderStatistic.getLastOrderRate() ??
                     if (!BigDecimalProcessing.moreThanZero(lastRate)) {
                         result.setPercentChange("100.00");
-                        result.setChangedValue(currentRate.toString());
+                        result.setChangedValue(currentRate.toPlainString());
                     } else {
                         BigDecimal percentGrowth = BigDecimalProcessing.doAction(
                                 BigDecimalProcessing.normalize(lastRate),
@@ -317,7 +339,7 @@ public class NgOrderServiceImpl implements NgOrderService {
                                 ActionType.PERCENT_GROWTH);
                         result.setPercentChange(percentGrowth.toString());
                         BigDecimal subtract = BigDecimalProcessing.doAction(currentRate, lastRate, ActionType.SUBTRACT);
-                        result.setChangedValue(subtract.toString());
+                        result.setChangedValue(BigDecimalProcessing.normalize(subtract).toPlainString());
                     }
                 }
             }
@@ -422,8 +444,10 @@ public class NgOrderServiceImpl implements NgOrderService {
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
+        emitOpenOrderMessage(prepareNewOrder);
         return result;
     }
+
 
     @Override
     public Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
@@ -483,6 +507,108 @@ public class NgOrderServiceImpl implements NgOrderService {
         getData(filterDataResponse, filteredData, resolution);
         return filterDataResponse;
 
+    }
+
+    @Override
+    public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
+        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(orderType, currencyId);
+        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
+        OrderBookWrapperDto dto = OrderBookWrapperDto
+                .builder()
+                .orderType(orderType)
+                .orderBookItems(simpleOrderBookItems)
+                .total(getWrapperTotal(simpleOrderBookItems))
+                .build();
+        StatisticForMarket marketStatistic = marketRatesHolder.getRatesMarketMap().get(currencyId);
+        if (marketStatistic != null) {
+            dto.setLastExrate(marketStatistic.getLastOrderRate().toString());
+            dto.setPositive(marketStatistic.getLastOrderRate().compareTo(marketStatistic.getPredLastOrderRate()) > 0);
+        }
+        return dto;
+    }
+
+    private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
+        Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
+        BigDecimal total = BigDecimal.ZERO;
+        if (max.isPresent()) {
+            total = max.get().getTotal();
+        }
+        return total;
+    }
+
+    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
+                                                     int currencyPairId, int precision) {
+        MathContext mathContext = new MathContext(precision);
+        Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
+                .stream()
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
+        List<SimpleOrderBookItem> items = Lists.newArrayList();
+        groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
+                .builder()
+                .exrate(new BigDecimal(key.toString()))
+                .currencyPairId(currencyPairId)
+                .orderType(orderType)
+                .amount(getAmount(value))
+                .build()));
+
+        if (!items.isEmpty()) {
+            if (orderType == OrderType.SELL) {
+                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
+            } else {
+                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
+            }
+        }
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
+        countTotal(preparedItems, orderType);
+        return preparedItems;
+    }
+
+    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
+        if (orderType == OrderType.BUY) {
+            for (int i = items.size() - 1; i >= 0; i--) {
+                if (i == (items.size() - 1)) {
+                    items.get(i).setTotal(items.get(i).getAmount());
+                } else {
+                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
+                }
+            }
+        } else {
+            for (int i = 0; i < items.size(); i++) {
+                if (i == 0) {
+                    items.get(i).setTotal(items.get(i).getAmount());
+                } else {
+                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
+                }
+            }
+        }
+    }
+
+    private BigDecimal getAmount(List<OrderListDto> list) {
+        BigDecimal amount = new BigDecimal(0);
+        for (OrderListDto item : list) {
+            amount = amount.add(new BigDecimal(item.getAmountBase()));
+        }
+        return amount;
+    }
+
+    private void emitOpenOrderMessage(OrderCreateDto order) {
+        executor.execute(() ->
+                IntStream.range(1, 6).forEach(precision -> {
+                    int currencyPairId = order.getCurrencyPair().getId();
+                    String destination = String.format("/topic/open-orders/%d/%d", currencyPairId, precision);
+                    try {
+                        messagingTemplate.convertAndSend(destination, convertToString(currencyPairId, precision));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                }));
+    }
+
+    private String convertToString(int currencyId, int precision) throws JsonProcessingException {
+        JSONArray objectsArray = new JSONArray();
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
+        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
+        return objectsArray.toString();
     }
 
     private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
