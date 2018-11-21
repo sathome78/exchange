@@ -827,4 +827,9 @@ public class UserServiceImpl implements UserService {
     return userDao.manageUserFavouriteCurrencyPair(user.getId(), currencyPairId, delete);
   }
 
+  @Override
+  public boolean deleteTempTokenByValue(String idTempToken) {
+    return userDao.deleteTemporalToken(idTempToken);
+  }
+
 }

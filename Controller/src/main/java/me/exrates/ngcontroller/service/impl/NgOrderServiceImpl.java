@@ -527,6 +527,16 @@ public class NgOrderServiceImpl implements NgOrderService {
         return dto;
     }
 
+    @Override
+    public List<CurrencyPair> getAllPairsByFirstPartName(String pathName) {
+        return currencyService.getPairsByFirstPartName(pathName);
+    }
+
+    @Override
+    public List<CurrencyPair> getAllPairsBySecondPartName(String pathName) {
+        return currencyService.getPairsBySecondPartName(pathName);
+    }
+
     private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
         Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
         BigDecimal total = BigDecimal.ZERO;

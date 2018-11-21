@@ -4,13 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.model.ChatMessage;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
-import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
-import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.OrderType;
 import me.exrates.ngcontroller.mobel.OrderBookWrapperDto;
@@ -52,7 +49,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -66,8 +62,7 @@ public class NgPublicController {
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
 
     private final ChatService chatService;
-    private final IpBlockingService ipBlockingService;
-    private final ExchangeRatesHolder exchangeRatesHolder;
+    private final IpBlockingService ipBlockingService;;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final OrderService orderService;
@@ -79,7 +74,7 @@ public class NgPublicController {
     @Autowired
     public NgPublicController(ChatService chatService,
                               IpBlockingService ipBlockingService,
-                              ExchangeRatesHolder exchangeRatesHolder, UserService userService,
+                              UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
@@ -88,7 +83,6 @@ public class NgPublicController {
                               MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
-        this.exchangeRatesHolder = exchangeRatesHolder;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
         this.orderService = orderService;
@@ -192,6 +186,20 @@ public class NgPublicController {
     @ResponseBody
     public List<StatisticForMarket> getCurrencyPairInfoAllFromDb() {
         return marketRatesHolder.getAllFromDb();
+    }
+
+    @GetMapping("/pair/{part}/{name}")
+    public ResponseEntity getPairsByPartName(@PathVariable String name,
+                                             @PathVariable String part) {
+        List<CurrencyPair> result;
+
+        if (part.equalsIgnoreCase("first")) {
+            result = ngOrderService.getAllPairsByFirstPartName(name);
+        } else {
+            result = ngOrderService.getAllPairsBySecondPartName(name);
+        }
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     private String fromChatMessage(ChatMessage message) {
