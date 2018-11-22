@@ -104,20 +104,7 @@ public class NgBalanceController {
             HttpServletRequest request) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        /**/
-        String attributeName = tableId + "Params";
-        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-//        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-//        tableParams.setOffsetAndLimitForSql(page, direction);
-        /**/
-        String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
-        if (!result.isEmpty()) {
-            result.get(0).setPage(tableParams.getPageNumber());
-        }
-//        tableParams.updateEofState(result);
+        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, 0, 9999, localeResolver.resolveLocale(request));
         return result;
     }
 
