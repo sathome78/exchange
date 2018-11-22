@@ -44,9 +44,8 @@ public class NgBalanceController {
                                                                     @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
                                                                     @RequestParam(required = false, name = "tikerName", defaultValue = "") String tikerName) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByEmail(email);
 
-        List<UserBalancesDto> userBalances = balanceService.getUserBalances(tikerName, sortByCreated, page, limit, user.getId());
+        List<UserBalancesDto> userBalances = balanceService.getUserBalances(tikerName, sortByCreated, page, limit, userService.getIdByEmail(email));
         Map<Integer, StatisticForMarket> collect = marketRatesHolder.getAll().stream().collect(Collectors.toMap(StatisticForMarket::getCurrencyPairId, v -> v));
         userBalances.forEach(element->{
             StatisticForMarket statisticForMarket = collect.get(element.getCurrencyId());
@@ -62,7 +61,8 @@ public class NgBalanceController {
     }
 
     @GetMapping("/getPendingRequests")
-    public List<RefillPendingRequestDto> getPendingRequests(@RequestParam long userId){
-        return refillPendingRequestService.getPendingRefillRequests(userId);
+    public List<RefillPendingRequestDto> getPendingRequests(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email));
     }
 }
