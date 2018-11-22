@@ -6,8 +6,9 @@ public class BtcGen {
 
     public static void main(String[] args) throws IOException {
         String[] env = {"PATH=/bin:/usr/bin/"};
-        String cmd = "/home/dudoser/IdeaProjects/exrates/btc.sh";  //e.g test.sh -dparam1 -oout.txt
-        Process p = new ProcessBuilder(cmd, "zalupa").start();
+        String cmdDudoser = "/home/dudoser/IdeaProjects/exrates/btc.sh";
+        String cmdVdziubak = "/home/yagi/workspace/becomeJavaSenior/exrates/btc.sh";
+        Process p = new ProcessBuilder(cmdDudoser, "/data/zalupa").start();
     }
 
 }

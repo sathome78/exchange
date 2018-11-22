@@ -120,8 +120,10 @@ public class BtcGenerator {
 
     private static void createBackupDir() throws IOException {
         String[] env = {"PATH=/bin:/usr/bin/"};
-        String cmd = "/home/dudoser/IdeaProjects/exrates/btc.sh";
-        Process p = new ProcessBuilder(cmd, "zalupa").start();
+        String cmdDudoser = "/home/dudoser/IdeaProjects/exrates/btc.sh";
+        String cmdVdziubak = "/home/yagi/workspace/becomeJavaSenior/exrates/btc.sh";
+        new ProcessBuilder(cmdDudoser, "/data/backup").start();
+        new ProcessBuilder(cmdVdziubak, "/data/backup").start();
     }
 
     private static void createBean(String ticker, int minConf, boolean fee) throws IOException {
