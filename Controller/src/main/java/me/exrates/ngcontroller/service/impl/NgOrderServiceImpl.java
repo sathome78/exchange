@@ -521,7 +521,8 @@ public class NgOrderServiceImpl implements NgOrderService {
                 .build();
         StatisticForMarket marketStatistic = marketRatesHolder.getRatesMarketMap().get(currencyId);
         if (marketStatistic != null) {
-            dto.setLastExrate(marketStatistic.getLastOrderRate().toString());
+            dto.setLastExrate(safeFormatBigDecimal((marketStatistic.getLastOrderRate())));
+            dto.setPreLastExrate(safeFormatBigDecimal(marketStatistic.getPredLastOrderRate()));
             dto.setPositive(safeCompareBigDecimals(marketStatistic.getLastOrderRate(), marketStatistic.getPredLastOrderRate()));
         }
         return dto;
@@ -629,6 +630,13 @@ public class NgOrderServiceImpl implements NgOrderService {
         } else {
             return last.compareTo(beforeLast) > 0;
         }
+    }
+
+    private String safeFormatBigDecimal(BigDecimal value) {
+        if (value == null) {
+            value = BigDecimal.ZERO;
+        }
+        return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
     }
 
     private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
