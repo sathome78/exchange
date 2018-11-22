@@ -107,7 +107,7 @@ public class NgBalanceController {
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+//        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
