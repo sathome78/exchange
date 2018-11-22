@@ -83,28 +83,15 @@ public class NgBalanceController {
         return refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email));
     }
 
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's input/output orders to show in pages "History input/output"
-     *
-     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
-     *                         - "false" if data must repainted in any cases
-     * @param tableId          determines table on pages "History" to show data
-     * @param page,            direction - used for pgination. Details see in class TableParams
-     * @param request
-     * @return list the data of user's orders
-     */
     @OnlineMethod
     @RequestMapping(value = "/getInputOutputData/{tableId}", method = RequestMethod.GET)
     public List<MyInputOutputHistoryDto> getMyInputoutputData(
-            @RequestParam(required = false) Boolean refreshIfNeeded,
-            @PathVariable("tableId") String tableId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) PagingDirection direction,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset,
             HttpServletRequest request) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, 0, 9999, localeResolver.resolveLocale(request));
+        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, offset, limit, localeResolver.resolveLocale(request));
         return result;
     }
 
