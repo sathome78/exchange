@@ -114,16 +114,15 @@ public class BtcGenerator {
         createBean(ticker, minConf, isSubstructFee);
         createSql(ticker, description);
         createProps(ticker, isZmq, host, port, blockPort);
-        createBackupDir();
+        createBackupDir(host);
 
     }
 
-    private static void createBackupDir() throws IOException {
-        String[] env = {"PATH=/bin:/usr/bin/"};
+    private static void createBackupDir(String host) throws IOException {
         String cmdDudoser = "/home/dudoser/IdeaProjects/exrates/btc.sh";
         String cmdVdziubak = "/home/yagi/workspace/becomeJavaSenior/exrates/btc.sh";
-        new ProcessBuilder(cmdDudoser, "/data/backup").start();
-        new ProcessBuilder(cmdVdziubak, "/data/backup").start();
+        new ProcessBuilder(cmdDudoser, "/data/backup", host).start();
+        new ProcessBuilder(cmdVdziubak, "/data/backup", host).start();
     }
 
     private static void createBean(String ticker, int minConf, boolean fee) throws IOException {
