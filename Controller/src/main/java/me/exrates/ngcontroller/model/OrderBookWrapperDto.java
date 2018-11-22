@@ -15,6 +15,7 @@ public class OrderBookWrapperDto {
 
     private OrderType orderType;
     private String lastExrate;
+    private String preLastExrate;
     private boolean positive;
     @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal total;
