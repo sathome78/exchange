@@ -28,7 +28,7 @@ public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDt
                 .currency(rs.getString("currency"))
                 .amount(rs.getDouble("amount"))
                 .commission(rs.getDouble("commission"))
-                .system(rs.getString("sys"))
+                .system(rs.getString("system"))
                 .status(rs.getString("status"))
                 .build();
     }

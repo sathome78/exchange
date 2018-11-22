@@ -91,7 +91,6 @@ public class NgBalanceController {
      *                         - "false" if data must repainted in any cases
      * @param tableId          determines table on pages "History" to show data
      * @param page,            direction - used for pgination. Details see in class TableParams
-     * @param principal
      * @param request
      * @return list the data of user's orders
      */
@@ -102,12 +101,9 @@ public class NgBalanceController {
             @PathVariable("tableId") String tableId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction,
-            Principal principal,
             HttpServletRequest request) {
-        if (principal == null) {
-            return null;
-        }
-        String email = principal.getName();
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
