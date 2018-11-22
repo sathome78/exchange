@@ -108,7 +108,7 @@ public class NgBalanceController {
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
 //        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-        tableParams.setOffsetAndLimitForSql(page, direction);
+//        tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
         String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
@@ -117,7 +117,7 @@ public class NgBalanceController {
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }
-        tableParams.updateEofState(result);
+//        tableParams.updateEofState(result);
         return result;
     }
 
