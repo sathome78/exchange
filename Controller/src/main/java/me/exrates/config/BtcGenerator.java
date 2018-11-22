@@ -96,7 +96,7 @@ public class BtcGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TCR');";
 
-    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
+    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/backup/\n" +
             "node.propertySource=node_config/node_config_zalupa.properties\n" +
             "node.zmqEnabled=isZmq\n" +
             "node.supportInstantSend=false\n" +
@@ -114,6 +114,14 @@ public class BtcGenerator {
         createBean(ticker, minConf, isSubstructFee);
         createSql(ticker, description);
         createProps(ticker, isZmq, host, port, blockPort);
+        createBackupDir();
+
+    }
+
+    private static void createBackupDir() throws IOException {
+        String[] env = {"PATH=/bin:/usr/bin/"};
+        String cmd = "/home/dudoser/IdeaProjects/exrates/btc.sh";
+        Process p = new ProcessBuilder(cmd, "zalupa").start();
     }
 
     private static void createBean(String ticker, int minConf, boolean fee) throws IOException {
@@ -122,13 +130,13 @@ public class BtcGenerator {
         FileReader reader = new FileReader(cryptoCurrency);
         int c;
         StringBuilder builder = new StringBuilder();
-        while ((c = reader.read()) != -1){
-            builder.append((char)c);
+        while ((c = reader.read()) != -1) {
+            builder.append((char) c);
         }
         String s = "// LISK-like cryptos";
         String bean = "@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n\tpublic BitcoinService " + ticker.toLowerCase()
-                + "ServiceImpl() {\n\t\treturn new BitcoinServiceImpl(\"merchants/"+ticker.toLowerCase()+"_wallet.properties\","
-                + "\"" + ticker + "\"," + "\"" + ticker + "\", " + minConf +", 20, false, " + fee + ");\n\t}" + "\n\n\t"+s;
+                + "ServiceImpl() {\n\t\treturn new BitcoinServiceImpl(\"merchants/" + ticker.toLowerCase() + "_wallet.properties\","
+                + "\"" + ticker + "\"," + "\"" + ticker + "\", " + minConf + ", 20, false, " + fee + ");\n\t}" + "\n\n\t" + s;
         String replace = builder.toString().replace(s, bean);
 
         FileWriter writer = new FileWriter(cryptoCurrency, false);
@@ -138,26 +146,28 @@ public class BtcGenerator {
     private static void createProps(String ticker, boolean isZmq, String host, int port, int blockPort) throws IOException {
         for (String env : ENVS) {
             File merchantProps = new File(new File("").getAbsoluteFile() + "/Controller/src/main/" + env + "/merchants/" + ticker.toLowerCase() + "_wallet.properties");
-            if(!merchantProps.createNewFile()) throw new RuntimeException("Can not create file with pass " + merchantProps.getAbsolutePath() + "\n maybe have not permission!");
+            if (!merchantProps.createNewFile())
+                throw new RuntimeException("Can not create file with pass " + merchantProps.getAbsolutePath() + "\n maybe have not permission!");
             FileWriter writer = new FileWriter(merchantProps);
             writer.append(WALLET_SCRIPT_PROPERTIES.replace("zalupa", ticker.toLowerCase()).replace("isZmq", String.valueOf(isZmq))).flush();
 
             File nodeConfig = new File(new File("").getAbsoluteFile() + "/Controller/src/main/" + env + "/node_config/node_config_" + ticker.toLowerCase() + ".properties");
             writer = new FileWriter(nodeConfig);
             writer.append(NODE_CONFIG.replace("$host", host).replace("$port", String.valueOf(port)).replace("$block", String.valueOf(blockPort))
-            .replace("$wallet", String.valueOf(blockPort + 1))).flush();
+                    .replace("$wallet", String.valueOf(blockPort + 1))).flush();
         }
     }
 
     private static void createSql(String ticker, String description) throws IOException {
         File newMigration = new File(new File("").getAbsoluteFile() + "/Controller/src/main/resources/db/migration/" + getSqlName(ticker) + ".sql");
-        if(!newMigration.createNewFile()) throw new RuntimeException("Can not create file with pass " + newMigration.getAbsolutePath() + "\n maybe have not permission!");
+        if (!newMigration.createNewFile())
+            throw new RuntimeException("Can not create file with pass " + newMigration.getAbsolutePath() + "\n maybe have not permission!");
 
         FileWriter writer = new FileWriter(newMigration);
         writer.append(SQL_PATCH.replace("TCR", ticker).replace("ticker", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
     }
 
-    private static String getSqlName(String ticker){
+    private static String getSqlName(String ticker) {
         File migrantions = new File(new File("").getAbsoluteFile() + "/Controller/src/main/resources/db/migration/");
         File[] files = migrantions.listFiles();
         double[] versions = new double[files.length];
@@ -173,41 +183,6 @@ public class BtcGenerator {
         String version = "1." + String.valueOf(++lastVersion).replace(".0", "");
         return "V" + version + "__Bitcoin_fork_" + ticker;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public static void main(String[] args) throws IOException {

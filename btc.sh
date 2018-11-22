@@ -1,7 +1,7 @@
 #!/bin/bash
 USERNAME=ubuntu
-HOSTS="ec2-13-59-236-183.us-east-2.compute.amazonaws.com"
-SCRIPT="sudo mkdir /yeah"
+HOSTS="172.10.13.172"
+SCRIPT="sudo mkdir /"
 for HOSTNAME in ${HOSTS} ; do
-    ssh -i "dev_node.pem" ubuntu@${HOSTNAME} "${SCRIPT}"
+    ssh -i "dev_node.pem" ubuntu@${HOSTNAME} "${SCRIPT}""$1"
 done
