@@ -143,11 +143,15 @@ public class NgOrderServiceImpl implements NgOrderService {
         }
 
         if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
+            logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
+                    prepareNewOrder.getTotalWithComission());
             throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
                     inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
         }
 
         if (prepareNewOrder.getComission().compareTo(inputOrder.getCommission()) != 0) {
+            logger.error("Comparing commission, from user - {}, from server - {}", inputOrder.getCommission(),
+                    prepareNewOrder.getComission());
             throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
                     inputOrder.getCommission(), prepareNewOrder.getComission()));
         }
