@@ -82,7 +82,7 @@ public class NgBalanceController {
             @RequestParam String dateFrom,
             @RequestParam String dateTo,
             HttpServletRequest request) {
-        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
+        log.info("Got params for getInputOutputData request " + limit + " " + offset + " " + dateFrom + " " + dateTo);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
     }
