@@ -43,7 +43,6 @@ public class NgUserServiceImpl implements NgUserService {
     private final UserService userService;
     private final MessageSource messageSource;
     private final SendMailService sendMailService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
@@ -53,7 +52,6 @@ public class NgUserServiceImpl implements NgUserService {
                              UserService userService,
                              MessageSource messageSource,
                              SendMailService sendMailService,
-                             PasswordEncoder passwordEncoder,
                              AuthTokenService authTokenService,
                              ReferralService referralService,
                              IpBlockingService ipBlockingService) {
@@ -61,7 +59,6 @@ public class NgUserServiceImpl implements NgUserService {
         this.userService = userService;
         this.messageSource = messageSource;
         this.sendMailService = sendMailService;
-        this.passwordEncoder = passwordEncoder;
         this.authTokenService = authTokenService;
         this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
@@ -107,12 +104,10 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
-        String encode = passwordEncoder.encode(password);
-        user.setPassword(encode);
         user.setUserStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
-        updateUserDto.setPassword(encode);
+        updateUserDto.setPassword(password);
         updateUserDto.setStatus(UserStatus.ACTIVE);
         updateUserDto.setRole(UserRole.USER);
 
