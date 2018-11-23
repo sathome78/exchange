@@ -262,7 +262,7 @@ public class OpenApiPublicController {
         String detail = "Invalid param value : " + exception.getParameter().getParameterName();
         return new OpenApiError(ErrorCode.INVALID_PARAM_VALUE, req.getRequestURL(), detail);
     }
-
+//
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseBody
