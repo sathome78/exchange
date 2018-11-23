@@ -91,7 +91,7 @@ public class NgBalanceController {
             HttpServletRequest request) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, offset, limit, localeResolver.resolveLocale(request));
+        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, 0, 99999, localeResolver.resolveLocale(request));
         return result;
     }
 
