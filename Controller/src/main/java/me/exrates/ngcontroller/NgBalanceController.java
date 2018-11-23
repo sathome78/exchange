@@ -84,8 +84,7 @@ public class NgBalanceController {
             HttpServletRequest request) {
         log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
-        return result;
+        return inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
     }
 
 }

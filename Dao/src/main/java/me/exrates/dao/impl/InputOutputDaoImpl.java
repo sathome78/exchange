@@ -202,7 +202,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     JOIN USER U ON U.id=W.user_id " +
             "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
             "  )  " +
-            " AND TRANSACTION.datetime BETWEEN " + dateFrom + "AND " + dateTo + "  ORDER BY datetime DESC, operation_id DESC " +
+            " AND TRANSACTION.datetime BETWEEN '" + dateFrom + "' AND '" + dateTo + "'  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
