@@ -63,8 +63,9 @@ public class NgBalanceController {
     }
 
     @GetMapping
-    public List<MyWalletsDetailedDto> getBalances(Principal principal) {
-        return ngWalletService.getAllWalletsForUserDetailed(principal.getName(), Locale.ENGLISH);
+    public List<MyWalletsDetailedDto> getBalances() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH);
     }
 
     @GetMapping("/getPendingRequests")
@@ -80,10 +81,10 @@ public class NgBalanceController {
             @RequestParam(required = false) Integer offset,
             @RequestParam String dateFrom,
             @RequestParam String dateTo,
-            HttpServletRequest request,
-            Principal principal) {
+            HttpServletRequest request) {
         log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(principal.getName(), offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
         return result;
     }
 
