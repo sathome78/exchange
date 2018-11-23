@@ -80,8 +80,8 @@ public class NgBalanceController {
             @RequestParam String dateTo,
             HttpServletRequest request,
             Principal principal) {
-
-        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(principal.getName(), offset == null? 0 : offset, limit == null? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
+        System.out.println(limit + offset + dateFrom + dateTo);
+        List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(principal.getName(), offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
         return result;
     }
 
