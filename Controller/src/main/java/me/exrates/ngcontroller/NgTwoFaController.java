@@ -66,21 +66,15 @@ public class NgTwoFaController {
         return ResponseEntity.badRequest().build();
     }
 
-//    @PutMapping("/google2fa")
-//    public ResponseEntity<Void> toggleGoogleTwoFaAuthentication(@RequestBody Map<String, Boolean> params) {
-//        boolean enabled = params.containsKey("STATE") && params.get("STATE");
-//        Integer userId = userService.getIdByEmail(getPrincipalEmail());
-//        try {
-//            if (enabled) {
-////                g2faService.updateGoogleAuthenticatorSecretCodeForUser(userId);
-//            }
-//            g2faService.setEnable2faGoogleAuthNg(userId, enabled);
-//            return ResponseEntity.ok().build();
-//        } catch (Exception e) {
-//            logger.info("Failed to update user (id: {}) 2 fa settings to {}", userId, enabled);
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
+    @PutMapping("/google2fa/disable")
+    public ResponseEntity<Void> disableGoogleAuthentication(@RequestBody Map<String, String> body) {
+        User user = userService.findByEmail(getPrincipalEmail());
+        boolean result = g2faService.disableGoogleAuth(user, body);
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
     @GetMapping(value = "/verify_google2fa")
     @ResponseBody

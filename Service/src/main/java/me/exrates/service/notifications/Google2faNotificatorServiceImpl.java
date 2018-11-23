@@ -150,17 +150,6 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     }
 
     @Override
-    public void setEnable2faGoogleAuthNg(Integer userId, Boolean connection){
-        g2faDao.setEnable2faGoogleAuthNg(userId, connection);
-        if (!connection) {
-            notificationUserSettingsDao.delete(userId);
-            notificationService.notifyUser(userId, NotificationEvent.ACCOUNT, "ga.2fa_disable_title", "message.g2fa.successDisable", null);
-        } else {
-            notificationService.notifyUser(userId, NotificationEvent.ACCOUNT, "ga.2fa_enable_title", "message.g2fa.successEnable", null);
-        }
-    }
-
-    @Override
     public boolean submitGoogleSecret(User user, Map<String, String> body) {
         String password = RestApiUtils.decodePassword(body.get("PASSWORD"));
         String secret = body.get("SECRET");
@@ -176,6 +165,24 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
             return false;
         }
         g2faDao.setGoogleAuthSecretCode(user.getId(), secret);
+        return true;
+    }
+
+    @Override
+    public boolean disableGoogleAuth(User user, Map<String, String> body) {
+        String password = RestApiUtils.decodePassword(body.get("PASSWORD"));
+        String email = body.get("EMAIL");
+        String pin = body.get("PINCODE");
+        if (!user.getEmail().equals(email)) {
+            return false;
+        }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            return false;
+        } else if(!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
+            return false;
+        }
+        g2faDao.setEnable2faGoogleAuth(user.getId(), false);
         return true;
     }
 
