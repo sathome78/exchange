@@ -76,7 +76,7 @@ public class NgBalanceController {
 
     @OnlineMethod
     @RequestMapping(value = "/getInputOutputData/{tableId}", method = RequestMethod.GET)
-    public List<MyInputOutputHistoryDto> getMyInputoutputData(
+    public List<MyInputOutputHistoryDto> getMyInputOutputData(
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Integer offset,
             @RequestParam String dateFrom,
