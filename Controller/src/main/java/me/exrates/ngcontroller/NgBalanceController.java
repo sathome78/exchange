@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.User;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.TableParams;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/info/private/v2/balances/",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@Log4j
+@Log4j2
 public class NgBalanceController {
 
     private final UserService userService;
