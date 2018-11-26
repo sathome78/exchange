@@ -578,22 +578,32 @@ public class NgOrderServiceImpl implements NgOrderService {
         return preparedItems;
     }
 
+//    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
+//        if (orderType == OrderType.BUY) {
+//            for (int i = items.size() - 1; i >= 0; i--) {
+//                if (i == (items.size() - 1)) {
+//                    items.get(i).setTotal(items.get(i).getAmount());
+//                } else {
+//                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
+//                }
+//            }
+//        } else {
+//            for (int i = 0; i < items.size(); i++) {
+//                if (i == 0) {
+//                    items.get(i).setTotal(items.get(i).getAmount());
+//                } else {
+//                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
+//                }
+//            }
+//        }
+//    }
+
     private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
-        if (orderType == OrderType.BUY) {
-            for (int i = items.size() - 1; i >= 0; i--) {
-                if (i == (items.size() - 1)) {
-                    items.get(i).setTotal(items.get(i).getAmount());
-                } else {
-                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
-                }
-            }
-        } else {
-            for (int i = 0; i < items.size(); i++) {
-                if (i == 0) {
-                    items.get(i).setTotal(items.get(i).getAmount());
-                } else {
-                    items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
-                }
+        for (int i = items.size() - 1; i >= 0; i--) {
+            if (i == (items.size() - 1)) {
+                items.get(i).setTotal(items.get(i).getAmount());
+            } else {
+                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
             }
         }
     }
