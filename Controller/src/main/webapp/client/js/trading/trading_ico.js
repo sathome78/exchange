@@ -42,7 +42,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     this.commissionSell;
     this.commissionBuy;
     /**/
-    this.ROUND_SCALE = 9;
+    this.ROUND_SCALE = 8;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange(data) {
