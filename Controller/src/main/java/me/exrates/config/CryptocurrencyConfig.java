@@ -321,6 +321,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/bchabc_wallet.properties","BCHABC","BCHABC", 4, 20, false, true);
 	}
 
+	@Bean(name = "trsServiceImpl")
+	public BitcoinService trsServiceImpl() {
+		return new BitcoinServiceImpl("merchants/trs_wallet.properties","TRS","TRS", 20, 20, false, false);
+	}
+
 	// LISK-like cryptos
 
 
