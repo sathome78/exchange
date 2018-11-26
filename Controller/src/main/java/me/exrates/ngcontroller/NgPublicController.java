@@ -102,7 +102,7 @@ public class NgPublicController {
         Boolean unique = processIpBlocking(request, "email", email,
                 () -> userService.ifEmailIsUnique(email));
         // we may use this elsewhere, so exists is opposite to unique
-        return new ResponseEntity<>(!unique, HttpStatus.OK);
+        return new ResponseEntity<>(!userService.ifEmailIsUnique(email), HttpStatus.OK);
     }
 
     @GetMapping("/is_google_2fa_enabled")
