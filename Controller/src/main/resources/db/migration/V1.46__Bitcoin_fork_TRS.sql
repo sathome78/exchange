@@ -22,7 +22,7 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'TRS'));
 
-INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, trs_name)
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
 VALUES((select id from CURRENCY where name = 'TRS'), (select id from CURRENCY where name = 'USD'), 'TRS/USD', 170, 0, 'TRS/USD');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
@@ -30,7 +30,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
   JOIN USER_ROLE UR
   JOIN ORDER_TYPE OT where CP.name='TRS/USD';
 
-INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,trs_name)
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
 VALUES((select id from CURRENCY where name = 'TRS'), (select id from CURRENCY where name = 'BTC'), 'TRS/BTC', 160, 0, 'BTC', 'TRS/BTC');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
@@ -38,7 +38,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='TRS/BTC';
 
-INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,trs_name)
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
 VALUES((select id from CURRENCY where name = 'TRS'), (select id from CURRENCY where name = 'ETH'), 'TRS/ETH', 160, 0, 'ETH', 'TRS/ETH');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
