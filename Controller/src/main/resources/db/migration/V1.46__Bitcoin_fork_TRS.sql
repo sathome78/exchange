@@ -76,13 +76,13 @@ INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
 INSERT IGNORE INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
 VALUES ((SELECT id from MERCHANT WHERE name='TRS'), (select id from CURRENCY where name='TRS'), 'CRYPWallet.title', 'pass123');
 
-INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
-SELECT cur.id AS currency_id, ur.id AS role_id
-FROM CURRENCY cur CROSS JOIN USER_ROLE ur
-WHERE cur.name IN ('TRS')
-ORDER BY cur.id, ur.id;
+#INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
+#SELECT cur.id AS currency_id, ur.id AS role_id
+#FROM CURRENCY cur CROSS JOIN USER_ROLE ur
+#WHERE cur.name IN ('TRS')
+#ORDER BY cur.id, ur.id;
 
-INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
-SELECT cur.id
-FROM CURRENCY cur
-WHERE cur.name IN ('TRS');
+#INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
+#SELECT cur.id
+#FROM CURRENCY cur
+#WHERE cur.name IN ('TRS');
