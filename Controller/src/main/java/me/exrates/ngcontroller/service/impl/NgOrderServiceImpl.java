@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
@@ -149,7 +150,10 @@ public class NgOrderServiceImpl implements NgOrderService {
                     inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
         }
 
-        if (prepareNewOrder.getComission().compareTo(inputOrder.getCommission()) != 0) {
+        BigDecimal commissionPrepareOrder = prepareNewOrder.getComission();
+        BigDecimal inputOrderCommission = inputOrder.getCommission();
+        if (commissionPrepareOrder.setScale(5, RoundingMode.HALF_UP)
+                .compareTo(inputOrderCommission.setScale(5, RoundingMode.HALF_UP)) != 0) {
             logger.error("Comparing commission, from user - {}, from server - {}", inputOrder.getCommission(),
                     prepareNewOrder.getComission());
             throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
@@ -347,47 +351,6 @@ public class NgOrderServiceImpl implements NgOrderService {
                     }
                 }
             }
-
-//            List<ExOrderStatisticsShortByPairsDto> currencyRate =
-//                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
-//
-//            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-//                if (dto == null) continue;
-//
-//                result.setCurrencyRate(dto.getLastOrderRate());
-//                result.setPercentChange(dto.getPercentChange());
-//                result.setLastCurrencyRate(dto.getPredLastOrderRate());
-//
-//                BigDecimal rateNow = new BigDecimal(dto.getLastOrderRate());
-//                BigDecimal rateYesterday = new BigDecimal(dto.getPredLastOrderRate());
-//                BigDecimal subtract = rateNow.subtract(rateYesterday);
-//                if (subtract != null) {
-//                    subtract = BigDecimalProcessing.normalize(subtract);
-//                    result.setChangedValue(subtract.toString());
-//                }
-//                break;
-//            }
-//
-//            List<StockExchangeStats> statistics;
-//            statistics =
-//                    stockExchangeService.getStockExchangeStatisticsByPeriod(currencyPairId);
-//            //set rateHigh
-//            statistics.stream()
-//                    .map(StockExchangeStats::getPriceHigh)
-//                    .max(Comparator.naturalOrder())
-//                    .ifPresent(high -> result.setRateHigh(high.toString()));
-//
-//            //set rateLow
-//            statistics.stream()
-//                    .map(StockExchangeStats::getPriceLow)
-//                    .max(Comparator.reverseOrder())
-//                    .ifPresent(low -> result.setRateLow(low.toString()));
-//
-//            //set volume24h
-//            statistics.stream()
-//                    .map(StockExchangeStats::getVolume)
-//                    .max(Comparator.naturalOrder())
-//                    .ifPresent(volume -> result.setVolume24h(volume.toString()));
         } catch (ArithmeticException e) {
             logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
             throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());

@@ -272,7 +272,7 @@ public class NgDashboardController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(NgDashboardException.class)
+    @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);

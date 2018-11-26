@@ -966,7 +966,6 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                                        String scope, Integer offset, Integer limit, Map<String, String> sortedColumns) {
         String userFilterClause;
-        String currencyPairClauseJoin = currencyPair == null ? "" : " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
 
         switch (scope) {
@@ -998,7 +997,7 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
                 "  FROM EXORDERS " +
-                currencyPairClauseJoin +
+                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id)" +
                 " INNER JOIN COMMISSION com ON commission_id = com.id  WHERE (status_id = :statusId) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
                 currencyPairClauseWhere +

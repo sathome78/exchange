@@ -183,18 +183,24 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                        HttpServletRequest request) {
-        AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
-        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
+                                       HttpServletRequest request) {
+        boolean result = ngUserService.createPassword(passwordCreateDto, request);
+        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/recoveryPassword")
-    public ResponseEntity recoveryPassword(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request){
+    public ResponseEntity requestForRecoveryPassword(@RequestBody @Valid UserEmailDto userEmailDto,
+                                                     HttpServletRequest request) {
         boolean result = ngUserService.recoveryPassword(userEmailDto, request);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
-
+    @PostMapping("/createRecoveryPassword")
+    public ResponseEntity createRecoveryPassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
+                                                 HttpServletRequest request) {
+        boolean result = ngUserService.createPasswordRecovery(passwordCreateDto, request);
+        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(NgDashboardException.class)
