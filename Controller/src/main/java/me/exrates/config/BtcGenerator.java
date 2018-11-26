@@ -211,6 +211,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("Q", "Quick", 20, true, false, "172.10.13.245", 8333, 12345);
+        generate("TRS", "TreasureSL", 20, false, false, "172.10.13.166", 8333, 11701);
     }
 }
