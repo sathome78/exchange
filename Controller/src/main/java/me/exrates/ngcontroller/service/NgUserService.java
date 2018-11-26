@@ -10,7 +10,7 @@ public interface NgUserService {
 
     boolean registerUser(UserEmailDto userEmailDto, HttpServletRequest request);
 
-    boolean createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
+    AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
 
     boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request);
 
