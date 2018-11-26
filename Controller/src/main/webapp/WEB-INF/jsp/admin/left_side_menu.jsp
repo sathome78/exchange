@@ -37,7 +37,7 @@
             data.forEach(function (item) {
                 if (item['localizedTitle']) {
                     var link = '<li><a href="/2a8fy7b07dxe44/bitcoinWallet/' + item['merchantName'] + '">' + item['currencyName'] + ' - ' +
-                        item['localizedTitle'] +'</a></li>';
+                        item['localizedTitle'] + '</a></li>';
                     $('#cryptoWalletsMenu').find('ul').append(link)
                 }
             });
@@ -47,7 +47,6 @@
 
         })
     }
-
 
 
 </script>
@@ -66,125 +65,157 @@
     <c:set var="admin_currencyLimits" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
     <c:set var="admin_manageAccess" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
     <c:set var="admin_editUser" value="<%=AdminAuthority.EDIT_USER%>"/>
-<div class="sidebar">
-    <ul>
-        <li>
-            <%--Пользователи--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/users'/>"><loc:message code="admin.users"/></a>
-            </sec:authorize>
-        </li>
+    <div class="sidebar">
+        <ul>
+            <li>
+                <%--Пользователи--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/users'/>"><loc:message code="admin.users"/></a>
+                </sec:authorize>
+            </li>
 
 
-        <li>
-            <%--Администраторы--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/administrators'/>"><loc:message code="admin.admins"/></a>
-            </sec:authorize>
-        </li>
+            <li>
+                <%--Администраторы--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/administrators'/>"><loc:message code="admin.admins"/></a>
+                </sec:authorize>
+            </li>
 
-        <li>
-            <%--withdraw--%>
-            <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
-            </sec:authorize>
-        </li>
+            <li>
+                <%--withdraw--%>
+                <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message
+                            code="admin.withdrawRequests"/></a>
+                </sec:authorize>
+            </li>
 
-        <li>
-            <%--withdraw--%>
-            <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message code="admin.transfers"/></a>
-            </sec:authorize>
-        </li>
+            <li>
+                <%--withdraw--%>
+                <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message
+                            code="admin.transfers"/></a>
+                </sec:authorize>
+            </li>
 
-        <li>
-            <%--refill--%>
+            <li>
+                <%--refill--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/refill'/>"><loc:message code="admin.refillRequests"/></a>
-            </sec:authorize>
-        </li>
-        <%--Удаление ордера--%>
-        <li>
+                    <a href="<c:url value='/2a8fy7b07dxe44/refill'/>"><loc:message code="admin.refillRequests"/></a>
+                </sec:authorize>
+            </li>
+            <%--Удаление ордера--%>
+            <li>
 
-            <sec:authorize access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="manageOrder.title"/></a>
-            </sec:authorize>
-        </li>
+                <sec:authorize
+                        access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="manageOrder.title"/></a>
+                </sec:authorize>
+            </li>
 
 
-        <li>
-            <%--Финансисты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
-                <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
-                <div class="collapse" id="finMenu">
-                    <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/externalWallets'/>"><loc:message code="admin.externalWallets.title"/></a></li>
-                    </ul>
-                </div>
-            </sec:authorize>
-        </li>
+            <li>
+                <%--Финансисты--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
+                    <a href="#finMenu" data-toggle="collapse"><loc:message code="admin.finance"/><i
+                            class="fa fa-caret-down"></i></a>
+                    <div class="collapse" id="finMenu">
+                        <ul>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message
+                                    code="admin.currencyLimits.title"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message
+                                    code="admin.commissions"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message
+                                    code="admin.merchantAccess"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message
+                                    code="admin.notificatorsMessagesSettings"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message
+                                    code="admin.referral"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/externalWallets'/>"><loc:message
+                                    code="admin.externalWallets.title"/></a></li>
+                        </ul>
+                    </div>
+                </sec:authorize>
+            </li>
 
-        <li>
-            <%--Отчеты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
-                <a href="#reportsMenu"  data-toggle="collapse"><loc:message code="admin.reports"/><i class="fa fa-caret-down"></i></a>
-                <div class="collapse" id="reportsMenu">
-                    <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message code="admin.generalStats.title"/></a></li>
-                        <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
-                    </ul>
-                </div>
+            <li>
+                <%--Отчеты--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
+                    <a href="#reportsMenu" data-toggle="collapse"><loc:message code="admin.reports"/><i
+                            class="fa fa-caret-down"></i></a>
+                    <div class="collapse" id="reportsMenu">
+                        <ul>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message
+                                    code="admin.generalStats.title"/></a></li>
+                            <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a>
+                            </li>
+                        </ul>
+                    </div>
 
-            </sec:authorize>
-        </li>
+                </sec:authorize>
+            </li>
 
-        <li>
-            <%--crypto wallets--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#cryptoWalletsMenu"  data-toggle="collapse">
-                    <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
-                <div class="collapse" id="cryptoWalletsMenu">
-                    <ul>
-                    </ul>
-                </div>
-            </sec:authorize>
+            <li>
+                <%--Курсы валют--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/exchangeRates'/>"><loc:message
+                            code="admin.exchange-rates"/></a>
+                </sec:authorize>
+            </li>
 
-        </li>
+            <li>
+                <%--crypto wallets--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                    <a href="#cryptoWalletsMenu" data-toggle="collapse">
+                        <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
+                    <div class="collapse" id="cryptoWalletsMenu">
+                        <ul>
+                        </ul>
+                    </div>
+                </sec:authorize>
 
-        <li>
-            <%--auto trading settings--%>
-            <sec:authorize access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="#autoTradingMenu"  data-toggle="collapse">
-                      <loc:message code="admin.autoTrading.menu"/><i class="fa fa-caret-down"></i></a>
-                <div class="collapse" id="autoTradingMenu">
-                    <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>"><loc:message code="admin.autoTrading.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message code="admin.candleTable.title"/></a></li>
-                    </ul>
-                </div>
-            </sec:authorize>
+            </li>
 
-        </li>
+            <li>
+                <%--auto trading settings--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <a href="#autoTradingMenu" data-toggle="collapse">
+                        <loc:message code="admin.autoTrading.menu"/><i class="fa fa-caret-down"></i></a>
+                    <div class="collapse" id="autoTradingMenu">
+                        <ul>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>"><loc:message
+                                    code="admin.autoTrading.title"/></a></li>
+                            <li><a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message
+                                    code="admin.candleTable.title"/></a></li>
+                        </ul>
+                    </div>
+                </sec:authorize>
 
-        <li>
-            <%--session control--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
-            </sec:authorize>
-        </li>
+            </li>
 
-        <li>
-            <%--alert settings--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/alerts'/>"><loc:message code="admin.alertsForUsers"/></a>
-            </sec:authorize>
-        </li>
+            <li>
+                <%--session control--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message
+                            code="admin.sessionControl"/></a>
+                </sec:authorize>
+            </li>
 
-    </ul>
-</div>
+            <li>
+                <%--alert settings--%>
+                <sec:authorize
+                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                    <a href="<c:url value='/2a8fy7b07dxe44/alerts'/>"><loc:message code="admin.alertsForUsers"/></a>
+                </sec:authorize>
+            </li>
+
+        </ul>
+    </div>
 </div>

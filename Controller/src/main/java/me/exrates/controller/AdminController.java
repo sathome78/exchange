@@ -1654,4 +1654,8 @@ public class AdminController {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets", method = RequestMethod.GET)
+    public ModelAndView currencyExchangeModel() {
+        return new ModelAndView("/2a8fy7b07dxe44/exchangeRates");
+    }
 }
