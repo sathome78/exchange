@@ -183,9 +183,9 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                       HttpServletRequest request) {
-        boolean result = ngUserService.createPassword(passwordCreateDto, request);
-        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+                                        HttpServletRequest request) {
+        AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
+        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
 
     @PostMapping("/recoveryPassword")

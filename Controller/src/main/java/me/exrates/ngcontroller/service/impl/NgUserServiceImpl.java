@@ -6,12 +6,17 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
+import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.service.AuthTokenService;
+import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
@@ -26,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,16 +42,25 @@ public class NgUserServiceImpl implements NgUserService {
     private final UserService userService;
     private final MessageSource messageSource;
     private final SendMailService sendMailService;
+    private final AuthTokenService authTokenService;
+    private final ReferralService referralService;
+    private final IpBlockingService ipBlockingService;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
                              UserService userService,
                              MessageSource messageSource,
-                             SendMailService sendMailService) {
+                             SendMailService sendMailService,
+                             AuthTokenService authTokenService,
+                             ReferralService referralService,
+                             IpBlockingService ipBlockingService) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
         this.sendMailService = sendMailService;
+        this.authTokenService = authTokenService;
+        this.referralService = referralService;
+        this.ipBlockingService = ipBlockingService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -80,12 +95,12 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
+    public AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
         String tempToken = passwordCreateDto.getTempToken();
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
             logger.error("Error create password for user, temp_token {}", tempToken);
-            throw new NgDashboardException("User don't exist with this email");
+            throw new NgDashboardException("User not found");
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
@@ -96,10 +111,28 @@ public class NgUserServiceImpl implements NgUserService {
         updateUserDto.setStatus(UserStatus.ACTIVE);
         updateUserDto.setRole(UserRole.USER);
 
-        return userService.updateUserSettings(updateUserDto);
+        boolean update = userService.updateUserSettings(updateUserDto);
+        if (update) {
+            Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveTokenNg(user.getEmail(), request);
+            AuthTokenDto authTokenDto =
+                    null;
+            try {
+                authTokenDto = authTokenResult.orElseThrow(() ->
+                        new Exception("Failed to authenticate user with email: " + user.getEmail()));
+            } catch (Exception e) {
+                logger.error("Error creating token with email {}", user.getEmail());
+            }
+
+            authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
+            userService.deleteTempTokenByValue(tempToken);
+            return authTokenDto;
+        } else {
+            logger.error("Update fail, user id - {}, email - {}", user.getId(), user.getEmail());
+            throw new NgDashboardException("Error while creating password");
+        }
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request) {
 
