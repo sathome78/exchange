@@ -19,7 +19,7 @@ public interface InputOutputDao {
           Integer offset,
           Integer limit,
           String dateFrom, String dateTo, List<Integer> operationTypeIdList,
-          Locale locale);
+          Locale locale, String currency);
 
     List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeList, Locale locale);
 

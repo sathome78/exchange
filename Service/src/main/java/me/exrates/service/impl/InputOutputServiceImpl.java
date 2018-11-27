@@ -99,12 +99,13 @@ public class InputOutputServiceImpl implements InputOutputService {
       Integer offset, Integer limit,
       String dateFrom,
       String dateTo,
+      String currency,
       Locale locale) {
     List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
         .stream()
         .map(OperationType::getType)
         .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset, limit, dateFrom, dateTo, operationTypeList, locale);
+    List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset, limit, dateFrom, dateTo, operationTypeList, locale, currency);
     setAdditionalFields(result, locale);
     return result;
   }
