@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,10 +78,7 @@ public class InputOutputServiceImpl implements InputOutputService {
       String email,
       Integer offset, Integer limit,
       Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(OperationType::getType)
-        .collect(Collectors.toList());
+    List<Integer> operationTypeList = getOperationTypesList();
     List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyInputOutputHistoryDto>() {{
@@ -94,19 +92,27 @@ public class InputOutputServiceImpl implements InputOutputService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-      String email,
-      Integer offset, Integer limit,
-      String dateFrom,
-      String dateTo,
-      Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(OperationType::getType)
-        .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset, limit, dateFrom, dateTo, operationTypeList, locale);
+  public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
+                                                                 LocalDate dateFrom, LocalDate dateTo,
+                                                                 int currencyId, Locale locale) {
+    List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset,
+            limit, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
     setAdditionalFields(result, locale);
     return result;
+  }
+
+  @Override
+  public Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale) {
+    List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(email, 0,
+            0, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
+    return items.size();
+  }
+
+  private List<Integer> getOperationTypesList() {
+    return OperationType.getInputOutputOperationsList()
+            .stream()
+            .map(OperationType::getType)
+            .collect(Collectors.toList());
   }
 
   private void setAdditionalFields(List<MyInputOutputHistoryDto> inputOutputList, Locale locale) {

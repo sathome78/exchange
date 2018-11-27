@@ -10,6 +10,7 @@ import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -22,17 +23,21 @@ import java.util.Optional;
 public interface InputOutputService {
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
-  List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, String dateFrom, String dateTo, Locale locale);
+  List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
+                                                        LocalDate dateFrom, LocalDate dateTo, int currencyId,
+                                                        Locale locale);
 
-    PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(String userEmail, String currencyName, Integer limit, Integer offset, Locale locale);
+  Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale);
 
-    List<Map<String, Object>> generateAndGetButtonsSet(InvoiceStatus status, InvoiceOperationPermission permittedOperation, boolean authorisedUserIsHolder, Locale locale);
+  PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(String userEmail, String currencyName, Integer limit, Integer offset, Locale locale);
+
+  List<Map<String, Object>> generateAndGetButtonsSet(InvoiceStatus status, InvoiceOperationPermission permittedOperation, boolean authorisedUserIsHolder, Locale locale);
 
   Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale);
 
-    List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime,
+  List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime,
                                                               List<Integer> userRoleIdList);
 
-    List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+  List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                List<Integer> userRoleIdList);
 }
