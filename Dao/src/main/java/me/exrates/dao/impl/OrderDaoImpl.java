@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.sun.deploy.security.ValidationState;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
