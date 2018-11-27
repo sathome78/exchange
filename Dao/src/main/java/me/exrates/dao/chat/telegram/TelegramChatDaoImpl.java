@@ -56,8 +56,8 @@ public class TelegramChatDaoImpl implements TelegramChatDao {
     private RowMapper<ChatHistoryDto> getRowMapper() {
         return (rs, rowNum) -> {
             ChatHistoryDto dto = new ChatHistoryDto();
-                dto.setEmail(rs.getString("email"));
-                dto.setBody(rs.getString("body"));
+                dto.setEmail(rs.getString("username"));
+                dto.setBody(rs.getString("text"));
                 dto.setMessageTime(getMessageTime(rs));
                 dto.setWhen(rs.getTimestamp("message_time").toLocalDateTime());
                 dto.setMessageReplyUsername(rs.getString("username_reply"));
