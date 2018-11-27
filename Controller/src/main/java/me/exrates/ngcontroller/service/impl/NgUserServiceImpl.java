@@ -26,7 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,6 @@ public class NgUserServiceImpl implements NgUserService {
     private final UserService userService;
     private final MessageSource messageSource;
     private final SendMailService sendMailService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
@@ -53,7 +51,6 @@ public class NgUserServiceImpl implements NgUserService {
                              UserService userService,
                              MessageSource messageSource,
                              SendMailService sendMailService,
-                             PasswordEncoder passwordEncoder,
                              AuthTokenService authTokenService,
                              ReferralService referralService,
                              IpBlockingService ipBlockingService) {
@@ -61,7 +58,6 @@ public class NgUserServiceImpl implements NgUserService {
         this.userService = userService;
         this.messageSource = messageSource;
         this.sendMailService = sendMailService;
-        this.passwordEncoder = passwordEncoder;
         this.authTokenService = authTokenService;
         this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
@@ -104,15 +100,14 @@ public class NgUserServiceImpl implements NgUserService {
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
             logger.error("Error create password for user, temp_token {}", tempToken);
+            throw new NgDashboardException("User not found");
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
-        String encode = passwordEncoder.encode(password);
-        user.setPassword(encode);
         user.setUserStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
-        updateUserDto.setPassword(encode);
+        updateUserDto.setPassword(password);
         updateUserDto.setStatus(UserStatus.ACTIVE);
         updateUserDto.setRole(UserRole.USER);
 
@@ -143,17 +138,34 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
-
         String host = getHost(request);
-
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
                 "emailsubmitResetPassword.text",
                 Locale.ENGLISH, host,
-                "final-registration/token?t="); //must be changed
+                "recovery-password?t=");
 
         return true;
+    }
+
+    @Override
+    public boolean createPasswordRecovery(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
+        String tempToken = passwordCreateDto.getTempToken();
+        User user = userService.getUserByTemporalToken(tempToken);
+        if (user == null) {
+            logger.error("Error create recovery password for user, temp_token {}", tempToken);
+            return false;
+        }
+
+        String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
+        UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+        updateUserDto.setEmail(user.getEmail());
+        updateUserDto.setPassword(password);
+        updateUserDto.setStatus(user.getStatus());
+        updateUserDto.setRole(user.getRole());
+
+        return userService.updateUserSettings(updateUserDto);
     }
 
 

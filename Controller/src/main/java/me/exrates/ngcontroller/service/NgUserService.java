@@ -14,4 +14,6 @@ public interface NgUserService {
 
     boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request);
 
+    boolean createPasswordRecovery(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
+
 }

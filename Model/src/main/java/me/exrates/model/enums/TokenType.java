@@ -6,7 +6,8 @@ public enum TokenType {
     REGISTRATION(1),
     CHANGE_PASSWORD(2),
     CHANGE_FIN_PASSWORD(3),
-    CONFIRM_NEW_IP(4);
+    CONFIRM_NEW_IP(4),
+    CONFIRM_NEW_OS(5);
 
 
     private final int tokenType;
@@ -25,6 +26,7 @@ public enum TokenType {
             case 2 : return CHANGE_PASSWORD;
             case 3 : return CHANGE_FIN_PASSWORD;
             case 4 : return CONFIRM_NEW_IP;
+            case 5 : return CONFIRM_NEW_OS;
             default:
                 throw new UnsupportedOperationTypeException(tupleId);
         }

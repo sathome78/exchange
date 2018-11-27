@@ -22,7 +22,7 @@ import java.util.Optional;
 public interface InputOutputService {
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
-  List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
+  List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, String dateFrom, String dateTo, Locale locale);
 
     PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(String userEmail, String currencyName, Integer limit, Integer offset, Locale locale);
 

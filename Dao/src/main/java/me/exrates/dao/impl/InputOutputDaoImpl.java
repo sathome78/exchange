@@ -41,11 +41,11 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
   @Override
   public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
-      String email,
-      Integer offset,
-      Integer limit,
-      List<Integer> operationTypeIdList,
-      Locale locale) {
+          String email,
+          Integer offset,
+          Integer limit,
+          String dateFrom, String dateTo, List<Integer> operationTypeIdList,
+          Locale locale) {
     String sql = " SELECT " +
         "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
         "    CURRENCY.name as currency, TRANSACTION.amount, " +
@@ -75,7 +75,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
         "    left join USER on WALLET.user_id=USER.id" +
         "  WHERE " +
-        "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
+        "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND TRANSACTION.datetime BETWEEN '" + dateFrom + "' AND '" + dateTo + "' and " +
         "    USER.email=:email " +
         "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
 
@@ -202,7 +202,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     JOIN USER U ON U.id=W.user_id " +
             "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
             "  )  " +
-        "  ORDER BY datetime DESC, operation_id DESC " +
+            "  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
@@ -236,6 +236,11 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
       return myInputOutputHistoryDto;
     });
+  }
+
+  @Override
+  public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeList, Locale locale) {
+    return null;
   }
 
   @Override
