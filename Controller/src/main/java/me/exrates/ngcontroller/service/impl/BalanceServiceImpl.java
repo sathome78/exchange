@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.service.impl;
 
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.ngcontroller.dao.BalanceDao;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
@@ -12,6 +13,7 @@ import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -51,6 +53,11 @@ public class BalanceServiceImpl implements BalanceService {
         List<RefillPendingRequestDto> requests =
                 refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email));
         return getSafeSubList(requests, offset, limit);
+    }
+
+    @Override
+    public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(int limit, int offset, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
+        return null;
     }
 
     private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {

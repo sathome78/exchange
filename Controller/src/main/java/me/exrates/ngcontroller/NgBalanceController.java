@@ -12,6 +12,7 @@ import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances/",
@@ -78,20 +81,21 @@ public class NgBalanceController {
     }
 
     @RequestMapping(value = "/getInputOutputData/", method = RequestMethod.GET)
-    public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputoutputData(
-            @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) Integer offset,
-            @RequestParam(required = false) String currency,
-            @RequestParam String dateFrom,
-            @RequestParam String dateTo,
+    public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputOutputData(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam("dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam("dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
-        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        try {
-            return ResponseEntity.ok(inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, currency, localeResolver.resolveLocale(request)));
-        } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        String email = getPrincipalEmail();
+        Locale locale = localeResolver.resolveLocale(request);
+//        try {
+//            return ResponseEntity.ok(inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, currency, localeResolver.resolveLocale(request)));
+//        } catch (Exception ex) {
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }
+        throw new UnsupportedOperationException();
     }
 
     private String getPrincipalEmail() {
