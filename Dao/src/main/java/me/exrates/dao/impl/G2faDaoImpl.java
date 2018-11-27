@@ -40,10 +40,10 @@ public class G2faDaoImpl implements G2faDao {
 
     @Override
     public void setGoogleAuthSecretCode(Integer userId, String secretCode) {
-        String sql = "REPLACE INTO 2FA_GOOGLE_AUTHENTICATOR (user_id, enable, secret_code) "
-                + " VALUES (:user_id, true, :secret)";
+        String sql = "UPDATE 2FA_GOOGLE_AUTHENTICATOR SET secret_code = :secret "
+                + " WHERE user_id =:userId";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("user_id", userId);
+            put("userId", userId);
             put("secret", secretCode);
         }};
         jdbcTemplate.update(sql, namedParameters);
