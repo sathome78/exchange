@@ -162,8 +162,15 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
                         "green";
                 $($percentChangeSpan).removeClass();
                 $($percentChangeSpan).addClass(percentChangeClass);
-                $('#minRate').text(data.minRate + ' ' + data.currencyPair.currency2.name);
-                $('#maxRate').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
+
+                var minRate = data.minRate;
+                var substrMinRate = minRate.substr(0, minRate.indexOf('.')) + minRate.substr(minRate.indexOf('.'), 9);
+
+                var maxRate = data.maxRate;
+                var substrMaxRate = maxRate.substr(0, maxRate.indexOf('.')) + maxRate.substr(maxRate.indexOf('.'), 9);
+
+                $('#minRate').text(substrMinRate + ' ' + data.currencyPair.currency2.name);
+                $('#maxRate').text(substrMaxRate + ' ' + data.currencyPair.currency2.name);
             }
         });
     };
@@ -362,10 +369,16 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             && currencyPairName != undefined) {
             var currencies = currencyPairName.split('\/');
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
+            var substrCurrentBaseBalance = currentBaseBalance.substr(0, currentBaseBalance.indexOf('.'))
+                + currentBaseBalance.substr(currentBaseBalance.indexOf('.'), 9);
+
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
-            $('#currentBaseBalance').text(currentBaseBalance);
-            $('#currentConvertBalance').text(currentConvertBalance);
-            $('.currentConvertBalance').text(currentConvertBalance);
+            var substrCurrentConvertBalance = currentConvertBalance.substr(0, currentConvertBalance.indexOf('.'))
+                + currentConvertBalance.substr(currentConvertBalance.indexOf('.'), 9);
+
+            $('#currentBaseBalance').text(substrCurrentBaseBalance);
+            $('#currentConvertBalance').text(substrCurrentConvertBalance);
+            $('.currentConvertBalance').text(substrCurrentConvertBalance);
         }
     };
 
