@@ -432,30 +432,36 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         $(this).prevAll('.dashboard-order__tr').each(function (i, e) {
             var orderId = $(e).find('.order_id').text();
             var orderType = $(e).find('.order_type').text();
+
             var orderAmount = $(e).find('.order_amount').attr('title');
+            var substrOrderAmount = orderAmount.substr(0, orderAmount.indexOf('.')) + orderAmount.substr(orderAmount.indexOf('.'), 9);
+
             var orderExRate = $(e).find('.order_exrate').attr('title');
             var data = {
                 orderId: orderId,
                 orderType: orderType,
-                orderAmount: orderAmount,
+                orderAmount: substrOrderAmount,
                 orderExRate: orderExRate
             };
             that.ordersListForAccept.unshift(data);
-            orderAmountSumm += parseNumber(orderAmount);
+            orderAmountSumm += parseNumber(substrOrderAmount);
             orderAmountSumm = (+orderAmountSumm.toFixed(that.ROUND_SCALE));
         });
         var orderId = $(this).find('.order_id').text();
         var orderType = $(this).find('.order_type').text();
+
         var orderAmount = $(this).find('.order_amount').attr('title');
+        var substrOrderAmount = orderAmount.substr(0, orderAmount.indexOf('.')) + orderAmount.substr(orderAmount.indexOf('.'), 9);
+
         var orderExRate = parseNumber($(this).find('.order_exrate').attr('title'));
         var data = {
             orderId: orderId,
             orderType: orderType,
-            orderAmount: orderAmount,
+            orderAmount: substrOrderAmount,
             orderExRate: orderExRate
         };
         that.ordersListForAccept.push(data);
-        orderAmountSumm += parseNumber(orderAmount);
+        orderAmountSumm += parseNumber(substrOrderAmount);
         /**/
         $('#amountBuy').val(numbro(orderAmountSumm).format(that.numeralFormat));
         $('#exchangeRateBuy').val(numbro(orderExRate).format(that.numeralFormat));
