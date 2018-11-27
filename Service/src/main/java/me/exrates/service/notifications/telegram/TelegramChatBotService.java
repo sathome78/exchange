@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.EvictingQueue;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ChatDao;
+import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.UserService;
@@ -34,13 +35,10 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     private final static Logger logger = LogManager.getLogger(TelegramChatBotService.class);
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
-
-    public final static Integer COUNT_OF_MESSAGE_FOR_VIEW = 30;
-    private final Queue<ChatHistoryDto> messages = EvictingQueue.create(COUNT_OF_MESSAGE_FOR_VIEW);
-
+    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final TelegramChatDao telegramChatDao;
 
     @Value("${telegram.chat_bot.key}")
     private String key;
@@ -50,8 +48,9 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private String chatCommunityId;
 
     @Autowired
-    public TelegramChatBotService(SimpMessagingTemplate messagingTemplate) {
+    public TelegramChatBotService(SimpMessagingTemplate messagingTemplate, TelegramChatDao telegramChatDao) {
         this.messagingTemplate = messagingTemplate;
+        this.telegramChatDao = telegramChatDao;
     }
 
     static {ApiContextInitializer.init();}
@@ -86,6 +85,8 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             chatMessage.setEmail(nickNameForDb);
             chatMessage.setMessageTime(LocalDateTime.now().format(FORMATTER));
 
+            chatMessage.setChatId(chatId);
+
             Optional.ofNullable(update.getMessage().getReplyToMessage()).ifPresent(messageReply -> {
                 chatMessage.setMessageReplyUsername(messageReply.getFrom().getFirstName()+" "
                         +Optional.ofNullable(messageReply.getFrom().getLastName()).orElse(""));
@@ -93,7 +94,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
             });
 
             if(String.valueOf(chatId).equals(chatCommunityId)){
-                messages.add(chatMessage);
+                telegramChatDao.saveChatMessage(language, chatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, toJson(chatMessage));
                 logger.info("Send chat message from TELEGRAM. Chat id: "+chatId+" | From user (userId in Telegram) name:"+nickNameForDb+" | Message text"+messageText);
@@ -124,7 +125,4 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         return key;
     }
 
-    public Queue<ChatHistoryDto> getMessages() {
-        return messages;
-    }
 }

@@ -3,6 +3,7 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
@@ -68,6 +69,7 @@ public class NgPublicController {
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
     private final TelegramChatBotService telegramChatBotService;
+    private final TelegramChatDao telegramChatDao;
     private final MarketRatesHolder marketRatesHolder;
 
     @Autowired
@@ -79,6 +81,7 @@ public class NgPublicController {
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatBotService telegramChatBotService1,
+                              TelegramChatDao telegramChatDao,
                               MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
         this.ipBlockingService = ipBlockingService;
@@ -88,6 +91,7 @@ public class NgPublicController {
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
         this.telegramChatBotService = telegramChatBotService1;
+        this.telegramChatDao = telegramChatDao;
         this.marketRatesHolder = marketRatesHolder;
     }
 
@@ -123,7 +127,7 @@ public class NgPublicController {
     @ResponseBody
     public List<ChatHistoryDateWrapperDto> getChatMessages(final @RequestParam("lang") String lang) {
         try {
-            List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatBotService.getMessages());
+            List<ChatHistoryDto> msgs = Lists.newArrayList(telegramChatDao.getChatHistoryQuick(ChatLang.EN));
             return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
