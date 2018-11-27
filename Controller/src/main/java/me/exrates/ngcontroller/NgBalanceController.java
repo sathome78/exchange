@@ -32,26 +32,14 @@ import java.util.Locale;
 @Log4j
 public class NgBalanceController {
 
-    private final UserService userService;
-
     private final BalanceService balanceService;
-
-    private final RefillPendingRequestService refillPendingRequestService;
-
-    private final InputOutputService inputOutputService;
-
     private final LocaleResolver localeResolver;
 
-    private final NgWalletService ngWalletService;
-
     @Autowired
-    public NgBalanceController(UserService userService, BalanceService balanceService, RefillPendingRequestService refillPendingRequestService, InputOutputService inputOutputService, LocaleResolver localeResolver, NgWalletService ngWalletService) {
-        this.userService = userService;
+    public NgBalanceController(BalanceService balanceService,
+                               LocaleResolver localeResolver) {
         this.balanceService = balanceService;
-        this.refillPendingRequestService = refillPendingRequestService;
-        this.inputOutputService = inputOutputService;
         this.localeResolver = localeResolver;
-        this.ngWalletService = ngWalletService;
     }
 
     @GetMapping
@@ -67,7 +55,7 @@ public class NgBalanceController {
         }
     }
 
-    @GetMapping("/getPendingRequests")
+    @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset) {
@@ -80,31 +68,27 @@ public class NgBalanceController {
         }
     }
 
-    @RequestMapping(value = "/getInputOutputData", method = RequestMethod.GET)
-    public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputOutputData(
+    @GetMapping("/inputOutputData")
+    public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputOutputData(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
-            @RequestParam("dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam("dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
         String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
-//        try {
-//            return ResponseEntity.ok(inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, currency, localeResolver.resolveLocale(request)));
-//        } catch (Exception ex) {
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
-        throw new UnsupportedOperationException();
+        try {
+            PagedResult<MyInputOutputHistoryDto> page =
+                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+            return ResponseEntity.ok(page);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
-
-    public static void main(String[] args) {
-        List<Integer> integers = ImmutableList.of(1,2,3,4);
-        System.out.println(integers.subList(5, 7));
     }
 
 }

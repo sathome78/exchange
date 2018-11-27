@@ -9,6 +9,7 @@ import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.service.NgWalletService;
 import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,16 +23,19 @@ import java.util.Locale;
 public class BalanceServiceImpl implements BalanceService {
 
     private final BalanceDao balanceDao;
+    private final InputOutputService inputOutputService;
     private final RefillPendingRequestService refillPendingRequestService;
     private final NgWalletService ngWalletService;
     private final UserService userService;
 
     @Autowired
     public BalanceServiceImpl(BalanceDao balanceDao,
-                              RefillPendingRequestService refillPendingRequestService,
+                              InputOutputService inputOutputService,
                               NgWalletService ngWalletService,
+                              RefillPendingRequestService refillPendingRequestService,
                               UserService userService) {
         this.balanceDao = balanceDao;
+        this.inputOutputService = inputOutputService;
         this.refillPendingRequestService = refillPendingRequestService;
         this.ngWalletService = ngWalletService;
         this.userService = userService;
@@ -56,8 +60,21 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(int limit, int offset, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
-        return null;
+    public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset,
+                                                                          int currencyId, LocalDate dateFrom,
+                                                                          LocalDate dateTo, Locale locale) {
+        if (dateFrom == null) {
+            dateFrom = LocalDate.now().minusMonths(1);
+        }
+        if (dateTo == null) {
+            dateTo = LocalDate.now();
+        }
+        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
+        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
+        List<MyInputOutputHistoryDto> history =
+                inputOutputService.getUserInputOutputHistory(email, offset, limit, dateFrom, dateTo, currencyId, locale);
+        pagedResult.setItems(history);
+        return pagedResult;
     }
 
     private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {
