@@ -11,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class NgWalletServiceImpl implements NgWalletService {
@@ -26,7 +27,7 @@ public class NgWalletServiceImpl implements NgWalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(toList());
         return walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
     }
 }

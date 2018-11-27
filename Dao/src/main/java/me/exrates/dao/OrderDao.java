@@ -39,6 +39,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -109,9 +110,11 @@ public interface OrderDao {
 
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
-                                                String scope, Integer offset, Integer limit, Map<String, String> sortedColumns);
+                                                String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
+                                                LocalDate dateFrom, LocalDate dateTo);
 
-    Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset, Integer limit, Locale locale);
+    Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset,
+                                      Integer limit, Locale locale, LocalDate dateFrom, LocalDate dateTo);
 
     OrderCreateDto getMyOrderById(int orderId);
 

@@ -81,15 +81,4 @@ public class G2faDaoImpl implements G2faDao {
         }
     }
 
-    @Override
-    public void setEnable2faGoogleAuthNg(Integer userId, Boolean enabled) {
-        String sql = "REPLACE INTO 2FA_GOOGLE_AUTHENTICATOR (user_id, enable, secret_code) " +
-                " VALUES (:user_id, :enabled, :secret)";
-        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("user_id", userId);
-            put("enabled", enabled);
-            put("secret", enabled ? Base32.random() : "");
-        }};
-        jdbcTemplate.update(sql, namedParameters);
-    }
 }

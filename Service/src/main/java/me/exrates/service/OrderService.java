@@ -376,7 +376,8 @@ public interface OrderService {
     @Transactional(readOnly = true)
     Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                                  String scope, Integer offset, Integer limit,
-                                                                 Locale locale, Map<String, String> sortedColumns);
+                                                                 Locale locale, Map<String, String> sortedColumns,
+                                                                 LocalDate dateFrom, LocalDate dateTo);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
