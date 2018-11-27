@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/balances/",
+@RequestMapping(value = "/info/private/v2/balances",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Log4j
@@ -80,7 +80,7 @@ public class NgBalanceController {
         }
     }
 
-    @RequestMapping(value = "/getInputOutputData/", method = RequestMethod.GET)
+    @RequestMapping(value = "/getInputOutputData", method = RequestMethod.GET)
     public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputOutputData(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
