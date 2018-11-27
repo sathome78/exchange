@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 @Getter @Setter
 public class ChatHistoryDto  {
 
+    private Long chatId;
     private String  email;
     private String  body;
     private String messageTime;
