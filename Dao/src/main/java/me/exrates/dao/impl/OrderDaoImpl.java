@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.sun.deploy.security.ValidationState;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
@@ -69,6 +70,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -964,9 +967,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
-                                                       String scope, Integer offset, Integer limit, Map<String, String> sortedColumns) {
+                                                       String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
+                                                       LocalDate from, LocalDate before) {
         String userFilterClause;
         String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
+        String createdBefore = before == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
 
         switch (scope) {
             case "ALL":
@@ -1000,16 +1006,24 @@ public class OrderDaoImpl implements OrderDao {
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id)" +
                 " INNER JOIN COMMISSION com ON commission_id = com.id  WHERE (status_id = :statusId) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
+                createdAfter +
+                createdBefore +
                 currencyPairClauseWhere +
                 userFilterClause +
                 orderClause +
                 pageClause;
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("user_id", userId);
-        namedParameters.put("operation_type_id", operationTypesIds);
-        namedParameters.put("statusId", status.getStatus());
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+        namedParameters.addValue("user_id", userId);
+        namedParameters.addValue("operation_type_id", operationTypesIds);
+        namedParameters.addValue("statusId", status.getStatus());
         if (currencyPair != null) {
-            namedParameters.put("currencyPairId", currencyPair.getId());
+            namedParameters.addValue("currencyPairId", currencyPair.getId());
+        }
+        if (from != null) {
+            namedParameters.addValue("dateFrom", from, Types.DATE);
+        }
+        if (before != null) {
+            namedParameters.addValue("dateBefore", before, Types.DATE);
         }
 
         return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
@@ -1044,10 +1058,13 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset, Integer limit, Locale locale) {
+    public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope,
+                                             Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate before) {
         String userFilterClause;
         String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
+        String createdBefore = before == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
 
         switch (scope) {
             case "ALL":
@@ -1068,14 +1085,22 @@ public class OrderDaoImpl implements OrderDao {
                 currencyPairClauseJoin +
                 "  WHERE (status_id = :statusId) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
+                createdAfter +
+                createdBefore +
                 currencyPairClauseWhere +
                 userFilterClause;
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("user_id", userId);
-        namedParameters.put("statusId", status.getStatus());
-        namedParameters.put("operation_type_id", operationTypesIds);
+        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+        namedParameters.addValue("user_id", userId);
+        namedParameters.addValue("statusId", status.getStatus());
+        namedParameters.addValue("operation_type_id", operationTypesIds);
         if (currencyPair != null) {
-            namedParameters.put("currencyPairId", currencyPair.getId());
+            namedParameters.addValue("currencyPairId", currencyPair.getId());
+        }
+        if (from != null) {
+            namedParameters.addValue("dateFrom", from, Types.DATE);
+        }
+        if (before != null) {
+            namedParameters.addValue("dateBefore", before, Types.DATE);
         }
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
     }

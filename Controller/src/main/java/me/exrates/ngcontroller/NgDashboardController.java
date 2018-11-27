@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -216,6 +218,8 @@ public class NgDashboardController {
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
      * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
      *                       "ALL" - both], not required,  default "" - created by user
+     * @param dateFrom       - specifies the start of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
+     * @param dateTo         - specifies the end of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param request        - HttpServletRequest, used by backend to resolve locale
      * @return - Pageable list of defined orders with meta info about total orders' count
      * @throws - 403 bad request
@@ -228,6 +232,8 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope") String scope,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
 
         OrderStatus orderStatus = OrderStatus.valueOf(status);
@@ -244,7 +250,7 @@ public class NgDashboardController {
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
                     this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
-                            limit, locale, sortedColumns);
+                            limit, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
             pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));

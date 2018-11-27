@@ -1619,11 +1619,12 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                                         String scope, Integer offset, Integer limit,
-                                                                        Locale locale, Map<String, String> sortedColumns) {
+                                                                        Locale locale, Map<String, String> sortedColumns,
+                                                                        LocalDate dateFrom, LocalDate dateTo) {
 
-        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale);
+        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo);
         List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
-                offset, limit, sortedColumns);
+                offset, limit, sortedColumns, dateFrom, dateTo);
         return Collections.singletonMap(records, orders);
     }
 
