@@ -562,11 +562,11 @@ public class NgOrderServiceImpl implements NgOrderService {
 //    }
 
     private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
-        for (int i = items.size() - 1; i >= 0; i--) {
-            if (i == (items.size() - 1)) {
+        for (int i = 0; i < items.size(); i++) {
+            if (i == 0) {
                 items.get(i).setTotal(items.get(i).getAmount());
             } else {
-                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i + 1).getTotal()));
+                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
             }
         }
     }
