@@ -55,7 +55,7 @@ public class RefillRequestJob {
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5) //todo
   public void refillPaymentsForNonSupportedCoins() {
       try {
-          String[] merchantNames = new String[]{"QUICK"}; //todo rename QUICK to Q
+          String[] merchantNames = new String[]{"QUICK", "DIME"}; //todo rename QUICK to Q
           for (String merchantName : merchantNames) {
               BitcoinService service = getBitcoinServiceByMerchantName(merchantName);
               List<BtcTransactionHistoryDto> transactions = service.listAllTransactions();
