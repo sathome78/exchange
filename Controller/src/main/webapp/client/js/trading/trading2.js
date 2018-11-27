@@ -41,7 +41,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     this.commissionSell;
     this.commissionBuy;
     /**/
-    this.ROUND_SCALE = 9;
+    this.ROUND_SCALE = 8;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
@@ -162,8 +162,15 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
                         "green";
                 $($percentChangeSpan).removeClass();
                 $($percentChangeSpan).addClass(percentChangeClass);
-                $('#minRate').text(data.minRate + ' ' + data.currencyPair.currency2.name);
-                $('#maxRate').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
+
+                var minRate = data.minRate;
+                var substrMinRate = minRate.substr(0, minRate.indexOf('.')) + minRate.substr(minRate.indexOf('.'), 9);
+
+                var maxRate = data.maxRate;
+                var substrMaxRate = maxRate.substr(0, maxRate.indexOf('.')) + maxRate.substr(maxRate.indexOf('.'), 9);
+
+                $('#minRate').text(substrMinRate + ' ' + data.currencyPair.currency2.name);
+                $('#maxRate').text(substrMaxRate + ' ' + data.currencyPair.currency2.name);
             }
         });
     };
@@ -362,10 +369,16 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
             && currencyPairName != undefined) {
             var currencies = currencyPairName.split('\/');
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
+            var substrCurrentBaseBalance = currentBaseBalance.substr(0, currentBaseBalance.indexOf('.'))
+                + currentBaseBalance.substr(currentBaseBalance.indexOf('.'), 9);
+
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
-            $('#currentBaseBalance').text(currentBaseBalance);
-            $('#currentConvertBalance').text(currentConvertBalance);
-            $('.currentConvertBalance').text(currentConvertBalance);
+            var substrCurrentConvertBalance = currentConvertBalance.substr(0, currentConvertBalance.indexOf('.'))
+                + currentConvertBalance.substr(currentConvertBalance.indexOf('.'), 9);
+
+            $('#currentBaseBalance').text(substrCurrentBaseBalance);
+            $('#currentConvertBalance').text(substrCurrentConvertBalance);
+            $('.currentConvertBalance').text(substrCurrentConvertBalance);
         }
     };
 
@@ -563,30 +576,36 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
         $(this).prevAll('.dashboard-order__tr').each(function (i, e) {
             var orderId = $(e).find('.order_id').text();
             var orderType = $(e).find('.order_type').text();
+
             var orderAmount = $(e).find('.order_amount').attr('title');
+            var substrOrderAmount = orderAmount.substr(0, orderAmount.indexOf('.')) + orderAmount.substr(orderAmount.indexOf('.'), 9);
+
             var orderExRate = $(e).find('.order_exrate').attr('title');
             var data = {
                 orderId: orderId,
                 orderType: orderType,
-                orderAmount: orderAmount,
+                orderAmount: substrOrderAmount,
                 orderExRate: orderExRate
             };
             that.ordersListForAccept.unshift(data);
-            orderAmountSumm += parseNumber(orderAmount);
+            orderAmountSumm += parseNumber(substrOrderAmount);
             orderAmountSumm = (+orderAmountSumm.toFixed(that.ROUND_SCALE));
         });
         var orderId = $(this).find('.order_id').text();
         var orderType = $(this).find('.order_type').text();
+
         var orderAmount = $(this).find('.order_amount').attr('title');
+        var substrOrderAmount = orderAmount.substr(0, orderAmount.indexOf('.')) + orderAmount.substr(orderAmount.indexOf('.'), 9);
+
         var orderExRate = parseNumber($(this).find('.order_exrate').attr('title'));
         var data = {
             orderId: orderId,
             orderType: orderType,
-            orderAmount: orderAmount,
+            orderAmount: substrOrderAmount,
             orderExRate: orderExRate
         };
         that.ordersListForAccept.push(data);
-        orderAmountSumm += parseNumber(orderAmount);
+        orderAmountSumm += parseNumber(substrOrderAmount);
         /**/
         $('#amountBuy').val(numbro(orderAmountSumm).format(that.numeralFormat));
         $('#exchangeRateBuy').val(numbro(orderExRate).format(that.numeralFormat));
