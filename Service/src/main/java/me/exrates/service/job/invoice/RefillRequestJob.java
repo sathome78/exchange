@@ -65,7 +65,7 @@ public class RefillRequestJob {
                       Map<String, String> params = new LinkedHashMap<>();
                       params.put("txId", transaction.getTxId());
                       params.put("address", transaction.getAddress());
-                      getBitcoinServiceByMerchantName(merchantName).processPayment(params);
+                      forceRefill(merchantName, params);
                   }
               }
 
@@ -75,7 +75,15 @@ public class RefillRequestJob {
       }
   }
 
-  private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
+    private void forceRefill(String merchantName, Map<String, String> params) {
+        try {
+            getBitcoinServiceByMerchantName(merchantName).processPayment(params);
+        } catch (Exception e){
+            log.error(e);
+        }
+    }
+
+    private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
     String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
     if (merchantService == null || !(merchantService instanceof BitcoinService)) {
