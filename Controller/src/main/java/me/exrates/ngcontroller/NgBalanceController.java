@@ -1,27 +1,18 @@
 package me.exrates.ngcontroller;
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j;
-import me.exrates.model.User;
-import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.TableParams;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
-import me.exrates.model.enums.PagingDirection;
-import me.exrates.model.vo.CacheData;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
-import me.exrates.ngcontroller.model.UserBalancesDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.service.NgWalletService;
 import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
-import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
-import me.exrates.service.cache.MarketRatesHolder;
-import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,12 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances/",
@@ -45,6 +32,8 @@ public class NgBalanceController {
 
     private final UserService userService;
 
+    private final BalanceService balanceService;
+
     private final RefillPendingRequestService refillPendingRequestService;
 
     private final InputOutputService inputOutputService;
@@ -54,8 +43,9 @@ public class NgBalanceController {
     private final NgWalletService ngWalletService;
 
     @Autowired
-    public NgBalanceController(UserService userService, RefillPendingRequestService refillPendingRequestService, InputOutputService inputOutputService, LocaleResolver localeResolver, NgWalletService ngWalletService) {
+    public NgBalanceController(UserService userService, BalanceService balanceService, RefillPendingRequestService refillPendingRequestService, InputOutputService inputOutputService, LocaleResolver localeResolver, NgWalletService ngWalletService) {
         this.userService = userService;
+        this.balanceService = balanceService;
         this.refillPendingRequestService = refillPendingRequestService;
         this.inputOutputService = inputOutputService;
         this.localeResolver = localeResolver;
@@ -63,28 +53,50 @@ public class NgBalanceController {
     }
 
     @GetMapping
-    public List<MyWalletsDetailedDto> getBalances() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH);
+    public ResponseEntity<PagedResult<MyWalletsDetailedDto>> getBalances(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset) {
+        String email = getPrincipalEmail();
+        try {
+            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email);
+            return ResponseEntity.ok(pagedResult);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/getPendingRequests")
-    public List<RefillPendingRequestDto> getPendingRequests() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email));
+    public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset) {
+        String email = getPrincipalEmail();
+        try {
+            PagedResult<RefillPendingRequestDto> pendingRequests = balanceService.getPendingRequests(offset, limit, email);
+            return ResponseEntity.ok(pendingRequests);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @OnlineMethod
-    @RequestMapping(value = "/getInputOutputData/{tableId}", method = RequestMethod.GET)
-    public List<MyInputOutputHistoryDto> getMyInputoutputData(
-            @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) Integer offset,
-            @RequestParam String dateFrom,
-            @RequestParam String dateTo,
-            HttpServletRequest request) {
-        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
+//    @RequestMapping(value = "/getInputOutputData/{tableId}", method = RequestMethod.GET)
+//    public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputoutputData(
+//            @RequestParam(required = false) Integer limit,
+//            @RequestParam(required = false) Integer offset,
+//            @RequestParam String dateFrom,
+//            @RequestParam String dateTo,
+//            HttpServletRequest request) {
+//        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        return inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
+//    }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    public static void main(String[] args) {
+        List<Integer> integers = ImmutableList.of(1,2,3,4);
+        System.out.println(integers.subList(5, 7));
     }
 
 }
