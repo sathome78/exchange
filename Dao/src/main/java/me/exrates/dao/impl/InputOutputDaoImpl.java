@@ -45,7 +45,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
           Integer offset,
           Integer limit,
           String dateFrom, String dateTo, List<Integer> operationTypeIdList,
-          Locale locale) {
+          Locale locale, String currency) {
     String sql = " SELECT " +
         "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
         "    CURRENCY.name as currency, TRANSACTION.amount, " +
@@ -75,7 +75,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
         "    left join USER on WALLET.user_id=USER.id" +
         "  WHERE " +
-        "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND TRANSACTION.datetime BETWEEN '" + dateFrom + "' AND '" + dateTo + "' and " +
+        "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND " + (currency != null ? " TRANSACTION.currency_id = (SELECT id FROM CURRENCY WHERE name = :currency)" :" ") +
+            " TRANSACTION.datetime BETWEEN '" + dateFrom + "' AND '" + dateTo + "' and " +
         "    USER.email=:email " +
         "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
 
@@ -206,6 +207,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
+    params.put("currency", currency);
     params.put("operation_type_id_list", operationTypeIdList);
     return jdbcTemplate.query(sql, params, (rs, i) -> {
       MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();

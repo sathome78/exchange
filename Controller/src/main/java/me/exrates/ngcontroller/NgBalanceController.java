@@ -21,7 +21,6 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances/",
@@ -78,17 +77,22 @@ public class NgBalanceController {
         }
     }
 
-//    @RequestMapping(value = "/getInputOutputData/{tableId}", method = RequestMethod.GET)
-//    public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputoutputData(
-//            @RequestParam(required = false) Integer limit,
-//            @RequestParam(required = false) Integer offset,
-//            @RequestParam String dateFrom,
-//            @RequestParam String dateTo,
-//            HttpServletRequest request) {
-//        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        return inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, localeResolver.resolveLocale(request));
-//    }
+    @RequestMapping(value = "/getInputOutputData/", method = RequestMethod.GET)
+    public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputoutputData(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false) String currency,
+            @RequestParam String dateFrom,
+            @RequestParam String dateTo,
+            HttpServletRequest request) {
+        log.info("Trololo " + limit + " " + offset + " " + dateFrom + " " + dateTo);
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            return ResponseEntity.ok(inputOutputService.getMyInputOutputHistory(email, offset == null ? 0 : offset, limit == null ? 28 : limit, dateFrom, dateTo, currency, localeResolver.resolveLocale(request)));
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
