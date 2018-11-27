@@ -99,8 +99,8 @@ public class NgPublicController {
 
     @GetMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
-        Boolean unique = processIpBlocking(request, "email", email,
-                () -> userService.ifEmailIsUnique(email));
+//        Boolean unique = processIpBlocking(request, "email", email,
+//                () -> userService.ifEmailIsUnique(email));
         // we may use this elsewhere, so exists is opposite to unique
         return new ResponseEntity<>(!userService.ifEmailIsUnique(email), HttpStatus.OK);
     }
