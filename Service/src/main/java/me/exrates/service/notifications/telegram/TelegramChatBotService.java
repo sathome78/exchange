@@ -38,6 +38,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final TelegramChatDao telegramChatDao;
 
     @Value("${telegram.chat_bot.key}")
     private String key;
@@ -47,11 +48,9 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private String chatCommunityId;
 
     @Autowired
-    private TelegramChatDao telegramChatDao;
-
-    @Autowired
-    public TelegramChatBotService(SimpMessagingTemplate messagingTemplate) {
+    public TelegramChatBotService(SimpMessagingTemplate messagingTemplate, TelegramChatDao telegramChatDao) {
         this.messagingTemplate = messagingTemplate;
+        this.telegramChatDao = telegramChatDao;
     }
 
     static {ApiContextInitializer.init();}
@@ -94,7 +93,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 chatMessage.setMessageReplyText(messageReply.getText());
             });
 
-            if(!String.valueOf(chatId).equals(chatCommunityId)){
+            if(String.valueOf(chatId).equals(chatCommunityId)){
                 telegramChatDao.saveChatMessage(language, chatMessage);
                 String destination = "/topic/chat/".concat(language.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, toJson(chatMessage));
