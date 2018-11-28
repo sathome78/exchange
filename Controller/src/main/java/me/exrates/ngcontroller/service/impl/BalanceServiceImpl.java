@@ -14,10 +14,13 @@ import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public class BalanceServiceImpl implements BalanceService {
@@ -47,9 +50,17 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email) {
+    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero) {
         List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH);
+        if (excludeZero) {
+            details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
+
+        }
         return getSafeSubList(details, offset, limit);
+    }
+
+    private Predicate<MyWalletsDetailedDto> filterZeroActiveBalance() {
+        return wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) == 0;
     }
 
     @Override

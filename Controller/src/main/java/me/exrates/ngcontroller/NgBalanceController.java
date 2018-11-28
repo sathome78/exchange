@@ -39,19 +39,22 @@ public class NgBalanceController {
         this.localeResolver = localeResolver;
     }
 
+    // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false
     @GetMapping
     public ResponseEntity<PagedResult<MyWalletsDetailedDto>> getBalances(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer offset) {
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "false") Boolean excludeZero) {
         String email = getPrincipalEmail();
         try {
-            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email);
+            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email, excludeZero);
             return ResponseEntity.ok(pagedResult);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
+    // apiUrl/info/private/v2/balances/pendingRequests?limit=20&offset=0
     @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
@@ -65,6 +68,7 @@ public class NgBalanceController {
         }
     }
 
+    //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
     @GetMapping("/inputOutputData")
     public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputOutputData(
             @RequestParam(required = false, defaultValue = "20") Integer limit,

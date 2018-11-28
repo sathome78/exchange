@@ -16,7 +16,7 @@ public interface BalanceService {
 
     List<UserBalancesDto> getUserBalances(String tikerName, String sortByCreated, Integer page, Integer limit, int userId);
 
-    PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email);
+    PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero);
 
     PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email);
 
