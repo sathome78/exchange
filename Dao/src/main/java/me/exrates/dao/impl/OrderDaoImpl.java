@@ -1059,12 +1059,12 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope,
                                              Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate before) {
-        String userFilterClause;
         String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
         String createdBefore = before == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
 
+        String userFilterClause;
         switch (scope) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";

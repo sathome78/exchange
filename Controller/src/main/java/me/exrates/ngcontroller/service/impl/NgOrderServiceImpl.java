@@ -613,6 +613,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         if (value == null) {
             value = BigDecimal.ZERO;
         }
+        value = BigDecimalProcessing.normalize(value);
         return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
     }
 

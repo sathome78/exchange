@@ -163,10 +163,6 @@ public class NgPublicController {
                 ngOrderService.findAllOrderBookItems(OrderType.SELL, pairId, precision));
     }
 
-    public String getMinAndMaxOrdersSell() {
-        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
-    }
-
     @GetMapping("/info/{currencyPairId}")
     public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
         try {
