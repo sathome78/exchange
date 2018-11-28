@@ -231,7 +231,7 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
-            @RequestParam(required = false, name = "scope") String scope,
+            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
