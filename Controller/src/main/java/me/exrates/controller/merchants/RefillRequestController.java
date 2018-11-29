@@ -85,14 +85,16 @@ public class RefillRequestController {
       OkHttpClient cl = new OkHttpClient();
 
       Request req = new Request.Builder()
-              .url("http://" + "localhost:8081" + "/refill/request/create")
+              .url("http://demo7280020.mockable.io" + "/refill/request/create")
               .post(com.squareup.okhttp.RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_JSON), new ObjectMapper().writeValueAsString(requestParamsDto)))
               .addHeader("access_token", (String) session.getAttribute("access_token"))
               .addHeader("refresh_token", (String) session.getAttribute("refresh_token"))
               .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED)
               .build();
 
-    return new ObjectMapper().readValue(cl.newCall(req).execute().body().string(), new TypeReference<Map<String, Object>>(){});
+      String response = cl.newCall(req).execute().body().string();
+      System.out.println(response);
+      return new ObjectMapper().readValue(response, new TypeReference<Map<String, Object>>(){});
   }
 
 
