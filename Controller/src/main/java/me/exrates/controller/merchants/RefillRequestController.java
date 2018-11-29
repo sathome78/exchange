@@ -83,44 +83,22 @@ public class RefillRequestController {
     @ResponseBody
     public Map<String, Object> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto,
-            Principal principal,
-            Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException, JsonProcessingException {
-        if (requestParamsDto.getOperationType() != INPUT) {
-            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
-        }
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
-        if(!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
-        }
-        if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-        }
-        Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
-        if (!forceGenerateNewAddress) {
-            Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
-                    requestParamsDto.getMerchant(),
-                    requestParamsDto.getCurrency(),
-                    userService.getIdByEmail(principal.getName())
-            );
-            if (address.isPresent()) {
-                String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-                return new HashMap<String, Object>() {{
-                    put("address", address.get());
-                    put("message", message);
-                    put("qr", address.get());
-                }};
-            }
-        }
-        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-        Payment payment = new Payment(INPUT);
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
-                .orElseThrow(InvalidAmountException::new);
-        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        System.out.println("RESPIS \n" + new ObjectMapper().writeValueAsString(refillService.createRefillRequest(request)));
-        return refillService.createRefillRequest(request);
+            HttpSession session, HttpServletRequest servletRequest) throws IOException {
+
+        OkHttpClient cl = new OkHttpClient();
+
+        Request req = new Request.Builder()
+                .url("http://" + "localhost:8081" + "/refill/request/create")
+                .post(com.squareup.okhttp.RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_JSON), new ObjectMapper().writeValueAsString(requestParamsDto)))
+                .addHeader("access_token", (String) session.getAttribute("access_token"))
+                .addHeader("refresh_token", (String) session.getAttribute("refresh_token"))
+                .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED)
+                .build();
+
+        Map<String, Object> mapa = new ObjectMapper().readValue(cl.newCall(req).execute().body().string(), new TypeReference<Map<String, Object>>() {
+        });
+        System.out.println("size = " + mapa.size());
+        return mapa;
     }
 
 
