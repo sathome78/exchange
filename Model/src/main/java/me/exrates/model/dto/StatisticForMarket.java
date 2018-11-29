@@ -22,4 +22,5 @@ public class StatisticForMarket {
     private int page = 0;
     private boolean needToRefresh = true;
     private CurrencyPairType type;
+    private BigDecimal priceInUsd;
 }
