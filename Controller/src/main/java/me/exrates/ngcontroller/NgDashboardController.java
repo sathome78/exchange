@@ -243,7 +243,7 @@ public class NgDashboardController {
                 ? currencyService.findCurrencyPairById(currencyPairId)
                 : null;
         Locale locale = localeResolver.resolveLocale(request);
-        int offset = page > 1 ? page * limit : 0;
+        int offset = (page - 1) * limit;
         Map<String, String> sortedColumns = sortByCreated.equals("DESC")
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
