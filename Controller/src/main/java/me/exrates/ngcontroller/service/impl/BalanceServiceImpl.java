@@ -60,7 +60,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     private Predicate<MyWalletsDetailedDto> filterZeroActiveBalance() {
-        return wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) == 0;
+        return wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0;
     }
 
     @Override
