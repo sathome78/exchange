@@ -231,7 +231,7 @@ public class AunitNodeServiceImpl {
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString());
             if (lisfOfMemo.contains(memoText)) {
-                BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getString("amount"));
+                BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount"));
 
                 prepareAndProcessTx(Hashing.sha256()
                         .hashString(memo.toString(), StandardCharsets.UTF_8)
@@ -257,8 +257,8 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    private BigDecimal reduceAmount(String amount) {
-        return new BigDecimal(amount).multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
+    private BigDecimal reduceAmount(BigDecimal amount) {
+        return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
     private void setIrreversableBlock(String msg) {

@@ -22,8 +22,10 @@ public class InOutReportDto {
     private String currencyName;
 
     private BigDecimal rateToUSD;
+    private int inputCount;
     private BigDecimal input;
     private BigDecimal inputCommission;
+    private int outputCount;
     private BigDecimal output;
     private BigDecimal outputCommission;
 
