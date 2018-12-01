@@ -10,6 +10,7 @@ import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
@@ -17,6 +18,7 @@ import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.MarketRatesHolder;
@@ -62,6 +64,7 @@ public class NgPublicController {
     private static final Logger logger = LogManager.getLogger(NgPublicController.class);
 
     private final ChatService chatService;
+    private final CurrencyService currencyService;
     private final IpBlockingService ipBlockingService;;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -74,7 +77,7 @@ public class NgPublicController {
 
     @Autowired
     public NgPublicController(ChatService chatService,
-                              IpBlockingService ipBlockingService,
+                              CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
                               SimpMessagingTemplate messagingTemplate,
                               OrderService orderService,
@@ -84,6 +87,7 @@ public class NgPublicController {
                               TelegramChatDao telegramChatDao,
                               MarketRatesHolder marketRatesHolder) {
         this.chatService = chatService;
+        this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
@@ -132,6 +136,16 @@ public class NgPublicController {
         } catch (Exception e) {
             return Collections.emptyList();
 
+        }
+    }
+
+    @GetMapping("/all-pairs")
+    @ResponseBody
+    public List<CurrencyPair> getAllPairs() {
+        try {
+            return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
+        } catch (Exception e) {
+            return Collections.emptyList();
         }
     }
 

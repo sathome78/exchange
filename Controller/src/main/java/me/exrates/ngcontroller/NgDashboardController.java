@@ -232,6 +232,7 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
+            @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
@@ -250,7 +251,7 @@ public class NgDashboardController {
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
                     this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
-                            limit, locale, sortedColumns, dateFrom, dateTo);
+                            limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
             pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
