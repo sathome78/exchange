@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.common.collect.Lists;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
@@ -70,6 +71,17 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Override
   public List<Currency> getAllCurrencies() {
     return currencyDao.getCurrList();
+  }
+
+  @Override
+  public Set<String> getHashedCurrencyNames() {
+    List<String> names = currencyDao
+            .getHashedCurrencyNames()
+            .stream()
+            .map(name -> name = name.substring(0, name.indexOf("/")))
+            .collect(Collectors.toList());
+    names.add("BTC"); // it belongs to usd or fiat market
+    return new TreeSet<>(names);
   }
 
   @Override

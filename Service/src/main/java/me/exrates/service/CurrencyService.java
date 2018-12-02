@@ -30,6 +30,8 @@ public interface CurrencyService {
 
     List<Currency> getAllCurrencies();
 
+    Set<String> getHashedCurrencyNames();
+
     Currency findByName(String name);
 
     Currency findById(int id);

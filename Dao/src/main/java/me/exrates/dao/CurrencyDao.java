@@ -25,6 +25,8 @@ public interface CurrencyDao {
 
     int getCurrencyId(int walletId);
 
+    List<String> getHashedCurrencyNames();
+
     String getCurrencyName(int currencyId);
 
     Currency findByName(String name);

@@ -22,6 +22,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 @Repository
@@ -81,6 +83,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("walletId", String.valueOf(walletId));
     return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+  }
+
+  public List<String> getHashedCurrencyNames() {
+    String sql = "SELECT ticker_name FROM CURRENCY_PAIR WHERE market IN ('BTC', 'ETH') AND hidden = 0";
+    return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("ticker_name"));
   }
 
   @Override
