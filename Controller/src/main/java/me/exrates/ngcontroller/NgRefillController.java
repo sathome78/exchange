@@ -56,7 +56,6 @@ public class NgRefillController {
     // /info/private/v2/balances/refill/hash-pair-names
 
     /**
-     *
      * @return set of unique currency pair names which market is BTC or ETH
      */
     @GetMapping("/hash-pair-names")
@@ -70,9 +69,16 @@ public class NgRefillController {
         }
     }
 
+    // /info/private/v2/balances/refill/merchants/input?currency=${currencyName}
+
+    /**
+     * Return merchant to get necessary refill fields specified by currency name
+     *
+     * @param currencyName - currency name
+     * @return merchant data for selected currency name
+     */
     @GetMapping(value = "/merchants/input")
     public RefillPageDataDto inputCredits(@RequestParam("currency") String currencyName) {
-        String userEmail = getPrincipalEmail();
         RefillPageDataDto response = new RefillPageDataDto();
         OperationType operationType = INPUT;
         Currency currency = currencyService.findByName(currencyName);
@@ -80,13 +86,16 @@ public class NgRefillController {
         Payment payment = new Payment();
         payment.setOperationType(operationType);
         response.setPayment(payment);
-        BigDecimal minRefillSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
+        BigDecimal minRefillSum =
+                currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(),
+                        operationType, currency.getId());
         response.setMinRefillSum(minRefillSum);
         Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForRefill();
         response.setScaleForCurrency(scaleForCurrency);
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
-        List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
+        List<MerchantCurrency> merchantCurrencyData =
+                merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+        refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, getPrincipalEmail());
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
         response.setWarningCodeList(warningCodeList);
