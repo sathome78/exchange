@@ -54,7 +54,6 @@ public class NgRefillController {
     }
 
     // /info/private/v2/balances/refill/hash-pair-names
-
     /**
      * @return set of unique currency pair names which market is BTC or ETH
      */
@@ -70,7 +69,6 @@ public class NgRefillController {
     }
 
     // /info/private/v2/balances/refill/merchants/input?currency=${currencyName}
-
     /**
      * Return merchant to get necessary refill fields specified by currency name
      *
