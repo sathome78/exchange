@@ -18,6 +18,7 @@ public class Merchant {
     private MerchantProcessType processType;
     private Integer refillOperationCountLimitForUserPerDay;
     private Boolean additionalTagForWithdrawAddressIsUsed;
+    private Integer tokensParrentId;
 
 
     public Merchant(int id) {

@@ -9,6 +9,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,6 +39,7 @@ import java.util.*;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 
 
@@ -109,6 +112,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestAddressDto.setDateGeneration(rs.getTimestamp("date_generation").toLocalDateTime());
     refillRequestAddressDto.setConfirmedTxOffset(rs.getInt("confirmed_tx_offset"));
     refillRequestAddressDto.setNeedTransfer(rs.getBoolean("need_transfer"));
+      try {
+          refillRequestAddressDto.setTokenParentId(rs.getInt("tokens_parrent_id"));
+      } catch (SQLException e) {
+      }
     return refillRequestAddressDto;
   };
 
@@ -1286,5 +1293,78 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return jdbcTemplate.queryForList(sql, Integer.class, parentTokenId);
   }
 
+   /* @Override
+    public List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                       LocalDateTime endTime,
+                                                                       List<UserRole> userRoles,
+                                                                       int requesterId) {
+        String sql = "SELECT rr.id AS invoice_id, " +
+                "rr.status_modification_date, " +
+                "rr.status_id, " +
+                "rr.date_creation, " +
+                "rra.address, " +
+                "rrp.user_full_name, " +
+                "tx.amount AS transaction_amount, " +
+                "tx.commission_amount AS commission," +
+                "ib.name AS recipient_bank_name, " +
+                "ib.account_number, " +
+                "userr.email AS user_email, " +
+                "userr.nickname, " +
+                "admin.email AS admin_email, " +
+                "m.name AS merchant_name, " +
+                "cur.name AS currency_name" +
+                " FROM REFILL_REQUEST rr" +
+                " LEFT JOIN REFILL_REQUEST_ADDRESS rra ON rra.id = rr.refill_request_address_id" +
+                " LEFT JOIN REFILL_REQUEST_PARAM rrp ON rrp.id = rr.refill_request_param_id" +
+                " JOIN CURRENCY cur ON cur.id = rr.currency_id" +
+                " JOIN MERCHANT m ON m.id = rr.merchant_id" +
+                " JOIN USER userr ON userr.id = rr.user_id AND userr.roleid IN (:user_roles)" +
+                " LEFT JOIN INVOICE_BANK ib ON ib.id = rrp.recipient_bank_id" +
+                " LEFT JOIN USER admin ON admin.id = rr.admin_holder_id" +
+                " LEFT JOIN TRANSACTION tx ON tx.source_type = 'REFILL' AND tx.source_id = rr.id" +
+                " WHERE rr.date_creation BETWEEN :start_time AND :end_time" +
+                " AND EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, i) -> RefillRequestFlatForReportDto.builder()
+                    .invoiceId(rs.getInt("invoice_id"))
+                    .wallet(nonNull(rs.getString("address")) ? rs.getString("address") : rs.getString("account_number"))
+                    .recipientBank(rs.getString("recipient_bank_name"))
+                    .adminEmail(rs.getString("admin_email"))
+                    .acceptanceTime(isNull(rs.getTimestamp("status_modification_date")) ? null : rs.getTimestamp("status_modification_date").toLocalDateTime())
+                    .status(RefillStatusEnum.convert(rs.getInt("status_id")))
+                    .userFullName(rs.getString("user_full_name"))
+                    .userNickname(rs.getString("nickname"))
+                    .userEmail(rs.getString("user_email"))
+                    .amount(nonNull(rs.getBigDecimal("transaction_amount")) ? rs.getBigDecimal("transaction_amount") : BigDecimal.ZERO)
+                    .commissionAmount(rs.getBigDecimal("commission"))
+                    .datetime(isNull(rs.getTimestamp("date_creation")) ? null : rs.getTimestamp("date_creation").toLocalDateTime())
+                    .currency(rs.getString("currency_name"))
+                    .sourceType(REFILL)
+                    .merchant(rs.getString("merchant_name"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }*/
+
+
+    @Override
+    public List<RefillRequestAddressDto> findByAddress(String address) {
+        final String sql = "SELECT RRA.*, M.tokens_parrent_id FROM REFILL_REQUEST_ADDRESS RRA " +
+                "JOIN MERCHANT M ON M.id = RRA.merchant_id " +
+                "WHERE RRA.address = :address ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("address", address);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+    }
 }
 

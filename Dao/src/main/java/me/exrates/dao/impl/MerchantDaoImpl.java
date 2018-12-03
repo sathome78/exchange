@@ -114,6 +114,7 @@ public class MerchantDaoImpl implements MerchantDao {
         merchant.setId(resultSet.getInt("id"));
         merchant.setName(resultSet.getString("name"));
         merchant.setProcessType(MerchantProcessType.convert(resultSet.getString("process_type")));
+        merchant.setTokensParrentId(resultSet.getInt("tokens_parrent_id"));
         return merchant;
       });
     } catch (EmptyResultDataAccessException e) {

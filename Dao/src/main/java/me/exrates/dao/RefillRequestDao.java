@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
 
@@ -61,9 +62,9 @@ public interface RefillRequestDao {
   void setMerchantRequestSignById(Integer id, String sign);
 
   List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId);
-  
+
   Optional<InvoiceBank> findInvoiceBankById(Integer id);
-  
+
   Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer merchantId, Integer currencyId, Integer intervalHours, List<Integer> statusIdList);
 
   Optional<RefillRequestFlatDto> getFlatByIdAndBlock(Integer id);
@@ -99,12 +100,12 @@ public interface RefillRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList);
-  
+
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
                                                                                        String merchantTransactionId,
                                                                                        Integer merchantId,
                                                                                        Integer currencyId);
-  
+
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 
 
@@ -138,4 +139,10 @@ public interface RefillRequestDao {
 
     List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> collect);
 
+   /* List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                LocalDateTime endTime,
+                                                                List<UserRole> roles,
+                                                                int requesterId);*/
+
+    List<RefillRequestAddressDto> findByAddress(String address);
 }

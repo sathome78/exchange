@@ -26,5 +26,6 @@ public class RefillRequestAddressDto {
   private LocalDateTime dateGeneration;
   private Integer confirmedTxOffset;
   private boolean needTransfer;
+  private Integer tokenParentId;
 
 }
