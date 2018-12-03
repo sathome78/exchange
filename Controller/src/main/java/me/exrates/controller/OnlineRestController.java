@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.DatesFilterData;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
@@ -26,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -818,9 +820,7 @@ public class OnlineRestController {
                 break;
             }
             default: {
-                result = orderService.getMyOrdersWithState(cacheData, email,
-                        showAllPairs == null || !showAllPairs ? currencyPair : null,
-                        status, type, scope, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+                result = new ArrayList<>();
             }
         }
         if (!result.isEmpty()) {
@@ -831,30 +831,33 @@ public class OnlineRestController {
     }
 
     @RequestMapping(value = "/dashboard/myOrdersData", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Future<List<OrderWideListDto>> getMyOrders(@RequestParam("tableType") String tableType,
-                                                      @RequestParam(required = false) String scope,
-                                                      Principal principal, HttpServletRequest request) {
-
+    public Future<DataTable<List<OrderWideListDto>>> getMyOrders(DatesFilterData datesFilterData,
+                                                                 @RequestParam("tableType") String tableType,
+                                                                 @RequestParam(required = false) String scope,
+                                                                 @RequestParam Map<String, String> params,
+                                                                 Principal principal, HttpServletRequest request) {
+        datesFilterData.initFilterItems();
+        System.out.println(datesFilterData);
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
         String email = principal != null ? principal.getName() : "";
-        return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, showAllPairs == null || !showAllPairs ? currencyPair : null, scope, email, localeResolver.resolveLocale(request)));
+        return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, showAllPairs == null || !showAllPairs ? currencyPair : null,
+                scope, email, dataTableParams, datesFilterData, localeResolver.resolveLocale(request)));
     }
 
-    private List<OrderWideListDto> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, String scope, String email, Locale locale) {
-        List<OrderWideListDto> result = new ArrayList<>();
+    private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, String scope, String email, DataTableParams dataTableParams,
+                                                                   DatesFilterData datesFilterData,  Locale locale) {
+        DataTable<List<OrderWideListDto>> result = new DataTable<>();
         switch (tableType) {
             case "CLOSED":
-                List<OrderWideListDto> ordersSellClosed = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CLOSED, null, scope, 0, -1, locale);
-                result = ordersSellClosed;
+                result = orderService.getMyOrdersDataTableWithState(email, currencyPair, OrderStatus.CLOSED, null, scope, dataTableParams, datesFilterData, locale);
                 break;
             case "CANCELLED":
-                List<OrderWideListDto> ordersSellCancelled = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CANCELLED, null, scope, 0, -1, locale);
-                result = ordersSellCancelled;
+                result = orderService.getMyOrdersDataTableWithState(email, currencyPair, OrderStatus.CANCELLED, null, scope, dataTableParams, datesFilterData, locale);
                 break;
             case "OPENED":
-                List<OrderWideListDto> ordersSellOpened = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.OPENED, null, scope, 0, -1, locale);
-                result = ordersSellOpened;
+                result = orderService.getMyOrdersDataTableWithState(email, currencyPair, OrderStatus.OPENED, null, scope, dataTableParams, datesFilterData, locale);
                 break;
         }
         return result;

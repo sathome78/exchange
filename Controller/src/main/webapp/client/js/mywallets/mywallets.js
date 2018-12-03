@@ -91,7 +91,7 @@ function MyWalletsClass() {
         }(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
         }};
 
-        Array.from(document.querySelectorAll('th')).forEach(function(th) { th.addEventListener('click', function() {
+        Array.from(document.querySelectorAll('th.my_wallets_table')).forEach(function(th) { th.addEventListener('click', function() {
             var table = th.closest('table');
             Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
                 .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))

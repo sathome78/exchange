@@ -21,6 +21,18 @@
     <%----%>
 
         <h4 class="h4_green"><loc:message code="orders.title"/></h4>
+        <div class="input-block-wrapper">
+
+            <form id="transaction-search-datetime-form_my">
+                <div class="col-md-9 input-block-wrapper__input-wrapper" style="padding-left:0">
+                    <input id="datetimepicker_start_my" type="text" name="startDate">
+                    <input id="datetimepicker_end_my" type="text" name="endDate">
+                    <button id="transactions_change_date_my" class="blue-box"><loc:message
+                            code="admin.user.transactions.aplly_dates"/></button>
+                </div>
+
+            </form>
+        </div>
         <br><br>
         <table id="myHistoryOrdersTable"
                class="balance__table orders__table orders-buy-table"

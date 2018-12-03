@@ -26,6 +26,46 @@ function OrdersClass(currentCurrencyPair, cpData) {
      var tableBuyPageSize = 5;*/
     var tableStopPageSize = 5;
     var myordersStatusForShow = 'OPENED';
+    var myOrdersTable;
+
+    $.datetimepicker.setDateFormatter({
+        parseDate: function (date, format) {
+            var d = moment(date, format);
+            return d.isValid() ? d.toDate() : false;
+        },
+
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
+    });
+    var date = new Date();
+    date.setMonth(date.getMonth()-1);
+    console.log(date);
+
+    $('#datetimepicker_start_open').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'en',
+        value:date,
+        defaultDate: date,
+        defaultTime: '00:00'
+    });
+
+    $('#datetimepicker_end_open').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'en',
+        value:new Date(),
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+
+    $('#transactions_change_date_open').on('click', function (e) {
+        e.preventDefault();
+        that.getAndShowMySellAndBuyOrdersData();
+    });
 
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(false, 1, null);
@@ -49,6 +89,8 @@ function OrdersClass(currentCurrencyPair, cpData) {
     };
 
     this.getAndShowMySellAndBuyOrdersData = function () {
+        var dateParams = $('#transaction-search-datetime-form_open').serialize();
+        var url = '/dashboard/myOrdersData?tableType=' + myordersStatusForShow + '&' + dateParams;
         if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForOrdersData);
             timeOutIdForOrdersData = setTimeout(function () {
@@ -57,32 +99,36 @@ function OrdersClass(currentCurrencyPair, cpData) {
             return;
         }
         if ($.fn.dataTable.isDataTable('#myOrdersTable')) {
-            myOrdersTable.ajax.reload();
+            myOrdersTable = $('#myOrdersTable').DataTable();
+            myOrdersTable.ajax.url(url).load();
         } else {
             myOrdersTable = $('#myOrdersTable').DataTable({
-                "ajax": {
-                    "url": '/dashboard/myOrdersData',
-                    "type": "GET",
-                    "data": function(d){
-                        d.tableType = myordersStatusForShow;
-                    },
-                    "dataSrc": ""
-                },
+                "serverSide": true,
                 "deferRender": true,
+                "ajax": {
+                    "url": url,
+                    "dataSrc": "data"
+                },
                 "paging": true,
                 "info": true,
+                "bFilter": false,
+                "order": [[0, "desc"]],
                 "columns": [
                     {
-                        "data": "id"
+                        "data": "id",
+                        "name": "id"
                     },
                     {
-                        "data": "dateCreation"
+                        "data": "dateCreation",
+                        "name": "date_creation"
                     },
                     {
-                        "data": "currencyPairName"
+                        "data": "currencyPairName",
+                        "name": "CURRENCY_PAIR.name"
                     },
                     {
                         "data": "operationType",
+                        "name": "operation_type_id",
                         "render": function (data, type, row) {
                             if (data == "SELL" ) {
                                 return '<p style="color: red">'+data+'</p>';
@@ -94,39 +140,38 @@ function OrdersClass(currentCurrencyPair, cpData) {
                         }
                     },
                     {
-                        "data": "amountBase"
+                        "data": "amountBase",
+                        "name": "amount_base"
                     },
                     {
-                        "data": "exExchangeRate"
+                        "data": "exExchangeRate",
+                        "name": "exrate"
                     },
                     {
-                        "data": "amountConvert"
+                        "data": "amountConvert",
+                        "name": "amount_convert"
                     },
                     {
-                        "data": "commissionFixedAmount"
+                        "data": "commissionFixedAmount",
+                        "name": "commission_fixed_amount"
                     },
                     {
-                        "data": "amountWithCommission"
+                        "data": "amountWithCommission",
+                        "orderable": false
                     },
                     {
                         "data": 'id',
                         "render": function (data, type, row) {
                             return '<button id="'+data+'" class="table-button-block__button btn btn-danger button_delete_order"'
                                 + '>' + localDelete + '</button>';
-                        }
+                        },
+                        "orderable": false
                     }
-                ],
-                "order": [
-                    [
-                        0,
-                        "asc"
-                    ]
-                ],
-                "destroy" : true
+                ]
             });
-
+            $('#myOrdersTable').show();
         }
-    }
+    };
 
     this.getAndShowStopOrdersData = function (refreshIfNeeded, page, direction) {
         if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
