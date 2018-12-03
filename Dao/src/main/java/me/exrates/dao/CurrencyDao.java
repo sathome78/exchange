@@ -16,6 +16,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,10 @@ public interface CurrencyDao {
     List<Currency> getCurrList();
 
     int getCurrencyId(int walletId);
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
+
+    List<Currency> getAllCurrencies();
 
     String getCurrencyName(int currencyId);
 
@@ -89,5 +94,4 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
-
 }

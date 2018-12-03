@@ -15,6 +15,6 @@ public enum MerchantProcessType {
 
   @Override
   public String toString() {
-    return "MerchantProcessType " + this.name();
+    return this.name();
   }
 }

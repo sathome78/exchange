@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
@@ -107,4 +108,6 @@ public interface CurrencyService {
     List<CurrencyPair> getPairsBySecondPartName(String partName);
 
     List<CurrencyPair> getPairsByFirstPartName(String partName);
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
 }
