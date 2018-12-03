@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +26,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -83,6 +85,40 @@ public class CurrencyDaoImpl implements CurrencyDao {
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("walletId", String.valueOf(walletId));
     return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+  }
+
+  @Override
+  public List<Currency> getCurrencies(MerchantProcessType ... types) {
+    String sql = "SELECT C.id, C.name, C.description FROM CURRENCY C " +
+            "       JOIN MERCHANT_CURRENCY ON MERCHANT_CURRENCY.currency_id = C.id " +
+            "       JOIN MERCHANT M on MERCHANT_CURRENCY.merchant_id = M.id " +
+            "       WHERE M.process_type IN (:processTypes) and C.hidden = 0 " +
+            "       GROUP BY C.id, C.name, C.description ORDER BY C.name ASC";
+    List<String> processTypes = Arrays
+            .stream(types)
+            .map(String::valueOf)
+            .collect(Collectors.toList());
+    MapSqlParameterSource params = new MapSqlParameterSource("processTypes", processTypes);
+    return jdbcTemplate.query(sql, params, getCurrencyRowMapper());
+  }
+
+  @Override
+  public List<Currency> getAllCurrencies() {
+    String sql = "SELECT C.id, C.name, C.description FROM CURRENCY C " +
+            "       JOIN MERCHANT_CURRENCY ON MERCHANT_CURRENCY.currency_id = C.id " +
+            "       JOIN MERCHANT M on MERCHANT_CURRENCY.merchant_id = M.id " +
+            "       WHERE C.hidden = 0 " +
+            "       ORDER BY C.name ASC";
+    return jdbcTemplate.query(sql, getCurrencyRowMapper());
+  }
+
+  private RowMapper<Currency> getCurrencyRowMapper() {
+    return (rs, rowNum) -> Currency
+            .builder()
+            .id(rs.getInt("C.id"))
+            .name(rs.getString("C.name"))
+            .description(rs.getString("C.description"))
+            .build();
   }
 
   public List<String> getHashedCurrencyNames() {
