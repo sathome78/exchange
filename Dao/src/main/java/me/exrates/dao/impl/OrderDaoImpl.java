@@ -967,7 +967,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                                        String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
-                                                       LocalDate from, LocalDate before) {
+                                                       LocalDate from, LocalDate before, boolean hideCanceled) {
         String userFilterClause;
         String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
@@ -1003,7 +1003,7 @@ public class OrderDaoImpl implements OrderDao {
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
                 "  FROM EXORDERS " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id)" +
-                " INNER JOIN COMMISSION com ON commission_id = com.id  WHERE (status_id = :statusId) " +
+                " INNER JOIN COMMISSION com ON commission_id = com.id  WHERE (status_id in (:statusId)) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
                 createdAfter +
                 createdBefore +
@@ -1014,7 +1014,7 @@ public class OrderDaoImpl implements OrderDao {
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
         namedParameters.addValue("user_id", userId);
         namedParameters.addValue("operation_type_id", operationTypesIds);
-        namedParameters.addValue("statusId", status.getStatus());
+        namedParameters.addValue("statusId", getListOrderStatus(status, hideCanceled));
         if (currencyPair != null) {
             namedParameters.addValue("currencyPairId", currencyPair.getId());
         }
@@ -1058,7 +1058,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope,
-                                             Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate before) {
+                                             Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate before,
+                                             boolean hideCanceled) {
         String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
@@ -1082,7 +1083,7 @@ public class OrderDaoImpl implements OrderDao {
         String sql = "SELECT COUNT(*) " +
                 "  FROM EXORDERS " +
                 currencyPairClauseJoin +
-                "  WHERE (status_id = :statusId) " +
+                "  WHERE (status_id in (:statusId)) " +
                 "    AND (operation_type_id IN (:operation_type_id)) " +
                 createdAfter +
                 createdBefore +
@@ -1090,7 +1091,7 @@ public class OrderDaoImpl implements OrderDao {
                 userFilterClause;
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
         namedParameters.addValue("user_id", userId);
-        namedParameters.addValue("statusId", status.getStatus());
+        namedParameters.addValue("statusId", getListOrderStatus(status, hideCanceled));
         namedParameters.addValue("operation_type_id", operationTypesIds);
         if (currencyPair != null) {
             namedParameters.addValue("currencyPairId", currencyPair.getId());
@@ -1954,5 +1955,16 @@ public class OrderDaoImpl implements OrderDao {
             order.setCreated(convertTimeStampToLocalDateTime(rs,"date_creation"));
             return order;
         };
+    }
+
+    private List<Integer> getListOrderStatus(OrderStatus orderStatus, boolean hideCanceled) {
+        if (orderStatus == OrderStatus.OPENED) {
+            return Collections.singletonList(OrderStatus.OPENED.getStatus());
+        } else if (hideCanceled) {
+            return Arrays.asList(OrderStatus.CLOSED.getStatus(), OrderStatus.DELETED.getStatus());
+        } else {
+            return Arrays.asList(OrderStatus.CLOSED.getStatus(), OrderStatus.DELETED.getStatus(),
+                    OrderStatus.CANCELLED.getStatus());
+        }
     }
 }
