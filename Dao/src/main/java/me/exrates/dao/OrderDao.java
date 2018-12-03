@@ -18,6 +18,7 @@ import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.DatesFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -90,13 +91,14 @@ public interface OrderDao {
 
     CommissionsDto getAllCommissions(UserRole userRole);
 
-    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                OperationType operationType,
-                                                String scope, Integer offset, Integer limit, Locale locale);
 
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
+
+    PagingData<List<OrderWideListDto>> getMyOrdersDataTableWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                                     OperationType operationType,
+                                                                     String scope, DataTableParams dataTableParams, DatesFilterData datesFilterData, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 

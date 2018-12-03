@@ -23,6 +23,7 @@ import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -40,6 +41,7 @@ import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.DatesFilterData;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -822,19 +824,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    @Override
-    public List<OrderWideListDto> getMyOrdersWithState(CacheData cacheData,
-                                                       String email, CurrencyPair currencyPair, OrderStatus status,
-                                                       OperationType operationType,
-                                                       String scope, Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-        if (Cache.checkCache(cacheData, result)) {
-            result = new ArrayList<OrderWideListDto>() {{
-                add(new OrderWideListDto(false));
-            }};
-        }
-        return result;
-    }
+
 
     @Override
     public OrderCreateDto getMyOrderById(int orderId) {
@@ -1600,23 +1590,22 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                   OperationType operationType,
                                                                   Integer offset, Integer limit, Locale locale) {
-        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
+        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, Collections.singletonList(status), operationType, SCOPE, offset, limit, locale);
 
         return result;
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                       OperationType operationType, String scope,
-                                                       Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
-    }
-
-    @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                       OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
+    public DataTable<List<OrderWideListDto>> getMyOrdersDataTableWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                                           OperationType operationType, String scope,
+                                                                           DataTableParams dataTableParams, DatesFilterData datesFilterData, Locale locale) {
+        final DataTable<List<OrderWideListDto>> result = new DataTable<>();
+        final PagingData<List<OrderWideListDto>> orders = orderDao.getMyOrdersDataTableWithState(userService.getIdByEmail(email), currencyPair, Collections.singletonList(status), operationType, scope,
+                                                                                                dataTableParams, datesFilterData, locale);
+        result.setData(orders.getData());
+        result.setRecordsFiltered(orders.getFiltered());
+        result.setRecordsTotal(orders.getTotal());
+        return result;
     }
 
 

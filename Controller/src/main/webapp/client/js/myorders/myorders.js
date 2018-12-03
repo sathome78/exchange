@@ -2,6 +2,8 @@
  * Created by Valk on 06.06.2016.
  */
 
+
+
 function MyOrdersClass(currentCurrencyPair, cpData) {
     if (MyOrdersClass.__instance) {
         return MyOrdersClass.__instance;
@@ -23,6 +25,7 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
     var myordersCurrencyPairSelector;
     var myordersStatusForShow;
     var myOrdersScope;
+    var myHistoryOrdersTable;
     /*    var tableSellPageSize = 5;
      var tableBuyPageSize = 5;*/
     var tableStopPageSize = 5;
@@ -61,6 +64,44 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
         'myo_typ',
         'myo_strate'];
 
+
+    $.datetimepicker.setDateFormatter({
+        parseDate: function (date, format) {
+            var d = moment(date, format);
+            return d.isValid() ? d.toDate() : false;
+        },
+
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
+    });
+    var date = new Date();
+    date.setMonth(date.getMonth()-1);
+    console.log(date);
+    $('#datetimepicker_start_my').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'en',
+        value:date,
+        defaultDate: date,
+        defaultTime: '00:00'
+    });
+
+    $('#datetimepicker_end_my').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'en',
+        value:new Date(),
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+
+    $('#transactions_change_date_my').on('click', function (e) {
+        e.preventDefault();
+        that.getAndShowMySellAndBuyOrdersData();
+    });
 
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(false, 1, null);
@@ -135,6 +176,8 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
     };
 
     this.getAndShowMySellAndBuyOrdersData = function () {
+        var dateParams = $('#transaction-search-datetime-form_my').serialize();
+        var url = '/dashboard/myOrdersData?tableType=' + myordersStatusForShow + '&scope' + myOrdersScope + '&' + dateParams;
         if ($myordersContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForMyOrdersData);
             timeOutIdForMyOrdersData = setTimeout(function () {
@@ -143,33 +186,36 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
             return;
         }
         if ($.fn.dataTable.isDataTable('#myHistoryOrdersTable')) {
-            myHistoryOrdersTable.ajax.reload();
+            myHistoryOrdersTable = $('#myHistoryOrdersTable').DataTable();
+            myHistoryOrdersTable.ajax.url(url).load();
         } else {
             myHistoryOrdersTable = $('#myHistoryOrdersTable').DataTable({
-                "ajax": {
-                    "url": '/dashboard/myOrdersData',
-                    "type": "GET",
-                    "data": function(d){
-                        d.tableType = myordersStatusForShow;
-                        d.scope = myOrdersScope;
-                    },
-                    "dataSrc": ""
-                },
+                "serverSide": true,
                 "deferRender": true,
+                "ajax": {
+                    "url": url,
+                    "dataSrc": "data"
+                },
                 "paging": true,
                 "info": true,
+                "bFilter": false,
+                "order": [[0, "desc"]],
                 "columns": [
                     {
-                        "data": "id"
+                        "data": "id",
+                        "name": "id"
                     },
                     {
-                        "data": "dateCreation"
+                        "data": "dateCreation",
+                        "name": "date_creation"
                     },
                     {
                         "data": "currencyPairName",
+                        "name": "CURRENCY_PAIR.name"
                     },
                     {
                         "data": "operationType",
+                        "name": "operation_type_id",
                         "render": function (data, type, row) {
                             if (data == "SELL" ) {
                                 return '<p style="color: red">'+data+'</p>';
@@ -181,22 +227,28 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
                         }
                     },
                     {
-                        "data": "amountBase"
+                        "data": "amountBase",
+                        "name": "amount_base"
                     },
                     {
-                        "data": "exExchangeRate"
+                        "data": "exExchangeRate",
+                        "name": "exrate"
                     },
                     {
-                        "data": "amountConvert"
+                        "data": "amountConvert",
+                        "name": "amount_convert"
                     },
                     {
-                        "data": "commissionFixedAmount"
+                        "data": "commissionFixedAmount",
+                        "name": "commission_fixed_amount"
                     },
                     {
-                        "data": "amountWithCommission"
+                        "data": "amountWithCommission",
+                        "orderable": false
                     },
                     {
                         "data": "dateAcception",
+                        "name": "date_acception",
                         "render": function (data, type, row){
                             if (myordersStatusForShow == 'CLOSED') {
                                 return data;
@@ -206,18 +258,11 @@ function MyOrdersClass(currentCurrencyPair, cpData) {
                             return data;
                         }
                     }
-                ],
-                "order": [
-                    [
-                        0,
-                        "asc"
-                    ]
-                ],
-                "destroy" : true
+                ]
             });
-
+            $('#myHistoryOrdersTable').show();
         }
-    }
+    };
 
     /*    this.getAndShowMySellOrdersData = function (refreshIfNeeded, page, direction) {
      if ($myordersContainer.hasClass('hidden') || !windowIsActive) {

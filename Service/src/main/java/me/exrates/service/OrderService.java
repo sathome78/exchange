@@ -24,6 +24,7 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.DatesFilterData;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -104,14 +105,14 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
-    /**
+  /*  *//**
      * TODO ADD JAVADOC
-     */
+     *//*
     List<OrderWideListDto> getMyOrdersWithState(
             CacheData cacheData,
             String email, CurrencyPair currencyPair, OrderStatus status,
             OperationType operationType,
-            String scope, Integer offset, Integer limit, Locale locale);
+            String scope, Integer offset, Integer limit, Locale locale);*/
 
     /**
      * TODO ADD JAVADOC
@@ -368,13 +369,10 @@ public interface OrderService {
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                OperationType operationType, String scope,
-                                                Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                OperationType operationType,
-                                                Integer offset, Integer limit, Locale locale);
+    DataTable<List<OrderWideListDto>> getMyOrdersDataTableWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                                    OperationType operationType, String scope,
+                                                                    DataTableParams dataTableParams, DatesFilterData datesFilterData, Locale locale);
 
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
                                                             BackDealInterval backDealInterval,
