@@ -1622,9 +1622,9 @@ public class OrderServiceImpl implements OrderService {
                                                                         Locale locale, Map<String, String> sortedColumns,
                                                                         LocalDate dateFrom, LocalDate dateTo) {
 
-        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo);
+        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
-                offset, limit, sortedColumns, dateFrom, dateTo);
+                offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
         return Collections.singletonMap(records, orders);
     }
 
