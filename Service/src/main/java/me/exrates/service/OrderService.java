@@ -49,6 +49,8 @@ import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -379,6 +381,14 @@ public interface OrderService {
                                                                  Locale locale, Map<String, String> sortedColumns,
                                                                  LocalDate dateFrom, LocalDate dateTo);
 
+    @Transactional(readOnly = true)
+    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+                                             String scope, boolean hideCanceled,
+                                             Locale locale, LocalDate dateFrom, LocalDate dateTo);
+
+    byte[] getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus);
+
+
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 Integer offset, Integer limit, Locale locale);
@@ -423,6 +433,7 @@ public interface OrderService {
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
+
     /**
      * wolper 24.04.18
      * Returns the list of the latest exchange rates for each currency to USD

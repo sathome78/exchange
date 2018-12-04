@@ -7,6 +7,8 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.CurrencyType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
@@ -62,10 +64,11 @@ public class NgBalanceController {
     public ResponseEntity<PagedResult<MyWalletsDetailedDto>> getBalances(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "false") Boolean excludeZero) {
+            @RequestParam(required = false, defaultValue = "false") Boolean excludeZero,
+            @RequestParam(required = false) CurrencyType currencyType) {
         String email = getPrincipalEmail();
         try {
-            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email, excludeZero);
+            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email, excludeZero, currencyType);
             return ResponseEntity.ok(pagedResult);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
