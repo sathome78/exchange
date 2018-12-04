@@ -25,6 +25,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +51,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -265,14 +269,14 @@ public class NgDashboardController {
     }
 
     @GetMapping("/orders/{status}/export")
-    public void exportExcelOrders(
+    public HttpEntity<byte[]> exportExcelOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request) {
 
         OrderStatus orderStatus = OrderStatus.valueOf(status);
 
@@ -286,12 +290,23 @@ public class NgDashboardController {
                     orderService.getOrdersForExcel(userId, currencyPair, orderStatus, scope,
                             hideCanceled, locale, dateFrom, dateTo);
 
-             orderService.getExcelFile(orders, response);
+            byte[] excelFile = orderService.getExcelFile(orders, orderStatus);
 
+            StringBuilder fileName = new StringBuilder("Orders_")
+                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                    .append(".xlsx");
+
+            HttpHeaders header = new HttpHeaders();
+            header.add(HttpHeaders.CONTENT_TYPE,"application/ms-excel");
+            header.set(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + fileName.toString());
+            header.setContentLength(excelFile.length);
+
+            return new HttpEntity<>(excelFile, header);
         } catch (Exception ex) {
            logger.error("Error export orders to file, e - {}", ex.getMessage());
         }
-
+        return null;
     }
 
     private String getPrincipalEmail() {

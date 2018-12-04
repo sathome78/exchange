@@ -129,12 +129,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
@@ -1628,49 +1626,75 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void getExcelFile(List<OrderWideListDto> orders, HttpServletResponse response) throws IOException {
-        StringBuilder fileName = new StringBuilder("Orders_")
-                .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
-                .append(".xlsx");
-
-
+    public byte[] getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Orders");
 
         Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Date");
-        headerRow.createCell(1).setCellValue("Pair");
-        headerRow.createCell(2).setCellValue("Order");
-        headerRow.createCell(3).setCellValue("Type");
-        headerRow.createCell(4).setCellValue("Price");
-        headerRow.createCell(5).setCellValue("Amount");
-        headerRow.createCell(6).setCellValue("Commission");
-        headerRow.createCell(7).setCellValue("In total");
-
-        int index = 1;
-        for (OrderWideListDto order : orders) {
-            Row row = sheet.createRow(index++);
-            row.createCell(0, CellType.STRING).setCellValue(order.getDateAcception().toString());
-            row.createCell(1, CellType.STRING).setCellValue(order.getCurrencyPairName());
-            row.createCell(2, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
-            row.createCell(3, CellType.STRING).setCellValue(order.getOperationType());
-            row.createCell(4, CellType.STRING).setCellValue(order.getExExchangeRate());
-            row.createCell(5, CellType.STRING).setCellValue(order.getAmountBase());
-            row.createCell(6, CellType.STRING).setCellValue(order.getCommissionValue());
-            row.createCell(7, CellType.STRING).setCellValue(order.getAmountWithCommission());
+        if (orderStatus == OrderStatus.OPENED) {
+            headerRow.createCell(0).setCellValue("Order id");
+            headerRow.createCell(1).setCellValue("Date created");
+            headerRow.createCell(2).setCellValue("Market");
+            headerRow.createCell(3).setCellValue("Type");
+            headerRow.createCell(4).setCellValue("Amount");
+            headerRow.createCell(5).setCellValue("Price");
+            headerRow.createCell(6).setCellValue("Commission perсent");
+            headerRow.createCell(7).setCellValue("Commission value");
+            headerRow.createCell(8).setCellValue("In total");
+        } else if (orderStatus == OrderStatus.CLOSED) {
+            headerRow.createCell(0).setCellValue("Date");
+            headerRow.createCell(1).setCellValue("Pair");
+            headerRow.createCell(2).setCellValue("Order");
+            headerRow.createCell(3).setCellValue("Type");
+            headerRow.createCell(4).setCellValue("Price");
+            headerRow.createCell(5).setCellValue("Amount");
+            headerRow.createCell(6).setCellValue("Commission perсent");
+            headerRow.createCell(7).setCellValue("Commission value");
+            headerRow.createCell(8).setCellValue("In total");
+        } else {
+            throw new RuntimeException("Not supported");
         }
 
-        response.setContentType("application/ms-excel");
-        response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+        int index = 1;
+        ByteArrayOutputStream outByteStream;
 
-        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
-        workbook.write(outByteStream);
-        byte[] outArray = outByteStream.toByteArray();
+        try {
+            for (OrderWideListDto order : orders) {
+                Row row = sheet.createRow(index++);
+                if (orderStatus == OrderStatus.OPENED) {
+                    row.createCell(0, CellType.STRING).setCellValue(order.getId());
+                    row.createCell(1, CellType.STRING).setCellValue(order.getDateCreation().toString());
+                    row.createCell(2, CellType.STRING).setCellValue(order.getCurrencyPairName());
+                    row.createCell(3, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
+                    row.createCell(4, CellType.STRING).setCellValue(order.getAmountBase());
+                    row.createCell(5, CellType.STRING).setCellValue(order.getExExchangeRate());
+                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
+                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
+                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
+                } else {
+                    String acceptDate = order.getDateAcception() != null ? order.getDateAcception().toString() : null;
+                    row.createCell(0, CellType.STRING).setCellValue(acceptDate);
+                    row.createCell(1, CellType.STRING).setCellValue(order.getCurrencyPairName());
+                    row.createCell(2, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
+                    row.createCell(3, CellType.STRING).setCellValue(order.getOperationType());
+                    row.createCell(4, CellType.STRING).setCellValue(order.getExExchangeRate());
+                    row.createCell(5, CellType.STRING).setCellValue(order.getAmountBase());
+                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
+                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
+                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
+                }
+            }
 
-        OutputStream outStream = response.getOutputStream();
-        outStream.write(outArray);
-        outStream.flush();
-        workbook.close();
+            outByteStream = new ByteArrayOutputStream();
+            workbook.write(outByteStream);
+            byte[] outArray = outByteStream.toByteArray();
+            workbook.close();
+            return outArray;
+        } catch (IOException e) {
+            logger.error("Error creating excel file, e - {}", e.getMessage());
+        }
+
+        return null;
     }
 
     @Override
