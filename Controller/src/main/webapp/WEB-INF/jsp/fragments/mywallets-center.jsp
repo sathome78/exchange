@@ -14,14 +14,14 @@
     <table id="balance-grid" class="balance__table">
         <tbody>
         <tr>
-            <th class="left blue-white"><a href="#" class="white"><loc:message code="mywallets.currency"/></a></th>
+            <th class="left blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.currency"/></a></th>
             <th class="blue-white"></th>
-            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.balance"/></a></th>
-            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.onconfirmation"/></a></th>
-            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.rbalance"/></a></th>
-            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.reservedonorders"/></a></th>
-            <th class="right blue-white"><a href="#" class="white"><loc:message code="mywallets.reservedonwithdraw"/></a></th>
-            <th class="right blue-white"></th>
+            <th class="right blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.balance"/></a></th>
+            <th class="right blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.onconfirmation"/></a></th>
+            <th class="right blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.rbalance"/></a></th>
+            <th class="right blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.reservedonorders"/></a></th>
+            <th class="right blue-white my_wallets_table"><a href="#" class="white"><loc:message code="mywallets.reservedonwithdraw"/></a></th>
+            <th class="right blue-white my_wallets_table"></th>
         </tr>
         <script type="text/template" id="balance-table_row">
             <tr class="balance-table__row">

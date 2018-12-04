@@ -10,6 +10,18 @@
     </div>
         <br><br>
     <h4 class="h4_green"><loc:message code="orders.title"/></h4>
+        <div class="input-block-wrapper">
+
+            <form id="transaction-search-datetime-form_open">
+                <div class="col-md-9 input-block-wrapper__input-wrapper" style="padding-left:0">
+                    <input id="datetimepicker_start_open" type="text" name="startDate">
+                    <input id="datetimepicker_end_open" type="text" name="endDate">
+                    <button id="transactions_change_date_open" class="blue-box"><loc:message
+                            code="admin.user.transactions.aplly_dates"/></button>
+                </div>
+
+            </form>
+        </div>
         <br><br>
         <table id="myOrdersTable"
                class="balance__table orders__table orders-buy-table"
