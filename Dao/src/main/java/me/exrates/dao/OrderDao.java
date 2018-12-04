@@ -113,6 +113,9 @@ public interface OrderDao {
                                                 String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
                                                 LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
 
+    List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
+                                                String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
+
     Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope, Integer offset,
                                       Integer limit, Locale locale, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
 
