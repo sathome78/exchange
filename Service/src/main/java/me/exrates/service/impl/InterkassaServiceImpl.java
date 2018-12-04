@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -36,32 +37,27 @@ import java.util.TreeMap;
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
 
-    private @Value("${interkassa.url}")
-    String url;
-    private @Value("${interkassa.checkoutId}")
-    String checkoutId;
-    private @Value("${interkassa.statustUrl}")
-    String statustUrl;
-    private @Value("${interkassa.successtUrl}")
-    String successtUrl;
-    private @Value("${interkassa.secretKey}")
-    String secretKey;
+    @Value("${interkassa.url}")
+    private String url;
+    @Value("${interkassa.checkoutId}")
+    private String checkoutId;
+    @Value("${interkassa.statusUrl}")
+    private String statustUrl;
+    @Value("${interkassa.successUrl}")
+    private String successtUrl;
+    @Value("${interkassa.secretKey}")
+    private String secretKey;
 
     @Autowired
     private AlgorithmService algorithmService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
 
@@ -109,7 +105,7 @@ public class InterkassaServiceImpl implements InterkassaService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         Integer requestId = Integer.valueOf(params.get("ik_pm_no"));
         String merchantTransactionId = params.get("ik_trn_id");
-        me.exrates.model.Currency currency = currencyService.findByName(params.get("ik_cur"));
+        Currency currency = currencyService.findByName(params.get("ik_cur"));
         Merchant merchant = merchantService.findByName("Interkassa");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ik_am"))).setScale(9);
         String signature = params.get("ik_sign");
@@ -149,5 +145,4 @@ public class InterkassaServiceImpl implements InterkassaService {
     public boolean isValidDestinationAddress(String address) {
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
 }

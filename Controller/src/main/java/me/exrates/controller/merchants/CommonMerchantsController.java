@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -66,10 +67,8 @@ public class CommonMerchantsController {
 
   private static final Logger LOG = LogManager.getLogger("merchant");
 
-  @RequestMapping(value = "/merchants/input", method = GET)
-  public ModelAndView inputCredits(
-      @RequestParam("currency") String currencyName,
-      Principal principal) {
+  @GetMapping(value = "/merchants/input")
+  public ModelAndView inputCredits(@RequestParam("currency") String currencyName, Principal principal) {
     try {
       OperationType operationType = INPUT;
       ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
