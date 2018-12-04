@@ -18,4 +18,5 @@ public class TransferRequestParamsDto {
     private Integer currency;
     private BigDecimal sum;
     private String recipient;
+    private String pin;
 }

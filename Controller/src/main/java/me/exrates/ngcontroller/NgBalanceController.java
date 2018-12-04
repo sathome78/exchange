@@ -1,6 +1,12 @@
 package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.Payment;
+import me.exrates.model.dto.TransferRequestCreateDto;
+import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -8,19 +14,34 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
-import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.SecureService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.notifications.G2faService;
+import me.exrates.service.userOperation.UserOperationService;
+import me.exrates.service.util.CharUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -29,12 +50,17 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static me.exrates.model.enums.OperationType.USER_TRANSFER;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances",
@@ -47,16 +73,40 @@ public class NgBalanceController {
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final LocaleResolver localeResolver;
     private final WalletService walletService;
+    private final UserService userService;
+    private final TransferService transferService;
+    private final MerchantService merchantService;
+    private final UserOperationService userOperationService;
+    private final InputOutputService inputOutputService;
+    private final MessageSource messageSource;
+    private final SecureService secureService;
+    private final G2faService g2faService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
-                               WalletService walletService) {
+                               WalletService walletService,
+                               UserService userService,
+                               TransferService transferService,
+                               MerchantService merchantService,
+                               UserOperationService userOperationService,
+                               InputOutputService inputOutputService,
+                               MessageSource messageSource,
+                               SecureService secureService,
+                               G2faService g2faService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
         this.walletService = walletService;
+        this.userService = userService;
+        this.transferService = transferService;
+        this.merchantService = merchantService;
+        this.userOperationService = userOperationService;
+        this.inputOutputService = inputOutputService;
+        this.messageSource = messageSource;
+        this.secureService = secureService;
+        this.g2faService = g2faService;
     }
 
     // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false
@@ -168,6 +218,66 @@ public class NgBalanceController {
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /*
+        amount: "0.00165000"
+        companyCommissionAmount: "0"
+        companyCommissionRate: "(0,2%)"
+        merchantCommissionAmount: "0.00000330"
+        merchantCommissionRate: "(0,2%, но не менее 0 BTC)"
+        resultAmount: "0.0016467"
+        totalCommissionAmount: "0.0000033"
+     */
+    @CheckActiveUserStatus
+    @RequestMapping(value = "/voucher/inner/commission", method = GET)
+    @ResponseBody
+    public Map<String, String> getCommissionsForInnerVoucher(
+            @RequestParam("amount") BigDecimal amount,
+            @RequestParam("currency") Integer currencyId,
+            Locale locale) {
+
+        MerchantCurrency merchant = merchantService.findMerchantForInnerTransferByCurrencyId(currencyId);
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        return transferService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId,
+                merchant.getMerchantId(), locale);
+    }
+
+    @CheckActiveUserStatus
+    @RequestMapping(value = "/voucher/request/create", method = POST)
+    @ResponseBody
+    public Map<String, Object> createTransferRequest(
+            @RequestBody TransferRequestParamsDto requestParamsDto,
+            Principal principal,
+            HttpServletRequest servletRequest) {
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        Locale locale = localeResolver.resolveLocale(servletRequest);
+        if (requestParamsDto.getOperationType() != USER_TRANSFER) {
+            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+        }
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
+        if (!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+        }
+        if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
+            throw new IllegalArgumentException(messageSource.getMessage(
+                    "message.only.latin.symblos", null, locale));
+        }
+        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
+        Payment payment = new Payment(requestParamsDto.getOperationType());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        payment.setRecipient(requestParamsDto.getRecipient());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+                .orElseThrow(InvalidAmountException::new);
+        TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+
+        if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
+            throw new IncorrectPinException("Incorrect google auth code");
+        }
+
+        return transferService.createTransferRequest(transferRequest);
     }
 
     private String getPrincipalEmail() {
