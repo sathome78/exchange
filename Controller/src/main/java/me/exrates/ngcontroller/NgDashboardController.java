@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,7 +57,9 @@ import java.util.Locale;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/dashboard/")
+@RequestMapping(value = "/info/private/v2/dashboard/",
+        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
