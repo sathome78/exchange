@@ -3,6 +3,7 @@ package me.exrates.model.enums;
 import me.exrates.model.exceptions.UnsupportedProcessTypeException;
 
 import java.util.Arrays;
+import java.util.List;
 
 public enum MerchantProcessType {
   MERCHANT, CRYPTO, INVOICE, TRANSFER;
@@ -16,5 +17,9 @@ public enum MerchantProcessType {
   @Override
   public String toString() {
     return this.name();
+  }
+
+  public static List<MerchantProcessType> getAllCoinsTypes() {
+    return Arrays.asList(MerchantProcessType.MERCHANT, MerchantProcessType.INVOICE, MerchantProcessType.CRYPTO);
   }
 }
