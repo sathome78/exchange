@@ -2,6 +2,8 @@ package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.enums.CurrencyType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.ngcontroller.service.NgWalletService;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,8 +30,9 @@ public class NgWalletServiceImpl implements NgWalletService {
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
-    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale, CurrencyType currencyType) {
         List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(toList());
-        return walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
+        List<MerchantProcessType> processTypes = currencyType == null ? MerchantProcessType.getAllCoinsTypes() : currencyType.getMerchantProcessTypeList();
+        return walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale, processTypes);
     }
 }
