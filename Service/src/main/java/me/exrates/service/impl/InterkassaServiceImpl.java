@@ -6,7 +6,11 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.*;
+import me.exrates.service.AlgorithmService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InterkassaService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
@@ -21,17 +25,27 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
 
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
 
-    private @Value("${interkassa.url}") String url;
-    private @Value("${interkassa.checkoutId}") String checkoutId;
-    private @Value("${interkassa.statustUrl}") String statustUrl;
-    private @Value("${interkassa.successtUrl}") String successtUrl;
-    private @Value("${interkassa.secretKey}") String secretKey;
+    private @Value("${interkassa.url}")
+    String url;
+    private @Value("${interkassa.checkoutId}")
+    String checkoutId;
+    private @Value("${interkassa.statustUrl}")
+    String statustUrl;
+    private @Value("${interkassa.successtUrl}")
+    String successtUrl;
+    private @Value("${interkassa.secretKey}")
+    String secretKey;
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -55,11 +69,11 @@ public class InterkassaServiceImpl implements InterkassaService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
     }
 
     @Override
-    public Map<String, String> refill(RefillRequestCreateDto request){
+    public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer requestId = request.getId();
         if (requestId == null) {
             throw new RefillRequestIdNeededException(request.toString());
@@ -67,7 +81,7 @@ public class InterkassaServiceImpl implements InterkassaService {
         BigDecimal sum = request.getAmount();
         String currency = request.getCurrencyName();
         BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-    /**/
+        /**/
         final Map<String, String> map = new TreeMap<>();
 
         map.put("ik_am", String.valueOf(amountToPay));
@@ -82,11 +96,11 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_suc_u", successtUrl);
         map.put("ik_suc_m", "post");
 
-        map.put("ik_sign",getSignature(map));
+        map.put("ik_sign", getSignature(map));
 
         Properties properties = new Properties();
         properties.putAll(map);
-    /**/
+        /**/
 
         return generateFullUrlMap(url, "POST", properties);
     }
@@ -100,15 +114,14 @@ public class InterkassaServiceImpl implements InterkassaService {
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ik_am"))).setScale(9);
         String signature = params.get("ik_sign");
         params.remove("ik_sign");
-        String checkSignature = getSignature(new TreeMap<String, String>(params));
+        String checkSignature = getSignature(new TreeMap<>(params));
 
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
-        if(checkSignature.equals(signature)
+        if (checkSignature.equals(signature)
                 && params.get("ik_co_id").equals(checkoutId)
                 && params.get("ik_inv_st").equals("success")
-                && refillRequest.getAmount().equals(amount))
-        {
+                && refillRequest.getAmount().equals(amount)) {
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(requestId)
                     .merchantId(merchant.getId())
@@ -121,12 +134,12 @@ public class InterkassaServiceImpl implements InterkassaService {
         }
     }
 
-    private String getSignature(final Map<String, String> params){
+    private String getSignature(final Map<String, String> params) {
 
-        List<String> listValues = new ArrayList<String>(params.values());
+        List<String> listValues = new ArrayList<>(params.values());
 
         listValues.add(secretKey);
-        String stringValues = StringUtils.join(listValues, ":" );
+        String stringValues = StringUtils.join(listValues, ":");
         byte[] signMD5 = algorithmService.computeMD5Byte(stringValues);
 
         return Base64.getEncoder().encodeToString(signMD5);
@@ -134,7 +147,6 @@ public class InterkassaServiceImpl implements InterkassaService {
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-
         return withdrawUtils.isValidDestinationAddress(address);
     }
 

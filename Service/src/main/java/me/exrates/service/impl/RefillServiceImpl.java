@@ -131,13 +131,12 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      merchantService.refill(request).entrySet().forEach(e ->
-      {
-        if (e.getKey().startsWith("$__")) {
-          result.put(e.getKey().replace("$__", ""), e.getValue());
-        } else {
-          ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
-        }
+      merchantService.refill(request).forEach((key, value) -> {
+          if (key.startsWith("$__")) {
+              result.put(key.replace("$__", ""), value);
+          } else {
+              ((Map<String, String>) result.get("params")).put(key, value);
+          }
       });
       String merchantRequestSign = (String) result.get("sign");
       request.setMerchantRequestSign(merchantRequestSign);

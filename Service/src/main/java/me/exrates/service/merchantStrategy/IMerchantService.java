@@ -33,7 +33,7 @@ public interface IMerchantService {
       put("$__redirectionUrl", url);
       put("$__method", method);
     }};
-    properties.entrySet().forEach(e -> result.put(e.getKey().toString(), e.getValue().toString()));
+    properties.forEach((key, value) -> result.put(key.toString(), value.toString()));
     return result;
   }
 
