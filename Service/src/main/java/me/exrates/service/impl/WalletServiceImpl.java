@@ -100,7 +100,7 @@ public class WalletServiceImpl implements WalletService {
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                  String email, Locale locale) {
     List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
-    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
+    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale, MerchantProcessType.getAllCoinsTypes());
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyWalletsDetailedDto>() {{
         add(new MyWalletsDetailedDto(false));
@@ -247,7 +247,7 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
     List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
-    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
+    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale, MerchantProcessType.getAllCoinsTypes());
   }
 
   @Transactional(transactionManager = "slaveTxManager", readOnly = true)

@@ -2,6 +2,7 @@ package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.enums.CurrencyType;
 import me.exrates.ngcontroller.dao.BalanceDao;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.model.UserBalancesDto;
@@ -50,11 +51,10 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero) {
-        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH);
+    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero, CurrencyType currencyType) {
+        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
         if (excludeZero) {
             details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
-
         }
         return getSafeSubList(details, offset, limit);
     }

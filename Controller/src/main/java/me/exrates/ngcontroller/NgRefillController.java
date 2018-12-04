@@ -156,25 +156,25 @@ public class NgRefillController {
         if (requestParamsDto.getOperationType() != INPUT) {
             throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
         }
-//        if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
-//            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-//        }
-//        Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
-//        if (!forceGenerateNewAddress) {
-//            Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
-//                    requestParamsDto.getMerchant(),
-//                    requestParamsDto.getCurrency(),
-//                    userService.getIdByEmail(getPrincipalEmail())
-//            );
-//            if (address.isPresent()) {
-//                String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-//                return new HashMap<String, Object>() {{
-//                    put("address", address.get());
-//                    put("message", message);
-//                    put("qr", address.get());
-//                }};
-//            }
-//        }
+        if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
+            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+        }
+        Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
+        if (!forceGenerateNewAddress) {
+            Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
+                    requestParamsDto.getMerchant(),
+                    requestParamsDto.getCurrency(),
+                    userService.getIdByEmail(getPrincipalEmail())
+            );
+            if (address.isPresent()) {
+                String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
+                return new HashMap<String, Object>() {{
+                    put("address", address.get());
+                    put("message", message);
+                    put("qr", address.get());
+                }};
+            }
+        }
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
         Payment payment = new Payment(INPUT);
         payment.setCurrency(requestParamsDto.getCurrency());
@@ -219,4 +219,5 @@ public class NgRefillController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
+    // added new branch
 }
