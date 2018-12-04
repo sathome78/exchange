@@ -1,24 +1,39 @@
 package me.exrates.ngcontroller;
 
+import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j;
+import me.exrates.controller.exception.RequestsLimitExceedException;
+import me.exrates.model.dto.TransferDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.TransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.util.RateLimitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,6 +48,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances",
@@ -42,18 +60,29 @@ import java.util.Map;
 public class NgBalanceController {
 
     private final BalanceService balanceService;
+    private final CurrencyService currencyService;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final LocaleResolver localeResolver;
+    private final MessageSource messageSource;
+    private final RateLimitService rateLimitService;
+    private final TransferService transferService;
     private final WalletService walletService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
-                               ExchangeRatesHolder exchangeRatesHolder,
+                               CurrencyService currencyService, ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
+                               MessageSource messageSource,
+                               RateLimitService rateLimitService,
+                               TransferService transferService,
                                WalletService walletService) {
         this.balanceService = balanceService;
+        this.currencyService = currencyService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
+        this.messageSource = messageSource;
+        this.rateLimitService = rateLimitService;
+        this.transferService = transferService;
         this.walletService = walletService;
     }
 
@@ -145,6 +174,46 @@ public class NgBalanceController {
         }
 
         return map;
+    }
+
+    // /info/private/v2/balances/transfer/accept {"CODE": "kdbfeyue743467"}
+
+    /**
+     * this method processes user refill request by using voucher
+     *
+     * @param params - map KEY - "CODE", VALUE - VOUCHER_CODE
+     * @param request - HttpServletRequest
+     * @return result OK or voucher nor found
+     */
+    @PostMapping(value = "/transfer/accept")
+    @ResponseBody
+    public String acceptTransfer(@RequestBody Map<String, String> params, HttpServletRequest request) {
+        String email = getPrincipalEmail();
+        if (!rateLimitService.checkLimitsExceed(email)) {
+            throw new RequestsLimitExceedException();
+        }
+        InvoiceActionTypeEnum action = PRESENT_VOUCHER;
+        List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
+        if (requiredStatus.size() > 1) {
+            throw new RuntimeException("voucher processing error");
+        }
+        String code = params.getOrDefault("CODE", "");
+        Optional<TransferRequestFlatDto> dto = transferService
+                .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
+        if (!dto.isPresent() || !transferService.checkRequest(dto.get(), email)) {
+            rateLimitService.registerRequest(getPrincipalEmail());
+            throw new InvoiceNotFoundException(messageSource.getMessage(
+                    "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
+        }
+        Locale locale = localeResolver.resolveLocale(request);
+        TransferRequestFlatDto flatDto = dto.get();
+        flatDto.setInitiatorEmail(email);
+        TransferDto resDto = transferService.performTransfer(flatDto, locale, action);
+        JsonObject result = new JsonObject();
+        result.addProperty("result", messageSource.getMessage("message.receive.voucher",
+                new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(resDto.getNotyAmount(), locale, 4),
+                        currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request)));
+        return result.toString();
     }
 
     //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
