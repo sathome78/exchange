@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -259,6 +260,36 @@ public class NgDashboardController {
             return ResponseEntity.ok(pagedResult);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    @GetMapping("/orders/{status}/export")
+    public void exportExcelOrders(
+            @PathVariable("status") String status,
+            @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
+            @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            HttpServletRequest request, HttpServletResponse response) {
+
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
+
+        int userId = userService.getIdByEmail(getPrincipalEmail());
+        CurrencyPair currencyPair = currencyPairId > 0
+                ? currencyService.findCurrencyPairById(currencyPairId)
+                : null;
+        Locale locale = localeResolver.resolveLocale(request);
+        try {
+             List<OrderWideListDto> orders =
+                    orderService.getOrdersForExcel(userId, currencyPair, orderStatus, scope,
+                            hideCanceled, locale, dateFrom, dateTo);
+
+             orderService.getExcelFile(orders, response);
+
+        } catch (Exception ex) {
+           logger.error("Error export orders to file, e - {}", ex.getMessage());
         }
 
     }

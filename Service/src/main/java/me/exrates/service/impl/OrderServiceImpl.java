@@ -112,6 +112,11 @@ import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -124,10 +129,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -135,6 +145,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -167,63 +178,46 @@ public class OrderServiceImpl implements OrderService {
     public static final String SCOPE = "ALL";
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
+    private final static String CONTENT_DISPOSITION = "Content-Disposition";
+    private final static String ATTACHMENT = "attachment; filename=";
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
             .map(ChartPeriodsEnum::getBackDealInterval)
             .collect(Collectors.toList());
-
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
             .collect(toList());
-
-    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
-    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
-
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
-
-
-    @Autowired
-    private OrderDao orderDao;
-
-    @Autowired
-    private CommissionDao commissionDao;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-
-    @Autowired
-    private ReferralService referralService;
-
     @Autowired
     NotificationService notificationService;
-
     @Autowired
     ServiceCacheableProxy serviceCacheableProxy;
-
     @Autowired
     TransactionDescription transactionDescription;
-
     @Autowired
     StopOrderService stopOrderService;
     @Autowired
     RatesHolder ratesHolder;
+    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
+    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
+    @Autowired
+    private OrderDao orderDao;
+    @Autowired
+    private CommissionDao commissionDao;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private ReferralService referralService;
     @Autowired
     private UserRoleService userRoleService;
     @Autowired
@@ -1629,6 +1623,57 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status, String scope, boolean hideCanceled, Locale locale, LocalDate dateFrom, LocalDate dateTo) {
+        return orderDao.getAllOrders(userId, status, currencyPair, locale, scope, dateFrom, dateTo, hideCanceled);
+    }
+
+    @Override
+    public void getExcelFile(List<OrderWideListDto> orders, HttpServletResponse response) throws IOException {
+        StringBuilder fileName = new StringBuilder("Orders_")
+                .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                .append(".xlsx");
+
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Orders");
+
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Date");
+        headerRow.createCell(1).setCellValue("Pair");
+        headerRow.createCell(2).setCellValue("Order");
+        headerRow.createCell(3).setCellValue("Type");
+        headerRow.createCell(4).setCellValue("Price");
+        headerRow.createCell(5).setCellValue("Amount");
+        headerRow.createCell(6).setCellValue("Commission");
+        headerRow.createCell(7).setCellValue("In total");
+
+        int index = 1;
+        for (OrderWideListDto order : orders) {
+            Row row = sheet.createRow(index++);
+            row.createCell(0, CellType.STRING).setCellValue(order.getDateAcception().toString());
+            row.createCell(1, CellType.STRING).setCellValue(order.getCurrencyPairName());
+            row.createCell(2, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
+            row.createCell(3, CellType.STRING).setCellValue(order.getOperationType());
+            row.createCell(4, CellType.STRING).setCellValue(order.getExExchangeRate());
+            row.createCell(5, CellType.STRING).setCellValue(order.getAmountBase());
+            row.createCell(6, CellType.STRING).setCellValue(order.getCommissionValue());
+            row.createCell(7, CellType.STRING).setCellValue(order.getAmountWithCommission());
+        }
+
+        response.setContentType("application/ms-excel");
+        response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+
+        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
+        workbook.write(outByteStream);
+        byte[] outArray = outByteStream.toByteArray();
+
+        OutputStream outStream = response.getOutputStream();
+        outStream.write(outArray);
+        outStream.flush();
+        workbook.close();
+    }
+
+    @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
                                                        Integer offset, Integer limit, Locale locale) {
@@ -2036,34 +2081,34 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
     }
 
-  private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-      orders = Stream.of(
-              orders.stream()
-                      .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
-              orders.stream()
-                      .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
-              .flatMap(p->p)
-              .collect(Collectors.toList());
-      setStatisitcValues(orders);
-      return orders;
-  }
+    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
+        orders = Stream.of(
+                orders.stream()
+                        .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
+                orders.stream()
+                        .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
+                .flatMap(p -> p)
+                .collect(Collectors.toList());
+        setStatisitcValues(orders);
+        return orders;
+    }
 
-  private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
-      Locale locale = Locale.ENGLISH;
-      ordersList.forEach(e -> {
-          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-          BigDecimal percentChange;
-          if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-              percentChange = BigDecimal.ZERO;
-          }  else {
-              percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-          }
-          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-      });
-  }
+    private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
+        Locale locale = Locale.ENGLISH;
+        ordersList.forEach(e -> {
+            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+            BigDecimal percentChange;
+            if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+                percentChange = BigDecimal.ZERO;
+            } else {
+                percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+            }
+            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+        });
+    }
 
 
     @Override
