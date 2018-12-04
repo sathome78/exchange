@@ -67,7 +67,7 @@
                                 </div>
                                 <div class="col-md-7 input-block-wrapper__input-wrapper">
                                     <form:password path="confirmPassword" class="form-control input-block-wrapper__input"
-                                                   id="user-confirmpassword" placeholder="${newPassword}"/>
+                                                   id="user-confirmpassword" placeholder="${newPassword}" readonly="true"/>
                                 </div>
                                 <span class="col-md-1 input-block-wrapper__input-wrapper"></span>
                                 <div class="col-md-12 input-block-wrapper__error-wrapper">
@@ -88,7 +88,7 @@
                                     </label>
                                 </div>
                                 <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                    <input id="confirmNewPassword" type="password" class="form-control input-block-wrapper__input" placeholder="${confirmNewPassword}" required/>
+                                    <input id="confirmNewPassword" type="password" class="form-control input-block-wrapper__input" placeholder="${confirmNewPassword}" required readonly/>
                                 </div>
                                 <span class="col-md-1 repass green"><i class="glyphicon glyphicon-ok"></i></span>
                                 <span class="col-md-1 repass-error red"><i class="glyphicon glyphicon-remove"></i></span>

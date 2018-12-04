@@ -15,6 +15,7 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.InvoiceUserType;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.TransactionDescription;
@@ -254,7 +255,8 @@ public class WithdrawServiceImpl implements WithdrawService {
     output.setData(result.getData().stream()
         .map(e -> new WithdrawRequestsAdminTableDto(e, withdrawRequestDao.getAdditionalDataForId(e.getId())))
         .peek(e -> {
-          boolean authorizedUserIsHolder = authorizedUserId.equals(e.getStatus() == WithdrawStatusEnum.IN_WORK_OF_ADMIN ? e.getAdminHolderId() : e.getAnalyticHolderId());
+          boolean authorizedUserIsHolder = authorizedUserId.equals(
+                  (e.getStatus().getInvoiceUserType() == (InvoiceUserType.ADMIN)) ? e.getAdminHolderId() : e.getAnalyticHolderId());
           e.setButtons(
                   inputOutputService.generateAndGetButtonsSet(
                           e.getStatus(),
@@ -314,20 +316,17 @@ public class WithdrawServiceImpl implements WithdrawService {
   public void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    WithdrawStatusEnum oldSattus = withdrawRequest.getStatus();
     InvoiceActionTypeEnum action = TAKE_TO_WORK;
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    switch (newStatus) {
-      case IN_WORK_OF_ADMIN: {
+    switch (oldSattus.getInvoiceUserType()) {
+      case ADMIN : {
         withdrawRequestDao.setHolderById(requestId, requesterAdminId);
         break;
       }
-      case IN_WORK_OF_ANALYTICS_SEMI_AUTO:{
-        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
-        break;
-      }
-      case IN_WORK_OF_ANALYTICS_FOR_MANUAL: {
+      case ANLYTIC : {
         withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
         break;
       }
@@ -340,19 +339,16 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     InvoiceActionTypeEnum action = RETURN_FROM_WORK;
+    WithdrawStatusEnum oldSattus = withdrawRequest.getStatus();
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    switch (newStatus) {
-      case WAITING_MANUAL_POSTING: {
+    switch (oldSattus.getInvoiceUserType()) {
+      case ADMIN : {
         withdrawRequestDao.setHolderById(requestId, null);
         break;
       }
-      case WAITING_ANALYTICS_CONFIRMATION_FOR_MANUAL:{
-        withdrawRequestDao.setAnalyticHolderById(requestId, null);
-        break;
-      }
-      case WAITING_ANALYTICS_CONFIRMATION_FOR_SEMI_AUTO: {
+      case ANLYTIC : {
         withdrawRequestDao.setAnalyticHolderById(requestId, null);
         break;
       }
@@ -409,16 +405,12 @@ public class WithdrawServiceImpl implements WithdrawService {
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
-    switch (newStatus) {
-      case WAITING_CONFIRMED_POSTING : {
+    switch (currentStatus.getInvoiceUserType()) {
+      case ADMIN : {
         withdrawRequestDao.setHolderById(requestId, requesterAdminId);
         break;
       }
-      case WAITING_MANUAL_POSTING : {
-        withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
-        break;
-      }
-      case WAITING_CONFIRMATION : {
+      case ANLYTIC : {
         withdrawRequestDao.setAnalyticHolderById(requestId, requesterAdminId);
         break;
       }
@@ -708,7 +700,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
-    Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getStatus() == WithdrawStatusEnum.IN_WORK_OF_ADMIN ? withdrawRequest.getAdminHolderId() : withdrawRequest.getAnalyticHolderId());
+    Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getStatus().getInvoiceUserType() == InvoiceUserType.ADMIN ? withdrawRequest.getAdminHolderId() : withdrawRequest.getAnalyticHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
         requesterAdminId,
         withdrawRequest.getCurrencyId(),

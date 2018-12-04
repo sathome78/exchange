@@ -27,7 +27,7 @@
                 <li><a href="/" class="nav__link">
                     <loc:message code="dashboard.trading"/></a>
                 </li>
-                <li><a href="<c:url value="http://support.exrates.me/"/>" target="_blank" class="nav__link">
+                <li><a href="<c:url value="https://help.exrates.me/"/>" target="_blank" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
                 </li>
                 <sec:authorize access="isAuthenticated()">

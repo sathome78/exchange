@@ -1473,34 +1473,54 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "USDC", false, ExConvert.Unit.MWEI);
     }
 
-    @Bean(name = "ttpServiceImpl")
-    public EthTokenService ttpService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x38f22479795a1a51ccd1e5a41f09c7525fb27318");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "TTP",
-                "TTP", false, ExConvert.Unit.FINNEY);
-    }
+//    @Bean(name = "ttpServiceImpl")
+//    public EthTokenService ttpService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x38f22479795a1a51ccd1e5a41f09c7525fb27318");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "TTP",
+//                "TTP", false, ExConvert.Unit.FINNEY);
+//    }
+//
+//    @Bean(name = "vaiServiceImpl")
+//    public EthTokenService vaiService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xd4078bdb652610ad5383a747d130cbe905911102");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "VAI",
+//                "VAI", true, ExConvert.Unit.ETHER);
+//    }
+//
+//    @Bean(name = "mgxServiceImpl")
+//    public EthTokenService mgxService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xc79d440551a03f84f863b1f259f135794c8a7190");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "MGX",
+//                "MGX", true, ExConvert.Unit.ETHER);
+//    }
+//
+//    @Bean(name = "uncServiceImpl")
+//    public EthTokenService uncService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x882fbbe226f293037fa5c06459b1f4e871b70e94");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "UNC",
+//                "UNC", false, ExConvert.Unit.ETHER);
+//    }
 
-    @Bean(name = "vaiServiceImpl")
-    public EthTokenService vaiService() {
+    @Bean(name = "modlServiceImpl")
+    public EthTokenService modlService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xd4078bdb652610ad5383a747d130cbe905911102");
+        tokensList.add("0x2dc059881eef90b12e4d770364f4b14af82c5b9c");
         return new EthTokenServiceImpl(
                 tokensList,
-                "VAI",
-                "VAI", true, ExConvert.Unit.ETHER);
-    }
-
-    @Bean(name = "mgxServiceImpl")
-    public EthTokenService mgxService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xc79d440551a03f84f863b1f259f135794c8a7190");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "MGX",
-                "MGX", true, ExConvert.Unit.ETHER);
+                "MODL",
+                "MODL", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

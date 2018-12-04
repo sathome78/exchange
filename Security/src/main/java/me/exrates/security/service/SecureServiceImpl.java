@@ -3,6 +3,7 @@ package me.exrates.security.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.ControlPhraseDao;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
@@ -49,7 +50,8 @@ public class SecureServiceImpl implements SecureService {
     private MessageSource messageSource;
     @Autowired
     private NotificationsSettingsService settingsService;
-
+    @Autowired
+    private ControlPhraseDao controlPhraseDao;
 
     @Override
     public void checkLoginAuth(HttpServletRequest request, Authentication authentication,

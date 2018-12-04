@@ -43,7 +43,7 @@
                     </li>
                     <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
+                <li><a href="<c:url value="https://help.exrates.me/" />" target="_blank" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
                 </li>
 
@@ -239,6 +239,12 @@
                 <c:if test="${not empty pinError}">
                     <div class='field__error' style="text-align: center">
                             ${pinError}
+                    </div>
+                </c:if>
+                <c:if test="${controlPhrase != null && controlPhrase != ''}">
+                    <div>
+                        <loc:message code="login.controlPhrase"/><br>
+                        <h3><b><div>${controlPhrase}</div></b></h3>
                     </div>
                 </c:if>
                 <form id="pin_2fa_login_form" action="${loginUrl}" method="post" class="form">

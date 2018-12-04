@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -70,11 +71,14 @@ public class AunitNodeServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
+    Environment environment;
+
+    @Autowired
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
         MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
-        latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
+//        if(environment.getActiveProfiles()[1].equals("prod"))latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.merchantSpecParamsDao = merchantSpecParamsDao;
@@ -180,9 +184,6 @@ public class AunitNodeServiceImpl {
     public void onMessage(String msg) {
         if(msg.contains("notice")) setIrreversableBlock(msg);
         else if (msg.contains("previous")) processIrreversebleBlock(msg);
-        else System.out.println("unrecogrinzed msg aunit \n" + msg);;
-
-        System.out.println(msg);
     }
 
     @SneakyThrows
@@ -195,7 +196,6 @@ public class AunitNodeServiceImpl {
     }
 
     private  void processIrreversebleBlock(String trx) {
-        System.out.println("json for process trx \n " + trx);
         JSONObject block = new JSONObject(trx);
         if(block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
         JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
@@ -210,7 +210,6 @@ public class AunitNodeServiceImpl {
         }
 
     } catch (JSONException e){
-        System.out.println("JSON exception while parsing \n " + trx);
         e.printStackTrace();
     }
 

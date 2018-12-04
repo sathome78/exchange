@@ -161,20 +161,6 @@ function subscribeStatistics() {
     }
 }
 
-/*function subscribeChart() {
-    if (chartSubscription != undefined) {
-        chartSubscription.unsubscribe();
-    }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
-        }, headers);
-    }
-}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -337,40 +323,37 @@ $(function dashdoardInit() {
         $(".numericInputField")
             .keypress(
                 function (e) {
-                    var decimal = $(this).val().split('.')[1];
-                    if (decimal && decimal.length > trading.ROUND_SCALE) {
-                        return false;
-                    }
-                    if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
-                        var keyPressed = e.key == ',' ? '.' : e.key;
-
-                        if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
+                    var val = $(this).val();
+                    var decimal = val.split('.')[1];
+                    var str = val + e.key;
+                    var period = e.charCode === 46;
+                    if ((e.charCode >= 48 && e.charCode <= 57) || period) {
+                        if(str.indexOf('.')===0 || (str.split('.').length - 1) > 1) {
                             return false;
                         }
-                        var str = $(this).val() + keyPressed;
-                        if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
-                            return false
+                        if (str.length > 1 && str.indexOf('0') === 0 && str.indexOf('.') !== 1) {
+                            $(this).val("");
+                            return false;
+                        }
+                        var maxSum = 999999.99;
+                        if (val >= maxSum) {
+                            $(this).val(maxSum);
+                            return false;
+                        }
+                        if (decimal.length >= trading.ROUND_SCALE) {
+                            return false;
                         }
                     } else {
                         return false;
                     }
-                    return true;
                 }
             )
             .on('input', function (e) {
                 var val = $(this).val();
-                if (val[val.length - 1] == ',') {
-                    val = val.replace(',', '.');
-                    $(this).val(val)
-                }
-                var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
-                var result = val.match(regx);
-                if (!result || result[0] != val) {
-                    $(this).val('');
-                }
-                var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= trading.ROUND_SCALE) {
-                    $(this).val(+(+$(this).val()).toFixed(trading.ROUND_SCALE));
+                var decimal = val.split('.')[1];
+                var str = val + e.key;
+                if (decimal.length >= trading.ROUND_SCALE) {
+                    $(this).val(+(str.substr(0, str.indexOf('.')) + str.substr(str.indexOf('.'), 9)));
                 }
             });
         /*... FOR EVERYWHERE*/
@@ -524,7 +507,6 @@ $(function dashdoardInit() {
                 backdrop: 'static',
                 keyboard: false
             });
-            checkAgreeButton();
         }
         /*end 2fa notify*/
     } catch (e) {
@@ -537,22 +519,11 @@ $(function dashdoardInit() {
     $('#ga-btn').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    $('.custom-inp-check').on('change', function () {
-        checkAgreeButton();
-    });
     $('.safety_agree_button').on('click', function () {
         $infoModal.modal('hide');
     });
 
 });
-
-function checkAgreeButton() {
-    if ($('.custom-inp-check').not(':checked').length === 0) {
-        $('.safety_agree_button').removeAttr('disabled');
-    } else {
-        $('.safety_agree_button').attr('disabled', true);
-    }
-}
 
 function showPage(pageId) {
     if (!pageId) {

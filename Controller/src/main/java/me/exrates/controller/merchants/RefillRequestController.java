@@ -27,12 +27,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -47,6 +52,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * created by ValkSam
  */
 @Controller
+@SuppressWarnings("unchecked")
 public class RefillRequestController {
 
     private static final Logger log = LogManager.getLogger("refill");
@@ -71,54 +77,83 @@ public class RefillRequestController {
     @Autowired
     private LocaleResolver localeResolver;
 
-  @RequestMapping(value = "/refill/request/create", method = POST)
-  @ResponseBody
-  public Map<String, Object> createRefillRequest(
-      @RequestBody RefillRequestParamsDto requestParamsDto,
-      Principal principal,
-      Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
-    if (requestParamsDto.getOperationType() != INPUT) {
-      throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
-    }
-    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
-    if(!accessToOperationForUser) {
-      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
-    }
-    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
-      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-    }
-    Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
-    if (!forceGenerateNewAddress) {
-      Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
-          requestParamsDto.getMerchant(),
-          requestParamsDto.getCurrency(),
-          userService.getIdByEmail(principal.getName())
-      );
-      if (address.isPresent()) {
-        String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-        return new HashMap<String, Object>() {{
-          put("address", address.get());
-          put("message", message);
-          put("qr", address.get());
-        }};
-      }
-    }
-    RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-    Payment payment = new Payment(INPUT);
-    payment.setCurrency(requestParamsDto.getCurrency());
-    payment.setMerchant(requestParamsDto.getMerchant());
-    payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
-        .orElseThrow(InvalidAmountException::new);
-    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    return refillService.createRefillRequest(request);
-  }
+    @Autowired
+    private RestTemplate restTemplate;
 
+    @RequestMapping(value = "/refill/request/create", method = POST)
+    @ResponseBody
+    public Map<String, Object> createRefillRequest(
+            @RequestBody RefillRequestParamsDto requestParamsDto,
+            Principal principal,
+            Locale locale, HttpServletRequest servletRequest, HttpSession session) throws UnsupportedEncodingException {
+        if (requestParamsDto.getOperationType() != INPUT) {
+            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+        }
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
+        if(!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+        }
+        if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+        }
+        Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
+        if (!forceGenerateNewAddress) {
+            Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
+                    requestParamsDto.getMerchant(),
+                    requestParamsDto.getCurrency(),
+                    userService.getIdByEmail(principal.getName())
+            );
+            if (address.isPresent()) {
+                String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
+                return new HashMap<String, Object>() {{
+                    put("address", address.get());
+                    put("message", message);
+                    put("qr", address.get());
+                }};
+            }
+        }
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+        Payment payment = new Payment(INPUT);
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+                .orElseThrow(InvalidAmountException::new);
+        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+        return refillService.createRefillRequest(request);
+    }
+
+//    private Map<String, Object> doPost(String endpoint, Object object) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Type", "application/json");
+////          headers.add("access_token", (String) session.getAttribute("access_token"));
+////          headers.add("refresh_token", (String) session.getAttribute("refresh_token"));
+//        HttpEntity request = new HttpEntity<>(object, headers);
+//
+//        return (Map<String, Object>) restTemplate.postForEntity("http://demo7280020.mockable.io" + endpoint, request, Map.class).getBody();
+//
+//    }
+//
+//    private Map<String, Object> doPostEncoded(String endpoint, String... params) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Type", "application/json");
+////          headers.add("access_token", (String) session.getAttribute("access_token"));
+////          headers.add("refresh_token", (String) session.getAttribute("refresh_token"));
+//
+//        StringBuilder builder = new StringBuilder(endpoint + "?");
+//        for (String param : params) {
+////            builder.append(param + "=")
+//        }
+//        HttpEntity request = new HttpEntity<>(object, headers);
+//
+//        return (Map<String, Object>) restTemplate.postForEntity("http://demo7280020.mockable.io" + endpoint, request, Map.class).getBody();
+//    }
 
     @RequestMapping(value = "/refill/request/revoke", method = POST)
     @ResponseBody
     public void revokeWithdrawRequest(
-            @RequestParam Integer id) {
+            @RequestParam Integer id, HttpServletRequest request) {
+        String response = restTemplate.postForObject("/testB", request, String.class);
         refillService.revokeRefillRequest(id);
     }
 
