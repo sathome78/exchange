@@ -93,10 +93,7 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_suc_u", successtUrl);
         map.put("ik_suc_m", POST);
 
-        final String signature = getSignature(map);
-        System.out.println(signature);
-
-        map.put("ik_sign", signature);
+        map.put("ik_sign", getSignature(map));
 
         Properties properties = new Properties();
         properties.putAll(map);
