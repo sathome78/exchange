@@ -102,6 +102,6 @@ public interface MerchantService {
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
-    MerchantCurrency findMerchantForInnerTransferByCurrencyId(Integer currencyId);
+    MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, boolean toUser);
 
 }
