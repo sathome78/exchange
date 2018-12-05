@@ -178,9 +178,8 @@ public class NgBalanceController {
         }
     }
 
-    @GetMapping("/myBalance")
-    public String getBtcAndUsdBalancesSum(HttpServletRequest request) {
-        System.out.println(request.getServletPath());
+    @GetMapping("/myBalances")
+    public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
         return balanceService.getBalancesInBtcAndUsd();
     }
 

@@ -131,12 +131,6 @@ public class OnlineRestController {
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
 
-    @Autowired
-    private BalanceService balanceService;
-    @GetMapping("/myBalance")
-    public String getBtcAndUsdBalancesSum() {
-        return balanceService.getBalancesInBtcAndUsd();
-    }
 
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {

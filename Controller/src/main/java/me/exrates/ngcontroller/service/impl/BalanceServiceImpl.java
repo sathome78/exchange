@@ -1,7 +1,5 @@
 package me.exrates.ngcontroller.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -105,7 +103,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public String getBalancesInBtcAndUsd() {
+    public Map<String, BigDecimal> getBalancesInBtcAndUsd() {
         List<WalletBalanceDto> userBalances = walletService.getBalancesForUser();
         BigDecimal btcBalances = BigDecimal.ZERO;
         BigDecimal usdBalances = BigDecimal.ZERO;
@@ -117,7 +115,7 @@ public class BalanceServiceImpl implements BalanceService {
         Map<Integer, String> usdRateMapped = rates.stream()
                 .filter(p->p.getMarket().equals("USD"))
                 .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
-        BigDecimal btcUsdRate = new BigDecimal(btcRateMapped.get(currencyService.findByName("BTC").getId()));
+        BigDecimal btcUsdRate = new BigDecimal(usdRateMapped.get(currencyService.findByName("BTC").getId()));
         for (WalletBalanceDto p : userBalances) {
             BigDecimal sumBalances = p.getActiveBalance().add(p.getReservedBalance());
             if (sumBalances.compareTo(BigDecimal.ZERO) > 0) {
@@ -128,7 +126,7 @@ public class BalanceServiceImpl implements BalanceService {
                         break;
                     case "USD":
                         usdBalances = usdBalances.add(sumBalances);
-                        btcBalances = btcBalances.add(sumBalances.divide(btcUsdRate));
+                        btcBalances = btcBalances.add(sumBalances.divide(btcUsdRate, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP));
                         break;
                     default:
                         BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
@@ -145,12 +143,7 @@ public class BalanceServiceImpl implements BalanceService {
         Map<String, BigDecimal> balancesMap = new HashMap<>();
         balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
         balancesMap.put("USD", usdBalances.setScale(2, RoundingMode.HALF_DOWN));
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(balancesMap);
-        } catch (JsonProcessingException e) {
-            return e.toString();
-        }
+        return balancesMap;
     }
 
 

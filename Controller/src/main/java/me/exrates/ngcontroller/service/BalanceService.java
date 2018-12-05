@@ -8,9 +8,11 @@ import me.exrates.ngcontroller.model.UserBalancesDto;
 import me.exrates.ngcontroller.util.PagedResult;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public interface BalanceService {
@@ -24,5 +26,5 @@ public interface BalanceService {
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
                                                                    LocalDate dateFrom, LocalDate dateTo, Locale locale);
 
-    String getBalancesInBtcAndUsd();
+    Map<String, BigDecimal> getBalancesInBtcAndUsd();
 }
