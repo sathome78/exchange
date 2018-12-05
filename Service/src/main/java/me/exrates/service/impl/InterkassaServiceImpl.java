@@ -26,12 +26,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
@@ -156,10 +155,10 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     private String getSignature(final Map<String, String> params) {
-        List<String> listValues = new ArrayList<>(params.values());
+        TreeSet<String> setValues = new TreeSet<>(params.values());
 
-        listValues.add(secretKey);
-        String stringValues = StringUtils.join(listValues, ":");
+        setValues.add(secretKey);
+        String stringValues = StringUtils.join(setValues, ":");
         byte[] signMD5 = algorithmService.computeMD5Byte(stringValues);
 
         return Base64.getEncoder().encodeToString(signMD5);
