@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.common.collect.ImmutableList;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
@@ -309,5 +310,10 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Override
   public List<CurrencyPair> getPairsByFirstPartName(String partName) {
     return currencyDao.findAllCurrenciesByFirstPartName(partName);
+  }
+
+  @Override
+  public List<Currency> getCurrencies(MerchantProcessType... processType) {
+    return currencyDao.getCurrencies(processType);
   }
 }
