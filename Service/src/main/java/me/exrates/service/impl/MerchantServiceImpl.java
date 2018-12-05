@@ -485,5 +485,10 @@ public class MerchantServiceImpl implements MerchantService {
     return merchantDao.findTokenMerchantsByParentId(parentId);
   }
 
+  @Override
+  public MerchantCurrency findMerchantForInnerTransferByCurrencyId(Integer currencyId) {
+    return merchantDao.getMerchantByCurrencyForInnerVoucher(currencyId);
+  }
+
 
 }
