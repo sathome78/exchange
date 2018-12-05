@@ -153,7 +153,6 @@ public class RefillRequestController {
     @ResponseBody
     public void revokeWithdrawRequest(
             @RequestParam Integer id, HttpServletRequest request) {
-        String response = restTemplate.postForObject("/testB", request, String.class);
         refillService.revokeRefillRequest(id);
     }
 

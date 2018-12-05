@@ -40,6 +40,7 @@
         <input type="text" hidden value="" name="sourceType">
         <@=getButtonsSet(id, sourceType, merchantName, buttons, "inputoutput-table")@>
       </form>
+    </td>
   </tr>
 </script>
 </tbody>
