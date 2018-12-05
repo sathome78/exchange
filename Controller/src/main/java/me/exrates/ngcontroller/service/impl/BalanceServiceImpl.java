@@ -110,10 +110,13 @@ public class BalanceServiceImpl implements BalanceService {
         BigDecimal btcBalances = BigDecimal.ZERO;
         BigDecimal usdBalances = BigDecimal.ZERO;
         List<ExOrderStatisticsShortByPairsDto> rates = exchangeRatesHolder.getAllRates();
+        rates.forEach(System.out::println);
         Map<Integer, String> btcRateMapped = rates.stream()
-                .filter(p->p.getMarket().equals("BTC")).collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
+                .filter(p->p.getMarket().equals("BTC"))
+                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
         Map<Integer, String> usdRateMapped = rates.stream()
-                .filter(p->p.getMarket().equals("USD")).collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
+                .filter(p->p.getMarket().equals("USD"))
+                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
         BigDecimal btcUsdRate = new BigDecimal(btcRateMapped.get(currencyService.findByName("BTC").getId()));
         for (WalletBalanceDto p : userBalances) {
             BigDecimal sumBalances = p.getActiveBalance().add(p.getReservedBalance());

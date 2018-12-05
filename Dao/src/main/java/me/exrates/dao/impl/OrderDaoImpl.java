@@ -121,7 +121,7 @@ public class OrderDaoImpl implements OrderDao {
         exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
         exOrderStatisticsDto.setMarket(rs.getString("market"));
         exOrderStatisticsDto.setVolume(rs.getString("volume"));
-        rs.getInt("currency1_id");
+        exOrderStatisticsDto.setCurrency1Id(rs.getInt("currency1_id"));
         return exOrderStatisticsDto;
     };
     @Autowired
