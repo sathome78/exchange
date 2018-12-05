@@ -1,9 +1,13 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import me.exrates.model.Commission;
 import me.exrates.model.Wallet;
+import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 
 import java.math.BigDecimal;
 
@@ -14,7 +18,9 @@ import java.math.BigDecimal;
 @Data
 public class TransferDto {
 
+    @JsonFormat
     private Wallet walletUserFrom;
+    @JsonIgnore
     private Wallet walletUserTo;
     private String userToNickName;
     private int currencyId;
@@ -22,6 +28,8 @@ public class TransferDto {
     private int userToId;
     private Commission commission;
     private String notyAmount;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal initialAmount;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal comissionAmount;
 }

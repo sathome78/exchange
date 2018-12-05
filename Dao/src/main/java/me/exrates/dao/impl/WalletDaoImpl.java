@@ -458,10 +458,11 @@ public class WalletDaoImpl implements WalletDao {
 
   }
 
-  public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
+  @Override
+  public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale, List<MerchantProcessType> merchantProcessType) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =
-        " SELECT wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
+        " SELECT wallet_id, user_id, W.currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
             "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
             "   SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
             "   SUM(input_confirmation_amount+input_confirmation_commission) AS on_input_cofirmation, " +
@@ -560,12 +561,16 @@ public class WalletDaoImpl implements WalletDao {
             "          amount_base, amount_convert, commission_fixed_amount, " +
             "          withdraw_amount, withdraw_commission " +
             " ) W " +
+                " JOIN MERCHANT_CURRENCY MC ON MC.currency_id = W.currency_id  " +
+                " JOIN MERCHANT M ON M.id = MC.merchant_id AND M.process_type IN (:processTypes)" +
+                " WHERE M.process_type IN (:processTypes) " +
             " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance " +
                 "ORDER BY currency_name ASC ";
     final Map<String, Object> params = new HashMap<String, Object>() {{
       put("email", email);
       put("currencyIds", currencyIds);
       put("status_id_list", withdrawStatusIds);
+      put("processTypes", merchantProcessType);
     }};
     return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
@@ -586,8 +591,8 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale) {
-    return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, withdrawStatusIds, locale);
+  public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale, List<MerchantProcessType> processType) {
+    return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, withdrawStatusIds, locale, processType);
   }
 
   @Override
