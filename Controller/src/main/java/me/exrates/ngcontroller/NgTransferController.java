@@ -30,7 +30,9 @@ import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +63,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Log4j
+@PropertySource(value = {"classpath:/angular.properties"})
 public class NgTransferController {
 
     private final RateLimitService rateLimitService;
@@ -72,6 +75,9 @@ public class NgTransferController {
     private final InputOutputService inputOutputService;
     private final G2faService g2faService;
     private final MessageSource messageSource;
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     public NgTransferController(RateLimitService rateLimitService,
@@ -184,8 +190,10 @@ public class NgTransferController {
                 .orElseThrow(InvalidAmountException::new);
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
-        if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
-            throw new IncorrectPinException("Incorrect google auth code");
+        if (!DEV_MODE) {
+            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
+                throw new IncorrectPinException("Incorrect google auth code");
+            }
         }
         return transferService.createTransferRequest(transferRequest);
     }
