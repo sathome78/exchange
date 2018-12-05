@@ -153,10 +153,11 @@ public class NgRefillController {
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());
         if (requestParamsDto.getOperationType() != INPUT) {
-            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422 - Your request operation type is not INPUT
         }
         if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+//            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);  // 429 - Your daily input limit  for this currency has been exceeded. Please try again tomorrow
         }
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
         if (!forceGenerateNewAddress) {
