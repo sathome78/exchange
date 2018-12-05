@@ -14,8 +14,9 @@ import java.math.BigDecimal;
 @ToString
 public class TransferRequestParamsDto {
     private OperationType operationType;
-    private Integer merchant;
+    private Integer merchant; //not use in new dashboard
     private Integer currency;
     private BigDecimal sum;
     private String recipient;
+    private String pin;
 }
