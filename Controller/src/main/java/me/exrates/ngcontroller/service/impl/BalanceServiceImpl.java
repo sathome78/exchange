@@ -23,8 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -108,49 +110,46 @@ public class BalanceServiceImpl implements BalanceService {
         BigDecimal btcBalances = BigDecimal.ZERO;
         BigDecimal usdBalances = BigDecimal.ZERO;
         List<ExOrderStatisticsShortByPairsDto> rates = exchangeRatesHolder.getAllRates();
-        List<ExOrderStatisticsShortByPairsDto> usdRates =
-                rates.stream()
-                .filter(p->p.getMarket().equals("USD"))
-                .collect(Collectors.toList());
-        List<ExOrderStatisticsShortByPairsDto> btcRates =
-                rates.stream()
-                        .filter(p->p.getMarket().equals("BTC"))
-                        .collect(Collectors.toList());
-        Map<Integer, String> btcRateMapped = btcRates.stream().collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
-        Map<Integer, String> usdRateMapped = usdRates.stream().collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
-        BigDecimal btcUdsRate = new BigDecimal(btcRateMapped.get(currencyService.findByName("BTC").getId()));
+        Map<Integer, String> btcRateMapped = rates.stream()
+                .filter(p->p.getMarket().equals("BTC")).collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
+        Map<Integer, String> usdRateMapped = rates.stream()
+                .filter(p->p.getMarket().equals("USD")).collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate));
+        BigDecimal btcUsdRate = new BigDecimal(btcRateMapped.get(currencyService.findByName("BTC").getId()));
         for (WalletBalanceDto p : userBalances) {
             BigDecimal sumBalances = p.getActiveBalance().add(p.getReservedBalance());
             if (sumBalances.compareTo(BigDecimal.ZERO) > 0) {
-                if (p.getCurrencyName().equals("BTC")) {
-                    btcBalances = btcBalances.add(sumBalances);
-                } else if (p.getCurrencyName().equals("USD")) {
-                    usdBalances = usdBalances.add(sumBalances);
-                } else {
-                    BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-                    BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-                    if (usdRate == null) {
-                        /*usdRate = btcRate.divide(btcUdsRate);*/
-                    }
-                    btcBalances = btcBalances.add(btcRate.multiply(sumBalances));
-                    usdBalances = usdBalances.add(usdBalances.multiply(sumBalances));
-
-
+                switch (p.getCurrencyName()) {
+                    case "BTC":
+                        btcBalances = btcBalances.add(sumBalances);
+                        usdBalances = usdBalances.add(sumBalances.multiply(btcUsdRate));
+                        break;
+                    case "USD":
+                        usdBalances = usdBalances.add(sumBalances);
+                        btcBalances = btcBalances.add(sumBalances.divide(btcUsdRate));
+                        break;
+                    default:
+                        BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+                        BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+                        if (usdRate.compareTo(BigDecimal.ZERO) <= 0) {
+                            usdRate = btcRate.multiply(btcUsdRate);
+                        }
+                        btcBalances = btcBalances.add(btcRate.multiply(sumBalances));
+                        usdBalances = usdBalances.add(usdRate.multiply(sumBalances));
+                        break;
                 }
             }
         }
+        Map<String, BigDecimal> balancesMap = new HashMap<>();
+        balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
+        balancesMap.put("USD", usdBalances.setScale(2, RoundingMode.HALF_DOWN));
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            return objectMapper.writeValueAsString(userBalances);
+            return objectMapper.writeValueAsString(balancesMap);
         } catch (JsonProcessingException e) {
             return e.toString();
         }
     }
 
-    public static void main(String[] args) {
-        BigDecimal a = new BigDecimal(null);
-
-    }
 
     private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {
         if (items.isEmpty() || offset >= items.size()) {
