@@ -50,17 +50,19 @@ public class NgTransferController {
         this.transferService = transferService;
     }
 
-    // /info/private/v2/balances/transfer/accept {"CODE": "kdbfeyue743467"}
-
+    // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
     /**
      * this method processes user refill request by using voucher
      *
      * @param params - map KEY - "CODE", VALUE - VOUCHER_CODE
-     * @param request - HttpServletRequest
-     * @return result OK or voucher nor found
+     * @return 200 OK with body { userToNickName: string, currencyId: number,
+     *     userFromId: number, userToId: number, commission: Commission, notyAmount: string,
+     *     initialAmount: string, comissionAmount: string },
+     *     404 - voucher not found
+     *     400 - exceeded limits and or many invoices
      */
     @PostMapping(value = "/accept")
-    public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params, HttpServletRequest request) {
+    public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
             log.info("Limits exceeded for user " + email);

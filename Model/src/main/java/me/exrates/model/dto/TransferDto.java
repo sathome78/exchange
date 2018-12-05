@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +18,9 @@ import java.math.BigDecimal;
 @Data
 public class TransferDto {
 
+    @JsonFormat
     private Wallet walletUserFrom;
+    @JsonIgnore
     private Wallet walletUserTo;
     private String userToNickName;
     private int currencyId;
