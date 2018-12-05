@@ -34,6 +34,8 @@ public class ExratesCorsFilter implements Filter {
 //        response.setHeader("Access-Control-Allow-Origin", "http://promo.exrates.top");
         response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
 
+//        response.setHeader("Access-Control-Allow-Origin", "https://dev4.exapp");
+
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token");
         response.setHeader("Access-Control-Max-Age", "3600");

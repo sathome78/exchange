@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -8,22 +9,28 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
-import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -52,6 +59,7 @@ public class NgBalanceController {
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
+                               MessageSource messageSource,
                                WalletService walletService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
@@ -178,6 +186,14 @@ public class NgBalanceController {
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class,
+            UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }
