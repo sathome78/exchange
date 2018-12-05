@@ -50,6 +50,8 @@ public class InterkassaServiceImpl implements InterkassaService {
     @Value("${interkassa.secretKey}")
     private String secretKey;
 
+    private String string;
+
     @Autowired
     private AlgorithmService algorithmService;
     @Autowired
@@ -157,6 +159,7 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         setValues.add(secretKey);
         String stringValues = StringUtils.join(setValues, ":");
+        string = stringValues;
         byte[] signMD5 = algorithmService.computeMD5Byte(stringValues);
 
         return Base64.getEncoder().encodeToString(signMD5);
