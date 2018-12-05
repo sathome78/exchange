@@ -26,11 +26,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Base64;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.TreeMap;
 
 @Service
@@ -114,22 +113,6 @@ public class InterkassaServiceImpl implements InterkassaService {
         Merchant merchant = merchantService.findByName("Interkassa");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ik_am"))).setScale(9);
         String signature = params.get("ik_sign");
-        params.put("ik_ia_u", statustUrl);
-        params.put("ik_pnd_u", statustUrl);
-        params.put("ik_suc_u", successtUrl);
-        params.put("ik_ia_m", POST);
-        params.put("ik_pnd_m", POST);
-        params.put("ik_suc_m", POST);
-
-        params.remove("ik_co_prs_id");
-        params.remove("ik_inv_id");
-        params.remove("ik_inv_st");
-        params.remove("ik_inv_crt");
-        params.remove("ik_inv_prc");
-        params.remove("ik_trn_id");
-        params.remove("ik_pw_via");
-        params.remove("ik_co_rfn");
-        params.remove("ik_ps_price");
 
         params.remove("ik_sign");
 
@@ -156,10 +139,10 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     private String getSignature(final Map<String, String> params) {
-        Set<String> setValues = new LinkedHashSet<>(params.values());
+        ArrayList<String> listValues = new ArrayList<>(params.values());
 
-        setValues.add(secretKey);
-        String stringValues = StringUtils.join(setValues, ":");
+        listValues.add(secretKey);
+        String stringValues = StringUtils.join(listValues, ":");
 
         byte[] signMD5 = algorithmService.computeMD5Byte(stringValues);
 
