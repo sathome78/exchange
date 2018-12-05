@@ -1,5 +1,8 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
