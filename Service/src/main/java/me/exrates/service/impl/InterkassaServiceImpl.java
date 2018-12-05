@@ -27,11 +27,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Base64;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
@@ -49,8 +49,6 @@ public class InterkassaServiceImpl implements InterkassaService {
     private String successtUrl;
     @Value("${interkassa.secretKey}")
     private String secretKey;
-
-    private CopyOnWriteArrayList<String> first = new CopyOnWriteArrayList<>();
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -95,7 +93,7 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_pnd_u", statustUrl);
         map.put("ik_suc_u", successtUrl);
         map.put("ik_suc_m", POST);
-        first.addAll(map.values());
+
         map.put("ik_sign", getSignature(map));
 
         Properties properties = new Properties();
@@ -155,7 +153,7 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     private String getSignature(final Map<String, String> params) {
-        TreeSet<String> setValues = new TreeSet<>(params.values());
+        Set<String> setValues = new LinkedHashSet<>(params.values());
 
         setValues.add(secretKey);
         String stringValues = StringUtils.join(setValues, ":");
