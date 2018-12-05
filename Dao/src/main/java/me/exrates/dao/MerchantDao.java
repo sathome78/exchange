@@ -80,6 +80,6 @@ public interface MerchantDao {
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
-    MerchantCurrency getMerchantByCurrencyForInnerVoucher(Integer currencyId);
+    MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, boolean toUser);
 
 }

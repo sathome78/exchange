@@ -611,7 +611,9 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public MerchantCurrency getMerchantByCurrencyForInnerVoucher(Integer currencyId) {
+  public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, boolean toUser) {
+
+    String blockClause = toUser ? "AND MERCHANT.name = 'VoucherTransfer'" : "AND MERCHANT.name = 'VoucherFreeTransfer'";
     
     String sql = "SELECT" +
             "  MERCHANT.id as merchant_id," +
@@ -627,8 +629,8 @@ public class MerchantDaoImpl implements MerchantDao {
             "  JOIN MERCHANT_CURRENCY" +
             "    ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id" +
             " WHERE MERCHANT_CURRENCY.currency_id in (:currency_id)" +
-            "      AND MERCHANT_CURRENCY.transfer_block = 0" +
-            "      AND MERCHANT.name = 'VoucherFreeTransfer'";
+            "      AND MERCHANT_CURRENCY.transfer_block = 0 "
+            + blockClause;
 
     return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), (resultSet, i) -> {
       MerchantCurrency merchantCurrency = new MerchantCurrency();
