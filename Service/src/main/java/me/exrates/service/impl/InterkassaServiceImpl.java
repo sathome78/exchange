@@ -37,6 +37,8 @@ import java.util.TreeMap;
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
 
+    private static final String POST = "post";
+
     @Value("${interkassa.url}")
     private String url;
     @Value("${interkassa.checkoutId}")
@@ -84,13 +86,13 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_co_id", checkoutId);
         map.put("ik_cur", currency);
         map.put("ik_desc", "Exrates input");
-        map.put("ik_ia_m", "post");
+        map.put("ik_ia_m", POST);
         map.put("ik_ia_u", statustUrl);
         map.put("ik_pm_no", String.valueOf(requestId));
-        map.put("ik_pnd_m", "post");
+        map.put("ik_pnd_m", POST);
         map.put("ik_pnd_u", statustUrl);
         map.put("ik_suc_u", successtUrl);
-        map.put("ik_suc_m", "post");
+        map.put("ik_suc_m", POST);
 
         map.put("ik_sign", getSignature(map));
 
@@ -109,8 +111,28 @@ public class InterkassaServiceImpl implements InterkassaService {
         Merchant merchant = merchantService.findByName("Interkassa");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ik_am"))).setScale(9);
         String signature = params.get("ik_sign");
+        params.put("ik_ia_u", statustUrl);
+        params.put("ik_pnd_u", statustUrl);
+        params.put("ik_suc_u", successtUrl);
+        params.put("ik_ia_m", POST);
+        params.put("ik_pnd_m", POST);
+        params.put("ik_suc_m", POST);
+
+        params.remove("ik_co_prs_id");
+        params.remove("ik_inv_id");
+        params.remove("ik_inv_st");
+        params.remove("ik_inv_crt");
+        params.remove("ik_inv_prc");
+        params.remove("ik_trn_id");
+        params.remove("ik_pw_via");
+        params.remove("ik_co_rfn");
+        params.remove("ik_ps_price");
+
         params.remove("ik_sign");
-        String checkSignature = getSignature(new TreeMap<>(params));
+
+        TreeMap<String, String> sortedParams = new TreeMap<>(params);
+
+        String checkSignature = getSignature(sortedParams);
 
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
