@@ -50,8 +50,6 @@ public class InterkassaServiceImpl implements InterkassaService {
     @Value("${interkassa.secretKey}")
     private String secretKey;
 
-    private String string;
-
     @Autowired
     private AlgorithmService algorithmService;
     @Autowired
@@ -96,7 +94,10 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_suc_u", successtUrl);
         map.put("ik_suc_m", POST);
 
-        map.put("ik_sign", getSignature(map));
+        final String signature = getSignature(map);
+        System.out.println(signature);
+
+        map.put("ik_sign", signature);
 
         Properties properties = new Properties();
         properties.putAll(map);
@@ -159,7 +160,7 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         setValues.add(secretKey);
         String stringValues = StringUtils.join(setValues, ":");
-        string = stringValues;
+
         byte[] signMD5 = algorithmService.computeMD5Byte(stringValues);
 
         return Base64.getEncoder().encodeToString(signMD5);
