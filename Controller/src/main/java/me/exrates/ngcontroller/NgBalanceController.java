@@ -178,46 +178,6 @@ public class NgBalanceController {
         return map;
     }
 
-    // /info/private/v2/balances/transfer/accept {"CODE": "kdbfeyue743467"}
-
-    /**
-     * this method processes user refill request by using voucher
-     *
-     * @param params - map KEY - "CODE", VALUE - VOUCHER_CODE
-     * @param request - HttpServletRequest
-     * @return result OK or voucher nor found
-     */
-    @PostMapping(value = "/transfer/accept")
-    @ResponseBody
-    public String acceptTransfer(@RequestBody Map<String, String> params, HttpServletRequest request) {
-        String email = getPrincipalEmail();
-        if (!rateLimitService.checkLimitsExceed(email)) {
-            throw new RequestsLimitExceedException();
-        }
-        InvoiceActionTypeEnum action = PRESENT_VOUCHER;
-        List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
-        if (requiredStatus.size() > 1) {
-            throw new RuntimeException("voucher processing error");
-        }
-        String code = params.getOrDefault("CODE", "");
-        Optional<TransferRequestFlatDto> dto = transferService
-                .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
-        if (!dto.isPresent() || !transferService.checkRequest(dto.get(), email)) {
-            rateLimitService.registerRequest(getPrincipalEmail());
-            throw new InvoiceNotFoundException(messageSource.getMessage(
-                    "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
-        }
-        Locale locale = localeResolver.resolveLocale(request);
-        TransferRequestFlatDto flatDto = dto.get();
-        flatDto.setInitiatorEmail(email);
-        TransferDto resDto = transferService.performTransfer(flatDto, locale, action);
-        JsonObject result = new JsonObject();
-        result.addProperty("result", messageSource.getMessage("message.receive.voucher",
-                new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(resDto.getNotyAmount(), locale, 4),
-                        currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request)));
-        return result.toString();
-    }
-
     //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
     @GetMapping("/inputOutputData")
     public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputOutputData(
