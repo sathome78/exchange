@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
@@ -16,6 +17,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
@@ -29,6 +31,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -40,17 +43,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -246,30 +250,29 @@ public class NgBalanceController {
     @CheckActiveUserStatus
     @RequestMapping(value = "/voucher/request/create", method = POST)
     @ResponseBody
-    public Map<String, Object> createTransferRequest(
-            @RequestBody TransferRequestParamsDto requestParamsDto,
-            Principal principal,
-            HttpServletRequest servletRequest) {
+    public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
+                                                     HttpServletRequest servletRequest) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(servletRequest);
         if (requestParamsDto.getOperationType() != USER_TRANSFER) {
             throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
         }
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRANSFER);
         if (!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
         }
         if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
+        MerchantCurrency merchant = merchantService.findMerchantForInnerTransferByCurrencyId(requestParamsDto.getCurrency());
         TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
         Payment payment = new Payment(requestParamsDto.getOperationType());
         payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setMerchant(merchant.getMerchantId());
         payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
         payment.setRecipient(requestParamsDto.getRecipient());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
@@ -282,6 +285,14 @@ public class NgBalanceController {
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class,
+            UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }
