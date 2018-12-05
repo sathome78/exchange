@@ -170,6 +170,12 @@ public class NgBalanceController {
         }
     }
 
+    @GetMapping("/myBalance")
+    public String getBtcAndUsdBalancesSum(HttpServletRequest request) {
+        System.out.println(request.getServletPath());
+        return balanceService.getBalancesInBtcAndUsd();
+    }
+
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

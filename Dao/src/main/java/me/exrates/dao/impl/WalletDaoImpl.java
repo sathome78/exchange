@@ -221,6 +221,7 @@ public class WalletDaoImpl implements WalletDao {
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setActiveBalance(rs.getBigDecimal("active_balance"));
       dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      dto.setCurrencyId(rs.getInt("id"));
       return dto;
     });
   }

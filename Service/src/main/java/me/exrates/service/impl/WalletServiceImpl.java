@@ -259,7 +259,8 @@ public class WalletServiceImpl implements WalletService {
   @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<WalletBalanceDto> getBalancesForUser() {
-    String userEmail = userService.getUserEmailFromSecurityContext();
+    /*todo: revert it*/
+    String userEmail = /*userService.getUserEmailFromSecurityContext();*/ "avto12@i.ua";
     return walletDao.getBalancesForUser(userEmail);
   }
 

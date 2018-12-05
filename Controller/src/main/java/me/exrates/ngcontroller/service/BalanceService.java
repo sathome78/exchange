@@ -23,4 +23,6 @@ public interface BalanceService {
 
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
                                                                    LocalDate dateFrom, LocalDate dateTo, Locale locale);
+
+    String getBalancesInBtcAndUsd();
 }

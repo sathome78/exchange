@@ -23,6 +23,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private CurrencyPairType type;
   @JsonIgnore
   private Integer pairOrder;
+  @JsonIgnore
+  private Integer currency1Id;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;

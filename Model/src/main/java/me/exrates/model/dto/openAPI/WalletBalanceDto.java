@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class WalletBalanceDto {
 
     private String currencyName;
+    private Integer currencyId;
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal activeBalance;
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
