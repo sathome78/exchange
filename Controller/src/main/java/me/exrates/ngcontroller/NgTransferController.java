@@ -112,6 +112,7 @@ public class NgTransferController {
      * 404 - voucher not found
      * 400 - exceeded limits and or many invoices
      */
+    @CheckActiveUserStatus
     @PostMapping(value = "/accept")
     public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
@@ -148,14 +149,15 @@ public class NgTransferController {
      totalCommissionAmount: "0.0000033"
   */
     @CheckActiveUserStatus
-    @RequestMapping(value = "/voucher/inner/commission", method = GET)
+    @RequestMapping(value = "/voucher/commission", method = GET)
     @ResponseBody
     public Map<String, String> getCommissionsForInnerVoucher(
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
+            @RequestParam("inner") Boolean inner,
             Locale locale) {
 
-        MerchantCurrency merchant = merchantService.findMerchantForInnerTransferByCurrencyId(currencyId);
+        MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(currencyId, inner);
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         return transferService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId,
                 merchant.getMerchantId(), locale);
@@ -179,7 +181,8 @@ public class NgTransferController {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
-        MerchantCurrency merchant = merchantService.findMerchantForInnerTransferByCurrencyId(requestParamsDto.getCurrency());
+        MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(requestParamsDto.getCurrency(),
+                requestParamsDto.getRecipient() != null);
         TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
         Payment payment = new Payment(requestParamsDto.getOperationType());
         payment.setCurrency(requestParamsDto.getCurrency());
@@ -188,6 +191,7 @@ public class NgTransferController {
         payment.setRecipient(requestParamsDto.getRecipient());
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
+        requestParamsDto.setMerchant(merchant.getMerchantId());
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
         if (!DEV_MODE) {

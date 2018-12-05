@@ -486,8 +486,8 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public MerchantCurrency findMerchantForInnerTransferByCurrencyId(Integer currencyId) {
-    return merchantDao.getMerchantByCurrencyForInnerVoucher(currencyId);
+  public MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, boolean toUser) {
+    return merchantDao.getMerchantByCurrencyForVoucher(currencyId, toUser);
   }
 
 
