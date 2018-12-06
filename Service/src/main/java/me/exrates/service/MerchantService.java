@@ -14,6 +14,8 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
+import sun.net.ftp.FtpClient;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -102,6 +104,6 @@ public interface MerchantService {
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
-    MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, boolean toUser);
+    MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType);
 
 }
