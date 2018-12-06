@@ -203,11 +203,8 @@ public class NgPublicController {
     @ResponseBody
     public List<OrderAcceptedHistoryDto> getLastAcceptedOrders(@RequestParam (value = "pairId") Integer pairId) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
-        return orderService.getOrderAcceptedForPeriodEx(null,
-                new BackDealInterval("24 HOUR"),
-                100,
-                cp,
-                Locale.ENGLISH);
+        return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
+                25, cp, Locale.ENGLISH);
     }
 
     @GetMapping("/currencies/fromdb")
