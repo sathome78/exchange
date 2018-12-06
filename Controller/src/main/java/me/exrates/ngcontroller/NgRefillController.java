@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -148,15 +149,15 @@ public class NgRefillController {
     }
 
     @PostMapping(value = "/request/create")
-    @ResponseBody
-    public Map<String, Object> createRefillRequest(
+    public ResponseEntity<Map<String, Object>> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());
         if (requestParamsDto.getOperationType() != INPUT) {
-            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422 - Your request operation type is not INPUT
         }
         if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+//            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);  // 429 - Your daily input limit  for this currency has been exceeded. Please try again tomorrow
         }
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
         if (!forceGenerateNewAddress) {
@@ -167,11 +168,12 @@ public class NgRefillController {
             );
             if (address.isPresent()) {
                 String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-                return new HashMap<String, Object>() {{
+                HashMap<String, Object> response = new HashMap<String, Object>() {{
                     put("address", address.get());
                     put("message", message);
                     put("qr", address.get());
                 }};
+                return ResponseEntity.ok(response);
             }
         }
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
@@ -182,7 +184,13 @@ public class NgRefillController {
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        return refillService.createRefillRequest(request);
+        try {
+            Map<String, Object> response = refillService.createRefillRequest(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Failed to create refill request", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     private String getPrincipalEmail() {

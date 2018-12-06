@@ -29,5 +29,7 @@ public interface SecureService {
 
     PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency);
 
+    NotificationResultDto sendWithdrawPincode(User user);
+
     NotificationResultDto sendLoginPincode(User user, HttpServletRequest request);
 }

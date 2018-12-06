@@ -609,5 +609,42 @@ public class MerchantDaoImpl implements MerchantDao {
       return dto;
     });
   }
+
+  @Override
+  public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, boolean toUser) {
+
+    String blockClause = toUser ? "AND MERCHANT.name = 'VoucherTransfer'" : "AND MERCHANT.name = 'VoucherFreeTransfer'";
+    
+    String sql = "SELECT" +
+            "  MERCHANT.id as merchant_id," +
+            "  MERCHANT.name," +
+            "  MERCHANT.description," +
+            "  MERCHANT.process_type," +
+            "  MERCHANT_CURRENCY.min_sum," +
+            "  MERCHANT_CURRENCY.currency_id," +
+            "  MERCHANT_CURRENCY.merchant_input_commission," +
+            "  MERCHANT_CURRENCY.merchant_output_commission," +
+            "  MERCHANT_CURRENCY.merchant_fixed_commission" +
+            " FROM MERCHANT" +
+            "  JOIN MERCHANT_CURRENCY" +
+            "    ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id" +
+            " WHERE MERCHANT_CURRENCY.currency_id in (:currency_id)" +
+            "      AND MERCHANT_CURRENCY.transfer_block = 0 "
+            + blockClause;
+
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), (resultSet, i) -> {
+      MerchantCurrency merchantCurrency = new MerchantCurrency();
+      merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+      merchantCurrency.setName(resultSet.getString("name"));
+      merchantCurrency.setDescription(resultSet.getString("description"));
+      merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+      merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+      merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+      merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+      merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+      merchantCurrency.setProcessType(resultSet.getString("process_type"));
+      return merchantCurrency;
+    });
+  }
 }
 

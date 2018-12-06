@@ -88,43 +88,43 @@ public class TransferRequestController {
 
     private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
-    @CheckActiveUserStatus
-    @RequestMapping(value = "/transfer/request/create", method = POST)
-    @ResponseBody
-    public Map<String, Object> createTransferRequest(
-        @RequestBody TransferRequestParamsDto requestParamsDto,
-        Principal principal,
-        HttpServletRequest servletRequest) throws UnsupportedEncodingException {
-        Locale locale = localeResolver.resolveLocale(servletRequest);
-        if (requestParamsDto.getOperationType() != USER_TRANSFER) {
-            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
-        }
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
-        if(!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
-        }
-        if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
-            throw new IllegalArgumentException(messageSource.getMessage(
-              "message.only.latin.symblos", null, locale));
-        }
-        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
-        Payment payment = new Payment(requestParamsDto.getOperationType());
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        payment.setRecipient(requestParamsDto.getRecipient());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
-            .orElseThrow(InvalidAmountException::new);
-        TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        try {
-            secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
-                  NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
-        } catch (PinCodeCheckNeedException e) {
-            servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
-            throw e;
-        }
-        return transferService.createTransferRequest(transferRequest);
-    }
+//    @CheckActiveUserStatus
+//    @RequestMapping(value = "/transfer/request/create", method = POST)
+//    @ResponseBody
+//    public Map<String, Object> createTransferRequest(
+//        @RequestBody TransferRequestParamsDto requestParamsDto,
+//        Principal principal,
+//        HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+//        Locale locale = localeResolver.resolveLocale(servletRequest);
+//        if (requestParamsDto.getOperationType() != USER_TRANSFER) {
+//            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+//        }
+//        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
+//        if(!accessToOperationForUser) {
+//            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+//        }
+//        if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
+//            throw new IllegalArgumentException(messageSource.getMessage(
+//              "message.only.latin.symblos", null, locale));
+//        }
+//        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
+//        Payment payment = new Payment(requestParamsDto.getOperationType());
+//        payment.setCurrency(requestParamsDto.getCurrency());
+//        payment.setMerchant(requestParamsDto.getMerchant());
+//        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+//        payment.setRecipient(requestParamsDto.getRecipient());
+//        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+//            .orElseThrow(InvalidAmountException::new);
+//        TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+//        try {
+//            secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
+//                  NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+//        } catch (PinCodeCheckNeedException e) {
+//            servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
+//            throw e;
+//        }
+//        return transferService.createTransferRequest(transferRequest);
+//    }
 
     @CheckActiveUserStatus
     @RequestMapping(value = "/transfer/request/checking", method = POST)

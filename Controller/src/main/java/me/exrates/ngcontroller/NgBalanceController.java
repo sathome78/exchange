@@ -1,10 +1,7 @@
 package me.exrates.ngcontroller;
 
-import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j;
-import me.exrates.controller.exception.RequestsLimitExceedException;
-import me.exrates.model.dto.TransferDto;
-import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -12,19 +9,15 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.TransferService;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import me.exrates.service.util.RateLimitService;
+import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,12 +25,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -49,9 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances",
@@ -61,29 +51,19 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCH
 public class NgBalanceController {
 
     private final BalanceService balanceService;
-    private final CurrencyService currencyService;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final LocaleResolver localeResolver;
-    private final MessageSource messageSource;
-    private final RateLimitService rateLimitService;
-    private final TransferService transferService;
     private final WalletService walletService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
-                               CurrencyService currencyService, ExchangeRatesHolder exchangeRatesHolder,
+                               ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
                                MessageSource messageSource,
-                               RateLimitService rateLimitService,
-                               TransferService transferService,
                                WalletService walletService) {
         this.balanceService = balanceService;
-        this.currencyService = currencyService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
-        this.messageSource = messageSource;
-        this.rateLimitService = rateLimitService;
-        this.transferService = transferService;
         this.walletService = walletService;
     }
 
@@ -200,6 +180,14 @@ public class NgBalanceController {
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class,
+            UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }
