@@ -11,6 +11,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
@@ -80,6 +81,6 @@ public interface MerchantDao {
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
-    MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, boolean toUser);
+    MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
 
 }
