@@ -38,6 +38,7 @@ $(function refillCreation() {
     var totalAmount;
     var bankDataList;
     var merchantWarningList;
+    var childMerchant;
 
     $container.find(".start-refill").on('click', function () {
         startRefill(this);
@@ -61,6 +62,7 @@ $(function refillCreation() {
         merchantIsSimpleInvoice = $(button).data("process_type") == "INVOICE";
         merchantIsCrypto = $(button).data("process_type") == "CRYPTO";
         amount = parseFloat($amountHolder.val());
+        childMerchant = $(button).data("merchant-child-merchant");
         if (merchantIsCrypto || checkAmount()) {
             fillModalWindow();
             showRefillDialog();
@@ -170,6 +172,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
+            childMerchant : childMerchant,
             operationType: operationType
         };
         if (merchantIsSimpleInvoice) {
