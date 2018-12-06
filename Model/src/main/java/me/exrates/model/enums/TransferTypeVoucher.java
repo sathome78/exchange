@@ -9,7 +9,7 @@ public enum TransferTypeVoucher {
 
     public static TransferTypeVoucher convert(String name) {
         return Arrays.stream(TransferTypeVoucher.class.getEnumConstants())
-                .filter(e -> e.name().equals(name))
+                .filter(e -> e.name().equalsIgnoreCase(name))
                 .findFirst()
                 .orElseThrow(() -> new UnsupportedTransferProcessTypeException("Error transfer type - " + name));
     }

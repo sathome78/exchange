@@ -20,7 +20,7 @@ import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.service.SecureServiceImpl;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransferService;
@@ -29,7 +29,6 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
@@ -77,9 +76,8 @@ public class NgTransferController {
     private final LocaleResolver localeResolver;
     private final UserOperationService userOperationService;
     private final InputOutputService inputOutputService;
-    private final G2faService g2faService;
     private final MessageSource messageSource;
-    private final SecureServiceImpl secureServiceImpl;
+    private final SecureService secureServiceImpl;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -92,8 +90,8 @@ public class NgTransferController {
                                 LocaleResolver localeResolver,
                                 UserOperationService userOperationService,
                                 InputOutputService inputOutputService,
-                                G2faService g2faService,
-                                MessageSource messageSource, SecureServiceImpl secureServiceImpl) {
+                                MessageSource messageSource,
+                                SecureService secureServiceImpl) {
         this.rateLimitService = rateLimitService;
         this.transferService = transferService;
         this.userService = userService;
@@ -101,7 +99,6 @@ public class NgTransferController {
         this.localeResolver = localeResolver;
         this.userOperationService = userOperationService;
         this.inputOutputService = inputOutputService;
-        this.g2faService = g2faService;
         this.messageSource = messageSource;
         this.secureServiceImpl = secureServiceImpl;
     }
@@ -209,7 +206,7 @@ public class NgTransferController {
 //            }
 
             secureServiceImpl.checkEventAdditionalPin(servletRequest, email,
-                  NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
         }
         return transferService.createTransferRequest(transferRequest);
     }
