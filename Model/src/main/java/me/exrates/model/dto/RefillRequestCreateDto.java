@@ -96,11 +96,11 @@ public class RefillRequestCreateDto {
 
     public boolean isEmpty() {
       return this.recipientBankId == null &&
-          this.recipientBankCode == null &&
-          this.recipientBankName == null &&
-          this.recipient == null &&
-          this.userFullName == null &&
-          this.merchantRequestSign == null;
+              this.recipientBankCode == null &&
+              this.recipientBankName == null &&
+              this.recipient == null &&
+              this.userFullName == null &&
+              this.merchantRequestSign == null;
     }
   }
 

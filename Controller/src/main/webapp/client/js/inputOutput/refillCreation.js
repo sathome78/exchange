@@ -143,9 +143,9 @@ $(function refillCreation() {
             $refillParamsDialog.find('#payment-qr').html('');
             $refillParamsDialog.find("#continue-btn").off('click').on('click', function () {
 
-            $("#warning-remporary-validity-refill-request-merchant").modal({
-                backdrop: 'static'
-            });
+                $("#warning-remporary-validity-refill-request-merchant").modal({
+                    backdrop: 'static'
+                });
 
                 window.open("about:blank","newwin");
                 if (!checkRefillParamsEnter()) {
@@ -372,5 +372,3 @@ $(function refillCreation() {
     }
 
 });
-
-
