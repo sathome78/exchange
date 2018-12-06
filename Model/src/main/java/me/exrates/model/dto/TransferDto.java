@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @Data
 public class TransferDto {
 
-    @JsonFormat
+    @JsonIgnore
     private Wallet walletUserFrom;
     @JsonIgnore
     private Wallet walletUserTo;

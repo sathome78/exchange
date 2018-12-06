@@ -341,10 +341,11 @@ public class WalletServiceImpl implements WalletService {
             .notyAmount(notyAmount)
             .walletUserFrom(fromUserWallet)
             .walletUserTo(toUserWallet)
+            .userToNickName(fromUserWallet.getFullName())
             .initialAmount(amount)
             .currencyId(currencyId)
-            .userFromId(fromUserWallet.getUser().getId())
-            .userToId(toUserId)
+//            .userFromId(fromUserWallet.getUser().getId())
+//            .userToId(toUserId)
             .build();
   }
 
