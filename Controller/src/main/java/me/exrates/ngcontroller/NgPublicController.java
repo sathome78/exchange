@@ -198,6 +198,7 @@ public class NgPublicController {
         return orderService.getAllCurrenciesMarkersForAllPairsModel();
     }
 
+    // /info/public/v2//accepted-orders/fast?pairId=1
     @GetMapping("/accepted-orders/fast")
     @ResponseBody
     public List<OrderAcceptedHistoryDto> getLastAcceptedOrders(@RequestParam (value = "pairId") Integer pairId) {
