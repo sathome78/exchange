@@ -36,6 +36,7 @@ public class RefillRequestCreateDto {
   private String privKey;
   private String pubKey;
   private String brainPrivKey;
+  private String childMerchant;
   private Boolean generateNewAddress;
   private Boolean generateAdditionalRefillAddressAvailable;
   private Boolean needToCreateRefillRequestRecord;
