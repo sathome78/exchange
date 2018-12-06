@@ -5,16 +5,20 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
-import org.springframework.beans.factory.BeanCreationException;
+import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -29,7 +33,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -611,10 +619,23 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, boolean toUser) {
+  public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType) {
+    String blockClause;
 
-    String blockClause = toUser ? "AND MERCHANT.name = 'VoucherTransfer'" : "AND MERCHANT.name = 'VoucherFreeTransfer'";
-    
+    switch (transferType) {
+      case INNER_VOUCHER:
+        blockClause = "AND MERCHANT.name = 'VoucherTransfer'";
+        break;
+      case VOUCHER:
+        blockClause = "AND MERCHANT.name = 'VoucherFreeTransfer'";
+        break;
+      case TRANSFER:
+        blockClause = "AND MERCHANT.name = 'SimpleTransfer'";
+        break;
+      default:
+        throw new UnsupportedTransferProcessTypeException("Error transfer type - " + transferType);
+    }
+
     String sql = "SELECT" +
             "  MERCHANT.id as merchant_id," +
             "  MERCHANT.name," +
