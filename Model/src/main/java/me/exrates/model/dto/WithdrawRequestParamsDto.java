@@ -28,4 +28,5 @@ public class WithdrawRequestParamsDto {
   private String userFullName;
   private String remark;
   private String walletNumber;
+  private String securityCode;
 }

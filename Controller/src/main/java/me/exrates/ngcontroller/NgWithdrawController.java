@@ -121,11 +121,11 @@ public class NgWithdrawController {
 //       userFullName: string,
 //       remark: string,
 //       walletNumber: string
+//       securityCode: string
 //    }
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
-    @ResponseBody
-    public Map<String, String> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
+    public ResponseEntity<Map<String, String>> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
         String email = getPrincipalEmail();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(email), UserOperationAuthority.OUTPUT);
         if (!accessToOperationForUser) {
@@ -137,17 +137,37 @@ public class NgWithdrawController {
         if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
             merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
         }
-        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
-        Payment payment = new Payment(OUTPUT);
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum().doubleValue());
-        payment.setDestination(requestParamsDto.getDestination());
-        payment.setDestinationTag(requestParamsDto.getDestinationTag());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, email, Locale.ENGLISH)
-                .orElseThrow(InvalidAmountException::new);
-        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-        return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, Locale.ENGLISH);
+        if (StringUtils.isEmpty(requestParamsDto.getSecurityCode())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        User user = userService.findByEmail(email);
+        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getSecurityCode(), user.getId())) {
+                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getSecurityCode());
+            }
+        } else {
+            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getSecurityCode(), NotificationMessageEventEnum.WITHDRAW)) {
+                secureService.sendWithdrawPincode(user);
+                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getSecurityCode());
+            }
+        }
+        try {
+            WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+            Payment payment = new Payment(OUTPUT);
+            payment.setCurrency(requestParamsDto.getCurrency());
+            payment.setMerchant(requestParamsDto.getMerchant());
+            payment.setSum(requestParamsDto.getSum().doubleValue());
+            payment.setDestination(requestParamsDto.getDestination());
+            payment.setDestinationTag(requestParamsDto.getDestinationTag());
+            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, email, Locale.ENGLISH)
+                    .orElseThrow(InvalidAmountException::new);
+            WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+            Map<String, String> withdrawalResponse = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, Locale.ENGLISH);
+            return ResponseEntity.ok(withdrawalResponse);
+        } catch (InvalidAmountException e) {
+            logger.error("Failed to create withdraw request", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // /info/private/v2/balances/withdraw/merchants/output?currency=BTC
@@ -197,29 +217,26 @@ public class NgWithdrawController {
         }
     }
 
-    // POST: /info/private/v2/balances/withdraw/request/pin?pin=123456
-    @CheckActiveUserStatus
-    @PostMapping(value = "/request/pin")
-    @ResponseBody
-    public ResponseEntity<Void> withdrawRequestCheckPin(@RequestParam String pin) {
-        logger.debug("withdraw pin {}", pin);
-        User user = userService.findByEmail(getPrincipalEmail());
-        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-            if (!g2faService.checkGoogle2faVerifyCode(pin, user.getId())) {
-                throw new IncorrectPinException("Incorrect pin: " + pin);
-            }
-        } else {
-            if (!userService.checkPin(getPrincipalEmail(), pin, NotificationMessageEventEnum.WITHDRAW)) {
-                secureService.sendWithdrawPincode(user);
-                throw new IncorrectPinException("Incorrect pin: " + pin);
-            }
-        }
-        return ResponseEntity.ok().build();
-    }
-
-    private String getAmountWithCurrency(WithdrawRequestCreateDto dto) {
-        return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
-    }
+    // Not used for now
+//    // POST: /info/private/v2/balances/withdraw/request/pin?pin=123456
+//    @CheckActiveUserStatus
+//    @PostMapping(value = "/request/pin")
+//    @ResponseBody
+//    public ResponseEntity<Void> withdrawRequestCheckPin(@RequestParam String pin) {
+//        logger.debug("withdraw pin {}", pin);
+//        User user = userService.findByEmail(getPrincipalEmail());
+//        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+//            if (!g2faService.checkGoogle2faVerifyCode(pin, user.getId())) {
+//                throw new IncorrectPinException("Incorrect pin: " + pin);
+//            }
+//        } else {
+//            if (!userService.checkPin(getPrincipalEmail(), pin, NotificationMessageEventEnum.WITHDRAW)) {
+//                secureService.sendWithdrawPincode(user);
+//                throw new IncorrectPinException("Incorrect pin: " + pin);
+//            }
+//        }
+//        return ResponseEntity.ok().build();
+//    }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
