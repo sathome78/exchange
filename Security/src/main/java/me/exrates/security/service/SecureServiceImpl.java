@@ -151,6 +151,16 @@ public class SecureServiceImpl implements SecureService {
     }
 
     @Override
+    public NotificationResultDto sendWithdrawPincode(User user) {
+        NotificationsUserSetting setting = getWithdrawSettings(user);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[] {pin}, Locale.ENGLISH);
+        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
     public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request) {
         NotificationsUserSetting setting = getLoginSettings(user);
         Locale locale = localeResolver.resolveLocale(request);
@@ -189,6 +199,15 @@ public class SecureServiceImpl implements SecureService {
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.LOGIN)
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
+    private NotificationsUserSetting getWithdrawSettings(User user) {
+        return  NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.WITHDRAW)
+                .notificatorId(NotificationMessageEventEnum.WITHDRAW.getCode())
                 .userId(user.getId())
                 .build();
     }
