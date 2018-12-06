@@ -9,9 +9,11 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -49,6 +51,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -193,6 +196,18 @@ public class NgPublicController {
     @ResponseBody
     public List<StatisticForMarket> getCurrencyPairInfoAll() {
         return orderService.getAllCurrenciesMarkersForAllPairsModel();
+    }
+
+    // /info/public/v2//accepted-orders/fast?pairId=1
+    @GetMapping("/accepted-orders/fast")
+    @ResponseBody
+    public List<OrderAcceptedHistoryDto> getLastAcceptedOrders(@RequestParam (value = "pairId") Integer pairId) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+        return orderService.getOrderAcceptedForPeriodEx(null,
+                new BackDealInterval("24 HOUR"),
+                100,
+                cp,
+                Locale.ENGLISH);
     }
 
     @GetMapping("/currencies/fromdb")
