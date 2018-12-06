@@ -61,6 +61,7 @@ public class RefillRequestCreateDto {
     this.pubKey = null;
     this.brainPrivKey = null;
     this.generateNewAddress = paramsDto.getGenerateNewAddress();
+    this.childMerchant = paramsDto.getChildMerchant();
     /**/
     this.userId = creditsOperation.getUser().getId();
     this.userEmail = creditsOperation.getUser().getEmail();
