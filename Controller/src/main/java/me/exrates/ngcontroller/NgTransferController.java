@@ -10,13 +10,17 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransferService;
@@ -25,7 +29,6 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
@@ -73,8 +76,8 @@ public class NgTransferController {
     private final LocaleResolver localeResolver;
     private final UserOperationService userOperationService;
     private final InputOutputService inputOutputService;
-    private final G2faService g2faService;
     private final MessageSource messageSource;
+    private final SecureService secureServiceImpl;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -87,8 +90,8 @@ public class NgTransferController {
                                 LocaleResolver localeResolver,
                                 UserOperationService userOperationService,
                                 InputOutputService inputOutputService,
-                                G2faService g2faService,
-                                MessageSource messageSource) {
+                                MessageSource messageSource,
+                                SecureService secureServiceImpl) {
         this.rateLimitService = rateLimitService;
         this.transferService = transferService;
         this.userService = userService;
@@ -96,8 +99,8 @@ public class NgTransferController {
         this.localeResolver = localeResolver;
         this.userOperationService = userOperationService;
         this.inputOutputService = inputOutputService;
-        this.g2faService = g2faService;
         this.messageSource = messageSource;
+        this.secureServiceImpl = secureServiceImpl;
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
@@ -154,10 +157,10 @@ public class NgTransferController {
     public Map<String, String> getCommissionsForInnerVoucher(
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
-            @RequestParam("inner") Boolean inner,
+            @RequestParam("type") String type,
             Locale locale) {
-
-        MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(currencyId, inner);
+        TransferTypeVoucher transferType = TransferTypeVoucher.convert(type);
+        MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(currencyId, transferType);
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         return transferService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId,
                 merchant.getMerchantId(), locale);
@@ -168,7 +171,8 @@ public class NgTransferController {
     @ResponseBody
     public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
                                                      HttpServletRequest servletRequest) {
-        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        String email = getPrincipalEmail();
+        Integer userId = userService.getIdByEmail(email);
         Locale locale = localeResolver.resolveLocale(servletRequest);
         if (requestParamsDto.getOperationType() != OperationType.USER_TRANSFER) {
             throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
@@ -181,23 +185,28 @@ public class NgTransferController {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
+
+        TransferTypeVoucher transferType = TransferTypeVoucher.convert(requestParamsDto.getType());
         MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(requestParamsDto.getCurrency(),
-                requestParamsDto.getRecipient() != null);
+                transferType);
         TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
         Payment payment = new Payment(requestParamsDto.getOperationType());
         payment.setCurrency(requestParamsDto.getCurrency());
         payment.setMerchant(merchant.getMerchantId());
         payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
         payment.setRecipient(requestParamsDto.getRecipient());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, email, locale)
                 .orElseThrow(InvalidAmountException::new);
         requestParamsDto.setMerchant(merchant.getMerchantId());
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
         if (!DEV_MODE) {
-            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
-                throw new IncorrectPinException("Incorrect google auth code");
-            }
+//            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
+//                throw new IncorrectPinException("Incorrect google auth code");
+//            }
+
+            secureServiceImpl.checkEventAdditionalPin(servletRequest, email,
+                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
         }
         return transferService.createTransferRequest(transferRequest);
     }
@@ -208,9 +217,14 @@ public class NgTransferController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class,
-            UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class})
+            UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class,
+            UnsupportedTransferProcessTypeException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private String getAmountWithCurrency(TransferRequestCreateDto dto) {
+        return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 }
