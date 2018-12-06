@@ -21,9 +21,14 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -64,8 +69,8 @@ public class InterkassaServiceImpl implements InterkassaService {
     private RefillRequestDao refillRequestDao;
     @Autowired
     private WithdrawUtils withdrawUtils;
-    @Autowired
-    private RestTemplate restTemplate;
+
+//    private RestTemplate restTemplate = new RestTemplate();
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -107,12 +112,24 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         Properties properties = new Properties();
         properties.putAll(map);
-        /**/
 
-        return generateFullUrlMap(url, "POST", properties);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> headersMap = new LinkedMultiValueMap<>();
+        map.forEach(headersMap::add);
+
+
+        HttpEntity<MultiValueMap<String, String>> requestBody = new HttpEntity<>(headersMap, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.postForEntity(url, requestBody, String.class);
+        String actionUrl = new JSONObject(response.getBody()).getJSONObject("resultData").getJSONObject("paymentForm").getString("action");
+        actionUrl = actionUrl.replace("\\", "");
+
+        return generateFullUrlMap(actionUrl, "GET", new Properties());
     }
 
     private String getInterkassaMerchantId(final RefillRequestCreateDto request) {
+        RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(interkassaUsername, interkassaPassword));
 
         ResponseEntity<String> forEntity = restTemplate.getForEntity(interkassaSecretUrl + checkoutId, String.class);

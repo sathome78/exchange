@@ -15,21 +15,21 @@ import java.util.Map;
 @Component
 public class EthTokensContext {
 
-    @Autowired
-    Map<String, EthTokenService> merchantServiceMap;
+//    @Autowired
+//    Map<String, EthTokenService> merchantServiceMap;
 
     Map<Integer, EthTokenService> merchantMapByCurrencies = new HashMap<>();
     Map<String, Integer> contractAddressByCurrencies = new HashMap<>();
 
-    @PostConstruct
-    private void init() {
-        merchantServiceMap.forEach((k,v)-> {
-            merchantMapByCurrencies.put(v.currencyId(), v);
-            v.getContractAddress().forEach((address)->{
-                contractAddressByCurrencies.put(address, v.currencyId());
-            });
-        });
-    }
+//    @PostConstruct
+//    private void init() {
+//        merchantServiceMap.forEach((k,v)-> {
+//            merchantMapByCurrencies.put(v.currencyId(), v);
+//            v.getContractAddress().forEach((address)->{
+//                contractAddressByCurrencies.put(address, v.currencyId());
+//            });
+//        });
+//    }
 
     public EthTokenService getByCurrencyId(int currencyId) {
         return merchantMapByCurrencies.get(currencyId);

@@ -95,7 +95,7 @@
                               data-process_type="${merchantCurrency.processType}"
                               data-is-amount-input-needed="${isAmountInputNeeded}"
                               data-merchant-image-d="${merchantImage.id}"
-                              data-merchant-child-merchant="${merchantImage.childMerchant}">
+                              data-merchant-child-merchant="${merchantImage.child_merchant}">
                         <loc:message code="merchants.deposit"/>
                       </button>
                     </c:when>
@@ -151,7 +151,7 @@
                                     data-merchant-min-sum="${merchantCurrency.minSum}"
                                     data-process_type="${merchantCurrency.processType}"
                                     data-merchant-image-d="${merchantImage.id}"
-                                    data-merchant-child-merchant="${merchantImage.childMerchant}">
+                                    data-merchant-child-merchant="${merchantImage.child_merchant}">
                               <loc:message code="refill.generate"/></button>
                           </c:if>
                         </div>
