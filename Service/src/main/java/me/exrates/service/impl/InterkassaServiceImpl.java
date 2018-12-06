@@ -12,11 +12,14 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.InterKassaMerchantException;
+import me.exrates.service.exception.InterKassaMerchantNotFoundException;
+import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +35,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+
+import static java.util.Objects.isNull;
 
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
@@ -70,10 +80,6 @@ public class InterkassaServiceImpl implements InterkassaService {
     @Autowired
     private WithdrawUtils withdrawUtils;
 
-//    private RestTemplate restTemplate = new RestTemplate();
-
-    private static final Logger LOG = LogManager.getLogger("merchant");
-
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
@@ -82,17 +88,15 @@ public class InterkassaServiceImpl implements InterkassaService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer requestId = request.getId();
-        if (requestId == null) {
+        if (isNull(requestId)) {
             throw new RefillRequestIdNeededException(request.toString());
         }
-        BigDecimal sum = request.getAmount();
+        final String currency = request.getCurrencyName();
+        final BigDecimal amountToPay = request.getAmount().setScale(2, BigDecimal.ROUND_HALF_UP);
 
-        String currency = request.getCurrencyName();
-        BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+        final String interkassaId = getInterkassaMerchantId(request);
 
-        final String interKassaId = getInterkassaMerchantId(request);
-        final Map<String, String> map = new TreeMap<>();
-
+        Map<String, String> map = new TreeMap<>();
         map.put("ik_am", String.valueOf(amountToPay));
         map.put("ik_co_id", checkoutId);
         map.put("ik_cur", currency);
@@ -106,36 +110,28 @@ public class InterkassaServiceImpl implements InterkassaService {
         map.put("ik_suc_m", POST);
         map.put("ik_int", "json");
         map.put("ik_act", "process");
+        map.put("ik_pw_via", interkassaId);
 
-        map.put("ik_pw_via", interKassaId);
         map.put("ik_sign", getSignature(map));
 
-        Properties properties = new Properties();
-        properties.putAll(map);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> headersMap = new LinkedMultiValueMap<>();
-        map.forEach(headersMap::add);
-
-
-        HttpEntity<MultiValueMap<String, String>> requestBody = new HttpEntity<>(headersMap, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.postForEntity(url, requestBody, String.class);
-        String actionUrl = new JSONObject(response.getBody()).getJSONObject("resultData").getJSONObject("paymentForm").getString("action");
-        actionUrl = actionUrl.replace("\\", "");
+        String actionUrl = getActionUrl(map);
 
         return generateFullUrlMap(actionUrl, "GET", new Properties());
     }
 
-    private String getInterkassaMerchantId(final RefillRequestCreateDto request) {
+    private String getInterkassaMerchantId(RefillRequestCreateDto request) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(interkassaUsername, interkassaPassword));
 
-        ResponseEntity<String> forEntity = restTemplate.getForEntity(interkassaSecretUrl + checkoutId, String.class);
-
-        JSONObject jsonObject = new JSONObject(forEntity.getBody());
-        JSONObject dataObject = jsonObject.getJSONObject("data");
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(interkassaSecretUrl + checkoutId, String.class);
+        if (responseEntity.getStatusCodeValue() != 200) {
+            throw new InterKassaMerchantException(
+                    String.format("Attention! Problem with interkassa: %s (%d)",
+                    responseEntity.getStatusCode().getReasonPhrase(),
+                    responseEntity.getStatusCodeValue()));
+        }
+        JSONObject dataObject = new JSONObject(responseEntity.getBody())
+                .getJSONObject("data");
 
         Iterator<String> keys = dataObject.keys();
 
@@ -144,12 +140,39 @@ public class InterkassaServiceImpl implements InterkassaService {
 
             JSONObject interkassaMerchantObject = dataObject.getJSONObject(interkassaMerchantId);
 
-            if (interkassaMerchantObject.getString("ser").equalsIgnoreCase(request.getChildMerchant()) &&
-                    interkassaMerchantObject.getString("curAls").equalsIgnoreCase(request.getCurrencyName())) {
+            if (interkassaMerchantObject.getString("ser").equalsIgnoreCase(request.getChildMerchant())
+                    && interkassaMerchantObject.getString("curAls").equalsIgnoreCase(request.getCurrencyName())) {
                 return interkassaMerchantId;
             }
         }
-        throw new InterKassaMerchantNotFound("Unable to find child interkassaid");
+        throw new InterKassaMerchantNotFoundException(
+                String.format("Attention! Currency %s is not available for merchant %s",
+                        request.getCurrencyName(),
+                        request.getChildMerchant()));
+    }
+
+    private String getActionUrl(Map<String, String> map) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> headersMap = new LinkedMultiValueMap<>();
+        map.forEach(headersMap::add);
+
+        HttpEntity<MultiValueMap<String, String>> requestBody = new HttpEntity<>(headersMap, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, requestBody, String.class);
+        if (responseEntity.getStatusCodeValue() != 200) {
+            throw new InterKassaMerchantException(
+                    String.format("Attention! Problem with interkassa: %s (%d)",
+                            responseEntity.getStatusCode().getReasonPhrase(),
+                            responseEntity.getStatusCodeValue()));
+        }
+        String actionUrl = new JSONObject(responseEntity.getBody())
+                .getJSONObject("resultData")
+                .getJSONObject("paymentForm")
+                .getString("action");
+        return actionUrl.replace("\\", "");
     }
 
     @Override
