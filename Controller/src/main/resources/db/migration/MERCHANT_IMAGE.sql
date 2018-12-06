@@ -1,0 +1,1 @@
+ALTER TABLE MERCHANT_IMAGE ADD child_merchant varchar(40) DEFAULT '' NULL;

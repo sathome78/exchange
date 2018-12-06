@@ -43,6 +43,7 @@ public class RefillRequestCreateDto {
   private Locale locale;
   private RefillRequestParam refillRequestParam = new RefillRequestParam();
   private String txHash;
+  private String childMerchant;
 
 
   public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
@@ -77,6 +78,7 @@ public class RefillRequestCreateDto {
     this.status = status;
     /**/
     this.locale = locale;
+    this.childMerchant = paramsDto.getChildMerchant();
   }
 
   public void setMerchantRequestSign(String sign){
