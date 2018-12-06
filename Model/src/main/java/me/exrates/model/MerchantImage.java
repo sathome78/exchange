@@ -14,6 +14,7 @@ public class MerchantImage {
     private int currencyId;
     private String image_name;
     private String image_path;
+    private String child_merchant;
 
     public MerchantImage(int id) {
         Id = id;
