@@ -150,8 +150,9 @@
                                     data-merchant-name="${merchantCurrency.name}"
                                     data-merchant-min-sum="${merchantCurrency.minSum}"
                                     data-process_type="${merchantCurrency.processType}"
-                                    data-merchant-image-d="${merchantImage.id}"><loc:message
-                                    code="refill.generate"/></button>
+                                    data-merchant-image-d="${merchantImage.id}"
+                                    data-merchant-child-merchant="${merchantImage.childMerchant}">
+                              <loc:message code="refill.generate"/></button>
                           </c:if>
                         </div>
                       </div>
