@@ -199,7 +199,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
-        sendMailService.sendMail(email);
+        sendMailService.sendMailMandrill(email);
     }
 
     private String getHost(HttpServletRequest request) {
