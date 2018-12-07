@@ -6,6 +6,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -29,6 +30,7 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
@@ -77,7 +79,8 @@ public class NgTransferController {
     private final UserOperationService userOperationService;
     private final InputOutputService inputOutputService;
     private final MessageSource messageSource;
-    private final SecureService secureServiceImpl;
+    private final G2faService g2faService;
+    private final SecureService secureService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -91,7 +94,8 @@ public class NgTransferController {
                                 UserOperationService userOperationService,
                                 InputOutputService inputOutputService,
                                 MessageSource messageSource,
-                                SecureService secureServiceImpl) {
+                                SecureService secureService,
+                                G2faService g2faService) {
         this.rateLimitService = rateLimitService;
         this.transferService = transferService;
         this.userService = userService;
@@ -100,7 +104,8 @@ public class NgTransferController {
         this.userOperationService = userOperationService;
         this.inputOutputService = inputOutputService;
         this.messageSource = messageSource;
-        this.secureServiceImpl = secureServiceImpl;
+        this.g2faService = g2faService;
+        this.secureService = secureService;
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
@@ -201,12 +206,17 @@ public class NgTransferController {
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
 
         if (!DEV_MODE) {
-//            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), userId)) {
-//                throw new IncorrectPinException("Incorrect google auth code");
-//            }
-
-            secureServiceImpl.checkEventAdditionalPin(servletRequest, email,
-                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+            User user = userService.findByEmail(email);
+            if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+                if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
+                    throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
+                }
+            } else {
+                if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+                    secureService.sendWithdrawPincode(user);
+                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+                }
+            }
         }
         return transferService.createTransferRequest(transferRequest);
     }
@@ -222,9 +232,5 @@ public class NgTransferController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    private String getAmountWithCurrency(TransferRequestCreateDto dto) {
-        return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 }
