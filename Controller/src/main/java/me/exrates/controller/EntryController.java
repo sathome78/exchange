@@ -132,7 +132,7 @@ public class EntryController {
     private SurveyService surveyService;
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(
+    public String dashboard(
             @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String sessionEnd,
             @RequestParam(required = false) String startupPage,
@@ -140,75 +140,76 @@ public class EntryController {
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
-        String successNoty = null;
-        String errorNoty = null;
-        if (qrLogin != null) {
-            successNoty = messageSource
-                    .getMessage("dashboard.qrLogin.successful", null,
-                            localeResolver.resolveLocale(request));
-        }
-        if (sessionEnd != null) {
-            errorNoty = messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request));
-        }
-        if (StringUtils.isEmpty(successNoty)) {
-            successNoty = (String) request.getSession().getAttribute("successNoty");
-            request.getSession().removeAttribute("successNoty");
-        }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
-        }
-        model.addObject("successNoty", successNoty);
-        /**/
-        if (StringUtils.isEmpty(errorNoty)) {
-            errorNoty = (String) request.getSession().getAttribute("errorNoty");
-            request.getSession().removeAttribute("errorNoty");
-        }
-        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
-        }
-        /**/
-        model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
-        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
-        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
-        model.addObject("sessionId", request.getSession().getId());
-        model.addObject("notify2fa", principal != null
-                                                && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
-                                                && !userService.isLogin2faUsed(principal.getName()));
-        WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
-        if (principal != null && !surveyService.checkPollIsDoneByUser(principal.getName())) {
-            model.addObject("firstLogin", true);
-            surveyService.savePollAsDoneByUser(principal.getName());
-        }
-        model.setViewName("globalPages/dashboard");
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        model.addObject(orderCreateDto);
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
-            boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
-            model.addObject("accessToOperationForUser", accessToOperationForUser);
+//        String successNoty = null;
+//        String errorNoty = null;
+//        if (qrLogin != null) {
+//            successNoty = messageSource
+//                    .getMessage("dashboard.qrLogin.successful", null,
+//                            localeResolver.resolveLocale(request));
+//        }
+//        if (sessionEnd != null) {
+//            errorNoty = messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request));
+//        }
+//        if (StringUtils.isEmpty(successNoty)) {
+//            successNoty = (String) request.getSession().getAttribute("successNoty");
+//            request.getSession().removeAttribute("successNoty");
+//        }
+//        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+//            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
+//        }
+//        model.addObject("successNoty", successNoty);
+//        /**/
+//        if (StringUtils.isEmpty(errorNoty)) {
+//            errorNoty = (String) request.getSession().getAttribute("errorNoty");
+//            request.getSession().removeAttribute("errorNoty");
+//        }
+//        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+//            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+//        }
+//        /**/
+//        model.addObject("errorNoty", errorNoty);
+//        model.addObject("captchaType", CAPTCHA_TYPE);
+//        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+//        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
+//        model.addObject("sessionId", request.getSession().getId());
+//        model.addObject("notify2fa", principal != null
+//                                                && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
+//                                                && !userService.isLogin2faUsed(principal.getName()));
+//        WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
+//        if (principal != null && !surveyService.checkPollIsDoneByUser(principal.getName())) {
+//            model.addObject("firstLogin", true);
+//            surveyService.savePollAsDoneByUser(principal.getName());
+//        }
+//        model.setViewName("globalPages/dashboard");
+//        OrderCreateDto orderCreateDto = new OrderCreateDto();
+//        model.addObject(orderCreateDto);
+//        if (principal != null) {
+//            User user = userService.findByEmail(principal.getName());
+//            int userStatus = user.getStatus().getStatus();
+//            boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
+//            model.addObject("accessToOperationForUser", accessToOperationForUser);
+//
+//            model.addObject("userEmail", principal.getName());
+//            model.addObject("userStatus", userStatus);
+//            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
+//            model.addObject("referalPercents", referralService.findAllReferralLevels()
+//                    .stream()
+//                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+//                    .collect(toList()));
+//        }
+//        if (principal == null) {
+//            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+//        }
+//        if (currencyPair != null) {
+//            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
+//                    .filter(p -> p.getPairType() == CurrencyPairType.MAIN)
+//                    .filter(p -> p.getName().equals(currencyPair))
+//                    .limit(1)
+//                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
+//        }
 
-            model.addObject("userEmail", principal.getName());
-            model.addObject("userStatus", userStatus);
-            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
-        }
-        if (principal == null) {
-            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
-        }
-        if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p -> p.getPairType() == CurrencyPairType.MAIN)
-                    .filter(p -> p.getName().equals(currencyPair))
-                    .limit(1)
-                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
-        }
-
-        return model;
+//        return model;
+        return "redirect:https://demo.exrates.me";
     }
 
     @RequestMapping(value = {"/ico_dashboard"})
