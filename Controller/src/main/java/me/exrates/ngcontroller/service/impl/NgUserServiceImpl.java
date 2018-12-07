@@ -93,7 +93,7 @@ public class NgUserServiceImpl implements NgUserService {
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
-        String host = "https://demo.exrate.me/";
+        String host = "https://demo.exrates.me/";
 
         if (!DEV_MODE) {
             sendEmailWithToken(user,
@@ -151,7 +151,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
-        String host = "https://demo.exrate.me/";
+        String host = "https://demo.exrates.me/";
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
@@ -206,7 +206,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        host + "/" + confirmationUrl +
+                        host + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
