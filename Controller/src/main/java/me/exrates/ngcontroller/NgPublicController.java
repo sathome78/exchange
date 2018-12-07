@@ -102,12 +102,6 @@ public class NgPublicController {
         this.marketRatesHolder = marketRatesHolder;
     }
 
-    @PostConstruct
-    private void initCheckVersion() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-        logger.error("Build at: " + LocalDateTime.now().format(formatter));
-    }
-
     @GetMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
 //        Boolean unique = processIpBlocking(request, "email", email,
