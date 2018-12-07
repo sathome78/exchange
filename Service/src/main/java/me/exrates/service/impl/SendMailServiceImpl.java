@@ -53,7 +53,7 @@ public class SendMailServiceImpl implements SendMailService{
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	private final String SUPPORT_EMAIL = "mail@exrates.top";
-	private final String MANDRILL_EMAIL = "no-reply@demo.exrates.me";
+	private final String MANDRILL_EMAIL = "no-reply@exrates.me";
 	private final String INFO_EMAIL = "no-reply@exrates.top";
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
