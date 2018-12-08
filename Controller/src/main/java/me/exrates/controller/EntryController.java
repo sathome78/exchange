@@ -209,6 +209,7 @@ public class EntryController {
         }
 
         return model;
+//        return "redirect:https://demo.exrates.me";
     }
 
     @RequestMapping(value = {"/ico_dashboard"})

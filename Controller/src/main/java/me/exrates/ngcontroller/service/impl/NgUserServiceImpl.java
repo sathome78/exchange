@@ -25,7 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@PropertySource(value = {"classpath:/angular.properties"})
 public class NgUserServiceImpl implements NgUserService {
 
     private static final Logger logger = LogManager.getLogger(NgUserServiceImpl.class);
@@ -45,6 +49,9 @@ public class NgUserServiceImpl implements NgUserService {
     private final AuthTokenService authTokenService;
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
@@ -74,6 +81,10 @@ public class NgUserServiceImpl implements NgUserService {
         user.setEmail(userEmailDto.getEmail());
         if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
+        if (DEV_MODE) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            user.setPassword(passwordEncoder.encode("password"));
+        }
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
@@ -82,13 +93,15 @@ public class NgUserServiceImpl implements NgUserService {
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
-        String host = getHost(request);
+        String host = "https://demo.exrates.me/";
 
-        sendEmailWithToken(user,
-                TokenType.REGISTRATION,
-                "emailsubmitregister.subject",
-                "emailsubmitregister.text",
-                Locale.ENGLISH, host, "final-registration/token?t=");
+        if (!DEV_MODE) {
+            sendEmailWithToken(user,
+                    TokenType.REGISTRATION,
+                    "emailsubmitregister.subject",
+                    "emailsubmitregister.text",
+                    Locale.ENGLISH, host, "final-registration/token?t=");
+        }
 
         return true;
     }
@@ -124,7 +137,7 @@ public class NgUserServiceImpl implements NgUserService {
             }
 
             authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.successfulProcessing(IpUtils.getClientIpAddress(request), IpTypesOfChecking.LOGIN);
             userService.deleteTempTokenByValue(tempToken);
             return authTokenDto;
         } else {
@@ -138,7 +151,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
-        String host = getHost(request);
+        String host = "https://demo.exrates.me/";
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
@@ -193,19 +206,13 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        host + "/" + confirmationUrl +
+                        host + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
-        sendMailService.sendMail(email);
-    }
-
-    private String getHost(HttpServletRequest request) {
-        StringBuffer url = request.getRequestURL();
-        String uri = request.getRequestURI();
-        return url.substring(0, url.indexOf(uri));
+        sendMailService.sendMailMandrill(email);
     }
 
 }

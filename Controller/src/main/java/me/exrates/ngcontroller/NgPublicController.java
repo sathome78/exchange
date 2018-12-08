@@ -102,12 +102,6 @@ public class NgPublicController {
         this.marketRatesHolder = marketRatesHolder;
     }
 
-    @PostConstruct
-    private void initCheckVersion() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-        logger.error("Build at: " + LocalDateTime.now().format(formatter));
-    }
-
     @GetMapping(value = "/if_email_exists")
     public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
 //        Boolean unique = processIpBlocking(request, "email", email,
@@ -203,11 +197,8 @@ public class NgPublicController {
     @ResponseBody
     public List<OrderAcceptedHistoryDto> getLastAcceptedOrders(@RequestParam (value = "pairId") Integer pairId) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
-        return orderService.getOrderAcceptedForPeriodEx(null,
-                new BackDealInterval("24 HOUR"),
-                100,
-                cp,
-                Locale.ENGLISH);
+        return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
+                25, cp, Locale.ENGLISH);
     }
 
     @GetMapping("/currencies/fromdb")
