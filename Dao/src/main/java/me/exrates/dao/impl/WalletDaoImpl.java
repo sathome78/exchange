@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.SELL;
 
@@ -461,6 +462,10 @@ public class WalletDaoImpl implements WalletDao {
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale, List<MerchantProcessType> merchantProcessType) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
+    List<String> currencyTypes = merchantProcessType
+            .stream()
+            .map(MerchantProcessType::toString)
+            .collect(Collectors.toList());
     final String sql =
         " SELECT wallet_id, user_id, W.currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
             "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
@@ -570,7 +575,7 @@ public class WalletDaoImpl implements WalletDao {
       put("email", email);
       put("currencyIds", currencyIds);
       put("status_id_list", withdrawStatusIds);
-      put("processTypes", merchantProcessType);
+      put("processTypes", currencyTypes);
     }};
     return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();

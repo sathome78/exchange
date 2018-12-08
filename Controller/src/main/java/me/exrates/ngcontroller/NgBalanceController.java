@@ -59,7 +59,6 @@ public class NgBalanceController {
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
-                               MessageSource messageSource,
                                WalletService walletService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
