@@ -392,7 +392,8 @@ public class UserDaoImpl implements UserDao {
     String sql = "SELECT * FROM USER WHERE USER.id =(SELECT TEMPORAL_TOKEN.user_id FROM TEMPORAL_TOKEN WHERE TEMPORAL_TOKEN.value=:token_value)";
     Map<String,String> namedParameters = new HashMap<>();
     namedParameters.put("token_value",token);
-    return namedParameterJdbcTemplate.query(sql,namedParameters,getUserRowMapperWithoutRoleAndParentEmail()).get(0);
+    List<User> userList = namedParameterJdbcTemplate.query(sql, namedParameters, getUserRowMapperWithoutRoleAndParentEmail());
+    return userList.size() == 0 ? null : userList.get(0);
   }
 
   @Override
