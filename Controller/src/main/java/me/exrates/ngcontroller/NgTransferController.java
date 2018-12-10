@@ -20,6 +20,8 @@ import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.ngcontroller.model.response.ResponseCustomError;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
@@ -43,6 +45,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -219,6 +223,41 @@ public class NgTransferController {
             }
         }
         return transferService.createTransferRequest(transferRequest);
+    }
+
+    @GetMapping("/check_email")
+    public ResponseModel<Boolean> checkEmailForTransfer(@RequestParam("email") String email) {
+
+        String principalEmail = getPrincipalEmail();
+
+        if (email.equalsIgnoreCase(principalEmail)) {
+            ResponseCustomError error =
+                    new ResponseCustomError(messageSource.getMessage("transfer.email.yourself", null, Locale.ENGLISH));
+            return new ResponseModel<>(false, error);
+        }
+
+        if (userService.ifEmailIsUnique(email)) {
+            ResponseCustomError error =
+                    new ResponseCustomError(messageSource.getMessage("transfer.email.not_found", null, Locale.ENGLISH));
+            return new ResponseModel<>(false, error);
+        }
+
+        return new ResponseModel<>(true);
+    }
+
+    @GetMapping("/get_minimal_sum")
+    public ResponseModel getMinimalTransferSum(@RequestParam("currency_id") int currencyId,
+                                               @RequestParam("type") String type) {
+        BigDecimal minSum = BigDecimal.ZERO;
+        TransferTypeVoucher transferType = TransferTypeVoucher.convert(type);
+        MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(currencyId,
+                transferType);
+
+        if (merchant != null) {
+            minSum = merchant.getMinSum();
+        }
+
+        return new ResponseModel<>(minSum);
     }
 
     private String getPrincipalEmail() {
