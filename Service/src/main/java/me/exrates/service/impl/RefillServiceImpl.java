@@ -11,6 +11,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -1111,5 +1112,16 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
     refillRequestDao.invalidateAddress(address, merchantId, currencyId);
+  }
+
+  @Override
+  public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
+    List<RefillOnConfirmationDto> dtos = refillRequestDao.getOnConfirmationDtos(email, currencyId);
+    dtos.forEach(p -> {
+      IRefillable merchant = (IRefillable) merchantServiceContext
+              .getMerchantService(p.getMerchantId());
+      p.setNeededConfirmations(merchant.minConfirmationsRefill());
+    });
+    return dtos;
   }
 }
