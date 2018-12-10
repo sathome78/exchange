@@ -11,6 +11,7 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransferTypeVoucher;
@@ -24,6 +25,7 @@ import me.exrates.ngcontroller.model.response.ResponseCustomError;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransferService;
@@ -46,7 +48,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,6 +86,7 @@ public class NgTransferController {
     private final MessageSource messageSource;
     private final G2faService g2faService;
     private final SecureService secureService;
+    private final CurrencyService currencyService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -99,7 +101,8 @@ public class NgTransferController {
                                 InputOutputService inputOutputService,
                                 MessageSource messageSource,
                                 SecureService secureService,
-                                G2faService g2faService) {
+                                G2faService g2faService,
+                                CurrencyService currencyService) {
         this.rateLimitService = rateLimitService;
         this.transferService = transferService;
         this.userService = userService;
@@ -110,6 +113,7 @@ public class NgTransferController {
         this.messageSource = messageSource;
         this.g2faService = g2faService;
         this.secureService = secureService;
+        this.currencyService = currencyService;
     }
 
     // /info/private/v2/balances/transfer/accept  PAYLOAD: {"CODE": "kdbfeyue743467"}
@@ -258,6 +262,11 @@ public class NgTransferController {
         }
 
         return new ResponseModel<>(minSum);
+    }
+
+    @GetMapping("/currencies")
+    public ResponseModel getAllCurrenciesForTransfer() {
+        return new ResponseModel<>(currencyService.getCurrencies(MerchantProcessType.TRANSFER));
     }
 
     private String getPrincipalEmail() {
