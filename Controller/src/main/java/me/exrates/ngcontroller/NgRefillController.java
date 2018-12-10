@@ -7,6 +7,7 @@ import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.ngDto.RefillPageDataDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -23,6 +24,7 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.merchantStrategy.IRefillable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,7 @@ import java.util.Optional;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances/refill",
@@ -191,6 +194,11 @@ public class NgRefillController {
             logger.error("Failed to create refill request", e);
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping(value = "/requests_on_confirmation")
+    public List<RefillOnConfirmationDto> getRefillConfirmationsForCurrencyy(int currencyId) {
+        return refillService.getOnConfirmationRefills(SecurityContextHolder.getContext().getAuthentication().getName(), currencyId);
     }
 
     private String getPrincipalEmail() {

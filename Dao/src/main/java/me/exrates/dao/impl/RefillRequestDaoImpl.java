@@ -9,6 +9,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -1280,6 +1282,30 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             " JOIN MERCHANT M ON M.id=RR.merchant_id " +
             " WHERE M.tokens_parrent_id = ? AND RR.status_id = 6";
     return jdbcTemplate.queryForList(sql, Integer.class, parentTokenId);
+  }
+
+  @Override
+  public List<RefillOnConfirmationDto> getOnConfirmationDtos(String email, int currencyId) {
+    final String sql = "SELECT RR.amount as amount, RR.merchant_transaction_id as hash, RRA.address as address, RRQ.confirmation_number as collectedConfirmations, RR.merchant_id as merchantId " +
+            "FROM REFILL_REQUEST RR " +
+            "JOIN REFILL_REQUEST_CONFIRMATION RRQ ON RRQ.id = (SELECT MAX(RRQ_sub.id) FROM REFILL_REQUEST_CONFIRMATION RRQ_sub WHERE RRQ_sub.refill_request_id = RR.id) " +
+            "JOIN REFILL_REQUEST_ADDRESS RRA ON RRA.id = RR.refill_request_address_id " +
+            "JOIN USER U ON U.id = RR.user_id " +
+            "WHERE RR.currency_id = :currency AND RR.status_id = :status AND U.email = :email";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("currency", currencyId);
+      put("email", email);
+      put("status", RefillStatusEnum.ON_BCH_EXAM.getCode());
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, (rs, i) -> {
+        RefillOnConfirmationDto dto = new RefillOnConfirmationDto();
+        dto.setAddress(rs.getString("address"));
+        dto.setHash(rs.getString("hash"));
+        dto.setAmount(rs.getBigDecimal("amount"));
+        dto.setCollectedConfirmations(rs.getInt("collectedConfirmations"));
+        dto.setMerchantId(rs.getInt("merchantId"));
+        return dto;
+    });
   }
 
 }
