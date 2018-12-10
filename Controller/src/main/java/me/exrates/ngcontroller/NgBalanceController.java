@@ -83,6 +83,7 @@ public class NgBalanceController {
     }
 
     // apiUrl/info/private/v2/balances/pendingRequests?limit=20&offset=0
+    // response https://api.myjson.com/bins/6v30m
     @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
