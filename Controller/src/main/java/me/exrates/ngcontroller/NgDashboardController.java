@@ -13,12 +13,15 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -268,6 +271,12 @@ public class NgDashboardController {
 
     }
 
+    @PostMapping("/cancel")
+    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId){
+        orderService.cancelOrder(orderId);
+        return new ResponseModel<>(true);
+    }
+
     @GetMapping("/orders/{status}/export")
     public HttpEntity<byte[]> exportExcelOrders(
             @PathVariable("status") String status,
@@ -332,7 +341,8 @@ public class NgDashboardController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, OrderAcceptionException.class,
+            OrderCancellingException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandlerMethodArgumentNotValidException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
