@@ -1657,7 +1657,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         int index = 1;
-//        ByteArrayOutputStream outByteStream;
 
         try {
             for (OrderWideListDto order : orders) {
@@ -1686,14 +1685,6 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
-//            outByteStream = new ByteArrayOutputStream();
-//            workbook.write(outByteStream);
-//            byte[] outArray = outByteStream.toByteArray();
-//            workbook.close();
-
-
-//            return outArray;
-
             StringBuilder fileName = new StringBuilder("Orders_")
                     .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
                     .append(".xlsx");
@@ -1708,8 +1699,6 @@ public class OrderServiceImpl implements OrderService {
         } catch (IOException e) {
             logger.error("Error creating excel file, e - {}", e.getMessage());
         }
-
-//        return null;
     }
 
     @Override
