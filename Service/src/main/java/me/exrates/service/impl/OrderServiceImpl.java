@@ -129,10 +129,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
@@ -1626,7 +1627,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public byte[] getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) {
+    public void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Orders");
 
@@ -1656,7 +1657,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         int index = 1;
-        ByteArrayOutputStream outByteStream;
+//        ByteArrayOutputStream outByteStream;
 
         try {
             for (OrderWideListDto order : orders) {
@@ -1685,16 +1686,30 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
-            outByteStream = new ByteArrayOutputStream();
-            workbook.write(outByteStream);
-            byte[] outArray = outByteStream.toByteArray();
+//            outByteStream = new ByteArrayOutputStream();
+//            workbook.write(outByteStream);
+//            byte[] outArray = outByteStream.toByteArray();
+//            workbook.close();
+
+
+//            return outArray;
+
+            StringBuilder fileName = new StringBuilder("Orders_")
+                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                    .append(".xlsx");
+
+            response.setContentType("application/ms-excel");
+            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+
+            OutputStream outStream = response.getOutputStream();
+            workbook.write(outStream);
+            outStream.flush();
             workbook.close();
-            return outArray;
         } catch (IOException e) {
             logger.error("Error creating excel file, e - {}", e.getMessage());
         }
 
-        return null;
+//        return null;
     }
 
     @Override

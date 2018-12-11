@@ -386,7 +386,7 @@ public interface OrderService {
                                              String scope, boolean hideCanceled,
                                              Locale locale, LocalDate dateFrom, LocalDate dateTo);
 
-    byte[] getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus);
+    void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response);
 
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
