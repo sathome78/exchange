@@ -83,6 +83,7 @@ public class NgBalanceController {
     }
 
     // apiUrl/info/private/v2/balances/pendingRequests?limit=20&offset=0
+    // response https://api.myjson.com/bins/6v30m
     @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
@@ -175,6 +176,14 @@ public class NgBalanceController {
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    // /info/private/v2/balances/myBalances
+//        map.put("BTC", 0.00002343);
+//        map.put("USD", 32.00);
+    @GetMapping("/myBalances")
+    public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
+        return balanceService.getBalancesInBtcAndUsd();
     }
 
     private String getPrincipalEmail() {

@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
 
@@ -135,4 +136,6 @@ public interface RefillRequestDao {
   List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
 
     List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> collect);
+
+    List<RefillOnConfirmationDto> getOnConfirmationDtos(String email, int currencyId);
 }

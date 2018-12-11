@@ -8,6 +8,7 @@ import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -129,6 +130,7 @@ public class OnlineRestController {
 
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+
 
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
