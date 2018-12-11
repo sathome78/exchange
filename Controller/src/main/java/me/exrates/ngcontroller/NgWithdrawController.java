@@ -238,6 +238,20 @@ public class NgWithdrawController {
 //        return ResponseEntity.ok().build();
 //    }
 
+    @GetMapping("/commission")
+    public Map<String, String> getCommissions(
+            @RequestParam("amount") BigDecimal amount,
+            @RequestParam("currency") Integer currencyId,
+            @RequestParam("merchant") Integer merchantId,
+            @RequestParam(value = "memo", required = false) String memo) {
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
+        if (!StringUtils.isEmpty(memo)) {
+            merchantService.checkDestinationTag(merchantId, memo);
+        }
+        return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId,
+                merchantId, Locale.ENGLISH, memo);
+    }
+
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

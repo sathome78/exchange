@@ -13,12 +13,15 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -67,7 +70,6 @@ import java.util.Map;
 public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
-
 
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
@@ -268,45 +270,10 @@ public class NgDashboardController {
 
     }
 
-    @GetMapping("/orders/{status}/export")
-    public HttpEntity<byte[]> exportExcelOrders(
-            @PathVariable("status") String status,
-            @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
-            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
-            @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            HttpServletRequest request) {
-
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-
-        int userId = userService.getIdByEmail(getPrincipalEmail());
-        CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
-        Locale locale = localeResolver.resolveLocale(request);
-        try {
-             List<OrderWideListDto> orders =
-                    orderService.getOrdersForExcel(userId, currencyPair, orderStatus, scope,
-                            hideCanceled, locale, dateFrom, dateTo);
-
-            byte[] excelFile = orderService.getExcelFile(orders, orderStatus);
-
-            StringBuilder fileName = new StringBuilder("Orders_")
-                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
-                    .append(".xlsx");
-
-            HttpHeaders header = new HttpHeaders();
-            header.add(HttpHeaders.CONTENT_TYPE,"application/ms-excel");
-            header.set(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + fileName.toString());
-            header.setContentLength(excelFile.length);
-
-            return new HttpEntity<>(excelFile, header);
-        } catch (Exception ex) {
-           logger.error("Error export orders to file, e - {}", ex.getMessage());
-        }
-        return null;
+    @PostMapping("/cancel")
+    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId){
+        orderService.cancelOrder(orderId);
+        return new ResponseModel<>(true);
     }
 
     private String getPrincipalEmail() {
@@ -332,7 +299,8 @@ public class NgDashboardController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, OrderAcceptionException.class,
+            OrderCancellingException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandlerMethodArgumentNotValidException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
