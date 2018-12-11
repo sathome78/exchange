@@ -25,8 +25,6 @@ public class UserBalancesDto implements RowMapper<UserBalancesDto> {
     private BigDecimal availableBalanceInUSD;
     private BigDecimal reservedBalanceInUSD;
     private BigDecimal chartChanges;
-    private BigDecimal btcAmount;
-    private BigDecimal usdAmount;
 
 
     @Override

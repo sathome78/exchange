@@ -70,6 +70,7 @@ public class BalanceServiceImpl implements BalanceService {
         if (excludeZero) {
             details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
         }
+        setBt
         return getSafeSubList(details, offset, limit);
     }
 
@@ -146,7 +147,7 @@ public class BalanceServiceImpl implements BalanceService {
         return balancesMap;
     }
 
-    private 
+    private
 
 
     private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {
