@@ -178,6 +178,9 @@ public class NgBalanceController {
         }
     }
 
+    // /info/private/v2/balances/myBalances
+//        map.put("BTC", 0.00002343);
+//        map.put("USD", 32.00);
     @GetMapping("/myBalances")
     public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
         return balanceService.getBalancesInBtcAndUsd();
