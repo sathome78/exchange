@@ -214,7 +214,7 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<WalletBalanceDto> getBalancesForUser(String userEmail) {
-    String sql = "SELECT CUR.name AS currency_name, W.active_balance, W.reserved_balance FROM WALLET W " +
+    String sql = "SELECT CUR.name AS currency_name, CUR.id AS cur_id, W.active_balance, W.reserved_balance FROM WALLET W " +
             " JOIN CURRENCY CUR ON W.currency_id = CUR.id " +
             " WHERE W.user_id = (SELECT id FROM USER WHERE email = :email)";
     return slaveJdbcTemplate.query(sql, Collections.singletonMap("email", userEmail), (rs, rowNum) -> {
@@ -222,6 +222,7 @@ public class WalletDaoImpl implements WalletDao {
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setActiveBalance(rs.getBigDecimal("active_balance"));
       dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      dto.setCurrencyId(rs.getInt("cur_id"));
       return dto;
     });
   }

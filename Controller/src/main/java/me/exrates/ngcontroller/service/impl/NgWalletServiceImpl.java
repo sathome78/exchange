@@ -2,11 +2,13 @@ package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.ngcontroller.service.NgWalletService;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

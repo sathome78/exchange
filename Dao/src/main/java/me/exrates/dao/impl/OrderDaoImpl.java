@@ -121,6 +121,7 @@ public class OrderDaoImpl implements OrderDao {
         exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
         exOrderStatisticsDto.setMarket(rs.getString("market"));
         exOrderStatisticsDto.setVolume(rs.getString("volume"));
+        exOrderStatisticsDto.setCurrency1Id(rs.getInt("currency1_id"));
         return exOrderStatisticsDto;
     };
     @Autowired
@@ -534,10 +535,11 @@ public class OrderDaoImpl implements OrderDao {
         long before = System.currentTimeMillis();
         try {
             String sql =
-                    "SELECT RESULT.currency_pair_name, RESULT.market, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order, RESULT.volume " +
+                    "SELECT RESULT.currency_pair_name, RESULT.market, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order, RESULT.volume, " +
+                            "RESULT.currency1_id as currency1_id " +
                             "FROM " +
                             "((SELECT  " +
-                            "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.market AS market, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
+                            "   CURRENCY_PAIR.currency1_id AS currency1_id, CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.market AS market, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
                             "   (SELECT SUM(EX.amount_base) " +
                             "       FROM EXORDERS EX " +
                             "       WHERE " +
@@ -568,7 +570,7 @@ public class OrderDaoImpl implements OrderDao {
                             " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
                             " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
                             " UNION ALL (" +
-                            "   SELECT CP.name AS currency_pair_name, CP.market AS market, CP.id AS currency_pair_id, CP.type AS type, 0 AS volume, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
+                            "   SELECT CP.currency1_id AS currency1_id, CP.name AS currency_pair_name, CP.market AS market, CP.id AS currency_pair_id, CP.type AS type, 0 AS volume, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
                             "      FROM CURRENCY_PAIR CP " +
                             "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
                             ")) RESULT ";
@@ -591,6 +593,7 @@ public class OrderDaoImpl implements OrderDao {
         try {
             String sql = "SELECT " +
                     "   CP.name AS currency_pair_name, CP.market AS market, CP.id AS currency_pair_id, CP.type AS type,      " +
+                    "   CP.currency1_id as currency1_id, " +
                     "   (SELECT SUM(EX.amount_base) " +
                     "       FROM EXORDERS EX  " +
                     "       WHERE  " +
