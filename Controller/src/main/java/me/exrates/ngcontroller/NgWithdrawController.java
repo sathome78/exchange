@@ -238,7 +238,7 @@ public class NgWithdrawController {
 //        return ResponseEntity.ok().build();
 //    }
 
-    @GetMapping("/withdraw/commission")
+    @GetMapping("/commission")
     public Map<String, String> getCommissions(
             @RequestParam("amount") BigDecimal amount,
             @RequestParam("currency") Integer currencyId,
