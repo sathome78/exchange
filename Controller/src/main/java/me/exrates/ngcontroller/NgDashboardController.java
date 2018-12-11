@@ -71,7 +71,6 @@ public class NgDashboardController {
 
     private static final Logger logger = LogManager.getLogger(NgDashboardController.class);
 
-
     private final DashboardService dashboardService;
     private final CurrencyService currencyService;
     private final OrderService orderService;
@@ -275,47 +274,6 @@ public class NgDashboardController {
     public ResponseModel cancelOrder(@RequestParam("order_id") int orderId){
         orderService.cancelOrder(orderId);
         return new ResponseModel<>(true);
-    }
-
-    @GetMapping("/orders/{status}/export")
-    public HttpEntity<byte[]> exportExcelOrders(
-            @PathVariable("status") String status,
-            @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
-            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
-            @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            HttpServletRequest request) {
-
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-
-        int userId = userService.getIdByEmail(getPrincipalEmail());
-        CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
-        Locale locale = localeResolver.resolveLocale(request);
-        try {
-             List<OrderWideListDto> orders =
-                    orderService.getOrdersForExcel(userId, currencyPair, orderStatus, scope,
-                            hideCanceled, locale, dateFrom, dateTo);
-
-            byte[] excelFile = orderService.getExcelFile(orders, orderStatus);
-
-            StringBuilder fileName = new StringBuilder("Orders_")
-                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
-                    .append(".xlsx");
-
-            HttpHeaders header = new HttpHeaders();
-            header.add(HttpHeaders.CONTENT_TYPE,"application/ms-excel");
-            header.set(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + fileName.toString());
-            header.setContentLength(excelFile.length);
-
-            return new HttpEntity<>(excelFile, header);
-        } catch (Exception ex) {
-           logger.error("Error export orders to file, e - {}", ex.getMessage());
-        }
-        return null;
     }
 
     private String getPrincipalEmail() {
