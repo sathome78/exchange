@@ -146,6 +146,8 @@ public class BalanceServiceImpl implements BalanceService {
         return balancesMap;
     }
 
+    private 
+
 
     private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {
         if (items.isEmpty() || offset >= items.size()) {
