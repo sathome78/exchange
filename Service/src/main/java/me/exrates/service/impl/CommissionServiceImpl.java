@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -147,6 +148,24 @@ public class CommissionServiceImpl implements CommissionService {
     result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
     result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
     result.put("resultAmount", commissionData.getResultAmount().toPlainString());
+
+    BigDecimal commissionRate;
+    BigDecimal merchantRate;
+
+    if (commissionData.getCompanyCommissionRate() != null) {
+      commissionRate = commissionData.getCompanyCommissionRate();
+    } else {
+      commissionRate = BigDecimal.ZERO;
+    }
+
+    if (commissionData.getMerchantCommissionRate() != null) {
+      merchantRate = commissionData.getMerchantCommissionRate();
+    } else {
+      merchantRate = BigDecimal.ZERO;
+    }
+
+    BigDecimal sum = BigDecimalProcessing.doAction(commissionRate, merchantRate, ActionType.ADD);
+    result.put("commission_rates_sum", BigDecimalProcessing.normalize(sum).toPlainString());
     return result;
   }
 
