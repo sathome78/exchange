@@ -260,7 +260,7 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public List<WalletBalanceDto> getBalancesForUser() {
     /*todo: revert it*/
-    String userEmail = /*userService.getUserEmailFromSecurityContext();*/ "avto12@i.ua";
+    String userEmail = userService.getUserEmailFromSecurityContext();
     return walletDao.getBalancesForUser(userEmail);
   }
 
