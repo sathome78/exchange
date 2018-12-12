@@ -19,7 +19,6 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -183,7 +182,7 @@ public class NgBalanceController {
 //        map.put("USD", 32.00);
     @GetMapping("/myBalances")
     public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
-        return balanceService.getBalancesInBtcAndUsd();
+        return balanceService.getBalancesSumInBtcAndUsd();
     }
 
     private String getPrincipalEmail() {
