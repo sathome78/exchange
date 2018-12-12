@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -196,9 +197,18 @@ public class NgRefillController {
         }
     }
 
-    @GetMapping(value = "/requests_on_confirmation")
-    public List<RefillOnConfirmationDto> getRefillConfirmationsForCurrencyy(int currencyId) {
-        return refillService.getOnConfirmationRefills(SecurityContextHolder.getContext().getAuthentication().getName(), currencyId);
+    // apiUrl/info/private/v2/balances/refill/requests_on_confirmation/1
+
+    @GetMapping(value = "/requests_on_confirmation/{currencyId}")
+    public List<RefillOnConfirmationDto> getRefillConfirmationsForCurrencyy(@PathVariable Integer currencyId) {
+        try {
+            List<RefillOnConfirmationDto> confirmationRefills = refillService.getOnConfirmationRefills(getPrincipalEmail(), currencyId);
+            return confirmationRefills;
+        } catch (Exception e) {
+            logger.error("Failed to get requests on confirmation", e);
+            return Collections.emptyList();
+        }
+
     }
 
     private String getPrincipalEmail() {
