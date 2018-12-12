@@ -1,10 +1,12 @@
 package me.exrates.ngcontroller.service.impl;
 
+import me.exrates.model.dto.BalancesShortDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.CurrencyType;
+import me.exrates.model.enums.TradeMarket;
 import me.exrates.ngcontroller.dao.BalanceDao;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.model.UserBalancesDto;
@@ -70,8 +72,26 @@ public class BalanceServiceImpl implements BalanceService {
         if (excludeZero) {
             details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
         }
-        return getSafeSubList(details, offset, limit);
+        PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
+        setBtcUsdAmoun(detailsPage.getItems());
+        return detailsPage;
     }
+
+    private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
+        Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
+        Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
+        BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
+        walletsDetails.forEach(p-> {
+            BigDecimal sumBalances = new BigDecimal(p.getActiveBalance()).add(new BigDecimal(p.getReservedBalance())).setScale(8, RoundingMode.HALF_DOWN);
+            BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
+            p.setBtcAmount(dto.getBalanceBtc().setScale(8, RoundingMode.HALF_DOWN).toPlainString());
+            p.setUsdAmount(dto.getBalanceUsd().setScale(2, RoundingMode.HALF_DOWN).toPlainString());
+        });
+
+    }
+
 
     private Predicate<MyWalletsDetailedDto> filterZeroActiveBalance() {
         return wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0;
@@ -103,47 +123,49 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public Map<String, BigDecimal> getBalancesInBtcAndUsd() {
+    public Map<String, BigDecimal> getBalancesSumInBtcAndUsd() {
         List<WalletBalanceDto> userBalances = walletService.getBalancesForUser();
         BigDecimal btcBalances = BigDecimal.ZERO;
         BigDecimal usdBalances = BigDecimal.ZERO;
-        List<ExOrderStatisticsShortByPairsDto> rates = exchangeRatesHolder.getAllRates();
-        rates.forEach(System.out::println);
-        Map<Integer, String> btcRateMapped = rates.stream()
-                .filter(p->p.getMarket().equals("BTC"))
-                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
-        Map<Integer, String> usdRateMapped = rates.stream()
-                .filter(p->p.getMarket().equals("USD"))
-                .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
-        BigDecimal btcUsdRate = new BigDecimal(usdRateMapped.get(currencyService.findByName("BTC").getId()));
+        Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
+        Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
+        BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
         for (WalletBalanceDto p : userBalances) {
             BigDecimal sumBalances = p.getActiveBalance().add(p.getReservedBalance());
-            if (sumBalances.compareTo(BigDecimal.ZERO) > 0) {
-                switch (p.getCurrencyName()) {
-                    case "BTC":
-                        btcBalances = btcBalances.add(sumBalances);
-                        usdBalances = usdBalances.add(sumBalances.multiply(btcUsdRate));
-                        break;
-                    case "USD":
-                        usdBalances = usdBalances.add(sumBalances);
-                        btcBalances = btcBalances.add(sumBalances.divide(btcUsdRate, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP));
-                        break;
-                    default:
-                        BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-                        BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-                        if (usdRate.compareTo(BigDecimal.ZERO) <= 0) {
-                            usdRate = btcRate.multiply(btcUsdRate);
-                        }
-                        btcBalances = btcBalances.add(btcRate.multiply(sumBalances));
-                        usdBalances = usdBalances.add(usdRate.multiply(sumBalances));
-                        break;
-                }
-            }
+            BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
+            btcBalances = btcBalances.add(dto.getBalanceBtc());
+            usdBalances = usdBalances.add(dto.getBalanceUsd());
         }
         Map<String, BigDecimal> balancesMap = new HashMap<>();
         balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
         balancesMap.put("USD", usdBalances.setScale(2, RoundingMode.HALF_DOWN));
         return balancesMap;
+    }
+
+    private BalancesShortDto count(BigDecimal sumBalances, String currencyName, BigDecimal btcRate, BigDecimal usdRate, BigDecimal btcUsdRate) {
+        BalancesShortDto balancesShortDto = BalancesShortDto.zeroBalances();
+        if (sumBalances.compareTo(BigDecimal.ZERO) > 0) {
+            switch (currencyName) {
+                case "BTC":
+                    balancesShortDto.setBalanceBtc(sumBalances);
+                    balancesShortDto.setBalanceUsd(sumBalances.multiply(btcUsdRate));
+                    break;
+                case "USD":
+                    balancesShortDto.setBalanceBtc(sumBalances.divide(btcUsdRate, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP));
+                    balancesShortDto.setBalanceUsd(sumBalances);
+                    break;
+                default:
+                    if (usdRate.compareTo(BigDecimal.ZERO) <= 0) {
+                        usdRate = btcRate.multiply(btcUsdRate);
+                    }
+                    balancesShortDto.setBalanceBtc(btcRate.multiply(sumBalances));
+                    balancesShortDto.setBalanceUsd(usdRate.multiply(sumBalances));
+                    break;
+            }
+        }
+        return balancesShortDto;
     }
 
 
