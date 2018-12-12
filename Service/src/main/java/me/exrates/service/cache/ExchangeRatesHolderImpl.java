@@ -1,6 +1,5 @@
 package me.exrates.service.cache;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.sound.midi.Track;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;

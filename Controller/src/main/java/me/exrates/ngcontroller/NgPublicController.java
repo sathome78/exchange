@@ -136,6 +136,7 @@ public class NgPublicController {
         }
     }
 
+    // /info/public/v2/all-pairs
     @GetMapping("/all-pairs")
     @ResponseBody
     public List<CurrencyPair> getAllPairs() {
