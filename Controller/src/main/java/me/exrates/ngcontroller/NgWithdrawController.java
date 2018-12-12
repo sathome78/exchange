@@ -202,6 +202,8 @@ public class NgWithdrawController {
     }
 
     // GET: /info/private/v2/balances/withdraw/request/pin
+    // 201 - pincode is sent to user email
+    // 200 - no pincode use google oauth
     @CheckActiveUserStatus
     @GetMapping(value = "/request/pin")
     public ResponseEntity<Void> sendUserPincode() {
@@ -209,6 +211,7 @@ public class NgWithdrawController {
             User user = userService.findByEmail(getPrincipalEmail());
             if (!g2faService.isGoogleAuthenticatorEnable(user.getId())) {
                 secureService.sendWithdrawPincode(user);
+                  return ResponseEntity.status(HttpStatus.CREATED).build();
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
