@@ -19,6 +19,7 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -67,14 +69,30 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero, CurrencyType currencyType) {
+    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero,
+                                                               CurrencyType currencyType, String currencyName) {
         List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
         if (excludeZero) {
             details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
         }
+        if (!StringUtils.isEmpty(currencyName)) {
+            details = details
+                    .stream()
+                    .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
+                    .collect(Collectors.toList());
+        }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
         setBtcUsdAmoun(detailsPage.getItems());
         return detailsPage;
+    }
+
+    @Override
+    public Optional<MyWalletsDetailedDto> findOne(String email, Integer currencyId) {
+        List<MyWalletsDetailedDto> wallets = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, null);
+        return wallets
+                .stream()
+                .filter(w -> w.getCurrencyId() == currencyId)
+                .findFirst();
     }
 
     private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {

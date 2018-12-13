@@ -3,6 +3,7 @@ package me.exrates.ngcontroller;
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.WalletTotalUsdDto;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -14,10 +15,13 @@ import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -26,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -37,10 +42,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances",
@@ -49,32 +56,40 @@ import java.util.Map;
 @Log4j
 public class NgBalanceController {
 
+    private static final Logger logger = LoggerFactory.getLogger(NgBalanceController.class);
+
     private final BalanceService balanceService;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final LocaleResolver localeResolver;
+    private final RefillService refillService;
     private final WalletService walletService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
+                               RefillService refillService,
                                WalletService walletService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
+        this.refillService = refillService;
         this.walletService = walletService;
     }
 
-    // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false
+    // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false&currencyName=BTC&currencyType=CRYPTO
+    // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false&currencyName=USD&currencyType=FIAT
     @GetMapping
     public ResponseEntity<PagedResult<MyWalletsDetailedDto>> getBalances(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "false") Boolean excludeZero,
+            @RequestParam(required = false, defaultValue = "") String currencyName,
             @RequestParam(required = false) CurrencyType currencyType) {
         String email = getPrincipalEmail();
         try {
-            PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(offset, limit, email, excludeZero, currencyType);
+            PagedResult<MyWalletsDetailedDto> pagedResult =
+                    balanceService.getWalletsDetails(offset, limit, email, excludeZero, currencyType, currencyName);
             return ResponseEntity.ok(pagedResult);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -155,6 +170,34 @@ public class NgBalanceController {
         }
 
         return map;
+    }
+
+    // /info/private/v2/balances/currencies/{currencyId}
+    // 200 - ok example
+    // 404 - not found
+    // 400 - something went wrong
+    @GetMapping("/currencies/{currencyId}")
+    public ResponseEntity<MyWalletsDetailedDto> getSingleCurrency(@PathVariable Integer currencyId) {
+        try {
+            String email = getPrincipalEmail();
+            Optional<MyWalletsDetailedDto> result = balanceService.findOne(getPrincipalEmail(), currencyId);
+            result.ifPresent(myWalletsDetailedDto -> {
+                List<RefillOnConfirmationDto> confirmationRefills =
+                        refillService.getOnConfirmationRefills(email, currencyId);
+                if (confirmationRefills == null) {
+                    confirmationRefills = Collections.emptyList();
+                }
+                myWalletsDetailedDto.setConfirmations(confirmationRefills);
+            });
+
+            if (result.isPresent()) {
+                return ResponseEntity.ok(result.get());
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Failed to get single currency balance details", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
