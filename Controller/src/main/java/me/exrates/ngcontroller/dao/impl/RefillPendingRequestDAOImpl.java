@@ -28,7 +28,7 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
             "        JOIN CURRENCY C2 on WR.currency_id = C2.id " +
             "        JOIN MERCHANT m ON m.id = WR.merchant_id " +
             "        JOIN WITHDRAW_REQUEST_STATUS WRS on WR.status_id = WRS.id " +
-            "WHERE WR.user_id =: user_id AND WR.status_id IN (:withdraw_statuses) ";
+            "WHERE WR.user_id =:user_id AND WR.status_id IN (:withdraw_statuses) ";
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveTemplate;
