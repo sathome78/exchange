@@ -1,7 +1,6 @@
 package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.model.dto.BalancesShortDto;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
@@ -14,7 +13,6 @@ import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.service.NgWalletService;
 import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -44,23 +42,23 @@ public class BalanceServiceImpl implements BalanceService {
     private final NgWalletService ngWalletService;
     private final UserService userService;
     private final ExchangeRatesHolder exchangeRatesHolder;
-    @Autowired
-    private WalletService walletService;
-    @Autowired
-    private CurrencyService currencyService;
+    private final WalletService walletService;
 
     @Autowired
     public BalanceServiceImpl(BalanceDao balanceDao,
                               InputOutputService inputOutputService,
                               NgWalletService ngWalletService,
                               RefillPendingRequestService refillPendingRequestService,
-                              UserService userService, ExchangeRatesHolder exchangeRatesHolder) {
+                              UserService userService,
+                              ExchangeRatesHolder exchangeRatesHolder,
+                              WalletService walletService) {
         this.balanceDao = balanceDao;
         this.inputOutputService = inputOutputService;
         this.refillPendingRequestService = refillPendingRequestService;
         this.ngWalletService = ngWalletService;
         this.userService = userService;
         this.exchangeRatesHolder = exchangeRatesHolder;
+        this.walletService = walletService;
     }
 
     @Override

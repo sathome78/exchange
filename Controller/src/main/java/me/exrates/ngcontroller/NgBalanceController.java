@@ -107,6 +107,7 @@ public class NgBalanceController {
             PagedResult<RefillPendingRequestDto> pendingRequests = balanceService.getPendingRequests(offset, limit, email);
             return ResponseEntity.ok(pendingRequests);
         } catch (Exception ex) {
+            logger.error("Failed to get pending requests", ex);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -173,7 +174,7 @@ public class NgBalanceController {
     }
 
     // /info/private/v2/balances/currencies/{currencyId}
-    // 200 - ok example
+    // 200 - ok example https://api.myjson.com/bins/13670k
     // 404 - not found
     // 400 - something went wrong
     @GetMapping("/currencies/{currencyId}")
