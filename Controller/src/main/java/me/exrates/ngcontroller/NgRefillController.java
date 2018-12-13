@@ -194,7 +194,6 @@ public class NgRefillController {
     }
 
     // apiUrl/info/private/v2/balances/refill/requests_on_confirmation/1
-
     @GetMapping(value = "/requests_on_confirmation/{currencyId}")
     public List<RefillOnConfirmationDto> getRefillConfirmationsForCurrencyy(@PathVariable Integer currencyId) {
         try {
