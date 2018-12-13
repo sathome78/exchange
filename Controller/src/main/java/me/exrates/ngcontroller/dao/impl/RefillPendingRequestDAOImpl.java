@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
@@ -41,10 +42,12 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
         if (refillRequestStatuses == null || refillRequestStatuses.isEmpty()) {
             refillRequestStatuses = Collections.singletonList(-1);
         }
+        List<String> refIds = refillRequestStatuses.stream().map(String::valueOf).collect(Collectors.toList());
+        List<String> withIds = withdrawRequestStatuses.stream().map(String::valueOf).collect(Collectors.toList());
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
         sqlParameterSource.addValue("user_id", userId);
-        sqlParameterSource.addValue("refill_statuses", refillRequestStatuses);
-        sqlParameterSource.addValue("withdraw_statuses", withdrawRequestStatuses);
+        sqlParameterSource.addValue("refill_statuses", refIds);
+        sqlParameterSource.addValue("withdraw_statuses", withIds);
         return slaveTemplate.query(GET_PENDING_REQUESTS, sqlParameterSource, RefillPendingRequestDto.builder().build());
     }
 
