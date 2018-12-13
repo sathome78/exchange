@@ -18,13 +18,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.RequestLimitExceededException;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import me.exrates.service.merchantStrategy.IRefillable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +53,6 @@ import java.util.Optional;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
-import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/balances/refill",
@@ -208,7 +204,6 @@ public class NgRefillController {
             logger.error("Failed to get requests on confirmation", e);
             return Collections.emptyList();
         }
-
     }
 
     private String getPrincipalEmail() {

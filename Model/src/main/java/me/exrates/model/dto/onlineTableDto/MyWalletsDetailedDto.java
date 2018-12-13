@@ -2,6 +2,9 @@ package me.exrates.model.dto.onlineTableDto;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
+
+import java.util.List;
 
 /**
  * Created by Valk
@@ -22,6 +25,7 @@ public class MyWalletsDetailedDto extends OnlineTableDto {
     private String reservedByMerchant;
     private String btcAmount;
     private String usdAmount;
+    private List<RefillOnConfirmationDto> confirmations;
 
     public MyWalletsDetailedDto() {
         this.needRefresh = true;
