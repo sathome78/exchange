@@ -273,6 +273,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/refill/request/**").authenticated()
             /*... user refill action*/
             .and()
+            .csrf().disable()
             .exceptionHandling()
             .accessDeniedHandler(accessDeniedHandler());
     SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
@@ -293,7 +294,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .loginPage("/login")
             .usernameParameter("username")
             .passwordParameter("password")
-            .permitAll();
+            .permitAll()
+            .and()
+            .csrf().disable();
 
     http.logout()
             .permitAll()
@@ -301,39 +304,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .logoutSuccessUrl("/")
             .invalidateHttpSession(true)
             .and()
-            .csrf().ignoringAntMatchers("/login")
-            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
-                    "/public_socket/", "/public_socket/**",
-                    "/merchants/perfectmoney/payment/status",
-                    "/merchants/perfectmoney/payment/failure",
-                    "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
-                    "/merchants/advcash/payment/failure",
-                    "/merchants/advcash/payment/success",
-                    "/merchants/advcash/payment/status",
-                    "/merchants/edrcoin/payment/received",
-                    "/merchants/edc/payment/received",
-                    "/merchants/liqpay/payment/failure",
-                    "/merchants/liqpay/payment/success",
-                    "/merchants/liqpay/payment/status",
-                    "/merchants/nixmoney/payment/failure",
-                    "/merchants/nixmoney/payment/success",
-                    "/merchants/nixmoney/payment/status",
-                    "/merchants/privat24/payment/failure",
-                    "/merchants/privat24/payment/success",
-                    "/merchants/privat24/payment/status",
-                    "/merchants/interkassa/payment/failure",
-                    "/merchants/interkassa/payment/success",
-                    "/merchants/interkassa/payment/status",
-                    "/merchants/yandex_kassa/payment/failure",
-                    "/merchants/yandex_kassa/payment/success",
-                    "/merchants/yandex_kassa/payment/status",
-                    "/merchants/okpay/payment/failure",
-                    "/merchants/okpay/payment/success",
-                    "/merchants/okpay/payment/status",
-                    "/merchants/payeer/payment/success",
-                    "/merchants/payeer/payment/status",
-                    "/test/**",
-                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+            .csrf().disable();
     http
             .headers()
             .frameOptions()
