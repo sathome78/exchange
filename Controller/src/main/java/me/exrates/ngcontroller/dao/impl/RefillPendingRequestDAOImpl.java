@@ -2,16 +2,15 @@ package me.exrates.ngcontroller.dao.impl;
 
 import me.exrates.ngcontroller.dao.RefillPendingRequestDAO;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
-import me.exrates.ngcontroller.model.UserBalancesDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Service
+@Repository
 public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
 
     private static final String GET_PENDING_REQUESTS = "SELECT rr.date_creation as date, m.name as currency, rr.amount, stat.name as status, com.value as commission, m.description as system FROM REFILL_REQUEST as rr\n" +

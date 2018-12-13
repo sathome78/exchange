@@ -1116,7 +1116,11 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
-    List<RefillOnConfirmationDto> dtos = refillRequestDao.getOnConfirmationDtos(email, currencyId);
+    Integer userId = userService.getIdByEmail(email);
+    if (userId == 0) {
+      return Collections.emptyList();
+    }
+    List<RefillOnConfirmationDto> dtos = refillRequestDao.getOnConfirmationDtos(userId, currencyId);
     dtos.forEach(p -> {
       IRefillable merchant = (IRefillable) merchantServiceContext
               .getMerchantService(p.getMerchantId());

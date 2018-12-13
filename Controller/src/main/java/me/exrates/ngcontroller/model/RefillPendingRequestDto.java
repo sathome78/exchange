@@ -12,6 +12,7 @@ import java.sql.SQLException;
 @Builder
 public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDto> {
 
+    private Integer currencyId;
     private String date;
     private String currency;
     private double amount;
@@ -24,8 +25,9 @@ public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDt
     public RefillPendingRequestDto mapRow(ResultSet rs, int rowNum) throws SQLException {
 
         return RefillPendingRequestDto.builder()
+                .currencyId(rs.getInt("currencyId"))
                 .date(rs.getString("date"))
-                .currency(rs.getString("currency"))
+                .currency(rs.getString("currencyName"))
                 .amount(rs.getDouble("amount"))
                 .commission(rs.getDouble("commission"))
                 .system(rs.getString("system"))
