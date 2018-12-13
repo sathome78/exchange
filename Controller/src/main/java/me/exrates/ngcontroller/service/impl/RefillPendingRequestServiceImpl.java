@@ -6,6 +6,8 @@ import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.print.attribute.IntegerSyntax;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -16,6 +18,11 @@ public class RefillPendingRequestServiceImpl implements RefillPendingRequestServ
 
     @Override
     public List<RefillPendingRequestDto> getPendingRefillRequests(long userId) {
-        return refillPendingRequestDAO.getPendingRefillRequests(userId);
+        /*example of statuses list
+        * if statuseslist == null then this type of operation will not be queried*/
+        List<Integer> refillStatuses = Arrays.asList(1,2,3,4,5,7,8,9,10,11);
+        List<Integer> withdrawStatuses = Arrays.asList(1,2,3,4,5,7,8,9,10,11);
+        /*------------------------------------------------------------*/
+        return refillPendingRequestDAO.getPendingRefillRequests(userId, withdrawStatuses, refillStatuses);
     }
 }
