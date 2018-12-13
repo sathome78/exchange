@@ -4,10 +4,13 @@ import me.exrates.ngcontroller.dao.RefillPendingRequestDAO;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +19,8 @@ import java.util.stream.Collectors;
 public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
 
     private static final String GET_PENDING_REQUESTS =
-            "SELECT rr.date_creation as date, C.name as currency, rr.amount, stat.name as status, TX.commission_amount as commission, m.description as system, 'REFILL' as operation " +
+            "SELECT rr.date_creation as date, C.name as currency, rr.amount as amount, stat.name as status, " +
+                    "TX.commission_amount as commission, m.description as system, 'REFILL' as operation " +
             "FROM REFILL_REQUEST as rr " +
             "        LEFT JOIN TRANSACTION TX ON (TX.source_id = rr.id AND TX.source_type = 'REFILL') " +
             "        JOIN CURRENCY C on rr.currency_id = C.id " +
@@ -24,7 +28,8 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
             "        JOIN MERCHANT m ON m.id = rr.merchant_id " +
             "WHERE rr.user_id = :user_id AND rr.status_id IN (:refill_statuses) " +
             "UNION ALL " +
-            "SELECT WR.date_creation as date, C2.name as currency, WR.amount, WRS.name as status, WR.commission as commission, m.description as system, 'WITHDRAW' as operation " +
+            "SELECT WR.date_creation as date, C2.name as currency, WR.amount as amount, WRS.name as status, " +
+                    "WR.commission as commission, m.description as system, 'WITHDRAW' as operation " +
             "FROM  WITHDRAW_REQUEST WR " +
             "        JOIN CURRENCY C2 on WR.currency_id = C2.id " +
             "        JOIN MERCHANT m ON m.id = WR.merchant_id " +
@@ -42,13 +47,24 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
         if (refillRequestStatuses == null || refillRequestStatuses.isEmpty()) {
             refillRequestStatuses = Collections.singletonList(-1);
         }
-        List<String> refIds = refillRequestStatuses.stream().map(String::valueOf).collect(Collectors.toList());
-        List<String> withIds = withdrawRequestStatuses.stream().map(String::valueOf).collect(Collectors.toList());
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
         sqlParameterSource.addValue("user_id", userId);
-        sqlParameterSource.addValue("refill_statuses", refIds);
-        sqlParameterSource.addValue("withdraw_statuses", withIds);
-        return slaveTemplate.query(GET_PENDING_REQUESTS, sqlParameterSource, RefillPendingRequestDto.builder().build());
+        sqlParameterSource.addValue("refill_statuses", refillRequestStatuses);
+        sqlParameterSource.addValue("withdraw_statuses", withdrawRequestStatuses);
+        return slaveTemplate.query(GET_PENDING_REQUESTS, sqlParameterSource, getRefillPendingRequestDtoRowMapper());
+    }
+
+    private RowMapper<RefillPendingRequestDto> getRefillPendingRequestDtoRowMapper() {
+        return (rs, rowNum) -> RefillPendingRequestDto
+                .builder()
+                .date(rs.getString("date"))
+                .currency(rs.getString("currency"))
+                .amount(rs.getDouble("amount"))
+                .status(rs.getString("status"))
+                .commission(rs.getDouble("commission"))
+                .system(rs.getString("system"))
+                .operation(rs.getString("operation"))
+                .build();
     }
 
 }
