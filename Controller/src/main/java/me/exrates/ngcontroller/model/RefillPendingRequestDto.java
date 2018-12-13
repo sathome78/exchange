@@ -18,6 +18,7 @@ public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDt
     private double commission;
     private String system;
     private String status;
+    private String operation;
 
 
     @Override
@@ -30,6 +31,7 @@ public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDt
                 .commission(rs.getDouble("commission"))
                 .system(rs.getString("system"))
                 .status(rs.getString("status"))
+                .operation(rs.getString("operation"))
                 .build();
     }
 }
