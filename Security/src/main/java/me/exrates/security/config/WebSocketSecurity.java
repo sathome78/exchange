@@ -19,6 +19,12 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
     @Autowired
     private UserRoleService userRoleService;
 
+    /*to diasble csrf protection for sockets*/
+    @Override
+    protected boolean sameOriginDisabled() {
+        return true;
+    }
+
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
