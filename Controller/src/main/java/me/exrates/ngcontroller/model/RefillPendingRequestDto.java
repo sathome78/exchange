@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,9 +11,9 @@ import java.sql.SQLException;
 
 @Data
 @Builder
-public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDto> {
+@AllArgsConstructor
+public class RefillPendingRequestDto {
 
-    private Integer currencyId;
     private String date;
     private String currency;
     private double amount;
@@ -21,19 +22,4 @@ public class RefillPendingRequestDto implements RowMapper<RefillPendingRequestDt
     private String status;
     private String operation;
 
-
-    @Override
-    public RefillPendingRequestDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-        return RefillPendingRequestDto.builder()
-                .currencyId(rs.getInt("currencyId"))
-                .date(rs.getString("date"))
-                .currency(rs.getString("currencyName"))
-                .amount(rs.getDouble("amount"))
-                .commission(rs.getDouble("commission"))
-                .system(rs.getString("system"))
-                .status(rs.getString("status"))
-                .operation(rs.getString("operation"))
-                .build();
-    }
 }
