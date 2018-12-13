@@ -13,13 +13,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public interface BalanceService {
 
     List<UserBalancesDto> getUserBalances(String tikerName, String sortByCreated, Integer page, Integer limit, int userId);
 
-    PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero, CurrencyType currencyType);
+    PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero, CurrencyType currencyType, String currencyName);
+
+    Optional<MyWalletsDetailedDto> findOne(String email, Integer currencyId);
 
     PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email);
 
