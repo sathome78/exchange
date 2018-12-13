@@ -108,7 +108,7 @@ public class NgBalanceController {
             return ResponseEntity.ok(pendingRequests);
         } catch (Exception ex) {
             logger.error("Failed to get pending requests", ex);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new NgDashboardException("Failed to get pending requests: " + ex.getMessage());
         }
     }
 
