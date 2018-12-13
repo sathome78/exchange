@@ -3,6 +3,7 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.CurrencyPair;
@@ -14,8 +15,10 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
@@ -35,6 +38,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.method.P;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,17 +47,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -187,6 +194,22 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
+    @GetMapping("/info/max/{name}")
+    public ResponseModel getMaxCurrencyPair24h(@PathVariable("name") String name) {
+        List<StatisticForMarket> all = marketRatesHolder.getAll();
+
+        Optional<StatisticForMarket> max = all.stream()
+                .filter(o -> o.getCurrencyPairName().startsWith(name.toUpperCase()))
+                .max(Comparator.comparing(StatisticForMarket::getVolume));
+
+        StatisticForMarket result = max.orElseGet(() -> all.stream()
+                .filter(o -> o.getCurrencyPairName().startsWith(name.toUpperCase()))
+                .findFirst()
+                .orElseThrow(() -> new NgDashboardException("No results")));
+
+        return new ResponseModel<>(result);
+    }
+
     @GetMapping("/currencies/fast")
     @ResponseBody
     public List<StatisticForMarket> getCurrencyPairInfoAll() {
@@ -251,6 +274,13 @@ public class NgPublicController {
             logger.debug("New user's %s %s is not stored yet!", logMessageValue, value);
         }
         return result;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }
