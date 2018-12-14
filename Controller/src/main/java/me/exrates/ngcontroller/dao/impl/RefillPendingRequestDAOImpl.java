@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
 
     private static final String GET_PENDING_REQUESTS =
-            "SELECT rr.date_creation as date, C.name as currency, rr.amount as amount, stat.name as status, " +
+            "SELECT rr.id as id, rr.date_creation as date, C.name as currency, rr.amount as amount, stat.name as status, " +
                     "TX.commission_amount as commission, m.description as system, 'REFILL' as operation " +
             "FROM REFILL_REQUEST as rr " +
             "        LEFT JOIN TRANSACTION TX ON (TX.source_id = rr.id AND TX.source_type = 'REFILL') " +
@@ -28,7 +28,7 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
             "        JOIN MERCHANT m ON m.id = rr.merchant_id " +
             "WHERE rr.user_id = :user_id AND rr.status_id IN (:refill_statuses) " +
             "UNION ALL " +
-            "SELECT WR.date_creation as date, C2.name as currency, WR.amount as amount, WRS.name as status, " +
+            "SELECT WR.id as id, WR.date_creation as date, C2.name as currency, WR.amount as amount, WRS.name as status, " +
                     "WR.commission as commission, m.description as system, 'WITHDRAW' as operation " +
             "FROM  WITHDRAW_REQUEST WR " +
             "        JOIN CURRENCY C2 on WR.currency_id = C2.id " +
@@ -57,6 +57,7 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
     private RowMapper<RefillPendingRequestDto> getRefillPendingRequestDtoRowMapper() {
         return (rs, rowNum) -> RefillPendingRequestDto
                 .builder()
+                .requestId(rs.getInt("id"))
                 .date(rs.getString("date"))
                 .currency(rs.getString("currency"))
                 .amount(rs.getDouble("amount"))
