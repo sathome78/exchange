@@ -14,6 +14,7 @@ import java.sql.SQLException;
 @AllArgsConstructor
 public class RefillPendingRequestDto {
 
+    private Integer requestId;
     private String date;
     private String currency;
     private double amount;
