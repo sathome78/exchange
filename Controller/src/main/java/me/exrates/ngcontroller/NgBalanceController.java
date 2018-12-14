@@ -10,6 +10,7 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
+import me.exrates.ngcontroller.exception.NgBalanceException;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
@@ -28,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -92,12 +94,13 @@ public class NgBalanceController {
                     balanceService.getWalletsDetails(offset, limit, email, excludeZero, currencyType, currencyName);
             return ResponseEntity.ok(pagedResult);
         } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            logger.error("Failed to get user balances", ex);
+            throw new NgDashboardException("Failed to get user balances" + ex.getMessage());
         }
     }
 
     // apiUrl/info/private/v2/balances/pendingRequests?limit=20&offset=0
-    // response https://api.myjson.com/bins/6v30m
+    // response https://api.myjson.com/bins/ufcws
     @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
@@ -110,6 +113,25 @@ public class NgBalanceController {
             logger.error("Failed to get pending requests", ex);
             throw new NgDashboardException("Failed to get pending requests: " + ex.getMessage());
         }
+    }
+
+    // apiUrl/info/private/v2/balances/pending/revoke/{requestId}/{operation}
+    // requestId - pending request id
+    // operation - may be only REFILL or WITHDRAW, but only REFILL is processed
+    @DeleteMapping(value = "/pending/revoke/{requestId}/{operation}")
+    public ResponseEntity<Void> revokeWithdrawRequest(@PathVariable Integer requestId,
+                                                      @PathVariable String operation) {
+        if (operation.equalsIgnoreCase("REFILL")) {
+            try {
+                refillService.revokeRefillRequest(requestId);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                logger.error("Failed to revoke request with id: " + requestId, e);
+                e.printStackTrace();
+            }
+        }
+        logger.error("Failed to revoke such request ({}) is not supported", operation);
+        throw new NgBalanceException("Failed to revoke such for operation " + operation);
     }
 
     // apiUrl/info/private/v2/balances/totalBalance
@@ -197,7 +219,7 @@ public class NgBalanceController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             logger.error("Failed to get single currency balance details", e);
-            return ResponseEntity.badRequest().build();
+            throw new NgBalanceException("Failed to get single currency balance details as " +  e.getMessage());
         }
     }
 
@@ -217,7 +239,8 @@ public class NgBalanceController {
                     balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            logger.error("Failed to get user inputOutputData", ex);
+            throw new NgBalanceException("Failed to get user inputOutputData as " +  ex.getMessage());
         }
     }
 
@@ -234,7 +257,7 @@ public class NgBalanceController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class,
+    @ExceptionHandler({NgDashboardException.class, UserNotFoundException.class, NgBalanceException.class,
             UserOperationAccessException.class, IllegalArgumentException.class, IncorrectPinException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
