@@ -34,13 +34,23 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
             "        JOIN CURRENCY C2 on WR.currency_id = C2.id " +
             "        JOIN MERCHANT m ON m.id = WR.merchant_id " +
             "        JOIN WITHDRAW_REQUEST_STATUS WRS on WR.status_id = WRS.id " +
-            "WHERE WR.user_id =:user_id AND WR.status_id IN (:withdraw_statuses) ";
+            "WHERE WR.user_id =:user_id AND WR.status_id IN (:withdraw_statuses) " +
+            "UNION ALL " +
+            "SELECT TR.id as id, TR.date_creation as date, C3.name as currency, TR.amount as amount, TRS.name as status, " +
+                    "TR.commission as commission, m.description as system, 'TRANSFER' as operation " +
+                    "FROM TRANSFER_REQUEST TR " +
+                    "        JOIN CURRENCY C3 on TR.currency_id = C3.id " +
+                    "        JOIN MERCHANT m ON m.id = TR.merchant_id " +
+                    "        JOIN TRANSFER_REQUEST_STATUS TRS on TR.status_id = TRS.id " +
+                    "WHERE TR.user_id =:user_id AND TR.status_id IN (:transfer_statuses) ";
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveTemplate;
 
     @Override
-    public List<RefillPendingRequestDto> getPendingRefillRequests(long userId, List<Integer> withdrawRequestStatuses, List<Integer> refillRequestStatuses) {
+    public List<RefillPendingRequestDto> getPendingRefillRequests(long userId, List<Integer> withdrawRequestStatuses,
+                                                                  List<Integer> refillRequestStatuses,
+                                                                  List<Integer> transferStatuses) {
         if (withdrawRequestStatuses == null || withdrawRequestStatuses.isEmpty()) {
             withdrawRequestStatuses = Collections.singletonList(-1);
         }
@@ -51,6 +61,7 @@ public class RefillPendingRequestDAOImpl implements RefillPendingRequestDAO {
         sqlParameterSource.addValue("user_id", userId);
         sqlParameterSource.addValue("refill_statuses", refillRequestStatuses);
         sqlParameterSource.addValue("withdraw_statuses", withdrawRequestStatuses);
+        sqlParameterSource.addValue("transfer_statuses", transferStatuses);
         return slaveTemplate.query(GET_PENDING_REQUESTS, sqlParameterSource, getRefillPendingRequestDtoRowMapper());
     }
 
