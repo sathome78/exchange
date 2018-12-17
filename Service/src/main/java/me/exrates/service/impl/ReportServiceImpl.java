@@ -83,6 +83,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.zip.DataFormatException;
 
+import static java.util.Comparator.comparing;
+import static java.util.Map.Entry.comparingByValue;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -257,7 +259,7 @@ public class ReportServiceImpl implements ReportService {
         StopWatch stopWatch = StopWatch.createStarted();
         log.info("Process of generating report object as byte array start...");
 
-        List<String> curNames = currencyService.getAllCurrencies().stream().map(Currency::getName).collect(toList());
+        List<Currency> currencies = currencyService.findAllCurrenciesWithHidden();
 
         final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
                 .collect(toMap(
@@ -272,16 +274,18 @@ public class ReportServiceImpl implements ReportService {
                         entry -> new CurrencyRateDto(entry.getValue().getLeft(), entry.getValue().getRight())
                 ));
 
-        List<WalletBalancesDto> balances = curNames.stream()
-                .map(name -> WalletBalancesDto.builder()
-                        .currencyName(name)
-                        .external(externalWalletBalances.get(name))
-                        .internals(internalWalletBalances.get(name))
-                        .rate(ratesMap.get(name))
+        List<WalletBalancesDto> balances = currencies.stream()
+                .map(currency ->
+                    currency.isHidden() ? WalletBalancesDto.buildForhiddenCurrency(currency.getId(), currency.getName()): WalletBalancesDto.builder()
+                        .currencyName(currency.getName())
+                        .external(externalWalletBalances.get(currency.getName()))
+                        .internals(internalWalletBalances.get(currency.getName()))
+                        .rate(ratesMap.get(currency.getName()))
                         .build())
-                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal())
+                    .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal())
                         && nonNull(walletBalancesDto.getInternals())
                         && nonNull(walletBalancesDto.getRate()))
+                .sorted(comparing(WalletBalancesDto::getCurrencyId))
                 .collect(toList());
 
         byte[] zippedBytes;
@@ -454,13 +458,13 @@ public class ReportServiceImpl implements ReportService {
                     endTime.toString(),
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
-        final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
+        final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().sorted(Comparator.comparingInt(InOutReportDto::getCurrencyId)).collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
                 .fileName(String.format("input_output_summary_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
-                .content(ReportTwoExcelGeneratorUtil.generate(new TreeMap<>(inOutMap), ratesMap))
+                .content(ReportTwoExcelGeneratorUtil.generate(inOutMap, ratesMap))
                 .build();
     }
 
@@ -478,7 +482,10 @@ public class ReportServiceImpl implements ReportService {
         byte[] zippedBytes = firstBalancesReport.getContent();
         final LocalDateTime firstCreatedAt = firstBalancesReport.getCreatedAt();
 
-        Map<String, WalletBalancesDto> firstBalancesMap = getWalletBalances(zippedBytes);
+        Map<String, WalletBalancesDto> firstBalancesMap = getWalletBalances(zippedBytes)
+                .entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getValue().getCurrencyId()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         //second balance
         ReportDto secondBalancesReport = reportDao.getBalancesReportByTime(endTime.minusMinutes(TIME_RANGE), endTime.plusMinutes(TIME_RANGE));
@@ -488,7 +495,10 @@ public class ReportServiceImpl implements ReportService {
         zippedBytes = secondBalancesReport.getContent();
         final LocalDateTime secondCreatedAt = secondBalancesReport.getCreatedAt();
 
-        Map<String, WalletBalancesDto> secondBalancesMap = getWalletBalances(zippedBytes);
+        Map<String, WalletBalancesDto> secondBalancesMap = getWalletBalances(zippedBytes)
+                .entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getValue().getCurrencyId()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
@@ -516,7 +526,10 @@ public class ReportServiceImpl implements ReportService {
         byte[] zippedBytes = firstBalancesReport.getContent();
         final LocalDateTime firstCreatedAt = firstBalancesReport.getCreatedAt();
 
-        Map<String, WalletBalancesDto> firstBalancesMap = getWalletBalances(zippedBytes);
+        Map<String, WalletBalancesDto> firstBalancesMap = getWalletBalances(zippedBytes)
+                .entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getValue().getCurrencyId()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         //second balance
         ReportDto secondBalancesReport = reportDao.getBalancesReportByTime(endTime.minusMinutes(TIME_RANGE), endTime.plusMinutes(TIME_RANGE));
@@ -526,7 +539,10 @@ public class ReportServiceImpl implements ReportService {
         zippedBytes = secondBalancesReport.getContent();
         final LocalDateTime secondCreatedAt = secondBalancesReport.getCreatedAt();
 
-        Map<String, WalletBalancesDto> secondBalancesMap = getWalletBalances(zippedBytes);
+        Map<String, WalletBalancesDto> secondBalancesMap = getWalletBalances(zippedBytes)
+                .entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getValue().getCurrencyId()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<InOutReportDto> inOutSummary = transactionService.getInOutSummaryByPeriodAndRoles(startTime, endTime, roles);
         if (isEmpty(inOutSummary)) {
@@ -630,7 +646,7 @@ public class ReportServiceImpl implements ReportService {
                 .content(ReportSevenExcelGeneratorUtil.generate(
                         invoiceReportData.stream()
                                 .filter(invoiceReportDto -> !invoiceReportDto.isEmpty())
-                                .sorted(Comparator.comparing(InvoiceReportDto::getCreationDate))
+                                .sorted(comparing(InvoiceReportDto::getCreationDate))
                                 .collect(toList()),
                         ratesMap))
                 .build();
