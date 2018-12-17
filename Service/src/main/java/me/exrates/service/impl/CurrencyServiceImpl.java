@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
@@ -108,7 +109,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         List<CurrencyPair> allCurrencyPairs = currencyDao.getAllCurrencyPairs(type);
         Map<String, CurrencyPair> filtered = new HashMap<>();
         allCurrencyPairs.forEach(cp -> filtered.put(cp.getName(), cp));
-        return (List<CurrencyPair>) filtered.values();
+        return Lists.newArrayList(filtered.values());
     }
 
     @Override
