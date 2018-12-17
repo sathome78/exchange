@@ -20,8 +20,8 @@ public class RefillPendingRequestServiceImpl implements RefillPendingRequestServ
     public List<RefillPendingRequestDto> getPendingRefillRequests(long userId) {
         /*example of statuses list
         * if statuseslist == null then this type of operation will not be queried*/
-        List<Integer> refillStatuses = Arrays.asList(1,2,3,4,5,7,8,9,10,11);
-        List<Integer> withdrawStatuses = Arrays.asList(1,2,3,4,5,7,8,9,10,11);
+        List<Integer> refillStatuses = Arrays.asList(1,2,3,4,5,7,13,14,15,16,17);
+        List<Integer> withdrawStatuses = Arrays.asList(1,2,3,4,5,6,11,13,14,15);
         /*------------------------------------------------------------*/
         return refillPendingRequestDAO.getPendingRefillRequests(userId, withdrawStatuses, refillStatuses);
     }
