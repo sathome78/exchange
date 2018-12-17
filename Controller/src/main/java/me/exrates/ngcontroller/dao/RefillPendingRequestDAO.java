@@ -6,5 +6,7 @@ import java.util.List;
 
 public interface RefillPendingRequestDAO {
 
-    List<RefillPendingRequestDto> getPendingRefillRequests(long userId, List<Integer> withdrawRequestStatuses, List<Integer> refillRequestStatuses);
+    List<RefillPendingRequestDto> getPendingRefillRequests(long userId, List<Integer> withdrawRequestStatuses,
+                                                           List<Integer> refillRequestStatuses,
+                                                           List<Integer> transferStatuses);
 }
