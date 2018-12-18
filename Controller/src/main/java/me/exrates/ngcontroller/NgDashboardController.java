@@ -291,7 +291,7 @@ public class NgDashboardController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
