@@ -14,6 +14,8 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.ngcontroller.exception.NgCurrencyNotFoundException;
+import me.exrates.ngcontroller.exception.NgRefillException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
@@ -42,6 +44,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.FileNotFoundException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -123,9 +127,13 @@ public class NgRefillController {
      */
     @GetMapping(value = "/merchants/input")
     public RefillPageDataDto inputCredits(@RequestParam("currency") String currencyName) {
+        Currency currency = currencyService.findByName(currencyName);
+        if (currency == null) {
+            logger.error("Failed to find currency for name: " + currencyName);
+            throw new NgCurrencyNotFoundException("Currency not found for name: " + currencyName);
+        }
         RefillPageDataDto response = new RefillPageDataDto();
         OperationType operationType = INPUT;
-        Currency currency = currencyService.findByName(currencyName);
         response.setCurrency(currency);
         Payment payment = new Payment();
         payment.setOperationType(operationType);
@@ -153,11 +161,13 @@ public class NgRefillController {
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());
         if (requestParamsDto.getOperationType() != INPUT) {
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422 - Your request operation type is not INPUT
+            logger.warn("Failed to process refill request operation type is not INPUT, but " + requestParamsDto.getOperationType());
+            throw new NgRefillException("Request operation type is not INPUT, but " + requestParamsDto.getOperationType());
         }
         if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
-//            throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);  // 429 - Your daily input limit  for this currency has been exceeded. Please try again tomorrow
+            String message = "Failed to process refill request as number of tries exceeded ";
+            logger.warn(message);
+            throw new NgRefillException(message);
         }
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
         if (!forceGenerateNewAddress) {
@@ -189,7 +199,7 @@ public class NgRefillController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to create refill request", e);
-            return ResponseEntity.badRequest().build();
+            throw new NgRefillException(((UndeclaredThrowableException) e).getUndeclaredThrowable().getMessage());
         }
     }
 
@@ -209,11 +219,11 @@ public class NgRefillController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(InvoiceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE) // 406
+    @ExceptionHandler({InvoiceNotFoundException.class, NgCurrencyNotFoundException.class,
+            NotEnoughUserWalletMoneyException.class, NgRefillException.class})
     @ResponseBody
     public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        logger.error("Invoice not found", exception);
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
@@ -225,16 +235,6 @@ public class NgRefillController {
     @ResponseBody
     public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
         logger.error("This operation is forbidden", exception);
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler({
-            NotEnoughUserWalletMoneyException.class,
-    })
-    @ResponseBody
-    public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
-        logger.error("This user doesn't have enough funds", exception);
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
