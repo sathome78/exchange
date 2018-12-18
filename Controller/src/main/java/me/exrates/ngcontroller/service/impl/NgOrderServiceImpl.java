@@ -143,7 +143,13 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException(errorMap.toString());
         }
 
-        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
+        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
+        BigDecimal inputTotal = inputOrder.getTotal();
+
+        if (totalWithComission.setScale(5, RoundingMode.HALF_UP)
+            .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
+
+//        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
             logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
                     prepareNewOrder.getTotalWithComission());
             throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
@@ -291,7 +297,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(currencyPairId);
 
         if (activeCurrencyPair == null) {
-            throw new RuntimeException("Wrong currency pair");
+            throw new NgDashboardException("Wrong currency pair");
         }
 
         Currency spendCurrency = null;
