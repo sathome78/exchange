@@ -131,7 +131,7 @@ public class NgUserServiceImpl implements NgUserService {
                     null;
             try {
                 authTokenDto = authTokenResult.orElseThrow(() ->
-                        new Exception("Failed to authenticate user with email: " + user.getEmail()));
+                        new NgDashboardException("Failed to authenticate user with email: " + user.getEmail()));
             } catch (Exception e) {
                 logger.error("Error creating token with email {}", user.getEmail());
             }
