@@ -33,6 +33,15 @@
         banner.style.display = "none"
     }
 </script>
+<%-- Start Jira widget --%>
+<style>
+    iframe[name='JSD widget'] {
+        margin-bottom: 75px;
+        margin-right: 15px;
+    }
+</style>
+<script data-jsd-embedded data-key="37bd65ad-ae58-4d7a-8498-af815d3af05b" data-base-url="https://jsd-widget.atlassian.com" src="https://jsd-widget.atlassian.com/assets/embed.js"></script>
+<%-- End Jira widget --%>
 <a href="https://t.me/exrates_official" target="_blank" class="banner-wrap" id="banner">
     <span class="banner">
         <span class="banner__logo">
