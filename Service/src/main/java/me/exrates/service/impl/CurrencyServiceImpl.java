@@ -76,7 +76,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public Currency findByName(String name) {
-        return currencyDao.findByName(name);
+        return currencyDao.findByName(name).orElse(null);
     }
 
     @Override
@@ -142,8 +142,11 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public int resolvePrecisionByOperationType(final String currency, OperationType operationType) {
+        String currencyName = currencyDao.findByName(currency).isPresent()
+                ? currencyDao.findByName(currency).get().getName()
+                : "";
 
-        return currency.equals(currencyDao.findByName("EDR").getName()) && (operationType == OperationType.OUTPUT) ?
+        return currency.equals(currencyName) && (operationType == OperationType.OUTPUT) ?
                 EDC_OUTPUT_PRECISION :
                 CRYPTO.contains(currency) ? CRYPTO_PRECISION :
                         DEFAULT_PRECISION;

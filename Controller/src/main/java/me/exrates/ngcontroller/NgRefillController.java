@@ -14,6 +14,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.ngcontroller.exception.NgCurrencyNotFoundException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
@@ -123,9 +124,13 @@ public class NgRefillController {
      */
     @GetMapping(value = "/merchants/input")
     public RefillPageDataDto inputCredits(@RequestParam("currency") String currencyName) {
+        Currency currency = currencyService.findByName(currencyName);
+        if (currency == null) {
+            logger.error("Failed to find currency for name: " + currencyName);
+            throw new NgCurrencyNotFoundException("Currency not found for name: " + currencyName);
+        }
         RefillPageDataDto response = new RefillPageDataDto();
         OperationType operationType = INPUT;
-        Currency currency = currencyService.findByName(currencyName);
         response.setCurrency(currency);
         Payment payment = new Payment();
         payment.setOperationType(operationType);
@@ -209,8 +214,8 @@ public class NgRefillController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(InvoiceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE) // 406
+    @ExceptionHandler({InvoiceNotFoundException.class, NgCurrencyNotFoundException.class})
     @ResponseBody
     public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         logger.error("Invoice not found", exception);
@@ -230,7 +235,7 @@ public class NgRefillController {
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({
-            NotEnoughUserWalletMoneyException.class,
+            NotEnoughUserWalletMoneyException.class
     })
     @ResponseBody
     public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
