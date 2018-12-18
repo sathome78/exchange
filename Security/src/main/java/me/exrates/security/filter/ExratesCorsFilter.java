@@ -31,7 +31,7 @@ public class ExratesCorsFilter implements Filter {
 
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 
-        response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
+//        response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
 
 //        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
 
