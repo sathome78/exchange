@@ -291,7 +291,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(currencyPairId);
 
         if (activeCurrencyPair == null) {
-            throw new RuntimeException("Wrong currency pair");
+            throw new NgDashboardException("Wrong currency pair");
         }
 
         Currency spendCurrency = null;
