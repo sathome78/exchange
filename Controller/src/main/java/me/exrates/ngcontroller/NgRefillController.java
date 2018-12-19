@@ -170,7 +170,7 @@ public class NgRefillController {
             throw new NgRefillException(message);
         }
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
-        if (forceGenerateNewAddress) {
+        if (!forceGenerateNewAddress) {
             Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
                     requestParamsDto.getMerchant(),
                     requestParamsDto.getCurrency(),
@@ -195,7 +195,7 @@ public class NgRefillController {
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
         try {
-            Map<String, Object> response = refillService.createRefillRequest(request);
+            Map<String, Object> response = refillService.createRefillRequest(request, getPrincipalEmail());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to create refill request", e);

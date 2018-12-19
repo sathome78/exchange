@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
@@ -41,9 +42,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,6 +166,7 @@ public class RefillServiceImpl implements RefillService {
                     ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
                 }
             });
+            refillRequestDao.create(request);
             String merchantRequestSign = (String) result.get("sign");
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
@@ -181,8 +186,6 @@ public class RefillServiceImpl implements RefillService {
                         throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
                     }
                 }
-            } else {
-
             }
             request.setAddress(((Map<String, String>) result.get("params")).get("address"));
             request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
@@ -216,10 +219,15 @@ public class RefillServiceImpl implements RefillService {
     }
 
     private Map<String, String> refill(RefillRequestCreateDto requestDto, String email) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(restTemplateUrl).build().toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl(restTemplateUrl + "/afgssr/call/refill")
+                .build()
+                .toUri();
+        ParameterizedTypeReference<Map<String, String>> responseType =
+                new ParameterizedTypeReference<Map<String, String>>() {};
         try {
-            Map<String, String> params = restTemplate.postForObject(uri, getRequest(requestDto, email), Map.class);
-            return params;
+            ResponseEntity<Map<String, String>> params =
+                    restTemplate.exchange(uri, HttpMethod.POST, getRequest(requestDto, email), responseType);
+            return params.getBody();
         } catch (RestClientException e) {
             log.error("Failed to get coin params via rest template", e);
             return Collections.emptyMap();
@@ -232,7 +240,8 @@ public class RefillServiceImpl implements RefillService {
         }
         email = Base64.getEncoder().encodeToString(email.getBytes());
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.setAccept(ImmutableList.of(MediaType.APPLICATION_JSON_UTF8));
         headers.set("username", email);
         headers.set("charset", "UTF-8");
 
