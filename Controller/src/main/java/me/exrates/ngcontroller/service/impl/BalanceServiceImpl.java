@@ -1,11 +1,13 @@
 package me.exrates.ngcontroller.service.impl;
 
 import me.exrates.model.dto.BalancesShortDto;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
-import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.TradeMarket;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.dao.BalanceDao;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.model.UserBalancesDto;
@@ -17,8 +19,11 @@ import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.MarketRatesHolder;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -43,6 +48,7 @@ public class BalanceServiceImpl implements BalanceService {
     private final UserService userService;
     private final ExchangeRatesHolder exchangeRatesHolder;
     private final WalletService walletService;
+    private final MarketRatesHolder marketRatesHolder;
 
     @Autowired
     public BalanceServiceImpl(BalanceDao balanceDao,
@@ -51,7 +57,8 @@ public class BalanceServiceImpl implements BalanceService {
                               RefillPendingRequestService refillPendingRequestService,
                               UserService userService,
                               ExchangeRatesHolder exchangeRatesHolder,
-                              WalletService walletService) {
+                              WalletService walletService,
+                              MarketRatesHolder marketRatesHolder) {
         this.balanceDao = balanceDao;
         this.inputOutputService = inputOutputService;
         this.refillPendingRequestService = refillPendingRequestService;
@@ -59,11 +66,12 @@ public class BalanceServiceImpl implements BalanceService {
         this.userService = userService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.walletService = walletService;
+        this.marketRatesHolder = marketRatesHolder;
     }
 
     @Override
     public List<UserBalancesDto> getUserBalances(String tikerName, String sortByCreated, Integer page, Integer limit, int userId) {
-        return balanceDao.getUserBalances(tikerName, sortByCreated, page, limit,userId);
+        return balanceDao.getUserBalances(tikerName, sortByCreated, page, limit, userId);
     }
 
     @Override
@@ -97,7 +105,7 @@ public class BalanceServiceImpl implements BalanceService {
         Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
         Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
         BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
-        walletsDetails.forEach(p-> {
+        walletsDetails.forEach(p -> {
             BigDecimal sumBalances = new BigDecimal(p.getActiveBalance()).add(new BigDecimal(p.getReservedBalance())).setScale(8, RoundingMode.HALF_DOWN);
             BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
             BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
@@ -140,19 +148,53 @@ public class BalanceServiceImpl implements BalanceService {
 
     @Override
     public Map<String, BigDecimal> getBalancesSumInBtcAndUsd() {
-        List<WalletBalanceDto> userBalances = walletService.getBalancesForUser();
+        String email = getPrincipalEmail();
+
+        List<MyWalletsDetailedDto> cryptoWallet = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, CurrencyType.CRYPTO);
+        List<MyWalletsDetailedDto> fiatWallet = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, CurrencyType.FIAT);
+
+        List<MyWalletsDetailedDto> commonWallets = ListUtils.union(cryptoWallet, fiatWallet);
+
         BigDecimal btcBalances = BigDecimal.ZERO;
         BigDecimal usdBalances = BigDecimal.ZERO;
-        Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
-        Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
-        BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
-        for (WalletBalanceDto p : userBalances) {
-            BigDecimal sumBalances = p.getActiveBalance().add(p.getReservedBalance());
-            BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-            BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-            BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
-            btcBalances = btcBalances.add(dto.getBalanceBtc());
-            usdBalances = usdBalances.add(dto.getBalanceUsd());
+        BigDecimal btcUsdRate = marketRatesHolder.getBtcUsdRate();
+        for (MyWalletsDetailedDto p : commonWallets) {
+
+            BigDecimal activeBalance = new BigDecimal(p.getActiveBalance());
+            BigDecimal orderBalance = new BigDecimal(p.getReservedByOrders());
+            BigDecimal sumBalances = BigDecimalProcessing.doAction(activeBalance, orderBalance, ActionType.ADD);
+
+            if (sumBalances.compareTo(BigDecimal.ZERO) == 0) continue;
+
+            switch (p.getCurrencyName()) {
+                case "USD":
+                    usdBalances = usdBalances.add(sumBalances);
+                    BigDecimal btcValue = BigDecimalProcessing.doAction(sumBalances, btcUsdRate, ActionType.DEVIDE);
+                    btcBalances = btcBalances.add(btcValue);
+                    break;
+                case "BTC":
+                    btcBalances = btcBalances.add(sumBalances);
+                    usdBalances = usdBalances.add(sumBalances.multiply(btcUsdRate));
+                    break;
+                default:
+                    String currencyName = p.getCurrencyName();
+                    BigDecimal currentBtcRate;
+                    Optional<StatisticForMarket> optional =
+                            marketRatesHolder.getAll()
+                                    .stream()
+                                    .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
+                                    .findFirst();
+
+                    if (optional.isPresent()) {
+                        currentBtcRate = optional.get().getLastOrderRate();
+                        if (currentBtcRate.compareTo(BigDecimal.ZERO) > 0) {
+                            BigDecimal btcAmount = BigDecimalProcessing.doAction(sumBalances, currentBtcRate, ActionType.DEVIDE);
+                            BigDecimal usdAmount = BigDecimalProcessing.doAction(btcAmount, btcUsdRate, ActionType.MULTIPLY);
+                            usdBalances = usdBalances.add(usdAmount);
+                            btcBalances = btcBalances.add(btcAmount);
+                        }
+                    }
+            }
         }
         Map<String, BigDecimal> balancesMap = new HashMap<>();
         balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
@@ -185,7 +227,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
 
-    private <T> PagedResult<T>  getSafeSubList(List<T> items, int offset, int limit) {
+    private <T> PagedResult<T> getSafeSubList(List<T> items, int offset, int limit) {
         if (items.isEmpty() || offset >= items.size()) {
             return new PagedResult<>(0, Collections.emptyList());
         }
@@ -193,6 +235,10 @@ public class BalanceServiceImpl implements BalanceService {
             return new PagedResult<>(items.size(), items.subList(offset, items.size()));
         }
         return new PagedResult<>(items.size(), items.subList(offset, offset + limit));
+    }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
 }

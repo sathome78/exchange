@@ -1577,7 +1577,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setConnectionRequestTimeout(25000);
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
-        return new RestTemplate();
+        return restTemplate;
     }
 
     @Bean
