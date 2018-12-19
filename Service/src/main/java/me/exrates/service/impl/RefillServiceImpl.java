@@ -1,5 +1,7 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
@@ -30,6 +32,7 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.util.RestApiUtils;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -38,13 +41,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -65,7 +77,10 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
  */
 
 @Service
-@PropertySource(value = {"classpath:/job.properties"})
+@PropertySource(value = {
+        "classpath:/job.properties",
+        "classpath:/angular.properties"
+})
 public class RefillServiceImpl implements RefillService {
 
     @Value("${invoice.blockNotifyUsers}")
@@ -115,9 +130,15 @@ public class RefillServiceImpl implements RefillService {
     @Autowired
     InputOutputService inputOutputService;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${rest-template.url}")
+    private String restTemplateUrl;
+
     @Override
     @Transactional
-    public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
+    public Map<String, Object> createRefillRequest(RefillRequestCreateDto request, String email) {
         ProfileData profileData = new ProfileData(1000);
         Map<String, Object> result = new HashMap<String, Object>() {{
             put("params", new HashMap<String, String>());
@@ -132,7 +153,8 @@ public class RefillServiceImpl implements RefillService {
                 request.setId(requestId);
             }
             profileData.setTime1();
-            merchantService.refill(request).entrySet().forEach(e ->
+
+            refill(request, email).entrySet().forEach(e ->
             {
                 if (e.getKey().startsWith("$__")) {
                     result.put(e.getKey().replace("$__", ""), e.getValue());
@@ -159,6 +181,8 @@ public class RefillServiceImpl implements RefillService {
                         throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
                     }
                 }
+            } else {
+
             }
             request.setAddress(((Map<String, String>) result.get("params")).get("address"));
             request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
@@ -189,6 +213,38 @@ public class RefillServiceImpl implements RefillService {
             }
         }
         return result;
+    }
+
+    private Map<String, String> refill(RefillRequestCreateDto requestDto, String email) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(restTemplateUrl).build().toUri();
+        try {
+            Map<String, String> params = restTemplate.postForObject(uri, getRequest(requestDto, email), Map.class);
+            return params;
+        } catch (RestClientException e) {
+            log.error("Failed to get coin params via rest template", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    private HttpEntity<RefillRequestCreateDto> getRequest(RefillRequestCreateDto requestDto, String email) {
+        if (StringUtils.isBlank(email)) {
+            throw new IllegalArgumentException("Failed as email is blank");
+        }
+        email = Base64.getEncoder().encodeToString(email.getBytes());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("username", email);
+        headers.set("charset", "UTF-8");
+
+        try {
+            HttpEntity<RefillRequestCreateDto> httpEntity = new HttpEntity<>(requestDto, headers);
+            log.debug("HttpRequest {}", httpEntity);
+            return httpEntity;
+        } catch (Exception e) {
+            String message = "Failed to convert RefillRequestCreateDto to request body";
+            log.error(message, e);
+            throw new RuntimeException(message, e);
+        }
     }
 
     @Override

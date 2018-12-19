@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.Email;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Transaction;
@@ -15,15 +14,12 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
@@ -39,7 +35,6 @@ import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
-import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.logging.log4j.LogManager;
@@ -49,14 +44,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -130,40 +123,6 @@ public class MerchantServiceImpl implements MerchantService {
         }
     }
 
-    @Override
-    public String sendDepositNotification(final String toWallet,
-                                          final String email,
-                                          final Locale locale,
-                                          final CreditsOperation creditsOperation,
-                                          final String depositNotification) {
-        final BigDecimal amount = creditsOperation
-                .getAmount()
-                .add(creditsOperation.getCommissionAmount());
-        final String sumWithCurrency = BigDecimalProcessing.formatSpacePoint(amount, false) + " " +
-                creditsOperation
-                        .getCurrency()
-                        .getName();
-        final String notification = messageSource.getMessage(depositNotification,
-                new Object[]{sumWithCurrency, toWallet},
-                locale);
-        final Email mail = new Email();
-        mail.setTo(email);
-        mail.setSubject(messageSource
-                .getMessage("merchants.depositNotification.header", null, locale));
-        mail.setMessage(notification);
-
-        try {
-      /* TODO temporary disable
-      notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
-          "merchants.depositNotification.header", depositNotification,
-          new Object[]{sumWithCurrency, toWallet});*/
-            sendMailService.sendInfoMail(mail);
-        } catch (MailException e) {
-            LOG.error(e);
-        }
-        return notification;
-    }
-
     private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
         return currencies.stream()
                 .map(Currency::getId)
@@ -187,31 +146,6 @@ public class MerchantServiceImpl implements MerchantService {
             return null;
         }
         return merchantDao.findAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-    }
-
-    @Override
-    public List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId) {
-        return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
-                .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
-    }
-
-    @Override
-    public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
-        return merchantDao.findByMerchantAndCurrency(merchantId, currencyId);
-    }
-
-    @Override
-    public List<TransferMerchantApiDto> findTransferMerchants() {
-        List<TransferMerchantApiDto> result = merchantDao.findTransferMerchants();
-        result.forEach(item -> {
-            IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
-            if (merchantService instanceof ITransferable) {
-                ITransferable transferService = (ITransferable) merchantService;
-                item.setIsVoucher(transferService.isVoucher());
-                item.setRecipientUserIsNeeded(transferService.recipientUserIsNeeded());
-            }
-        });
-        return result;
     }
 
 
@@ -325,12 +259,6 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     @Transactional
-    public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
-        merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
-    }
-
-    @Override
-    @Transactional
     public BigDecimal getMinSum(Integer merchantId, Integer currencyId) {
         return merchantDao.getMinSum(merchantId, currencyId);
     }
@@ -378,11 +306,6 @@ public class MerchantServiceImpl implements MerchantService {
         if (isBlocked) {
             throw new MerchantCurrencyBlockedException("Operation " + operationType + " is blocked for this currency! ");
         }
-    }
-
-    @Override
-    public List<String> retrieveBtcCoreBasedMerchantNames() {
-        return merchantDao.retrieveBtcCoreBasedMerchantNames();
     }
 
     @Override

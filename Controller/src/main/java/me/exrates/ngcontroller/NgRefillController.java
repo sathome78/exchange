@@ -170,7 +170,7 @@ public class NgRefillController {
             throw new NgRefillException(message);
         }
         Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
-        if (!forceGenerateNewAddress) {
+        if (forceGenerateNewAddress) {
             Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
                     requestParamsDto.getMerchant(),
                     requestParamsDto.getCurrency(),
