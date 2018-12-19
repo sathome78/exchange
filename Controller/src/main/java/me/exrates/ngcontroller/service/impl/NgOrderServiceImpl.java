@@ -557,8 +557,9 @@ public class NgOrderServiceImpl implements NgOrderService {
                 continue;
             }
 
-            BigDecimal sumAmount = item.getAmount().add(preparedItems.get(i - 1).getSumAmount());
-            BigDecimal total = BigDecimalProcessing.doAction(sumAmount, item.getExrate(), ActionType.MULTIPLY);
+            BigDecimal totalItem = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
+            BigDecimal prevTotal = item.getAmount().add(preparedItems.get(i - 1).getTotal());
+            BigDecimal total = BigDecimalProcessing.doAction(prevTotal, totalItem, ActionType.ADD);
             item.setTotal(total);
         }
     }
