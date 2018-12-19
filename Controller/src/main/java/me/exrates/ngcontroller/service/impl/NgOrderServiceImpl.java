@@ -143,7 +143,13 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException(errorMap.toString());
         }
 
-        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
+        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
+        BigDecimal inputTotal = inputOrder.getTotal();
+
+        if (totalWithComission.setScale(5, RoundingMode.HALF_UP)
+                .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
+
+//        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
             logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
                     prepareNewOrder.getTotalWithComission());
             throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
@@ -537,8 +543,25 @@ public class NgOrderServiceImpl implements NgOrderService {
             }
         }
         List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
-        countTotal(preparedItems, orderType);
+        setSumAmount(preparedItems);
+        setTotal(preparedItems);
         return preparedItems;
+    }
+
+    private void setTotal(List<SimpleOrderBookItem> preparedItems) {
+        for (int i = 0; i < preparedItems.size(); i++) {
+            SimpleOrderBookItem item = preparedItems.get(i);
+            if (i == 0) {
+                BigDecimal total = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
+                item.setTotal(total);
+                continue;
+            }
+
+            BigDecimal totalItem = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
+            BigDecimal prevTotal = item.getAmount().add(preparedItems.get(i - 1).getTotal());
+            BigDecimal total = BigDecimalProcessing.doAction(prevTotal, totalItem, ActionType.ADD);
+            item.setTotal(total);
+        }
     }
 
 //    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
@@ -561,12 +584,14 @@ public class NgOrderServiceImpl implements NgOrderService {
 //        }
 //    }
 
-    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
+    private void setSumAmount(List<SimpleOrderBookItem> items) {
         for (int i = 0; i < items.size(); i++) {
             if (i == 0) {
-                items.get(i).setTotal(items.get(i).getAmount());
+                items.get(i).setSumAmount(items.get(i).getAmount());
             } else {
-                items.get(i).setTotal(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
+                BigDecimal add =
+                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
+                items.get(i).setSumAmount(add);
             }
         }
     }

@@ -1,5 +1,6 @@
 package me.exrates.controller.exception;
 
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -16,6 +17,7 @@ public class ErrorInfo {
     public final String cause;
     public final String detail;
     public String uuid;
+    public Integer code;
 
     public ErrorInfo(CharSequence url, Throwable ex) {
         this.url = url.toString();
@@ -23,6 +25,12 @@ public class ErrorInfo {
         String detail = ex.getLocalizedMessage() == null ? ex.getLocalizedMessage() : ex.getMessage();
         while (ex.getCause() != null) ex = ex.getCause();
         this.detail = ex.getLocalizedMessage() == null ? detail : ex.getLocalizedMessage();
+        if (ex instanceof NgDashboardException) {
+            NgDashboardException custom = (NgDashboardException) ex;
+            if (custom.getCode() != null) {
+                this.code = custom.getCode();
+            }
+        }
     }
 
     public ErrorInfo(CharSequence url, Throwable ex, String reason) {

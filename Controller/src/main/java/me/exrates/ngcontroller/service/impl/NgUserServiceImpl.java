@@ -113,7 +113,7 @@ public class NgUserServiceImpl implements NgUserService {
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
             logger.error("Error create password for user, temp_token {}", tempToken);
-            throw new NgDashboardException("User not found");
+            throw new NgDashboardException("User not found", 1001);
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
@@ -131,7 +131,7 @@ public class NgUserServiceImpl implements NgUserService {
                     null;
             try {
                 authTokenDto = authTokenResult.orElseThrow(() ->
-                        new NgDashboardException("Failed to authenticate user with email: " + user.getEmail()));
+                        new NgDashboardException("Failed to authenticate user with email: " + user.getEmail(), 1002));
             } catch (Exception e) {
                 logger.error("Error creating token with email {}", user.getEmail());
             }
