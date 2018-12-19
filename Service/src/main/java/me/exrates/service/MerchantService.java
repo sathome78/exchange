@@ -35,20 +35,11 @@ public interface MerchantService {
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);
 
-    String sendDepositNotification(String toWallet, String email,
-                                   Locale locale, CreditsOperation creditsOperation, String depositNotification);
-
     Merchant findById(int id);
 
     Merchant findByName(String name);
 
     List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
-
-    List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
-
-    Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
-
-    List<TransferMerchantApiDto> findTransferMerchants();
 
     List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
@@ -62,8 +53,6 @@ public interface MerchantService {
 
     void setBlockForAll(OperationType operationType, boolean blockStatus);
 
-    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
-
     BigDecimal getMinSum(Integer merchantId, Integer currencyId);
 
     void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount);
@@ -75,8 +64,6 @@ public interface MerchantService {
     MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
     void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType);
-
-    List<String> retrieveBtcCoreBasedMerchantNames();
 
     CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale);
 
