@@ -147,7 +147,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         BigDecimal inputTotal = inputOrder.getTotal();
 
         if (totalWithComission.setScale(5, RoundingMode.HALF_UP)
-            .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
+                .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
 
 //        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
             logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
@@ -544,7 +544,20 @@ public class NgOrderServiceImpl implements NgOrderService {
         }
         List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
         countTotal(preparedItems, orderType);
+        addSumAmount(preparedItems);
         return preparedItems;
+    }
+
+    private void addSumAmount(List<SimpleOrderBookItem> preparedItems) {
+        for (int i = 0; i < preparedItems.size(); i++) {
+            SimpleOrderBookItem item = preparedItems.get(i);
+            if (i == 0) {
+                item.setSumAmount(item.getAmount());
+                continue;
+            }
+
+            item.setSumAmount(item.getAmount().add(preparedItems.get(i - 1).getSumAmount()));
+        }
     }
 
 //    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
