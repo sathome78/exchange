@@ -17,7 +17,8 @@ public class CallBackLogDaoImpl implements CallBackLogDao {
 
     @Override
     public void logCallBackData(CallBackLogDto callBackLogDto) {
-        String sql = "INSERT INTO CALLBACK_LOGS VALUES(:user_id, :request_date, :response_date, :request_json, :response_json, :response_code)";
+        String sql = "INSERT INTO CALLBACK_LOGS(user_id, request_date, response_date, request_json, response_json, response_code)" +
+                " VALUES(:user_id, :request_date, :response_date, :request_json, :response_json, :response_code)";
         final Map<String, Object> params = new HashMap<>();
         params.put("user_id", callBackLogDto.getUserId());
         params.put("request_date", callBackLogDto.getRequestDate());
