@@ -1532,6 +1532,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mncServiceImpl")
+    public EthTokenService mncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f0f1be08591ab7d990faf910b38ed5d60e4d5bf");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MNC",
+                "MNC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "s4fServiceImpl")
+    public EthTokenService s4fService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaec7d1069e3a914a3eb50f0bfb1796751f2ce48a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "S4F",
+                "S4F", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {

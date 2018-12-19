@@ -21,7 +21,15 @@
         banner.style.display = "none"
     }
 </script>
-
+<%-- Start Jira widget --%>
+<style>
+    iframe[name='JSD widget'] {
+        margin-bottom: 75px;
+        margin-right: 15px;
+    }
+</style>
+<script data-jsd-embedded data-key="37bd65ad-ae58-4d7a-8498-af815d3af05b" data-base-url="https://jsd-widget.atlassian.com" src="https://jsd-widget.atlassian.com/assets/embed.js"></script>
+<%-- End Jira widget --%>
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
@@ -109,6 +117,9 @@
                         <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
                            class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
                     </li>
+                <li>
+                    <script data-jsd-embedded data-key="6d1784c2-1ec8-4add-a0b9-e6a45eae9696" data-base-url="https://jsd-widget.atlassian.com" src="https://jsd-widget.atlassian.com/assets/embed.js"></script>
+                </li>
 
                     <sec:authorize access="isAuthenticated()">
                         <li id="hello-my-friend"><a class="nav__link" href="">
