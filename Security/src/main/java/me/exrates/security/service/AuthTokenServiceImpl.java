@@ -195,7 +195,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
             LocalDateTime finalExpiration = new Date(claims.get("expiration", Long.class)).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();
-            if (expiration.isAfter(LocalDateTime.now()) && finalExpiration.isAfter(LocalDateTime.now())) {
+            if (finalExpiration.isAfter(LocalDateTime.now())) {
                 UserDetails user = userDetailsService.loadUserByUsername(username);
                 apiAuthTokenDao.prolongToken(tokenId);
                 return user;
