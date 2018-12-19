@@ -260,7 +260,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
             .antMatchers("/updatePassword", "/createPassword").permitAll()
-            .antMatchers(POST, "/createPasswordConfirm").permitAll()
+            .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()
@@ -333,7 +333,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/success",
                     "/merchants/payeer/payment/status",
                     "/test/**",
-                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http
             .headers()
             .frameOptions()

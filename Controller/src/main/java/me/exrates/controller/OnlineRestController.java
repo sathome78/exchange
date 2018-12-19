@@ -3,6 +3,7 @@ package me.exrates.controller;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
@@ -12,6 +13,7 @@ import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -55,7 +57,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * @author ValkSam
  */
 @Log4j2
-@PropertySource("classpath:session.properties")
+@PropertySource(value = {"classpath:/mobile.properties", "classpath:session.properties"})
 @RestController
 public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
@@ -131,6 +133,22 @@ public class OnlineRestController {
 
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private RefillService refillService;
+
+    @Value("${pass.encode.key}")
+    private String PASS_ENCODE_KEY;
+    private final String HEADER_SECURITY = "username";
+
+    @PostMapping(value = "/afgssr/call/refill", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> generateRefill(@RequestBody RefillRequestCreateDto requestDto, HttpServletRequest servletRequest) {
+        Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
+        String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
+        Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
+        String username = RestApiUtils.decodePassword(usernameHeader, PASS_ENCODE_KEY);
+        Preconditions.checkNotNull(userService.findByEmail(username), "user not found");
+        return refillService.callRefillIRefillable(requestDto);
+    }
 
     @GetMapping("/adsffefe/csrf")
     public CsrfToken csrf(CsrfToken token) {

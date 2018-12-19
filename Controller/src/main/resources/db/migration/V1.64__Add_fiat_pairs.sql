@@ -1,4 +1,3 @@
-use birzha;
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name, market)
 VALUES((select id from CURRENCY where name = 'BTC'), (select id from CURRENCY where name = 'UAH'), 'BTC/UAH', 170, 0, 'BTC/UAH', 'FIAT');

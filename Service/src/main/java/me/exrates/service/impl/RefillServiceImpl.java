@@ -118,6 +118,12 @@ public class RefillServiceImpl implements RefillService {
   InputOutputService inputOutputService;
 
   @Override
+  public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
+    IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
+    return merchantService.refill(request);
+  }
+
+  @Override
   @Transactional
   public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
     ProfileData profileData = new ProfileData(1000);
