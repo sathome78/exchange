@@ -240,7 +240,7 @@ public class NgTransferController {
             return new ResponseModel<>(false, error);
         }
 
-        if (userService.ifEmailIsUnique(email)) {
+        if (!userService.ifEmailIsUnique(email)) {
             ResponseCustomError error =
                     new ResponseCustomError(messageSource.getMessage("transfer.email.not_found", null, Locale.ENGLISH));
             return new ResponseModel<>(false, error);
