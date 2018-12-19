@@ -56,13 +56,13 @@ public class SecureServiceImpl implements SecureService {
                                CapchaAuthorizationFilter filter) {
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
         PinDto result = reSendLoginMessage(request, authentication.getName(), false);
-        if (result != null) {
-            request.getSession().setAttribute(checkPinParam, "");
-            request.getSession().setAttribute(authenticationParamName, authentication);
-            request.getSession().setAttribute(passwordParam, request.getParameter(filter.getPasswordParameter()));
-            authentication.setAuthenticated(false);
-            throw new PinCodeCheckNeedException(result.getMessage());
-        }
+//        if (result != null) {
+//            request.getSession().setAttribute(checkPinParam, "");
+//            request.getSession().setAttribute(authenticationParamName, authentication);
+//            request.getSession().setAttribute(passwordParam, request.getParameter(filter.getPasswordParameter()));
+//            authentication.setAuthenticated(false);
+//            throw new PinCodeCheckNeedException(result.getMessage());
+//        }
     }
 
     @Override
