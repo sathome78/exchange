@@ -588,7 +588,9 @@ public class NgOrderServiceImpl implements NgOrderService {
             if (i == 0) {
                 items.get(i).setSumAmount(items.get(i).getAmount());
             } else {
-                items.get(i).setSumAmount(items.get(i).getAmount().add(items.get(i - 1).getTotal()));
+                BigDecimal add =
+                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
+                items.get(i).setSumAmount(add);
             }
         }
     }
