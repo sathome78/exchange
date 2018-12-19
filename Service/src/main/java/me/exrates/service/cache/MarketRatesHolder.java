@@ -5,8 +5,10 @@ import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.TradeMarket;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -137,5 +139,17 @@ public class MarketRatesHolder {
             return lastRateForBtcUsd.multiply(dealPrice);
         }
         return null;
+    }
+
+    public List<StatisticForMarket> getRatesForMarket(TradeMarket market){
+        return getAll().stream()
+                .filter(p->p.getMarket().equals(market.name()))
+                .collect(Collectors.toList());
+
+    }
+
+    public BigDecimal getBtcUsdRate() {
+        StatisticForMarket dto = ratesMarketMap.getOrDefault(BTC_USD_ID, null);
+        return dto == null ? BigDecimal.ZERO : dto.getLastOrderRate();
     }
 }
