@@ -187,6 +187,38 @@ public class NgUserServiceImpl implements NgUserService {
         return user != null;
     }
 
+    @Override
+    public void sendEmailDisable2Fa(String userEmail) {
+        Email email = new Email();
+        email.setTo(userEmail);
+        email.setMessage("Dear user,\n" +
+                "\n" +
+                "We received a successful request to disable Two-Factor Authentication on your account with Google Authenticator.\n" +
+                "\n" +
+                "If this was not you, please change your password and contact us.");
+        email.setSubject("Notification of disable 2FA");
+
+        if (!DEV_MODE) {
+            sendMailService.sendMailMandrill(email);
+        }
+    }
+
+    @Override
+    public void sendEmailEnable2Fa(String userEmail) {
+        Email email = new Email();
+        email.setTo(userEmail);
+        email.setMessage("Dear user,\n" +
+                "\n" +
+                "We received a successful request to enable Two-Factor Authentication on your account with Google Authenticator.\n" +
+                "\n" +
+                "If this was not you, please change your password and contact us.");
+        email.setSubject("Notification of enable 2FA");
+
+        if (!DEV_MODE) {
+            sendMailService.sendMailMandrill(email);
+        }
+    }
+
 
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailWithToken(User user,

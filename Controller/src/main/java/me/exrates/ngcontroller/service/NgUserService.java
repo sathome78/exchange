@@ -18,4 +18,8 @@ public interface NgUserService {
 
     boolean validateTempToken(String token);
 
+    void sendEmailDisable2Fa(String email);
+
+    void sendEmailEnable2Fa(String email);
+
 }
