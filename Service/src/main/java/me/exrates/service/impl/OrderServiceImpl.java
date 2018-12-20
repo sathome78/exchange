@@ -1200,6 +1200,7 @@ public class OrderServiceImpl implements OrderService {
 
             boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
             if (result) {
+                exOrder.setStatus(OrderStatus.CANCELLED);
                 eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
             }
             return result;
