@@ -9,6 +9,7 @@ import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
@@ -30,6 +31,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -201,6 +204,11 @@ public class NgUserController {
                                                  HttpServletRequest request) {
         boolean result = ngUserService.createPasswordRecovery(passwordCreateDto, request);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/validateTempToken/{token}")
+    public ResponseModel<Boolean> checkTempToken(@PathVariable("token") String token) {
+        return new ResponseModel<>(ngUserService.validateTempToken(token));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
