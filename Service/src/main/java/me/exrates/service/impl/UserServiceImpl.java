@@ -84,6 +84,7 @@ public class UserServiceImpl implements UserService {
         add("CN");
         add("ID");
         add("AR");
+        add("KO");
     }};
 
     @Autowired

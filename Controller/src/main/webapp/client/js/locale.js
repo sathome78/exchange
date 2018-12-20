@@ -15,6 +15,8 @@ function initLocaleSwitcher() {
             localeCode = 'cn';
         } else if (localeName == 'ID') {
             localeCode = 'in';
+        }else if (localeName == 'KO') {
+            localeCode = 'ko';
         }
         /*
         else if (localeName == 'AR') {
