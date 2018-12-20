@@ -304,6 +304,16 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/dime_wallet.properties","DIME","DIME", 20, 20, false, true);
 	}
 
+	@Bean(name = "bsvServiceImpl")
+	public BitcoinService bsvServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bsv_wallet.properties","BSV","BSV", 20, 20, false, true);
+	}
+
+	@Bean(name = "bchServiceImpl")
+	public BitcoinService bchServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bch_wallet.properties","BCH","BCH", 20, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
