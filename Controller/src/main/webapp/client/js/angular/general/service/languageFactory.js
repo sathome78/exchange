@@ -8,7 +8,7 @@ angular
 function LanguageService($cookies, $location, $rootScope, $route) {
     var service = {};
 
-    service.languageMenu = ['en', 'ru', 'ch', 'id', 'ar'];
+    service.languageMenu = ['en', 'ru', 'ch', 'id', 'ar', 'ko'];
 
     service.currentLanguage = {
         lang: getLangFromCookies(),
