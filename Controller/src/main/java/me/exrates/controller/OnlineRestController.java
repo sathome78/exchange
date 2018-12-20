@@ -151,7 +151,7 @@ public class OnlineRestController {
             String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
             Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
             String username = RestApiUtils.decodePassword(usernameHeader, PASS_ENCODE_KEY);
-            Preconditions.checkNotNull(userService.findByEmail(username), "user not found");
+            Preconditions.checkArgument(username.equals(requestDto.getUserEmail()) && userService.findByEmail(username) != null, "user not found or wrong user");
             return refillService.callRefillIRefillable(requestDto);
         } catch (Exception e) {
             throw new RefillRequestMerchantException(e.getMessage());
