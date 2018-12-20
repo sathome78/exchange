@@ -177,29 +177,54 @@ public class BalanceServiceImpl implements BalanceService {
                     usdBalances = usdBalances.add(sumBalances.multiply(btcUsdRate));
                     break;
                 default:
-                    String currencyName = p.getCurrencyName();
-                    BigDecimal currentBtcRate;
-                    Optional<StatisticForMarket> optional =
-                            marketRatesHolder.getAll()
-                                    .stream()
-                                    .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
-                                    .findFirst();
-
-                    if (optional.isPresent()) {
-                        currentBtcRate = optional.get().getLastOrderRate();
-                        if (currentBtcRate.compareTo(BigDecimal.ZERO) > 0) {
-                            BigDecimal btcAmount = BigDecimalProcessing.doAction(sumBalances, currentBtcRate, ActionType.DEVIDE);
-                            BigDecimal usdAmount = BigDecimalProcessing.doAction(btcAmount, btcUsdRate, ActionType.MULTIPLY);
-                            usdBalances = usdBalances.add(usdAmount);
-                            btcBalances = btcBalances.add(btcAmount);
-                        }
-                    }
+                    BalancesShortDto shortDto = getBalanceForOtherCurrency(p.getCurrencyName(), sumBalances, btcUsdRate);
+                    btcBalances = btcBalances.add(shortDto.getBalanceBtc());
+                    usdBalances = usdBalances.add(shortDto.getBalanceUsd());
             }
         }
         Map<String, BigDecimal> balancesMap = new HashMap<>();
         balancesMap.put("BTC", btcBalances.setScale(8, RoundingMode.HALF_DOWN));
         balancesMap.put("USD", usdBalances.setScale(2, RoundingMode.HALF_DOWN));
         return balancesMap;
+    }
+
+    private BalancesShortDto getBalanceForOtherCurrency(String currencyName, BigDecimal sumBalances, BigDecimal btcUsdRate) {
+
+        BalancesShortDto result = BalancesShortDto.zeroBalances();
+
+        Optional<StatisticForMarket> optionalBtc =
+                marketRatesHolder.getAll()
+                        .stream()
+                        .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
+                        .findFirst();
+
+        Optional<StatisticForMarket> optionalUsd =
+                marketRatesHolder.getAll()
+                        .stream()
+                        .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/USD"))
+                        .findFirst();
+
+        if (optionalBtc.isPresent() && optionalUsd.isPresent()) {
+            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
+            BigDecimal usdRate = optionalUsd.get().getLastOrderRate();
+
+            if (btcRate.compareTo(BigDecimal.ZERO) > 0) result.setBalanceBtc(sumBalances.multiply(btcRate));
+            if (usdRate.compareTo(BigDecimal.ZERO) > 0) result.setBalanceUsd(sumBalances.multiply(usdRate));
+
+            return result;
+        }
+
+        if (optionalBtc.isPresent()) {
+            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
+            if (btcRate.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal btcValue = sumBalances.multiply(btcRate);
+                result.setBalanceBtc(btcValue);
+                BigDecimal usdValue = btcValue.multiply(btcUsdRate);
+                result.setBalanceUsd(usdValue);
+            }
+        }
+
+        return result;
     }
 
     private BalancesShortDto count(BigDecimal sumBalances, String currencyName, BigDecimal btcRate, BigDecimal usdRate, BigDecimal btcUsdRate) {
