@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.*;
@@ -12,6 +13,8 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.RefillRequestMerchantException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
@@ -140,14 +144,28 @@ public class OnlineRestController {
     private String PASS_ENCODE_KEY;
     private final String HEADER_SECURITY = "username";
 
-    @PostMapping(value = "/afgssr/call/refill", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/afgssr/call/refill", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> generateRefill(@RequestBody RefillRequestCreateDto requestDto, HttpServletRequest servletRequest) {
-        Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
-        String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
-        Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
-        String username = RestApiUtils.decodePassword(usernameHeader, PASS_ENCODE_KEY);
-        Preconditions.checkNotNull(userService.findByEmail(username), "user not found");
-        return refillService.callRefillIRefillable(requestDto);
+        try {
+            Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
+            String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
+            Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
+            String username = RestApiUtils.decodePassword(usernameHeader, PASS_ENCODE_KEY);
+            Preconditions.checkNotNull(userService.findByEmail(username), "user not found");
+            return refillService.callRefillIRefillable(requestDto);
+        } catch (Exception e) {
+            throw new RefillRequestMerchantException(e.getMessage());
+        }
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({
+            RefillRequestMerchantException.class,
+    })
+    @ResponseBody
+    public ErrorInfo RefillException(HttpServletRequest req, InvalidAccountException exception) {
+        log.error(exception);
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getReason());
     }
 
     @GetMapping("/adsffefe/csrf")
