@@ -2,7 +2,9 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
@@ -11,7 +13,10 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.RefillRequestMerchantException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
@@ -55,7 +61,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * @author ValkSam
  */
 @Log4j2
-@PropertySource("classpath:session.properties")
+@PropertySource(value = {"classpath:/mobile.properties", "classpath:session.properties"})
 @RestController
 public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
@@ -131,6 +137,35 @@ public class OnlineRestController {
 
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private RefillService refillService;
+
+    private final String HEADER_SECURITY = "username";
+
+    @PostMapping(value = "/afgssr/call/refill", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, String> generateRefill(@RequestBody RefillRequestCreateDto requestDto, HttpServletRequest servletRequest) {
+        try {
+            Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
+            String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
+            Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
+            String username = new String(Base64.getDecoder().decode(usernameHeader.getBytes()));
+            Preconditions.checkArgument(username.equals(requestDto.getUserEmail()) && userService.findByEmail(username) != null, "user not found or wrong user");
+            return refillService.callRefillIRefillable(requestDto);
+        } catch (Exception e) {
+            log.error(e);
+            throw new RefillRequestMerchantException(e.getMessage());
+        }
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({
+            RefillRequestMerchantException.class,
+    })
+    @ResponseBody
+    public ErrorInfo RefillException(HttpServletRequest req, Exception exception) {
+        log.error(exception);
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+    }
 
     @GetMapping("/adsffefe/csrf")
     public CsrfToken csrf(CsrfToken token) {
