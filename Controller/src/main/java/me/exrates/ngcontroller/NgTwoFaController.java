@@ -4,6 +4,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
@@ -33,12 +34,15 @@ public class NgTwoFaController {
 
     private final UserService userService;
     private final G2faService g2faService;
+    private final NgUserService ngUserService;
 
     @Autowired
     public NgTwoFaController(UserService userService,
-                             G2faService g2faService) {
+                             G2faService g2faService,
+                             NgUserService ngUserService) {
         this.userService = userService;
         this.g2faService = g2faService;
+        this.ngUserService = ngUserService;
     }
 
     @GetMapping("/google2fa/hash")
@@ -61,6 +65,7 @@ public class NgTwoFaController {
         User user = userService.findByEmail(getPrincipalEmail());
         boolean result = g2faService.submitGoogleSecret(user, body);
         if (result) {
+            ngUserService.sendEmailEnable2Fa(user.getEmail());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -71,6 +76,7 @@ public class NgTwoFaController {
         User user = userService.findByEmail(getPrincipalEmail());
         boolean result = g2faService.disableGoogleAuth(user, body);
         if (result) {
+            ngUserService.sendEmailDisable2Fa(user.getEmail());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
