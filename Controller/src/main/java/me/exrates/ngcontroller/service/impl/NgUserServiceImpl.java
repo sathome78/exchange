@@ -181,6 +181,12 @@ public class NgUserServiceImpl implements NgUserService {
         return userService.updateUserSettings(updateUserDto);
     }
 
+    @Override
+    public boolean validateTempToken(String token) {
+        User user = userService.getUserByTemporalToken(token);
+        return user != null;
+    }
+
 
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailWithToken(User user,

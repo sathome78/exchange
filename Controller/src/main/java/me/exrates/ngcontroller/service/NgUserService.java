@@ -16,4 +16,6 @@ public interface NgUserService {
 
     boolean createPasswordRecovery(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
 
+    boolean validateTempToken(String token);
+
 }
