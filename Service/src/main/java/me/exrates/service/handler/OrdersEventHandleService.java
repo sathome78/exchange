@@ -93,12 +93,14 @@ public class OrdersEventHandleService {
     }
 
     private void processCallBackUrl(OrderEvent event, String email, String url) throws JsonProcessingException {
-        if (url != null) {
-            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, email);
-            orderService.logCallBackData(callBackLogDto);
-            log.info("*** Callback. User email:" + email + " | Callback:" + callBackLogDto);
-        } else {
-            log.info("*** Callback url wasn't set. User email:" + email);
+        synchronized (this) {
+            if (url != null) {
+                CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, email);
+                orderService.logCallBackData(callBackLogDto);
+                log.info("*** Callback. User email:" + email + " | Callback:" + callBackLogDto);
+            } else {
+                log.info("*** Callback url wasn't set. User email:" + email);
+            }
         }
     }
 
