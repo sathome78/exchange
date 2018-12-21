@@ -27,6 +27,8 @@ public interface MerchantDao {
 
     Merchant findById(int id);
 
+    boolean checkAvailable(Integer currencyId, Integer merchantId);
+
     Merchant findByName(String name);
 
     List<Merchant> findAll();

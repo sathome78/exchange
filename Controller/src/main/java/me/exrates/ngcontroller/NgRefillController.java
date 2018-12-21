@@ -147,6 +147,10 @@ public class NgRefillController {
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
         List<MerchantCurrency> merchantCurrencyData =
                 merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+        merchantCurrencyData.forEach(o-> {
+            boolean availableRefill = merchantService.checkAvailableRefill(o.getCurrencyId(), o.getMerchantId());
+            o.setAvailableForRefill(availableRefill);
+        });
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, getPrincipalEmail());
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
@@ -164,6 +168,7 @@ public class NgRefillController {
             logger.warn("Failed to process refill request operation type is not INPUT, but " + requestParamsDto.getOperationType());
             throw new NgRefillException("Request operation type is not INPUT, but " + requestParamsDto.getOperationType());
         }
+        // todo check logic
         if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), getPrincipalEmail())) {
             String message = "Failed to process refill request as number of tries exceeded ";
             logger.warn(message);
