@@ -85,6 +85,16 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
+    public boolean checkAvailable(Integer currencyId, Integer merchantId) {
+
+        String sql = "SELECT refill_block FROM MERCHANT_CURRENCY WHERE currency_id = :currency_id AND merchant_id = :merchant_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
     public Merchant findById(int id) {
         final String sql = "SELECT * FROM MERCHANT WHERE id = :id";
         final Map<String, Integer> params = new HashMap<String, Integer>() {

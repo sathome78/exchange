@@ -123,6 +123,11 @@ public class MerchantServiceImpl implements MerchantService {
         }
     }
 
+    @Override
+    public boolean checkAvailableRefill(Integer currencyId, Integer merchantId) {
+        return merchantDao.checkAvailable(currencyId, merchantId);
+    }
+
     private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
         return currencies.stream()
                 .map(Currency::getId)

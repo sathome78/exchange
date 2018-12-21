@@ -35,6 +35,8 @@ public interface MerchantService {
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);
 
+    boolean checkAvailableRefill(Integer currencyId, Integer merchantId);
+
     Merchant findById(int id);
 
     Merchant findByName(String name);

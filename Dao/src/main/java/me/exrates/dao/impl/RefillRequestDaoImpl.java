@@ -904,7 +904,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currency_id", currencyId);
     params.put("email", email);
-    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) < 3;
   }
 
   @Override
