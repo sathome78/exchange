@@ -72,13 +72,13 @@ INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('S4F/USD', 'S4F/BTC', 'S4F/ETH'));
 
-INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
-SELECT cur.id AS currency_id, ur.id AS role_id
-FROM CURRENCY cur CROSS JOIN USER_ROLE ur
-WHERE cur.name IN ('S4F')
-ORDER BY cur.id, ur.id;
-
-INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
-SELECT cur.id
-FROM CURRENCY cur
-WHERE cur.name IN ('S4F');                                                                              
+# INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
+# SELECT cur.id AS currency_id, ur.id AS role_id
+# FROM CURRENCY cur CROSS JOIN USER_ROLE ur
+# WHERE cur.name IN ('S4F')
+# ORDER BY cur.id, ur.id;
+#
+# INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
+# SELECT cur.id
+# FROM CURRENCY cur
+# WHERE cur.name IN ('S4F');
