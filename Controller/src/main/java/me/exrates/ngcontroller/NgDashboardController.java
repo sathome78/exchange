@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.ngcontroller.exception.RabbitMqException;
 import me.exrates.ngcontroller.model.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
 import me.exrates.ngcontroller.model.response.ResponseModel;
@@ -28,6 +29,7 @@ import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -128,7 +130,13 @@ public class NgDashboardController {
                                 .withBody(orderJson.getBytes())
                                 .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                                 .build();
-            this.rabbitTemplate.convertAndSend(RabbitConfig.JSP_QUEUE, message);
+            try {
+                this.rabbitTemplate.convertAndSend(RabbitConfig.JSP_QUEUE, message);
+            } catch (AmqpException e) {
+                String msg = "Failed to send data via rabbit queue";
+                logger.error(msg + " " + orderJson, e);
+                throw new RabbitMqException(msg);
+            }
         } catch (JsonProcessingException e) {
            logger.error("Failed to send order to old instance", e);
         }
@@ -321,6 +329,13 @@ public class NgDashboardController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    @ExceptionHandler({RabbitMqException.class})
+    @ResponseBody
+    public ErrorInfo RabbitMqErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, OrderAcceptionException.class,
             OrderCancellingException.class})
@@ -330,14 +345,12 @@ public class NgDashboardController {
     }
 
     private String fromResult(boolean result) {
-        String send = "";
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            send = mapper.writeValueAsString(result);
+            return objectMapper.writeValueAsString(result);
         } catch (Exception e) {
             logger.info("Failed to convert result value {}", result);
+            return "";
         }
-        return send;
     }
 
 }
