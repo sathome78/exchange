@@ -28,7 +28,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.InputCreateOrderDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;

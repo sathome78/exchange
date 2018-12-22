@@ -3,11 +3,14 @@ package me.exrates.service.cache;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.service.RabbitMqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,15 +32,18 @@ import java.util.stream.Collectors;
 @Service
 public class MarketRatesHolder {
 
+    private Map<Integer, StatisticForMarket> ratesMarketMap = new ConcurrentHashMap<>();
+
     private static Integer ETH_USD_ID = 0;
     private static Integer BTC_USD_ID = 0;
 
     private final OrderDao orderDao;
-    private Map<Integer, StatisticForMarket> ratesMarketMap = new ConcurrentHashMap<>();
+    private final RabbitMqService rabbitMqService;
 
     @Autowired
-    public MarketRatesHolder(OrderDao orderDao) {
+    public MarketRatesHolder(OrderDao orderDao, RabbitMqService rabbitMqService) {
         this.orderDao = orderDao;
+        this.rabbitMqService = rabbitMqService;
     }
 
     @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
@@ -78,6 +84,12 @@ public class MarketRatesHolder {
             percentChange = BigDecimalProcessing.doAction(predLast, lastExrate, ActionType.PERCENT_GROWTH);
         }
         o.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, Locale.ENGLISH, 2));
+    }
+
+    public void setRateMarket(ExOrder exOrder) {
+        this.setRatesMarketMap(exOrder.getCurrencyPairId(), exOrder.getExRate(), exOrder.getAmountBase());
+        InputCreateOrderDto createOrderDto = InputCreateOrderDto.of(exOrder);
+        rabbitMqService.sendOrderInfo(createOrderDto, RabbitMqService.JSP_QUEUE);
     }
 
     public void setRateMarket(int currencyPairId, BigDecimal rate, BigDecimal amount) {

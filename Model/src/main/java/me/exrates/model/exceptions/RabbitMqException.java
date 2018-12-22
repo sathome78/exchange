@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.exception;
+package me.exrates.model.exceptions;
 
 public class RabbitMqException extends RuntimeException {
 

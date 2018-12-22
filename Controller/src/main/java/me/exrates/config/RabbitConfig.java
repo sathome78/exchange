@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import me.exrates.service.RabbitMqService;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
@@ -8,6 +9,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -25,8 +27,6 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 @PropertySource(value = { "classpath:/rabbit.properties" })
 public class RabbitConfig implements RabbitListenerConfigurer {
 
-    public static final String ANGULAR_QUEUE = "angular-queue";
-    public static final String JSP_QUEUE = "jsp-queue";
     public static final String QUEUE_DEAD_ORDERS = "dead-orders-queue";
 
     @Value("${rabbit.host}")
@@ -67,7 +67,7 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Bean("angularQueue")
     public Queue angularQueue() {
         return QueueBuilder
-                .durable(ANGULAR_QUEUE)
+                .durable(RabbitMqService.ANGULAR_QUEUE)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", QUEUE_DEAD_ORDERS)
                 .withArgument("x-message-ttl", 5000)
@@ -77,11 +77,18 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Bean("jspQueue")
     public Queue jspQueue() {
         return QueueBuilder
-                .durable(JSP_QUEUE)
+                .durable(RabbitMqService.JSP_QUEUE)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", QUEUE_DEAD_ORDERS)
                 .withArgument("x-message-ttl", 5000)
                 .build();
+    }
+
+    @Bean(name="rabbitListenerContainerFactory")
+    public SimpleRabbitListenerContainerFactory listenerFactory(){
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory());
+        return factory;
     }
 
     @Bean
@@ -90,18 +97,18 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     }
 
     @Bean
-    Exchange ordersExchange() {
-        return ExchangeBuilder.topicExchange(exchangeOrders).build();
+    TopicExchange ordersExchange() {
+        return new TopicExchange(exchangeOrders);
     }
 
     @Bean
     Binding angularBinding(TopicExchange ordersExchange) {
-        return BindingBuilder.bind(angularQueue()).to(ordersExchange).with(ANGULAR_QUEUE);
+        return BindingBuilder.bind(angularQueue()).to(ordersExchange).with(RabbitMqService.ANGULAR_QUEUE);
     }
 
     @Bean
     Binding jspBinding(TopicExchange ordersExchange) {
-        return BindingBuilder.bind(jspQueue()).to(ordersExchange).with(JSP_QUEUE);
+        return BindingBuilder.bind(jspQueue()).to(ordersExchange).with(RabbitMqService.JSP_QUEUE);
     }
 
     @Bean

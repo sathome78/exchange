@@ -1,6 +1,5 @@
 package me.exrates.ngcontroller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.config.RabbitConfig;
 import me.exrates.controller.exception.ErrorInfo;
@@ -13,11 +12,12 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.RabbitMqException;
-import me.exrates.ngcontroller.model.InputCreateOrderDto;
+import me.exrates.model.exceptions.RabbitMqException;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -29,11 +29,6 @@ import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -81,7 +76,7 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
-    private final RabbitTemplate rabbitTemplate;
+    private final RabbitMqService rabbitMqService;
     private final SimpMessagingTemplate messagingTemplate;
 
 
@@ -93,7 +88,7 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 RabbitTemplate rabbitTemplate,
+                                 RabbitMqService rabbitMqService,
                                  SimpMessagingTemplate messagingTemplate) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
@@ -101,8 +96,8 @@ public class NgDashboardController {
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
+        this.rabbitMqService = rabbitMqService;
         this.messagingTemplate = messagingTemplate;
-        this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -115,30 +110,11 @@ public class NgDashboardController {
 
         if (!StringUtils.isEmpty(result)) {
             resultMap.put("message", "success");
-            sendOrderToRabbit(inputOrder);
+            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
             return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
         } else {
             resultMap.put("message", "fail");
             return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    private void sendOrderToRabbit(InputCreateOrderDto inputOrder) {
-        try {
-            String orderJson = objectMapper.writeValueAsString(inputOrder);
-            Message message = MessageBuilder
-                                .withBody(orderJson.getBytes())
-                                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                                .build();
-            try {
-                this.rabbitTemplate.convertAndSend(RabbitConfig.JSP_QUEUE, message);
-            } catch (AmqpException e) {
-                String msg = "Failed to send data via rabbit queue";
-                logger.error(msg + " " + orderJson, e);
-                throw new RabbitMqException(msg);
-            }
-        } catch (JsonProcessingException e) {
-           logger.error("Failed to send order to old instance", e);
         }
     }
 
