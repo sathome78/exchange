@@ -52,8 +52,9 @@ public class OrderMessageListener {
         logger.debug("Order Received: " + order);
     }
 
-    @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
-    public void processOrder2(InputCreateOrderDto order) {
-        logger.debug("Order Received: " + order);
-    }
+    // uncomment for testing as this order will be sent from this application
+//    @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
+//    public void processOrder2(InputCreateOrderDto order) {
+//        logger.debug("Order Received: " + order);
+//    }
 }
