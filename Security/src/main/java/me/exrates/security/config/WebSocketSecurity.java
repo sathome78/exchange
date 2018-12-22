@@ -15,7 +15,7 @@ import java.util.List;
  * Created by Maks on 29.08.2017.
  */
 @Configuration
-public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerConfigurer {
+public class WebSocketSecurity extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 
     @Autowired
     private UserRoleService userRoleService;
@@ -31,11 +31,12 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
         List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
         String[] roles = settings.stream()
                 .filter(UserRoleSettings::isOrderAcceptionSameRoleOnly)
-                .map(p->p.getUserRole().name())
+                .map(p -> p.getUserRole().name())
                 .toArray(String[]::new);
-       /* -----------------------------------------------------------------------------------------------------------*/
-       messages.nullDestMatcher().permitAll()
+        /* -----------------------------------------------------------------------------------------------------------*/
+        messages.nullDestMatcher().permitAll()
                 .simpSubscribeDestMatchers("/topic/chat**").permitAll()
+                .simpSubscribeDestMatchers("/topic/rabbit**").permitAll()
                 .simpSubscribeDestMatchers("/open_orders/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/statistic**").permitAll()
                 .simpSubscribeDestMatchers("/app/users_alerts/*").permitAll()
@@ -45,16 +46,13 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/balance/*/*").permitAll()
                 .simpSubscribeDestMatchers("/topic/chat/**").permitAll()
-               .simpSubscribeDestMatchers("/topic/open-orders/*/*").permitAll()
+                .simpSubscribeDestMatchers("/topic/open-orders/*/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpDestMatchers("/app/topic/**").authenticated()
                 .simpMessageDestMatchers("/app/topic/chat-**").authenticated()
                 .anyMessage().denyAll();
     }
-
-
-
 
 
 }
