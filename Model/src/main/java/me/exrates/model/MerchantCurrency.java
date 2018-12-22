@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
+import me.exrates.model.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -13,7 +13,8 @@ import java.util.List;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Getter @Setter
+@Getter
+@Setter
 @EqualsAndHashCode
 @ToString
 public class MerchantCurrency {
@@ -21,13 +22,13 @@ public class MerchantCurrency {
     private int currencyId;
     private String name;
     private String description;
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal minSum;
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal inputCommission;
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal outputCommission;
-    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal fixedMinCommission;
     private List<MerchantImage> listMerchantImage;
     private String processType;
