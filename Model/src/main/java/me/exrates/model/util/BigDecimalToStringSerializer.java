@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.util;
+package me.exrates.model.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;

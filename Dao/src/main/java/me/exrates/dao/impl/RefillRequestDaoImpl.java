@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+import me.exrates.dao.exception.RefillAddressException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.RefillRequestAddressShortDto;
@@ -20,7 +21,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -418,6 +418,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         storeRefillRequestAddress(request);
       }
     } else {
+      if (request.getAddress() == null || StringUtils.isEmpty(request.getAddress())){
+        log.error("Address is null, request = {}", request);
+        throw new RefillAddressException("Error create request refill address, address is null");
+      }
       storeRefillRequestAddress(request);
     }
     return result;

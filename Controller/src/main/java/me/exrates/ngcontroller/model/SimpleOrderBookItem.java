@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import me.exrates.model.enums.OrderType;
-import me.exrates.ngcontroller.util.BigDecimalToStringSerializer;
+import me.exrates.model.util.BigDecimalToStringSerializer;
 
 import java.math.BigDecimal;
 
