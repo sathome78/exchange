@@ -99,7 +99,8 @@ public enum InvoiceActionTypeEnum {
   PRESENT_VOUCHER {{
     getProperty().setActionTypeButton(SHOW_CODE_BUTTON);
     getProperty().setLeadsToSuccessFinalState(true);
-  }};
+  }},
+  PUT_ON_VERIFY;
 
   private InvoiceActionParams property = new InvoiceActionParams();
 

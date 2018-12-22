@@ -33,6 +33,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
   CREATED_BY_FACT(2) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(PUT_ON_VERIFY, WAITING_VERIFY);
       schemaMap.put(START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(ACCEPT_AUTO, ACCEPTED_AUTO);
       schemaMap.put(REQUEST_INNER_TRANSFER, ON_INNER_TRANSFERRING);
@@ -66,6 +67,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
   ON_BCH_EXAM(6) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.PUT_ON_VERIFY, WAITING_VERIFY);
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FROM_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_MERCHANT, WAITING_REVIEWING);
@@ -138,6 +140,30 @@ public enum RefillStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_ADMIN);
+    }
+  },
+  WAITING_VERIFY(18) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, ON_VERIFY_BY_ADMIN);
+    }
+  },
+  ON_VERIFY_BY_ADMIN(19){
+    @Override
+      public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_AUTO_AFTER_VERIFY);
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_AFTER_VERIFY);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_VERIFY);
+    }
+  },
+  DECLINED_AFTER_VERIFY(20) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+    }
+  },
+  ACCEPTED_AUTO_AFTER_VERIFY(21) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   };
 

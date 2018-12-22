@@ -63,12 +63,12 @@ INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency
 INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'ECT'));
 
-INSERT IGNORE INTO BOT_LAECTH_SETTINGS(bot_trader_id, currency_pair_id)
+INSERT IGNORE INTO BOT_LAUNCH_SETTINGS(bot_trader_id, currency_pair_id)
   SELECT BT.id, CP.id FROM BOT_TRADER BT
     JOIN CURRENCY_PAIR CP WHERE CP.name IN ('ECT/USD', 'ECT/BTC', 'ECT/ETH');
 
-INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_laECTh_settings_id, order_type_id)
-  SELECT BLCH.id, OT.id FROM BOT_LAECTH_SETTINGS BLCH
+INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
+  SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('ECT/USD', 'ECT/BTC', 'ECT/ETH'));
 

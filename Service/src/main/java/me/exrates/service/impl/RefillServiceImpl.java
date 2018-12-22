@@ -32,6 +32,7 @@ import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -513,7 +514,11 @@ public class RefillServiceImpl implements RefillService {
     }
     if (requestId != null) {
       requestAcceptDto.setRequestId(requestId);
+
       RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+      if (!refillRequestFlatDto.getStatus().isEndStatus()) {
+        return;
+      }
       /**/
       Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
       String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
@@ -617,6 +622,12 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestConditionsForAcceptAreCorruptedException(requestAcceptDto.toString());
         }
       }
+      if (refillRequest.getStatus().availableForAction(PUT_ON_VERIFY) && isNeedVerify(refillRequest)) {
+        RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(PUT_ON_VERIFY);
+        refillRequest.setStatus(newStatus);
+        refillRequestDao.setStatusById(requestId, newStatus);
+        return refillRequest;
+      }
       InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringConfirmNeeded() ? REQUEST_INNER_TRANSFER :
           refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
       RefillStatusEnum newStatus = requesterAdminId == null ?
@@ -681,6 +692,21 @@ public class RefillServiceImpl implements RefillService {
     } finally {
       profileData.checkAndLog("slow accept RefillRequest: " + requestId + " profile: " + profileData);
     }
+  }
+
+  private boolean isNeedVerify(RefillRequestFlatDto refillRequest) {
+    /*currencyService.
+    if (merchantCurrency.getRefillReviewLimiCoinDay() == null &&
+            merchantCurrency.getRefillReviewLimiCoinOnce() == null &&
+            merchantCurrency.getRefillReviewLimitUsdDay() == null &&
+            merchantCurrency.getRefillReviewLimitUsdOnce() == null) {
+      return false;
+    }
+    BigDecimal rateToUsd = BigDecimal.ONE;todo get real rate
+    BigDecimal amountCoin = refillRequest.getAmount();
+    BigDecimal amountUsd = amountCoin.multiply(rateToUsd);
+    return amountUsd.compareTo(merchantCurrency.getRefillReviewLimitUsdDay()) > 0 && a;*/
+    return false;
   }
 
   private String concatAdminRemark(RefillRequestFlatDto refillRequest, String remark) {

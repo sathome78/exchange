@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,4 +35,5 @@ public class MerchantCurrency {
     private Boolean recipientUserIsNeeded;
     private Boolean comissionDependsOnDestinationTag;
     private Boolean specMerchantComission;
+
 }
