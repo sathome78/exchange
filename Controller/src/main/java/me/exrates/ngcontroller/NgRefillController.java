@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.RefillAddressException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
@@ -44,8 +45,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.FileNotFoundException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +88,7 @@ public class NgRefillController {
     }
 
     // /info/private/v2/balances/refill/crypto-currencies
+
     /**
      * @return set of unique currencies which market is BTC or ETH
      */
@@ -104,6 +104,7 @@ public class NgRefillController {
     }
 
     // /info/private/v2/balances/refill/fiat-currencies
+
     /**
      * @return set of unique currencies names which market is FIAT
      */
@@ -119,6 +120,7 @@ public class NgRefillController {
     }
 
     // /info/private/v2/balances/refill/merchants/input?currency=${currencyName}
+
     /**
      * Return merchant to get necessary refill fields specified by currency name
      *
@@ -147,7 +149,7 @@ public class NgRefillController {
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
         List<MerchantCurrency> merchantCurrencyData =
                 merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        merchantCurrencyData.forEach(o-> {
+        merchantCurrencyData.forEach(o -> {
             boolean availableRefill = merchantService.checkAvailableRefill(o.getCurrencyId(), o.getMerchantId());
             o.setAvailableForRefill(availableRefill);
         });
@@ -204,7 +206,7 @@ public class NgRefillController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to create refill request", e);
-            throw new NgRefillException(((UndeclaredThrowableException) e).getUndeclaredThrowable().getMessage());
+            throw new NgRefillException(e.getMessage());
         }
     }
 
@@ -226,7 +228,7 @@ public class NgRefillController {
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE) // 406
     @ExceptionHandler({InvoiceNotFoundException.class, NgCurrencyNotFoundException.class,
-            NotEnoughUserWalletMoneyException.class, NgRefillException.class})
+            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class})
     @ResponseBody
     public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);

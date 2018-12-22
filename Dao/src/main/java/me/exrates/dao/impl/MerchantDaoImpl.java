@@ -90,7 +90,7 @@ public class MerchantDaoImpl implements MerchantDao {
         Map<String, Integer> params = new HashMap<>();
         params.put("merchant_id", merchantId);
         params.put("currency_id", currencyId);
-        return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 0;
     }
 
     @Override
