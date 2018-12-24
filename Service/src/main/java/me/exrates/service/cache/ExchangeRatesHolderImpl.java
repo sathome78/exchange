@@ -65,7 +65,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         setRates(order.getCurrencyPairId(), order.getExRate());
         // todo send event to rabbit mq
         InputCreateOrderDto orderDto = InputCreateOrderDto.of(order);
-        rabbitMqService.sendOrderInfo(orderDto, RabbitMqService.ANGULAR_QUEUE);
+        rabbitMqService.sendOrderInfo(orderDto, RabbitMqService.JSP_QUEUE);
     }
 
     private synchronized void setRates(Integer pairId, BigDecimal rate) {
