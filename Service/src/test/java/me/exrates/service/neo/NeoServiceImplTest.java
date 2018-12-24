@@ -140,10 +140,10 @@ public class NeoServiceImplTest {
                         Collections.emptyList(), null, null), neoTransaction1,
                 new NeoTransaction("0xb7f7a42a96813f01267eb733edfbe094eedb2643521d4663234492086fae443e", "ContractTransaction",
                         Arrays.asList(new NeoVout(0, "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7",
-                                "0.00048704", "ANaydHNQ3z63s25WvWkZtpVyhQymGWGci7"),
+                                        "0.00048704", "ANaydHNQ3z63s25WvWkZtpVyhQymGWGci7"),
                                 new NeoVout(1, "some_unknown_asset",
                                         "0.00048704", TEST_ADDRESS_2)
-                                ), null, null)
+                        ), null, null)
         ));
 
         block2 = new Block();
@@ -158,7 +158,7 @@ public class NeoServiceImplTest {
                         Collections.emptyList(), null, null), neoTransaction2,
                 new NeoTransaction("0x3aa0a7de9606f8338cb6891af9a1983bfb7949b2f7f67d8aa8e50c2482af0ce1", "ContractTransaction",
                         Arrays.asList(new NeoVout(0, "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7",
-                                "0.05", TEST_ADDRESS_1),
+                                        "0.05", TEST_ADDRESS_1),
                                 new NeoVout(1, "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7",
                                         "9.95", "ANaydHNQ3z63s25WvWkZtpVyhQymGWGci7")), null, null)
         ));

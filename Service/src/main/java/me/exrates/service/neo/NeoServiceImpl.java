@@ -127,13 +127,13 @@ public class NeoServiceImpl implements NeoService {
             NeoTransaction neoTransaction = neoNodeService.sendToAddress(asset, withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, mainAccount);
             return Collections.singletonMap("hash", neoTransaction.getTxid());
         } catch (NeoApiException e) {
-           if (e.getCode() == -300) {
-               throw new InsufficientCostsInWalletException();
-           } else if (e.getCode() == -2146233033) {
-               throw new InvalidAccountException();
-           } else {
-               throw new MerchantException(e.getMessage());
-           }
+            if (e.getCode() == -300) {
+                throw new InsufficientCostsInWalletException();
+            } else if (e.getCode() == -2146233033) {
+                throw new InvalidAccountException();
+            } else {
+                throw new MerchantException(e.getMessage());
+            }
         }
         catch (Exception e) {
             throw new MerchantException(e);
@@ -179,7 +179,7 @@ public class NeoServiceImpl implements NeoService {
         log.debug("Check and update existing payments");
         neoAssetMap.forEach((key, value) ->
                 refillService.getInExamineByMerchantIdAndCurrencyIdList(value.getMerchant().getId(), value.getCurrency().getId())
-        .stream().flatMap(dto -> Stream.of(neoNodeService.getTransactionById(dto.getMerchantTransactionId())).filter(Optional::isPresent).map(Optional::get)
+                        .stream().flatMap(dto -> Stream.of(neoNodeService.getTransactionById(dto.getMerchantTransactionId())).filter(Optional::isPresent).map(Optional::get)
                         .flatMap(tx -> tx.getVout().stream().filter(vout -> dto.getAddress().equals(vout.getAddress())).peek(vout -> {
                             try {
                                 changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
@@ -222,12 +222,12 @@ public class NeoServiceImpl implements NeoService {
             Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
                     address, merchantId, currencyId);
             Integer requestId = refillRequestIdResult.orElseGet(() -> {
-                        RefillRequestAcceptDto refillRequestAcceptDto = RefillRequestAcceptDto.builder()
-                                .address(address)
-                                .amount(amount)
-                                .merchantId(merchantId)
-                                .currencyId(currencyId)
-                                .merchantTransactionId(txId).build();
+                RefillRequestAcceptDto refillRequestAcceptDto = RefillRequestAcceptDto.builder()
+                        .address(address)
+                        .amount(amount)
+                        .merchantId(merchantId)
+                        .currencyId(currencyId)
+                        .merchantTransactionId(txId).build();
 
                 log.debug("Create request by fact! : " + refillRequestAcceptDto);
                 return refillService.createRefillRequestByFact(refillRequestAcceptDto);
