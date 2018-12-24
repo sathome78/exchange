@@ -1,4 +1,6 @@
-package me.exrates.ngcontroller.model;
+package me.exrates.model.dto;
+
+import me.exrates.model.ExOrder;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -33,6 +35,17 @@ public class InputCreateOrderDto {
 
     public InputCreateOrderDto() {
     }
+
+    public static InputCreateOrderDto of(ExOrder exOrder) {
+        InputCreateOrderDto dto = new InputCreateOrderDto();
+        dto.setAmount(exOrder.getAmountBase());
+        dto.setBaseType(exOrder.getOrderBaseType().toString());
+        dto.setCurrencyPairId(exOrder.getCurrencyPairId());
+        dto.setOrderType(exOrder.getOrderBaseType().toString());
+        dto.setRate(exOrder.getExRate());
+        return dto;
+    }
+
 
     public String getOrderType() {
         return orderType;

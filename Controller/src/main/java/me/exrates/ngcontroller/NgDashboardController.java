@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.config.RabbitConfig;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -11,10 +12,12 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.InputCreateOrderDto;
+import me.exrates.model.exceptions.RabbitMqException;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -28,8 +31,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,20 +52,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/dashboard/",
+@RequestMapping(value = "/info/private/v2/dashboard",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgDashboardController {
@@ -77,7 +75,10 @@ public class NgDashboardController {
     private final UserService userService;
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
+    private final ObjectMapper objectMapper;
+    private final RabbitMqService rabbitMqService;
     private final SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
     public NgDashboardController(DashboardService dashboardService,
@@ -86,6 +87,8 @@ public class NgDashboardController {
                                  UserService userService,
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
+                                 ObjectMapper objectMapper,
+                                 RabbitMqService rabbitMqService,
                                  SimpMessagingTemplate messagingTemplate) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
@@ -93,9 +96,12 @@ public class NgDashboardController {
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
+        this.rabbitMqService = rabbitMqService;
         this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
     }
 
+    // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
@@ -104,6 +110,7 @@ public class NgDashboardController {
 
         if (!StringUtils.isEmpty(result)) {
             resultMap.put("message", "success");
+            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
             return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
         } else {
             resultMap.put("message", "fail");
@@ -298,6 +305,13 @@ public class NgDashboardController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    @ExceptionHandler({RabbitMqException.class})
+    @ResponseBody
+    public ErrorInfo RabbitMqErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, OrderAcceptionException.class,
             OrderCancellingException.class})
@@ -307,14 +321,12 @@ public class NgDashboardController {
     }
 
     private String fromResult(boolean result) {
-        String send = "";
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            send = mapper.writeValueAsString(result);
+            return objectMapper.writeValueAsString(result);
         } catch (Exception e) {
             logger.info("Failed to convert result value {}", result);
+            return "";
         }
-        return send;
     }
 
 }
