@@ -36,6 +36,7 @@ public class RefillRequestCreateDto {
   private String privKey;
   private String pubKey;
   private String brainPrivKey;
+  private String childMerchant;
   private Boolean generateNewAddress;
   private Boolean generateAdditionalRefillAddressAvailable;
   private Boolean needToCreateRefillRequestRecord;
@@ -61,6 +62,7 @@ public class RefillRequestCreateDto {
     this.pubKey = null;
     this.brainPrivKey = null;
     this.generateNewAddress = paramsDto.getGenerateNewAddress();
+    this.childMerchant = paramsDto.getChildMerchant();
     /**/
     this.userId = creditsOperation.getUser().getId();
     this.userEmail = creditsOperation.getUser().getEmail();
@@ -94,11 +96,11 @@ public class RefillRequestCreateDto {
 
     public boolean isEmpty() {
       return this.recipientBankId == null &&
-          this.recipientBankCode == null &&
-          this.recipientBankName == null &&
-          this.recipient == null &&
-          this.userFullName == null &&
-          this.merchantRequestSign == null;
+              this.recipientBankCode == null &&
+              this.recipientBankName == null &&
+              this.recipient == null &&
+              this.userFullName == null &&
+              this.merchantRequestSign == null;
     }
   }
 
