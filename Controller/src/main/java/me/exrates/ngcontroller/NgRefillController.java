@@ -23,6 +23,8 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.MerchantNotFoundException;
+import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.slf4j.Logger;
@@ -202,7 +204,7 @@ public class NgRefillController {
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
         try {
-            Map<String, Object> response = refillService.createRefillRequest(request, getPrincipalEmail());
+            Map<String, Object> response = refillService.createRefillRequest(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to create refill request", e);
@@ -228,7 +230,9 @@ public class NgRefillController {
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE) // 406
     @ExceptionHandler({InvoiceNotFoundException.class, NgCurrencyNotFoundException.class,
-            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class})
+            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class,
+            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class,
+            MerchantNotFoundException.class, MerchantServiceNotFoundException.class})
     @ResponseBody
     public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);

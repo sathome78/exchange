@@ -2,10 +2,13 @@ package me.exrates.service.cache;
 
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.TradeMarket;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.RabbitMqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,11 +35,15 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     private final OrderDao orderDao;
     private final CurrencyService currencyService;
+    private final RabbitMqService rabbitMqService;
 
     @Autowired
-    public ExchangeRatesHolderImpl(OrderDao orderDao, CurrencyService currencyService) {
+    public ExchangeRatesHolderImpl(OrderDao orderDao,
+                                   CurrencyService currencyService,
+                                   RabbitMqService rabbitMqService) {
         this.orderDao = orderDao;
         this.currencyService = currencyService;
+        this.rabbitMqService = rabbitMqService;
     }
 
     @PostConstruct
@@ -54,8 +61,11 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     @Override
-    public void onRatesChange(Integer pairId, BigDecimal rate) {
-        setRates(pairId, rate);
+    public void onRatesChange(ExOrder order) {
+        setRates(order.getCurrencyPairId(), order.getExRate());
+        // todo send event to rabbit mq
+        InputCreateOrderDto orderDto = InputCreateOrderDto.of(order);
+        rabbitMqService.sendOrderInfo(orderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     private synchronized void setRates(Integer pairId, BigDecimal rate) {

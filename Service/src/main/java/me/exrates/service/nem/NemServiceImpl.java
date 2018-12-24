@@ -15,6 +15,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.util.WithdrawUtils;
 import org.json.JSONObject;
 import org.nem.core.crypto.KeyPair;
 import org.nem.core.crypto.PublicKey;
@@ -59,7 +60,8 @@ public class NemServiceImpl implements NemService {
     private NemMosaicStrategy mosaicStrategy;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
@@ -339,6 +341,12 @@ public class NemServiceImpl implements NemService {
     @Override
     public String getMainAddress() {
         return address;
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(this.address, address);
     }
 
     private BigDecimal getExrateForMosaic(int merchantId) {

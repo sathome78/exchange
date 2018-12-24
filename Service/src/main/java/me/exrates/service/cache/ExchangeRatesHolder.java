@@ -1,6 +1,7 @@
 package me.exrates.service.cache;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.TradeMarket;
 
@@ -10,7 +11,7 @@ import java.util.Map;
 
 public interface ExchangeRatesHolder {
 
-    void onRatesChange(Integer pairId, BigDecimal rate);
+    void onRatesChange(ExOrder order);
 
     List<ExOrderStatisticsShortByPairsDto> getAllRates();
 

@@ -2023,7 +2023,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
-        System.out.println("curencies for refresh size " + currencyIds.size());
+//        System.out.println("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
         List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
@@ -2053,7 +2053,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefreshV2(List<Integer> currencyIds) {
-        System.out.println("curencies for refresh size " + currencyIds.size());
+//        System.out.println("/**/curencies for refresh size " + currencyIds.size());
         List<StatisticForMarket> dtos = this.getStatisticForSomeCurrenciesV2(currencyIds);
         List<StatisticForMarket> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
         List<StatisticForMarket> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());

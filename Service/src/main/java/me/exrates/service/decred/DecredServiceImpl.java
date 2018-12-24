@@ -13,6 +13,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -41,7 +42,8 @@ public class DecredServiceImpl implements DecredService {
     private DecredGrpcService decredGrpcService;
     @Autowired
     private RefillService refillService;
-
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private Merchant merchant;
     private Currency currency;
@@ -122,6 +124,12 @@ public class DecredServiceImpl implements DecredService {
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         throw new RuntimeException("Not implemented ");
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     @Synchronized

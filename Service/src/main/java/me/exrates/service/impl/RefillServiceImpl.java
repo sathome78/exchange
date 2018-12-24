@@ -46,6 +46,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
@@ -142,7 +143,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Override
     @Transactional
-    public Map<String, Object> createRefillRequest(RefillRequestCreateDto request, String email) {
+    public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
         ProfileData profileData = new ProfileData(1000);
         Map<String, Object> result = new HashMap<String, Object>() {{
             put("params", new HashMap<String, String>());
@@ -158,15 +159,20 @@ public class RefillServiceImpl implements RefillService {
             }
             profileData.setTime1();
 
-            refill(request, email).entrySet().forEach(e ->
+            refill(request).entrySet().forEach(e ->
             {
                 if (e.getKey().startsWith("$__")) {
                     result.put(e.getKey().replace("$__", ""), e.getValue());
                 } else {
                     ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
                 }
+
+                if(e.getKey().equalsIgnoreCase("address")
+                        && !StringUtils.isBlank(e.getValue())) {
+                    request.setAddress(e.getValue());
+                    refillRequestDao.create(request);
+                }
             });
-            refillRequestDao.create(request);
             String merchantRequestSign = (String) result.get("sign");
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
@@ -218,7 +224,7 @@ public class RefillServiceImpl implements RefillService {
         return result;
     }
 
-    private Map<String, String> refill(RefillRequestCreateDto requestDto, String email) {
+    private Map<String, String> refill(RefillRequestCreateDto requestDto) {
         URI uri = UriComponentsBuilder.fromHttpUrl(restTemplateUrl + "/afgssr/call/refill")
                 .build()
                 .toUri();
@@ -226,7 +232,11 @@ public class RefillServiceImpl implements RefillService {
                 new ParameterizedTypeReference<Map<String, String>>() {};
         try {
             ResponseEntity<Map<String, String>> params =
-                    restTemplate.exchange(uri, HttpMethod.POST, getRequest(requestDto, email), responseType);
+                    restTemplate.exchange(uri, HttpMethod.POST, getRequest(requestDto), responseType);
+             if(!params.getStatusCode().equals(HttpStatus.OK)) {
+                 log.error("Failed to get successful response from backend: {}" + params);
+                 return Collections.emptyMap();
+             }
             return params.getBody();
         } catch (RestClientException e) {
             log.error("Failed to get coin params via rest template", e);
@@ -234,11 +244,11 @@ public class RefillServiceImpl implements RefillService {
         }
     }
 
-    private HttpEntity<RefillRequestCreateDto> getRequest(RefillRequestCreateDto requestDto, String email) {
-        if (StringUtils.isBlank(email)) {
+    private HttpEntity<RefillRequestCreateDto> getRequest(RefillRequestCreateDto requestDto) {
+        if (StringUtils.isBlank(requestDto.getUserEmail())) {
             throw new IllegalArgumentException("Failed as email is blank");
         }
-        email = Base64.getEncoder().encodeToString(email.getBytes());
+        String email = Base64.getEncoder().encodeToString(requestDto.getUserEmail().getBytes());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         headers.setAccept(ImmutableList.of(MediaType.APPLICATION_JSON_UTF8));

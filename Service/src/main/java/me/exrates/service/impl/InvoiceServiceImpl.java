@@ -8,6 +8,7 @@ import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.NotApplicableException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,8 @@ public class InvoiceServiceImpl implements InvoiceService {
   private MerchantService merchantService;
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private WithdrawUtils withdrawUtils;
 
   @Override
   @Transactional
@@ -54,5 +57,12 @@ public class InvoiceServiceImpl implements InvoiceService {
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     throw new NotApplicableException("for " + params);
   }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
+  }
+
 }
 

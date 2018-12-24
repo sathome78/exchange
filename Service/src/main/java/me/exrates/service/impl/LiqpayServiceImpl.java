@@ -11,6 +11,7 @@ import me.exrates.service.LiqpayService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,8 @@ public class LiqpayServiceImpl implements LiqpayService {
   @Autowired
   private AlgorithmService algorithmService;
 
+  @Autowired
+  private WithdrawUtils withdrawUtils;
 
   @Transactional
   public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
@@ -156,4 +159,11 @@ public class LiqpayServiceImpl implements LiqpayService {
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     throw new NotImplimentedMethod("for " + params);
   }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
+  }
+
 }

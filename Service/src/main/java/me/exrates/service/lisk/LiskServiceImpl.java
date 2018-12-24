@@ -4,7 +4,12 @@ import com.mysql.jdbc.StringUtils;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
@@ -14,6 +19,7 @@ import me.exrates.service.exception.LiskCreateAddressException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.ParamMapUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
@@ -25,7 +31,12 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +58,9 @@ public class LiskServiceImpl implements LiskService {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private LiskSpecialMethodService liskSpecialMethodService;
 
@@ -99,11 +113,11 @@ public class LiskServiceImpl implements LiskService {
             String message = messageSource.getMessage("merchants.refill.btc",
                     new Object[]{address}, request.getLocale());
             Map<String, String> result = new HashMap<String, String>() {{
-               put("message", message);
-               put("address", address);
-               put("pubKey", account.getPublicKey());
-               put("brainPrivKey", secret);
-               put("qr", address);
+                put("message", message);
+                put("address", address);
+                put("pubKey", account.getPublicKey());
+                put("brainPrivKey", secret);
+                put("qr", address);
             }};
             return result;
         } catch (MnemonicException.MnemonicLengthException e) {
@@ -272,15 +286,21 @@ public class LiskServiceImpl implements LiskService {
     }
 
 
-
     @Override
     public LiskAccount createNewLiskAccount(String secret) {
-       return liskSpecialMethodService.createAccount(secret);
+        return liskSpecialMethodService.createAccount(secret);
     }
 
     @Override
     public LiskAccount getAccountByAddress(String address) {
         return liskRestClient.getAccountByAddress(address);
+    }
+
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 }
