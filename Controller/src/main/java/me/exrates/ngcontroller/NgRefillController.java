@@ -23,6 +23,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.slf4j.Logger;
@@ -228,7 +229,8 @@ public class NgRefillController {
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE) // 406
     @ExceptionHandler({InvoiceNotFoundException.class, NgCurrencyNotFoundException.class,
-            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class})
+            NotEnoughUserWalletMoneyException.class, NgRefillException.class, RefillAddressException.class,
+            MerchantNotFoundException.class})
     @ResponseBody
     public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
