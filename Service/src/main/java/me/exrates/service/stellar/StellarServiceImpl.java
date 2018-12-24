@@ -12,9 +12,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.util.WithdrawUtils;
+import me.exrates.service.util.CryptoUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -55,6 +56,8 @@ public class StellarServiceImpl implements StellarService {
     private RefillService refillService;
     @Autowired
     private StellarTransactionService stellarTransactionService;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private Merchant merchant;
     private Currency currency;
@@ -134,12 +137,12 @@ public class StellarServiceImpl implements StellarService {
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        Integer destinationTag = generateUniqDestinationTag(request.getUserId());
+        String destinationTag = generateUniqDestinationTag(request.getUserId());
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
         DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
-            put("address",  String.valueOf(destinationTag));
+            put("address",  destinationTag);
             put("message", message);
             put("qr", ACCOUNT_NAME);
         }};
@@ -150,26 +153,14 @@ public class StellarServiceImpl implements StellarService {
                                                                             payment.getHash()).isPresent();
     }
 
-    private Integer generateUniqDestinationTag(int userId) {
-        Optional<Integer> id = null;
-        int destinationTag;
+    private String generateUniqDestinationTag(int userId) {
+        Optional<Integer> id;
+        String destinationTag;
         do {
-            destinationTag = generateDestinationTag(userId);
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
-                    currency.getId(), merchant.getId());
+            destinationTag = CryptoUtils.generateDestinationTag(userId, MAX_TAG_DESTINATION_DIGITS);
+            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(destinationTag, currency.getId(), merchant.getId());
         } while (id.isPresent());
-        log.debug("tag is {}", destinationTag);
         return destinationTag;
-    }
-
-    private Integer generateDestinationTag(int userId) {
-        String idInString = String.valueOf(userId);
-        int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
-        if (randomNumberLength < 0) {
-            throw new MerchantInternalException("error generating new destination tag for stellar" + userId);
-        }
-        String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
-        return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
     }
 
     @Override
@@ -241,5 +232,11 @@ public class StellarServiceImpl implements StellarService {
                 return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
         }
 
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(ACCOUNT_NAME, address);
     }
 }

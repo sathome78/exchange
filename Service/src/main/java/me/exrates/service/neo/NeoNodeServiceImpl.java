@@ -18,21 +18,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Service
 @Log4j2(topic = "neo_log")
-@PropertySource("classpath:/merchants/neo.properties")
 public class NeoNodeServiceImpl implements NeoNodeService {
 
-    @Autowired
-    private RestTemplate restTemplate;
 
-    @Autowired
+    private String endpoint;
+    private RestTemplate restTemplate;
     private ObjectMapper objectMapper;
 
-    private @Value("${neo.node.endpoint}") String endpoint;
-
-
-
+    NeoNodeServiceImpl(String endpoint, RestTemplate restTemplate, ObjectMapper objectMapper) {
+        this.endpoint = endpoint;
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String getNewAddress() {

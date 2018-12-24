@@ -18,7 +18,7 @@ public interface IWithdrawable extends IMerchantService {
 
   default String additionalWithdrawFieldName() {
     return "MEMO";
-  };
+  }
 
   default boolean specificWithdrawMerchantCommissionCountNeeded() {
     return false;
@@ -26,11 +26,13 @@ public interface IWithdrawable extends IMerchantService {
 
   default BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
     return BigDecimal.ZERO;
-   };
+   }
 
-  default void checkDestinationTag(String destinationTag) {};
+  default void checkDestinationTag(String destinationTag) {}
 
   default boolean comissionDependsOnDestinationTag() {
     return false;
   }
+
+  boolean isValidDestinationAddress(String address);
 }

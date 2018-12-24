@@ -29,6 +29,7 @@ import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     @Override
     public List<String> getAllTokens() {
@@ -237,4 +241,11 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         throw new NotImplimentedMethod("for "+params);
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 }
