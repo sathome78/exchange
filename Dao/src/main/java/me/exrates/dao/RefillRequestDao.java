@@ -138,4 +138,6 @@ public interface RefillRequestDao {
     List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> collect);
 
     List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
+
+    boolean addAddress(RefillRequestCreateDto request);
 }
