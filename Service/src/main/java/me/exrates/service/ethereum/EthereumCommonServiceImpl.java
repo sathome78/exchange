@@ -12,6 +12,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
     private EthTokensContext ethTokensContext;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private String url;
 
@@ -530,6 +534,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private EthTokenService getByCurrencyId(int currencyId) {
         return ethTokensContext.getByCurrencyId(currencyId);
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 }

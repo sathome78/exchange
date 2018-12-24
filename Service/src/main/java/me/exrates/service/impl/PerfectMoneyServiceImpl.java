@@ -11,6 +11,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +56,9 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Autowired
     private RefillService refillService;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -123,5 +127,12 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 ":"+params.get("TIMESTAMPGMT");
         return algorithmService.computeMD5Hash(hashParams).toUpperCase();
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 
 }

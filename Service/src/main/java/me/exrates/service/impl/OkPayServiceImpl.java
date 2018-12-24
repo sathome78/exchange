@@ -12,6 +12,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Autowired
     private RefillService refillService;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -150,4 +154,11 @@ public class OkPayServiceImpl implements OkPayService {
 
         return returnResponse.equals("VERIFIED");
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 }
