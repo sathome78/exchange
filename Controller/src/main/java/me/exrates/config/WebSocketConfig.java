@@ -51,6 +51,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setClientLibraryUrl(clientLibraryUrl);
         registry.addHandler(handlers.get(IN), "/chat-in").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
+        registry.addHandler(handlers.get(KO), "/chat-ko").setAllowedOrigins(origins).withSockJS()
+                .setClientLibraryUrl(clientLibraryUrl);
     }
 
     @Bean(name = "chatEN")
@@ -75,6 +77,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Bean(name = "chatIN")
     public ChatWebSocketHandler chatINWebSocketHandler() {
+        return new ChatWebSocketHandler();
+    }
+
+    @Bean(name = "chatKO")
+    public ChatWebSocketHandler chatKOWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
 

@@ -11,7 +11,8 @@ public enum ChatLang {
     RU("RU"),
     CN("CN"),
     AR("AR"),
-    IN("IN");
+    IN("IN"),
+    KO("KO");
 
     public final String val;
 
