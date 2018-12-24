@@ -33,7 +33,7 @@ public class ExratesCorsFilter implements Filter {
 
         response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
 
-        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
+//        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
 
 
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
