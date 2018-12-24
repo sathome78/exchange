@@ -202,7 +202,7 @@ public class NgRefillController {
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
         try {
-            Map<String, Object> response = refillService.createRefillRequest(request, getPrincipalEmail());
+            Map<String, Object> response = refillService.createRefillRequest(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to create refill request", e);

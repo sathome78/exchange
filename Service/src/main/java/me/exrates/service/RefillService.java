@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 public interface RefillService {
 
-    Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto, String email);
+    Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
 
     Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 

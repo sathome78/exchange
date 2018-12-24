@@ -1,6 +1,7 @@
 package me.exrates.service.handler;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.util.RestUtil;
 import org.springframework.http.client.ClientHttpResponse;
@@ -11,9 +12,16 @@ import java.io.IOException;
 @Log4j2
 public class RestResponseErrorHandler implements ResponseErrorHandler {
 
+    private final ObjectMapper objectMapper;
+
+    public RestResponseErrorHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
-        log.error("Response error: {} {}", response.getStatusCode(), response.getBody());
+        String resp = objectMapper.writeValueAsString(response);
+        log.error("Response error: {} {}", response.getStatusCode(), resp);
     }
 
     @Override
