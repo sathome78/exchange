@@ -33,7 +33,7 @@
             <button id="bchatru" class="btna" onclick="changeChatLocale('ru')">RU</button>
             <button id="bchatcn" class="btna" onclick="changeChatLocale('cn')">CN</button>
             <button id="bchatin" class="btna" onclick="changeChatLocale('in')">IN</button>
-            <button id="bchatko" class="btna" onclick="changeChatLocale('ko')">KO</button>
+            <%--<button id="bchatko" class="btna" onclick="changeChatLocale('ko')">KO</button>--%>
         </div>
     </div>
 
