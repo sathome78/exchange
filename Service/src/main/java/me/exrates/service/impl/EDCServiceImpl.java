@@ -19,6 +19,7 @@ import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestMerchantException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +60,9 @@ public class EDCServiceImpl implements EDCService {
 
   @Autowired
   private CurrencyService currencyService;
+
+  @Autowired
+  private WithdrawUtils withdrawUtils;
 
   @Autowired
   EDCServiceNode edcServiceNode;
@@ -185,6 +189,12 @@ public class EDCServiceImpl implements EDCService {
     } catch (Exception e) {
       throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
     }
+  }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
   }
 
 

@@ -20,6 +20,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.AddressUnusedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestGeneratingAdditionalAddressNotAvailableException;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -55,6 +56,9 @@ public class IotaServiceImpl implements IotaService {
 
     @Autowired
     private CurrencyService currencyService;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private IotaAPI iotaClient;
 
@@ -223,6 +227,12 @@ public class IotaServiceImpl implements IotaService {
         } catch (Exception e) {
             log.error(e);
         }
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     @PreDestroy

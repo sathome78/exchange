@@ -19,6 +19,7 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.ParamMapUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
@@ -49,6 +50,9 @@ public class WavesServiceImpl implements WavesService {
 
     @Autowired
     private SendMailService sendMailService;
+
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private Integer minConfirmations;
     private String mainAccount;
@@ -345,6 +349,13 @@ public class WavesServiceImpl implements WavesService {
     public void shutdown() {
         scheduler.shutdown();
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 
     void initAssets(Properties wavesProps) {
         currencyBase = currencyService.findByName(currencyBaseName);
