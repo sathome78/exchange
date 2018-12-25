@@ -61,25 +61,25 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     @Transactional
     @Override
     public Object subscribe(Object subscribeData) {
-        TelegramSubscription subscriptionDto = (TelegramSubscription)subscribeData;
-        String[] data = (subscriptionDto.getRawText()).split(":");
-        String email = data[0];
-        Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByCodeAndEmail(subscriptionDto.getRawText(), email);
-        TelegramSubscription subscription = subscriptionOptional.orElseThrow(TelegramSubscriptionException::new);
-        NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
-        if (subscription.getSubscriptionState().isFinalState()) {
-            /*set New account for subscription if allready subscribed*/
-           /* subscription.setChatId(subscriptionDto.getChatId());
-            subscription.setUserAccount(subscriptionDto.getUserAccount());
-            subscription.setCode(null);*/
-           throw new RuntimeException("allready subscribed");
-        } else if (subscription.getSubscriptionState().isBeginState()) {
-            subscription.setSubscriptionState(nextState);
-            subscription.setChatId(subscriptionDto.getChatId());
-            subscription.setUserAccount(subscriptionDto.getUserAccount());
-            subscription.setCode(null);
-        }
-        subscribtionDao.updateSubscription(subscription);
+//        TelegramSubscription subscriptionDto = (TelegramSubscription)subscribeData;
+//        String[] data = (subscriptionDto.getRawText()).split(":");
+//        String email = data[0];
+//        Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByCodeAndEmail(subscriptionDto.getRawText(), email);
+//        TelegramSubscription subscription = subscriptionOptional.orElseThrow(TelegramSubscriptionException::new);
+//        NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
+//        if (subscription.getSubscriptionState().isFinalState()) {
+//            /*set New account for subscription if allready subscribed*/
+//           /* subscription.setChatId(subscriptionDto.getChatId());
+//            subscription.setUserAccount(subscriptionDto.getUserAccount());
+//            subscription.setCode(null);*/
+//           throw new RuntimeException("allready subscribed");
+//        } else if (subscription.getSubscriptionState().isBeginState()) {
+//            subscription.setSubscriptionState(nextState);
+//            subscription.setChatId(subscriptionDto.getChatId());
+//            subscription.setUserAccount(subscriptionDto.getUserAccount());
+//            subscription.setCode(null);
+//        }
+//        subscribtionDao.updateSubscription(subscription);
         return null;
     }
 
@@ -147,7 +147,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     }
 
     @Transactional
-    private BigDecimal payForSubscribe(String userEmail, OperationType operationType,
+    public BigDecimal payForSubscribe(String userEmail, OperationType operationType,
                                  String description) {
         int userId = userService.getIdByEmail(userEmail);
         UserRole role = userService.getUserRoleFromDB(userEmail);

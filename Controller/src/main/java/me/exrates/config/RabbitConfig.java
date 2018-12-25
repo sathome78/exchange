@@ -1,10 +1,14 @@
 package me.exrates.config;
 
 import me.exrates.service.RabbitMqService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.ExchangeBuilder;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
@@ -14,6 +18,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +33,8 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 public class RabbitConfig implements RabbitListenerConfigurer {
 
     public static final String QUEUE_DEAD_ORDERS = "dead-orders-queue";
+
+    private static final Logger logger = LoggerFactory.getLogger(RabbitConfig.class);
 
     @Value("${rabbit.host}")
     private String host;
@@ -138,5 +145,16 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Bean
     public MappingJackson2MessageConverter consumerJackson2MessageConverter() {
         return new MappingJackson2MessageConverter();
+    }
+
+    //объявляем контейнер, который будет содержать листенер для сообщений
+    @Bean
+    public SimpleMessageListenerContainer messageListenerContainer1() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory());
+        container.setQueueNames(RabbitMqService.ANGULAR_QUEUE);
+        //тут ловим сообщения из queue1
+        container.setMessageListener((MessageListener) message -> logger.info("received from " + RabbitMqService.ANGULAR_QUEUE + " : " + new String(message.getBody())));
+        return container;
     }
 }
