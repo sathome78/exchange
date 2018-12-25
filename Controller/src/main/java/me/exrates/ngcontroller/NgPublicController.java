@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.model.ChatMessage;
+import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
@@ -13,6 +14,7 @@ import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngcontroller.exception.NgDashboardException;
@@ -274,6 +276,33 @@ public class NgPublicController {
             logger.debug("New user's %s %s is not stored yet!", logMessageValue, value);
         }
         return result;
+    }
+
+    @GetMapping("/crypto-currencies")
+    @ResponseBody
+    public List<Currency> getCryptoCurrencies() {
+        try {
+            return currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+        } catch (Exception e) {
+            logger.error("Failed to get all hashed currency names");
+            return Collections.emptyList();
+        }
+    }
+
+    // /info/private/v2/balances/refill/fiat-currencies
+
+    /**
+     * @return set of unique currencies names which market is FIAT
+     */
+    @GetMapping("/fiat-currencies")
+    @ResponseBody
+    public List<Currency> getFiatCurrencies() {
+        try {
+            return currencyService.getCurrencies(MerchantProcessType.MERCHANT, MerchantProcessType.INVOICE);
+        } catch (Exception e) {
+            logger.error("Failed to get all fiat names");
+            return Collections.emptyList();
+        }
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
