@@ -1532,14 +1532,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "mncServiceImpl")
-    public EthTokenService mncService() {
+    @Bean(name = "ectServiceImpl")
+    public EthTokenService ectService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x9f0f1be08591ab7d990faf910b38ed5d60e4d5bf");
+        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
         return new EthTokenServiceImpl(
                 tokensList,
-                "MNC",
-                "MNC", true, ExConvert.Unit.ETHER);
+                "ECT",
+                "ECT", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "s4fServiceImpl")
@@ -1550,6 +1550,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "S4F",
                 "S4F", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mncServiceImpl")
+    public EthTokenService mncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f0f1be08591ab7d990faf910b38ed5d60e4d5bf");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MNC",
+                "MNC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "tcatServiceImpl")
+    public EthTokenService tcatService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaff84e86d72edb971341a6a66eb2da209446fa14");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TCAT",
+                "TCAT", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
