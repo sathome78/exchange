@@ -100,7 +100,7 @@
                         <p style="margin-top: 8px; margin-bottom: 0;">
                             <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/nina-bar-b87945170/"><loc:message code="contacts.support.listing.manager"/> </a>
                         </p>
-                        <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
+                        <a href="mailto:listing@exrates.me">listing@exrates.me</a>
                     </div>
                     <div>
                         <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="contacts.sales.title"/></h5>
