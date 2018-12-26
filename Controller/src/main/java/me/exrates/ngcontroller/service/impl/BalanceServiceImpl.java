@@ -28,8 +28,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -124,7 +127,15 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email) {
         List<RefillPendingRequestDto> requests =
-                refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email));
+                refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email))
+                        .stream()
+                        .filter(o -> o.getDate() != null)
+                        .sorted(((o1, o2) -> {
+                            Date dateOne = getDateFromString(o1.getDate());
+                            Date dateTwo = getDateFromString(o2.getDate());
+                            return dateTwo.compareTo(dateOne);
+                        }))
+                        .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
     }
 
@@ -264,6 +275,18 @@ public class BalanceServiceImpl implements BalanceService {
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    private Date getDateFromString(String input) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+        Date parsedDate = null;
+        try {
+            parsedDate = formatter.parse(input);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return parsedDate;
     }
 
 }
