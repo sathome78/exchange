@@ -4,8 +4,10 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
+import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
@@ -14,12 +16,15 @@ import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.util.RestApiUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +33,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +72,8 @@ public class NgUserController {
     private final SecureService secureService;
     private final G2faService g2faService;
     private final NgUserService ngUserService;
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -73,7 +83,9 @@ public class NgUserController {
                             UserService userService, ReferralService referralService,
                             SecureService secureService,
                             G2faService g2faService,
-                            NgUserService ngUserService) {
+                            NgUserService ngUserService,
+                            UserDetailsService userDetailsService,
+                            PasswordEncoder passwordEncoder) {
         this.ipBlockingService = ipBlockingService;
         this.authTokenService = authTokenService;
         this.userService = userService;
@@ -81,6 +93,8 @@ public class NgUserController {
         this.secureService = secureService;
         this.g2faService = g2faService;
         this.ngUserService = ngUserService;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping(value = "/authenticate")
@@ -95,16 +109,6 @@ public class NgUserController {
             }
         } catch (BannedIpException ban) {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
-        }
-
-        if (authenticationDto.getEmail().startsWith("promo@ex") ||
-                authenticationDto.getEmail().startsWith("dev@exrat")) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
-        }
-
-        if (authenticationDto.getEmail().startsWith("promo@ex") ||
-                authenticationDto.getEmail().startsWith("dev@exrat")) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);   // 403
         }
 
         User user;
@@ -129,6 +133,17 @@ public class NgUserController {
             return new ResponseEntity<>(HttpStatus.GONE); // 410
         }
 
+        if (StringUtils.isBlank(authenticationDto.getEmail())
+                || StringUtils.isBlank(authenticationDto.getPassword())) {
+            throw new MissingCredentialException("Credentials missing");
+        }
+        String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
+//        logger.error("PASSWORD ENCODED: {}", passwordEncoder.encode(password));
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new IncorrectPasswordException("Incorrect password");
+        }
+
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
 
         if (!DEV_MODE) {
@@ -142,11 +157,23 @@ public class NgUserController {
             }
         }
 
-        authenticationDto.setPinRequired(true);
+        if (shouldLoginWithGoogle) {
+            Integer userId = userService.getIdByEmail(authenticationDto.getEmail());
+            if (!g2faService.checkGoogle2faVerifyCode(authenticationDto.getPin(), userId)) {
+                if (!DEV_MODE) {
+                    throw new IncorrectPinException("Incorrect google auth code");
+                }
+            }
+        } else if (!DEV_MODE) {
+            if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                PinDto res = secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
+                throw new IncorrectPinException(res);
+            }
+        }
+
         Optional<AuthTokenDto> authTokenResult;
         try {
-            authTokenResult = authTokenService.retrieveTokenNg(request, authenticationDto,
-                    authenticationDto.getClientIp(), shouldLoginWithGoogle);
+            authTokenResult = authTokenService.retrieveTokenNg(authenticationDto, authenticationDto.getClientIp());
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
