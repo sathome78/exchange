@@ -1,7 +1,5 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import me.exrates.dao.MerchantDao;
@@ -33,7 +31,6 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.util.RestApiUtils;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,8 +49,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -148,6 +143,7 @@ public class RefillServiceImpl implements RefillService {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put("params", new HashMap<String, String>());
         }};
+        Map<String, String> params = (Map<String, String>) result.get("params");
         try {
             IRefillable merchantService = (IRefillable) merchantServiceContext.getMerchantService(request.getServiceBeanName());
             request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
@@ -161,42 +157,48 @@ public class RefillServiceImpl implements RefillService {
 
             refill(request).entrySet().forEach(e ->
             {
+                System.out.println(e);
                 if (e.getKey().startsWith("$__")) {
                     result.put(e.getKey().replace("$__", ""), e.getValue());
                 } else {
-                    ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
+                    params.put(e.getKey(), e.getValue());
                 }
 
-                if(e.getKey().equalsIgnoreCase("address")
+                /*if(e.getKey().equalsIgnoreCase("address")
                         && !StringUtils.isBlank(e.getValue())) {
                     request.setAddress(e.getValue());
-                    refillRequestDao.create(request);
-                }
+                    refillRequestDao.addAddress(request);
+                }*/
             });
             String merchantRequestSign = (String) result.get("sign");
             request.setMerchantRequestSign(merchantRequestSign);
             if (merchantRequestSign != null) {
                 refillRequestDao.setMerchantRequestSignById(request.getId(), merchantRequestSign);
             }
-            if (((Map<String, String>) result.get("params")).keySet().contains("address")) {
-                if (StringUtils.isEmpty(((Map<String, String>) result.get("params")).get("address"))) {
-                    throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
+            if (params.keySet().contains("address")) {
+                if (StringUtils.isEmpty(params.get("address"))) {
+                    throw new RefillRequestExpectedAddressNotDetermineException("Failed to get coin address");
                 }
                 if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
+                    System.out.println(request);
                     Boolean addressIsAlreadyGeneratedForUser =
                             refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(request.getMerchantId(),
                                     request.getCurrencyId(),
                                     request.getUserId())
                                     .isPresent();
+                    System.out.println(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(request.getMerchantId(),
+                            request.getCurrencyId(),
+                            request.getUserId()).orElse("no address"));
+                    System.out.println(addressIsAlreadyGeneratedForUser);
                     if (addressIsAlreadyGeneratedForUser) {
-                        throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
+                        throw new RefillRequestGeneratingAdditionalAddressNotAvailableException("Address is already generated");
                     }
                 }
             }
-            request.setAddress(((Map<String, String>) result.get("params")).get("address"));
-            request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
-            request.setPubKey(((Map<String, String>) result.get("params")).get("pubKey"));
-            request.setBrainPrivKey(((Map<String, String>) result.get("params")).get("brainPrivKey"));
+            request.setAddress(params.get("address"));
+            request.setPrivKey(params.get("privKey"));
+            request.setPubKey(params.get("pubKey"));
+            request.setBrainPrivKey(params.get("brainPrivKey"));
             profileData.setTime2();
             if (request.getId() == null) {
                 Integer requestId = createRefill(request).orElse(null);
@@ -213,7 +215,7 @@ public class RefillServiceImpl implements RefillService {
             try {
                 String notification = sendRefillNotificationAfterCreation(
                         request,
-                        ((Map<String, String>) result.get("params")).get("message"),
+                        params.get("message"),
                         request.getLocale());
                 result.put("message", notification);
                 result.put("requestId", request.getId());
@@ -1114,11 +1116,6 @@ public class RefillServiceImpl implements RefillService {
     public String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale) {
         IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);
         return merchantService.getPaymentMessage(tag, locale);
-    }
-
-    @Override
-    public List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
-        return refillRequestDao.findAllNotAcceptedByAddressAndMerchantAndCurrency(address, merchantId, currencyId);
     }
 
     @Override

@@ -123,8 +123,6 @@ public interface RefillService {
 
     String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
 
-    List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
-
     boolean checkAddressForAvailability(String address);
 
     int getTxOffsetForAddress(String address);

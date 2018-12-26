@@ -17,8 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-@EnableRabbit
-@Component
+//@EnableRabbit
+//@Component
 public class OrderMessageListener {
 
     static final Logger logger = LoggerFactory.getLogger(OrderMessageListener.class);

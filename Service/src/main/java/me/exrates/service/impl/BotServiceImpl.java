@@ -70,11 +70,11 @@ public class BotServiceImpl implements BotService {
 
     @PostConstruct
     private void initBot() {
-        retrieveBotFromDB().ifPresent(botTrader -> {
-            if (botTrader.isEnabled()) {
-                scheduleJobsForActiveCurrencyPairs(botTrader.getId());
-            }
-        });
+//        retrieveBotFromDB().ifPresent(botTrader -> {
+//            if (botTrader.isEnabled()) {
+//                scheduleJobsForActiveCurrencyPairs(botTrader.getId());
+//            }
+//        });
     }
 
     private void scheduleJobsForActiveCurrencyPairs(Integer botId) {
@@ -96,7 +96,6 @@ public class BotServiceImpl implements BotService {
 
         });
     }
-
 
     @Override
     @Transactional
