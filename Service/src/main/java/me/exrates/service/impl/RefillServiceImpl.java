@@ -157,17 +157,18 @@ public class RefillServiceImpl implements RefillService {
 
             refill(request).entrySet().forEach(e ->
             {
+                System.out.println(e);
                 if (e.getKey().startsWith("$__")) {
                     result.put(e.getKey().replace("$__", ""), e.getValue());
                 } else {
                     params.put(e.getKey(), e.getValue());
                 }
 
-                if(e.getKey().equalsIgnoreCase("address")
+                /*if(e.getKey().equalsIgnoreCase("address")
                         && !StringUtils.isBlank(e.getValue())) {
                     request.setAddress(e.getValue());
                     refillRequestDao.addAddress(request);
-                }
+                }*/
             });
             String merchantRequestSign = (String) result.get("sign");
             request.setMerchantRequestSign(merchantRequestSign);
@@ -179,11 +180,16 @@ public class RefillServiceImpl implements RefillService {
                     throw new RefillRequestExpectedAddressNotDetermineException("Failed to get coin address");
                 }
                 if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
+                    System.out.println(request);
                     Boolean addressIsAlreadyGeneratedForUser =
                             refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(request.getMerchantId(),
                                     request.getCurrencyId(),
                                     request.getUserId())
                                     .isPresent();
+                    System.out.println(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(request.getMerchantId(),
+                            request.getCurrencyId(),
+                            request.getUserId()).orElse("no address"));
+                    System.out.println(addressIsAlreadyGeneratedForUser);
                     if (addressIsAlreadyGeneratedForUser) {
                         throw new RefillRequestGeneratingAdditionalAddressNotAvailableException("Address is already generated");
                     }
