@@ -16,6 +16,9 @@ function connect(chatLang) {
             if (chatLang === 'ar') {
                 $('#chat').find('.chat_message:last').addClass('right-to-left')
             }
+            if (chatLang === 'ko') {
+                $('#chat').find('.chat_message:last').addClass('right-to-left')
+            }
         }
     };
 }
