@@ -53,16 +53,16 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
         this.telegramChatDao = telegramChatDao;
     }
 
-    /*static {ApiContextInitializer.init();}*/
+    static {ApiContextInitializer.init();}
 
     @PostConstruct
     private void initBot() {
-       /* TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
             telegramBotsApi.registerBot(this);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
-        }*/
+        }
     }
 
     @Override
