@@ -41,7 +41,7 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     /*----methods-----*/
     @PostConstruct
     public void init() {
-        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
+      /*  List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
         List<StopOrder> activeOrders = stopOrderService
                 .getActiveStopOrdersByCurrencyPairsId(currencyPairs.stream().map(CurrencyPair::getId).collect(Collectors.toList()));
         currencyPairs.forEach(p->{
@@ -58,8 +58,8 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
             });
             buyOrdersMap.put(p.getId(), buySet);
             log.debug("buy set for currency {} size: {}", p.getId(), buySet.size());
-        });
-        }
+        });*/
+      }
 
     /**
      * return set with orders by this currency pair @pairId pair which has higher or equal @rate*/

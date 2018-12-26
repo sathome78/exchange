@@ -78,35 +78,37 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale) {
-        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+       /* Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
         if (orderId <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
         }
         ExOrder exOrder = new ExOrder(orderCreateDto);
         exOrder.setId(orderId);
-        this.onStopOrderCreate(exOrder);
+        this.onStopOrderCreate(exOrder);*/
         return "{\"result\":\"" + messageSource.getMessage("createdstoporder.text", null, locale) + "\"}";
     }
 
     @Transactional
     @Override
     public Integer create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum) {
-        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+       /* Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
         if (orderId <= 0) {
             return orderId;
         }
         ExOrder exOrder = new ExOrder(orderCreateDto);
         exOrder.setId(orderId);
         this.onStopOrderCreate(exOrder);
-        return orderId;
+        return orderId;*/
+        return 0;
     }
 
 
     @Transactional
     @Override
     public Integer createOrder(ExOrder exOrder) {
-        StopOrder order = new StopOrder(exOrder);
-        return stopOrderDao.create(order);
+        /*StopOrder order = new StopOrder(exOrder);
+        return stopOrderDao.create(order);*/
+        return 0;
     }
 
 
@@ -209,9 +211,9 @@ public class StopOrderServiceImpl implements StopOrderService {
     }
 
     @Override
-    @TransactionalEventListener
+   /* @TransactionalEventListener*/
     public void onLimitOrderAccept(AcceptOrderEvent event) {
-        log.debug("orderAcceptedd");
+       /* log.debug("orderAcceptedd");
         ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
         checkExecutors.execute(() -> {
@@ -220,7 +222,7 @@ public class StopOrderServiceImpl implements StopOrderService {
         });
         checkExecutors.execute(() -> {
             checkOrders(exOrder, OperationType.SELL);
-        });
+        });*/
     }
 
 
