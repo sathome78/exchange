@@ -16,6 +16,9 @@ function connect(chatLang) {
             if (chatLang === 'ar') {
                 $('#chat').find('.chat_message:last').addClass('right-to-left')
             }
+            if (chatLang === 'ko') {
+                $('#chat').find('.chat_message:last').addClass('right-to-left')
+            }
         }
     };
 }
@@ -91,6 +94,9 @@ $(function () {
     var listLang = $("#language").text().toLowerCase().trim();
     changeChatLocale(listLang == 'id' ? 'in' : listLang);
     var bchat = document.getElementById('bchat'+(listLang == 'id' ? 'in' : listLang));
+    if(bchat == null){
+        bchat = document.getElementById('bchaten');
+    }
     bchat.className += " active";
 
     var btnContainer = document.getElementById("chatLangButtons");
