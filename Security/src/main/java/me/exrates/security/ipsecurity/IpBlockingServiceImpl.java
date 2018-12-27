@@ -47,25 +47,25 @@ public class IpBlockingServiceImpl implements IpBlockingService {
 
     @Override
     public void checkIp(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
-        synchronized (lock) {
-            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
-            log.debug("ip checker {} ", specificIpChecker);
-            if (specificIpChecker.containsKey(ipAddress)) {
-                LocalDateTime currentTime = LocalDateTime.now();
-                LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
-                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
-                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
-                } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
-                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
-                }
-                if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
-                    specificIpChecker.remove(ipAddress);
-                } else {
-                    attempt.setStatus(IpBanStatus.ALLOW);
-                }
-
-            }
-        }
+//        synchronized (lock) {
+//            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+//            log.debug("ip checker {} ", specificIpChecker);
+//            if (specificIpChecker.containsKey(ipAddress)) {
+//                LocalDateTime currentTime = LocalDateTime.now();
+//                LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
+//                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
+//                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
+//                } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
+//                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
+//                }
+//                if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
+//                    specificIpChecker.remove(ipAddress);
+//                } else {
+//                    attempt.setStatus(IpBanStatus.ALLOW);
+//                }
+//
+//            }
+//        }
 
 
     }
