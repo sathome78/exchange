@@ -3,6 +3,7 @@ package me.exrates.ngcontroller.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.Currency;
@@ -27,6 +28,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.util.BigDecimalToStringSerializer;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
@@ -40,6 +42,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.MarketRatesHolder;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -365,41 +368,42 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     @Override
-    public ResponseUserBalances getBalanceByCurrencyPairId(int currencyPairId, User user) {
-        ResponseUserBalances result = new ResponseUserBalances();
+    public Map<String, Map<String, String>> getBalanceByCurrencyPairId(int currencyPairId, User user)
+            throws CurrencyPairNotFoundException{
 
+        Map<String, Map<String, String>> currencyPairBalances = Maps.newHashMap();
+
+        CurrencyPair currencyPair;
         try {
-
-            BigDecimal balanceByCurrency1;
-            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-            List<ExOrderStatisticsShortByPairsDto> currencyRate =
-                    orderService.getStatForSomeCurrencies(Collections.singletonList(currencyPairId));
-
-            balanceByCurrency1 =
-                    dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
-
-            result.setBalanceByCurrency1(balanceByCurrency1);
-
-            BigDecimal balanceByCurrency2 = new BigDecimal(0);
-            for (ExOrderStatisticsShortByPairsDto dto : currencyRate) {
-                if (dto == null) continue;
-
-                if (dto.getLastOrderRate() != null
-                        && balanceByCurrency1 != null
-                        && BigDecimalProcessing.moreThanZero(balanceByCurrency1)) {
-                    BigDecimal rate = new BigDecimal(dto.getLastOrderRate());
-                    balanceByCurrency2 = balanceByCurrency1.multiply(rate);
-                }
-                break;
-            }
-
-            result.setBalanceByCurrency2(balanceByCurrency2);
-
-        } catch (ArithmeticException e) {
-            logger.error("Error calculating max and min values - {}", e.getLocalizedMessage());
-            throw new NgDashboardException("Error while processing calculate currency info, e - " + e.getMessage());
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        } catch (CurrencyPairNotFoundException e) {
+            String message = "Failed to get currency pair for id: " + currencyPairId;
+            logger.warn(message, e);
+            throw new CurrencyPairNotFoundException(message);
         }
-        return result;
+
+        BigDecimal balanceByCurrency1 =
+                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency1().getId());
+        if (balanceByCurrency1 == null || balanceByCurrency1.compareTo(BigDecimal.ZERO) < 1) {
+            balanceByCurrency1 = BigDecimal.ZERO;
+        }
+        Map<String, String> firstMap = Maps.newHashMap();
+        firstMap.put("name", currencyPair.getCurrency1().getName());
+        firstMap.put("balance", BigDecimalToStringSerializer.convert(balanceByCurrency1));
+
+        BigDecimal balanceByCurrency2 =
+                dashboardService.getBalanceByCurrency(user.getId(), currencyPair.getCurrency2().getId());
+
+        if (balanceByCurrency2 == null || balanceByCurrency2.compareTo(BigDecimal.ZERO) < 1) {
+            balanceByCurrency2 = BigDecimal.ZERO;
+        }
+        Map<String, String> secondMap = Maps.newHashMap();
+        secondMap.put("name", currencyPair.getCurrency2().getName());
+        secondMap.put("balance", BigDecimalToStringSerializer.convert(balanceByCurrency2));
+
+        currencyPairBalances.put("cur1", firstMap);
+        currencyPairBalances.put("cur2", secondMap);
+        return currencyPairBalances;
     }
 
     @Override

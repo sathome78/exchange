@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.service;
 
+import com.yandex.money.api.utils.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
@@ -11,7 +12,9 @@ import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.model.ResponseUserBalances;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +30,8 @@ public interface NgOrderService {
 
     ResponseInfoCurrencyPairDto getCurrencyPairInfo(int currencyPairId);
 
-    ResponseUserBalances getBalanceByCurrencyPairId(int currencyPairId, User user);
+    Map<String, Map<String, String>> getBalanceByCurrencyPairId(int currencyPairId, User user)
+            throws CurrencyPairNotFoundException;
 
     String createOrder(InputCreateOrderDto inputOrder);
 
