@@ -17,23 +17,29 @@ import java.util.Optional;
  */
 @Component
 public class MerchantServiceContext {
-  @Autowired
-  Map<String, IMerchantService> merchantServiceMap;
+    @Autowired
+    Map<String, IMerchantService> merchantServiceMap;
 
-  @Autowired
-  MerchantService merchantService;
+    @Autowired
+    MerchantService merchantService;
 
-  public  IMerchantService getMerchantService(String serviceBeanName) {
-    if (StringUtils.isEmpty(serviceBeanName)) {
-      throw new MerchantServiceBeanNameNotDefinedException("");
+    public IMerchantService getMerchantService(String serviceBeanName) {
+        if (StringUtils.isEmpty(serviceBeanName)) {
+            throw new MerchantServiceBeanNameNotDefinedException("");
+        }
+        return Optional.ofNullable(merchantServiceMap.get(serviceBeanName))
+                .orElseThrow(() -> new MerchantServiceNotFoundException(serviceBeanName));
     }
-    return Optional.ofNullable(merchantServiceMap.get(serviceBeanName))
-        .orElseThrow(() -> new MerchantServiceNotFoundException(serviceBeanName));
-  }
 
-  public  IMerchantService getMerchantService(Integer merchantId) {
-    Merchant merchant = Optional.ofNullable(merchantService.findById(merchantId))
-        .orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
-    return getMerchantService(merchant.getServiceBeanName());
-  }
+    public IMerchantService getMerchantService(Integer merchantId) {
+        Merchant merchant = Optional.ofNullable(merchantService.findById(merchantId))
+                .orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        return getMerchantService(merchant.getServiceBeanName());
+    }
+
+    public IMerchantService getMerchantServiceByName(String merchantName) {
+        Merchant merchant = Optional.ofNullable(merchantService.findByName(merchantName))
+                .orElseThrow(() -> new MerchantNotFoundException(merchantName));
+        return getMerchantService(merchant.getServiceBeanName());
+    }
 }
