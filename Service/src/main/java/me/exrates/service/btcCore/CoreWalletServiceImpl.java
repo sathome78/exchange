@@ -429,7 +429,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     private void unlockWallet(String password, int authTimeout, boolean forceUnlock) throws BitcoindException, CommunicationException {
         Long unlockedUntil = getUnlockedUntil();
         if (unlockedUntil != null && (forceUnlock || unlockedUntil == 0) ) {
+            System.out.println("Starting executing walletPasspharese rpc");
             btcdClient.walletPassphrase(password, authTimeout);
+            System.out.println("Wallet passpharase execution done");
         }
     }
 
