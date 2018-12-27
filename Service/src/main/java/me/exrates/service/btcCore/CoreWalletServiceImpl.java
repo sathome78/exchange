@@ -483,7 +483,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         System.out.println("txId without exception = " + txId);
       return new BtcPaymentResultDto(txId);
     } catch (Exception e) {
-        System.out.println("txId with exception = " + e);
+        System.out.println("txId with exception = \n" + e.getMessage());
 
         log.error(e);
       return new BtcPaymentResultDto(e);
