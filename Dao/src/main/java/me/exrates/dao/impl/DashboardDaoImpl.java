@@ -29,7 +29,7 @@ public class DashboardDaoImpl implements DashboardDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            return BigDecimal.ZERO;
         }
     }
 
