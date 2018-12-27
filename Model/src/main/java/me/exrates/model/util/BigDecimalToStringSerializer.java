@@ -13,6 +13,10 @@ public class BigDecimalToStringSerializer  extends JsonSerializer<BigDecimal> {
 
     @Override
     public void serialize(BigDecimal value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-        gen.writeString(BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", ""));
+        gen.writeString(convert(value));
+    }
+
+    public static String convert(BigDecimal value) {
+        return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
     }
 }

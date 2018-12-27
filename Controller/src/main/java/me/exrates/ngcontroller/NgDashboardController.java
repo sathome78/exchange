@@ -23,6 +23,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
@@ -289,17 +290,17 @@ public class NgDashboardController {
 
 
     @GetMapping("/info/{currencyPairId}")
-    public ResponseEntity getCurrencyPairInfo(@PathVariable int currencyPairId) {
+    public ResponseEntity<Map<String, Map<String, String>>> getCurrencyPairInfo(@PathVariable int currencyPairId)
+            throws CurrencyPairNotFoundException {
 
         String userName = userService.getUserEmailFromSecurityContext();
         User user = userService.findByEmail(userName);
-        ResponseUserBalances result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
-
+        Map<String, Map<String, String>> result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class})
+    @ExceptionHandler({NgDashboardException.class, IllegalArgumentException.class, CurrencyPairNotFoundException.class})
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
