@@ -20,10 +20,12 @@ public class RabbitMqServiceImpl implements RabbitMqService {
     private static final Logger logger = LoggerFactory.getLogger(RabbitMqServiceImpl.class);
 
     private final ObjectMapper objectMapper;
-//    private final RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
-    public RabbitMqServiceImpl(ObjectMapper objectMapper) {
+    public RabbitMqServiceImpl(ObjectMapper objectMapper,
+                               RabbitTemplate rabbitTemplate) {
         this.objectMapper = objectMapper;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Override
@@ -36,7 +38,7 @@ public class RabbitMqServiceImpl implements RabbitMqService {
                     .build();
             try {
                 logger.error("Rabbit Mq is disabled for now");
-//                this.rabbitTemplate.convertAndSend(queueName, message);
+                this.rabbitTemplate.convertAndSend(queueName, message);
             } catch (AmqpException e) {
                 String msg = "Failed to send data via rabbit queue";
                 logger.error(msg + " " + orderJson, e);
