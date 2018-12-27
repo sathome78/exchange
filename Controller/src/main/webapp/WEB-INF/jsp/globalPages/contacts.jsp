@@ -69,9 +69,7 @@
                             <b><loc:message code="contacts.officeLocation.title"/></b>
                         </p>
                         <p style="margin-top: 0; margin-bottom:0; text-align: left;"><loc:message code="contacts.officeLocation.china"/></p>
-                        <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b><loc:message code="admin.phone"/>:</b> +8615313750545
-                        </p>
+
                         <p style="margin-top: 8px; margin-bottom: 8px;">
                             <b><loc:message code="contacts.partners.title"/> </b>
                         </p>
