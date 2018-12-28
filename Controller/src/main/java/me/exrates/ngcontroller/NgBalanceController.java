@@ -68,21 +68,18 @@ public class NgBalanceController {
     private final LocaleResolver localeResolver;
     private final RefillService refillService;
     private final WalletService walletService;
-    private final OrderService orderService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
                                RefillService refillService,
-                               WalletService walletService,
-                               OrderService orderService) {
+                               WalletService walletService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
         this.refillService = refillService;
         this.walletService = walletService;
-        this.orderService = orderService;
     }
 
     // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false&currencyName=BTC&currencyType=CRYPTO
@@ -247,28 +244,6 @@ public class NgBalanceController {
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);
             throw new NgBalanceException("Failed to get user inputOutputData as " +  ex.getMessage());
-        }
-    }
-
-    //  apiUrl/info/private/v2/balances/inputOutputData/excel?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
-    @GetMapping("/inputOutputData/excel")
-    public void getMyInputOutputDataToExcel(
-            @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
-            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            HttpServletRequest request, HttpServletResponse response) {
-        String email = getPrincipalEmail();
-        Locale locale = localeResolver.resolveLocale(request);
-        try {
-            List<MyInputOutputHistoryDto> transactions =
-                    balanceService.getUserInputOutputHistoryExcel(email, currencyId, dateFrom, dateTo, locale);
-
-            orderService.getTransactionExcelFile(transactions, response);
-
-        } catch (Exception ex) {
-            logger.error("Error export orders to file, e - {}", ex.getMessage());
         }
     }
 
