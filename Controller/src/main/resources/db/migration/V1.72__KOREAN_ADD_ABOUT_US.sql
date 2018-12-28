@@ -1,4 +1,4 @@
-INSERT IGNORE INTO birzha.NEWS_VARIANTS_EXT (news_id, title, language, brief, content, added_date, active, visit_count, tags, sync_to_wallet_date, updated_date) VALUES (1, null, 'ko', null, '<p><strong>Exrates</strong> is an actively-growing platform. Creating comfortable and practical conditions for using the Exchange is our priority.</p>
+INSERT IGNORE INTO NEWS_VARIANTS_EXT (news_id, title, language, brief, content, added_date, active, visit_count, tags, sync_to_wallet_date, updated_date) VALUES (1, null, 'ko', null, '<p><strong>Exrates</strong> is an actively-growing platform. Creating comfortable and practical conditions for using the Exchange is our priority.</p>
 <p><strong>This is</strong></p>
 <ul>
 <li><strong><u>Minimum commission:</u></strong></li>
