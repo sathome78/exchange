@@ -1187,7 +1187,7 @@ public class OrderDaoImpl implements OrderDao {
             namedParameters.addValue("dateFrom", from, Types.DATE);
         }
         if (to != null) {
-            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS).atStartOfDay(), Types.DATE);
+            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
         }
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
     }
