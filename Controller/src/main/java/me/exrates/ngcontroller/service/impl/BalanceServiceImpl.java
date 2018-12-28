@@ -159,24 +159,24 @@ public class BalanceServiceImpl implements BalanceService {
         pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
         List<MyInputOutputHistoryDto> history =
                 inputOutputService.getUserInputOutputHistory(email, offset, limit, dateFrom, dateTo, currencyId, locale);
-        history.forEach(dto -> {
-            IRefillable merchant;
-            int minConfirmations = 0;
-            // todo to solve later
-            if (dto.getCurrencyName().equalsIgnoreCase("USD")
-                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
-                dto.setMarket("Fiat");
-            } else {
-                try {
-                    merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
-                    minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
-                } catch (ClassCastException e) {
-                    logger.warn("Failed to cast IRefillable ", e);
-                }
-                dto.setMarket("BTC");
-            }
-            dto.setNeededConfirmations(minConfirmations);
-        });
+//        history.forEach(dto -> {
+//            IRefillable merchant;
+//            int minConfirmations = 0;
+//            // todo to solve later
+//            if (dto.getCurrencyName().equalsIgnoreCase("USD")
+//                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
+//                dto.setMarket("Fiat");
+//            } else {
+//                try {
+//                    merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
+//                    minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
+//                } catch (ClassCastException e) {
+//                    logger.warn("Failed to cast IRefillable ", e);
+//                }
+//                dto.setMarket("BTC");
+//            }
+//            dto.setNeededConfirmations(minConfirmations);
+//        });
         pagedResult.setItems(history);
         return pagedResult;
     }
