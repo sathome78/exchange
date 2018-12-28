@@ -215,8 +215,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/okpay/payment/failure").permitAll()
             .antMatchers(POST, "/merchants/payeer/payment/status",
                     "/merchants/payeer/payment/success").permitAll()
-            .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
-            .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
+            .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**").permitAll()
+            .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**",  "/chat/history").permitAll()
             .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
             .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
             .antMatchers(GET, "/generateReferral").permitAll()
@@ -302,7 +302,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .invalidateHttpSession(true)
             .and()
             .csrf().ignoringAntMatchers("/login")
-            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
+            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**", "/chat-ko/**",
                     "/public_socket/", "/public_socket/**",
                     "/merchants/perfectmoney/payment/status",
                     "/merchants/perfectmoney/payment/failure",
