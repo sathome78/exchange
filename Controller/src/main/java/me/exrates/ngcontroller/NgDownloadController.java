@@ -25,16 +25,16 @@ import java.util.Locale;
 
 @RequestMapping("/info/private/v2/download/")
 @RestController
-public class NdDownloadController {
+public class NgDownloadController {
 
-    private static final Logger logger = LogManager.getLogger(NdDownloadController.class);
+    private static final Logger logger = LogManager.getLogger(NgDownloadController.class);
 
     private final UserService userService;
     private final OrderService orderService;
     private final CurrencyService currencyService;
     private final LocaleResolver localeResolver;
 
-    public NdDownloadController(UserService userService,
+    public NgDownloadController(UserService userService,
                                 OrderService orderService,
                                 CurrencyService currencyService,
                                 LocaleResolver localeResolver) {
