@@ -19,11 +19,11 @@ public class ExratesCorsFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         HttpServletRequest request = (HttpServletRequest) req;
 
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+//        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 
 //        response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
 
-//        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
+        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
 
 
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
