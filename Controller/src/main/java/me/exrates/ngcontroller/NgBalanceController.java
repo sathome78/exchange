@@ -244,6 +244,27 @@ public class NgBalanceController {
         }
     }
 
+    //  apiUrl/info/private/v2/balances/inputOutputData/excel?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    @GetMapping("/inputOutputData/excel")
+    public ResponseEntity<List<MyInputOutputHistoryDto>> getMyInputOutputDataToExcell(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            HttpServletRequest request) {
+        String email = getPrincipalEmail();
+        Locale locale = localeResolver.resolveLocale(request);
+        try {
+            List<MyInputOutputHistoryDto> page =
+                    balanceService.getUserInputOutputHistoryExcel(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+            return ResponseEntity.ok(page);
+        } catch (Exception ex) {
+            logger.error("Failed to get user inputOutputData to excel", ex);
+            throw new NgBalanceException("Failed to get user inputOutputData(excel) as " +  ex.getMessage());
+        }
+    }
+
     // /info/private/v2/balances/myBalances
 //        map.put("BTC", 0.00002343);
 //        map.put("USD", 32.00);
