@@ -106,6 +106,7 @@
 <body>
 
 <%@include file="../fragments/header.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
 
     <script type="text/javascript">

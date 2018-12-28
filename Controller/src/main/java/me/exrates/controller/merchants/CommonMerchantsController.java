@@ -49,6 +49,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Controller
 public class CommonMerchantsController {
 
+    private static final String MERCHANT = "MERCHANT";
+
     @Autowired
     private CurrencyService currencyService;
 
@@ -63,9 +65,6 @@ public class CommonMerchantsController {
 
     @Autowired
     private UserOperationService userOperationService;
-
-    @Autowired
-    private CommissionService commissionService;
 
     @Autowired
     WithdrawService withdrawService;
@@ -105,7 +104,7 @@ public class CommonMerchantsController {
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
             modelAndView.addObject("warningCodeList", warningCodeList);
             modelAndView.addObject("isAmountInputNeeded", merchantCurrencyData.size() > 0
-                    && !merchantCurrencyData.get(0).getProcessType().equals("CRYPTO"));
+                    && merchantCurrencyData.stream().anyMatch(cd -> cd.getProcessType().equalsIgnoreCase(MERCHANT)));
             return modelAndView;
         } catch (Exception e) {
             ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");

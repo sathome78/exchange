@@ -152,6 +152,8 @@ public interface WalletService {
 
     void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto, boolean isSavedAsAddress);
 
+    boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty);
+
     List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
 
     BigDecimal retrieveSummaryUSD();

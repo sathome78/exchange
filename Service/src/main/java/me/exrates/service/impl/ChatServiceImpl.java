@@ -6,6 +6,7 @@ import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalChatMessageException;
@@ -14,6 +15,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +53,8 @@ public class ChatServiceImpl implements ChatService {
     private final Predicate<String> deprecatedChars = Pattern.compile("^[^<>{}&*\"/;`]*$").asPredicate();
 
     private final Logger LOG = LogManager.getLogger(ChatServiceImpl.class);
+
+    private final UserRole[] authoritiesForLinks = {UserRole.ADMIN_USER, UserRole.ADMINISTRATOR};
 
     @Autowired
     public ChatServiceImpl(final ChatDao chatDao,
@@ -84,7 +91,8 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public ChatMessage persistMessage(final String body, final String email, ChatLang lang) throws IllegalChatMessageException {
-        if (body.isEmpty() || body.length() > MAX_MESSAGE || !deprecatedChars.test(body)) {
+    if (body.isEmpty() || body.length() > MAX_MESSAGE || (!deprecatedChars.test(body) ? !hasAuthorityForLinks() : false
+         )) {
             throw new IllegalChatMessageException("Message contains invalid symbols : " + body);
         }
         final User user = userService.findByEmail(email);
@@ -111,6 +119,14 @@ public class ChatServiceImpl implements ChatService {
             comp.getLock().writeLock().unlock();
         }
         return message;
+    }
+
+    private boolean hasAuthorityForLinks(){
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+        for (UserRole role : authoritiesForLinks) {
+            if(authorities.contains(new SimpleGrantedAuthority(role.toString()))) return true;
+        }
+        return false;
     }
 
     public NavigableSet<ChatMessage> getLastMessages(final ChatLang lang) {

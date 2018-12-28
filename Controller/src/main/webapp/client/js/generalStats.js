@@ -217,6 +217,14 @@ $(function () {
                     "data": 'currencyName'
                 },
                 {
+                    "data": "signOfCertainty",
+                    "render": function (data, type, row) {
+                        if (data === true) {
+                            return 1;
+                        } else return 0;
+                    }
+                },
+                {
                     "data": 'usdRate',
                     "render": function (data, type, row) {
                         if (type === 'display') {

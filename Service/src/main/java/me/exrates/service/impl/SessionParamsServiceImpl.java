@@ -34,8 +34,8 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName;
     private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
     private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
-    private static final int MIN_SESSION_TIME_MINUTES = 5;
-    private static final int MAX_SESSION_TIME_MINUTES = 1440;
+    private @Value("${session.time.min}") int minSessionLifetime;
+    private @Value("${session.time.max}") int maxSessionLifetime;
 
     @Autowired
     private SessionParamsDao sessionParamsDao;
@@ -45,6 +45,16 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     private MessageSource messageSource;
     @Autowired
     private LocaleResolver localeResolver;
+
+    @Override
+    public int getMinSessionTime() {
+        return minSessionLifetime;
+    }
+
+    @Override
+    public int getMaxSessionTime() {
+        return maxSessionLifetime;
+    }
 
     @Override
     public List<SessionLifeTimeType> getAllByActive(boolean active) {
@@ -94,7 +104,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
 
     @Override
     public boolean isSessionTimeValid(int sessionTime) {
-        return sessionTime >= MIN_SESSION_TIME_MINUTES && sessionTime <= MAX_SESSION_TIME_MINUTES;
+        return sessionTime >= minSessionLifetime && sessionTime <= maxSessionLifetime;
     }
 
     @Override

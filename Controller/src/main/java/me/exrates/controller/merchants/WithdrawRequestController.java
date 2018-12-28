@@ -5,6 +5,7 @@ import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.WithdrawAmountLargeException;
 import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -93,6 +94,11 @@ public class WithdrawRequestController {
     if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
       merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
     }
+    //TO DO (temporary) | for B2X coin, because coin has problem with transaction with large amount on withdraw
+    if(merchantService.findById(requestParamsDto.getMerchant()).getName().equals("B2X") && requestParamsDto.getSum().doubleValue() > 3000){
+        throw new WithdrawAmountLargeException("Withdraw amount very large for this coin");
+    }
+    //TO DO | End
     WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
     Payment payment = new Payment(OUTPUT);
     payment.setCurrency(requestParamsDto.getCurrency());

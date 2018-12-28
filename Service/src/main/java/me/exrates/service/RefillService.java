@@ -26,7 +26,9 @@ import java.util.Optional;
  */
 public interface RefillService {
 
-  Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
+    Map<String, String> callRefillIRefillable(RefillRequestCreateDto request);
+
+    Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
@@ -74,7 +76,10 @@ public interface RefillService {
 
   void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) throws RefillRequestAppropriateNotFoundException;
 
-  void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+    @Transactional
+    void createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
+
+    void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
   void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 

@@ -13,6 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="transactions.title"/></title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -44,6 +45,7 @@
 <body>
 
 <%@include file='header_new.jsp' %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 
 <main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
     <div class="row">

@@ -11,6 +11,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -50,6 +51,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -116,6 +118,12 @@ public class RefillServiceImpl implements RefillService {
   InputOutputService inputOutputService;
 
   @Override
+  public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
+    IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
+    return merchantService.refill(request);
+  }
+
+  @Override
   @Transactional
   public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
     ProfileData profileData = new ProfileData(1000);
@@ -132,13 +140,12 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      merchantService.refill(request).entrySet().forEach(e ->
-      {
-        if (e.getKey().startsWith("$__")) {
-          result.put(e.getKey().replace("$__", ""), e.getValue());
-        } else {
-          ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
-        }
+      merchantService.refill(request).forEach((key, value) -> {
+          if (key.startsWith("$__")) {
+              result.put(key.replace("$__", ""), value);
+          } else {
+              ((Map<String, String>) result.get("params")).put(key, value);
+          }
       });
       String merchantRequestSign = (String) result.get("sign");
       request.setMerchantRequestSign(merchantRequestSign);
@@ -223,7 +230,8 @@ public class RefillServiceImpl implements RefillService {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable)merchantService).additionalTagForWithdrawAddressIsUsed());
-      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+      e.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
+      if (e.getAdditionalTagForWithdrawAddressIsUsed() || e.getAdditionalTagForRefillIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
       }
@@ -496,6 +504,23 @@ public class RefillServiceImpl implements RefillService {
     }
   }
 
+  @Transactional
+  @Override
+  public void createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+    int requestId = createRefillRequestByFact(requestAcceptDto);
+    requestAcceptDto.setRequestId(requestId);
+    RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+    /**/
+    Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+    String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+    String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+            new Integer[]{requestId},
+            locale);
+    String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+    userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+  }
+
   @Override
   @Transactional
   public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
@@ -646,6 +671,10 @@ public class RefillServiceImpl implements RefillService {
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+      Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
+      if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
+      }
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();
@@ -904,6 +933,9 @@ public class RefillServiceImpl implements RefillService {
   }
 
   private Optional<Integer> createRefill(RefillRequestCreateDto request) {
+    if (!checkforDuplicate(request)) {
+      throw new RuntimeException("Error, please try again");
+    }
     if (request.getNeedToCreateRefillRequestRecord()) {
       RefillStatusEnum currentStatus = request.getStatus();
       Merchant merchant = merchantDao.findById(request.getMerchantId());
@@ -912,6 +944,20 @@ public class RefillServiceImpl implements RefillService {
       request.setStatus(newStatus);
     }
     return refillRequestDao.create(request);
+  }
+
+  private boolean checkforDuplicate(RefillRequestCreateDto request) {
+    Merchant merchant = merchantService.findById(request.getMerchantId());
+    if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+      List<RefillRequestAddressDto> addresses = refillRequestDao.findByAddress(request.getAddress());
+      return addresses.stream().noneMatch(p ->
+              (p.getCurrencyId().equals(request.getCurrencyId()))
+                      ||
+                      (p.getTokenParentId() != null && (p.getTokenParentId().equals(merchant.getTokensParrentId()) || p.getTokenParentId().equals(merchant.getId())))
+                      ||
+                      (merchant.getTokensParrentId() != null && (merchant.getTokensParrentId().equals(p.getTokenParentId()) || merchant.getTokensParrentId().equals(p.getMerchantId()))));
+    }
+    return true;
   }
 
   @Transactional

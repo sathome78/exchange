@@ -7,6 +7,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="dashboard.aboutUs"/></title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,6 +23,7 @@
 <body>
 
 <%@include file='header_new.jsp' %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 
 <main class="container register">
     <hr>

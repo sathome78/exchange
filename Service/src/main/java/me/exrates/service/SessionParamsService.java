@@ -11,6 +11,10 @@ import java.util.List;
  * Created by maks on 31.03.2017.
  */
 public interface SessionParamsService {
+    int getMinSessionTime();
+
+    int getMaxSessionTime();
+
     List<SessionLifeTimeType> getAllByActive(boolean active);
 
     SessionParams getByUserEmail(String userEmail);

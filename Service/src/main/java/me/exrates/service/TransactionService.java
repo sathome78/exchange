@@ -6,7 +6,6 @@ import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
@@ -65,6 +64,4 @@ public interface TransactionService {
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime, LocalDateTime endTime, String userEmail, int requesterId);
-
-    List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
 }

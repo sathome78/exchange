@@ -176,13 +176,10 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
     private void performUpdate(boolean appendLastEntriesOnly) {
         if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
-            cachedData.forEach(System.out::println);
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);
             LocalDateTime lastBarStartTime = lastBar.getBeginPeriod();
             List<CandleChartItemDto> newData = orderService.getLastDataForCandleChart(currencyPairId, lastBarStartTime, timeFrame.getResolution());
-            newData.forEach(System.out::println);
             cachedData.addAll(newData);
-            cachedData.forEach(System.out::println);
         } else {
             setCachedData(orderService.getDataForCandleChart(currencyPairId, timeFrame));
         }

@@ -9,6 +9,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
     <title><loc:message code="admin.refillRequests"/></title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <meta name="keywords" content="" />
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,6 +27,7 @@
 
 <body id="refill-requests-admin">
 <%@include file='fragments/header-simple.jsp'%>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>

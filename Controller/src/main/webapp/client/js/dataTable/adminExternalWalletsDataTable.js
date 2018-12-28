@@ -15,6 +15,7 @@ $(document).ready(function () {
         var rowData = externalWalletsDataTable.row(this).data();
         var currencyId = rowData.currencyId;
         var currencyName = rowData.currencyName;
+        var certainty = rowData.signOfCertainty;
         var usdRate = rowData.usdRate;
         var btcRate = rowData.btcRate;
         var mainBalance = rowData.mainBalance;
@@ -25,6 +26,7 @@ $(document).ready(function () {
         $('#btc-rate-label').text(btcRate);
         $('#main-balance-label').text(mainBalance);
         $('#currencyIdForPopUp').text(currencyId);
+        $('#certainty').prop("checked", certainty);
 
         getReservedWallets(currencyId);
 
@@ -50,6 +52,33 @@ $(document).ready(function () {
         addReservedWallet($('#currencyIdForPopUp').text());
     });
 
+    $('#certainty').change(function() {
+        $('#certainty').val(this.checked);
+
+        var currencyId = $("#currencyIdForPopUp").text();
+        var certainty = $("#certainty").val();
+
+        $.ajax({
+            url: '/2a8fy7b07dxe44/externalWallets/certainty/update',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "currencyId": currencyId,
+                "signOfCertainty": certainty
+            },
+            success: function () {
+                updateReservedWallets();
+                updateExternalWalletsTable();
+                },
+            error: function (err) {
+                errorNoty(err);
+                console.log(err);
+            }
+        });
+    });
+
 });
 
 function updateExternalWalletsTable() {
@@ -73,10 +102,18 @@ function updateExternalWalletsTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data": "currencyId",
+                    "data": "currencyId"
                 },
                 {
                     "data": "currencyName"
+                },
+                {
+                    "data": "signOfCertainty",
+                    "render": function (data, type, row) {
+                        if (data === true) {
+                            return 1;
+                        } else return 0;
+                    }
                 },
                 {
                     "data": "usdRate",

@@ -26,6 +26,7 @@ public class RefillRequestParamsDto {
     private String merchantRequestSign;
     private String address;
     private Boolean generateNewAddress;
+    private String childMerchant;
 
     public RefillRequestParamsDto(RefillRequestManualDto refillDto) {
         this.operationType = refillDto.getOperationType();

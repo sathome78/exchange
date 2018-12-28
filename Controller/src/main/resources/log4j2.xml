@@ -600,6 +600,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="qiwi_log" fileName="${sys:catalina.home}/logs/merchants/qiwi.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/qiwi_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -849,6 +858,9 @@
         </logger>
         <logger name="email_log" level="ALL" additivity="false">
             <AppenderRef ref="email_log"/>
+        </logger>
+        <logger name="Qiwi" level="ALL" additivity="false">
+            <AppenderRef ref="qiwi_log"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

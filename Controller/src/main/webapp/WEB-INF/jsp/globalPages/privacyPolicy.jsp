@@ -50,6 +50,7 @@
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">

@@ -69,7 +69,7 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
     public void updateToken(Long tokenId, Boolean allowTrade, String currentUserEmail) {
         OpenApiToken token = openApiTokenDao.getById(tokenId).orElseThrow(() -> new TokenNotFoundException("Token not found by id: " + tokenId));
         checkUser(currentUserEmail, token);
-        openApiTokenDao.updateToken(tokenId, token.getAlias(), allowTrade, token.getAllowWithdraw());
+        openApiTokenDao.updateToken(tokenId, token.getAlias(), allowTrade, token.getAllowWithdraw(), token.getAllowAcceptById());
     }
 
     private void checkUser(String currentUserEmail, OpenApiToken token) {

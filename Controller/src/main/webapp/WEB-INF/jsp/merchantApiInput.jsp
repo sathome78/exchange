@@ -10,6 +10,7 @@
 <html>
 <head>
     <title>To be redirected</title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
     <script type="text/javascript">
@@ -57,6 +58,7 @@
     </script>
 </head>
 <body>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <form id="paymentForm" method="post">
     <input type="hidden" id="currency" name="currency" value="${currency}" />
     <input type="hidden" id="sum" name="sum" value="${amount}" />

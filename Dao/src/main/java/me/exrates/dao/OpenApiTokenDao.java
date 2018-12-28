@@ -15,7 +15,7 @@ public interface OpenApiTokenDao {
 
     List<OpenApiTokenPublicDto> getActiveTokensForUser(String userEmail);
 
-    void updateToken(Long tokenId, String alias, Boolean allowTrade, Boolean allowWithdraw);
+    void updateToken(Long tokenId, String alias, Boolean allowTrade, Boolean allowWithdraw, Boolean allowAcceptById);
 
     void deactivateToken(Long tokenId);
 }

@@ -143,4 +143,6 @@ public interface RefillRequestDao {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> roles,
                                                                 int requesterId);
+
+    List<RefillRequestAddressDto> findByAddress(String address);
 }

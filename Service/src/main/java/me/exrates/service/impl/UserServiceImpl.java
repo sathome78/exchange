@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
@@ -11,14 +12,7 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserBalancesDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -29,21 +23,9 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.AuthenticationNotAvailableException;
-import me.exrates.service.exception.CommentNonEditableException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.ResetPasswordExpirationException;
-import me.exrates.service.exception.TokenNotFoundException;
-import me.exrates.service.exception.UnRegisteredUserDeleteException;
-import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
@@ -68,16 +50,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -135,6 +108,8 @@ public class UserServiceImpl implements UserService {
     private G2faService g2faService;
     @Autowired
     private ExchangeApi exchangeApi;
+    @Autowired
+    private UserSettingService userSettingService;
 
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -494,6 +469,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateCommonReferralRoot(final int userId) {
         userDao.updateCommonReferralRoot(userId);
+    }
+
+    @Override
+    public int setCallbackURL(final int userId, final CallbackURL callbackURL) throws CallBackUrlAlreadyExistException {
+        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId, callbackURL.getPairId()))) {
+            throw new CallBackUrlAlreadyExistException("Callback already present");
+        }
+        return userSettingService.addCallbackURL(userId, callbackURL);
+    }
+
+    @Override
+    public int updateCallbackURL(final int userId, final CallbackURL callbackURL) {
+        return userSettingService.updateCallbackURL(userId, callbackURL);
+    }
+
+    @Override
+    public String getCallBackUrlByEmail(String email, Integer currencyPairId) {
+        return userSettingService.getCallbackURL(getIdByEmail(email), currencyPairId);
     }
 
     @Override
@@ -895,5 +888,6 @@ public class UserServiceImpl implements UserService {
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
     }
+
 
 }

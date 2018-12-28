@@ -66,8 +66,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -298,6 +296,8 @@ public class EntryController {
        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
+        mav.addObject("sessionMinTime", sessionService.getMinSessionTime());
+        mav.addObject("sessionMaxTime", sessionService.getMaxSessionTime());
        /* mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);*/
         return mav;
@@ -441,11 +441,11 @@ public class EntryController {
                         localeResolver.resolveLocale(request)));
             } catch (Exception e) {
                 log.error("error", e);
-                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.invalid", null,
+                redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.invalid", null,
                         localeResolver.resolveLocale(request)));
             }
         } else {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.time.invalid", null,
                     localeResolver.resolveLocale(request)));
         }
         redirectAttributes.addFlashAttribute("activeTabId", "session-options-wrapper");

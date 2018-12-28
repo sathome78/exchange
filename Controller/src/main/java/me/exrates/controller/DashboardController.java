@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.service.TemporalTokenService;
 import me.exrates.model.TemporalToken;
@@ -9,6 +10,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.session.UserSessionService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +33,11 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+
+import static java.util.Objects.isNull;
 
 @Controller
 @PropertySource("classpath:/captcha.properties")
@@ -75,6 +80,9 @@ public class DashboardController {
 
     @Autowired
     TemporalTokenService temporalTokenService;
+
+    @Autowired
+    private MerchantService merchantService;
 
     @Autowired
     private GeetestLib geetest;
@@ -206,6 +214,24 @@ public class DashboardController {
     model.setViewName("redirect:/dashboard");
     return model;
   }
+
+    @AdminLoggable
+    @GetMapping(value = "/getMerchantInputCommissionNotification")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> getMerchantInputCommissionNotification(@RequestParam("merchant_id") int merchantId,
+                                                                                      @RequestParam("currency_id") int currencyId,
+                                                                                      @RequestParam("child_merchant") String childMerchant,
+                                                                                      Locale locale) {
+        if (isNull(childMerchant)) {
+            childMerchant = StringUtils.EMPTY;
+        }
+        BigDecimal commissionPercents = merchantService.getMerchantInputCommission(merchantId, currencyId, childMerchant);
+
+        String message = BigDecimal.ZERO.compareTo(commissionPercents) == 0
+                ? messageSource.getMessage("merchant.commission.warning", null, locale)
+                : messageSource.getMessage("merchant.commission.interkassa-attention", new String[]{commissionPercents.toString()}, locale);
+        return ResponseEntity.ok(Collections.singletonMap("message", message));
+    }
 }
 
 

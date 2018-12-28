@@ -21,6 +21,7 @@
 </head>
 <body>
 <%@include file='header.jsp'%><br>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <c:url value="/merchants/yandexmoney/token/authorization" var="submitUrl" />
 <paymentForm:form method="post" action="${submitUrl}" modelAttribute="payment">
     <table>

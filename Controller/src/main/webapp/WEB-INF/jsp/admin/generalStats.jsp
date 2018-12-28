@@ -269,6 +269,7 @@
                             <tr>
                                 <th><loc:message code="admin.currency.id"/></th>
                                 <th><loc:message code="admin.externalWallets.name"/></th>
+                                <th><loc:message code="admin.report.currency.certainty"/></th>
                                 <th><loc:message code="admin.rate.to.usd"/></th>
                                 <th><loc:message code="admin.rate.to.btc"/></th>
                                 <th><loc:message code="admin.externalWallets.totalWalletBalance"/></th>

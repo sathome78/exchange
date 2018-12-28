@@ -39,4 +39,6 @@ public class BalancesDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdatedDate;
+
+    private boolean signOfCertainty;
 }

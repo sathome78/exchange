@@ -39,6 +39,7 @@
 </head>
 <body>
 <%@include file="fragments/header-simple.jsp" %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-md-4 col-md-offset-4 content">

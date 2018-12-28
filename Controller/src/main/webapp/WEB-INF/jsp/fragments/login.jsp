@@ -7,6 +7,8 @@
 <head>
     <title>Create password</title>
 
+    <%@include file="../tools/google_head.jsp" %>
+
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
     <!-- New design -->
@@ -19,6 +21,7 @@
 
 </head>
 <body>
+<%@include file="../tools/google_body.jsp" %>
 <input id="loginError" hidden value='${error}'/>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
@@ -32,7 +35,7 @@
             </div>
         </c:if>
         <form id="login_form" action="/login" class="form" method="post">
-            <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+            <input type="hidden" class="csrfC" name="_csrf" value="${_csrf.token}"/>
             <div class="field">
                 <div class="field__label">Email</div>
                 <input class="field__input" type="email" name="username" placeholder="Email" required>

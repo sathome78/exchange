@@ -3,6 +3,7 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.WalletBalancesDto;
@@ -31,7 +32,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -42,7 +42,10 @@ public class ReportFiveExcelGeneratorUtil {
 
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
-    public static byte[] generate(Map<String, WalletBalancesDto> firstBalancesMap,
+    private static final String SHEET1_NAME = "Sheet1 - Балансы кошельков за период";
+
+    public static byte[] generate(List<Currency> currencies,
+                                  Map<String, WalletBalancesDto> firstBalancesMap,
                                   LocalDateTime firstCreatedAt,
                                   Map<String, WalletBalancesDto> secondBalancesMap,
                                   LocalDateTime secondCreatedAt,
@@ -55,7 +58,7 @@ public class ReportFiveExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Балансы кошельков за период");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;
@@ -190,15 +193,7 @@ public class ReportFiveExcelGeneratorUtil {
         sheet.autoSizeColumn(12, true);
         sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
 
-        Set<String> currencies;
-        final int bound;
-        if (firstBalancesMap.size() >= secondBalancesMap.size()) {
-            bound = firstBalancesMap.size();
-            currencies = firstBalancesMap.keySet();
-        } else {
-            bound = secondBalancesMap.size();
-            currencies = secondBalancesMap.keySet();
-        }
+        final int bound = currencies.size();
 
         //footer
         row = sheet.createRow(3);
@@ -257,15 +252,16 @@ public class ReportFiveExcelGeneratorUtil {
 
         //body
         int i = 0;
-        for (String currency : currencies) {
-            WalletBalancesDto firstBalance = firstBalancesMap.get(currency);
+        for (Currency currency : currencies) {
+            final int currencyId = currency.getId();
+            final String currencyName = currency.getName();
 
-            Integer currencyId1;
+            WalletBalancesDto firstBalance = firstBalancesMap.get(currencyName);
+
             BigDecimal exWalletTotalBalance1;
             BigDecimal inWalletsTotalBalance1;
             if (nonNull(firstBalance)) {
                 ExternalWalletBalancesDto exWallet1 = firstBalance.getExternal();
-                currencyId1 = exWallet1.getCurrencyId();
                 exWalletTotalBalance1 = exWallet1.getTotalBalance();
 
                 List<InternalWalletBalancesDto> inWallets1 = firstBalance.getInternals();
@@ -274,19 +270,16 @@ public class ReportFiveExcelGeneratorUtil {
                         .map(InternalWalletBalancesDto::getTotalBalance)
                         .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
             } else {
-                currencyId1 = null;
                 exWalletTotalBalance1 = BigDecimal.ZERO;
                 inWalletsTotalBalance1 = BigDecimal.ZERO;
             }
 
-            WalletBalancesDto secondBalance = secondBalancesMap.get(currency);
+            WalletBalancesDto secondBalance = secondBalancesMap.get(currencyName);
 
-            Integer currencyId2;
             BigDecimal exWalletTotalBalance2;
             BigDecimal inWalletsTotalBalance2;
             if (nonNull(secondBalance)) {
                 ExternalWalletBalancesDto exWallet2 = secondBalance.getExternal();
-                currencyId2 = exWallet2.getCurrencyId();
                 exWalletTotalBalance2 = exWallet2.getTotalBalance();
 
                 List<InternalWalletBalancesDto> inWallets2 = secondBalance.getInternals();
@@ -295,12 +288,11 @@ public class ReportFiveExcelGeneratorUtil {
                         .map(InternalWalletBalancesDto::getTotalBalance)
                         .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
             } else {
-                currencyId2 = null;
                 exWalletTotalBalance2 = BigDecimal.ZERO;
                 inWalletsTotalBalance2 = BigDecimal.ZERO;
             }
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
             if (isNull(ratePair)) {
                 ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
             }
@@ -310,11 +302,11 @@ public class ReportFiveExcelGeneratorUtil {
             row = sheet.createRow(i + 4);
 
             cell = row.createCell(0, CellType.NUMERIC);
-            cell.setCellValue(nonNull(currencyId1) ? currencyId1 : currencyId2);
+            cell.setCellValue(currencyId);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(currency);
+            cell.setCellValue(currencyName);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(2, CellType.NUMERIC);

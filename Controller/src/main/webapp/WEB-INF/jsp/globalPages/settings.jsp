@@ -69,6 +69,7 @@
 <body>
 
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 
 <main class="container">
     <div class="row_big">

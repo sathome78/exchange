@@ -59,6 +59,7 @@
 <body>
 
 <%@include file="fragments/header.jsp" %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 
 <main class="container">
     <div class="row">

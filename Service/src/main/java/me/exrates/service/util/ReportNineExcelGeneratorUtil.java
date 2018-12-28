@@ -30,13 +30,15 @@ public class ReportNineExcelGeneratorUtil {
 
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
+    private static final String SHEET1_NAME = "Sheet1 - Выгрузить данные по юзерам";
+
     public static byte[] generate(List<UserSummaryDto> summaryData) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить данные по юзерам");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;

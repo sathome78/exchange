@@ -775,3 +775,7 @@ function parseNumber(numberStr) {
     numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     return parseFloat(numberStr);
 }
+
+function sendGtag() {
+    gtag('event', 'password-correct', {'event_category': 'password-confirm', 'event_label': 'finish-registration'});
+}

@@ -82,6 +82,7 @@
 </style>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="primary container"
       ng-controller="aboutUsCtrl as aboutUsCtrl">
   <div class="row">

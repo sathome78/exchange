@@ -35,6 +35,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -123,6 +124,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         refillRequestAddressDto.setDateGeneration(rs.getTimestamp("date_generation").toLocalDateTime());
         refillRequestAddressDto.setConfirmedTxOffset(rs.getInt("confirmed_tx_offset"));
         refillRequestAddressDto.setNeedTransfer(rs.getBoolean("need_transfer"));
+        try {
+            refillRequestAddressDto.setTokenParentId(rs.getInt("tokens_parrent_id"));
+        } catch (SQLException e) {
+        }
         return refillRequestAddressDto;
     };
 
@@ -136,6 +141,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
 
 
     @Override
@@ -1282,7 +1291,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         }};
 
         try {
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, i) -> RefillRequestFlatForReportDto.builder()
+            return slaveForReportsTemplate.query(sql, namedParameters, (rs, i) -> RefillRequestFlatForReportDto.builder()
                     .invoiceId(rs.getInt("invoice_id"))
                     .wallet(nonNull(rs.getString("address")) ? rs.getString("address") : rs.getString("account_number"))
                     .recipientBank(rs.getString("recipient_bank_name"))
@@ -1302,6 +1311,18 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
         }
+    }
+
+
+    @Override
+    public List<RefillRequestAddressDto> findByAddress(String address) {
+        final String sql = "SELECT RRA.*, M.tokens_parrent_id FROM REFILL_REQUEST_ADDRESS RRA " +
+                "JOIN MERCHANT M ON M.id = RRA.merchant_id " +
+                "WHERE RRA.address = :address ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("address", address);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
     }
 }
 

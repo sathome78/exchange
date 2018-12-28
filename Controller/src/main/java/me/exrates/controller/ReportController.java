@@ -75,7 +75,6 @@ public class ReportController {
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesSliceStatistic", method = GET)
     public List<BalancesDto> getBalancesExternalWallets() {
-
         return reportService.getBalancesSliceStatistic();
     }
 

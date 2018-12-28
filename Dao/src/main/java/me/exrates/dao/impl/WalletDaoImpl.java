@@ -1249,19 +1249,20 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<ExternalWalletBalancesDto> getExternalMainWalletBalances() {
-        String sql = "SELECT cewb.currency_id, " +
+        String sql = "SELECT cur.id as currency_id , " +
                 "cur.name AS currency_name, " +
                 "cewb.usd_rate, " +
                 "cewb.btc_rate, " +
-                "cewb.main_balance, " +
-                "cewb.reserved_balance, " +
-                "cewb.total_balance, " +
-                "cewb.total_balance_usd, " +
-                "cewb.total_balance_btc, " +
-                "cewb.last_updated_at" +
+                "if(cur.hidden or cewb.main_balance is null, 0, cewb.main_balance) as main_balance,  " +
+                "if(cur.hidden or cewb.reserved_balance is null , 0, cewb.reserved_balance) as reserved_balance, " +
+                "if(cur.hidden or cewb.total_balance is null, 0, cewb.total_balance) as total_balance, " +
+                "if(cur.hidden or cewb.total_balance_usd is null, 0, cewb.total_balance_usd) as total_balance_usd, " +
+                "if(cur.hidden or cewb.total_balance_btc is null, 0, cewb.total_balance_btc) as total_balance_btc, " +
+                "cewb.last_updated_at, " +
+                "cewb.sign_of_certainty " +
                 " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
-                " JOIN CURRENCY cur on (cewb.currency_id = cur.id AND cur.hidden = 0)" +
-                " ORDER BY cewb.currency_id";
+                " RIGHT JOIN CURRENCY cur on cewb.currency_id = cur.id" +
+                " ORDER BY currency_id";
         return slaveJdbcTemplate.query(sql, (rs, row) -> ExternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
@@ -1273,6 +1274,7 @@ public class WalletDaoImpl implements WalletDao {
                 .totalBalanceUSD(rs.getBigDecimal("total_balance_usd"))
                 .totalBalanceBTC(rs.getBigDecimal("total_balance_btc"))
                 .lastUpdatedDate(rs.getTimestamp("last_updated_at").toLocalDateTime())
+                .signOfCertainty(rs.getBoolean("sign_of_certainty"))
                 .build());
     }
 
@@ -1409,6 +1411,20 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty){
+        String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES SET sign_of_certainty = :sign_of_certainty " +
+                "WHERE currency_id = :currency_id";
+
+        Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("sign_of_certainty", signOfCertainty);
+                put("currency_id", currencyId);
+            }
+        };
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     @Override

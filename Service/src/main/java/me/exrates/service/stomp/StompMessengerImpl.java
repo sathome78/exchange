@@ -62,6 +62,7 @@ public class StompMessengerImpl implements StompMessenger{
    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
        String message = orderService.getOrdersForRefresh(pairId, operationType, null);
        sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
+       sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(pairId.toString()), message);
        sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
    }
 

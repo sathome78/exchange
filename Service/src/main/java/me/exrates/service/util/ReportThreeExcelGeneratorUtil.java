@@ -33,6 +33,9 @@ import static java.util.Objects.nonNull;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public class ReportThreeExcelGeneratorUtil {
 
+    private static final String SHEET1_NAME = "Sheet1 - Статистика оборота по валютным парам (отчет 1)";
+    private static final String SHEET2_NAME = "Sheet2 - Статистика оборота по валютным парам (отчет 2)";
+
     public static byte[] generate(List<CurrencyPairTurnoverReportDto> currencyPairsTurnover,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -42,7 +45,7 @@ public class ReportThreeExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet1 = workbook.createSheet("Sheet1 - Статистика оборота по валютным парам (отчет 1)");
+        XSSFSheet sheet1 = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;
@@ -278,9 +281,9 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-//      -------------------------------------------------------------------------------
+        //      -------------------------------------------------------------------------------
 
-        XSSFSheet sheet2 = workbook.createSheet("Sheet2 - Статистика оборота по валютным парам (отчет 2)");
+        XSSFSheet sheet2 = workbook.createSheet(SHEET2_NAME);
 
         row = sheet2.createRow(0);
 

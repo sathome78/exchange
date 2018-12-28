@@ -103,6 +103,7 @@
 <body>
 
 <%@include file="../fragments/header.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
 
     <%@include file="../fragments/alerts.jsp" %>

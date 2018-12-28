@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
 import me.exrates.model.enums.EmailSenderType;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PreDestroy;
+import javax.xml.bind.SchemaOutputResolver;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;

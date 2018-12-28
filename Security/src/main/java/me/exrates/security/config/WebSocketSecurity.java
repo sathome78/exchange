@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
+import org.springframework.security.messaging.web.csrf.CsrfChannelInterceptor;
 
 import java.util.List;
 
@@ -18,6 +19,11 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
 
     @Autowired
     private UserRoleService userRoleService;
+
+    @Override
+    protected boolean sameOriginDisabled() {
+        return true;
+    }
 
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
@@ -36,11 +42,11 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/charts2/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+                .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
-                .anyMessage().denyAll();
-
+                .anyMessage().permitAll();
     }
 
 }

@@ -237,7 +237,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/com/captcha/botdetect/**").permitAll()
             .antMatchers(POST, "/captchaSubmit").permitAll()
             .antMatchers(POST, "/news/addNewsVariant").authenticated()
-            .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
+            .antMatchers("/yandex_4b3a16d69d4869cb.html", "/tx").permitAll()
             .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
             .antMatchers("/payeer_510814850.txt").permitAll()
             .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners", "/api_docs").permitAll()
@@ -251,7 +251,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers( "/gt/**").permitAll()
             .antMatchers( "/test/**").permitAll()
             .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
-            .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
+            .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**", "/adsffefe/csrf", "/trade_pairs").permitAll()
             .antMatchers("/resetPasswordConfirm/**").permitAll()
             .antMatchers("/forgotPassword/**").permitAll()
             .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
@@ -260,9 +260,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
             .antMatchers("/updatePassword", "/createPassword").permitAll()
-            .antMatchers(POST, "/createPasswordConfirm").permitAll()
+            .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
+            .antMatchers(GET, "/getMerchantInputCommissionNotification").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()
             .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
             UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
@@ -333,7 +334,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/payeer/payment/success",
                     "/merchants/payeer/payment/status",
                     "/test/**",
-                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http
             .headers()
             .frameOptions()

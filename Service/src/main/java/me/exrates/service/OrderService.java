@@ -7,6 +7,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -18,6 +19,7 @@ import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -418,4 +420,12 @@ public interface OrderService {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
                                                                                 LocalDateTime endTime,
                                                                                 List<UserRole> roles);
+
+    Map<String, List<UserSummaryOrdersDto>> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                                     LocalDateTime endTime,
+                                                                     List<UserRole> userRoles,
+                                                                     int requesterId);
+
+    void logCallBackData(CallBackLogDto callBackLogDto);
+
 }

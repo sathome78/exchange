@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class BtcGenerator {
     private static final String SQL_PATCH = "INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)\n" +
-            "VALUES ('zalupaCoin', 'TCR', 2, 'tickerServiceImpl', 'CRYPTO');\n" +
+            "VALUES ('zalupaCoin', 'TCR', 2, 'beannameServiceImpl', 'CRYPTO');\n" +
             "INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)\n" +
             "VALUES ('TCR', 'zalupaCoin', 0, 8, 8, 8);\n" +
             "\n" +
@@ -96,7 +96,8 @@ public class BtcGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TCR');";
 
-    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
+    private static final String WALLET_SCRIPT_PROPERTIES =
+            "backup.folder=/data/backup/\n" +
             "node.propertySource=node_config/node_config_zalupa.properties\n" +
             "node.zmqEnabled=isZmq\n" +
             "node.supportInstantSend=false\n" +
@@ -154,7 +155,7 @@ public class BtcGenerator {
         if(!newMigration.createNewFile()) throw new RuntimeException("Can not create file with pass " + newMigration.getAbsolutePath() + "\n maybe have not permission!");
 
         FileWriter writer = new FileWriter(newMigration);
-        writer.append(SQL_PATCH.replace("TCR", ticker).replace("ticker", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
+        writer.append(SQL_PATCH.replace("TCR", ticker).replace("beanname", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
     }
 
     private static String getSqlName(String ticker){
@@ -211,6 +212,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("Q", "Quick", 20, true, false, "172.10.13.245", 8333, 12345);
+        generate("DIME", "DimeCoin", 20, true, false, "172.31.4.13", 8090, 11301);
     }
 }

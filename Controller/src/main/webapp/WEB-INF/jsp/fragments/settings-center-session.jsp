@@ -25,7 +25,7 @@
                                     <td><loc:message code="session.time.minutes"/></td>
                                     <td><form:input id="sessionTime" onkeyup="this.value = this.value.replace (/[^0-9+]/,&quot;&quot;)"
                                                     path="sessionTimeMinutes" value="${sessionSettings.sessionTimeMinutes}"/><br>
-                                        <div><loc:message code="session.time.from{0}To{1}Minutes" arguments="5, 1440"/></div>
+                                        <div><loc:message code="session.time.from{0}To{1}Minutes" arguments="${sessionMinTime}, ${sessionMaxTime}"/></div>
                                     </td>
                                 </tr>
                                 <c:if test="${sessionLifeTimeTypes.size() > 1}">

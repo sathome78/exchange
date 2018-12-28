@@ -117,6 +117,8 @@ public interface WalletDao {
 
     void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
 
+    boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty);
+
     List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
 
     List<InternalWalletBalancesDto> getWalletBalances();

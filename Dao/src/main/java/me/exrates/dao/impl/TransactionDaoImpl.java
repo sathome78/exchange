@@ -296,6 +296,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
@@ -404,18 +408,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         final PagingData<List<Transaction>> result = new PagingData<>();
         log.debug("count sql {}", selectAllCountSql);
         long start = System.currentTimeMillis();
-        final int total = slaveJdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+        final int total = slaveForReportsTemplate.queryForObject(selectAllCountSql, params, Integer.class);
         log.debug("count in {}", System.currentTimeMillis() - start);
 
         if (total == 0) {
             result.setData(Collections.emptyList());
         } else {
             start = System.currentTimeMillis();
-            List<Integer> transactionIds = slaveJdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+            List<Integer> transactionIds = slaveForReportsTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
             String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
             final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
             log.debug("data sql {}", selectLimitedAllSql);
-            result.setData(slaveJdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
+            result.setData(slaveForReportsTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
             log.debug("data in {}", System.currentTimeMillis() - start);
         }
 
@@ -825,51 +829,6 @@ public final class TransactionDaoImpl implements TransactionDao {
                     .lastInputDate(nonNull(rs.getTimestamp("last_input_date")) ? rs.getTimestamp("last_input_date").toLocalDateTime() : null)
                     .outputSummary(nonNull(rs.getBigDecimal("output_amount")) ? rs.getBigDecimal("output_amount") : BigDecimal.ZERO)
                     .lastOutputDate(nonNull(rs.getTimestamp("last_output_date")) ? rs.getTimestamp("last_output_date").toLocalDateTime() : null)
-                    .build());
-        } catch (EmptyResultDataAccessException ex) {
-            return Collections.emptyList();
-        }
-    }
-
-    @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime,
-                                                                               LocalDateTime endTime,
-                                                                               List<UserRole> userRoles,
-                                                                               int requesterId) {
-        String sql = "SELECT u.email AS email, " +
-                "cur.name AS currency_name, " +
-                "ur.name AS role, " +
-                "SUM(IF(tx.operation_type_id = 1, tx.amount, 0)) AS amount_buy, " +
-                "SUM(IF(tx.operation_type_id = 1, tx.commission_amount, 0)) AS amount_buy_fee, " +
-                "SUM(IF(tx.operation_type_id = 2, tx.amount, 0)) AS amount_sell, " +
-                "SUM(IF(tx.operation_type_id = 2, tx.commission_amount, 0)) AS amount_sell_fee" +
-                " FROM WALLET w" +
-                " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " JOIN CURRENCY cur ON cur.id = w.currency_id" +
-                " JOIN TRANSACTION tx ON tx.operation_type_id IN (1,2)" +
-                " AND tx.source_type = 'ORDER'" +
-                " AND tx.user_wallet_id = w.id" +
-                " AND tx.datetime BETWEEN :start_time AND :end_time" +
-                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
-                " GROUP BY email, currency_name, role";
-
-        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("start_time", Timestamp.valueOf(startTime));
-            put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
-            put("requester_user_id", requesterId);
-        }};
-
-        try {
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
-                    .email(rs.getString("email"))
-                    .currencyName(rs.getString("currency_name"))
-                    .role(rs.getString("role"))
-                    .amountBuy(rs.getBigDecimal("amount_buy"))
-                    .amountBuyFee(rs.getBigDecimal("amount_buy_fee"))
-                    .amountSell(rs.getBigDecimal("amount_sell"))
-                    .amountSellFee(rs.getBigDecimal("amount_sell_fee"))
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();

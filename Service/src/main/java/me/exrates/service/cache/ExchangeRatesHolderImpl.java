@@ -1,7 +1,10 @@
 package me.exrates.service.cache;
 
 import me.exrates.dao.OrderDao;
+import me.exrates.model.ExOrder;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.service.RabbitMqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,8 +35,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     @Override
-    public void onRatesChange(Integer pairId, BigDecimal rate) {
-        setRates(pairId, rate);
+    public void onRatesChange(ExOrder exOrder) {
+        setRates(exOrder.getCurrencyPairId(), exOrder.getExRate());
     }
 
     private synchronized void setRates(Integer pairId, BigDecimal rate) {

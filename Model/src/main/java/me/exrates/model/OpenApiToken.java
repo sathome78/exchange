@@ -20,6 +20,7 @@ public class OpenApiToken {
     private String privateKey;
     private Boolean allowTrade = true;
     private Boolean allowWithdraw = false;
+    private Boolean allowAcceptById = false;
     private LocalDateTime generationDate;
 
 
@@ -30,6 +31,9 @@ public class OpenApiToken {
         }
         if (allowWithdraw) {
             permissions.add(OpenApiPermission.WITHDRAW);
+        }
+        if (allowAcceptById) {
+            permissions.add(OpenApiPermission.ACCEPT_BY_ID);
         }
         return permissions;
     }

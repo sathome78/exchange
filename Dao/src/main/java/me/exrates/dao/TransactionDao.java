@@ -57,6 +57,4 @@ public interface TransactionDao {
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     List<UserSummaryDto> getUsersWalletSummaryDataByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, String userEmail, int requesterId);
-
-    List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
 }

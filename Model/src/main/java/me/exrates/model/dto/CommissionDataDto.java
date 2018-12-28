@@ -30,5 +30,4 @@ public class CommissionDataDto {
   BigDecimal resultAmount;
 
   Boolean specificMerchantComissionCount;
-
 }

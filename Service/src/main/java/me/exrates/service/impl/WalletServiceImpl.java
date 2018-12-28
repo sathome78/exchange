@@ -683,6 +683,11 @@ public class WalletServiceImpl implements WalletService {
         }
     }
 
+    @Override
+    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty){
+        return walletDao.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
+    }
+
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {

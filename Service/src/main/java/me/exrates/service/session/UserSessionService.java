@@ -89,4 +89,8 @@ public class UserSessionService {
         return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
     }
 
+    public SessionInformation getSessionInfo(String sessionId) {
+        return sessionRegistry.getSessionInformation(sessionId);
+    }
+
 }

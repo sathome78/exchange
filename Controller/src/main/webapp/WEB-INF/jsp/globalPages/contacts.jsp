@@ -51,6 +51,7 @@
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">
@@ -69,9 +70,7 @@
                             <b><loc:message code="contacts.officeLocation.title"/></b>
                         </p>
                         <p style="margin-top: 0; margin-bottom:0; text-align: left;"><loc:message code="contacts.officeLocation.china"/></p>
-                        <p style="margin-top: 8px; margin-bottom: 0;">
-                            <b><loc:message code="admin.phone"/>:</b> +8615313750545
-                        </p>
+
                         <p style="margin-top: 8px; margin-bottom: 8px;">
                             <b><loc:message code="contacts.partners.title"/> </b>
                         </p>
@@ -100,7 +99,7 @@
                         <p style="margin-top: 8px; margin-bottom: 0;">
                             <a style="margin-top: 0; margin-bottom: 8px; display: inline-block;" href="https://www.linkedin.com/in/nina-bar-b87945170/"><loc:message code="contacts.support.listing.manager"/> </a>
                         </p>
-                        <a href="mailto:merkuri@exrates.me">listing@exrates.me</a>
+                        <a href="mailto:listing@exrates.me">listing@exrates.me</a>
                     </div>
                     <div>
                         <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="contacts.sales.title"/></h5>

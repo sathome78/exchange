@@ -13,6 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="admin.companyWallet"/></title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -29,6 +30,7 @@
 <body>
 
 <%@include file='fragments/header-simple.jsp' %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 
 <main class="container my_wallets">
     <div class="row">

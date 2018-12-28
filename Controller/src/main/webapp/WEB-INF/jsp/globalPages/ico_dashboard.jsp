@@ -91,6 +91,7 @@
 <body>
 
 <%@include file="../fragments/header_ico.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
 
     <%@include file="../fragments/alerts.jsp" %>

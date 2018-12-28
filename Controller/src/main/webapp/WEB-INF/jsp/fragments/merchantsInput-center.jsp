@@ -94,34 +94,37 @@
                               data-min-sum="${minRefillSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}"
                               data-process_type="${merchantCurrency.processType}"
                               data-is-amount-input-needed="${isAmountInputNeeded}"
-                              data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.deposit"/>
+                              data-merchant-image-d="${merchantImage.id}"
+                              data-merchant-child-merchant="${merchantImage.child_merchant}">
+                        <loc:message code="merchants.deposit"/>
                       </button>
                     </c:when>
                     <c:otherwise>
                       <div style="overflow:auto; ">
                         <div>
-                          <div class="alert alert-warning"><loc:message code="message.additional.deposit.warning" arguments="${currency.getName()}"/></div>
+                          <div class="alert alert-warning"><loc:message code="message.additional.deposit.warning" arguments="${currency.name}"/></div>
                           <c:choose>
-                            <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
-                          <div class="alert alert-success">
-                            <loc:message code="refill.messageAboutCurrentAddressSimple"/>
-                              <div id="address-to-pay" <%--style="font-size:16px"--%>>
-                                <p class="pay_addr">${merchantCurrency.mainAddress}</p>
-                              </div>
-                              <button id="address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
-                                      code="refill.copy"/></button>
-                          </div>
-                              <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
-                          <div class="alert alert-success">
-                              <div>${merchantCurrency.additionalFieldName}:</div>
-                              <div id="add-address-to-pay" style="font-size:14px; overflow:auto">
-                                  ${merchantCurrency.address}
-                              </div>
 
-                              <button id="add-address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
-                                      code="refill.copyAdd" arguments="${merchantCurrency.additionalFieldName}"/></button>
-                          </div>
-                            <div class="alert alert-warning"><loc:message code="message.additional.address.warning.${currency.getName()}"/></div>
+                            <c:when test="${merchantCurrency.additionalTagForRefillIsUsed}">
+                              <div class="alert alert-success">
+                                <loc:message code="refill.messageAboutCurrentAddressSimple"/>
+                                <div id="address-to-pay" <%--style="font-size:16px"--%>>
+                                  <p class="pay_addr">${merchantCurrency.mainAddress}</p>
+                                </div>
+                                <button id="address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
+                                        code="refill.copy"/></button>
+                              </div>
+                              <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
+                              <div class="alert alert-success">
+                                <div>${merchantCurrency.additionalFieldName}:</div>
+                                <div id="add-address-to-pay" style="font-size:14px; overflow:auto">
+                                    ${merchantCurrency.address}
+                                </div>
+
+                                <button id="add-address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
+                                        code="refill.copyAdd" arguments="${merchantCurrency.additionalFieldName}"/></button>
+                              </div>
+                              <div class="alert alert-warning"><loc:message code="message.additional.address.warning.${currency.getName()}"/></div>
                             </c:when>
                             <c:otherwise>
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
@@ -148,8 +151,9 @@
                                     data-merchant-name="${merchantCurrency.name}"
                                     data-merchant-min-sum="${merchantCurrency.minSum}"
                                     data-process_type="${merchantCurrency.processType}"
-                                    data-merchant-image-d="${merchantImage.id}"><loc:message
-                                    code="refill.generate"/></button>
+                                    data-merchant-image-d="${merchantImage.id}"
+                                    data-merchant-child-merchant="${merchantImage.child_merchant}">
+                              <loc:message code="refill.generate"/></button>
                           </c:if>
                         </div>
                       </div>

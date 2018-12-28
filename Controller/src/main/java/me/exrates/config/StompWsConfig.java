@@ -38,7 +38,7 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
         String[] origins = allowedOrigins.split(",");
         registry
                 .addEndpoint("/public_socket")
-                .setAllowedOrigins(origins)
+                .setAllowedOrigins("*")
                 .withSockJS()
                 .setClientLibraryUrl("//cdn.jsdelivr.net/sockjs/1/sockjs.min.js")
                 .setInterceptors(wsHandshakeInterceptor());

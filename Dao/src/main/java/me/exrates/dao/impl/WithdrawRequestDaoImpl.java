@@ -87,6 +87,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+
     private Optional<Integer> blockById(int id) {
         String sql = "SELECT COUNT(*) " +
                 "FROM WITHDRAW_REQUEST " +
@@ -495,7 +499,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         }};
 
         try {
-            return jdbcTemplate.query(sql, namedParameters, (rs, i) -> WithdrawRequestFlatForReportDto.builder()
+            return slaveForReportsTemplate.query(sql, namedParameters, (rs, i) -> WithdrawRequestFlatForReportDto.builder()
                     .invoiceId(rs.getInt("invoice_id"))
                     .wallet(rs.getString("wallet"))
                     .recipientBank(rs.getString("recipient_bank_name"))

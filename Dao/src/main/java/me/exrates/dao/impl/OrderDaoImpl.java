@@ -18,6 +18,7 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -78,8 +79,6 @@ import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -96,6 +95,9 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
+    @Autowired
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
 
     @Autowired
     CommissionDao commissionDao;
@@ -836,7 +838,7 @@ public class OrderDaoImpl implements OrderDao {
         } else {
             namedParameters.put("operation_type_id", operationTypesIds);
         }
-        return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+        return slaveForReportsTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OrderWideListDto orderWideListDto = new OrderWideListDto();
@@ -993,8 +995,8 @@ public class OrderDaoImpl implements OrderDao {
         LOGGER.debug(selectCountQuery);
 
         PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
-
-        List<OrderBasicInfoDto> infoDtoList = slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
+        //
+        List<OrderBasicInfoDto> infoDtoList = slaveForReportsTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
             OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
             OrderBaseType baseType = OrderBaseType.convert(rs.getString("base_type"));
             infoDto.setId(rs.getInt("id"));
@@ -1468,15 +1470,16 @@ public class OrderDaoImpl implements OrderDao {
                 "cp.name AS currency_pair_name, " +
                 "cur.name as convert_currency_name, " +
                 "COUNT(o.id) AS quantity, " +
-                "SUM(o.amount_convert) AS amount_convert," +
-                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS amount_commission" +
+                "SUM(o.amount_convert) AS convert_amount," +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
                 " FROM EXORDERS o " +
                 " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
                 " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
-                " JOIN USER u ON o.user_id = u.id AND u.roleid IN (:user_roles) " +
-                " WHERE o.status_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
-                " GROUP BY cp.name, cur.name" +
-                " ORDER BY cp.name ASC";
+                " JOIN USER creator ON creator.id = o.user_id AND creator.roleid IN (:user_roles) " +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id AND acceptor.roleid IN (:user_roles) " +
+                " WHERE o.status_id = 3 AND o.operation_type_id IN (3, 4) AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY currency_pair_name, convert_currency_name" +
+                " ORDER BY currency_pair_name ASC";
 
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
@@ -1488,8 +1491,102 @@ public class OrderDaoImpl implements OrderDao {
                 .currencyPairName(rs.getString("currency_pair_name"))
                 .currencyAccountingName(rs.getString("convert_currency_name"))
                 .quantity(rs.getInt("quantity"))
-                .amountConvert(rs.getBigDecimal("amount_convert"))
-                .amountCommission(rs.getBigDecimal("amount_commission"))
+                .amountConvert(rs.getBigDecimal("convert_amount"))
+                .amountCommission(rs.getBigDecimal("commission_amount"))
                 .build());
+    }
+
+    @Override
+    public List<UserSummaryOrdersDto> getUserBuyOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                           LocalDateTime endTime,
+                                                                           List<UserRole> userRoles,
+                                                                           int requesterId) {
+        String sql = "SELECT creator.email AS creator_email, " +
+                "creator_role.name AS creator_role, " +
+                "acceptor.email AS acceptor_email, " +
+                "acceptor_role.name AS acceptor_role, " +
+                "cp.name AS currency_pair_name, " +
+                "cur.name as convert_currency_name, " +
+                "SUM(o.amount_convert) AS convert_amount, " +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id" +
+                " JOIN CURRENCY cur ON cp.currency2_id = cur.id" +
+                " JOIN USER creator ON creator.id = o.user_id" +
+                " JOIN USER_ROLE creator_role on creator_role.id = creator.roleid AND creator_role.name IN (:user_roles)" +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id" +
+                " JOIN USER_ROLE acceptor_role on acceptor_role.id = acceptor.roleid AND acceptor_role.name IN (:user_roles)" +
+                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
+                " AND o.status_id = 3 AND o.operation_type_id = 4 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY creator_email, acceptor_email, currency_pair_name, convert_currency_name";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
+                    .creatorEmail(rs.getString("creator_email"))
+                    .creatorRole(rs.getString("creator_role"))
+                    .acceptorEmail(rs.getString("acceptor_email"))
+                    .acceptorRole(rs.getString("acceptor_role"))
+                    .currencyPairName(rs.getString("currency_pair_name"))
+                    .currencyName(rs.getString("convert_currency_name"))
+                    .amount(rs.getBigDecimal("convert_amount"))
+                    .commission(rs.getBigDecimal("commission_amount"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<UserSummaryOrdersDto> getUserSellOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                            LocalDateTime endTime,
+                                                                            List<UserRole> userRoles,
+                                                                            int requesterId) {
+        String sql = "SELECT creator.email AS creator_email, " +
+                "creator_role.name AS creator_role, " +
+                "acceptor.email AS acceptor_email, " +
+                "acceptor_role.name AS acceptor_role, " +
+                "cp.name AS currency_pair_name, " +
+                "cur.name as convert_currency_name, " +
+                "SUM(o.amount_convert) AS convert_amount, " +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id" +
+                " JOIN CURRENCY cur ON cp.currency2_id = cur.id" +
+                " JOIN USER creator ON creator.id = o.user_id" +
+                " JOIN USER_ROLE creator_role on creator_role.id = creator.roleid AND creator_role.name IN (:user_roles)" +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id" +
+                " JOIN USER_ROLE acceptor_role on acceptor_role.id = acceptor.roleid AND acceptor_role.name IN (:user_roles)" +
+                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
+                " AND o.status_id = 3 AND o.operation_type_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY creator_email, acceptor_email, currency_pair_name, convert_currency_name";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
+                    .creatorEmail(rs.getString("creator_email"))
+                    .creatorRole(rs.getString("creator_role"))
+                    .acceptorEmail(rs.getString("acceptor_email"))
+                    .acceptorRole(rs.getString("acceptor_role"))
+                    .currencyPairName(rs.getString("currency_pair_name"))
+                    .currencyName(rs.getString("convert_currency_name"))
+                    .amount(rs.getBigDecimal("convert_amount"))
+                    .commission(rs.getBigDecimal("commission_amount"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
     }
 }

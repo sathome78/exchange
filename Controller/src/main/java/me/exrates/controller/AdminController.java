@@ -73,7 +73,6 @@ import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -171,7 +170,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -182,6 +180,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
@@ -731,7 +730,7 @@ public class AdminController {
     public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                  @RequestParam Map<String, String> params,
                                                                  HttpServletRequest request) {
-
+        //
         try {
             adminOrderFilterData.initFilterItems();
             DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
@@ -1565,6 +1564,15 @@ public class AdminController {
     }
 
     @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/certainty/update", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity updateSignOfCertaintyForCurrency(@RequestParam int currencyId,
+                                                           @RequestParam boolean signOfCertainty) {
+        walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> submitWalletAddressAsAddress(@RequestParam int id,
@@ -1616,7 +1624,6 @@ public class AdminController {
 
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
     }
-
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,

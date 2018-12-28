@@ -1,5 +1,5 @@
 package me.exrates.model.enums;
 
 public enum  OpenApiPermission {
-    TRADE, WITHDRAW
+    TRADE, WITHDRAW, ACCEPT_BY_ID
 }

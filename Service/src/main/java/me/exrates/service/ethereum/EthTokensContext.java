@@ -23,9 +23,9 @@ public class EthTokensContext {
 
     @PostConstruct
     private void init() {
-        merchantServiceMap.forEach((k,v)-> {
+        merchantServiceMap.forEach((k, v) -> {
             merchantMapByCurrencies.put(v.currencyId(), v);
-            v.getContractAddress().forEach((address)->{
+            v.getContractAddress().forEach((address) -> {
                 contractAddressByCurrencies.put(address, v.currencyId());
             });
         });
@@ -35,15 +35,15 @@ public class EthTokensContext {
         return merchantMapByCurrencies.get(currencyId);
     }
 
-    public boolean isContract(String contract){
-        if (contractAddressByCurrencies.get(contract) == null){
+    public boolean isContract(String contract) {
+        if (contractAddressByCurrencies.get(contract) == null) {
             return false;
-        }else {
+        } else {
             return true;
         }
     }
 
-    public EthTokenService getByContract(String contract){
+    public EthTokenService getByContract(String contract) {
         return getByCurrencyId(contractAddressByCurrencies.get(contract));
     }
 

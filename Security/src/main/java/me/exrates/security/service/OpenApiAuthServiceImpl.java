@@ -15,10 +15,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "open_api")
@@ -34,8 +36,6 @@ public class OpenApiAuthServiceImpl implements OpenApiAuthService {
 
     @Autowired
     private UserDetailsService userDetailsService;
-
-
 
     @Override
     public UserDetails getUserByPublicKey(String method, String endpoint, Long timestamp, String publicKey, String signatureHex) {

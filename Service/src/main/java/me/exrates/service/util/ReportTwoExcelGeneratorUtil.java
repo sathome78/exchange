@@ -3,6 +3,7 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.InOutReportDto;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -20,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +31,10 @@ import static java.util.Objects.isNull;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public class ReportTwoExcelGeneratorUtil {
 
-    public static byte[] generate(Map<String, InOutReportDto> inOutMap,
+    private static final String SHEET1_NAME = "Sheet1 - Статистика по вводу-выводу по валютам";
+
+    public static byte[] generate(List<Currency> currencies,
+                                  Map<String, InOutReportDto> inOutMap,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
@@ -38,7 +43,7 @@ public class ReportTwoExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Статистика по вводу-выводу по валютам");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;
@@ -143,7 +148,6 @@ public class ReportTwoExcelGeneratorUtil {
         sheet.autoSizeColumn(15, true);
         sheet.setColumnWidth(15, sheet.getColumnWidth(15) + 256);
 
-        Set<String> currencies = inOutMap.keySet();
         final int bound = inOutMap.size();
 
         //footer
@@ -215,10 +219,14 @@ public class ReportTwoExcelGeneratorUtil {
 
         //body
         int i = 0;
-        for (String currency : currencies) {
-            InOutReportDto inOutReportDto = inOutMap.get(currency);
+        for (Currency currency : currencies) {
+            final int currencyId = currency.getId();
+            final String currencyName = currency.getName();
 
-            final int currencyId = inOutReportDto.getCurrencyId();
+            InOutReportDto inOutReportDto = inOutMap.get(currencyName);
+            if (isNull(inOutReportDto)) {
+                continue;
+            }
 
             final int inputCount = inOutReportDto.getInputCount();
             final BigDecimal input = inOutReportDto.getInput();
@@ -227,7 +235,7 @@ public class ReportTwoExcelGeneratorUtil {
             final BigDecimal inputCommission = inOutReportDto.getInputCommission();
             final BigDecimal outputCommission = inOutReportDto.getOutputCommission();
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
             if (isNull(ratePair)) {
                 ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
             }
@@ -241,7 +249,7 @@ public class ReportTwoExcelGeneratorUtil {
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(currency);
+            cell.setCellValue(currencyName);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(2, CellType.NUMERIC);

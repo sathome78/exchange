@@ -108,6 +108,11 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
+    @SubscribeMapping("/orders/sfwfrf442fewdf/{currencyPairId}")
+    public String subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
+        return initOrders(currencyPairId, null);
+    }
+
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);

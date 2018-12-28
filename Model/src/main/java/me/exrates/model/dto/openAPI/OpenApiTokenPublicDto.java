@@ -1,5 +1,6 @@
 package me.exrates.model.dto.openAPI;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,8 @@ public class OpenApiTokenPublicDto {
     private String publicKey;
     private Boolean allowTrade;
     private Boolean allowWithdraw;
+    @JsonIgnore
+    private Boolean allowAcceptById;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime generationDate;
 }

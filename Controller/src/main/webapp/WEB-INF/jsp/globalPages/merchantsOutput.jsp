@@ -64,6 +64,7 @@
 <body>
 
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 
 <main id="merchants-output-page" class="container">
     <div class="row_big">

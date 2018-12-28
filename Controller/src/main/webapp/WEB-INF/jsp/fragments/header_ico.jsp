@@ -13,6 +13,7 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -25,6 +26,33 @@
                                 && (path != '/login?error')}"/>
 <c:set var="showRegistration" value="${(path != '/register')}"/>
 <input id="user_auth_status" type="hidden" value="${isAuth}"/>
+<script>
+    function close() {
+        var banner = document.getElementById("banner");
+
+        banner.style.display = "none"
+    }
+</script>
+<a href="https://t.me/exrates_official" target="_blank" class="banner-wrap" id="banner">
+    <span class="banner">
+        <span class="banner__logo">
+        <div class="logo-text">Exrates lab</div>
+    </span>
+    <span class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</span>
+    <span class="banner__link">Join</span>
+    <span class="banner__nommo">
+        <img src="/client/img/nommo.png">
+    </span>
+    <button class="banner__btn"onclick="document.getElementById('banner').style.display='none';return false;">Close
+        <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12px" height="13px">
+                <path fill-rule="evenodd" fill="rgb(255, 255, 255)"
+                      d="M12.010,10.740 L10.243,12.509 L6.000,8.263 L1.757,12.509 L-0.010,10.740 L4.232,6.495 L-0.010,2.249 L1.757,0.480 L6.000,4.726 L10.243,0.480 L12.010,2.249 L7.768,6.495 L12.010,10.740 Z"/>
+            </svg>
+        </span>
+    </button>
+    </span>
+</a>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -334,3 +362,119 @@
             async defer>
     </script>
 </c:if>
+
+<style>
+    .banner-wrap{
+        text-decoration: none;
+    }
+    .banner {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        min-width: 1220px;
+        position: relative;
+        background-image: url(/client/img/bg.png);
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: top center;
+        font-family: 'Montserrat';
+    }
+
+    .banner__logo {
+        display: flex;
+        align-items: center;
+        margin-left: 30px;
+
+    }
+
+    .banner__logo>.logo {
+        width: 26px;
+        height: 26px;
+    }
+
+    .banner__logo>.logo-text {
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 8px;
+        text-transform: uppercase;
+        color: #fff;
+    }
+
+    .banner__text {
+        position: relative;
+        z-index: 2;
+        font-weight: bold;
+        font-size: 10px;
+        color: #fff;
+        text-transform: uppercase;
+        margin: 0 35px;
+    }
+
+    .banner__link {
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        background-color: #fff;
+        padding: 6px 12px;
+        -webkit-border-radius: 12px;
+        -moz-border-radius: 12px;
+        border-radius: 12px;
+        color: #105dfb;
+        text-transform: uppercase;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 10px;
+    }
+
+    .banner__nommo {
+        margin-left: 40px;
+        height: 100%;
+    }
+
+    .banner__btn {
+        margin-left: auto;
+        margin-right: 30px;
+        color: #fff;
+        font-weight: 500;
+        font-size: 10px;
+        font-family: 'Montserrat';
+        background-color: transparent;
+        border: none;
+    }
+
+    .banner__btn:hover {
+        cursor: pointer;
+    }
+
+    .banner__btn span {
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>

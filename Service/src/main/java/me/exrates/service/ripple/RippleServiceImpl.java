@@ -1,5 +1,6 @@
 package me.exrates.service.ripple;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -11,7 +12,6 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -55,6 +57,16 @@ public class RippleServiceImpl implements RippleService {
 
   private static final String DESTINATION_TAG_ERR_MSG = "message.ripple.tagError";
 
+  private Currency currency;
+
+  private Merchant merchant;
+
+  @PostConstruct
+  private void init() {
+    currency = currencyService.findByName("XRP");
+    merchant = merchantService.findByName(XRP_MERCHANT);
+  }
+
 
   /*method for admin manual check transaction by hash*//*
   @Override
@@ -77,11 +89,11 @@ public class RippleServiceImpl implements RippleService {
     paramsMap.put("hash", hash);
     paramsMap.put("address", String.valueOf(destinationTag));
     paramsMap.put("amount", amount);
-    try {
-      this.processPayment(paramsMap);
-    } catch (RefillRequestAppropriateNotFoundException e) {
-      log.error("xrp refill address not found {}", destinationTag);
-    }
+    this.processPayment(paramsMap);
+  }
+
+  private boolean checkTransactionForDuplicate(String hash) {
+    return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(), hash).isPresent();
   }
 
   @Override
@@ -105,10 +117,15 @@ public class RippleServiceImpl implements RippleService {
     }};
   }
 
+  @Synchronized
   @Override
-  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+  public void processPayment(Map<String, String> params) {
     String address = params.get("address");
     String hash = params.get("hash");
+    if (checkTransactionForDuplicate(hash)) {
+      log.warn("*** XRP *** transaction {} already accepted", hash);
+      return;
+    }
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
     BigDecimal amount = rippleTransactionService.normalizeAmountToDecimal(params.get("amount"));
@@ -120,14 +137,7 @@ public class RippleServiceImpl implements RippleService {
         .merchantTransactionId(hash)
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
-    try {
-      refillService.autoAcceptRefillRequest(requestAcceptDto);
-    } catch (RefillRequestAppropriateNotFoundException e) {
-      log.debug("RefillRequestAppropriateNotFoundException: " + params);
-      Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-      requestAcceptDto.setRequestId(requestId);
-      refillService.autoAcceptRefillRequest(requestAcceptDto);
-    }
+    refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
   }
 
   @Override
@@ -138,7 +148,7 @@ public class RippleServiceImpl implements RippleService {
   private Integer generateUniqDestinationTag(int userId) {
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
-    Optional<Integer> id = null;
+    Optional<Integer> id;
     int destinationTag;
     do {
       destinationTag = generateDestinationTag(userId);

@@ -31,6 +31,8 @@ import static java.util.Objects.nonNull;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public class ReportSevenExcelGeneratorUtil {
 
+    private static final String SHEET1_NAME = "Sheet1 - Выгрузить свод ввода-вывода";
+
     public static byte[] generate(List<InvoiceReportDto> resultList,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -38,7 +40,7 @@ public class ReportSevenExcelGeneratorUtil {
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить свод ввода-вывода");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;

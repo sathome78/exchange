@@ -4,12 +4,14 @@ import me.exrates.model.OpenApiToken;
 import me.exrates.model.dto.openAPI.OpenApiTokenPublicDto;
 import me.exrates.service.OpenApiTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
@@ -29,6 +31,10 @@ public class TokenSettingsController {
 
     @Autowired
     private OpenApiTokenService openApiTokenService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private LocaleResolver localeResolver;
 
 
     @ResponseBody
@@ -48,18 +54,24 @@ public class TokenSettingsController {
 
 
     @RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public RedirectView tokenCreate(@RequestParam String alias, RedirectAttributes redirectAttributes,
+    public RedirectView tokenCreate(@RequestParam String alias, RedirectAttributes redirectAttributes, HttpServletRequest request,
                                     Principal principal) {
+        RedirectView redirectView = new RedirectView();
         try {
-            RedirectView redirectView = new RedirectView("/settings/token/created");
             OpenApiToken token = openApiTokenService.generateToken(principal.getName(), alias);
             redirectAttributes.addFlashAttribute("publicKey", token.getPublicKey());
             redirectAttributes.addFlashAttribute("privateKey", token.getPrivateKey());
-            return redirectView;
+            redirectView.setUrl("/settings/token/created");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("message.api.alias.error", null, localeResolver.resolveLocale(request)));
+            redirectView.setUrl("/settings");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("msg", e.getMessage());
-            return new RedirectView("/settings");
+            redirectAttributes.addFlashAttribute("errorNoty",  "Error " + e.getMessage());
+            redirectView.setUrl("/settings");
+        } finally {
+            redirectAttributes.addFlashAttribute("activeTabId", "api-options-wrapper");
         }
+        return redirectView;
     }
 
     @ResponseBody

@@ -8,7 +8,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ public interface UserService {
 
     int getIdByNickname(String nickname);
 
-    boolean setNickname(String newNickName,String userEmail);
+    boolean setNickname(String newNickName, String userEmail);
 
     boolean hasNickname(String userEmail);
 
@@ -91,6 +91,10 @@ public interface UserService {
     void checkFinPassword(String enteredFinPassword, User storedUser, Locale locale);
 
     void updateCommonReferralRoot(int userId);
+
+    int setCallbackURL(int userId, CallbackURL callbackURL) throws CallBackUrlAlreadyExistException;
+
+    int updateCallbackURL(int userId, CallbackURL callbackURL);
 
     /**
      * Returns preferred locale for user stored in DB
@@ -205,4 +209,6 @@ public interface UserService {
     boolean checkPassword(int userId, String password);
 
     long countUserIps(String userEmail);
+
+    String getCallBackUrlByEmail(String email, Integer currencyPairId);
 }
