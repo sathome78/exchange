@@ -44,6 +44,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -110,6 +111,7 @@ import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
@@ -140,6 +142,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1700,6 +1703,62 @@ public class OrderServiceImpl implements OrderService {
             logger.error("Error creating excel file, e - {}", e.getMessage());
         }
     }
+
+    @Override
+    public void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Transactions");
+
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Status");
+        headerRow.createCell(1).setCellValue("Date");
+        headerRow.createCell(2).setCellValue("Currency");
+        headerRow.createCell(3).setCellValue("Amount");
+        headerRow.createCell(4).setCellValue("Type");
+        headerRow.createCell(5).setCellValue("Address");
+
+        final MutableInt index = new MutableInt(0);
+
+        transactions.forEach(trans -> {
+            Row row = sheet.createRow(index.addAndGet(1));
+            row.createCell(0, CellType.STRING).setCellValue(getValue(trans.getStatus()));
+            row.createCell(1, CellType.STRING).setCellValue(getValue(trans.getDatetime()));
+            row.createCell(2, CellType.STRING).setCellValue(getValue(trans.getCurrencyName()));
+            row.createCell(3, CellType.STRING).setCellValue(getValue(trans.getAmount()));
+            row.createCell(4, CellType.STRING).setCellValue(getValue(trans.getOperationType()));
+            row.createCell(5, CellType.STRING).setCellValue(getValue(trans.getTransactionHash()));
+        });
+
+        try {
+            StringBuilder fileName = new StringBuilder("Transactions_")
+                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                    .append(".xlsx");
+
+            response.setContentType("application/ms-excel");
+            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+
+            OutputStream outStream = response.getOutputStream();
+            workbook.write(outStream);
+            outStream.flush();
+            workbook.close();
+        } catch (IOException e) {
+            logger.error("Error creating excel file, e - {}", e.getMessage());
+        }
+    }
+
+    private String getValue(Object value) {
+        if (value == null) {
+            return "";
+        } else if (value instanceof LocalDate) {
+            LocalDate date = (LocalDate) value;
+            return DateTimeFormatter.ISO_LOCAL_TIME.format(date);
+        } else if (value instanceof LocalDateTime) {
+            LocalDateTime localDateTime = (LocalDateTime) value;
+           return DateTimeFormatter.ISO_LOCAL_TIME.format(localDateTime);
+        }
+        return String.valueOf(value);
+    }
+
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,

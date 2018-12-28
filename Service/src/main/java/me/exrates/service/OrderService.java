@@ -28,6 +28,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -388,6 +389,8 @@ public interface OrderService {
 
     void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response);
 
+
+    void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
