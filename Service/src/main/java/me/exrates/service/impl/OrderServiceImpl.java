@@ -1719,16 +1719,26 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             int index = 1;
-            for (MyInputOutputHistoryDto dto : transactions) {
-                Row row = sheet.createRow(index++);
-                row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
-                row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
-                row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
-                row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getOperationType()));
-                row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
-
+            if (transactions.isEmpty()) {
+                Row row = sheet.createRow(index);
+                row.createCell(0, CellType.STRING).setCellValue("");
+                row.createCell(1, CellType.STRING).setCellValue("");
+                row.createCell(2, CellType.STRING).setCellValue("");
+                row.createCell(3, CellType.STRING).setCellValue("");
+                row.createCell(4, CellType.STRING).setCellValue("");
+                row.createCell(5, CellType.STRING).setCellValue("");
+            } else {
+                for (MyInputOutputHistoryDto dto : transactions) {
+                    Row row = sheet.createRow(index++);
+                    row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
+                    row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
+                    row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
+                    row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
+                    row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
+                    row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
+                }
             }
+
             StringBuilder fileName = new StringBuilder("Transactions_")
                     .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
                     .append(".xlsx");
