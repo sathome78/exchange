@@ -10,5 +10,5 @@ create table if not exists CHAT_KO
       on update cascade
 );
 
-create index CHAT_RU
-  on CHAT_KO (user_id);
+
+ALTER TABLE CHAT_KO ADD INDEX (user_id);
