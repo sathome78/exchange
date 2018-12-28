@@ -149,14 +149,29 @@ public class BalanceServiceImpl implements BalanceService {
     public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset,
                                                                           int currencyId, LocalDate dateFrom,
                                                                           LocalDate dateTo, Locale locale) {
+        adjustDates(dateFrom, dateTo);
+        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
+        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
+        pagedResult.setItems(getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale));
+        return pagedResult;
+    }
+
+    @Override
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
+        adjustDates(dateFrom, dateTo);
+        return getMyInputOutputHistoryDtos(email, -1, -1, currencyId, dateFrom, dateTo, locale);
+    }
+
+    private void adjustDates(LocalDate dateFrom, LocalDate dateTo) {
         if (dateFrom == null) {
             dateFrom = LocalDate.now().minusYears(3);
         }
         if (dateTo == null) {
             dateTo = LocalDate.now();
         }
-        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
+    }
+
+    private List<MyInputOutputHistoryDto> getMyInputOutputHistoryDtos(String email, int limit, int offset, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
         List<MyInputOutputHistoryDto> history =
                 inputOutputService.getUserInputOutputHistory(email, offset, limit, dateFrom, dateTo, currencyId, locale);
         history.forEach(dto -> {
@@ -177,8 +192,7 @@ public class BalanceServiceImpl implements BalanceService {
             }
             dto.setNeededConfirmations(minConfirmations);
         });
-        pagedResult.setItems(history);
-        return pagedResult;
+        return history;
     }
 
     @Override
