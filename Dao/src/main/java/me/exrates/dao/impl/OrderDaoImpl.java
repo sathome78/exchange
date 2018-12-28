@@ -73,6 +73,8 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1143,12 +1145,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope,
-                                             Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate before,
+                                             Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate to,
                                              boolean hideCanceled) {
         String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = before == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
+        String createdBefore = to == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
 
         String userFilterClause;
         switch (scope) {
@@ -1184,8 +1186,8 @@ public class OrderDaoImpl implements OrderDao {
         if (from != null) {
             namedParameters.addValue("dateFrom", from, Types.DATE);
         }
-        if (before != null) {
-            namedParameters.addValue("dateBefore", before, Types.DATE);
+        if (to != null) {
+            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS).atStartOfDay(), Types.DATE);
         }
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
     }
