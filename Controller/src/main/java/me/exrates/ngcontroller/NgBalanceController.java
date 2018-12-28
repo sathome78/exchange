@@ -263,7 +263,7 @@ public class NgBalanceController {
         Locale locale = localeResolver.resolveLocale(request);
         try {
             List<MyInputOutputHistoryDto> transactions =
-                    balanceService.getUserInputOutputHistoryExcel(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+                    balanceService.getUserInputOutputHistoryExcel(email, currencyId, dateFrom, dateTo, locale);
 
             orderService.getTransactionExcelFile(transactions, response);
 

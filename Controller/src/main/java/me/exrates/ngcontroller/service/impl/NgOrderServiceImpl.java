@@ -488,11 +488,13 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     @Override
     public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
+        BigDecimal minimum = new BigDecimal("0.000000005");
+        BigDecimal acceptableAmount = new BigDecimal("0.00000001");
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(orderType, currencyId)
                 .stream()
-                .filter(n -> new BigDecimal(n.getExrate()).compareTo(new BigDecimal("0.000000005")) >= 0)
+                .filter(n -> new BigDecimal(n.getExrate()).compareTo(minimum) >= 0)
                 .map(n -> {
-                    if (new BigDecimal(n.getExrate()).compareTo(new BigDecimal("0.00000001")) < 0) {
+                    if (new BigDecimal(n.getExrate()).compareTo(acceptableAmount) < 0) {
                         n.setExrate("0.00000001");
                     }
                     return n;

@@ -157,9 +157,9 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int limit, int offset, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
         adjustDates(dateFrom, dateTo);
-        return getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+        return getMyInputOutputHistoryDtos(email, -1, -1, currencyId, dateFrom, dateTo, locale);
     }
 
     private void adjustDates(LocalDate dateFrom, LocalDate dateTo) {
