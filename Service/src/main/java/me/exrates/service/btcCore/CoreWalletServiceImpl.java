@@ -457,6 +457,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   @Override
   public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount) {
+      System.out.println("jdawkdwakl starting sendmany");
     try {
       List<String> subtractFeeAddresses = new ArrayList<>();
       if (subtractFeeFromAmount) {
