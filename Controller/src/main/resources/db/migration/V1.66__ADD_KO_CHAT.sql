@@ -1,4 +1,4 @@
-create table CHAT_KO
+create table if not exists CHAT_KO
 (
   id           int          not null
     primary key,
