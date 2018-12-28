@@ -1717,19 +1717,18 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(4).setCellValue("Type");
         headerRow.createCell(5).setCellValue("Address");
 
-        final MutableInt index = new MutableInt(0);
-
-        transactions.forEach(trans -> {
-            Row row = sheet.createRow(index.addAndGet(1));
-            row.createCell(0, CellType.STRING).setCellValue(getValue(trans.getStatus()));
-            row.createCell(1, CellType.STRING).setCellValue(getValue(trans.getDatetime()));
-            row.createCell(2, CellType.STRING).setCellValue(getValue(trans.getCurrencyName()));
-            row.createCell(3, CellType.STRING).setCellValue(getValue(trans.getAmount()));
-            row.createCell(4, CellType.STRING).setCellValue(getValue(trans.getOperationType()));
-            row.createCell(5, CellType.STRING).setCellValue(getValue(trans.getTransactionHash()));
-        });
-
         try {
+            int index = 1;
+            for (MyInputOutputHistoryDto dto : transactions) {
+                Row row = sheet.createRow(index++);
+                row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
+                row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
+                row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
+                row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getOperationType()));
+                row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
+
+            }
             StringBuilder fileName = new StringBuilder("Transactions_")
                     .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
                     .append(".xlsx");
