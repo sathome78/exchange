@@ -80,11 +80,9 @@ public class NgDownloadController {
         }
     }
 
-    //  apiUrl/info/private/v2/download/inputOutputData/excel?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    //  apiUrl/info/private/v2/download/inputOutputData/excel?&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
     @GetMapping(value = "/inputOutputData/excel")
     public void getMyInputOutputDataToExcel(
-            @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
