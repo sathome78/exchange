@@ -1,8 +1,10 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -33,15 +35,18 @@ public class NgDownloadController {
     private final OrderService orderService;
     private final CurrencyService currencyService;
     private final LocaleResolver localeResolver;
+    private final BalanceService balanceService;
 
     public NgDownloadController(UserService userService,
                                 OrderService orderService,
                                 CurrencyService currencyService,
-                                LocaleResolver localeResolver) {
+                                LocaleResolver localeResolver,
+                                BalanceService balanceService) {
         this.userService = userService;
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.localeResolver = localeResolver;
+        this.balanceService = balanceService;
     }
 
     @GetMapping("/orders/{status}/export")
@@ -67,6 +72,28 @@ public class NgDownloadController {
                             hideCanceled, locale, dateFrom, dateTo);
 
             orderService.getExcelFile(orders, orderStatus, response);
+
+        } catch (Exception ex) {
+            logger.error("Error export orders to file, e - {}", ex.getMessage());
+        }
+    }
+
+    //  apiUrl/info/private/v2/download/inputOutputData/excel?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    @GetMapping("/inputOutputData/excel")
+    public void getMyInputOutputDataToExcel(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            HttpServletRequest request, HttpServletResponse response) {
+        String email = getPrincipalEmail();
+        Locale locale = localeResolver.resolveLocale(request);
+        try {
+            List<MyInputOutputHistoryDto> transactions =
+                    balanceService.getUserInputOutputHistoryExcel(email, currencyId, dateFrom, dateTo, locale);
+
+            orderService.getTransactionExcelFile(transactions, response);
 
         } catch (Exception ex) {
             logger.error("Error export orders to file, e - {}", ex.getMessage());
