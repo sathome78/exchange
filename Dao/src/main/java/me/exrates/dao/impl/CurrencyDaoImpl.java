@@ -126,11 +126,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .build();
     }
 
-    public List<String> getHashedCurrencyNames() {
-        String sql = "SELECT ticker_name FROM CURRENCY_PAIR WHERE market IN ('BTC', 'ETH') AND hidden = 0";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("ticker_name"));
-    }
-
     @Override
     public String getCurrencyName(int currencyId) {
         String sql = "SELECT name FROM CURRENCY WHERE  id = :id ";

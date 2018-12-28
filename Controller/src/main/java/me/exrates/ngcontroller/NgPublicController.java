@@ -176,6 +176,8 @@ public class NgPublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // apiUrl/info/public/v2/open-orders/0/5
+
     @GetMapping(value = "/open-orders/{pairId}/{precision}")
     @ResponseBody
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
