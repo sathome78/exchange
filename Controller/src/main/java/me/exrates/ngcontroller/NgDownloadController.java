@@ -11,6 +11,7 @@ import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -79,7 +81,7 @@ public class NgDownloadController {
     }
 
     //  apiUrl/info/private/v2/download/inputOutputData/excel?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
-    @GetMapping("/inputOutputData/excel")
+    @GetMapping(value = "/inputOutputData/excel")
     public void getMyInputOutputDataToExcel(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
