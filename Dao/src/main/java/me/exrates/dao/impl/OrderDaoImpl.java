@@ -972,11 +972,11 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                                        String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
-                                                       LocalDate from, LocalDate before, boolean hideCanceled) {
+                                                       LocalDate from, LocalDate to, boolean hideCanceled) {
         String userFilterClause;
         String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = before == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
+        String createdBefore = to == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
 
         switch (scope) {
             case "ALL":
@@ -1026,8 +1026,8 @@ public class OrderDaoImpl implements OrderDao {
         if (from != null) {
             namedParameters.addValue("dateFrom", from, Types.DATE);
         }
-        if (before != null) {
-            namedParameters.addValue("dateBefore", before, Types.DATE);
+        if (to != null) {
+            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
         }
 
         return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
