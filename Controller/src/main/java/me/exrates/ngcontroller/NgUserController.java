@@ -18,6 +18,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -105,7 +106,7 @@ public class NgUserController {
                 authenticationDto.getClientIp());
         try {
             if (!DEV_MODE) {
-//                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             }
         } catch (BannedIpException ban) {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
@@ -190,7 +191,7 @@ public class NgUserController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-//        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
