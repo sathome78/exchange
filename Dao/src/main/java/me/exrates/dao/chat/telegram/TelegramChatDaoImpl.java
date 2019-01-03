@@ -69,7 +69,7 @@ public class TelegramChatDaoImpl implements TelegramChatDao {
     private String getMessageTime(ResultSet resultSet) throws SQLException {
         Optional<Timestamp> timestamp = Optional.ofNullable(resultSet.getTimestamp("message_time"));
         return timestamp
-                .map(ts -> ts.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .map(ts -> ts.toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME))
                 .orElse(" ");
     }
 }

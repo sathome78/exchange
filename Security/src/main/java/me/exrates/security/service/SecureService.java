@@ -31,5 +31,5 @@ public interface SecureService {
 
     NotificationResultDto sendWithdrawPincode(User user);
 
-    NotificationResultDto sendLoginPincode(User user, HttpServletRequest request);
+    NotificationResultDto sendLoginPincode(User user, HttpServletRequest request, String ipAddress);
 }
