@@ -1405,6 +1405,12 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/exchangeRates", method = RequestMethod.GET)
+    public ModelAndView currencyExchangeModel() {
+        ModelAndView modelAndView = new ModelAndView("admin/exchangeRates");
+        return modelAndView;
+    }
+
     @AdminLoggable
     @GetMapping(value = "/2a8fy7b07dxe44/alerts")
     public String alertsPage(Model model) {
@@ -1659,10 +1665,5 @@ public class AdminController {
 
     public static void main(String[] args) {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
-    }
-
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets", method = RequestMethod.GET)
-    public ModelAndView currencyExchangeModel() {
-        return new ModelAndView("/2a8fy7b07dxe44/exchangeRates");
     }
 }
