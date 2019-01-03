@@ -252,4 +252,11 @@ public class NgUserController {
     public ErrorInfo UnauthorizedErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+
+    @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
+    @ExceptionHandler({IncorrectPinException.class})
+    @ResponseBody
+    public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 }
