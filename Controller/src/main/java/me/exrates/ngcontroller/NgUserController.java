@@ -145,8 +145,6 @@ public class NgUserController {
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
 
-        secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
-
         if (!DEV_MODE) {
 
             if (isEmpty(authenticationDto.getPin())) {
