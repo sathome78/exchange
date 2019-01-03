@@ -139,19 +139,20 @@ public class NgUserController {
         }
         String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
-//        logger.error("PASSWORD ENCODED: {}", passwordEncoder.encode(password));
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password");
         }
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
 
+        secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+
         if (!DEV_MODE) {
 
             if (isEmpty(authenticationDto.getPin())) {
 
                 if (!shouldLoginWithGoogle) {
-                    secureService.sendLoginPincode(user, request);
+                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
             }

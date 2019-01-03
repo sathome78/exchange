@@ -161,13 +161,13 @@ public class SecureServiceImpl implements SecureService {
     }
 
     @Override
-    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request) {
+    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request, String ipAddress) {
         NotificationsUserSetting setting = getLoginSettings(user);
         Locale locale = localeResolver.resolveLocale(request);
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin}, locale);
+                new String[] {pin, ipAddress}, locale);
         return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
     }
 
