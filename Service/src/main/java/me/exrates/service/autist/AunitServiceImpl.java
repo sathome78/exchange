@@ -12,6 +12,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,17 +39,23 @@ public class AunitServiceImpl implements AunitService {
     private final MessageSource messageSource;
     private final RefillService refillService;
 
-
     static final String AUNIT_CURRENCY = "AUNIT";
     static final String AUNIT_MERCHANT = "AUNIT";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
     private final Merchant merchant;
     private final Currency currency;
+    private final WithdrawUtils withdrawUtils;
+
 
     @Autowired
-    public AunitServiceImpl(MerchantService merchantService, CurrencyService currencyService, MessageSource messageSource, RefillService refillService) {
+    public AunitServiceImpl(MerchantService merchantService,
+                            CurrencyService currencyService,
+                            MessageSource messageSource,
+                            RefillService refillService,
+                            WithdrawUtils withdrawUtils){
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.withdrawUtils = withdrawUtils;
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
     }
@@ -103,6 +110,7 @@ public class AunitServiceImpl implements AunitService {
         String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -178,6 +186,11 @@ public class AunitServiceImpl implements AunitService {
     @Override
     public String getMainAddress() {
         return systemAddress;
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 //    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
