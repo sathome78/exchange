@@ -166,8 +166,10 @@ public class NgUserController {
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
-                throw new IncorrectPinException(res);
+                if (authenticationDto.getTries() > 1 &&  authenticationDto.getTries() % 3 == 0) {
+                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                }
+                throw new IncorrectPinException("Incorrect pin code");
             }
         }
 
