@@ -34,6 +34,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -83,6 +84,8 @@ import org.zeromq.ZMQ;
 import javax.annotation.PostConstruct;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -1642,6 +1645,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public GeetestLib geetest() {
         return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
+    }
+
+
+    @Bean
+    public Client client() {
+        Client build = ClientBuilder.newBuilder().build();
+        build.register(new LoggingFilter());
+        return build;
     }
 
 }
