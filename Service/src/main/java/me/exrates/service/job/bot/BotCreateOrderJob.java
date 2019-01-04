@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2(topic = "bot_trader")
-public class BotCreateOrderJob implements Job {
+public class BotCreateOrderJob /*implements Job*/ {
 
-    @Autowired
+    /*@Autowired
     private BotService botService;
 
     public BotCreateOrderJob() {
@@ -26,7 +26,7 @@ public class BotCreateOrderJob implements Job {
         log.debug("Running sequence for CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());
         botService.runOrderCreation(currencyPairId, orderType);
 
-    }
+    }*/
 
 
 }
