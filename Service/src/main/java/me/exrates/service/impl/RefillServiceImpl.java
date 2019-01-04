@@ -1136,7 +1136,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Override
     public void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded) {
-        refillRequestDao.updateAddressNeedTransfer(address, merchantId, currencyId, isNeeded);
+        /*refillRequestDao.updateAddressNeedTransfer(address, merchantId, currencyId, isNeeded);*/
     }
 
     @Override
