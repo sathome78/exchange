@@ -342,7 +342,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                             log.error(e);
                         }
 
-                        pendingTransactions.add(refillService.getFlatById(requestId));
+                        /*pendingTransactions.add(refillService.getFlatById(requestId));*/
 
                     }
                 }
