@@ -106,7 +106,7 @@ public class NgUserController {
                 authenticationDto.getClientIp());
         try {
             if (!DEV_MODE) {
-                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             }
         } catch (BannedIpException ban) {
             return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
