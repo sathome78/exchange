@@ -28,10 +28,8 @@ public class GtagServiceImpl implements GtagService {
     @Value("${google.analytics.enable}")
     private boolean enable;
 
-
     @Autowired
     private Client client;
-
     @Autowired
     private ExchangeApi exchangeApi;
 

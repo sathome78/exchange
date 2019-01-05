@@ -208,16 +208,10 @@ public class AunitServiceImpl implements AunitService {
         return withdrawUtils.isValidDestinationAddress(address);
     }
 
-//    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
-//        return StringUtils.isEmpty(hash)
-//                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
-//    }
-
     //Example for decrypting memo
     public static void main(String[] args) throws NoSuchAlgorithmException {
         String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
 
         System.out.println(s);
     }
-
 }

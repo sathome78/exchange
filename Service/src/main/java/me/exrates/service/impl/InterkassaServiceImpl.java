@@ -10,6 +10,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -21,6 +22,8 @@ import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +52,8 @@ import static java.util.Objects.isNull;
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
+
+    private static final Logger logger = LogManager.getLogger(InterkassaServiceImpl.class);
 
     private static final String POST = "post";
 
@@ -81,6 +86,8 @@ public class InterkassaServiceImpl implements InterkassaService {
     private RefillRequestDao refillRequestDao;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -229,7 +236,13 @@ public class InterkassaServiceImpl implements InterkassaService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            final String username = refillService.getUsernameByRequestId(requestId);
+
+            logger.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
         }
     }
 
