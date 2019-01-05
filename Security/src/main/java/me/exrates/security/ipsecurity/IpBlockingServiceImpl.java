@@ -65,7 +65,6 @@ public class IpBlockingServiceImpl implements IpBlockingService {
 
             }
         }
-
     }
 
     private boolean checkBanPending(LoginAttemptDto attempt, long banTimeSeconds, LocalDateTime currentTime) {

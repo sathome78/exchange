@@ -29,5 +29,8 @@ public interface BalanceService {
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
                                                                    LocalDate dateFrom, LocalDate dateTo, Locale locale);
 
+    List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom,
+                                                                 LocalDate dateTo, Locale locale);
+
     Map<String, BigDecimal> getBalancesSumInBtcAndUsd();
 }

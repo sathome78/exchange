@@ -18,6 +18,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -139,7 +140,6 @@ public class NgUserController {
         }
         String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
-//        logger.error("PASSWORD ENCODED: {}", passwordEncoder.encode(password));
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new IncorrectPasswordException("Incorrect password");
         }
@@ -151,7 +151,7 @@ public class NgUserController {
             if (isEmpty(authenticationDto.getPin())) {
 
                 if (!shouldLoginWithGoogle) {
-                    secureService.sendLoginPincode(user, request);
+                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
             }
@@ -166,8 +166,10 @@ public class NgUserController {
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
-                throw new IncorrectPinException(res);
+                if (authenticationDto.getTries() > 1 &&  authenticationDto.getTries() % 3 == 0) {
+                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                }
+                throw new IncorrectPinException("Incorrect pin code");
             }
         }
 
@@ -249,6 +251,13 @@ public class NgUserController {
     @ExceptionHandler({IncorrectPasswordException.class})
     @ResponseBody
     public ErrorInfo UnauthorizedErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
+    @ExceptionHandler({IncorrectPinException.class})
+    @ResponseBody
+    public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 }

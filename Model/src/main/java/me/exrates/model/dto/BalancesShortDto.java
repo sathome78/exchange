@@ -7,7 +7,9 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Getter@Setter@AllArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
 public class BalancesShortDto {
 
     private BigDecimal balanceUsd;

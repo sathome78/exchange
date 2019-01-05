@@ -1,14 +1,17 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,29 +22,33 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
 @RequestMapping("/info/private/v2/download/")
 @RestController
-public class NdDownloadController {
+public class NgDownloadController {
 
-    private static final Logger logger = LogManager.getLogger(NdDownloadController.class);
+    private static final Logger logger = LogManager.getLogger(NgDownloadController.class);
 
     private final UserService userService;
     private final OrderService orderService;
     private final CurrencyService currencyService;
     private final LocaleResolver localeResolver;
+    private final BalanceService balanceService;
 
-    public NdDownloadController(UserService userService,
+    public NgDownloadController(UserService userService,
                                 OrderService orderService,
                                 CurrencyService currencyService,
-                                LocaleResolver localeResolver) {
+                                LocaleResolver localeResolver,
+                                BalanceService balanceService) {
         this.userService = userService;
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.localeResolver = localeResolver;
+        this.balanceService = balanceService;
     }
 
     @GetMapping("/orders/{status}/export")
@@ -67,6 +74,26 @@ public class NdDownloadController {
                             hideCanceled, locale, dateFrom, dateTo);
 
             orderService.getExcelFile(orders, orderStatus, response);
+
+        } catch (Exception ex) {
+            logger.error("Error export orders to file, e - {}", ex.getMessage());
+        }
+    }
+
+    //  apiUrl/info/private/v2/download/inputOutputData/excel?&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    @GetMapping(value = "/inputOutputData/excel")
+    public void getMyInputOutputDataToExcel(
+            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            HttpServletRequest request, HttpServletResponse response) {
+        String email = getPrincipalEmail();
+        Locale locale = localeResolver.resolveLocale(request);
+        try {
+            List<MyInputOutputHistoryDto> transactions =
+                    balanceService.getUserInputOutputHistoryExcel(email, currencyId, dateFrom, dateTo, locale);
+
+            orderService.getTransactionExcelFile(transactions, response);
 
         } catch (Exception ex) {
             logger.error("Error export orders to file, e - {}", ex.getMessage());

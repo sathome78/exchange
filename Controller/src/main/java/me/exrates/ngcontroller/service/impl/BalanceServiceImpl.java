@@ -20,8 +20,12 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.MarketRatesHolder;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -44,14 +48,16 @@ import java.util.stream.Collectors;
 @Service
 public class BalanceServiceImpl implements BalanceService {
 
+    private static final Logger logger = LoggerFactory.getLogger(BalanceServiceImpl.class);
+
     private final BalanceDao balanceDao;
     private final InputOutputService inputOutputService;
     private final RefillPendingRequestService refillPendingRequestService;
     private final NgWalletService ngWalletService;
     private final UserService userService;
     private final ExchangeRatesHolder exchangeRatesHolder;
-    private final WalletService walletService;
     private final MarketRatesHolder marketRatesHolder;
+    private final MerchantServiceContext merchantServiceContext;
 
     @Autowired
     public BalanceServiceImpl(BalanceDao balanceDao,
@@ -60,16 +66,16 @@ public class BalanceServiceImpl implements BalanceService {
                               RefillPendingRequestService refillPendingRequestService,
                               UserService userService,
                               ExchangeRatesHolder exchangeRatesHolder,
-                              WalletService walletService,
-                              MarketRatesHolder marketRatesHolder) {
+                              MarketRatesHolder marketRatesHolder,
+                              MerchantServiceContext merchantServiceContext) {
         this.balanceDao = balanceDao;
         this.inputOutputService = inputOutputService;
         this.refillPendingRequestService = refillPendingRequestService;
         this.ngWalletService = ngWalletService;
         this.userService = userService;
         this.exchangeRatesHolder = exchangeRatesHolder;
-        this.walletService = walletService;
         this.marketRatesHolder = marketRatesHolder;
+        this.merchantServiceContext = merchantServiceContext;
     }
 
     @Override
@@ -143,18 +149,50 @@ public class BalanceServiceImpl implements BalanceService {
     public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset,
                                                                           int currencyId, LocalDate dateFrom,
                                                                           LocalDate dateTo, Locale locale) {
+        adjustDates(dateFrom, dateTo);
+        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
+        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
+        pagedResult.setItems(getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale));
+        return pagedResult;
+    }
+
+    @Override
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
+        adjustDates(dateFrom, dateTo);
+        return getMyInputOutputHistoryDtos(email, -1, -1, currencyId, dateFrom, dateTo, locale);
+    }
+
+    private void adjustDates(LocalDate dateFrom, LocalDate dateTo) {
         if (dateFrom == null) {
-            dateFrom = LocalDate.now().minusMonths(1);
+            dateFrom = LocalDate.now().minusYears(3);
         }
         if (dateTo == null) {
             dateTo = LocalDate.now();
         }
-        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
+    }
+
+    private List<MyInputOutputHistoryDto> getMyInputOutputHistoryDtos(String email, int limit, int offset, int currencyId, LocalDate dateFrom, LocalDate dateTo, Locale locale) {
         List<MyInputOutputHistoryDto> history =
                 inputOutputService.getUserInputOutputHistory(email, offset, limit, dateFrom, dateTo, currencyId, locale);
-        pagedResult.setItems(history);
-        return pagedResult;
+        history.forEach(dto -> {
+            IRefillable merchant;
+            int minConfirmations = 0;
+            // todo to solve later
+            if (dto.getCurrencyName().equalsIgnoreCase("USD")
+                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
+                dto.setMarket("Fiat");
+            } else {
+                try {
+                    merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
+                    minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
+                } catch (ClassCastException e) {
+                    logger.warn("Failed to cast IRefillable ", e);
+                }
+                dto.setMarket("BTC");
+            }
+            dto.setNeededConfirmations(minConfirmations);
+        });
+        return history;
     }
 
     @Override

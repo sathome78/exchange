@@ -192,7 +192,11 @@ public class NgRefillController {
                     put("message", message);
                     put("qr", address.get());
                 }};
-                return ResponseEntity.ok(response);
+                HashMap<String, Object> result = new HashMap<String, Object>() {{
+                    put("params", response);
+                }};
+
+                return ResponseEntity.ok(result);
             }
         }
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);

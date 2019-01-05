@@ -17,8 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-//@EnableRabbit
-//@Component
+@EnableRabbit
+@Component
 public class OrderMessageListener {
 
     static final Logger logger = LoggerFactory.getLogger(OrderMessageListener.class);
@@ -39,7 +39,7 @@ public class OrderMessageListener {
     @RabbitListener(queues = RabbitMqService.ANGULAR_QUEUE)
     public void processOrder(InputCreateOrderDto order) {
         try {
-            marketRatesHolder.setRateMarket(order.getCurrencyPairId(), order.getRate(), order.getAmount());
+//            marketRatesHolder.setRateMarket(order.getCurrencyPairId(), order.getRate(), order.getAmount());
             String orderJson = objectMapper.writeValueAsString(order);
             Message message = MessageBuilder
                     .withBody(orderJson.getBytes())
