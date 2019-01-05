@@ -1188,6 +1188,31 @@ public class RefillServiceImpl implements RefillService {
         refillRequestDao.invalidateAddress(address, merchantId, currencyId);
     }
 
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+                requestAcceptDto.getAddress(),
+                requestAcceptDto.getMerchantId(),
+                requestAcceptDto.getCurrencyId());
+        if (requestIdOptional.isPresent()) {
+            return requestIdOptional.get();
+        } else {
+            throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
+        }
+    }
+
+    @Override
+    public List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId) {
+        return refillRequestDao.getListOfValidAddressByMerchantIdAndCurrency(merchantId, currencyId);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public String getUsernameByRequestId(int requestId) {
+        return refillRequestDao.getUsernameByRequestId(requestId);
+    }
+
     @Override
     public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
         Integer userId = userService.getIdByEmail(email);
