@@ -25,7 +25,7 @@ public class RefillRequestJob {
   @Autowired
   private MerchantServiceContext serviceContext;
 
-  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
+ /* @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)*/
   private void refillExpiredClean() throws Exception {
     log.debug("\nstart expired refill cleaning ... ");
     Integer expireCount = refillService.clearExpiredInvoices();
@@ -37,7 +37,7 @@ public class RefillRequestJob {
    * Because blocknotify doesn't work correctly (!!! need to check node config and node config properties !!!)
    * During the check processBtcPayment is executed, which create refill request and refill user wallet.
    */
-  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
+ /* @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)*/
   public void refillCheckPaymentsForCoins() {
       String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC", "DDX"};
 

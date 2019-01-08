@@ -18,6 +18,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;

@@ -15,6 +15,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
@@ -24,7 +25,6 @@ import me.exrates.service.util.WithdrawUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,6 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -45,7 +44,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.StreamSupport;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 
 @Log4j2(topic = "adk_log")
@@ -58,6 +58,8 @@ public class AdkServiceImpl implements AdkService {
     private final MerchantService merchantService;
     private final CurrencyService currencyService;
     private final RefillService refillService;
+    private final GtagService gtagService;
+    private final WithdrawUtils withdrawUtils;
 
     private static final String CURRENCY_NAME = "ADK";
     private static final String MERCHANT_NAME = "ADK";
@@ -68,16 +70,21 @@ public class AdkServiceImpl implements AdkService {
     private static final String PASS_PATH = "/opt/properties/Aidos_pass.properties";
 
     @Autowired
-    public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource, MerchantService merchantService, CurrencyService currencyService, RefillService refillService) {
+    public AdkServiceImpl(AidosNodeService aidosNodeService,
+                          MessageSource messageSource,
+                          MerchantService merchantService,
+                          CurrencyService currencyService,
+                          RefillService refillService,
+                          GtagService gtagService,
+                          WithdrawUtils withdrawUtils) {
         this.aidosNodeService = aidosNodeService;
         this.messageSource = messageSource;
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.refillService = refillService;
+        this.gtagService = gtagService;
+        this.withdrawUtils = withdrawUtils;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @PostConstruct
     private void inti() {
@@ -109,6 +116,7 @@ public class AdkServiceImpl implements AdkService {
         String address = params.get("address");
         String hash = params.get("txId");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -117,7 +125,16 @@ public class AdkServiceImpl implements AdkService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId = refillService.getRequestId(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override
@@ -193,28 +210,23 @@ public class AdkServiceImpl implements AdkService {
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
         List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
-        map.forEach((k,v) -> {
-                    if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
-                        List<BtcTransactionHistoryDto> dtos = v.stream().filter(p -> !p.getCategory().equals("send") && adresses.contains(p.getAddress())).collect(toList());
-                        resultList.addAll(dtos);
-                        v.removeAll(dtos);
-                        if (!v.isEmpty()) {
-                            resultList.add(v.stream()
-                                    .reduce((a, b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
-                                            new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
-                                            a.getConfirmations(), a.getTime()))
-                                    .orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
-                        }
-                    } else {
-                        resultList.addAll(v);
-                    }
+        map.forEach((k, v) -> {
+            if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
+                List<BtcTransactionHistoryDto> dtos = v.stream().filter(p -> !p.getCategory().equals("send") && adresses.contains(p.getAddress())).collect(toList());
+                resultList.addAll(dtos);
+                v.removeAll(dtos);
+                if (!v.isEmpty()) {
+                    resultList.add(v.stream()
+                            .reduce((a, b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
+                                    new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
+                                    a.getConfirmations(), a.getTime()))
+                            .orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
+                }
+            } else {
+                resultList.addAll(v);
+            }
         });
         return resultList;
-        /* to return list without transformations
-         * */
-        /*return StreamSupport.stream(array.spliterator(), false)
-                .map(transaction -> dtoMapper((JSONObject) transaction))
-                .collect(Collectors.toList());*/
     }
 
     @Override

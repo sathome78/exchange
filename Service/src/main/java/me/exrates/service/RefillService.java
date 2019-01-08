@@ -146,4 +146,12 @@ public interface RefillService {
     void invalidateAddress(String address, Integer merchantId, Integer currencyId);
 
     List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
+
+    List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId);
+
+    String getUsernameByRequestId(int requestId);
+
+    Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+
+    Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 }

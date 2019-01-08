@@ -517,6 +517,24 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return Optional.empty();
         }
     }
+    
+    @Override
+    public List<String> getListOfValidAddressByMerchantIdAndCurrency(
+            Integer merchantId,
+            Integer currencyId) {
+        final String sql = "SELECT RRA.address " +
+                " FROM REFILL_REQUEST_ADDRESS RRA " +
+                " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND is_valid = 1";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("currency_id", currencyId)
+                .addValue("merchant_id", merchantId);
+        try {
+            return namedParameterJdbcTemplate.queryForList(sql, params, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return new LinkedList<>();
+        }
+    }
+
 
     @Override
     public void setStatusById(Integer id, InvoiceStatus newStatus) {
@@ -1313,6 +1331,24 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     public boolean addAddress(RefillRequestCreateDto request) {
        return storeRefillRequestAddress(request) != null;
 
+    }
+
+    @Override
+    public String getUsernameByRequestId(int requestId) {
+        final String sql = "SELECT u.email" +
+                " FROM REFILL_REQUEST rr" +
+                " JOIN USER u on u.id = rr.user_id " +
+                " WHERE rr.id = :requestId";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("requestId", requestId);
+        }};
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+        } catch (Exception ex) {
+            log.debug("Username (email) not found by request id: {}", requestId);
+            return null;
+        }
     }
 
 }

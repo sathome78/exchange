@@ -182,6 +182,7 @@ public class OrderServiceImpl implements OrderService {
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
     private final static String CONTENT_DISPOSITION = "Content-Disposition";
     private final static String ATTACHMENT = "attachment; filename=";
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
             .map(ChartPeriodsEnum::getBackDealInterval)
             .collect(Collectors.toList());
@@ -1689,7 +1690,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             StringBuilder fileName = new StringBuilder("Orders_")
-                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                    .append(new SimpleDateFormat("yyyy_MM_dd").format(new Date()))
                     .append(".xlsx");
 
             response.setContentType("application/ms-excel");
@@ -1760,10 +1761,10 @@ public class OrderServiceImpl implements OrderService {
             return "";
         } else if (value instanceof LocalDate) {
             LocalDate date = (LocalDate) value;
-            return DateTimeFormatter.ISO_LOCAL_TIME.format(date);
+            return DATE_TIME_FORMATTER.format(date);
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
-           return DateTimeFormatter.ISO_LOCAL_TIME.format(localDateTime);
+           return DATE_TIME_FORMATTER.format(localDateTime);
         }
         return String.valueOf(value);
     }
