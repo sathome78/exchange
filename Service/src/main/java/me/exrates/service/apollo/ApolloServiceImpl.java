@@ -149,20 +149,14 @@ public class ApolloServiceImpl implements ApolloService {
     }
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("not implemented");
     }
-
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
-
-    /*@Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
-        return new BigDecimal(10).setScale(3, RoundingMode.HALF_UP);
-    }*/
 
     @Override
     public Merchant getMerchant() {

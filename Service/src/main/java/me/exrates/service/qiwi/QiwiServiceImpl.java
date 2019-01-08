@@ -89,10 +89,6 @@ public class QiwiServiceImpl implements QiwiService {
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
         String memo = transaction.getNote().substring(transaction.getNote().indexOf(":") + 1);
-        if (memo == null) {
-            log.warn("*** Qiwi *** Memo is null");
-            return;
-        }
         paramsMap.put("currency", currencyName);
         paramsMap.put("merchant", merchant);
         paramsMap.put("address", memo);
@@ -146,7 +142,7 @@ public class QiwiServiceImpl implements QiwiService {
     }
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("Not implemented for qiwi.");
     }
 

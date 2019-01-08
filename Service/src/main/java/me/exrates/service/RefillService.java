@@ -152,4 +152,6 @@ public interface RefillService {
     String getUsernameByRequestId(int requestId);
 
     Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+
+    Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 }
