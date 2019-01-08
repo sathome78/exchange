@@ -862,7 +862,7 @@
         <logger name="Qiwi" level="ALL" additivity="false">
             <AppenderRef ref="qiwi_log"/>
         </logger>
-        <Root level="INFO">
+        <Root level="debug">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>

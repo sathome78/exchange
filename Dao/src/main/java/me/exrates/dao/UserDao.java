@@ -71,11 +71,7 @@ public interface UserDao {
                                                     String orderColumnName, String orderDirection,
                                                     String searchValue);
 
-    String getBriefInfo(int login);
-
     boolean ifNicknameIsUnique(String nickname);
-
-    boolean ifPhoneIsUnique(int phone);
 
     boolean ifEmailIsUnique(String email);
 
@@ -120,8 +116,6 @@ public interface UserDao {
 
     List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
-    boolean updateUserStatus(User user);
-
     List<TemporalToken> getAllTokens();
 
     boolean delete(User user);
@@ -142,19 +136,9 @@ public interface UserDao {
 
     Long saveTemporaryPassword(Integer userId, String password, Integer tokenId);
 
-    TemporaryPasswordDto getTemporaryPasswordById(Long id);
-
-    boolean updateUserPasswordFromTemporary(Long tempPassId);
-
     boolean deleteTemporaryPassword(Long id);
 
-    boolean tempDeleteUser(int id);
-
-    boolean tempDeleteUserWallets(int userId);
-
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
-
-    String getAvatarPath(Integer userId);
 
     Collection<Comment> getUserComments(int id);
 
@@ -165,10 +149,6 @@ public interface UserDao {
     void editUserComment(int id, String newComment, boolean sendMessage);
 
     boolean deleteUserComment(int id);
-
-    Integer retrieveNicknameSearchLimit();
-
-    List<String> findNicknamesByPart(String part, Integer limit);
 
     void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 
@@ -182,12 +162,6 @@ public interface UserDao {
 
     boolean checkPollIsDoneByUser(String email);
 
-    boolean updateLast2faNotifyDate(String email);
-
-    LocalDate getLast2faNotifyDate(String email);
-
-    List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
-
     String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
 
     void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
@@ -200,5 +174,6 @@ public interface UserDao {
 
     String getPassword(int userId);
 
-    long countUserEntrance(String email);
+    Integer updateGaTag(String gatag, String userName);
+
 }

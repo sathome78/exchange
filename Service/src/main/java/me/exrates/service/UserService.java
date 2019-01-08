@@ -53,9 +53,6 @@ public interface UserService {
 
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
-    @Transactional(rollbackFor = Exception.class)
-    boolean createUserRest(User user, Locale locale);
-
     int verifyUserEmail(String token);
 
     List<UserRole> getAllRoles();
@@ -65,9 +62,6 @@ public interface UserService {
     boolean createUserByAdmin(User user);
 
     boolean updateUserByAdmin(UpdateUserDto user);
-
-    @Transactional(rollbackFor = Exception.class)
-    boolean updateUserSettings(UpdateUserDto user);
 
     boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
 
@@ -131,7 +125,7 @@ public interface UserService {
      * @param ip    is IP-address for check
      * @return one of the values the enum UserIpState: CONFIRMED or NOT_CONFIRMED
      */
-    public UserIpDto getUserIpState(String email, String ip);
+    UserIpDto getUserIpState(String email, String ip);
 
     /**
      * Saves in DB last date for IP? when user auth successfully
@@ -144,16 +138,8 @@ public interface UserService {
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-    void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
-
-    boolean replaceUserPassAndDelete(String token, Long tempPassId);
 
     boolean removeTemporaryPassword(Long id);
-
-    @Transactional
-    boolean tempDeleteUser(String email);
-
-    String getAvatarPath(Integer userId);
 
     Locale getUserLocaleForMobile(String email);
 
@@ -170,8 +156,6 @@ public interface UserService {
     List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
-
-    List<String> findNicknamesByPart(String part);
 
     UserRole getUserRoleFromSecurityContext();
 
@@ -192,10 +176,6 @@ public interface UserService {
 
     boolean isLogin2faUsed(String email);
 
-    boolean checkIsNotifyUserAbout2fa(String email);
-
-    List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
-
     UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
@@ -208,7 +188,7 @@ public interface UserService {
 
     boolean checkPassword(int userId, String password);
 
-    long countUserIps(String userEmail);
-
     String getCallBackUrlByEmail(String email, Integer currencyPairId);
+
+    Integer updateGaTag(String gatag, String userName);
 }

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4</OriginalElement>
+  <nodes>
+    <node x="2408.0" y="0.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSACTION_NEW_FOR_DUMP</node>
+    <node x="0.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_WALLET_EXTERNAL</node>
+    <node x="2217.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TOKEN_TYPE</node>
+    <node x="0.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.API_AUTH_TOKEN</node>
+    <node x="2037.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INVOICE_OPERATION_DIRECTION</node>
+    <node x="545.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFILL_REQUEST_PARAM</node>
+    <node x="517.0" y="3312.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFERRAL_USER_GRAPH</node>
+    <node x="0.0" y="3312.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.STOCK_CURRENCY_PAIR</node>
+    <node x="1627.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEWS</node>
+    <node x="1176.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.MERCHANT</node>
+    <node x="282.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.STOCK_EXRATE</node>
+    <node x="758.0" y="552.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CALLBACK_LOGS</node>
+    <node x="2837.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_WALLET</node>
+    <node x="281.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.MERCHANT_SPEC_PARAMETERS</node>
+    <node x="2327.75" y="1081.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS</node>
+    <node x="2426.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.ORDER_TYPE</node>
+    <node x="3143.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_OPERATION_AUTHORITY</node>
+    <node x="0.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.WITHDRAW_REQUEST_STATUS</node>
+    <node x="1706.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEWS_EXT</node>
+    <node x="1840.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.BOT_TRADING_SETTINGS</node>
+    <node x="1602.5" y="1595.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.FUCK</node>
+    <node x="973.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFILL_REQUEST_CONFIRMATION</node>
+    <node x="2113.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_USER_NOTIFICATION_MESSAGE_SETTINGS</node>
+    <node x="1882.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CHAT_AR</node>
+    <node x="3154.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.BOT_TRADER</node>
+    <node x="353.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFILL_REQUEST</node>
+    <node x="878.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.STOCK_EXCHANGE</node>
+    <node x="2102.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.ADMIN_AUTHORITY_ROLE_DEFAULTS</node>
+    <node x="933.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SURVEY</node>
+    <node x="3202.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_STATUS</node>
+    <node x="238.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.BALANCES_REPORT</node>
+    <node x="2236.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NOTIFICATION_EVENT</node>
+    <node x="953.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_CURRENCY_INVOICE_OPERATION_PERMISSION</node>
+    <node x="1787.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_refresh_token</node>
+    <node x="2129.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CHAT_EN</node>
+    <node x="2255.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TELEGRAM_SUBSCRIPTION</node>
+    <node x="2028.2499999999998" y="781.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY</node>
+    <node x="2003.7499999999998" y="1015.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_EXTERNAL_WALLET_BALANCES</node>
+    <node x="2830.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFILL_REQUEST_ADDRESS</node>
+    <node x="0.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.API_TEMP_PASSWORD</node>
+    <node x="260.99999999999994" y="607.5">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_FAVORITE_CURRENCY_PAIRS</node>
+    <node x="22.089285714285666" y="121.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY_PAIR</node>
+    <node x="666.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_IP</node>
+    <node x="2076.0" y="0.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.WITHDRAW_REQUEST</node>
+    <node x="2002.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEWS_TYPE</node>
+    <node x="3093.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEWS_VARIANTS</node>
+    <node x="2412.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_COMMENT</node>
+    <node x="1783.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.STOCK_EXCHANGE_CURRENCY_ALIAS</node>
+    <node x="741.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SESSION_LIFE_TIME_TYPE</node>
+    <node x="2556.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.WALLET</node>
+    <node x="0.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.ORDER_STATUS</node>
+    <node x="1260.0" y="0.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEW_TRANSACTION</node>
+    <node x="273.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSACTION_SOURCE_TYPE</node>
+    <node x="1216.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_DOC</node>
+    <node x="561.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NOTIFICATION_OPTIONS</node>
+    <node x="2920.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.OPERATION_TYPE_DIRECTION</node>
+    <node x="474.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INPUT_OUTPUT_REPORT</node>
+    <node x="696.0" y="1617.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_VERIFICATION_DOCS</node>
+    <node x="0.0" y="781.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSACTION</node>
+    <node x="1447.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY_LIMIT</node>
+    <node x="1447.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SERVICE_ALERTS</node>
+    <node x="2206.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSFER_REQUEST</node>
+    <node x="1260.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFERRAL_TRANSACTION</node>
+    <node x="836.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_NOTIFICATION_MESSAGES</node>
+    <node x="2534.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NEWS_VARIANTS_EXT</node>
+    <node x="336.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CRYPTO_CORE_WALLET</node>
+    <node x="710.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFERRAL_LEVEL</node>
+    <node x="982.0" y="596.5">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_GOOGLE_AUTHENTICATOR</node>
+    <node x="534.0" y="618.5">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMMON_REFERRAL_ROOT</node>
+    <node x="1547.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_approvals</node>
+    <node x="2964.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TEMPORAL_TOKEN</node>
+    <node x="1596.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.person</node>
+    <node x="890.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INVOICE_BANK</node>
+    <node x="473.49999999999994" y="0.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER</node>
+    <node x="2439.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE_REPORT_GROUP_FEATURE</node>
+    <node x="1372.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.IP_Log</node>
+    <node x="0.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_TRANSFER</node>
+    <node x="1819.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_client_token</node>
+    <node x="0.0" y="596.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CALLBACK_SETTINGS</node>
+    <node x="604.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TELEGRAM_CHAT_EN</node>
+    <node x="0.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.EXORDERS</node>
+    <node x="259.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.credentials</node>
+    <node x="2696.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY_PAIR_LIMIT</node>
+    <node x="247.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.OPERATION_TYPE</node>
+    <node x="1418.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ADMIN_AUTHORITY_ROLE_APPLICATION</node>
+    <node x="3107.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_client_details</node>
+    <node x="1370.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_OPERATION</node>
+    <node x="1781.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REPORT_SUBSCRIBERS</node>
+    <node x="1243.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.STOP_ORDERS</node>
+    <node x="2761.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INVOICE_OPERATION_PERMISSION</node>
+    <node x="1797.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_NOTIFICATOR</node>
+    <node x="2506.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.BCH_HARD_FORK_BALANCE_SNAPSHOT</node>
+    <node x="1313.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REFILL_REQUEST_STATUS</node>
+    <node x="1109.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SURVEY_LANG_PARAM</node>
+    <node x="314.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.MERCHANT_IMAGE</node>
+    <node x="2376.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CHAT_RU</node>
+    <node x="2738.75" y="781.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.MERCHANT_CURRENCY</node>
+    <node x="1072.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.authority</node>
+    <node x="816.0" y="781.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSACTION_NEW</node>
+    <node x="2854.0" y="2334.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_NOTIFICATION_PRICE</node>
+    <node x="1155.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CLIENT_BANK</node>
+    <node x="2623.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CHAT_IN</node>
+    <node x="0.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.open_api_user_token</node>
+    <node x="1172.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.NOTIFICATION</node>
+    <node x="2114.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.BOT_LAUNCH_SETTINGS</node>
+    <node x="1553.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_COMMENT_TOPIC</node>
+    <node x="2413.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ADMIN_AUTHORITY</node>
+    <node x="2870.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.ADMIN_AUTHORITY</node>
+    <node x="979.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.PHRASE_TEMPLATE</node>
+    <node x="744.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SURVEY_ITEM</node>
+    <node x="540.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSFER_REQUEST_STATUS</node>
+    <node x="1646.0" y="1810.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SMS_SUBSCRIPTION</node>
+    <node x="263.0" y="3312.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.credentials_authorities</node>
+    <node x="503.0" y="2541.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMMISSION</node>
+    <node x="2633.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_code</node>
+    <node x="2723.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE_SETTINGS</node>
+    <node x="806.0" y="3193.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE_GROUP_FEATURE</node>
+    <node x="2676.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.REPORT_MAILING_PARAMS</node>
+    <node x="2939.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.API_PARAMS</node>
+    <node x="1726.7499999999998" y="1037.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INTERNAL_WALLET_BALANCES</node>
+    <node x="1566.0" y="2889.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.product</node>
+    <node x="0.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.SESSION_PARAMS</node>
+    <node x="3117.0" y="2726.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CHAT_CN</node>
+    <node x="3053.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE_BUSINESS_FEATURE</node>
+    <node x="815.0" y="1361.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_VERIFICATION_INFO</node>
+    <node x="1961.0" y="2105.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.oauth_access_token</node>
+    <node x="494.0" y="3052.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.TRANSACTION_STATUS</node>
+    <node x="1631.9999999999998" y="803.0">0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CALLBACK_SETTINGS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER">
+      <point x="60.25" y="-48.0" />
+      <point x="180.75" y="522.0" />
+      <point x="505.99999999999994" y="522.0" />
+      <point x="-130.0" y="246.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INTERNAL_WALLET_BALANCES" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY">
+      <point x="64.25" y="-114.0" />
+      <point x="1919.4999999999998" y="990.0" />
+      <point x="2070.75" y="990.0" />
+      <point x="-85.0" y="92.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY">
+      <point x="0.0" y="-70.0" />
+      <point x="2510.75" y="990.0" />
+      <point x="2240.75" y="990.0" />
+      <point x="85.0" y="92.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CALLBACK_LOGS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER">
+      <point x="0.0" y="-92.0" />
+      <point x="860.0" y="532.0" />
+      <point x="701.0" y="532.0" />
+      <point x="65.0" y="246.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CALLBACK_SETTINGS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY_PAIR">
+      <point x="-60.25" y="-48.0" />
+      <point x="60.25" y="532.0" />
+      <point x="99.58928571428567" y="532.0" />
+      <point x="-77.5" y="125.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_FAVORITE_CURRENCY_PAIRS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY_PAIR">
+      <point x="-63.25" y="-36.5" />
+      <point x="324.24999999999994" y="512.0" />
+      <point x="254.58928571428567" y="512.0" />
+      <point x="77.5" y="125.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_FAVORITE_CURRENCY_PAIRS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER">
+      <point x="63.25" y="-36.5" />
+      <point x="450.74999999999994" y="532.0" />
+      <point x="571.0" y="532.0" />
+      <point x="-65.0" y="246.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.FUCK" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.person">
+      <point x="0.0" y="-48.0" />
+      <point x="0.0" y="92.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.INTERNAL_WALLET_BALANCES" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_ROLE">
+      <point x="-64.25" y="-114.0" />
+      <point x="0.0" y="70.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMPANY_EXTERNAL_WALLET_BALANCES" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.CURRENCY">
+      <point x="0.0" y="-136.0" />
+      <point x="0.0" y="92.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.2FA_GOOGLE_AUTHENTICATOR" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER">
+      <point x="0.0" y="-47.5" />
+      <point x="1098.5" y="522.0" />
+      <point x="766.0" y="522.0" />
+      <point x="130.0" y="246.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_VERIFICATION_DOCS" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER_VERIFICATION_INFO">
+      <point x="0.0" y="-48.0" />
+      <point x="0.0" y="103.0" />
+    </edge>
+    <edge source="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.COMMON_REFERRAL_ROOT" target="0ebfeaf1-32e6-4459-9e8e-b739b98bd1a4.TABLE:birzha.USER">
+      <point x="0.0" y="-25.5" />
+      <point x="0.0" y="246.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.2658212726284422" x="1185.4138941642232" y="723.6291584401229" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Key columns</Category>
+    <Category>Columns</Category>
+  </Categories>
+</Diagram>
+

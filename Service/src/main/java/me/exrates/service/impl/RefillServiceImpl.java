@@ -1222,7 +1222,7 @@ public class RefillServiceImpl implements RefillService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public String getUsernameByRequestId(int requestId) {
-        return refillRequestDao.getUsernameByRequestId(requestId);
+        return refillRequestDao.getGaTagByRequestId(requestId);
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)

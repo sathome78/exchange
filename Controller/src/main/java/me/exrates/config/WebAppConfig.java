@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
+import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -91,7 +92,10 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
@@ -104,6 +108,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "config")
@@ -134,6 +139,8 @@ import java.util.stream.Collectors;
         "classpath:/merchants/qiwi.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
+
+
 
     @Value("${db.properties.file}")
     private String dbPropertiesFile;
@@ -1801,7 +1808,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public Client client() {
-        return ClientBuilder.newBuilder().build();
+        Client build = ClientBuilder.newBuilder().build();
+        build.register(new LoggingFilter());
+        return build;
     }
 
 }

@@ -481,10 +481,6 @@ public class UserDaoImpl implements UserDao {
         return result;
     }
 
-    public String getBriefInfo(int login) {
-        return null;
-    }
-
     public boolean ifNicknameIsUnique(String nickname) {
         String sql = "SELECT id FROM USER WHERE nickname = :nickname";
         Map<String, String> namedParameters = new HashMap<>();
@@ -496,10 +492,6 @@ public class UserDaoImpl implements UserDao {
         }).isEmpty();
     }
 
-    public boolean ifPhoneIsUnique(int phone) {
-        return false;
-    }
-
     public boolean ifEmailIsUnique(String email) {
         String sql = "SELECT id FROM USER WHERE email = :email";
         Map<String, String> namedParameters = new HashMap<>();
@@ -509,10 +501,6 @@ public class UserDaoImpl implements UserDao {
                 return rs.getInt("id");
             } else return 0;
         }).isEmpty();
-    }
-
-    public String getPasswordByEmail(String email) {
-        return null;
     }
 
     public String getIP(int userId) {
@@ -652,13 +640,6 @@ public class UserDaoImpl implements UserDao {
         return result;
     }
 
-    public boolean updateUserStatus(User user) {
-        String sql = "update USER set status=:status where id=:id";
-        Map<String, String> namedParameters = new HashMap<String, String>();
-        namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
-        namedParameters.put("id", String.valueOf(user.getId()));
-        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
 
     public List<TemporalToken> getAllTokens() {
         String sql = "SELECT * FROM TEMPORAL_TOKEN";
@@ -822,30 +803,6 @@ public class UserDaoImpl implements UserDao {
         return (Long) keyHolder.getKey();
     }
 
-    @Override
-    public TemporaryPasswordDto getTemporaryPasswordById(Long id) {
-        String sql = "SELECT id, user_id, password, date_creation, temporal_token_id FROM API_TEMP_PASSWORD WHERE id = :id";
-        Map<String, Long> namedParameters = Collections.singletonMap("id", id);
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (resultSet, row) -> {
-            TemporaryPasswordDto dto = new TemporaryPasswordDto();
-            dto.setId(resultSet.getLong("id"));
-            dto.setUserId(resultSet.getInt("user_id"));
-            dto.setPassword(resultSet.getString("password"));
-            dto.setDateCreation(resultSet.getTimestamp("date_creation").toLocalDateTime());
-            dto.setTemporalTokenId(resultSet.getInt("user_id"));
-            return dto;
-        });
-
-    }
-
-    @Override
-    public boolean updateUserPasswordFromTemporary(Long tempPassId) {
-        String sql = "UPDATE USER SET USER.password = " +
-                "(SELECT password FROM API_TEMP_PASSWORD WHERE id = :tempPassId) " +
-                "WHERE USER.id = (SELECT user_id FROM API_TEMP_PASSWORD WHERE id = :tempPassId);\n";
-        Map<String, Long> namedParameters = Collections.singletonMap("tempPassId", tempPassId);
-        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
 
     @Override
     public boolean deleteTemporaryPassword(Long id) {
@@ -854,27 +811,6 @@ public class UserDaoImpl implements UserDao {
         return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
     }
 
-
-    @Override
-    public boolean tempDeleteUser(int id) {
-        String sql = "DELETE FROM USER WHERE USER.id = :id; ";
-        Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
-        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
-
-    @Override
-    public boolean tempDeleteUserWallets(int userId) {
-        String sql = "DELETE FROM WALLET WHERE user_id = :id; ";
-        Map<String, Integer> namedParameters = Collections.singletonMap("id", userId);
-        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
-
-    @Override
-    public String getAvatarPath(Integer userId) {
-        String sql = "SELECT avatar_path FROM USER where id = :id";
-        Map<String, Integer> params = Collections.singletonMap("id", userId);
-        return namedParameterJdbcTemplate.queryForObject(sql, params, (resultSet, row) -> resultSet.getString("avatar_path"));
-    }
 
     @Override
     public Collection<Comment> getUserComments(int id) {
@@ -925,30 +861,6 @@ public class UserDaoImpl implements UserDao {
         String sql = "DELETE FROM USER_COMMENT WHERE USER_COMMENT.id = :id; ";
         Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
         return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
-
-    @Override
-    public Integer retrieveNicknameSearchLimit() {
-        String sql = "SELECT param_value FROM API_PARAMS WHERE param_name = 'NICKNAME_SEARCH_LIMIT'";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, Integer.class);
-    }
-
-    @Override
-    public List<String> findNicknamesByPart(String part, Integer limit) {
-        String sql = "SELECT DISTINCT nickname FROM " +
-                "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
-                "  UNION " +
-                "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
-                "  LIMIT :lim ";
-        Map<String, Object> params = new HashMap<>();
-        params.put("part_begin", part + "%");
-        params.put("part_middle", "%" + part + "%");
-        params.put("lim", limit);
-        try {
-            return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
-        } catch (EmptyResultDataAccessException e) {
-            return Collections.EMPTY_LIST;
-        }
     }
 
     @Override
@@ -1030,61 +942,6 @@ public class UserDaoImpl implements UserDao {
                 "  WHERE USER.email = :email ";
         Map<String, String> namedParameters = Collections.singletonMap("email", email);
         return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
-    }
-
-    @Override
-    public boolean updateLast2faNotifyDate(String email) {
-        String sql = "UPDATE USER SET USER.2fa_last_notify_date =:date " +
-                "WHERE USER.email = :email";
-        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("email", email);
-            put("date", LocalDate.now());
-        }};
-        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-    }
-
-    @Override
-    public LocalDate getLast2faNotifyDate(String email) {
-        String sql = "SELECT USER.2fa_last_notify_date FROM USER WHERE email = :email";
-        LocalDate date = null;
-        try {
-            date = namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), LocalDate.class);
-        } catch (Exception e) {
-            return null;
-        }
-        return date;
-    }
-
-    @Override
-    public List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList) {
-
-        String sql = "SELECT U.id, U.nickname, U.email, U.regdate, f_ip.ip AS first_ip, l_ip.ip AS last_ip, l_ip.last_registration_date " +
-                "FROM USER U " +
-                "    JOIN (SELECT user_id, MAX(last_registration_date) AS last_date, MIN(registration_date) AS first_date " +
-                "            FROM USER_IP GROUP BY user_id) AS agg ON U.id = agg.user_id " +
-                "JOIN USER_IP f_ip ON U.id = f_ip.user_id AND f_ip.registration_date = agg.first_date " +
-                "LEFT JOIN USER_IP l_ip ON U.id = l_ip.user_id AND l_ip.last_registration_date = agg.last_date ";
-        String whereClause = "";
-        Map<String, Object> params = new HashMap<>();
-        if (userRoleList.size() > 0) {
-            whereClause = "WHERE U.roleid IN (:roles)";
-            params.put("roles", userRoleList);
-        }
-        return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
-            UserIpReportDto dto = new UserIpReportDto();
-            dto.setOrderNum(rowNum + 1);
-            dto.setId(rs.getInt("id"));
-            dto.setEmail(rs.getString("email"));
-            dto.setNickname(rs.getString("nickname"));
-            Timestamp creationTime = rs.getTimestamp("regdate");
-            dto.setCreationTime(creationTime == null ? null : creationTime.toLocalDateTime());
-            dto.setFirstIp(rs.getString("first_ip"));
-            dto.setLastIp(rs.getString("last_ip"));
-            Timestamp lastLoginTime = rs.getTimestamp("last_registration_date");
-            dto.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toLocalDateTime());
-            return dto;
-        });
-
     }
 
     @Override
@@ -1195,12 +1052,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public long countUserEntrance(String email) {
-        final String sql = "SELECT COUNT(UI.user_id) FROM USER_IP UI JOIN USER U ON U.id=UI.user_id WHERE U.email =:email";
+    public Integer updateGaTag(String gatag, String userName) {
+        String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("email", email);
+            put("ga", gatag);
+            put("email",userName);
         }};
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
+        return namedParameterJdbcTemplate.update(sql, namedParameters);
     }
 
 }

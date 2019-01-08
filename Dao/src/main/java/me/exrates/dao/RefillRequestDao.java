@@ -148,5 +148,5 @@ public interface RefillRequestDao {
 
     String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
 
-    String getUsernameByRequestId(int requestId);
+    String getGaTagByRequestId(int requestId);
 }

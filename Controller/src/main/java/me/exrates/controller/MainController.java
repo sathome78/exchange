@@ -52,6 +52,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -83,25 +84,15 @@ public class MainController {
     private UserService userService;
     @Autowired
     private RegisterFormValidation registerFormValidation;
-    @Autowired
-    private FeedbackMessageFormValidator messageFormValidator;
 
     @Autowired
     private HttpServletRequest request;
-    @Autowired
-    private TransactionService transactionService;
     @Autowired
     private MessageSource messageSource;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
     private ReferralService referralService;
-    @Autowired
-    private SendMailService sendMailService;
-    @Autowired
-    private SecureService secureService;
-    @Autowired
-    private UserDetailsService userDetailsService;
     @Autowired
     private GeetestLib geetest;
 

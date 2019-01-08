@@ -52,6 +52,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -182,6 +183,7 @@ public class EntryController {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
+            userService.updateGaTag(getGaCookie(request),principal.getName());
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
@@ -783,6 +785,18 @@ public class EntryController {
         }
         log.error(ExceptionUtils.getStackTrace(exception));
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private String getGaCookie(HttpServletRequest request) {
+        String result = null;
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            String name = cookie.getName();
+            if ("_ga".equalsIgnoreCase(name)) {
+                result =  cookie.getValue();
+            }
+        }
+        return result;
     }
 
 }
