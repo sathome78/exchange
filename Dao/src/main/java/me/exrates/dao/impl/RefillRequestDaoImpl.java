@@ -1303,5 +1303,58 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return Collections.emptyList();
         }
     }
+
+
+    @Override
+    public List<RefillRequestAddressDto> findByAddress(String address) {
+        final String sql = "SELECT RRA.*, M.tokens_parrent_id FROM REFILL_REQUEST_ADDRESS RRA " +
+                "JOIN MERCHANT M ON M.id = RRA.merchant_id " +
+                "WHERE RRA.address = :address ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("address", address);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+    }
+
+    @Override
+    public boolean setAddressBlocked(String address, int merchantId, int currencyId, boolean blocked) {
+        String sql = "UPDATE REFILL_REQUEST_ADDRESS SET blocked = :blocked WHERE address = :address" +
+                " AND merchant_id = :merchant_id AND currency_id = :currency_id";
+        return namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
+            put("address", address);
+            put("merchant_id", merchantId);
+            put("currency_id", currencyId);
+            put("blocked", blocked);
+        }}) > 0 ;
+    }
+
+    @Override
+    public List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId) {
+        final String sql = "SELECT RRA.*, U.email FROM REFILL_REQUEST_ADDRESS RRA " +
+                " JOIN USER U ON U.id = RRA.user_id " +
+                " WHERE RRA.merchant_id = :merchantId AND RRA.currency_id = :currencyId AND RRA.blocked IS TRUE ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchantId", merchantId);
+            put("currencyId", currencyId);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, (rs, i) -> {
+            RefillRequestAddressShortDto dto = new RefillRequestAddressShortDto();
+            dto.setUserEmail(rs.getString("email"));
+            dto.setAddress(rs.getString("address"));
+            dto.setGenerationDate(rs.getTimestamp("date_generation").toLocalDateTime());
+            return dto;
+        });
+    }
+
+    @Override
+    public void setInnerTransferHash(int requestId, String hash) {
+        final String sql = "UPDATE REFILL_REQUEST " +
+                "  SET inner_transfer_hash = :hash " +
+                "  WHERE id = :id ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", requestId);
+        params.put("hash", hash);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
 }
 

@@ -42,7 +42,9 @@
                 }
             });
             var adkLink = '<li><a href="/2a8fy7b07dxe44/adkWallet"><loc:message code="admin.adk.wallet"/></a></li>';
+            var usdtLink = '<li><a href="/2a8fy7b07dxe44/usdtWallet"><loc:message code="admin.usdt.wallet"/></a></li>';
             $('#cryptoWalletsMenu').find('ul').append(adkLink);
+            $('#cryptoWalletsMenu').find('ul').append(usdtLink);
             $('#cryptoWalletsMenu').find('ul').show();
 
         })

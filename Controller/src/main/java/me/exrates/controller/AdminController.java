@@ -56,6 +56,7 @@ import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
+import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
@@ -112,6 +113,7 @@ import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.omni.OmniServiceImpl;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -267,6 +269,8 @@ public class AdminController {
     private UserSessionService userSessionService;
     @Autowired
     private AdkService adkService;
+    @Autowired
+    private OmniServiceImpl omniService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -1137,10 +1141,39 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/usdtWallet", method = RequestMethod.GET)
+    public ModelAndView usdtWallet() {
+        ModelAndView modelAndView = new ModelAndView("/admin/usdtWallet");
+        modelAndView.addObject("merchant", omniService.getMerchant().getName());
+        modelAndView.addObject("currency", omniService.getCurrency().getName());
+        modelAndView.addObject("title", "USDT Wallet");
+        modelAndView.addObject("btcBalance", omniService.getBtcBalance());
+        modelAndView.addObject("usdtBalances", omniService.getUsdtBalances());
+        return modelAndView;
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<OmniTxDto> getOmniTransactions() {
+        return omniService.getAllTransactions();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getBlockedAddersses", method = RequestMethod.GET)
+    @ResponseBody
+    public List<RefillRequestAddressShortDto> getOmniBlockedAddressses() {
+        return omniService.getBlockedAddressesOmni();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/createTransaction", method = RequestMethod.POST)
+    @ResponseBody
+    public void getOmniBlockedAddressses(@RequestParam Map<String, String> params) {
+        omniService.createRefillRequestAdmin(params);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)

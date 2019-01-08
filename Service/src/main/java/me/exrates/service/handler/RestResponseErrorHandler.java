@@ -13,6 +13,8 @@ public class RestResponseErrorHandler implements ResponseErrorHandler {
 
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
+        System.out.println("error status " + response.getStatusCode());
+        System.out.println("error body " + response.getBody());
         log.error("Response error: {} {}", response.getStatusCode(), response.getBody());
     }
 
