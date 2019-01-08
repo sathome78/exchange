@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import info.blockchain.api.exchangerates.Currency;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
@@ -52,12 +53,6 @@ public class CryptocurrencyConfig {
     public BitcoinService atbService() {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
                 "ATB", "ATB", 20, 20, false);
-    }
-
-    @Bean(name = "bitcoinCashServiceImpl")
-    public BitcoinService bchService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 12, 20, false);
     }
 
     @Bean(name = "dogecoinServiceImpl")
@@ -301,6 +296,26 @@ public class CryptocurrencyConfig {
 	@Bean(name = "dimeServiceImpl")
 	public BitcoinService dimeServiceImpl() {
 		return new BitcoinServiceImpl("merchants/dime_wallet.properties","DIME","DIME", 20, 20, false, true);
+	}
+
+	@Bean(name = "bsvServiceImpl")
+	public BitcoinService bsvServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bsv_wallet.properties","BSV","BSV", 20, 20, false, true);
+	}
+
+	@Bean(name = "bchServiceImpl")
+	public BitcoinService bchServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bch_wallet.properties","BCH","BCH", 20, 20, false, true);
+  }
+
+	@Bean(name = "ctxServiceImpl")
+	public BitcoinService ctxServiceImpl() {
+		return new BitcoinServiceImpl("merchants/ctx_wallet.properties","CTX","CTX", 20, 20, false, true);
+  }
+
+	@Bean(name = "rimeServiceImpl")
+	public BitcoinService rimeServiceImpl() {
+		return new BitcoinServiceImpl("merchants/rime_wallet.properties","RIME","RIME", 20, 20, false, true);
 	}
 
 	// LISK-like cryptos

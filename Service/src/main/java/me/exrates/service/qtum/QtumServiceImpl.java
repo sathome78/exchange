@@ -10,6 +10,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.qtum.QtumTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -38,34 +39,31 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:/merchants/qtum.properties")
 public class QtumServiceImpl implements QtumService {
 
+    private @Value("${qtum.min.confirmations}")
+    Integer minConfirmations;
+    private @Value("${qtum.min.transfer.amount}")
+    BigDecimal minTransferAmount;
+    private @Value("${qtum.main.address.for.transfer}")
+    String mainAddressForTransfer;
+    private @Value("${qtum.node.endpoint}")
+    String endpoint;
+
     @Autowired
     private QtumNodeService qtumNodeService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
-
-    private @Value("${qtum.min.confirmations}") Integer minConfirmations;
-
-    private @Value("${qtum.min.transfer.amount}") BigDecimal minTransferAmount;
-
-    private @Value("${qtum.main.address.for.transfer}") String mainAddressForTransfer;
-
-    private @Value("${qtum.node.endpoint}") String endpoint;
+    @Autowired
+    private GtagService gtagService;
 
     private Merchant merchant;
 
@@ -119,22 +117,30 @@ public class QtumServiceImpl implements QtumService {
             put("message", message);
             put("address", address);
             put("qr", address);
-        }};    }
+        }};
+    }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        final BigDecimal amount = new BigDecimal(params.get("amount"));
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(params.get("address"))
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(new BigDecimal(params.get("amount")))
+                .amount(amount)
                 .merchantTransactionId(params.get("hash"))
                 .build();
 
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override
@@ -158,12 +164,12 @@ public class QtumServiceImpl implements QtumService {
         log.info("qtum transactions: " + transactions.toString());
         transactions.stream()
                 .filter(t -> addresses.contains(t.getAddress()))
-                .filter(t -> !refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(t.getAddress(),merchant.getId(),currency.getId(),t.getTxid()).isPresent())
+                .filter(t -> !refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(t.getAddress(), merchant.getId(), currency.getId(), t.getTxid()).isPresent())
                 .filter(t -> transactions.stream().filter(tInner -> tInner.getTxid().equals(t.getTxid())).count() < 2)
                 .filter(t -> t.getCategory().equals("receive"))
                 .filter(t -> t.getConfirmations() >= minConfirmations)
                 .filter(t -> t.getWalletconflicts().size() == 0)
-                .filter(t -> t.isTrusted())
+                .filter(QtumTransaction::isTrusted)
                 .filter(t -> t.getAmount() > 0)
                 .filter(t -> t.getVout() < 10)
                 .forEach(t -> {
@@ -176,7 +182,7 @@ public class QtumServiceImpl implements QtumService {
                                 processPayment(mapPayment);
                                 log.info("after qtum transfer");
                                 specParamsDao.updateParam(merchant.getName(), qtumSpecParamName, String.valueOf(qtumNodeService.getBlock(t.getBlockhash()).getHeight()));
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 log.error(e);
                             }
                         }
@@ -185,21 +191,21 @@ public class QtumServiceImpl implements QtumService {
         log.debug("Profile results: " + profileData);
     }
 
-    private void checkBalanceAndTransfer(){
+    private void checkBalanceAndTransfer() {
         log.debug("Start checking balance");
         ProfileData profileData = new ProfileData(500);
 
         qtumNodeService.setWalletPassphrase();
 
         BigDecimal balance = qtumNodeService.getBalance();
-        if (balance.compareTo(minTransferAmount) > 0){
+        if (balance.compareTo(minTransferAmount) > 0) {
             qtumNodeService.transfer(mainAddressForTransfer, balance.subtract(minTransferAmount));
         }
         profileData.setTime1();
         log.debug("Profile results: " + profileData);
     }
 
-    private void backupWallet(){
+    private void backupWallet() {
         log.debug("Start backup wallet");
         ProfileData profileData = new ProfileData(500);
 

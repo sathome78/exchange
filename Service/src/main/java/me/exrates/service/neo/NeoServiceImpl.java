@@ -5,13 +5,16 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.model.dto.merchants.neo.NeoTransaction;
 import me.exrates.model.dto.merchants.neo.NeoVout;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
+import me.exrates.service.GtagService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.NeoApiException;
 import me.exrates.service.exception.NeoPaymentProcessingException;
@@ -23,17 +26,21 @@ import me.exrates.service.util.ParamMapUtils;
 import me.exrates.service.util.WithdrawUtils;
 import me.exrates.service.vo.ProfileData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +64,8 @@ public class NeoServiceImpl implements NeoService {
     private ObjectMapper objectMapper;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private String mainAccount;
     private Integer minConfirmations;
@@ -134,12 +143,10 @@ public class NeoServiceImpl implements NeoService {
             } else {
                 throw new MerchantException(e.getMessage());
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new MerchantException(e);
         }
     }
-
 
     @Override
     public void scanLastBlocksAndUpdatePayments() {
@@ -152,7 +159,7 @@ public class NeoServiceImpl implements NeoService {
         log.debug("Profile results: " + profileData);
     }
 
-    void scanBlocks() {
+    private void scanBlocks() {
         Merchant merchantNeo = mainMerchant;
         Currency currencyNeo = mainCurency;
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(mainMerchant.getName(),
@@ -175,7 +182,7 @@ public class NeoServiceImpl implements NeoService {
         specParamsDao.updateParam(mainMerchant.getName(), neoSpecParamName, String.valueOf(blockCount));
     }
 
-    void updateExistingPayments() {
+    private void updateExistingPayments() {
         log.debug("Check and update existing payments");
         neoAssetMap.forEach((key, value) ->
                 refillService.getInExamineByMerchantIdAndCurrencyIdList(value.getMerchant().getId(), value.getCurrency().getId())
@@ -259,22 +266,34 @@ public class NeoServiceImpl implements NeoService {
         }
     }
 
-    void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
+    public void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
         try {
             if (dto.getConfirmations() != null) {
                 refillService.setConfirmationCollectedNumber(dto);
                 if (dto.getConfirmations() >= minConfirmations) {
                     log.debug("Providing transaction!");
+                    Integer requestId = dto.getRequestId();
+
                     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                            .requestId(dto.getRequestId())
                             .address(dto.getAddress())
                             .amount(dto.getAmount())
                             .currencyId(dto.getCurrencyId())
                             .merchantId(dto.getMerchantId())
                             .merchantTransactionId(dto.getHash())
                             .build();
+
+                    if (Objects.isNull(requestId)) {
+                        requestId = refillService.getRequestId(requestAcceptDto);
+                    }
+                    requestAcceptDto.setRequestId(requestId);
+
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
+
+                    final String username = refillService.getUsernameByRequestId(requestId);
+
+                    log.debug("Process of sending data to Google Analytics...");
+                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), username);
                 }
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
@@ -297,5 +316,4 @@ public class NeoServiceImpl implements NeoService {
     public void shutdown() {
         scheduler.shutdown();
     }
-
 }

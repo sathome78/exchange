@@ -36,18 +36,16 @@ public class PayeerServiceImpl implements PayeerService {
 
   @Autowired
   private AlgorithmService algorithmService;
-
   @Autowired
   private RefillService refillService;
-
   @Autowired
   private MerchantService merchantService;
-
   @Autowired
   private CurrencyService currencyService;
-
   @Autowired
   private WithdrawUtils withdrawUtils;
+  @Autowired
+  private GtagService gtagService;
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -72,8 +70,8 @@ public class PayeerServiceImpl implements PayeerService {
       String desc = algorithmService.base64Encode(m_desc);
       put("m_desc", desc);
       String sign = algorithmService.sha256(m_shop + ":" + requestId
-          + ":" + amountToPay + ":" + currency
-          + ":" + desc + ":" + m_key).toUpperCase();
+              + ":" + amountToPay + ":" + currency
+              + ":" + desc + ":" + m_key).toUpperCase();
       put("m_sign", sign);
     }};
     /**/
@@ -88,23 +86,30 @@ public class PayeerServiceImpl implements PayeerService {
     Currency currency = currencyService.findByName(params.get("m_curr"));
     Merchant merchant = merchantService.findByName("Payeer");
     BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("m_amount")));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-        .requestId(requestId)
-        .merchantId(merchant.getId())
-        .currencyId(currency.getId())
-        .amount(amount)
-        .merchantTransactionId(merchantTransactionId)
-        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
-        .build();
+            .requestId(requestId)
+            .merchantId(merchant.getId())
+            .currencyId(currency.getId())
+            .amount(amount)
+            .merchantTransactionId(merchantTransactionId)
+            .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+            .build();
+
     refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+    final String username = refillService.getUsernameByRequestId(requestId);
+
+    logger.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
   }
 
   private void checkSign(Map<String, String> params) {
     String sign = algorithmService.sha256(params.get("m_operation_id") + ":" + params.get("m_operation_ps")
-        + ":" + params.get("m_operation_date") + ":" + params.get("m_operation_pay_date")
-        + ":" + params.get("m_shop") + ":" + params.get("m_orderid")
-        + ":" + params.get("m_amount") + ":" + params.get("m_curr") + ":" + params.get("m_desc")
-        + ":" + params.get("m_status") + ":" + m_key).toUpperCase();
+            + ":" + params.get("m_operation_date") + ":" + params.get("m_operation_pay_date")
+            + ":" + params.get("m_shop") + ":" + params.get("m_orderid")
+            + ":" + params.get("m_amount") + ":" + params.get("m_curr") + ":" + params.get("m_desc")
+            + ":" + params.get("m_status") + ":" + m_key).toUpperCase();
     if (params.get("m_sign")==null || !params.get("m_sign").equals(sign) || !"success".equals(params.get("m_status"))) {
       throw new RefillRequestFakePaymentReceivedException(params.toString());
     }
@@ -115,6 +120,4 @@ public class PayeerServiceImpl implements PayeerService {
 
     return withdrawUtils.isValidDestinationAddress(address);
   }
-
-
 }

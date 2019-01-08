@@ -1,5 +1,6 @@
 package me.exrates.service.ripple;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -7,11 +8,11 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 
 /**
  * Created by maks on 11.05.2017.
@@ -32,12 +39,11 @@ import java.util.*;
 @PropertySource("classpath:/merchants/ripple.properties")
 public class RippleServiceImpl implements RippleService {
 
-  private @Value("${ripple.account.address}") String systemAddress;
+  private @Value("${ripple.account.address}")
+  String systemAddress;
 
   @Autowired
   private RippleTransactionService rippleTransactionService;
-  @Autowired
-  private RippledNodeService rippledNodeService;
   @Autowired
   private MerchantService merchantService;
   @Autowired
@@ -48,6 +54,8 @@ public class RippleServiceImpl implements RippleService {
   private RefillService refillService;
   @Autowired
   private WithdrawUtils withdrawUtils;
+  @Autowired
+  private GtagService gtagService;
 
   private static final String XRP_MERCHANT = "Ripple";
 
@@ -55,14 +63,15 @@ public class RippleServiceImpl implements RippleService {
 
   private static final String DESTINATION_TAG_ERR_MSG = "message.ripple.tagError";
 
+  private Currency currency;
 
-  /*method for admin manual check transaction by hash*//*
-  @Override
-  public void manualCheckNotReceivedTransaction(String hash) {
-    JSONObject response = rippledNodeService.getTransaction(hash);
-    onTransactionReceive(response);
-  }*/
+  private Merchant merchant;
 
+  @PostConstruct
+  private void init() {
+    currency = currencyService.findByName("XRP");
+    merchant = merchantService.findByName(XRP_MERCHANT);
+  }
 
   /*return: true if tx validated; false if not validated but validation in process,
   throws Exception if declined*/
@@ -77,15 +86,15 @@ public class RippleServiceImpl implements RippleService {
     paramsMap.put("hash", hash);
     paramsMap.put("address", String.valueOf(destinationTag));
     paramsMap.put("amount", amount);
-    try {
-      this.processPayment(paramsMap);
-    } catch (RefillRequestAppropriateNotFoundException e) {
-      log.error("xrp refill address not found {}", destinationTag);
-    }
+    this.processPayment(paramsMap);
+  }
+
+  private boolean checkTransactionForDuplicate(String hash) {
+    return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(), hash).isPresent();
   }
 
   @Override
-  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
     if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
       throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
@@ -97,7 +106,7 @@ public class RippleServiceImpl implements RippleService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     Integer destinationTag = generateUniqDestinationTag(request.getUserId());
     String message = messageSource.getMessage("merchants.refill.xrp",
-        new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
+            new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
     DecimalFormat myFormatter = new DecimalFormat("###.##");
     return new HashMap<String, String>() {{
       put("address", myFormatter.format(destinationTag));
@@ -105,29 +114,34 @@ public class RippleServiceImpl implements RippleService {
     }};
   }
 
+  @Synchronized
   @Override
-  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+  public void processPayment(Map<String, String> params) {
     String address = params.get("address");
     String hash = params.get("hash");
+    if (checkTransactionForDuplicate(hash)) {
+      log.warn("*** XRP *** transaction {} already accepted", hash);
+      return;
+    }
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
     BigDecimal amount = rippleTransactionService.normalizeAmountToDecimal(params.get("amount"));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-        .address(address)
-        .merchantId(merchant.getId())
-        .currencyId(currency.getId())
-        .amount(amount)
-        .merchantTransactionId(hash)
-        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
-        .build();
-    try {
-      refillService.autoAcceptRefillRequest(requestAcceptDto);
-    } catch (RefillRequestAppropriateNotFoundException e) {
-      log.debug("RefillRequestAppropriateNotFoundException: " + params);
-      Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-      requestAcceptDto.setRequestId(requestId);
-      refillService.autoAcceptRefillRequest(requestAcceptDto);
-    }
+            .address(address)
+            .merchantId(merchant.getId())
+            .currencyId(currency.getId())
+            .amount(amount)
+            .merchantTransactionId(hash)
+            .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+            .build();
+
+    int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
+
+    final String username = refillService.getUsernameByRequestId(requestId);
+
+    log.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
   }
 
   @Override
@@ -138,12 +152,12 @@ public class RippleServiceImpl implements RippleService {
   private Integer generateUniqDestinationTag(int userId) {
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
-    Optional<Integer> id = null;
+    Optional<Integer> id;
     int destinationTag;
     do {
       destinationTag = generateDestinationTag(userId);
       id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
-          currency.getId(), merchant.getId());
+              currency.getId(), merchant.getId());
     } while (id.isPresent());
     return destinationTag;
   }
@@ -157,10 +171,11 @@ public class RippleServiceImpl implements RippleService {
     String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
     return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
   }
+
   //TODO remove after changes in mobile api
   @Override
   public String getPaymentMessage(String additionalTag, Locale locale) {
-    return  messageSource.getMessage("merchants.refill.xrp",
+    return messageSource.getMessage("merchants.refill.xrp",
             new String[]{systemAddress, additionalTag}, locale);
   }
 
