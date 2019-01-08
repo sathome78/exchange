@@ -832,4 +832,9 @@ public class UserServiceImpl implements UserService {
     return userDao.deleteTemporalToken(idTempToken);
   }
 
+  @Override
+  public Integer updateGaTag(String gaCookie, String name) {
+     return userDao.updateUserGa(gaCookie,name);
+  }
+
 }

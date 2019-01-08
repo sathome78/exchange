@@ -189,4 +189,6 @@ public interface UserDao {
   List<Integer> findFavouriteCurrencyPairsById(int userId);
 
   boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
+
+  Integer updateUserGa(String gaCookie, String name);
 }
