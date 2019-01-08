@@ -36,7 +36,7 @@ public class TxServiceImpl implements TxService {
 
     private static final String LAST_HASH_PARAM = "LastBlock";
     private static final String MERCHANT_NAME = "DCR";
-    private static final Integer BLOCKS_OFFSET_TO_SCAN = 4;
+    private static final Integer BLOCKS_OFFSET_TO_SCAN = 6;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
