@@ -1616,6 +1616,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "POA20", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mcoServiceImpl")
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
