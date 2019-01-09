@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
@@ -115,6 +116,7 @@ public class NgUserController {
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
+            userService.updateGaTag(getCookie(request), user.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
@@ -166,7 +168,7 @@ public class NgUserController {
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() > 1 &&  authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() > 1 && authenticationDto.getTries() % 3 == 0) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 throw new IncorrectPinException("Incorrect pin code");
@@ -197,6 +199,15 @@ public class NgUserController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
+    private String getCookie(HttpServletRequest request) {
+        for (Cookie cookie : request.getCookies()) {
+            if ("_ga".equalsIgnoreCase(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return "";
+    }
+
     @PostMapping(value = "/register")
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
@@ -216,7 +227,7 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                        HttpServletRequest request) {
+                                       HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
