@@ -56,6 +56,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -284,7 +285,12 @@ public class NgPublicController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            List<Currency> result = new ArrayList<>();
+            List<Currency> currencies = currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            currencies.forEach(o->{
+                if (!o.getName().equalsIgnoreCase("rub")) result.add(o);
+            });
+            return result;
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
