@@ -1606,15 +1606,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WaBi", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "poa20ServiceImpl")
+/*    @Bean(name = "poa20ServiceImpl")
     public EthTokenService poa20Service() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
         return new EthTokenServiceImpl(
                 tokensList,
                 "POA20",
-                "POA20", true, ExConvert.Unit.ETHER);
-    }
+                "POA20", false, ExConvert.Unit.ETHER);
+    }*/
 
     @Bean(name = "mcoServiceImpl")
     public EthTokenService mcoService() {
