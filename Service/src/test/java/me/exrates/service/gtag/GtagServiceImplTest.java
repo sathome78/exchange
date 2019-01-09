@@ -1,6 +1,5 @@
 package me.exrates.service.gtag;
 
-import me.exrates.service.impl.GtagServiceImpl;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.junit.Test;
 
@@ -16,7 +15,7 @@ public class GtagServiceImplTest {
         Client client = ClientBuilder.newClient();
         client.register(new LoggingFilter());
 
-        GtagServiceImpl gtagService = new GtagServiceImpl();
+//        GtagServiceImpl gtagService = new GtagServiceImpl();
 //        gtagService.setClient(client);
 //        gtagService.setGoogleAnalyticsHost("https://www.google-analytics.com/collect");
 //        gtagService.sendTransactionHit("username","10","100","BTC");
