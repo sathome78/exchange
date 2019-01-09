@@ -63,6 +63,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -284,7 +285,11 @@ public class NgPublicController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            List<Currency> currencies = currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            return currencies
+                    .stream()
+                    .filter(cur -> cur.getName().equalsIgnoreCase("RUB"))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
