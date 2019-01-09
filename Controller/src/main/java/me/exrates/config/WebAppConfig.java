@@ -1539,11 +1539,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "ectServiceImpl")
     public EthTokenService ectService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
+        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
         return new EthTokenServiceImpl(
                 tokensList,
-                "ECT",
-                "ECT", true, ExConvert.Unit.WEI);
+                "ECTE",
+                "ECTE", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "s4fServiceImpl")
