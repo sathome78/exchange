@@ -105,7 +105,12 @@ public class NgUserController {
 
         Optional<String> gaCookiesValue = Optional.ofNullable(request.getHeader("GACookies"));
 
-        gaCookiesValue.ifPresent(value -> logger.error("GACookies value : " + value));
+        gaCookiesValue.ifPresent(value -> {
+            // todo if header is present it looks like
+            // GACookies value : _ga=GA1.2.708749341.1544137610; _gid=GA1.2.1072675088.1547038628
+
+            
+        });
 
         try {
             if (!DEV_MODE) {
@@ -169,7 +174,7 @@ public class NgUserController {
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() > 1 &&  authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() > 1 && authenticationDto.getTries() % 3 == 0) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 throw new IncorrectPinException("Incorrect pin code");
@@ -219,7 +224,7 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                        HttpServletRequest request) {
+                                       HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
