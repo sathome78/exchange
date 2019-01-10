@@ -284,7 +284,7 @@ public class AdkServiceImpl implements AdkService {
         return CURRENCY_NAME;
     }
 
-    public static String getMerchantName() {
+    public String getMerchantName() {
         return MERCHANT_NAME;
     }
 

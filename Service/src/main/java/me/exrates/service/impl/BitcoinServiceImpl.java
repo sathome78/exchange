@@ -1,5 +1,7 @@
 package me.exrates.service.impl;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -604,6 +606,16 @@ public class BitcoinServiceImpl implements BitcoinService {
   public boolean isValidDestinationAddress(String address) {
 
     return withdrawUtils.isValidDestinationAddress(address);
+  }
+
+  @Override
+  public long getBlocksCount() throws BitcoindException, CommunicationException {
+    return bitcoinWalletService.getBlocksCount();
+  }
+
+  @Override
+  public String getMerchantName() {
+    return merchantName;
   }
 
   @PreDestroy
