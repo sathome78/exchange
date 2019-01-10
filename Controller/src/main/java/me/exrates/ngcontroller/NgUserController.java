@@ -4,7 +4,6 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
-import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -18,7 +17,6 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -104,6 +102,16 @@ public class NgUserController {
 
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
+
+        Optional<String> gaCookiesValue = Optional.ofNullable(request.getHeader("GACookies"));
+
+        gaCookiesValue.ifPresent(value -> {
+            // todo if header is present it looks like
+            // GACookies value : _ga=GA1.2.708749341.1544137610; _gid=GA1.2.1072675088.1547038628
+
+            
+        });
+
         try {
             if (!DEV_MODE) {
 //                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
@@ -166,7 +174,7 @@ public class NgUserController {
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() > 1 &&  authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() > 1 && authenticationDto.getTries() % 3 == 0) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 throw new IncorrectPinException("Incorrect pin code");
@@ -216,7 +224,7 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                        HttpServletRequest request) {
+                                       HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }

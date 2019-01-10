@@ -1546,14 +1546,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "ectServiceImpl")
-    public EthTokenService ectService() {
+    @Bean(name = "ecteServiceImpl")
+    public EthTokenService ecteService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
+        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
         return new EthTokenServiceImpl(
                 tokensList,
-                "ECT",
-                "ECT", true, ExConvert.Unit.WEI);
+                "ECTE",
+                "ECTE", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "s4fServiceImpl")
@@ -1595,6 +1595,57 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT",
                 "EDT", true, ExConvert.Unit.ETHER);
     }
+
+    @Bean(name = "poaServiceImpl")
+    public EthTokenService poaService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "POA",
+                "POA", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mcoServiceImpl")
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "zilServiceImpl")
+    public EthTokenService zilService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ZIL",
+                "ZIL", true, ExConvert.Unit.SZABO);
+    }
+
+    @Bean(name = "manaServiceImpl")
+    public EthTokenService manaService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0f5d2fb29fb7d3cfee444a200298f468908cc942");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MANA",
+                "MANA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "wabiServiceImpl")
+    public EthTokenService wabiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WaBi",
+                "WaBi", true, ExConvert.Unit.ETHER);
+    }
+
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
