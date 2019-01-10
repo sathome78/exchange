@@ -15,7 +15,6 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
 
     public NodeCheckerServiceImpl(Map<String, IRefillable> bitcoinServiceMap) {
         this.nodeMap = bitcoinServiceMap;
-        System.out.println("GABELLA IS " + nodeMap.size());
     }
 
     @Override

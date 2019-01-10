@@ -19,7 +19,7 @@ public class NodeController {
         this.nodeCheckerService = nodeCheckerService;
     }
 
-    @GetMapping(value = "/getBlocksCount", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getBlocksCount")
     public Long getBlocksCount(@RequestParam("ticker") String ticker) throws BitcoindException, CommunicationException {
         return nodeCheckerService.getBTCBlocksCount(ticker);
     }
