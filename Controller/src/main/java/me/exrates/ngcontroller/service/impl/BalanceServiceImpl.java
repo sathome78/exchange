@@ -17,7 +17,6 @@ import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -88,11 +87,16 @@ public class BalanceServiceImpl implements BalanceService {
                                                                CurrencyType currencyType, String currencyName) {
         List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
         if (excludeZero) {
-            details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
+            details = details.stream()
+                    .filter(filterZeroActiveBalance())
+                    .filter(excludeRub(currencyType))
+                    .collect(Collectors.toList());
         }
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
+                    .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
+                    .filter(excludeRub(currencyType))
                     .filter(containsNameOrDescription(currencyName))
                     .collect(Collectors.toList());
         }
@@ -337,6 +341,11 @@ public class BalanceServiceImpl implements BalanceService {
         }
 
         return parsedDate;
+    }
+
+    private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
+        return p -> currencyType == null || currencyType != CurrencyType.CRYPTO || !p.getCurrencyName().equalsIgnoreCase("rub");
+        }
     }
 
 }
