@@ -1105,7 +1105,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
     public ModelAndView adkWallet() {
         ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
-        modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
+        modelAndView.addObject("merchant", adkService.getMerchant().getName());
         modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
         modelAndView.addObject("title", "ADK Wallet");
         modelAndView.addObject("balance", adkService.getBalance());
