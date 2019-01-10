@@ -97,11 +97,17 @@ public class BalanceServiceImpl implements BalanceService {
                     .stream()
                     .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
                     .filter(excludeRub(currencyType))
+                    .filter(containsNameOrDescription(currencyName))
                     .collect(Collectors.toList());
         }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
         setBtcUsdAmoun(detailsPage.getItems());
         return detailsPage;
+    }
+
+    private Predicate<MyWalletsDetailedDto> containsNameOrDescription(String currencyName) {
+        return item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase())
+                || item.getCurrencyDescription().toUpperCase().contains(currencyName.toUpperCase());
     }
 
     @Override
@@ -134,11 +140,11 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email) {
+    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email) {
         List<RefillPendingRequestDto> requests =
                 refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email))
                         .stream()
-                        .filter(o -> o.getDate() != null)
+                        .filter(o -> o.getDate() != null && containsCurrencyName(o, currencyName))
                         .sorted(((o1, o2) -> {
                             Date dateOne = getDateFromString(o1.getDate());
                             Date dateTwo = getDateFromString(o2.getDate());
@@ -146,6 +152,13 @@ public class BalanceServiceImpl implements BalanceService {
                         }))
                         .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
+    }
+
+    private boolean containsCurrencyName(RefillPendingRequestDto dto, String currencyName) {
+        if (StringUtils.isNotBlank(currencyName)) {
+            return dto.getCurrency().toUpperCase().contains(currencyName.toUpperCase());
+        }
+        return  true;
     }
 
     @Override
@@ -182,7 +195,7 @@ public class BalanceServiceImpl implements BalanceService {
             int minConfirmations = 0;
             // todo to solve later
             if (dto.getCurrencyName().equalsIgnoreCase("USD")
-                    || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
+                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
                 dto.setMarket("Fiat");
             } else {
                 try {
@@ -326,16 +339,13 @@ public class BalanceServiceImpl implements BalanceService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
         return parsedDate;
     }
 
     private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
-        if (currencyType != null && currencyType == CurrencyType.CRYPTO) {
-            return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
-        } else {
-           return x -> true;
-        }
+        return p -> currencyType == null
+                || currencyType != CurrencyType.CRYPTO
+                || !p.getCurrencyName().equalsIgnoreCase("rub");
     }
 
 }
