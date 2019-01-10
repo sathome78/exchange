@@ -93,12 +93,17 @@ public class BalanceServiceImpl implements BalanceService {
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
-                    .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
+                    .filter(containsNameOrDescription(currencyName))
                     .collect(Collectors.toList());
         }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
         setBtcUsdAmoun(detailsPage.getItems());
         return detailsPage;
+    }
+
+    private Predicate<MyWalletsDetailedDto> containsNameOrDescription(String currencyName) {
+        return item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase())
+                || item.getCurrencyDescription().toUpperCase().contains(currencyName.toUpperCase());
     }
 
     @Override
@@ -131,11 +136,11 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email) {
+    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email) {
         List<RefillPendingRequestDto> requests =
                 refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email))
                         .stream()
-                        .filter(o -> o.getDate() != null)
+                        .filter(o -> o.getDate() != null && containsCurrencyName(o, currencyName))
                         .sorted(((o1, o2) -> {
                             Date dateOne = getDateFromString(o1.getDate());
                             Date dateTwo = getDateFromString(o2.getDate());
@@ -143,6 +148,13 @@ public class BalanceServiceImpl implements BalanceService {
                         }))
                         .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
+    }
+
+    private boolean containsCurrencyName(RefillPendingRequestDto dto, String currencyName) {
+        if (StringUtils.isNotBlank(currencyName)) {
+            return dto.getCurrency().toUpperCase().contains(currencyName.toUpperCase());
+        }
+        return  true;
     }
 
     @Override
