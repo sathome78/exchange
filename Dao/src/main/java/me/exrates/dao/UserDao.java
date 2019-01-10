@@ -63,6 +63,8 @@ public interface UserDao {
   boolean ifPhoneIsUnique(int phone);
 
   boolean ifEmailIsUnique(String email);
+  
+  boolean userExistByEmail(String email);
 
   String getIP(int userId);
 
