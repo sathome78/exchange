@@ -638,7 +638,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       }
   }
 
-  @PreDestroy
+    @Override
+    public long getBlocksCount() throws BitcoindException, CommunicationException {
+        return btcdClient.getBlockCount();
+    }
+
+    @PreDestroy
   private void shutDown() {
     outputUnlockingExecutor.shutdown();
   }
