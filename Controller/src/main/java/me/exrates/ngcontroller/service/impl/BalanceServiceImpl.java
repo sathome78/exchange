@@ -343,9 +343,11 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
-        return p -> currencyType == null
-                || currencyType != CurrencyType.CRYPTO
-                || !p.getCurrencyName().equalsIgnoreCase("rub");
+        if (currencyType == CurrencyType.CRYPTO) {
+            return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
+        } else {
+           return x -> true;
+        }
     }
 
 }
