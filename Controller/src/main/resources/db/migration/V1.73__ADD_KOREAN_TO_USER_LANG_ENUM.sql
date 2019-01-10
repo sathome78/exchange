@@ -1,0 +1,1 @@
+alter table USER modify preferred_lang enum('en', 'ru', 'cn', 'in', 'ar', 'ko') default 'en' null;

@@ -281,13 +281,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
         DataSource dataSource = new HikariDataSource(hikariConfig);
-//        Flyway flyway = new Flyway();
-//        flyway.setDataSource(dataSource);
-//        flyway.setBaselineOnMigrate(true);
-//        flyway.repair();
-//        flyway.setCleanOnValidationError(true);
-//        flyway.validate();
-//        flyway.migrate();
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.setCleanOnValidationError(true);
+        flyway.validate();
+        flyway.migrate();
         return dataSource;
     }
 
