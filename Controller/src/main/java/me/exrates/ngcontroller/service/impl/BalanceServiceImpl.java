@@ -339,13 +339,13 @@ public class BalanceServiceImpl implements BalanceService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
         return parsedDate;
     }
 
     private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
-        return p -> currencyType == null || currencyType != CurrencyType.CRYPTO || !p.getCurrencyName().equalsIgnoreCase("rub");
-        }
+        return p -> currencyType == null
+                || currencyType != CurrencyType.CRYPTO
+                || !p.getCurrencyName().equalsIgnoreCase("rub");
     }
 
 }
