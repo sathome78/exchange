@@ -48,6 +48,8 @@ public interface UserService {
     boolean ifNicknameIsUnique(String nickname);
 
     boolean ifEmailIsUnique(String email);
+    
+    boolean userExistByEmail(String email);
 
     String logIP(String email, String host);
 
