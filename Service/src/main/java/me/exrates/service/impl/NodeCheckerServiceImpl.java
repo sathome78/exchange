@@ -24,7 +24,7 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
             for (Map.Entry<String, IRefillable> entry : nodeMap.entrySet()) {
                 IRefillable service = entry.getValue();
                 String merchantName = service.getMerchantName();
-                if (merchantName.equals(ticker)) {
+                if (merchantName.equalsIgnoreCase(ticker)) {
                     return service.getBlocksCount();
                 }
             }
