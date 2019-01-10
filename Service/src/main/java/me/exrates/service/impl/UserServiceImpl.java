@@ -269,7 +269,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean userExistByEmail(String email) {
-    return false;
+    return userDao.userExistByEmail(email);
   }
 
   public String logIP(String email, String host) {
