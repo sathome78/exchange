@@ -17,7 +17,6 @@ import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -88,12 +87,31 @@ public class BalanceServiceImpl implements BalanceService {
                                                                CurrencyType currencyType, String currencyName) {
         List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
         if (excludeZero) {
-            details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
+            details = details.stream().filter(filterZeroActiveBalance())
+                    .map(o-> {
+                        if (currencyType != null
+                                && currencyType == CurrencyType.CRYPTO
+                                && !o.getCurrencyName().equalsIgnoreCase("rub")) {
+                            return o;
+                        } else {
+                            return o;
+                        }
+                    })
+                    .collect(Collectors.toList());
         }
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
                     .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
+                    .map(o-> {
+                        if (currencyType != null
+                                && currencyType == CurrencyType.CRYPTO
+                                && !o.getCurrencyName().equalsIgnoreCase("rub")) {
+                            return o;
+                        } else {
+                            return o;
+                        }
+                    })
                     .collect(Collectors.toList());
         }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
