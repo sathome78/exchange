@@ -267,6 +267,11 @@ public class UserServiceImpl implements UserService {
     return userDao.ifEmailIsUnique(email);
   }
 
+  @Override
+  public boolean userExistByEmail(String email) {
+    return false;
+  }
+
   public String logIP(String email, String host) {
     int id = userDao.getIdByEmail(email);
     String userIP = userDao.getIP(id);

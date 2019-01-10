@@ -239,13 +239,13 @@ public class NgTransferController {
             return new ResponseModel<>(false, error);
         }
 
-        if (userService.ifEmailIsUnique(email)) {
-            return new ResponseModel<>(true);
-
+        if (!userService.userExistByEmail(email)) {
+            ResponseCustomError error = new ResponseCustomError(messageSource.getMessage("transfer.email.not_found",
+                    null, Locale.ENGLISH));
+            return new ResponseModel<>(false, error);
         }
-        ResponseCustomError error = new ResponseCustomError(messageSource.getMessage("transfer.email.not_found",
-                null, Locale.ENGLISH));
-        return new ResponseModel<>(false, error);
+        return new ResponseModel<>(true);
+
     }
 
     @GetMapping("/get_minimal_sum")
