@@ -85,18 +85,19 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero,
                                                                CurrencyType currencyType, String currencyName) {
-        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
+        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType)
+                .stream()
+                .filter(excludeRub(currencyType))
+                .collect(Collectors.toList());
         if (excludeZero) {
             details = details.stream()
                     .filter(filterZeroActiveBalance())
-                    .filter(excludeRub(currencyType))
                     .collect(Collectors.toList());
         }
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
                     .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
-                    .filter(excludeRub(currencyType))
                     .filter(containsNameOrDescription(currencyName))
                     .collect(Collectors.toList());
         }
@@ -343,7 +344,7 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
-        if (currencyType == CurrencyType.CRYPTO) {
+        if (currencyType != null && currencyType == CurrencyType.CRYPTO) {
             return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
         } else {
            return x -> true;
