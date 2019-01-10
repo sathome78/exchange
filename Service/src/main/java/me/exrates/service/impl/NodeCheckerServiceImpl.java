@@ -18,7 +18,7 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
     }
 
     @Override
-    public Long getBTCBlocksCount(String ticker) throws BitcoindException, CommunicationException {
+    public Long getBTCBlocksCount(String ticker) {
         try {
             for (Map.Entry<String, IRefillable> entry : nodeMap.entrySet()) {
                 IRefillable service = entry.getValue();
