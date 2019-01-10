@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
@@ -98,7 +99,8 @@ public class NgRefillController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            return currencyService.getCurrencies(MerchantProcessType.CRYPTO).stream()
+                    .filter(o-> !o.getName().equalsIgnoreCase("rub")).collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
