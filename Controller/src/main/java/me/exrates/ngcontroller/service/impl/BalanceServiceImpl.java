@@ -87,31 +87,16 @@ public class BalanceServiceImpl implements BalanceService {
                                                                CurrencyType currencyType, String currencyName) {
         List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
         if (excludeZero) {
-            details = details.stream().filter(filterZeroActiveBalance())
-                    .map(o-> {
-                        if (currencyType != null
-                                && currencyType == CurrencyType.CRYPTO
-                                && !o.getCurrencyName().equalsIgnoreCase("rub")) {
-                            return o;
-                        } else {
-                            return o;
-                        }
-                    })
+            details = details.stream()
+                    .filter(filterZeroActiveBalance())
+                    .filter(excludeRub(currencyType))
                     .collect(Collectors.toList());
         }
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
                     .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
-                    .map(o-> {
-                        if (currencyType != null
-                                && currencyType == CurrencyType.CRYPTO
-                                && !o.getCurrencyName().equalsIgnoreCase("rub")) {
-                            return o;
-                        } else {
-                            return o;
-                        }
-                    })
+                    .filter(excludeRub(currencyType))
                     .collect(Collectors.toList());
         }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
@@ -197,7 +182,7 @@ public class BalanceServiceImpl implements BalanceService {
             int minConfirmations = 0;
             // todo to solve later
             if (dto.getCurrencyName().equalsIgnoreCase("USD")
-                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
+                    || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
                 dto.setMarket("Fiat");
             } else {
                 try {
@@ -343,6 +328,14 @@ public class BalanceServiceImpl implements BalanceService {
         }
 
         return parsedDate;
+    }
+
+    private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
+        if (currencyType != null && currencyType == CurrencyType.CRYPTO) {
+            return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
+        } else {
+           return x -> true;
+        }
     }
 
 }
