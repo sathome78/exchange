@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
@@ -103,15 +104,6 @@ public class NgUserController {
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
 
-        Optional<String> gaCookiesValue = Optional.ofNullable(request.getHeader("GACookies"));
-
-        gaCookiesValue.ifPresent(value -> {
-            // todo if header is present it looks like
-            // GACookies value : _ga=GA1.2.708749341.1544137610; _gid=GA1.2.1072675088.1547038628
-
-            
-        });
-
         try {
             if (!DEV_MODE) {
 //                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
@@ -123,6 +115,7 @@ public class NgUserController {
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
+            userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
@@ -203,6 +196,13 @@ public class NgUserController {
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
+    }
+
+    private String getCookie(String header) {
+        final String[] gaValue = new String[2];
+        Optional<String> gaCookiesValue = Optional.ofNullable(header);
+        gaCookiesValue.ifPresent(value -> gaValue[0] = value.trim().split(";")[0].split("=")[1]);
+        return Optional.ofNullable(gaValue[0]).orElse("");
     }
 
     @PostMapping(value = "/register")

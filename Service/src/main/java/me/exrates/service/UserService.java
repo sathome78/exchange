@@ -213,4 +213,6 @@ public interface UserService {
     boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
 
     boolean deleteTempTokenByValue(String value);
+
+    void updateGaTag(String gaCookie, String username);
 }
