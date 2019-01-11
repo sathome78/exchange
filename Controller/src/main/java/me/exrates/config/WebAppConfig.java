@@ -286,8 +286,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-        flyway.setCleanOnValidationError(true);
-        flyway.validate();
         flyway.migrate();
         return dataSource;
     }
