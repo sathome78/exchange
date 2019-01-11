@@ -78,6 +78,11 @@
             <artifactId>commons-fileupload</artifactId>
             <version>1.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>me.exrates</groupId>
+            <artifactId>ssm-integration</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
 
     <repositories>
