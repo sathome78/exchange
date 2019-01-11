@@ -100,7 +100,7 @@
                 <tr>
                     <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/icoalert.png"></td>
                     <td><img class="img-thumbnail partners-img"></td>
-                    <td> colspan="2"<img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
+                    <td colspan="2"><img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"></td>
                 </tr>
                 <tr>
                     <td><img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"></td>
