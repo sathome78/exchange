@@ -104,15 +104,6 @@ public class NgUserController {
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
 
-        Optional<String> gaCookiesValue = Optional.ofNullable(request.getHeader("GACookies"));
-
-        gaCookiesValue.ifPresent(value -> {
-            // todo if header is present it looks like
-            // GACookies value : _ga=GA1.2.708749341.1544137610; _gid=GA1.2.1072675088.1547038628
-
-            
-        });
-
         try {
             if (!DEV_MODE) {
 //                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
@@ -124,7 +115,7 @@ public class NgUserController {
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
-            userService.updateGaTag(getCookie(request), user.getEmail());
+            userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
@@ -207,13 +198,11 @@ public class NgUserController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
-    private String getCookie(HttpServletRequest request) {
-        for (Cookie cookie : request.getCookies()) {
-            if ("_ga".equalsIgnoreCase(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return "";
+    private String getCookie(String header) {
+        final String[] gaValue = new String[2];
+        Optional<String> gaCookiesValue = Optional.ofNullable(header);
+        gaCookiesValue.ifPresent(value -> gaValue[0] = value.trim().split(";")[0].split("=")[1]);
+        return Optional.ofNullable(gaValue[0]).orElse("");
     }
 
     @PostMapping(value = "/register")
