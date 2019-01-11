@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS CONTROL_PHRASE (
-  id        INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  phrase    varchar(20)   NOT NULL ,
-  user_id   INT(40)  NOT NULL UNIQUE,
-  CONSTRAINT contol_phrase_user_id_fk FOREIGN KEY (user_id) REFERENCES USER (id)
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
