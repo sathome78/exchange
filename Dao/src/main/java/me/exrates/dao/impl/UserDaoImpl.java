@@ -487,6 +487,11 @@ public class UserDaoImpl implements UserDao {
     }).isEmpty();
   }
 
+  @Override
+  public boolean userExistByEmail(String email) {
+    return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
+  }
+
   public String getPasswordByEmail(String email) {
     return null;
   }

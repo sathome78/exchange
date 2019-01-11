@@ -7,10 +7,10 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -29,26 +29,31 @@ import java.util.Map;
 @Service
 public class AchainServiceImpl implements AchainService {
 
+    private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
+    private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.1).setScale(2, RoundingMode.HALF_UP);
+    private static final String MERCHANT_NAME = "ACHAIN";
+
     private final NodeService nodeService;
     private final CurrencyService currencyService;
     private final MerchantService merchantService;
     private final RefillService refillService;
     private final MessageSource messageSource;
-    private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
-    private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.1).setScale(2, RoundingMode.HALF_UP);
-    private static final String MERCHANT_NAME = "ACHAIN";
+    private final GtagService gtagService;
 
     @Autowired
-    public AchainServiceImpl(NodeService nodeService, CurrencyService currencyService, MerchantService merchantService, RefillService refillService, MessageSource messageSource) {
+    public AchainServiceImpl(NodeService nodeService,
+                             CurrencyService currencyService,
+                             MerchantService merchantService,
+                             RefillService refillService,
+                             MessageSource messageSource,
+                             GtagService gtagService) {
         this.nodeService = nodeService;
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.refillService = refillService;
         this.messageSource = messageSource;
+        this.gtagService = gtagService;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @Override
     public String getMainAddress() {
@@ -68,14 +73,14 @@ public class AchainServiceImpl implements AchainService {
         String message = messageSource.getMessage("merchants.refill.btc",
                 new Object[]{fullAddress}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  generated);
+            put("address", generated);
             put("message", message);
             put("qr", fullAddress);
         }};
     }
 
     private String generateRandomSymbolsAndAddToAddress() {
-        return RandomStringUtils.random(32, false ,true);
+        return RandomStringUtils.random(32, false, true);
     }
 
     @Override
@@ -97,15 +102,25 @@ public class AchainServiceImpl implements AchainService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         log.info("try to accept payment {}", requestAcceptDto);
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
@@ -128,5 +143,4 @@ public class AchainServiceImpl implements AchainService {
 
         return !address.startsWith(nodeService.getMainAccountAddress());
     }
-
 }

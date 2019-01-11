@@ -17,7 +17,6 @@ import me.exrates.ngcontroller.service.RefillPendingRequestService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.MarketRatesHolder;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -86,19 +85,30 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero,
                                                                CurrencyType currencyType, String currencyName) {
-        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType);
+        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType)
+                .stream()
+                .filter(excludeRub(currencyType))
+                .collect(Collectors.toList());
         if (excludeZero) {
-            details = details.stream().filter(filterZeroActiveBalance()).collect(Collectors.toList());
+            details = details.stream()
+                    .filter(filterZeroActiveBalance())
+                    .collect(Collectors.toList());
         }
         if (!StringUtils.isEmpty(currencyName)) {
             details = details
                     .stream()
                     .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
+                    .filter(containsNameOrDescription(currencyName))
                     .collect(Collectors.toList());
         }
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
         setBtcUsdAmoun(detailsPage.getItems());
         return detailsPage;
+    }
+
+    private Predicate<MyWalletsDetailedDto> containsNameOrDescription(String currencyName) {
+        return item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase())
+                || item.getCurrencyDescription().toUpperCase().contains(currencyName.toUpperCase());
     }
 
     @Override
@@ -131,11 +141,11 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email) {
+    public PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email) {
         List<RefillPendingRequestDto> requests =
                 refillPendingRequestService.getPendingRefillRequests(userService.getIdByEmail(email))
                         .stream()
-                        .filter(o -> o.getDate() != null)
+                        .filter(o -> o.getDate() != null && containsCurrencyName(o, currencyName))
                         .sorted(((o1, o2) -> {
                             Date dateOne = getDateFromString(o1.getDate());
                             Date dateTwo = getDateFromString(o2.getDate());
@@ -143,6 +153,13 @@ public class BalanceServiceImpl implements BalanceService {
                         }))
                         .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
+    }
+
+    private boolean containsCurrencyName(RefillPendingRequestDto dto, String currencyName) {
+        if (StringUtils.isNotBlank(currencyName)) {
+            return dto.getCurrency().toUpperCase().contains(currencyName.toUpperCase());
+        }
+        return  true;
     }
 
     @Override
@@ -263,15 +280,15 @@ public class BalanceServiceImpl implements BalanceService {
             return result;
         }
 
-        if (optionalBtc.isPresent()) {
-            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
-            if (btcRate.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal btcValue = sumBalances.multiply(btcRate);
-                result.setBalanceBtc(btcValue);
-                BigDecimal usdValue = btcValue.multiply(btcUsdRate);
-                result.setBalanceUsd(usdValue);
-            }
-        }
+//        if (optionalBtc.isPresent()) {
+//            BigDecimal btcRate = optionalBtc.get().getLastOrderRate();
+//            if (btcRate.compareTo(BigDecimal.ZERO) > 0) {
+//                BigDecimal btcValue = sumBalances.multiply(btcRate);
+//                result.setBalanceBtc(btcValue);
+//                BigDecimal usdValue = btcValue.multiply(btcUsdRate);
+//                result.setBalanceUsd(usdValue);
+//            }
+//        }
 
         return result;
     }
@@ -323,8 +340,15 @@ public class BalanceServiceImpl implements BalanceService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
         return parsedDate;
+    }
+
+    private static Predicate<MyWalletsDetailedDto> excludeRub(CurrencyType currencyType) {
+        if (currencyType != null && currencyType == CurrencyType.CRYPTO) {
+            return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
+        } else {
+           return x -> true;
+        }
     }
 
 }

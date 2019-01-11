@@ -23,6 +23,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,11 +107,12 @@ public class NgBalanceController {
     // response https://api.myjson.com/bins/ufcws
     @GetMapping("/pendingRequests")
     public ResponseEntity<PagedResult<RefillPendingRequestDto>> getPendingRequests(
+            @RequestParam(required = false, defaultValue = "") String currencyName,
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset) {
         String email = getPrincipalEmail();
         try {
-            PagedResult<RefillPendingRequestDto> pendingRequests = balanceService.getPendingRequests(offset, limit, email);
+            PagedResult<RefillPendingRequestDto> pendingRequests = balanceService.getPendingRequests(offset, limit, currencyName, email);
             return ResponseEntity.ok(pendingRequests);
         } catch (Exception ex) {
             logger.error("Failed to get pending requests", ex);
