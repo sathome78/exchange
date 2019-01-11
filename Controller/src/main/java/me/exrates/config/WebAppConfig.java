@@ -34,6 +34,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -281,13 +282,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
         DataSource dataSource = new HikariDataSource(hikariConfig);
-//        Flyway flyway = new Flyway();
-//        flyway.setDataSource(dataSource);
-//        flyway.setBaselineOnMigrate(true);
-//        flyway.repair();
-//        flyway.setCleanOnValidationError(true);
-//        flyway.validate();
-//        flyway.migrate();
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.migrate();
         return dataSource;
     }
 
@@ -1545,16 +1544,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL",
                 "MODL", true, ExConvert.Unit.ETHER);
     }
-
-    @Bean(name = "ecteServiceImpl")
-    public EthTokenService ecteService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ECTE",
-                "ECTE", true, ExConvert.Unit.WEI);
-    }
+//
+//    @Bean(name = "ecteServiceImpl")
+//    public EthTokenService ecteService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "ECTE",
+//                "ECTE", true, ExConvert.Unit.WEI);
+//    }
 
     @Bean(name = "s4fServiceImpl")
     public EthTokenService s4fService() {
