@@ -127,7 +127,7 @@ public class BtcGenerator {
             builder.append((char)c);
         }
         String s = "// LISK-like cryptos";
-        String bean = "@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n\tpublic BitcoinService " + ticker.toLowerCase()
+        String bean = "// todo invite Stas \n@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n\tpublic BitcoinService " + ticker.toLowerCase()
                 + "ServiceImpl() {\n\t\treturn new BitcoinServiceImpl(\"merchants/"+ticker.toLowerCase()+"_wallet.properties\","
                 + "\"" + ticker + "\"," + "\"" + ticker + "\", " + minConf +", 20, false, " + fee + ");\n\t}" + "\n\n\t"+s;
         String replace = builder.toString().replace(s, bean);
