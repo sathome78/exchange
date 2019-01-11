@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.controller.interceptor.FinPassCheckInterceptor;
+import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -130,7 +131,8 @@ import java.util.stream.Collectors;
         "classpath:/angular.properties",
         "classpath:/merchants/stellar.properties",
         "classpath:/geetest.properties",
-        "classpath:/merchants/qiwi.properties"})
+        "classpath:/merchants/qiwi.properties",
+        "classpath:/ssm.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -223,6 +225,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
+    @Value("${ssm.token.api.nodes}")
+    private String nodeApiToken;
+
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -236,6 +241,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
+    private final SSMGetter ssmGetter;
+
+    public WebAppConfig(SSMGetter ssmGetter) {
+        this.ssmGetter = ssmGetter;
+    }
 
     @PostConstruct
     public void init() {
@@ -402,6 +412,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
+        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
     }
 
 
