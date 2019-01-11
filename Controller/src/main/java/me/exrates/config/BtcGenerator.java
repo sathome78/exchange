@@ -212,6 +212,8 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("KOD", "KODCoin", 20, false, true, "172.10.13.117", 8090, 5580);
+        generate("GRS", "GroestlCoin", 20, true, true, "172.10.13.202", 8090, 5580);
     }
+
+
 }

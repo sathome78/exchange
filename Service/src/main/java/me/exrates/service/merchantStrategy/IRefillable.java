@@ -1,6 +1,9 @@
 package me.exrates.service.merchantStrategy;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 
 import java.util.Map;
@@ -37,4 +40,13 @@ public interface IRefillable extends IMerchantService{
   };
 
   default boolean concatAdditionalToMainAddress() { return false; }
+
+  default String getMerchantName(){
+    return "Not defined";
+  }
+
+  default long getBlocksCount() throws BitcoindException, CommunicationException {
+    throw new NotImplimentedMethod("Not implemented yet");
+  }
+
 }
