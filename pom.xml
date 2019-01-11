@@ -39,7 +39,7 @@
         <bitcoinj.version>0.14.3</bitcoinj.version>
         <aspectj.version>1.8.10</aspectj.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
-        <!--<flyway.version>4.2.0</flyway.version>-->
+        <flyway.version>4.2.0</flyway.version>
     </properties>
 
     <dependencies>
@@ -462,11 +462,11 @@
         </dependency>
 
 
-        <!--<dependency>-->
-        <!--<groupId>org.flywaydb</groupId>-->
-        <!--<artifactId>flyway-core</artifactId>-->
-        <!--<version>${flyway.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+        <version>${flyway.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.jboss.aerogear</groupId>
