@@ -256,6 +256,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/forgotPassword/**").permitAll()
             .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
             .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+            .antMatchers(GET, "/getQrCode").permitAll()
             .antMatchers("/passwordRecovery").permitAll()
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()

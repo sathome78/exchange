@@ -18,6 +18,10 @@
                     <table id="withdrawInfoTable" class="table">
                         <tbody>
                         <tr>
+                            <td><loc:message code="transaction.id"/></td>
+                            <td id="info-transactionId"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="transaction.currency"/></td>
                             <td id="info-currency"></td>
                         </tr>
@@ -28,6 +32,10 @@
                         <tr>
                             <td><loc:message code="transaction.commissionAmount"/></td>
                             <td id="info-commissionAmount"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="withdrawal.amountToWithdraw"/></td>
+                            <td id="info-ammountToWithdraw"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="withdrawal.status"/></td>
@@ -59,6 +67,9 @@
                         </tr>
                         </tbody>
                     </table>
+                    <div style="align-content: center">
+                        <img id="qr-code-id" src=""/>
+                    </div>
                 </div>
 
             <div class="modal-footer">

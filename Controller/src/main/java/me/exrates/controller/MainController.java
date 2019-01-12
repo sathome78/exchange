@@ -1,15 +1,18 @@
 package me.exrates.controller;
 
-import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.exception.PasswordCreationException;
-import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
+import me.exrates.model.dto.QrCodeDto;
 import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.OrderHistoryPeriod;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodDoc;
 import me.exrates.model.vo.openApiDoc.OpenApiMethodGroup;
@@ -17,10 +20,8 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.service.SecureService;
+import me.exrates.service.QRCodeService;
 import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
@@ -37,15 +38,17 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -53,13 +56,20 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.security.Principal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -104,6 +114,8 @@ public class MainController {
     private UserDetailsService userDetailsService;
     @Autowired
     private GeetestLib geetest;
+    @Autowired
+    private QRCodeService qrCodeService;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -125,6 +137,7 @@ public class MainController {
 
     /**
      * Register user on referral link (redirect to dashboard, call pop-up with registration)
+     *
      * @param refReference
      * @param attr
      * @return ModalAndView (dashboard), referral link (if this exists), user object with parent email
@@ -144,7 +157,7 @@ public class MainController {
             parentEmail = refferalRoot.getEmail();
         }
 
-        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: "+parentEmail);
+        logger.info("*** Used referral link with reference (" + refReference + ") && Parent email: " + parentEmail);
 
         attr.addFlashAttribute("refferalLink", refReference);
         attr.addFlashAttribute("parentEmail", parentEmail);
@@ -214,7 +227,7 @@ public class MainController {
                     final int parent = userService.getIdByEmail(user.getParentEmail());
                     if (child > 0 && parent > 0) {
                         referralService.bindChildAndParent(child, parent);
-                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: "+user.getParentEmail());
+                        logger.info("*** Referal graph | Child: " + user.getEmail() + " && Parent: " + user.getParentEmail());
                     }
 
                     String successNoty = null;
@@ -474,4 +487,11 @@ public class MainController {
         return modelAndView;
     }
 
+    @ResponseBody
+    @GetMapping(value = "/getQrCode", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<QrCodeDto> getQrCodeBytes(@RequestParam("ticker") String ticker,
+                                                    @RequestParam("wallet") String wallet,
+                                                    @RequestParam("amount") BigDecimal amountToWithdraw) {
+        return ResponseEntity.ok(qrCodeService.getQrCodeImage(ticker, wallet, amountToWithdraw));
+    }
 }

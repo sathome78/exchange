@@ -168,7 +168,7 @@ $(function () {
         e.preventDefault();
         var id = $(this).data("id");
         var txHash = $(this).closest("tr").find(".txHashClass").val();
-        if (txHash  == '') {
+        if (txHash == '') {
             alert('Empty hash!');
             throw new Error("Empty hash!");
 
@@ -328,21 +328,45 @@ function retrieveRowDataForElement($elem) {
 }
 
 function fillModal($modal, rowData) {
-    $modal.find('#info-currency').text(rowData.currencyName);
-    $modal.find('#info-amount').text(rowData.amount);
+    $modal.find('#info-transactionId').text(rowData.id);
+    var currencyName = rowData.currencyName;
+    $modal.find('#info-currency').text(currencyName);
+    $modal.find('#info-amount').text(rowData.netAmount);
     $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
+    var amountToWithdraw = rowData.netAmountCorrectedForMerchantCommission;
+    $modal.find('#info-ammountToWithdraw').text(amountToWithdraw);
     $modal.find('#info-status').text(rowData.status);
     $modal.find('#info-status-date').text(rowData.statusModificationDate);
     var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
     var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
     $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
-    $modal.find('#info-wallet').text(rowData.wallet);
+    var wallet = rowData.wallet;
+    $modal.find('#info-wallet').text(wallet);
     $modal.find('#info-destination-tag').text(rowData.destinationTag);
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $modal.find('#info-userFullName').text(rowData.userFullName);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);
-}
 
+    var data = {
+        ticker: currencyName,
+        wallet: wallet,
+        amount: amountToWithdraw
+    };
+    $.ajax('/getQrCode', {
+        data: data,
+        type: 'GET',
+        contentType: 'application/json'
+    }).success(function (response) {
+        var image = response.image;
+        if (image.length === 0) {
+            $('#qr-code-id').hide();
+        } else {
+            $('#qr-code-id').attr('src', `data:image/png;base64,${image}`).show();
+        }
+    }).fail(function (response) {
+        alert('Have no possibility to generate QR code');
+    });
+}
 
 function updateWithdrawalTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
@@ -454,7 +478,7 @@ function updateWithdrawalTable() {
                         }
                         return data;
                     }
-                },                {
+                }, {
                     "data": "destinationTag",
                     "name": "WITHDRAW_REQUEST.destination_tag",
                     "render": function (data, type, row) {
