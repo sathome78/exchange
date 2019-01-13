@@ -6,7 +6,7 @@ import me.exrates.controller.exception.PasswordCreationException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
-import me.exrates.model.dto.QrCodeDto;
+import me.exrates.model.dto.QRCodeDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.OrderHistoryPeriod;
 import me.exrates.model.enums.OrderType;
@@ -489,7 +489,7 @@ public class MainController {
 
     @ResponseBody
     @GetMapping(value = "/getQrCode", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<QrCodeDto> getQrCodeBytes(@RequestParam("ticker") String ticker,
+    public ResponseEntity<QRCodeDto> getQrCodeBytes(@RequestParam("ticker") String ticker,
                                                     @RequestParam("wallet") String wallet,
                                                     @RequestParam("amount") BigDecimal amountToWithdraw) {
         return ResponseEntity.ok(qrCodeService.getQrCodeImage(ticker, wallet, amountToWithdraw));

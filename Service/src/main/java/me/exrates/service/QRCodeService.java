@@ -1,6 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.dto.QrCodeDto;
+import me.exrates.model.dto.QRCodeDto;
 import me.exrates.service.util.QRCodeGeneratorUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -22,19 +22,17 @@ public class QRCodeService {
     @Value("${qr.btc.pattern}")
     private String btcPattern;
 
-    public QrCodeDto getQrCodeImage(String ticker, String wallet, BigDecimal amountToWithdraw) {
-        byte[] image;
-        switch (ticker) {
-            case BTC:
-                final String qrCodeContent = String.format(btcPattern, wallet, amountToWithdraw.toString());
-                image = QRCodeGeneratorUtil.generate(qrCodeContent, width, height);
-                break;
-            default:
-                image = new byte[0];
-                break;
+    public QRCodeDto getQrCodeImage(String ticker, String wallet, BigDecimal amountToWithdraw) {
+        if (BTC.equals(ticker)) {
+            final String url = String.format(btcPattern, wallet, amountToWithdraw.toString());
+
+            return QRCodeDto.builder()
+                    .url(url)
+                    .image(QRCodeGeneratorUtil.generate(url, width, height))
+                    .build();
         }
-        return QrCodeDto.builder()
-                .image(image)
+        return QRCodeDto.builder()
+                .image(new byte[0])
                 .build();
     }
 }

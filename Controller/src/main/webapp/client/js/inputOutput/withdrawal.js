@@ -357,16 +357,32 @@ function fillModal($modal, rowData) {
         type: 'GET',
         contentType: 'application/json'
     }).success(function (response) {
+        var url = response.url;
         var image = response.image;
         if (image.length === 0) {
             $('#qr-code-id').hide();
+            $('#qr-url-id').hide();
         } else {
-            $('#qr-code-id').attr('src', `data:image/png;base64,${image}`).show();
+            $('#qr-code-id')
+                .attr('src', `data:image/png;base64,${image}`)
+                .show();
+            $('#qr-url-id')
+                .val(url)
+                .show();
         }
     }).fail(function (response) {
         alert('Have no possibility to generate QR code');
     });
 }
+
+function copyText() {
+    var copyText = document.getElementById("qr-url-id");
+
+    copyText.select();
+
+    document.execCommand("copy");
+}
+
 
 function updateWithdrawalTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';

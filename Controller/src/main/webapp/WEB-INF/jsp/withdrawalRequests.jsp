@@ -25,6 +25,13 @@
 
   <script type="text/javascript" src="<c:url value='/client/js/inputOutput/withdrawal.js'/>"></script>
 
+  <style>
+    img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
 </head>
 
 <body id="withdraw-requests-admin">

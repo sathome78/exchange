@@ -67,8 +67,9 @@
                         </tr>
                         </tbody>
                     </table>
-                    <div style="align-content: center">
-                        <img id="qr-code-id" src=""/>
+                    <div>
+                        <img id="qr-code-id" src=""/><br>
+                        <input id="qr-url-id" class="copyable" onclick="copyText()" style="width: 100%;" readonly>
                     </div>
                 </div>
 

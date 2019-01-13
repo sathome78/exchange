@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QrCodeDto {
+public class QRCodeDto {
 
+    private String url;
     private byte[] image;
 }
