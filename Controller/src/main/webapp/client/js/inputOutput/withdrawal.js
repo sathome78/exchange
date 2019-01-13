@@ -357,6 +357,8 @@ function fillModal($modal, rowData) {
         type: 'GET',
         contentType: 'application/json'
     }).success(function (response) {
+        $('#qr-copy').empty();
+
         var url = response.url;
         var image = response.image;
         if (image.length === 0) {
@@ -377,10 +379,12 @@ function fillModal($modal, rowData) {
 
 function copyText() {
     var copyText = document.getElementById("qr-url-id");
-
     copyText.select();
-
     document.execCommand("copy");
+
+    $('#qr-copy')
+        .append('<label style="color: #0a8415;">Copied</label>')
+        .show();
 }
 
 

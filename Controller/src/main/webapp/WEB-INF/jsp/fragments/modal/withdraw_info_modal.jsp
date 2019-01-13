@@ -70,6 +70,7 @@
                     <div>
                         <img id="qr-code-id" src=""/><br>
                         <input id="qr-url-id" class="copyable" onclick="copyText()" style="width: 100%;" readonly>
+                        <div id="qr-copy"></div>
                     </div>
                 </div>
 
