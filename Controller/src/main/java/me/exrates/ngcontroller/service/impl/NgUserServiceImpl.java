@@ -14,10 +14,10 @@ import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
+import me.exrates.service.TemporalTokenService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
@@ -49,6 +49,7 @@ public class NgUserServiceImpl implements NgUserService {
     private final AuthTokenService authTokenService;
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
+    private final TemporalTokenService temporalTokenService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -60,7 +61,8 @@ public class NgUserServiceImpl implements NgUserService {
                              SendMailService sendMailService,
                              AuthTokenService authTokenService,
                              ReferralService referralService,
-                             IpBlockingService ipBlockingService) {
+                             IpBlockingService ipBlockingService,
+                             TemporalTokenService temporalTokenService) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -68,6 +70,7 @@ public class NgUserServiceImpl implements NgUserService {
         this.authTokenService = authTokenService;
         this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
+        this.temporalTokenService = temporalTokenService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -114,6 +117,12 @@ public class NgUserServiceImpl implements NgUserService {
         if (user == null) {
             logger.error("Error create password for user, temp_token {}", tempToken);
             throw new NgDashboardException("User not found", 1001);
+        }
+
+        TemporalToken temporalTokenByValue = userService.getTemporalTokenByValue(tempToken);
+        if (temporalTokenByValue.isAlreadyUsed()) {
+            logger.error("This link already used", tempToken);
+            throw new NgDashboardException("Link already used", 1003);
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
@@ -183,8 +192,12 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Override
     public boolean validateTempToken(String token) {
-        User user = userService.getUserByTemporalToken(token);
-        return user != null;
+
+        TemporalToken temporalToken = userService.getTemporalTokenByValue(token);
+
+        if (temporalToken == null) return false;
+
+        return temporalTokenService.updateTemporalToken(temporalToken);
     }
 
     @Override

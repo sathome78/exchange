@@ -791,7 +791,7 @@ public class UserServiceImpl implements UserService {
   }
 
     @Transactional(rollbackFor = Exception.class)
-    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+    public TemporalToken getTemporalTokenByValue(String token) {
         return userDao.verifyToken(token);
     }
 

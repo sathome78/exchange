@@ -198,7 +198,7 @@ public interface UserService {
 
     String getUserEmailFromSecurityContext();
 
-    TemporalToken verifyUserEmailForForgetPassword(String token);
+    TemporalToken getTemporalTokenByValue(String token);
 
     User getUserByTemporalToken(String token);
 
