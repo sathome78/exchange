@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -223,6 +224,22 @@ public class NgUserServiceImpl implements NgUserService {
 
         if (!DEV_MODE) {
             sendMailService.sendMailMandrill(email);
+        }
+    }
+
+    @Override
+    public void resendEmailForFinishRegistration(User user) {
+        List<TemporalToken> tokens = userService.getTokenByUserAndType(user, TokenType.REGISTRATION);
+        tokens.forEach(o -> userService.deleteTempTokenByValue(o.getValue()));
+
+        String host = "https://demo.exrates.me/";
+
+        if (!DEV_MODE) {
+            sendEmailWithToken(user,
+                    TokenType.REGISTRATION,
+                    "emailsubmitregister.subject",
+                    "emailsubmitregister.text",
+                    Locale.ENGLISH, host, "final-registration/token?t=");
         }
     }
 

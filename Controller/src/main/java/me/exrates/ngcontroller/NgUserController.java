@@ -7,6 +7,7 @@ import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
@@ -122,6 +123,7 @@ public class NgUserController {
         }
 
         if (user.getStatus() == UserStatus.REGISTERED) {
+            ngUserService.resendEmailForFinishRegistration(user);
             return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
         }
         if (user.getStatus() == UserStatus.DELETED) {
