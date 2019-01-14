@@ -285,8 +285,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //        flyway.setDataSource(dataSource);
 //        flyway.setBaselineOnMigrate(true);
 //        flyway.repair();
-//        flyway.setCleanOnValidationError(true);
-//        flyway.validate();
 //        flyway.migrate();
         return dataSource;
     }
@@ -1545,16 +1543,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL",
                 "MODL", true, ExConvert.Unit.ETHER);
     }
-
-    @Bean(name = "ecteServiceImpl")
-    public EthTokenService ecteService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ECTE",
-                "ECTE", true, ExConvert.Unit.WEI);
-    }
+//
+//    @Bean(name = "ecteServiceImpl")
+//    public EthTokenService ecteService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "ECTE",
+//                "ECTE", true, ExConvert.Unit.WEI);
+//    }
 
     @Bean(name = "s4fServiceImpl")
     public EthTokenService s4fService() {

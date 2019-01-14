@@ -142,6 +142,7 @@ public class NgUserController {
         String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            logger.error("Incorrect password, email = {}", authenticationDto.getEmail());
             throw new IncorrectPasswordException("Incorrect password");
         }
 
