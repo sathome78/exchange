@@ -119,12 +119,6 @@ public class NgUserServiceImpl implements NgUserService {
             throw new NgDashboardException("User not found", 1001);
         }
 
-        TemporalToken temporalTokenByValue = userService.getTemporalTokenByValue(tempToken);
-        if (temporalTokenByValue.isAlreadyUsed()) {
-            logger.error("This link already used", tempToken);
-            throw new NgDashboardException("Link already used", 1003);
-        }
-
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
         user.setUserStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
@@ -195,7 +189,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         TemporalToken temporalToken = userService.getTemporalTokenByValue(token);
 
-        if (temporalToken == null) return false;
+        if (temporalToken == null || temporalToken.isAlreadyUsed()) return false;
 
         return temporalTokenService.updateTemporalToken(temporalToken);
     }
