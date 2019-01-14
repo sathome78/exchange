@@ -383,6 +383,7 @@ function copyText() {
     document.execCommand("copy");
 
     $('#qr-copy')
+        .empty()
         .append('<label style="color: #0a8415;">Copied</label>')
         .show();
 }
