@@ -19,16 +19,19 @@ public class QRCodeService {
     @Value("${qr.height}")
     private int height;
 
-    @Value("${qr.btc.pattern}")
-    private String btcPattern;
+    @Value("${qr.btc.url-pattern}")
+    private String btcUrlPattern;
+    @Value("${qr.btc.query-pattern}")
+    private String btcQueryPattern;
 
     public QRCodeDto getQrCodeImage(String ticker, String wallet, BigDecimal amountToWithdraw) {
         if (BTC.equals(ticker)) {
-            final String url = String.format(btcPattern, wallet, amountToWithdraw.toString());
+            final String url = String.format(btcUrlPattern, wallet, amountToWithdraw.toString());
+            final String query = String.format(btcQueryPattern, wallet, amountToWithdraw.toString());
 
             return QRCodeDto.builder()
                     .url(url)
-                    .image(QRCodeGeneratorUtil.generate(url, width, height))
+                    .image(QRCodeGeneratorUtil.generate(query, width, height))
                     .build();
         }
         return QRCodeDto.builder()
