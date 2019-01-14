@@ -43,7 +43,7 @@ public class RefillRequestJob {
    * Because blocknotify doesn't work correctly (!!! need to check node config and node config properties !!!)
    * During the check processBtcPayment is executed, which create refill request and refill user wallet.
    */
-  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
+  @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 1)
   public void refillCheckPaymentsForCoins() {
       try {
           log.info("Starting refillCheckPaymentsForCoins");
