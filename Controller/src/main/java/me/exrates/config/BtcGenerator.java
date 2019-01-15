@@ -212,7 +212,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("GRS", "GroestlCoin", 20, true, true, "172.10.13.202", 8090, 5580);
+        generate("HCXP", "HCXPay", 30, false, true, "172.10.13.238", 8090, 5580);
     }
 
 
