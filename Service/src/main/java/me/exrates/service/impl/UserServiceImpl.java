@@ -474,8 +474,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     /*@Async*/
-    public Integer updateGaTag(String gatag, String userName) {
-        return userDao.updateGaTag(gatag, userName);
+    public Integer updateGaTag(String gatag,String yuim, String userName) {
+        return userDao.updateGaTag(gatag, yuim, userName);
     }
 
     @Override

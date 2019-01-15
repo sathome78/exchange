@@ -183,7 +183,7 @@ public class EntryController {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
-            userService.updateGaTag(getGaCookie(request),principal.getName());
+            userService.updateGaTag(getGaCookie(request,"_ga"),getGaCookie(request,"_ym_uid"),principal.getName());
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
@@ -787,16 +787,18 @@ public class EntryController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    private String getGaCookie(HttpServletRequest request) {
+    private String getGaCookie(HttpServletRequest request, String cookieName) {
         String result = null;
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
             String name = cookie.getName();
-            if ("_ga".equalsIgnoreCase(name)) {
+            if (cookieName.equalsIgnoreCase(name)) {
                 result =  cookie.getValue();
             }
         }
         return result;
     }
+
+
 
 }

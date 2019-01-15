@@ -1052,11 +1052,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public Integer updateGaTag(String gatag, String userName) {
-        String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
+    public Integer updateGaTag(String gatag, String ym_uid, String userName) {
+        String sql = "UPDATE USER SET GA=:ga, YMUID=:yuid WHERE email=:email";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("ga", gatag);
-            put("email",userName);
+            put("yuid", ym_uid);
+            put("email", userName);
         }};
         return namedParameterJdbcTemplate.update(sql, namedParameters);
     }

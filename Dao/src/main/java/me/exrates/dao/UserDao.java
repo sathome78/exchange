@@ -174,6 +174,6 @@ public interface UserDao {
 
     String getPassword(int userId);
 
-    Integer updateGaTag(String gatag, String userName);
+    Integer updateGaTag(String gatag, String yuim, String userName);
 
 }
