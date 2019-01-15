@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.bittrade.libs.steemj.base.models.OrderBook;
 import me.exrates.config.RabbitConfig;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
@@ -105,6 +106,9 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
+        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
+            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
+        }
 
         String result = ngOrderService.createOrder(inputOrder);
         HashMap<String, String> resultMap = new HashMap<>();
@@ -307,7 +311,7 @@ public class NgDashboardController {
     }
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
-    @ExceptionHandler({RabbitMqException.class})
+    @ExceptionHandler({RabbitMqException.class, UnsupportedOperationException.class})
     @ResponseBody
     public ErrorInfo RabbitMqErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
