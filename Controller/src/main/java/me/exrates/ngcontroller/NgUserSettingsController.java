@@ -18,6 +18,7 @@ import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,6 +96,7 @@ public class NgUserSettingsController {
         if (password.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        password = RestApiUtils.decodePassword(password);
         user.setPassword(password);
         user.setConfirmPassword(password);
 

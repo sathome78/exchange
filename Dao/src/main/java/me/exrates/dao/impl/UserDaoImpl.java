@@ -23,10 +23,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1141,6 +1143,18 @@ public class UserDaoImpl implements UserDao {
             put("currencyPairId", currencyPairId);
         }};
         return namedParameterJdbcTemplate.update(sql, params) >= 0;
+    }
+
+    @Transactional
+    public void updateGaTag(String gaCookie, String username) {
+      String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
+
+      Map<String, Object> params = new HashMap<String, Object>() {{
+        put("ga", gaCookie);
+        put("email",username);
+      }};
+
+      namedParameterJdbcTemplate.update(sql, params);
     }
 
 }

@@ -14,10 +14,10 @@ import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
+import me.exrates.service.TemporalTokenService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +50,7 @@ public class NgUserServiceImpl implements NgUserService {
     private final AuthTokenService authTokenService;
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
+    private final TemporalTokenService temporalTokenService;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
@@ -60,7 +62,8 @@ public class NgUserServiceImpl implements NgUserService {
                              SendMailService sendMailService,
                              AuthTokenService authTokenService,
                              ReferralService referralService,
-                             IpBlockingService ipBlockingService) {
+                             IpBlockingService ipBlockingService,
+                             TemporalTokenService temporalTokenService) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -68,6 +71,7 @@ public class NgUserServiceImpl implements NgUserService {
         this.authTokenService = authTokenService;
         this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
+        this.temporalTokenService = temporalTokenService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -183,8 +187,12 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Override
     public boolean validateTempToken(String token) {
-        User user = userService.getUserByTemporalToken(token);
-        return user != null;
+
+        TemporalToken temporalToken = userService.getTemporalTokenByValue(token);
+
+        if (temporalToken == null || temporalToken.isAlreadyUsed()) return false;
+
+        return temporalTokenService.updateTemporalToken(temporalToken);
     }
 
     @Override
@@ -216,6 +224,22 @@ public class NgUserServiceImpl implements NgUserService {
 
         if (!DEV_MODE) {
             sendMailService.sendMailMandrill(email);
+        }
+    }
+
+    @Override
+    public void resendEmailForFinishRegistration(User user) {
+        List<TemporalToken> tokens = userService.getTokenByUserAndType(user, TokenType.REGISTRATION);
+        tokens.forEach(o -> userService.deleteTempTokenByValue(o.getValue()));
+
+        String host = "https://demo.exrates.me/";
+
+        if (!DEV_MODE) {
+            sendEmailWithToken(user,
+                    TokenType.REGISTRATION,
+                    "emailsubmitregister.subject",
+                    "emailsubmitregister.text",
+                    Locale.ENGLISH, host, "final-registration/token?t=");
         }
     }
 
