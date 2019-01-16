@@ -339,12 +339,6 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 20, 20, false, true);
 	}
 
-	// todo invite Stas 
-@Bean(name = "hcxpServiceImpl")
-	public BitcoinService hcxpServiceImpl() {
-		return new BitcoinServiceImpl("merchants/hcxp_wallet.properties","HCXP","HCXP", 30, 20, false, false);
-	}
-
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
