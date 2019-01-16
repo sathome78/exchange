@@ -1,6 +1,6 @@
 package me.exrates.service.lisk;
 
-import com.mysql.cj.util.StringUtils;
+import com.mysql.jdbc.StringUtils;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
