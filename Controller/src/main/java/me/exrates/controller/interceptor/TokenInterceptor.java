@@ -18,7 +18,7 @@ public class TokenInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String token = request.getHeader(AUTH_TOKEN);
         System.out.println("TOKEN SHOULD BE " + AUTH_TOKEN_VALUE);
-        System.out.println("CURRENT TOKE IS " + AUTH_TOKEN);
+        System.out.println("CURRENT TOKE IS " + token);
         if(token == null || !token.equals(AUTH_TOKEN_VALUE)) {
             response.setStatus(403);
             response.getWriter().write("Incorrect token");
