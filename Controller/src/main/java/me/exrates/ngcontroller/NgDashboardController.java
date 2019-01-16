@@ -106,21 +106,25 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
-            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
-        }
+        rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+        return new ResponseEntity<>(HttpStatus.CREATED);
 
-        String result = ngOrderService.createOrder(inputOrder);
-        HashMap<String, String> resultMap = new HashMap<>();
-
-        if (!StringUtils.isEmpty(result)) {
-            resultMap.put("message", "success");
-            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
-        } else {
-            resultMap.put("message", "fail");
-            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
-        }
+//        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
+//            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
+//        }
+//
+//
+//        String result = ngOrderService.createOrder(inputOrder);
+//        HashMap<String, String> resultMap = new HashMap<>();
+//
+//        if (!StringUtils.isEmpty(result)) {
+//            resultMap.put("message", "success");
+//            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+//            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
+//        } else {
+//            resultMap.put("message", "fail");
+//            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
+//        }
     }
 
     @DeleteMapping("/order/{id}")
