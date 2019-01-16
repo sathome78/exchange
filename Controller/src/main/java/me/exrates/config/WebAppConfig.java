@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
@@ -391,6 +392,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new SecurityInterceptor());
 //        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
         registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
+        registry.addInterceptor(new MDCInterceptor());
     }
 
 
