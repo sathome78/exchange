@@ -1671,6 +1671,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SUMO", "SUMO", 10, 9);
     }
 
+    @Bean(name = "hcxpServiceImpl")
+    public MoneroService hcxpService() {
+        return new MoneroServiceImpl("merchants/hcxp.properties",
+                "HCXP", "HCXP", 10, 6);
+    }
+
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
     public XemMosaicService dimCoinService() {
