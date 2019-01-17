@@ -1,27 +1,25 @@
 package me.exrates.config;
 
 import me.exrates.service.ethereum.ExConvert;
+import me.exrates.service.ethereum.ethTokensWrappers.TokenWrappersGenerator;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class EthGenerator {
-    private static final String SQL_PATCH = "INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)\n" +
-            "VALUES ('zalupaCoin', 'TCR', 2, 'beannameServiceImpl', 'CRYPTO');\n" +
+public class EthTokenGenerator {
+    private static final String SQL_PATCH = "INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)\n" +
+            "VALUES ('replacementEthereumTokenCoinDescription', 'TCR', 2, 'ethereumServiceImpl', 'CRYPTO', 16);\n" +
             "INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)\n" +
-            "VALUES ('TCR', 'zalupaCoin', 0, 8, 8, 8);\n" +
+            "VALUES ('TCR', 'replacementEthereumTokenCoinDescription', 0, 8, 8, 8);\n" +
             "\n" +
             "INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='TCR'));\n" +
             "\n" +
             "\n" +
-            "INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)\n" +
+            "INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)\n" +
             "  VALUES ((SELECT id from MERCHANT WHERE name='TCR'),\n" +
             "          (SELECT id from CURRENCY WHERE name='TCR'),\n" +
-            "          0.0001);\n" +
+            "          0.00000001, TRUE, TRUE);\n" +
             "\n" +
             "INSERT IGNORE INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='TCR')\n" +
             ", '/client/img/merchants/TCR.png', 'TCR', (SELECT id from CURRENCY WHERE name='TCR'));\n" +
@@ -59,13 +57,13 @@ public class EthGenerator {
             "    JOIN ORDER_TYPE OT where CP.name='TCR/ETH';\n" +
             "\n" +
             "INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)\n" +
-            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'TCR'), 0.0001, 1, 1, 0);\n" +
+            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'TCR'), 0.000001, 1, 1, 0);\n" +
             "\n" +
             "INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)\n" +
-            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'TCR'), 0.0001, 1, 1, 0);\n" +
+            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'TCR'), 0.000001, 1, 1, 0);\n" +
             "\n" +
             "INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)\n" +
-            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'TCR'), 0.0001, 1, 1, 0);\n" +
+            "VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'TCR'), 0.000001, 1, 1, 0);\n" +
             "\n" +
             "INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES\n" +
             "  ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), '/client/img/merchants/transfer.png', 'Transfer', (select id from CURRENCY where name = 'TCR'));\n" +
@@ -96,12 +94,12 @@ public class EthGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TCR');";
 
-    private static void generate(String name, String description, String contract, boolean isERC20, int decimals, String filePath, String abi, String bin) throws IOException {
-        createBean(name, contract, isERC20, decimals);
-        createSql(name, description);
-        createTokenWrapperGenerator(filePath, abi, bin);
+    private static void generate(String ticker, String description, String contract, boolean isERC20, int decimals, String abi, String bin) throws Exception {
+        createBean(ticker, contract, isERC20, decimals);
+        createSql(ticker, description);
+        createTokenWrapperGenerator(ticker, isERC20, bin, abi);
     }
-    private static void createBean(String name, String contract, boolean isERC20, int decimals) throws IOException {
+    private static void createBean(String ticker, String contract, boolean isERC20, int decimals) throws IOException {
         File cryptoCurrency = new File(new File("").getAbsoluteFile() + "/Controller/src/main/java/me/exrates/config/" + "WebAppConfig.java");
 
         FileReader reader = new FileReader(cryptoCurrency);
@@ -115,11 +113,11 @@ public class EthGenerator {
         String enumValueForDecimals = ExConvert.Unit.getListPossibleDecimalForEthereumTokens()
                 .stream().filter(e -> e.getFactor() == decimals).findFirst().get().toString().toUpperCase();
         String s = "//    Qtum tokens:";
-        String bean = "@Bean(name = \"" + name.toLowerCase() + "ServiceImpl\")\n" +
-                "\tpublic EthTokenService " + name.toLowerCase() + "ServiceImpl(){\n" +
+        String bean = "@Bean(name = \"" + ticker.toLowerCase() + "ServiceImpl\")\n" +
+                "\tpublic EthTokenService " + ticker.toLowerCase() + "ServiceImpl(){\n" +
                 "\t\tList<String> tokensList = new ArrayList<>();\n" +
                 "\t\ttokensList.add(\""+contract+"\");\n" +
-                "\t\treturn new EthTokenServiceImpl(tokensList, \"" + name + "\"," + "\"" + name + "\", " + isERC20 +", "+ "ExConvert.Unit."+ enumValueForDecimals + ");\n" +
+                "\t\treturn new EthTokenServiceImpl(tokensList, \"" + ticker.toUpperCase() + "\"," + "\"" + ticker.toUpperCase() + "\", " + isERC20 +", "+ "ExConvert.Unit."+ enumValueForDecimals + ");\n" +
                 "\t}" + "\n\n\t"+s;
 
         String replace = builder.toString().replace(s, bean);
@@ -133,7 +131,7 @@ public class EthGenerator {
         if(!newMigration.createNewFile()) throw new RuntimeException("Can not create file with pass " + newMigration.getAbsolutePath() + "\n maybe have not permission!");
 
         FileWriter writer = new FileWriter(newMigration);
-        writer.append(SQL_PATCH.replace("TCR", ticker).replace("beanname", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
+        writer.append(SQL_PATCH.replace("TCR", ticker).replace("replacementEthereumTokenCoinDescription", description)).flush();
     }
 
     private static String getSqlName(String name){
@@ -153,7 +151,35 @@ public class EthGenerator {
         return "V" + version + "__Ethereum_token_" + name;
     }
 
-    private static void createTokenWrapperGenerator(String filePath, String abi, String bin) throws IOException {
+    private static void createTokenWrapperGenerator(String ticker, boolean isERC20, String bin, String abi) throws Exception {
+        PrintWriter binFile = new PrintWriter(FILE_PATH_TO_BIN_ABI_FILES+ticker.toUpperCase()+".bin", "UTF-8");
+        binFile.println(bin);
+        binFile.close();
+
+        PrintWriter abiFile = new PrintWriter(FILE_PATH_TO_BIN_ABI_FILES+ticker.toUpperCase()+".abi", "UTF-8");
+        abiFile.println(abi);
+        abiFile.close();
+
+        TokenWrappersGenerator.generateWrapper(ticker, FILE_PATH_TO_BIN_ABI_FILES, FILE_PATH_TO_WRAPPERS, WRAPPERS_PACKAGE);
+
+        File ethereumToken = new File(FILE_PATH_TO_WRAPPERS + "/"+ WRAPPERS_PACKAGE.replace(".", "/") +"/"+ ticker.toUpperCase()+".java");
+
+        FileReader reader = new FileReader(ethereumToken);
+
+        int c;
+        StringBuilder builder = new StringBuilder();
+        while ((c = reader.read()) != -1){
+            builder.append((char)c);
+        }
+
+        String s = "public class "+ticker.toUpperCase()+" extends Contract";
+        String implementsToken = isERC20 ? "implements ethTokenERC20" : "implements ethTokenNotERC20";
+        String title = s+ " "+implementsToken;
+
+        String replace = builder.toString().replace(s, title);
+
+        FileWriter writer = new FileWriter(ethereumToken, false);
+        writer.append(replace).flush();
     }
 
 
@@ -190,10 +216,11 @@ public class EthGenerator {
 
 
 
-    public static final String FILE_PATH = "";
+    public static final String FILE_PATH_TO_BIN_ABI_FILES = "/Users/vlad.dziubak/crypto/eth/";
+    public static final String FILE_PATH_TO_WRAPPERS = "/Users/vlad.dziubak/workspace/exrates/Service/src/main/java";
+    public static final String WRAPPERS_PACKAGE = "me.exrates.service.ethereum.ethTokensWrappers";
 
-    public static void main(String[] args) throws IOException {
-//        generate("EXO", "Exosis");
-        createBean("TEST", "contract", true, 18);
+    public static void main(String[] args) throws Exception {
+        generate("MANA", true,"First test", "Second test");
     }
 }
