@@ -251,6 +251,7 @@ public class NgDashboardController {
     public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "currencyName", defaultValue = "") String currencyName,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
@@ -273,7 +274,7 @@ public class NgDashboardController {
                 : Collections.singletonMap("date_creation", sortByCreated);
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
+                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, currencyName, orderStatus, scope, offset,
                             limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
