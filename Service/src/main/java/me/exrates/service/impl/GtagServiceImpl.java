@@ -56,7 +56,7 @@ public class GtagServiceImpl implements GtagService {
 
         formData.add("v", "1");
         formData.add("cid", userName);
-        formData.add("tid", "GTM-TPR6SBC");
+        formData.add("tid", "UA-75711135-3");
         formData.add("t", "transaction");
         formData.add("in", tiker);
         formData.add("cu", "USD");
@@ -73,7 +73,7 @@ public class GtagServiceImpl implements GtagService {
 
         formData.add("v", "1");
         formData.add("cid", userName);
-        formData.add("tid", "GTM-TPR6SBC");
+        formData.add("tid", "UA-75711135-3");
         formData.add("t", "item");
         formData.add("ti", transactionId);
         formData.add("in", tiker);
