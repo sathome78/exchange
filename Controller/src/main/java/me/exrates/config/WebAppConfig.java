@@ -1670,6 +1670,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "BAT","BAT", true, ExConvert.Unit.ETHER);
 	}
 
+	@Bean(name = "rdnServiceImpl")
+	public EthTokenService rdnServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6");
+		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "rdnServiceImpl")
+	public EthTokenService rdnServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6");
+		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
+	}
+
 	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
