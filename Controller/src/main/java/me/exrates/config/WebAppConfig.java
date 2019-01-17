@@ -1258,11 +1258,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "tusdServiceImpl")
     public EthTokenService tusdService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x8dd5fbce2f6a956c3022ba3663759011dd51e73e");
+        tokensList.add("0x0000000000085d4780b73119b644ae5ecd22b376");
         return new EthTokenServiceImpl(
                 tokensList,
                 "TUSD",
-                "TUSD", true, ExConvert.Unit.ETHER);
+                "TUSD", false, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "fpwrServiceImpl")
