@@ -7,7 +7,6 @@ import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
@@ -48,7 +47,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
@@ -164,9 +162,7 @@ public class NgUserController {
         if (shouldLoginWithGoogle) {
             Integer userId = userService.getIdByEmail(authenticationDto.getEmail());
             if (!g2faService.checkGoogle2faVerifyCode(authenticationDto.getPin(), userId)) {
-                if (!DEV_MODE) {
-                    throw new IncorrectPinException("Incorrect google auth code");
-                }
+                throw new IncorrectPinException("Incorrect google auth code");
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
