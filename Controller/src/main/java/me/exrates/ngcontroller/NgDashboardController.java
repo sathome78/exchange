@@ -236,6 +236,7 @@ public class NgDashboardController {
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
+     * @param currencyName   - filter if currency pair join name contains value, default is empty
      * @param page           - requested page, not required,  default 1
      * @param limit          - defines quantity rows per page, not required,  default 14
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
