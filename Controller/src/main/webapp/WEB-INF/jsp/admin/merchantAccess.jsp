@@ -42,7 +42,7 @@
             <div class="tab-content">
 
                 <div id="panel1" class="tab-pane active">
-                            <div class="col-sm-8 col-sm-offset-2">
+                            <div class="col-sm-4">
 
                                 <table id="merchant-options-table">
                                     <thead>
