@@ -106,21 +106,25 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
-            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
-        }
+        rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+        return new ResponseEntity<>(HttpStatus.CREATED);
 
-        String result = ngOrderService.createOrder(inputOrder);
-        HashMap<String, String> resultMap = new HashMap<>();
-
-        if (!StringUtils.isEmpty(result)) {
-            resultMap.put("message", "success");
-            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
-        } else {
-            resultMap.put("message", "fail");
-            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
-        }
+//        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
+//            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
+//        }
+//
+//
+//        String result = ngOrderService.createOrder(inputOrder);
+//        HashMap<String, String> resultMap = new HashMap<>();
+//
+//        if (!StringUtils.isEmpty(result)) {
+//            resultMap.put("message", "success");
+//            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+//            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
+//        } else {
+//            resultMap.put("message", "fail");
+//            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
+//        }
     }
 
     @DeleteMapping("/order/{id}")
@@ -232,6 +236,7 @@ public class NgDashboardController {
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
+     * @param currencyName   - filter if currency pair join name contains value, default is empty
      * @param page           - requested page, not required,  default 1
      * @param limit          - defines quantity rows per page, not required,  default 14
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
@@ -247,6 +252,7 @@ public class NgDashboardController {
     public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "currencyName", defaultValue = "") String currencyName,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
@@ -269,7 +275,7 @@ public class NgDashboardController {
                 : Collections.singletonMap("date_creation", sortByCreated);
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
+                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, currencyName, orderStatus, scope, offset,
                             limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
