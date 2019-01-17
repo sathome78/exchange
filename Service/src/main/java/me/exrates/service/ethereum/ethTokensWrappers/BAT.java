@@ -172,13 +172,13 @@ public class BAT extends Contract implements ethTokenERC20 {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteCall<TransactionReceipt> finalize() {
-        final Function function = new Function(
-                FUNC_FINALIZE, 
-                Arrays.<Type>asList(), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
+//    public RemoteCall<> finalize() {
+//        final Function function = new Function(
+//                FUNC_FINALIZE,
+//                Arrays.<Type>asList(),
+//                Collections.<TypeReference<?>>emptyList());
+//        return executeRemoteCallTransaction(function);
+//    }
 
     public RemoteCall<String> version() {
         final Function function = new Function(FUNC_VERSION, 
