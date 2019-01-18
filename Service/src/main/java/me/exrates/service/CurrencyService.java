@@ -109,4 +109,12 @@ public interface CurrencyService {
     boolean isIco(Integer currencyId);
 
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
+
+    List<Currency> findAllCurrency();
+
+    boolean updateVisibilityCurrencyById(int currencyId);
+
+    List<CurrencyPair> findAllCurrencyPair();
+
+    boolean updateVisibilityCurrencyPairById(int currencyPairId);
 }

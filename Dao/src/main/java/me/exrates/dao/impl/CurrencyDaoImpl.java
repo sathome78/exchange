@@ -570,6 +570,47 @@ public class CurrencyDaoImpl implements CurrencyDao {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
-
     }
+
+    @Override
+    public List<Currency> findAllCurrency() {
+        String sql = "SELECT id, name, description, hidden FROM CURRENCY";
+        return jdbcTemplate.query(sql, (rs, i) -> {
+            Currency result = new Currency();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setDescription(rs.getString("description"));
+            result.setHidden(rs.getBoolean("hidden"));
+            return result;
+        });
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyById(int currencyId) {
+        String sql = "UPDATE CURRENCY SET hidden = !hidden WHERE id = :currency_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_id", currencyId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrencyPair() {
+        String sql = "SELECT id, name, hidden FROM CURRENCY_PAIR";
+        return jdbcTemplate.query(sql, (rs, i) -> {
+            CurrencyPair result = new CurrencyPair();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setHidden(rs.getBoolean("hidden"));
+            return result;
+        });
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
+        String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
 }

@@ -31,12 +31,18 @@
                 <button class="adminForm-toggler blue-box">
                     <loc:message code="merchants.transferTitle"/>
                 </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="title.hide.currency.pair"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="title.hide.currency.visibility"/>
+                </button>
             </div>
 
             <div class="tab-content">
 
                 <div id="panel1" class="tab-pane active">
-                            <div class="col-sm-8 col-sm-offset-2">
+                            <div class="col-sm-4">
 
                                 <table id="merchant-options-table">
                                     <thead>
@@ -79,6 +85,41 @@
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th data-operationtype="USER_TRANSFER"><loc:message code="merchants.transfer"/></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="panel3" class="tab-pane">
+                    <div class="col-sm-8 col-sm-offset-2">
+
+                        <table id="currency-pairs-visibility-options-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.pair.id"/> </th>
+                                <th><loc:message code="title.hide.currency.pair"/> </th>
+                                <th><loc:message code="title.visibility"/></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="panel4" class="tab-pane">
+                    <div class="col-sm-8 col-sm-offset-2">
+
+                        <table id="currency-visibility-options-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.id"/> </th>
+                                <th><loc:message code="admin.currencyLimits.description"/> </th>
+                                <th><loc:message code="withdrawal.currency"/> </th>
+                                <th><loc:message code="title.visibility"/></th>
                             </tr>
                             </thead>
                             <tbody>

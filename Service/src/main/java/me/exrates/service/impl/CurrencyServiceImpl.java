@@ -340,4 +340,24 @@ public class CurrencyServiceImpl implements CurrencyService {
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         return currencyDao.findActiveCurrencyPairs();
     }
+
+    @Override
+    public List<Currency> findAllCurrency(){
+        return currencyDao.findAllCurrency();
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyById(int currencyId){
+        return currencyDao.updateVisibilityCurrencyById(currencyId);
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrencyPair(){
+        return currencyDao.findAllCurrencyPair();
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyPairById(int currencyPairId){
+        return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
+    }
 }

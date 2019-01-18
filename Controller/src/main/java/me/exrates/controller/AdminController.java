@@ -1034,6 +1034,31 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrency")
+    public List<Currency> getCurrency() {
+        return currencyService.findAllCurrency();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update")
+    public ResponseEntity<Void> updateVisibilityCurrencyById(@RequestParam("currencyId") int currencyId) {
+        currencyService.updateVisibilityCurrencyById(currencyId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs")
+    public List<CurrencyPair> getCurrencyPairs() {
+        return currencyService.findAllCurrencyPair();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
+    public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateVisibilityCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)

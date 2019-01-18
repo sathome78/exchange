@@ -91,4 +91,12 @@ public interface CurrencyDao {
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 
     Optional<Integer> findOpenCurrencyPairIdByName(String pairName);
+
+    List<Currency> findAllCurrency();
+
+    boolean updateVisibilityCurrencyById(int currencyId);
+
+    List<CurrencyPair> findAllCurrencyPair();
+
+    boolean updateVisibilityCurrencyPairById(int currencyPairId);
 }

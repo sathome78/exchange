@@ -107,6 +107,58 @@ $(document).ready(function () {
         }
     });
 
+    var $currencyVisibilityTable = $('#currency-visibility-options-table');
+    currencyVisibilityTable = $($currencyVisibilityTable).DataTable({
+        "ajax": { "url": "/2a8fy7b07dxe44/merchantAccess/getCurrency", "dataSrc": ""},
+        "paging": false,
+        "columns": [
+            {
+                "data": "id",
+                "visible": false
+            },
+            {
+                "data": "name"
+            },
+            {
+                "data": "description"
+            },
+            {
+                "data": "hidden",
+                "render": function (data) {
+                    return '<span>'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            }
+        ],
+        "createdRow": function (row, data, index) {
+            $(row).attr("data-currencyid", data.id);
+        }
+    });
+
+    var $currencyPairsVisibilityTable = $('#currency-pairs-visibility-options-table');
+    currencyPairsVisibilityTable = $($currencyPairsVisibilityTable).DataTable({
+        "ajax": { "url": "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs", "dataSrc": ""},
+        "paging": false,
+        "columns": [
+            {
+                "data": "id",
+                "visible": false
+            },
+            {
+                "data": "name"
+            },
+            {
+                "data": "hidden",
+                "render": function (data) {
+                    return '<span>'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            }
+        ],
+        "createdRow": function (row, data, index) {
+            $(row).attr("data-currencypairid", data.id);
+        }
+    });
 
     $merchantAccessTable.find('tbody').on('click', 'i', function () {
         var operationType = $(this).parent().data('operationtype');
@@ -123,6 +175,20 @@ $(document).ready(function () {
         var currencyId = $(this).parents('tr').data('currencyid');
         if (confirm($('#prompt-toggle-block').html())) {
             toggleBlock(merchantId, currencyId, operationType, this);
+        }
+    });
+
+    $currencyVisibilityTable.find('tbody').on('click', 'i', function () {
+        var currencyId = $(this).parents('tr').data('currencyid');
+        if (confirm($('#prompt-toggle-block').html())) {
+            changeVisibilityForCurrency(currencyId, this);
+        }
+    });
+
+    $currencyPairsVisibilityTable.find('tbody').on('click', 'i', function () {
+        var currencyPairId = $(this).parents('tr').data('currencypairid');
+        if (confirm($('#prompt-toggle-block').html())) {
+            changeVisibilityForCurrencyPair(currencyPairId, this);
         }
     });
 
@@ -275,6 +341,40 @@ function toggleBlock(merchantId, currencyId, operationType, $element) {
         data: formData,
         contentType: false,
         processData: false,
+        success: function () {
+            $($element).toggleClass('fa-lock red');
+            $($element).toggleClass('fa-unlock');
+        }
+    });
+}
+
+function changeVisibilityForCurrency(currencyId, $element) {
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/currency/visibility/update',
+        type: 'POST',
+        data: {
+            "currencyId":currencyId
+        },
+        success: function () {
+            $($element).toggleClass('fa-lock red');
+            $($element).toggleClass('fa-unlock');
+        }
+    });
+}
+
+function changeVisibilityForCurrencyPair(currencyPairId, $element) {
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update',
+        type: 'POST',
+        data: {
+            "currencyPairId":currencyPairId
+        },
         success: function () {
             $($element).toggleClass('fa-lock red');
             $($element).toggleClass('fa-unlock');
