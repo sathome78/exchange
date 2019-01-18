@@ -5,9 +5,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
-import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.SecurityInterceptor;
+import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -15,14 +15,11 @@ import me.exrates.security.config.SecurityConfig;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
-import me.exrates.service.ethereum.EthTokenService;
-import me.exrates.service.ethereum.EthTokenServiceImpl;
-import me.exrates.service.ethereum.EthereumCommonService;
-import me.exrates.service.ethereum.EthereumCommonServiceImpl;
-import me.exrates.service.ethereum.ExConvert;
+import me.exrates.service.ethereum.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.HCXPServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
@@ -44,14 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -75,11 +65,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -90,25 +76,12 @@ import org.zeromq.ZMQ;
 import javax.annotation.PostConstruct;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "config")
@@ -136,11 +109,10 @@ import java.util.stream.Collectors;
         "classpath:/angular.properties",
         "classpath:/merchants/stellar.properties",
         "classpath:/geetest.properties",
-        "classpath:/merchants/qiwi.properties"})
+        "classpath:/merchants/qiwi.properties",
+        "classpath:/ssm.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
-
-
 
     @Value("${db.properties.file}")
     private String dbPropertiesFile;
@@ -231,6 +203,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
+    @Value("${ssm.token.api.nodes}")
+    private String nodeApiToken;
+
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -244,6 +219,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
+//    private final SSMGetter ssmGetter;
+//
+//    public WebAppConfig(SSMGetter ssmGetter) {
+//        this.ssmGetter = ssmGetter;
+//    }
 
     @PostConstruct
     public void init() {
@@ -268,10 +248,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlavePassword = properties.getProperty("db.slave.password");
         dbSlaveUrl = properties.getProperty("db.slave.url");
         dbSlaveClassname = properties.getProperty("db.slave.classname");
-        dbSlaveForReportsUser = properties.getProperty("db.slave.user");
-        dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
-        dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
-        dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
     }
 
 
@@ -319,18 +295,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new HikariDataSource(hikariConfig);
     }
 
-    @Bean(name = "slaveForReportsDataSource")
-    public DataSource slaveForReportsDataSource() {
-        HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(dbSlaveForReportsClassname);
-        hikariConfig.setJdbcUrl(dbSlaveForReportsUrl);
-        hikariConfig.setUsername(dbSlaveForReportsUser);
-        hikariConfig.setPassword(dbSlaveForReportsPassword);
-        hikariConfig.setMaximumPoolSize(50);
-        hikariConfig.setReadOnly(true);
-        return new HikariDataSource(hikariConfig);
-    }
-
     @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
@@ -341,12 +305,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
-    }
-
-    @DependsOn("slaveForReportsDataSource")
-    @Bean(name = "slaveForReportsTemplate")
-    public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
@@ -366,11 +324,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
         return new DataSourceTransactionManager(slaveHikariDataSource());
-    }
-
-    @Bean(name = "transactionManagerForReports")
-    public PlatformTransactionManager transactionManagerForReports() {
-        return new DataSourceTransactionManager(slaveForReportsDataSource());
     }
 
     @Bean
@@ -437,6 +390,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
+//        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
+        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
     }
 
 
@@ -549,79 +504,79 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
-                "NuShares", "NSR", 30, 20, false, false);
+                "NuShares", "NSR", 20, 20, false, false);
     }
 
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
         return new BitcoinServiceImpl("merchants/aml_wallet.properties",
-                "AML", "ABTC", 30, 20, false);
+                "AML", "ABTC", 20, 20, false);
     }
 
     @Bean(name = "bbccServiceImpl")
     public BitcoinService bbccService() {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
-                "BBX", "BBX", 30, 20, false, false, false);
+                "BBX", "BBX", 20, 20, false, false, false);
     }
 
     @Bean(name = "hsrServiceImpl")
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
-                "HSR", "HSR", 30, 20, false, false);
+                "HSR", "HSR", 20, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
-                "Ethereum", "ETH", 15);
+                "Ethereum", "ETH", 12);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
-                "Ethereum Classic", "ETC", 400);
+                "Ethereum Classic", "ETC", 12);
     }
 
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "EtherZero", "ETZ", 40);
+                "EtherZero", "ETZ", 12);
     }
 
     @Bean(name = "cloServiceImpl")
     public EthereumCommonService cloService() {
         return new EthereumCommonServiceImpl("merchants/callisto.properties",
-                "CLO", "CLO", 40);
+                "CLO", "CLO", 12);
     }
 
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 40);
+                "B2G", "B2G", 12);
     }
 
     @Bean(name = "golServiceImpl")
     public EthereumCommonService golService() {
         return new EthereumCommonServiceImpl("merchants/goldiam.properties",
-                "GOL", "GOL", 40);
+                "GOL", "GOL", 12);
     }
 
     @Bean(name = "cnetServiceImpl")
     public EthereumCommonService cnetService() {
         return new EthereumCommonServiceImpl("merchants/contractnet.properties",
-                "CNET", "CNET", 110);
+                "CNET", "CNET", 0);
     }
 
     @Bean(name = "ntyServiceImpl")
     public EthereumCommonService ntyService() {
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
-                "NTY", "NTY", 40);
+                "NTY", "NTY", 12);
     }
 
     @Bean(name = "etherincServiceImpl")
     public EthereumCommonService etherincService() {
         return new EthereumCommonServiceImpl("merchants/eti.properties",
-                "ETI", "ETI", 50);
+                "ETI", "ETI", 12);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -988,7 +943,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TNR", true, ExConvert.Unit.ETHER);
     }
 
-    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
@@ -1574,11 +1528,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "ectServiceImpl")
     public EthTokenService ectService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
+        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
         return new EthTokenServiceImpl(
                 tokensList,
-                "ECT",
-                "ECT", true, ExConvert.Unit.WEI);
+                "ECTE",
+                "ECTE", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "s4fServiceImpl")
@@ -1641,7 +1595,44 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WaBi", true, ExConvert.Unit.ETHER);
     }
 
-    //    Qtum tokens:
+    @Bean(name = "poaServiceImpl")
+    public EthTokenService poaService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "POA",
+                "POA", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mcoServiceImpl")
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "zilServiceImpl")
+    public EthTokenService zilService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ZIL",
+                "ZIL", true, ExConvert.Unit.SZABO);
+    }
+
+	@Bean(name = "wabiServiceImpl")
+	public EthTokenService wabiServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
+		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", false, ExConvert.Unit.ETHER);
+	}
+
+	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
         List<String> tokensList = new ArrayList<>();
@@ -1674,7 +1665,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "sumoServiceImpl")
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
-                "SUMO", "SUMO", 20, 9);
+                "SUMO", "SUMO", 10, 9);
+    }
+
+    @Bean(name = "hcxpServiceImpl")
+    public MoneroService hcxpService() {
+        return new HCXPServiceImpl("merchants/hcxp.properties",
+                "HCXP", "HCXP", 10, 6);
     }
 
     /***tokens based on xem mosaic)****/
@@ -1824,13 +1821,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public GeetestLib geetest() {
         return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
-    }
-
-    @Bean
-    public Client client() {
-        Client build = ClientBuilder.newBuilder().build();
-        build.register(new LoggingFilter());
-        return build;
     }
 
 }
