@@ -1585,16 +1585,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "HT", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "wabiServiceImpl")
-    public EthTokenService wabiService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "WaBi",
-                "WaBi", true, ExConvert.Unit.ETHER);
-    }
-
     @Bean(name = "poaServiceImpl")
     public EthTokenService poaService() {
         List<String> tokensList = new ArrayList<>();
@@ -1689,6 +1679,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xa3d58c4e56fedcae3a7c43a725aee9a71f0ece4e");
 		return new EthTokenServiceImpl(tokensList, "MET","MET", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "wabiServiceImpl")
+	public EthTokenService wabiServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
+		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", false, ExConvert.Unit.ETHER);
 	}
 
 	//    Qtum tokens:
