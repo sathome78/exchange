@@ -38,7 +38,7 @@ public class MetricsCache {
         return methodMetricsMap.get(key);
     }
 
-    public void setMethodMetrics(String key, MethodMetricsDto methodMetrics) {
-        methodMetricsMap.put(key, methodMetrics);
+    public void setMethodMetrics(MethodMetricsDto methodMetrics) {
+        methodMetricsMap.put(methodMetrics.getMethodKey(), methodMetrics);
     }
 }
