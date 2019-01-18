@@ -1667,7 +1667,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public EthTokenService batServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
-		return new EthTokenServiceImpl(tokensList, "BAT","BAT", true, ExConvert.Unit.ETHER);
+		return new EthTokenServiceImpl(tokensList, "BAT","BAT", false, ExConvert.Unit.ETHER);
 	}
 
 	@Bean(name = "rdnServiceImpl")
