@@ -53,7 +53,7 @@ public class MoneroUtils {
     public static void validateStandardAddress(String standardAddress) {
         if (standardAddress == null) {
             throw new MoneroException("Standard address is null");
-        } else if (!standardAddress.startsWith("4") && !standardAddress.startsWith("9") && !standardAddress.startsWith("A") && !standardAddress.startsWith("S") && !standardAddress.startsWith("h")) {
+        } else if (!standardAddress.startsWith("4") && !standardAddress.startsWith("9") && !standardAddress.startsWith("A") && !standardAddress.startsWith("S") && !standardAddress.startsWith("h")  && !standardAddress.startsWith("i")) {
             throw new MoneroException("Standard address does not start with 4, 9 or A");
         } else {
             validateBase58(standardAddress);
