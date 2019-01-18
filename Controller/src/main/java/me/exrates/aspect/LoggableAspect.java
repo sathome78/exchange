@@ -50,7 +50,7 @@ public class LoggableAspect {
                     .errorCounter(new AtomicInteger())
                     .executionTimes(new CopyOnWriteArrayList<>())
                     .build();
-            metricsCache.setMethodMetrics(key, methodMetrics);
+            metricsCache.setMethodMetrics(methodMetrics);
         }
 
         log.debug("Starting [{}], called {} time(s)",
