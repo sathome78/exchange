@@ -18,6 +18,7 @@ public class StatisticForMarket {
     private BigDecimal lastOrderRate;
     private BigDecimal predLastOrderRate;
     private BigDecimal volume;
+    private BigDecimal currencyVolume;
     private String percentChange;
     private int page = 0;
     private boolean needToRefresh = true;
