@@ -3,39 +3,43 @@ package me.exrates.dao.impl;
 import me.exrates.dao.MetricsDao;
 import me.exrates.model.MethodMetricsDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Repository
 public class MetricsDaoImpl implements MetricsDao {
 
     @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
     @Override
-    public void saveMethodMetrics(MethodMetricsDto methodMetrics) {
-        final String methodKey = methodMetrics.getMethodKey();
-        final int invocationCounter = methodMetrics.getInvocationCounter().get();
-        final int errorCounter = methodMetrics.getErrorCounter().get();
-        final double averageExecutionTime = methodMetrics.getExecutionTimes().stream().mapToLong(Long::longValue).summaryStatistics().getAverage();
-
+    public void saveMethodMetrics(List<MethodMetricsDto> methodMetricsDtoList) {
         final String sql = "INSERT INTO METHOD_METRICS (method_key, invocation_counter, error_counter, average_execution_time, created_at)" +
-                " VALUES (:method_key, :invocation_counter, :error_counter, :average_execution_time, :created_at)";
+                " VALUES (?, ?, ?, ?, ?)";
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("method_key", methodKey);
-        params.put("invocation_counter", invocationCounter);
-        params.put("error_counter", errorCounter);
-        params.put("average_execution_time", averageExecutionTime);
-        params.put("created_at", Date.valueOf(LocalDate.now()));
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
-        jdbcTemplate.update(sql, params);
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                MethodMetricsDto methodMetrics = methodMetricsDtoList.get(i);
+                preparedStatement.setString(1, methodMetrics.getMethodKey());
+                preparedStatement.setInt(2, methodMetrics.getInvocationCounter().get());
+                preparedStatement.setInt(3, methodMetrics.getErrorCounter().get());
+                preparedStatement.setDouble(4, methodMetrics.getExecutionTimes().stream().mapToLong(Long::longValue).summaryStatistics().getAverage());
+                preparedStatement.setDate(5, Date.valueOf(LocalDate.now()));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return methodMetricsDtoList.size();
+            }
+        });
     }
 }

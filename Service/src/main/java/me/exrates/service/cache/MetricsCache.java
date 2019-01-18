@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -30,7 +32,8 @@ public class MetricsCache {
     }
 
     private void saveDailyMetricsToDatabase() {
-        methodMetricsMap.values().forEach(metricsDao::saveMethodMetrics);
+        List<MethodMetricsDto> values = new ArrayList<>(methodMetricsMap.values());
+        metricsDao.saveMethodMetrics(values);
         methodMetricsMap.clear();
     }
 
