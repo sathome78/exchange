@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +53,9 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
+
+    @Value("${front-host}")
+    private String HOST;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
@@ -85,10 +87,6 @@ public class NgUserServiceImpl implements NgUserService {
         user.setEmail(userEmailDto.getEmail());
         if (!StringUtils.isEmpty(userEmailDto.getParentEmail())) user.setParentEmail(userEmailDto.getParentEmail());
         user.setIp(IpUtils.getClientIpAddress(request));
-        if (DEV_MODE) {
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            user.setPassword(passwordEncoder.encode("password"));
-        }
 
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
@@ -97,15 +95,13 @@ public class NgUserServiceImpl implements NgUserService {
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
-        String host = "https://demo.exrates.me/";
 
-        if (!DEV_MODE) {
-            sendEmailWithToken(user,
-                    TokenType.REGISTRATION,
-                    "emailsubmitregister.subject",
-                    "emailsubmitregister.text",
-                    Locale.ENGLISH, host, "final-registration/token?t=");
-        }
+        sendEmailWithToken(user,
+                TokenType.REGISTRATION,
+                "emailsubmitregister.subject",
+                "emailsubmitregister.text",
+                Locale.ENGLISH, HOST, "final-registration/token?t=");
+
 
         return true;
     }
@@ -155,12 +151,11 @@ public class NgUserServiceImpl implements NgUserService {
 
         String emailIncome = userEmailDto.getEmail();
         User user = userDao.findByEmail(emailIncome);
-        String host = "https://demo.exrates.me/";
         sendEmailWithToken(user,
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
                 "emailsubmitResetPassword.text",
-                Locale.ENGLISH, host,
+                Locale.ENGLISH, HOST,
                 "recovery-password?t=");
 
         return true;
@@ -206,9 +201,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of disable 2FA");
 
-        if (!DEV_MODE) {
-            sendMailService.sendMailMandrill(email);
-        }
+        sendMailService.sendMailMandrill(email);
     }
 
     @Override
@@ -222,9 +215,7 @@ public class NgUserServiceImpl implements NgUserService {
                 "If this was not you, please change your password and contact us.");
         email.setSubject("Notification of enable 2FA");
 
-        if (!DEV_MODE) {
-            sendMailService.sendMailMandrill(email);
-        }
+        sendMailService.sendMailMandrill(email);
     }
 
     @Override
@@ -232,15 +223,12 @@ public class NgUserServiceImpl implements NgUserService {
         List<TemporalToken> tokens = userService.getTokenByUserAndType(user, TokenType.REGISTRATION);
         tokens.forEach(o -> userService.deleteTempTokenByValue(o.getValue()));
 
-        String host = "https://demo.exrates.me/";
+        sendEmailWithToken(user,
+                TokenType.REGISTRATION,
+                "emailsubmitregister.subject",
+                "emailsubmitregister.text",
+                Locale.ENGLISH, HOST, "final-registration/token?t=");
 
-        if (!DEV_MODE) {
-            sendEmailWithToken(user,
-                    TokenType.REGISTRATION,
-                    "emailsubmitregister.subject",
-                    "emailsubmitregister.text",
-                    Locale.ENGLISH, host, "final-registration/token?t=");
-        }
     }
 
 
