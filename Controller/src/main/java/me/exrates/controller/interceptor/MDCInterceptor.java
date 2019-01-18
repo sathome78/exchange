@@ -15,4 +15,12 @@ public class MDCInterceptor extends HandlerInterceptorAdapter {
         ThreadContext.put("process.id", String.valueOf(UUID.randomUUID()));
         return true;
     }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
+        ThreadContext.clearAll();
+
+    }
 }
