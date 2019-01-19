@@ -75,29 +75,29 @@ public class MoneroUtils {
     }
 
     public static void validateIntegratedAddress(String integratedAddress) {
-        if (integratedAddress == null) {
-            throw new MoneroException("Integrated address is null");
-        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110) {
-            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 110);
-        }
+//        if (integratedAddress == null) {
+//            throw new MoneroException("Integrated address is null");
+//        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110) {
+//            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 110);
+//        }
     }
 
     public static void validateIntegratedAddress(String standardAddress, String paymentId, String integratedAddress) {
-        validateStandardAddress(standardAddress);
-        if (paymentId != null) {
-            validatePaymentId(paymentId);
-        }
-
-        validateIntegratedAddress(integratedAddress);
+//        validateStandardAddress(standardAddress);
+//        if (paymentId != null) {
+//            validatePaymentId(paymentId);
+//        }
+//
+//        validateIntegratedAddress(integratedAddress);
     }
 
     public static void validateAddress(MoneroAddress address) {
-        if (address instanceof MoneroIntegratedAddress) {
-            MoneroIntegratedAddress integratedAddress = (MoneroIntegratedAddress)address;
-            validateIntegratedAddress(integratedAddress.getStandardAddress(), integratedAddress.getPaymentId(), integratedAddress.getIntegratedAddress());
-        } else {
-            validateStandardAddress(address.getStandardAddress());
-        }
+//        if (address instanceof MoneroIntegratedAddress) {
+//            MoneroIntegratedAddress integratedAddress = (MoneroIntegratedAddress)address;
+//            validateIntegratedAddress(integratedAddress.getStandardAddress(), integratedAddress.getPaymentId(), integratedAddress.getIntegratedAddress());
+//        } else {
+//            validateStandardAddress(address.getStandardAddress());
+//        }
 
     }
 
