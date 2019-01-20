@@ -172,7 +172,7 @@ public class HCXPServiceImpl implements MoneroService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 3, 10, TimeUnit.MINUTES);
+                }, 3, 3, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }
