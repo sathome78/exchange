@@ -117,6 +117,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         merchantCurrencyOptionsDto.setCurrencyId(merchantId);
         merchantCurrencyOptionsDto.setWithdrawAutoDelaySeconds(1);
         merchantCurrencyOptionsDto.setWithdrawAutoEnabled(isEnabled);
+        merchantCurrencyOptionsDto.setWithdrawAutoThresholdAmount(BigDecimal.valueOf(999999));
         withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
     }
 
