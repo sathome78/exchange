@@ -1125,7 +1125,7 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(String addressForRefill, int merchantId, int currencyId, String txHash) {
+  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash) {
     return refillRequestDao.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
   }
 }

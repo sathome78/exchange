@@ -6,5 +6,6 @@ import com.neemre.btcdcli4j.core.CommunicationException;
 import java.io.IOException;
 
 public interface CoinTester {
-    void testCoin(String ticker, double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException;
+    void initBot(String name) throws BitcoindException, IOException, CommunicationException;
+    void testCoin(double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException;
 }

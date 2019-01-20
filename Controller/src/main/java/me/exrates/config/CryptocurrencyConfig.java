@@ -2,6 +2,7 @@ package me.exrates.config;
 
 import info.blockchain.api.exchangerates.Currency;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.BtcCoinTesterImpl;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
@@ -414,5 +415,9 @@ public class CryptocurrencyConfig {
     }
 
 
+    @Bean
+    BtcCoinTesterImpl btcCoinTester(){
+        return new BtcCoinTesterImpl();
+    }
 
 }
