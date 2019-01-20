@@ -49,6 +49,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     private String name;
     private final static Integer TIME_FOR_REFILL = 10000;
     private BtcdClient btcdClient;
+    private Object withdrawTest = new Object();
 
     public void initBot(String name) throws BitcoindException, IOException, CommunicationException {
         merchantId = merchantService.findByName(name).getId();
@@ -67,35 +68,56 @@ public class BtcCoinTesterImpl implements CoinTester {
         // destinationWallet=RXD4rVSxhQnyC5hoSQ3wF9LWDvdXvG9nMM, destinationTag=,
         // merchantId=321, merchantDescription=KODCoin, statusId=1, recipientBankName=null,
         // recipientBankCode=null, userFullName=null, remark=null, autoEnabled=null, autoThresholdAmount=null, merchantCommissionAmount=0E-8)
-        testWithdraw(refillAmount);
+        testAutoWithdraw(refillAmount);
     }
 
-    private void testWithdraw(double refillAmount) throws BitcoindException, CommunicationException {
-        String withdrawAddress = btcdClient.getNewAddress();
-        WithdrawRequestParamsDto withdrawRequestParamsDto = new WithdrawRequestParamsDto();
-        withdrawRequestParamsDto.setCurrency(currencyId);
-        withdrawRequestParamsDto.setMerchant(merchantId);
-        withdrawRequestParamsDto.setDestination(withdrawAddress);
-        withdrawRequestParamsDto.setDestinationTag("");
-        withdrawRequestParamsDto.setOperationType(OperationType.OUTPUT);
-        withdrawRequestParamsDto.setSum(BigDecimal.valueOf(refillAmount));
+    private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException {
+        synchronized (withdrawTest) {
+            String withdrawAddress = btcdClient.getNewAddress();
+            WithdrawRequestParamsDto withdrawRequestParamsDto = new WithdrawRequestParamsDto();
+            withdrawRequestParamsDto.setCurrency(currencyId);
+            withdrawRequestParamsDto.setMerchant(merchantId);
+            withdrawRequestParamsDto.setDestination(withdrawAddress);
+            withdrawRequestParamsDto.setDestinationTag("");
+            withdrawRequestParamsDto.setOperationType(OperationType.OUTPUT);
+            withdrawRequestParamsDto.setSum(BigDecimal.valueOf(refillAmount));
 
-        Payment payment = new Payment(OUTPUT);
-        payment.setCurrency(withdrawRequestParamsDto.getCurrency());
-        payment.setMerchant(withdrawRequestParamsDto.getMerchant());
-        payment.setSum(withdrawRequestParamsDto.getSum().doubleValue());
-        payment.setDestination(withdrawRequestParamsDto.getDestination());
-        payment.setDestinationTag(withdrawRequestParamsDto.getDestinationTag());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, "mikita.malykov@upholding.biz", new Locale("en"))
-                .orElseThrow(InvalidAmountException::new);
-        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+            Payment payment = new Payment(OUTPUT);
+            payment.setCurrency(withdrawRequestParamsDto.getCurrency());
+            payment.setMerchant(withdrawRequestParamsDto.getMerchant());
+            payment.setSum(withdrawRequestParamsDto.getSum().doubleValue());
+            payment.setDestination(withdrawRequestParamsDto.getDestination());
+            payment.setDestinationTag(withdrawRequestParamsDto.getDestinationTag());
+            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, "mikita.malykov@upholding.biz", new Locale("en"))
+                    .orElseThrow(InvalidAmountException::new);
+            WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
 
-        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(withdrawRequestParamsDto, creditsOperation, beginStatus);
-        withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, new Locale("en"));
-        //TODO retrieve заявку с базы
-        //ждём статус 10
-        //если статус не 10, а какая-то фигня - исключение
-        //когда статус 10 - провряем чтобы пришли бабки
+            WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(withdrawRequestParamsDto, creditsOperation, beginStatus);
+
+            setAutoWithdraw(true);
+
+            withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, new Locale("en"));
+
+            //TODO retrieve заявку с базы
+            //ждём статус 10
+            //если статус не 10, а какая-то фигня - исключение
+            //когда статус 10 - провряем чтобы пришли бабки
+        }
+    }
+
+    public void testManualWithdraw(){
+        synchronized (withdrawTest) {
+            setAutoWithdraw(false);
+        }
+    }
+
+    private void setAutoWithdraw(boolean isEnabled) {
+        MerchantCurrencyOptionsDto merchantCurrencyOptionsDto = new MerchantCurrencyOptionsDto();
+        merchantCurrencyOptionsDto.setCurrencyId(currencyId);
+        merchantCurrencyOptionsDto.setCurrencyId(merchantId);
+        merchantCurrencyOptionsDto.setWithdrawAutoDelaySeconds(1);
+        merchantCurrencyOptionsDto.setWithdrawAutoEnabled(isEnabled);
+        withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
     }
 
     private void checkRefill(double refillAmount, BtcdClient btcdClient, int merchantId, int currencyId, RefillRequestCreateDto request) throws BitcoindException, CommunicationException, InterruptedException {
