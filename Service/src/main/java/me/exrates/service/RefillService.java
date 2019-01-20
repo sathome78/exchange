@@ -152,4 +152,7 @@ public interface RefillService {
                                                               LocalDateTime endTime,
                                                               List<UserRole> roles,
                                                               int requesterId);
+
+
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(String addressForRefill, int txHash, int merchantId, String currencyId);
 }

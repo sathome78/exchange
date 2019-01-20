@@ -51,7 +51,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -1123,5 +1122,10 @@ public class RefillServiceImpl implements RefillService {
                                                                      List<UserRole> roles,
                                                                      int requesterId) {
     return refillRequestDao.findAllByPeriodAndRoles(startTime, endTime, roles, requesterId);
+  }
+
+  @Override
+  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(String addressForRefill, int merchantId, int currencyId, String txHash) {
+    return refillRequestDao.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
   }
 }

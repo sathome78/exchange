@@ -1303,5 +1303,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash) {
+        String sql = "SELECT * FROM REFILL_REQUEST WHERE " +
+                " merchant_id = :merchant_id AND" +
+                " " //todo
+        return Optional.empty();
+    }
 }
 

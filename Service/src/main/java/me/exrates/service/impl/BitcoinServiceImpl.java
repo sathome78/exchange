@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
+@Data
 public class BitcoinServiceImpl implements BitcoinService {
 
   @Value("${btcInvoice.blockNotifyUsers}")
@@ -92,6 +94,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
+  public BitcoinServiceImpl() {}
 
 
   @Override
@@ -623,5 +626,6 @@ public class BitcoinServiceImpl implements BitcoinService {
     bitcoinWalletService.shutdown();
     newTxCheckerScheduler.shutdown();
   }
+
 
 }

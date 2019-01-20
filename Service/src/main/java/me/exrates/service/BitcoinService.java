@@ -9,6 +9,7 @@ import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -93,4 +94,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
     void setSubtractFeeFromAmount(boolean subtractFeeFromAmount);
 
     boolean getSubtractFeeFromAmount();
+
+    default String getNodePropertySource(){
+      throw new NotImplementedException();
+    }
 }

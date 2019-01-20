@@ -143,4 +143,6 @@ public interface RefillRequestDao {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> roles,
                                                                 int requesterId);
+
+    Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash);
 }
