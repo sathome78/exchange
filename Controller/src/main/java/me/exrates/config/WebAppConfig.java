@@ -1729,7 +1729,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "hcxpServiceImpl")
     public MoneroService hcxpService() {
         return new HCXPServiceImpl("merchants/hcxp.properties",
-                "HCXP", "HCXP", 10, 6);
+                "HCXP", "HCXP", 1, 6);
     }
 
     /***tokens based on xem mosaic)****/
