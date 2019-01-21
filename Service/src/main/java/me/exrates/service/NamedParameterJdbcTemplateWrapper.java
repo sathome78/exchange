@@ -25,7 +25,7 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
         for (Map.Entry<String, ?> entry : paramMap.entrySet()) {
             sql = sql.replace(":" + entry.getKey(), String.valueOf(entry.getValue()));
         }
-        log.info(sql);
+        log.debug(sql);
     }
 
     @Override
