@@ -51,16 +51,16 @@ public class MoneroUtils {
     }
 
     public static void validateStandardAddress(String standardAddress) {
-//        if (standardAddress == null) {
-//            throw new MoneroException("Standard address is null");
-//        } else if (!standardAddress.startsWith("4") && !standardAddress.startsWith("9") && !standardAddress.startsWith("A") && !standardAddress.startsWith("S") && !standardAddress.startsWith("h")  && !standardAddress.startsWith("i")) {
-//            throw new MoneroException("Standard address does not start with 4, 9 or A");
-//        } else {
-//            validateBase58(standardAddress);
-//            if (standardAddress.length() != 95 && standardAddress.length() != 99 && standardAddress.length() != 97) {
-//                throw new MoneroException("Standard address is " + standardAddress.length() + " characters but must be " + 95 + " or " + 99 + " or " + 97);
-//            }
-//        }
+        if (standardAddress == null) {
+            throw new MoneroException("Standard address is null");
+        } else if (!standardAddress.startsWith("4") && !standardAddress.startsWith("9") && !standardAddress.startsWith("A") && !standardAddress.startsWith("S") && !standardAddress.startsWith("h")  && !standardAddress.startsWith("i")) {
+            throw new MoneroException("Standard address does not start with 4, 9, A or i");
+        } else {
+            validateBase58(standardAddress);
+            if (standardAddress.length() != 95 && standardAddress.length() != 99 && standardAddress.length() != 97 && standardAddress.length() != 108) {
+                throw new MoneroException("Standard address is " + standardAddress.length() + " characters but must be " + 95 + " or " + 99 + " or " + 97 + " or " + 108);
+            }
+        }
     }
 
     public static void validatePaymentId(String paymentId) {
@@ -75,29 +75,29 @@ public class MoneroUtils {
     }
 
     public static void validateIntegratedAddress(String integratedAddress) {
-//        if (integratedAddress == null) {
-//            throw new MoneroException("Integrated address is null");
-//        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110) {
-//            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 110);
-//        }
+        if (integratedAddress == null) {
+            throw new MoneroException("Integrated address is null");
+        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110 && integratedAddress.length() != 108) {
+            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 108);
+        }
     }
 
     public static void validateIntegratedAddress(String standardAddress, String paymentId, String integratedAddress) {
-//        validateStandardAddress(standardAddress);
-//        if (paymentId != null) {
-//            validatePaymentId(paymentId);
-//        }
-//
-//        validateIntegratedAddress(integratedAddress);
+        validateStandardAddress(standardAddress);
+        if (paymentId != null) {
+            validatePaymentId(paymentId);
+        }
+
+        validateIntegratedAddress(integratedAddress);
     }
 
     public static void validateAddress(MoneroAddress address) {
-//        if (address instanceof MoneroIntegratedAddress) {
-//            MoneroIntegratedAddress integratedAddress = (MoneroIntegratedAddress)address;
-//            validateIntegratedAddress(integratedAddress.getStandardAddress(), integratedAddress.getPaymentId(), integratedAddress.getIntegratedAddress());
-//        } else {
-//            validateStandardAddress(address.getStandardAddress());
-//        }
+        if (address instanceof MoneroIntegratedAddress) {
+            MoneroIntegratedAddress integratedAddress = (MoneroIntegratedAddress)address;
+            validateIntegratedAddress(integratedAddress.getStandardAddress(), integratedAddress.getPaymentId(), integratedAddress.getIntegratedAddress());
+        } else {
+            validateStandardAddress(address.getStandardAddress());
+        }
 
     }
 
