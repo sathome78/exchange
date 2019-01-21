@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -193,4 +194,12 @@ public interface UserService {
     String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
 
     Integer updateGaTag(String gatag, String userName);
+
+    void updateReferenceIdByUserId(int userId, String kycReference);
+
+    String getReferenceIdByUserId(int userId);
+
+    void updateVerificationStateByUserId(int userId, EventStatus eventStatus);
+
+    void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus);
 }

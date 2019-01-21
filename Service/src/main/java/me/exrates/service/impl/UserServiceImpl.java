@@ -13,7 +13,7 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
@@ -26,8 +26,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.UniqueEmailConstraintException;
-import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
@@ -38,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,7 +49,6 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -794,5 +790,23 @@ public class UserServiceImpl implements UserService {
         return passwordEncoder.matches(password, userDao.getPassword(userId));
     }
 
+    @Override
+    public void updateReferenceIdByUserId(int userId, String kycReference) {
+        userDao.updateReferenceIdByUserId(userId, kycReference);
+    }
 
+    @Override
+    public String getReferenceIdByUserId(int userId) {
+        return userDao.getReferenceIdByUserId(userId);
+    }
+
+    @Override
+    public void updateVerificationStateByUserId(int userId, EventStatus eventStatus) {
+        userDao.updateVerificationStateByUserId(userId, eventStatus);
+    }
+
+    @Override
+    public void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus) {
+        userDao.updateVerificationStateByReferenceId(reference, eventStatus);
+    }
 }

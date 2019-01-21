@@ -10,11 +10,10 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -22,7 +21,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -176,4 +174,11 @@ public interface UserDao {
 
     Integer updateGaTag(String gatag, String userName);
 
+    void updateReferenceIdByUserId(int userId, String kycReference);
+
+    String getReferenceIdByUserId(int userId);
+
+    void updateVerificationStateByUserId(int userId, EventStatus eventStatus);
+
+    void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus);
 }

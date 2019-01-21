@@ -12,11 +12,10 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserBalancesDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -51,7 +50,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1056,9 +1054,48 @@ public class UserDaoImpl implements UserDao {
         String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("ga", gatag);
-            put("email",userName);
+            put("email", userName);
         }};
         return namedParameterJdbcTemplate.update(sql, namedParameters);
     }
 
+    @Override
+    public void updateReferenceIdByUserId(int userId, String kycReference) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE id = :user_id";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("kyc_reference", kycReference);
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public String getReferenceIdByUserId(int userId) {
+        String sql = "SELECT kyc_reference FROM USER WHERE id =:user_id";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+        }};
+        return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public void updateVerificationStateByUserId(int userId, EventStatus eventStatus) {
+        final String sql = "UPDATE USER SET kyc_verification_state = :kyc_verification_state WHERE id = :user_id";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("kyc_verification_state", eventStatus.name());
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus) {
+        final String sql = "UPDATE USER SET kyc_verification_state = :kyc_verification_state WHERE kyc_reference = :kyc_reference";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("kyc_reference", reference);
+            put("kyc_verification_state", eventStatus.name());
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
+    }
 }
