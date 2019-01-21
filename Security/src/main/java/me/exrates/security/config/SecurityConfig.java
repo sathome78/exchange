@@ -146,6 +146,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/2a8fy7b07dxe44/commissions/editMerchantCommission",
                     "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
                     "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
+                    "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update",
+                    "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update",
                     "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
             .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())

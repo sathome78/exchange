@@ -31,9 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-/**
- * Created by ajet
- */
+
 public class HCXPServiceImpl implements MoneroService {
 
     private MoneroWalletRpc wallet;
@@ -174,7 +172,7 @@ public class HCXPServiceImpl implements MoneroService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 3, 60, TimeUnit.MINUTES);
+                }, 3, 3, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }

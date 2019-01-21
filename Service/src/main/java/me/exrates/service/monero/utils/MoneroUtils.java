@@ -77,8 +77,8 @@ public class MoneroUtils {
     public static void validateIntegratedAddress(String integratedAddress) {
         if (integratedAddress == null) {
             throw new MoneroException("Integrated address is null");
-        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110) {
-            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 110);
+        } else if (integratedAddress.length() != 106 && integratedAddress.length() != 110 && integratedAddress.length() != 108) {
+            throw new MoneroException("Integrated address is " + integratedAddress.length() + " characters but must be " + 106 + " or " + 108);
         }
     }
 

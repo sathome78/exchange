@@ -2,6 +2,8 @@ package me.exrates.service.ethereum;
 
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Maks on 12.03.2018.
@@ -44,13 +46,20 @@ public class ExConvert {
         private String name;
         private BigDecimal weiFactor;
 
+        private int factor;
+
         private Unit(String name, int factor) {
             this.name = name;
             this.weiFactor = BigDecimal.TEN.pow(factor);
+            this.factor = factor;
         }
 
         public BigDecimal getWeiFactor() {
             return this.weiFactor;
+        }
+
+        public int getFactor() {
+            return this.factor;
         }
 
         public String toString() {
@@ -71,6 +80,19 @@ public class ExConvert {
             }
 
             return valueOf(name);
+        }
+
+        public static List<Unit> getListPossibleDecimalForEthereumTokens() {
+            List<Unit> listPossibleDecimal =  new ArrayList<>();
+
+            ExConvert.Unit[] var1 = values();
+            int var2 = var1.length;
+
+            for(int var3 = 0; var3 < var2; ++var3) {
+                ExConvert.Unit unit = var1[var3];
+                listPossibleDecimal.add(unit);
+            }
+            return listPossibleDecimal;
         }
     }
 
