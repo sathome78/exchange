@@ -126,11 +126,6 @@ public class BtcCoinTesterImpl implements CoinTester {
 
             System.out.println("Withdraw works");
 
-//            withdrawService.getBy
-            //TODO retrieve заявку с базы
-            //ждём статус 10
-            //если статус не 10, а какая-то фигня - исключение
-            //когда статус 10 - провряем чтобы пришли бабки
 
         }
     }
@@ -268,5 +263,6 @@ public class BtcCoinTesterImpl implements CoinTester {
 //        CoinTester rimeTest = new BtcCoinTesterImpl();
 //        rimeTest.testCoin("RIME", 0.1);
     }
+
 
 }
