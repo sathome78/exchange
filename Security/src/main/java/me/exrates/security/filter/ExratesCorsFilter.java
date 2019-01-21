@@ -27,7 +27,7 @@ public class ExratesCorsFilter implements Filter {
 
 
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token, GACookies");
+        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, X-Forwarded-For, x-auth-token, Exrates-Rest-Token, GACookies, client_ip");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
@@ -42,7 +42,7 @@ public class ExratesCorsFilter implements Filter {
             response.setHeader("Access-Control-Allowed-Methods", "POST, GET, DELETE");
             response.setHeader("Access-Control-Max-Age", "3600");
             response.setHeader("Access-Control-Allow-Headers", "authorization, content-type, X-Forwarded-For, x-auth-token, Exrates-Rest-Token, GACookies, " +
-                    "access-control-request-headers,access-control-request-method,accept,origin,authorization,x-requested-with");
+                    "client_ip, access-control-request-headers,access-control-request-method,accept,origin,authorization,x-requested-with");
             response.setStatus(HttpServletResponse.SC_OK);
         }
     }
