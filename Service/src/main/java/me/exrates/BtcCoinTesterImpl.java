@@ -19,6 +19,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -60,15 +61,10 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     @Override
     public void testCoin(double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException {
-        RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
+//        RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
 //        checkRefill(refillAmount, btcdClient, merchantId, currencyId, request);
 
-        //WithdrawRequestCreateDto(id=null, userId=17050, userEmail=mikita.malykov@upholding.biz, userWalletId=1583504, currencyId=309,
-        // currencyName=KOD, amount=0.10000000, commission=0.00020000, commissionId=20,
-        // destinationWallet=RXD4rVSxhQnyC5hoSQ3wF9LWDvdXvG9nMM, destinationTag=,
-        // merchantId=321, merchantDescription=KODCoin, statusId=1, recipientBankName=null,
-        // recipientBankCode=null, userFullName=null, remark=null, autoEnabled=null, autoThresholdAmount=null, merchantCommissionAmount=0E-8)
-        testAutoWithdraw(refillAmount);
+        testAutoWithdraw(refillAmount/2);
     }
 
     private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException {
@@ -97,7 +93,7 @@ public class BtcCoinTesterImpl implements CoinTester {
             setAutoWithdraw(true);
 
             withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, new Locale("en"));
-
+//            withdrawService.get
             //TODO retrieve заявку с базы
             //ждём статус 10
             //если статус не 10, а какая-то фигня - исключение
@@ -213,4 +209,5 @@ public class BtcCoinTesterImpl implements CoinTester {
 //        CoinTester rimeTest = new BtcCoinTesterImpl();
 //        rimeTest.testCoin("RIME", 0.1);
     }
+
 }

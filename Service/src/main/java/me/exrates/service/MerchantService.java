@@ -30,7 +30,7 @@ public interface MerchantService {
                                  Locale locale, CreditsOperation creditsOperation, String depositNotification);
 
   Merchant findById(int id);
-
+  @SneakyThrows
   Merchant findByName(String name);
 
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
