@@ -8,7 +8,10 @@ import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.NoArgsConstructor;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -35,7 +38,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
     @Autowired
-    private  MerchantService merchantService;
+    private MerchantService merchantService;
     @Autowired
     private InputOutputService inputOutputService;
     @Autowired
@@ -44,13 +47,13 @@ public class BtcCoinTesterImpl implements CoinTester {
     private CurrencyService currencyService;
     @Autowired
     WithdrawService withdrawService;
-
     private int currencyId;
     private int merchantId;
     private String name;
     private final static Integer TIME_FOR_REFILL = 10000;
     private BtcdClient btcdClient;
     private Object withdrawTest = new Object();
+    private int withdrawStatus = 0;
 
     public void initBot(String name) throws BitcoindException, IOException, CommunicationException {
         merchantId = merchantService.findByName(name).getId();
@@ -61,15 +64,26 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     @Override
     public void testCoin(double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException {
-//        RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
-//        checkRefill(refillAmount, btcdClient, merchantId, currencyId, request);
+        RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
 
-        testAutoWithdraw(refillAmount/2);
+        testAddressGeneration();
+//        checkRefill(refillAmount*10, merchantId, currencyId, request);
+
+//        testAutoWithdraw(refillAmount/4);
+        testManualWithdraw(refillAmount / 4);
     }
 
-    private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException {
+    private void testAddressGeneration() throws BitcoindException, CommunicationException {
+        assert btcdClient.getNewAddress().length() > 10;
+        assert btcdClient.getNewAddress().length() > 10;
+
+    }
+
+    private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException, InterruptedException {
         synchronized (withdrawTest) {
             String withdrawAddress = btcdClient.getNewAddress();
+            System.out.println("address for withdraw " + withdrawAddress);
+
             WithdrawRequestParamsDto withdrawRequestParamsDto = new WithdrawRequestParamsDto();
             withdrawRequestParamsDto.setCurrency(currencyId);
             withdrawRequestParamsDto.setMerchant(merchantId);
@@ -89,67 +103,112 @@ public class BtcCoinTesterImpl implements CoinTester {
             WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
 
             WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(withdrawRequestParamsDto, creditsOperation, beginStatus);
-
             setAutoWithdraw(true);
-
             withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, new Locale("en"));
-//            withdrawService.get
+
+            Optional<WithdrawRequest> withdrawRequestByAddressOptional = withdrawService.getWithdrawRequestByAddress(withdrawAddress);
+            assert withdrawRequestByAddressOptional.isPresent();
+
+            Integer requestId = withdrawRequestByAddressOptional.get().getId();
+            WithdrawRequestFlatDto flatWithdrawRequest;
+
+            do {
+                flatWithdrawRequest = withdrawService.getFlatById(requestId).get();
+                withdrawStatus = flatWithdrawRequest.getStatus().getCode();
+                if (withdrawStatus == 10) {
+                    Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
+                    System.out.println("trx from btc " + transaction);
+                    assert transaction.getAmount().equals(flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
+                }
+                System.out.println("Checking withdraw...");
+                Thread.sleep(2000);
+            } while (withdrawStatus != 10);
+
+            System.out.println("Withdraw works");
+
+//            withdrawService.getBy
             //TODO retrieve заявку с базы
             //ждём статус 10
             //если статус не 10, а какая-то фигня - исключение
             //когда статус 10 - провряем чтобы пришли бабки
+
         }
     }
 
-    public void testManualWithdraw(){
+    public void testManualWithdraw(double amount) throws BitcoindException, CommunicationException, InterruptedException {
         synchronized (withdrawTest) {
             setAutoWithdraw(false);
         }
+        String withdrawAddress = btcdClient.getNewAddress();
+        System.out.println("address for manual withdraw " + withdrawAddress);
+
+        BitcoinService walletService = (BitcoinService) getMerchantServiceByName(name, reffilableServiceMap);
+        List<BtcWalletPaymentItemDto> payments = new LinkedList<>();
+        payments.add(new BtcWalletPaymentItemDto(withdrawAddress, BigDecimal.valueOf(amount)));
+        BtcPaymentResultDetailedDto btcPaymentResultDetailedDto = walletService.sendToMany(payments).get(0);
+
+        Transaction transaction = null;
+        do {
+            try {
+                transaction = btcdClient.getTransaction(btcPaymentResultDetailedDto.getTxId());
+            } catch (BitcoindException e){
+                System.out.println("Error from btc " + e.getMessage());
+            }
+            Thread.sleep(2000);
+            System.out.println("Checking manual transaction");
+            if(transaction != null){
+                System.out.println("Manual trx = " + transaction);
+                assert new BigDecimal(btcPaymentResultDetailedDto.getAmount()).equals(transaction.getAmount());
+            }
+        } while (transaction == null);
+
+
     }
 
     private void setAutoWithdraw(boolean isEnabled) {
         MerchantCurrencyOptionsDto merchantCurrencyOptionsDto = new MerchantCurrencyOptionsDto();
         merchantCurrencyOptionsDto.setCurrencyId(currencyId);
-        merchantCurrencyOptionsDto.setCurrencyId(merchantId);
+        merchantCurrencyOptionsDto.setMerchantId(merchantId);
         merchantCurrencyOptionsDto.setWithdrawAutoDelaySeconds(1);
         merchantCurrencyOptionsDto.setWithdrawAutoEnabled(isEnabled);
         merchantCurrencyOptionsDto.setWithdrawAutoThresholdAmount(BigDecimal.valueOf(999999));
         withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
     }
 
-    private void checkRefill(double refillAmount, BtcdClient btcdClient, int merchantId, int currencyId, RefillRequestCreateDto request) throws BitcoindException, CommunicationException, InterruptedException {
+    private void checkRefill(double refillAmount, int merchantId, int currencyId, RefillRequestCreateDto request) throws BitcoindException, CommunicationException, InterruptedException {
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
-        String addressForRefill = (String)((Map)refillRequest.get("params")).get("address");
+        String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
         assert byAddressMerchantAndCurrency.size() > 0;
 
-        System.out.println("ADDRESS FRO REFILL 8090 " + addressForRefill);
+        System.out.println("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill);
         System.out.println("BALANCE = " + btcdClient.getBalance());
         try {
             btcdClient.walletPassphrase("pass123", 2000);
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error while trying encrypted wallet " + e.getMessage());
         }
+        System.out.println("balance = " + btcdClient.getBalance());
+        System.out.println("refill sum = " + refillAmount);
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
 
         Optional<RefillRequestBtcInfoDto> acceptedRequest;
         Integer minConfirmation = ((BitcoinService) getMerchantServiceByName(name, reffilableServiceMap)).minConfirmationsRefill();
 
-        do{
+        do {
             boolean isConfirmationsEnough = false;
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
-            if(!acceptedRequest.isPresent()){
-                if(isConfirmationsEnough) throw new RuntimeException("Confirmation enough, but refill not working!");
+            if (!acceptedRequest.isPresent()) {
+                if (isConfirmationsEnough) throw new RuntimeException("Confirmation enough, but refill not working!");
                 System.out.println("NOT NOW(");
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
-                if(transaction.getConfirmations() >= minConfirmation){
+                if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
                     isConfirmationsEnough = true;
                 }
                 System.out.println("GET TRANSACTION " + transaction);
-            }
-            else {
+            } else {
                 System.out.println("accepted amount " + acceptedRequest.get().getAmount());
                 System.out.println("refill amount " + refillAmount);
                 assert acceptedRequest.get().getAmount().equals(BigDecimal.valueOf(refillAmount));
@@ -200,7 +259,7 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     private IRefillable getMerchantServiceByName(String name, Map<String, IRefillable> merchantServiceMap) {
         for (Map.Entry<String, IRefillable> e : merchantServiceMap.entrySet()) {
-            if(e.getValue().getMerchantName().equals(name)) return e.getValue();
+            if (e.getValue().getMerchantName().equals(name)) return e.getValue();
         }
         throw new RuntimeException("BitcoinService with ticker " + name + " not found!");
     }

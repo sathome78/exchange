@@ -3,7 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -515,6 +516,12 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public Optional<WithdrawRequest> findWithdrawRequestByAddress(String withdrawAddress) {
+
+        return Optional.of(jdbcTemplate.queryForObject("SELECT * FROM WITHDRAW_REQUEST WHERE wallet = '" + withdrawAddress + "'", new HashMap<>(), new BeanPropertyRowMapper<>(WithdrawRequest.class)));
     }
 
     private String getPermissionClause(Integer requesterUserId) {

@@ -702,4 +702,14 @@ public class WithdrawServiceImpl implements WithdrawService {
                                                                        int requesterId) {
     return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
   }
+
+    @Override
+    public Optional<WithdrawRequest> getWithdrawRequestByAddress(String withdrawAddress) {
+        return withdrawRequestDao.findWithdrawRequestByAddress(withdrawAddress);
+    }
+
+  @Override
+  public Optional<WithdrawRequestFlatDto> getFlatById(Integer requestId) {
+    return withdrawRequestDao.getFlatById(requestId);
+  }
 }
