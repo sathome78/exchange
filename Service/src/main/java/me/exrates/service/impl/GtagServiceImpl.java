@@ -40,7 +40,7 @@ public class GtagServiceImpl implements GtagService {
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(userName, price, tiker);
             log.info("Successfully send transaction hit to gtag");
-            sendItemHit(userName, transactionId, tiker, coinsCount, price);
+            sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
         } catch (Throwable exception) {

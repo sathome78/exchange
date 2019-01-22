@@ -70,6 +70,7 @@ public class TronReceiveServiceImpl {
                 try {
                     setAdditionalTxInfo(p);
                     RefillRequestAcceptDto dto = tronService.createRequest(p);
+                    p.setId(dto.getRequestId());
                     if (p.isConfirmed()) {
                         tronTransactionsService.processTransaction(p);
                     } else {

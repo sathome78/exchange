@@ -6,6 +6,7 @@ import org.json.JSONObject;
 @Data
 public class TronReceivedTransactionDto {
 
+    private Integer id;
     private String amount;
     private String hash;
     /*HEX address*/

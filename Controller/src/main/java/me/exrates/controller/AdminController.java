@@ -1255,7 +1255,8 @@ public class AdminController {
 
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
-                                                                              @RequestParam("token") String token, @RequestParam("address") String address) throws IOException {
+                                                                              @RequestParam("token") String token,
+                                                                              @RequestParam(value = "address", required = false) String address) throws IOException {
 
         if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
             throw new RuntimeException("Some unexpected exception");

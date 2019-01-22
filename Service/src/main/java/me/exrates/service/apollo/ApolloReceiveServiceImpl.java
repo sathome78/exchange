@@ -86,6 +86,7 @@ public class ApolloReceiveServiceImpl {
                                     put("address", address);
                                     put("hash", hash);
                                     put("amount", amount.toPlainString());
+                                    put("id", String.valueOf(requestAcceptDto.getRequestId()));
                                 }});
                             } catch (RefillRequestAppropriateNotFoundException e) {
                                 log.error(e);
@@ -115,6 +116,7 @@ public class ApolloReceiveServiceImpl {
                             put("address", p.getAddress());
                             put("hash", p.getMerchantTransactionId());
                             put("amount", p.getAmount().toPlainString());
+                            put("id", String.valueOf(p.getId()));
                         }});
                     }
                 } catch (Exception e) {

@@ -56,7 +56,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         dtos.forEach(p->{
             try {
                 if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
-                    processTransaction(p.getAddress(), p.getMerchantTransactionId(), p.getAmount().toString());
+                    processTransaction(p.getId(), p.getAddress(), p.getMerchantTransactionId(), p.getAmount().toString());
                 }
             } catch (Exception e) {
                 log.error(e);
@@ -90,15 +90,16 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @Override
     public void processTransaction(TronReceivedTransactionDto p) {
-        processTransaction(p.getAddressBase58(), p.getHash(), p.getAmount());
+        processTransaction(p.getId(), p.getAddressBase58(), p.getHash(), p.getAmount());
     }
 
     @Override
-    public void processTransaction(String address, String hash, String amount) {
+    public void processTransaction(int id, String address, String hash, String amount) {
         Map<String, String> map = new HashMap<>();
         map.put("address", address);
         map.put("hash", hash);
         map.put("amount", amount);
+        map.put("id", String.valueOf(id));
         try {
             tronService.processPayment(map);
             refillService.updateAddressNeedTransfer(address, tronService.getMerchantId(), tronService.getCurrencyId(), true);

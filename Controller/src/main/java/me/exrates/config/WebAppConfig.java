@@ -14,6 +14,7 @@ import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.EthTokenService;
@@ -24,6 +25,7 @@ import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.HCXPServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
@@ -336,13 +338,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
     public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @DependsOn("slaveForReportsDataSource")
@@ -1718,6 +1720,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
                 "SUMO", "SUMO", 20, 9);
+    }
+
+    @Bean(name = "hcxpServiceImpl")
+    public MoneroService hcxpService() {
+        return new HCXPServiceImpl("merchants/hcxp.properties",
+                "HCXP", "HCXP", 20, 6);
     }
 
     /***tokens based on xem mosaic)****/

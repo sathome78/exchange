@@ -1,5 +1,6 @@
 package me.exrates.service.tron;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -131,15 +132,18 @@ public class TronServiceImpl implements TronService {
         }
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
+        Integer id = Integer.parseInt(params.get("id"));
         Currency currency = currencyService.findByName(CURRENCY_NAME);
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal amount = new BigDecimal(params.get("amount"));
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .requestId(id)
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
@@ -147,13 +151,8 @@ public class TronServiceImpl implements TronService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-
-        Integer requestId = refillService.getRequestId(requestAcceptDto);
-        requestAcceptDto.setRequestId(requestId);
-
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String username = refillService.getUsernameByRequestId(id);
 
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);

@@ -172,6 +172,7 @@ public class StellarServiceImpl implements StellarService {
         return destinationTag;
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
@@ -188,23 +189,11 @@ public class StellarServiceImpl implements StellarService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-
-        Integer requestId;
-        try {
-            requestId = refillService.getRequestId(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestNotFountException: " + params);
-            requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        }
-
+        log.debug("RefillRequestNotFountException: " + params);
+        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
         final String username = refillService.getUsernameByRequestId(requestId);
-
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }

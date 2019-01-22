@@ -2,7 +2,7 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message process.id=%X{process.id} %n"/>
+            <PatternLayout pattern="process.id=%X{process.id}  %d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
         </Console>
         <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
                      filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">
@@ -411,6 +411,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="hcxp_log" fileName="${sys:catalina.home}/logs/crypto/hcxp_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/hcxp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="iota_log" fileName="${sys:catalina.home}/logs/crypto/iota_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/iota_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -611,6 +620,9 @@
         </RollingFile>
     </Appenders>
     <Loggers>
+        <Logger name="jdbc_logger" level="ALL" additivity="false">
+            <appender-ref ref="Console" />
+        </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
             <AppenderRef ref="Merchants"/>
         </Logger>
@@ -786,6 +798,9 @@
         </logger>
         <logger name="sumokoin_log" level="ALL" additivity="false">
             <AppenderRef ref="sumokoin_log"/>
+        </logger>
+        <logger name="hcxp_log" level="ALL" additivity="false">
+            <AppenderRef ref="hcxp_log"/>
         </logger>
         <logger name="edc_log" level="ALL" additivity="false">
             <AppenderRef ref="edc_log"/>
