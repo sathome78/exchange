@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -189,4 +190,12 @@ public interface UserDao {
   List<Integer> findFavouriteCurrencyPairsById(int userId);
 
   boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
+
+  int updateReferenceIdByUserId(int userId, String kycReference);
+
+  String getReferenceIdByUserId(int userId);
+
+  int updateVerificationStatusByUserId(int userId, EventStatus eventStatus);
+
+  int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus);
 }

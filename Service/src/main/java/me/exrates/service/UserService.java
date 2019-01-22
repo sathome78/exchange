@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -211,4 +212,12 @@ public interface UserService {
     boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
 
     boolean deleteTempTokenByValue(String value);
+
+    int updateReferenceIdByUserId(int userId, String kycReference);
+
+    String getReferenceIdByUserId(int userId);
+
+    int updateVerificationStatusByUserId(int userId, EventStatus eventStatus);
+
+    int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus);
 }

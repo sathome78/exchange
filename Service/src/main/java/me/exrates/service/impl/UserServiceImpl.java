@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -832,4 +833,23 @@ public class UserServiceImpl implements UserService {
     return userDao.deleteTemporalToken(idTempToken);
   }
 
+  @Override
+  public int updateReferenceIdByUserId(int userId, String kycReference) {
+    return userDao.updateReferenceIdByUserId(userId, kycReference);
+  }
+
+  @Override
+  public String getReferenceIdByUserId(int userId) {
+    return userDao.getReferenceIdByUserId(userId);
+  }
+
+  @Override
+  public int updateVerificationStatusByUserId(int userId, EventStatus eventStatus) {
+    return userDao.updateVerificationStatusByUserId(userId, eventStatus);
+  }
+
+  @Override
+  public int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus) {
+    return userDao.updateVerificationStatusByReferenceId(reference, eventStatus);
+  }
 }
