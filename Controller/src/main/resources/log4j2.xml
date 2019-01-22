@@ -294,17 +294,6 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-
-        <RollingFile name="jdbc_logger" fileName="${sys:catalina.home}/logs/sql/jdbc.log"
-                     filePattern="${sys:catalina.home}/logs/sql/jdbc%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
-
         <RollingFile name="qtum_log" fileName="${sys:catalina.home}/logs/crypto/qtum_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/qtum_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
