@@ -413,6 +413,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new FinPassCheckInterceptor());
+        registry.addInterceptor(new MDCInterceptor());
     }
 
     @Override
