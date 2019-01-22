@@ -332,7 +332,7 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "kodServiceImpl")
 	public BitcoinService kodServiceImpl() {
-		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 1, 20, false, false);
+		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 0, 20, false, false);
 	}
 
 	@Bean(name = "grsServiceImpl")
