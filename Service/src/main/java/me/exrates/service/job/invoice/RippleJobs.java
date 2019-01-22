@@ -35,7 +35,7 @@ public class RippleJobs {
 
     private final static ExecutorService ordersExecutors = Executors.newSingleThreadExecutor();
 
-    @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
+   /* @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)*/
     private void checkWithdrawals() {
         Merchant merchant = merchantService.findByName(XRP_MERCHANT);
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),

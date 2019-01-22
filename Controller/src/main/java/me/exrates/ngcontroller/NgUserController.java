@@ -4,7 +4,6 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
-import me.exrates.model.dto.PinDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -103,6 +102,7 @@ public class NgUserController {
 
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
+
         try {
             if (!DEV_MODE) {
 //                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
@@ -114,12 +114,14 @@ public class NgUserController {
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
+            userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
         }
 
         if (user.getStatus() == UserStatus.REGISTERED) {
+            ngUserService.resendEmailForFinishRegistration(user);
             return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
         }
         if (user.getStatus() == UserStatus.DELETED) {
@@ -140,6 +142,7 @@ public class NgUserController {
         String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            logger.error("Incorrect password, email = {}", authenticationDto.getEmail());
             throw new IncorrectPasswordException("Incorrect password");
         }
 
@@ -159,14 +162,14 @@ public class NgUserController {
         if (shouldLoginWithGoogle) {
             Integer userId = userService.getIdByEmail(authenticationDto.getEmail());
             if (!g2faService.checkGoogle2faVerifyCode(authenticationDto.getPin(), userId)) {
-                if (!DEV_MODE) {
-                    throw new IncorrectPinException("Incorrect google auth code");
-                }
+                throw new IncorrectPinException("Incorrect google auth code");
             }
         } else if (!DEV_MODE) {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureService.reSendLoginMessage(request, authenticationDto.getEmail(), true);
-                throw new IncorrectPinException(res);
+                if (authenticationDto.getTries() > 1 && authenticationDto.getTries() % 3 == 0) {
+                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                }
+                throw new IncorrectPinException("Incorrect pin code");
             }
         }
 
@@ -194,6 +197,13 @@ public class NgUserController {
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
+    private String getCookie(String header) {
+        final String[] gaValue = new String[2];
+        Optional<String> gaCookiesValue = Optional.ofNullable(header);
+        gaCookiesValue.ifPresent(value -> gaValue[0] = value.trim().split(";")[0].split("=")[1]);
+        return Optional.ofNullable(gaValue[0]).orElse("");
+    }
+
     @PostMapping(value = "/register")
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
@@ -213,7 +223,7 @@ public class NgUserController {
 
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
-                                        HttpServletRequest request) {
+                                       HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }

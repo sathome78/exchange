@@ -21,10 +21,10 @@ public class BotCreateOrderJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        Integer currencyPairId = jobExecutionContext.getMergedJobDataMap().getInt("currencyPairId");
-        OrderType orderType = OrderType.valueOf(jobExecutionContext.getMergedJobDataMap().getString("orderType"));
-        log.debug("Running sequence for CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());
-        botService.runOrderCreation(currencyPairId, orderType);
+//        Integer currencyPairId = jobExecutionContext.getMergedJobDataMap().getInt("currencyPairId");
+//        OrderType orderType = OrderType.valueOf(jobExecutionContext.getMergedJobDataMap().getString("orderType"));
+//        log.debug("Running sequence for CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());
+//        botService.runOrderCreation(currencyPairId, orderType);
 
     }
 

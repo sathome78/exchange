@@ -63,6 +63,8 @@ public interface UserDao {
   boolean ifPhoneIsUnique(int phone);
 
   boolean ifEmailIsUnique(String email);
+  
+  boolean userExistByEmail(String email);
 
   String getIP(int userId);
 
@@ -189,4 +191,7 @@ public interface UserDao {
   List<Integer> findFavouriteCurrencyPairsById(int userId);
 
   boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
+
+  void updateGaTag(String gaCookie, String username);
+
 }

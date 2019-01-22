@@ -24,7 +24,7 @@ public interface BalanceService {
 
     Optional<MyWalletsDetailedDto> findOne(String email, Integer currencyId);
 
-    PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String email);
+    PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email);
 
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
                                                                    LocalDate dateFrom, LocalDate dateTo, Locale locale);

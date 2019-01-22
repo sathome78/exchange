@@ -51,6 +51,10 @@ public interface RefillRequestDao {
 
     Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
+    List<String> getListOfValidAddressByMerchantIdAndCurrency(
+            Integer merchantId,
+            Integer currencyId);
+
     void setStatusById(Integer id, InvoiceStatus newStatus);
 
     void setStatusAndConfirmationDataById(Integer id, InvoiceStatus newStatus, InvoiceConfirmData invoiceConfirmData);
@@ -140,4 +144,6 @@ public interface RefillRequestDao {
     List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
 
     boolean addAddress(RefillRequestCreateDto request);
+
+    String getUsernameByRequestId(int requestId);
 }

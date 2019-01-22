@@ -40,7 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.method.P;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,7 +52,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -63,6 +61,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -284,7 +283,11 @@ public class NgPublicController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            List<Currency> currencies = currencyService.getCurrencies(MerchantProcessType.CRYPTO);
+            return currencies
+                    .stream()
+                    .filter(cur -> cur.getName().equalsIgnoreCase("RUB"))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();

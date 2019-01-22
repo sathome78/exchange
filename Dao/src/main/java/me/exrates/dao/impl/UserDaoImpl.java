@@ -23,10 +23,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -483,6 +485,11 @@ public class UserDaoImpl implements UserDao {
         return rs.getInt("id");
       } else return 0;
     }).isEmpty();
+  }
+
+  @Override
+  public boolean userExistByEmail(String email) {
+    return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
   }
 
   public String getPasswordByEmail(String email) {
@@ -1136,6 +1143,18 @@ public class UserDaoImpl implements UserDao {
             put("currencyPairId", currencyPairId);
         }};
         return namedParameterJdbcTemplate.update(sql, params) >= 0;
+    }
+
+    @Transactional
+    public void updateGaTag(String gaCookie, String username) {
+      String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
+
+      Map<String, Object> params = new HashMap<String, Object>() {{
+        put("ga", gaCookie);
+        put("email",username);
+      }};
+
+      namedParameterJdbcTemplate.update(sql, params);
     }
 
 }

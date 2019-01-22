@@ -33,6 +33,7 @@ public class ExConvert {
         MWEI("mwei", 6),
         AIWEI("aiwei", 8),
         GWEI("gwei", 9),
+        TWINKY("twinky", 10),
         SZABO("szabo", 12),
         FINNEY("finney", 15),
         ETHER("ether", 18),
