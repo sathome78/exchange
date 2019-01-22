@@ -10,8 +10,16 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.OkPayService;
+import me.exrates.service.RefillService;
+import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,36 +37,37 @@ import java.util.Properties;
 @PropertySource("classpath:/merchants/okpay.properties")
 public class OkPayServiceImpl implements OkPayService {
 
-    private @Value("${okpay.ok_receiver}") String ok_receiver;
-    private @Value("${okpay.ok_receiver_email}") String ok_receiver_email;
-    private @Value("${okpay.ok_item_1_name}") String ok_item_1_name;
-    private @Value("${okpay.ok_s_title}") String ok_s_title;
-    private @Value("${okpay.url}") String url;
-    private @Value("${okpay.urlReturn}") String urlReturn;
+    private @Value("${okpay.ok_receiver}")
+    String ok_receiver;
+    private @Value("${okpay.ok_receiver_email}")
+    String ok_receiver_email;
+    private @Value("${okpay.ok_item_1_name}")
+    String ok_item_1_name;
+    private @Value("${okpay.ok_s_title}")
+    String ok_s_title;
+    private @Value("${okpay.url}")
+    String url;
+    private @Value("${okpay.urlReturn}")
+    String urlReturn;
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
-    private AlgorithmService algorithmService;
-
-    @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
     }
 
     @Override
@@ -86,27 +95,25 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
-        if (!sendReturnRequest(params)){
+        if (!sendReturnRequest(params)) {
             throw new RefillRequestAppropriateNotFoundException(params.toString());
         }
-
         Integer requestId = Integer.valueOf(params.get("ok_invoice"));
         String merchantTransactionId = params.get("ok_txn_id");
         Currency currency = currencyService.findByName(params.get("ok_txn_currency"));
         Merchant merchant = merchantService.findByName("OkPay");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ok_txn_gross"))).setScale(9);
 
-        logger.info("Okpay processPayment: " + requestId + ", " + merchantTransactionId + ", " + currency + ", " +  merchant + ", " + amount);
+        logger.info("Okpay processPayment: " + requestId + ", " + merchantTransactionId + ", " + currency + ", " + merchant + ", " + amount);
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
 
         logger.info("Okpay processPayment: " + refillRequest.toString());
 
-        if(refillRequest.getAmount().equals(amount)
+        if (refillRequest.getAmount().equals(amount)
                 && currency.equals(currencyService.getById(refillRequest.getCurrencyId()))
                 && params.get("ok_txn_status").equals("completed")
-                && params.get("ok_receiver_email").equals(ok_receiver_email)){
+                && params.get("ok_receiver_email").equals(ok_receiver_email)) {
             logger.info("Okpay processPayment: before requestAcceptDto");
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(requestId)
@@ -116,21 +123,27 @@ public class OkPayServiceImpl implements OkPayService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             logger.info("Okpay processPayment: after requestAcceptDto");
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             logger.info("Okpay processPayment: after autoAcceptRefillRequest");
+
+            final String username = refillService.getUsernameByRequestId(requestId);
+
+            logger.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
         }
 
     }
 
-    private boolean sendReturnRequest(Map<String,String> params) {
+    private boolean sendReturnRequest(Map<String, String> params) {
 
         final OkHttpClient client = new OkHttpClient();
         final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
         formBuilder.add("ok_verify", "true");
 
 
-        for (Map.Entry<String, String> entry : params.entrySet()){
+        for (Map.Entry<String, String> entry : params.entrySet()) {
             formBuilder.add(entry.getKey(), entry.getValue());
         }
 
@@ -141,7 +154,7 @@ public class OkPayServiceImpl implements OkPayService {
         final String returnResponse;
 
         try {
-            returnResponse =client
+            returnResponse = client
                     .newCall(request)
                     .execute()
                     .body()
@@ -160,5 +173,4 @@ public class OkPayServiceImpl implements OkPayService {
 
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
 }

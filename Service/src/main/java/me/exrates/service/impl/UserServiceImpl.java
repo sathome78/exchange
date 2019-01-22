@@ -268,6 +268,11 @@ public class UserServiceImpl implements UserService {
     return userDao.ifEmailIsUnique(email);
   }
 
+  @Override
+  public boolean userExistByEmail(String email) {
+    return userDao.userExistByEmail(email);
+  }
+
   public String logIP(String email, String host) {
     int id = userDao.getIdByEmail(email);
     String userIP = userDao.getIP(id);
@@ -787,7 +792,7 @@ public class UserServiceImpl implements UserService {
   }
 
     @Transactional(rollbackFor = Exception.class)
-    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+    public TemporalToken getTemporalTokenByValue(String token) {
         return userDao.verifyToken(token);
     }
 
@@ -834,22 +839,27 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public int updateReferenceIdByUserId(int userId, String kycReference) {
-    return userDao.updateReferenceIdByUserId(userId, kycReference);
+  public void updateGaTag(String gaCookie, String username) {
+    userDao.updateGaTag(gaCookie, username);
   }
 
-  @Override
-  public String getReferenceIdByUserId(int userId) {
-    return userDao.getReferenceIdByUserId(userId);
-  }
+    @Override
+    public int updateReferenceIdByUserId(int userId, String kycReference) {
+        return userDao.updateReferenceIdByUserId(userId, kycReference);
+    }
 
-  @Override
-  public int updateVerificationStatusByUserId(int userId, EventStatus eventStatus) {
-    return userDao.updateVerificationStatusByUserId(userId, eventStatus);
-  }
+    @Override
+    public String getReferenceIdByUserId(int userId) {
+        return userDao.getReferenceIdByUserId(userId);
+    }
 
-  @Override
-  public int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus) {
-    return userDao.updateVerificationStatusByReferenceId(reference, eventStatus);
-  }
+    @Override
+    public int updateVerificationStatusByUserId(int userId, EventStatus eventStatus) {
+        return userDao.updateVerificationStatusByUserId(userId, eventStatus);
+    }
+
+    @Override
+    public int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus) {
+        return userDao.updateVerificationStatusByReferenceId(reference, eventStatus);
+    }
 }

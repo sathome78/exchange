@@ -1,10 +1,13 @@
 package me.exrates.ngcontroller.service;
 
+import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
+import me.exrates.model.enums.TokenType;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 public interface NgUserService {
 
@@ -21,5 +24,7 @@ public interface NgUserService {
     void sendEmailDisable2Fa(String email);
 
     void sendEmailEnable2Fa(String email);
+
+    void resendEmailForFinishRegistration(User user);
 
 }

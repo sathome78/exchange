@@ -8,6 +8,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.ngcontroller.exception.WrongPasswordException;
 import me.exrates.ngcontroller.model.ExceptionDto;
 import me.exrates.ngcontroller.model.UserDocVerificationDto;
 import me.exrates.ngcontroller.model.UserInfoVerificationDto;
@@ -18,6 +19,7 @@ import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,10 +49,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/settings/",
+@RequestMapping(value = "/info/private/v2/settings",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
@@ -57,12 +61,12 @@ public class NgUserSettingsController {
 
     private static final Logger logger = LogManager.getLogger(NgUserSettingsController.class);
 
-    private static final String NICKNAME = "nickname";
-    private static final String SESSION_INTERVAL = "sessionInterval";
-    private static final String EMAIL_NOTIFICATION = "notifications";
-    private static final String COLOR_SCHEME = "color-schema";
-    private static final String IS_COLOR_BLIND = "isLowColorEnabled";
-    private static final String STATE = "STATE";
+    private static final String NICKNAME = "/nickname";
+    private static final String SESSION_INTERVAL = "/sessionInterval";
+    private static final String EMAIL_NOTIFICATION = "/notifications";
+    private static final String COLOR_SCHEME = "/color-schema";
+    private static final String IS_COLOR_BLIND = "/isLowColorEnabled";
+    private static final String STATE = "/STATE";
 
     private final UserService userService;
     private final NotificationService notificationService;
@@ -86,18 +90,36 @@ public class NgUserSettingsController {
         this.verificationService = verificationService;
     }
 
+    // /info/private/v2/settings/updateMainPassword
+    // body: {
+    //    currentPassword: string,
+    //    newPassword: string
+    // }
+    // 200 - OK
+    // 400 - either current or new password is blank
+    // 403 - wrong main user password
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
         Locale locale = userService.getUserLocaleForMobile(email);
-        String password = body.getOrDefault("password", "");
-        if (password.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        String currentPassword = body.getOrDefault("currentPassword", "");
+        String newPassword = body.getOrDefault("newPassword", "");
+        if (StringUtils.isBlank(currentPassword) || StringUtils.isBlank(newPassword)) {
+            String message = String.format("Failed as current password: [%s] or new password is [%s] is empty ", currentPassword, newPassword);
+            logger.warn(message);
+            throw new IllegalArgumentException(message);
         }
-        user.setPassword(password);
-        user.setConfirmPassword(password);
-
+        currentPassword = RestApiUtils.decodePassword(currentPassword);
+        if (!userService.checkPassword(user.getId(), currentPassword)) {
+            String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
+            String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
+            logger.warn(message);
+            throw new WrongPasswordException(message);
+        }
+        newPassword = RestApiUtils.decodePassword(newPassword);
+        user.setPassword(newPassword);
+        user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)) {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -260,16 +282,16 @@ public class NgUserSettingsController {
     }
 
     @PutMapping("currency_pair/favourites")
-    public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody  Map <String, String> params) {
+    public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody Map<String, String> params) {
         int currencyPairId;
         boolean toDelete;
-         try {
+        try {
             currencyPairId = Integer.parseInt(params.get("PAIR_ID"));
             toDelete = Boolean.valueOf(params.get("TO_DELETE"));
-         } catch (Exception e) {
-             logger.info("Failed to convert attributes as {}", e.getMessage());
-             return ResponseEntity.badRequest().build();
-         }
+        } catch (Exception e) {
+            logger.info("Failed to convert attributes as {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
         boolean result = userService.manageUserFavouriteCurrencyPair(getPrincipalEmail(), currencyPairId, toDelete);
         if (result) {
             return ResponseEntity.ok().build();
@@ -295,8 +317,15 @@ public class NgUserSettingsController {
         return new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler({WrongPasswordException.class})
+    @ResponseBody
+    public ResponseEntity<Object> WrongPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ResponseEntity<>("Incorrect password", HttpStatus.FORBIDDEN);
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, IllegalArgumentException.class})
     @ResponseBody
     public ResponseEntity<Object> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
         return ResponseEntity.ok(new ExceptionDto(HttpStatus.BAD_REQUEST.toString(), e.getMessage()));

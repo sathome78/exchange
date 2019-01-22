@@ -1,67 +1,45 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.service.InterkassaService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
-
 @Controller
 @RequestMapping("/merchants/interkassa")
 public class InterkassaMerchantController {
-    @Autowired
-    private MerchantService merchantService;
 
     @Autowired
     private InterkassaService interkassaService;
 
-    @Autowired
-    private TransactionService transactionService;
+    private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private LocaleResolver localeResolver;
-
-    private static final Logger logger = LogManager.getLogger("merchant");
-
-    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
-        final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
-        logger.info("Response: " + params);
+    @PostMapping(value = "/payment/status")
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) {
+        LOGGER.info("Response: " + params);
         try {
             interkassaService.processPayment(params);
-            return responseOK;
-        } catch (RefillRequestAlreadyAcceptedException e) {
-            return responseOK;
-        } catch (Exception e) {
-            return new ResponseEntity<>(BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (RefillRequestAlreadyAcceptedException ex) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
+    @PostMapping(value = "/payment/success")
     public RedirectView successPayment(@RequestParam Map<String, String> response) {
-
-        logger.debug(response);
+        LOGGER.debug(response);
         return new RedirectView("/dashboard");
     }
-
 }

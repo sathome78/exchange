@@ -115,7 +115,7 @@ public class DashboardController {
   public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
       ModelAndView model = new ModelAndView();
       try {
-          TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
+          TemporalToken dbToken = userService.getTemporalTokenByValue(token);
           if (dbToken != null && !dbToken.isAlreadyUsed()) {
               User user = userService.getUserById(dbToken.getUserId());
 

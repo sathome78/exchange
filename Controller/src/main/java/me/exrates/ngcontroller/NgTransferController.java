@@ -231,7 +231,6 @@ public class NgTransferController {
 
     @GetMapping("/check_email")
     public ResponseModel<Boolean> checkEmailForTransfer(@RequestParam("email") String email) {
-
         String principalEmail = getPrincipalEmail();
 
         if (email.equalsIgnoreCase(principalEmail)) {
@@ -240,13 +239,13 @@ public class NgTransferController {
             return new ResponseModel<>(false, error);
         }
 
-        if (!userService.ifEmailIsUnique(email)) {
-            ResponseCustomError error =
-                    new ResponseCustomError(messageSource.getMessage("transfer.email.not_found", null, Locale.ENGLISH));
+        if (!userService.userExistByEmail(email)) {
+            ResponseCustomError error = new ResponseCustomError(messageSource.getMessage("transfer.email.not_found",
+                    null, Locale.ENGLISH));
             return new ResponseModel<>(false, error);
         }
-
         return new ResponseModel<>(true);
+
     }
 
     @GetMapping("/get_minimal_sum")
