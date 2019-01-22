@@ -791,8 +791,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateReferenceIdByUserId(int userId, String kycReference) {
-        userDao.updateReferenceIdByUserId(userId, kycReference);
+    public int updateReferenceIdByUserId(int userId, String kycReference) {
+        return userDao.updateReferenceIdByUserId(userId, kycReference);
     }
 
     @Override
@@ -801,12 +801,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateVerificationStateByUserId(int userId, EventStatus eventStatus) {
-        userDao.updateVerificationStateByUserId(userId, eventStatus);
+    public int updateVerificationStatusByUserId(int userId, EventStatus eventStatus) {
+        return userDao.updateVerificationStatusByUserId(userId, eventStatus);
     }
 
     @Override
-    public void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus) {
-        userDao.updateVerificationStateByReferenceId(reference, eventStatus);
+    public int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus) {
+        return userDao.updateVerificationStatusByReferenceId(reference, eventStatus);
     }
 }

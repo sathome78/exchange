@@ -1060,13 +1060,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void updateReferenceIdByUserId(int userId, String kycReference) {
+    public int updateReferenceIdByUserId(int userId, String kycReference) {
         final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE id = :user_id";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
             put("kyc_reference", kycReference);
         }};
-        namedParameterJdbcTemplate.update(sql, params);
+        return namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -1080,22 +1080,22 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void updateVerificationStateByUserId(int userId, EventStatus eventStatus) {
-        final String sql = "UPDATE USER SET kyc_verification_state = :kyc_verification_state WHERE id = :user_id";
+    public int updateVerificationStatusByUserId(int userId, EventStatus eventStatus) {
+        final String sql = "UPDATE USER SET kyc_verification_status = :kyc_verification_status WHERE id = :user_id";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
-            put("kyc_verification_state", eventStatus.name());
+            put("kyc_verification_status", eventStatus.name());
         }};
-        namedParameterJdbcTemplate.update(sql, params);
+        return namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus) {
-        final String sql = "UPDATE USER SET kyc_verification_state = :kyc_verification_state WHERE kyc_reference = :kyc_reference";
+    public int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus) {
+        final String sql = "UPDATE USER SET kyc_verification_status = :kyc_verification_status WHERE kyc_reference = :kyc_reference";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("kyc_reference", reference);
-            put("kyc_verification_state", eventStatus.name());
+            put("kyc_verification_status", eventStatus.name());
         }};
-        namedParameterJdbcTemplate.update(sql, params);
+        return namedParameterJdbcTemplate.update(sql, params);
     }
 }

@@ -174,11 +174,11 @@ public interface UserDao {
 
     Integer updateGaTag(String gatag, String userName);
 
-    void updateReferenceIdByUserId(int userId, String kycReference);
+    int updateReferenceIdByUserId(int userId, String kycReference);
 
     String getReferenceIdByUserId(int userId);
 
-    void updateVerificationStateByUserId(int userId, EventStatus eventStatus);
+    int updateVerificationStatusByUserId(int userId, EventStatus eventStatus);
 
-    void updateVerificationStateByReferenceId(String reference, EventStatus eventStatus);
+    int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus);
 }

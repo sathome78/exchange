@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
@@ -224,7 +225,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/okpay/payment/failure").permitAll()
                 .antMatchers(POST, "/merchants/payeer/payment/status",
                         "/merchants/payeer/payment/success").permitAll()
-                .antMatchers(POST, "/kyc/shufti-pro/**").permitAll()
                 .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**").permitAll()
                 .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**", "/chat/history").permitAll()
                 .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
@@ -284,6 +284,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 /*user refill action ...*/
                 .antMatchers(POST, "/refill/request/**").authenticated()
                 /*... user refill action*/
+                .antMatchers(POST, "/kyc/shufti-pro/verification-url", "/kyc/shufti-pro/verification-status").authenticated()
                 .and()
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler());
@@ -345,12 +346,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/payeer/payment/success",
                         "/merchants/payeer/payment/status",
                         "/test/**",
-                        "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
+                        "/rest/user/register",
+                        "/rest/user/authenticate",
+                        "/rest/user/restorePassword",
+                        "/afgssr/call/refill");
         http
                 .headers()
                 .frameOptions()
                 .sameOrigin();
+    }
 
-
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().antMatchers(POST, "/kyc/shufti-pro/callback");
     }
 }

@@ -1,14 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.model.dto.kyc.EventStatus;
-
-import java.util.Locale;
+import org.apache.commons.lang3.tuple.Pair;
 
 public interface KYCService {
 
-    String getVerificationUrl(int userId, Locale locale);
+    String getVerificationUrl(int userId, String language, String country);
 
-    EventStatus getVerificationStatus(int userId);
+    Pair<String, EventStatus> getVerificationStatus(int userId);
 
-    void checkResponseAndUpdateStatus(String response, String s);
+    Pair<String, EventStatus> checkResponseAndUpdateStatus(String response, String s);
 }

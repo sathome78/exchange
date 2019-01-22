@@ -15,6 +15,7 @@ import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import static java.util.Objects.nonNull;
@@ -90,10 +90,10 @@ public class ShuftiProKYCService implements KYCService {
     }
 
     @Override
-    public String getVerificationUrl(int userId, Locale locale) {
+    public String getVerificationUrl(int userId, String language, String country) {
         User user = userService.getUserById(userId);
 
-        VerificationRequest verificationRequest = buildVerificationRequest(user, locale);
+        VerificationRequest verificationRequest = buildVerificationRequest(user, language, country);
 
         HttpEntity<VerificationRequest> requestEntity = new HttpEntity<>(verificationRequest);
 
@@ -112,74 +112,28 @@ public class ShuftiProKYCService implements KYCService {
         validateMerchantSignature(signature, response);
 
         JSONObject verificationObject = new JSONObject(response);
-        final EventStatus eventStatus = EventStatus.valueOf(verificationObject.getString(EVENT));
+        final EventStatus eventStatus = EventStatus.of(verificationObject.getString(EVENT));
         if (!Objects.equals(eventStatus, EventStatus.PENDING)) {
             JSONObject errorObject = verificationObject.getJSONObject(ERROR);
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
         }
 
-        userService.updateReferenceIdByUserId(userId, verificationObject.getString(REFERENCE));
-
-        log.debug("Successfully generated verification url");
+        int affectedRowCount = userService.updateReferenceIdByUserId(userId, verificationObject.getString(REFERENCE));
+        if (affectedRowCount == 0) {
+            log.debug("User KYC reference have not updated in database");
+        }
         return verificationObject.getString(VERIFICATION_URL).replace("\\", "");
     }
 
-    @Override
-    public EventStatus getVerificationStatus(int userId) {
-        final String reference = userService.getReferenceIdByUserId(userId);
-
-        StatusRequest statusRequest = StatusRequest.builder()
-                .reference(reference)
-                .build();
-
-        HttpEntity<StatusRequest> requestEntity = new HttpEntity<>(statusRequest);
-
-        ResponseEntity<String> responseEntity;
-        try {
-            responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                throw new ShuftiProException("ShuftiPro KYC status service is not available");
-            }
-        } catch (Exception ex) {
-            throw new ShuftiProException("ShuftiPro KYC status service is not available");
-        }
-
-        final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
-        final String response = responseEntity.getBody();
-        validateMerchantSignature(signature, response);
-
-        JSONObject statusObject = new JSONObject(response);
-        final EventStatus eventStatus = EventStatus.valueOf(statusObject.getString(EVENT));
-
-        log.debug("Received verification status: {} by reference id: {}", eventStatus, statusObject.getString(REFERENCE));
-
-        userService.updateVerificationStateByUserId(userId, eventStatus);
-
-        return eventStatus;
-    }
-
-    @Override
-    public void checkResponseAndUpdateStatus(String signature, String response) {
-        validateMerchantSignature(signature, response);
-
-        JSONObject statusObject = new JSONObject(response);
-        final String reference = statusObject.getString(REFERENCE);
-        final EventStatus eventStatus = EventStatus.valueOf(statusObject.getString(EVENT));
-
-        log.debug("Received verification status: {} by reference id: {}", eventStatus, reference);
-
-        userService.updateVerificationStateByReferenceId(reference, eventStatus);
-    }
-
-    private VerificationRequest buildVerificationRequest(User user, Locale locale) {
+    private VerificationRequest buildVerificationRequest(User user, String language, String country) {
         return VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
                 .redirectUrl(redirectUrl)
                 .email(user.getEmail())
-                .country(locale.getCountry().toUpperCase())
-                .language(locale.getLanguage().toUpperCase())
+                .country(country)
+                .language(language)
                 .verificationMode(verificationMode)
                 .face(Face.builder()
                         .proof(StringUtils.EMPTY)
@@ -200,10 +154,62 @@ public class ShuftiProKYCService implements KYCService {
                         .fullAddress(StringUtils.EMPTY)
                         .build())
                 .phone(Phone.builder()
-                        .phoneNumber(user.getPhone())
                         .text(smsText)
                         .build())
                 .build();
+    }
+
+    @Override
+    public Pair<String, EventStatus> getVerificationStatus(int userId) {
+        final String reference = userService.getReferenceIdByUserId(userId);
+
+        StatusRequest statusRequest = buildStatusRequest(reference);
+
+        HttpEntity<StatusRequest> requestEntity = new HttpEntity<>(statusRequest);
+
+        ResponseEntity<String> responseEntity;
+        try {
+            responseEntity = restTemplate.postForEntity(statusUrl, requestEntity, String.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new ShuftiProException("ShuftiPro KYC status service is not available");
+            }
+        } catch (Exception ex) {
+            throw new ShuftiProException("ShuftiPro KYC status service is not available");
+        }
+
+        final String signature = responseEntity.getHeaders().get(SIGNATURE).get(0);
+        final String response = responseEntity.getBody();
+        validateMerchantSignature(signature, response);
+
+        JSONObject statusObject = new JSONObject(response);
+        final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
+
+        int affectedRowCount = userService.updateVerificationStatusByUserId(userId, eventStatus);
+        if (affectedRowCount == 0) {
+            log.debug("Verification status have not updated in database");
+        }
+        return Pair.of(reference, eventStatus);
+    }
+
+    private StatusRequest buildStatusRequest(String reference) {
+        return StatusRequest.builder()
+                .reference(reference)
+                .build();
+    }
+
+    @Override
+    public Pair<String, EventStatus> checkResponseAndUpdateStatus(String signature, String response) {
+        validateMerchantSignature(signature, response);
+
+        JSONObject statusObject = new JSONObject(response);
+        final String reference = statusObject.getString(REFERENCE);
+        final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
+
+        int affectedRowCount = userService.updateVerificationStatusByReferenceId(reference, eventStatus);
+        if (affectedRowCount == 0) {
+            log.debug("Verification status have not updated in database");
+        }
+        return Pair.of(reference, eventStatus);
     }
 
     private void validateMerchantSignature(String signature, String response) {
