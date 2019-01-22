@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
+import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
