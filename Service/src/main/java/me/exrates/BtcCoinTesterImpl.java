@@ -7,16 +7,19 @@ import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.NoArgsConstructor;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.Payment;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -35,6 +38,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USE
 @NoArgsConstructor
 public class BtcCoinTesterImpl implements CoinTester {
 
+    public static final String principalEmail = "mikita.malykov@upholding.biz";
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
     @Autowired
@@ -46,7 +50,10 @@ public class BtcCoinTesterImpl implements CoinTester {
     @Autowired
     private CurrencyService currencyService;
     @Autowired
-    WithdrawService withdrawService;
+    private WithdrawService withdrawService;
+    @Autowired
+    private OrderService orderService;
+
     private int currencyId;
     private int merchantId;
     private String name;
@@ -70,7 +77,51 @@ public class BtcCoinTesterImpl implements CoinTester {
 //        checkRefill(refillAmount*10, merchantId, currencyId, request);
 
 //        testAutoWithdraw(refillAmount/4);
-        testManualWithdraw(refillAmount / 4);
+//        testManualWithdraw(refillAmount / 4);
+        testOrder(OperationType.SELL, new BigDecimal(0.001), new BigDecimal(0.001), OrderBaseType.LIMIT, name + "/BTC", new BigDecimal(0.00));
+
+    }
+
+    private void testOrder(OperationType orderType, BigDecimal amount, BigDecimal rate, OrderBaseType baseType, String currencyPair, BigDecimal stop) {
+        try {
+            OrderCreateSummaryDto orderCreateSummaryDto;
+            if (amount == null) amount = BigDecimal.ZERO;
+            if (rate == null) rate = BigDecimal.ZERO;
+            if (baseType == null) baseType = OrderBaseType.LIMIT;
+            CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair);
+            if (activeCurrencyPair == null) {
+                throw new RuntimeException("Wrong currency pair");
+            }
+            if (baseType == OrderBaseType.STOP_LIMIT && stop == null) {
+                throw new RuntimeException("Try to create stop-order without stop rate");
+            }
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principalEmail, amount, rate, baseType);
+            orderCreateDto.setOrderBaseType(baseType);
+            orderCreateDto.setStop(stop);
+            /**/
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            Map<String, Object> errorMap = orderValidationDto.getErrors();
+            orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, new Locale("en"));
+            if (!errorMap.isEmpty()) {
+                for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
+                    pair.setValue("message");
+                }
+                errorMap.put("order", orderCreateSummaryDto);
+                throw new OrderParamsWrongException();
+            } else {
+            }
+            //{"currencyPairName":"KOD/BTC","operationTypeName":"SELL","balance":"9999.00","amount":"1.00","exrate":"1.00","total":"1.00",
+            // "commission":"0.002","totalWithComission":"0.998","stop":"0.00","baseType":"LIMIT"}
+            assert orderCreateSummaryDto.getAmount().equals(amount);
+            assert orderCreateDto.getCurrencyPair().getName().equals(currencyPair);
+            assert orderCreateDto.getOperationType().equals(orderType);
+            assert orderCreateDto.getExchangeRate().equals(rate);
+            assert orderCreateDto.getTotal().equals(amount.multiply(rate));
+            assert orderCreateDto.getOrderBaseType().equals(baseType);
+            System.out.println("Order " + currencyPair + " works!");
+        } catch (Exception e){
+            throw e;
+        }
     }
 
     private void testAddressGeneration() throws BitcoindException, CommunicationException {
@@ -98,7 +149,7 @@ public class BtcCoinTesterImpl implements CoinTester {
             payment.setSum(withdrawRequestParamsDto.getSum().doubleValue());
             payment.setDestination(withdrawRequestParamsDto.getDestination());
             payment.setDestinationTag(withdrawRequestParamsDto.getDestinationTag());
-            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, "mikita.malykov@upholding.biz", new Locale("en"))
+            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principalEmail, new Locale("en"))
                     .orElseThrow(InvalidAmountException::new);
             WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
 
@@ -228,7 +279,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
 
         Locale locale = new Locale("en");
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, "mikita.malykov@upholding.biz", locale)
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principalEmail, locale)
                 .orElseThrow(InvalidAmountException::new);
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
 
