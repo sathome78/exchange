@@ -191,11 +191,11 @@
       <artifactId>xz</artifactId>
       <version>1.6</version>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>me.exrates</groupId>-->
-      <!--<artifactId>ssm-integration</artifactId>-->
-      <!--<version>1.0.2</version>-->
-    <!--</dependency>-->
+    <dependency>
+      <groupId>me.exrates</groupId>
+      <artifactId>ssm-integration</artifactId>
+      <version>1.0.2</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>
