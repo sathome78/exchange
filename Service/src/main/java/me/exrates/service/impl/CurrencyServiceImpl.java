@@ -20,7 +20,6 @@ import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -252,8 +251,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType) {
-        UserRole userRole = userService.getUserRoleFromSecurityContext();
+    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType, UserRole userRole) {
         OrderType orderType = OrderType.convert(operationType.name());
         return currencyDao.findCurrencyPairLimitForRoleByPairAndType(currencyPairId, userRole.getRole(), orderType.getType());
     }

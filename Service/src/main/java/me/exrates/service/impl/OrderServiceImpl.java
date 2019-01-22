@@ -400,7 +400,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto) {
+    public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, UserRole userRole) {
         OrderValidationDto orderValidationDto = new OrderValidationDto();
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
@@ -412,7 +412,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
-                orderCreateDto.getOperationType());
+                orderCreateDto.getOperationType(), userRole);
         if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
             if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
                 errors.put("stop_" + errors.size(), "order.fillfield");
@@ -613,7 +613,7 @@ public class OrderServiceImpl implements OrderService {
         OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
         log.debug("Order prepared" + orderCreateDto);
-        OrderValidationDto orderValidationDto = validateOrder(orderCreateDto);
+        OrderValidationDto orderValidationDto = validateOrder(orderCreateDto, userService.getUserRoleFromSecurityContext());
         Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));

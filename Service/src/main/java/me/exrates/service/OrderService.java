@@ -54,7 +54,7 @@ public interface OrderService {
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
 
-    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
+    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, UserRole userRole);
 
     @Transactional
     String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale);

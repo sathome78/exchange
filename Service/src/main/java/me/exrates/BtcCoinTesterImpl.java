@@ -25,7 +25,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -53,6 +52,8 @@ public class BtcCoinTesterImpl implements CoinTester {
     private WithdrawService withdrawService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private UserService userService;
 
     private int currencyId;
     private int merchantId;
@@ -99,7 +100,7 @@ public class BtcCoinTesterImpl implements CoinTester {
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/
-            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, userService.getUserRoleFromSecurityContext());
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, new Locale("en"));
             if (!errorMap.isEmpty()) {
