@@ -34,6 +34,8 @@ public interface MerchantDao {
 
     BigDecimal getMinSum(int merchant, int currency);
 
+    void setMinSum(double merchant, double currency, double minSum);
+
     Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
 
     List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);

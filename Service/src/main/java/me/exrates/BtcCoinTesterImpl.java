@@ -74,11 +74,11 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public void testCoin(double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException, CoinTestException {
+    public void testCoin(double refillAmount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
 
-        testAddressGeneration();
-        checkRefill(refillAmount*10, merchantId, currencyId, request);
+//        testAddressGeneration();
+//        checkRefill(refillAmount*10, merchantId, currencyId, request);
         testAutoWithdraw(refillAmount/4);
         testManualWithdraw(refillAmount / 4);
         testOrder(OperationType.SELL, new BigDecimal(0.001), new BigDecimal(0.001), OrderBaseType.LIMIT, name + "/BTC", new BigDecimal(0.00));
@@ -113,8 +113,6 @@ public class BtcCoinTesterImpl implements CoinTester {
                 throw new OrderParamsWrongException();
             } else {
             }
-            //{"currencyPairName":"KOD/BTC","operationTypeName":"SELL","balance":"9999.00","amount":"1.00","exrate":"1.00","total":"1.00",
-            // "commission":"0.002","totalWithComission":"0.998","stop":"0.00","baseType":"LIMIT"}
             boolean isOrderCreateCorrect = orderCreateSummaryDto.getAmount().equals(amount)
             && orderCreateDto.getCurrencyPair().getName().equals(currencyPair)
             && orderCreateDto.getOperationType().equals(orderType)
@@ -156,6 +154,8 @@ public class BtcCoinTesterImpl implements CoinTester {
             payment.setSum(withdrawRequestParamsDto.getSum().doubleValue());
             payment.setDestination(withdrawRequestParamsDto.getDestination());
             payment.setDestinationTag(withdrawRequestParamsDto.getDestinationTag());
+
+            merchantService.setMinSum(merchantId, currencyId, 0.00000001);
             CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principalEmail, new Locale("en"))
                     .orElseThrow(InvalidAmountException::new);
             WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
@@ -173,10 +173,11 @@ public class BtcCoinTesterImpl implements CoinTester {
             do {
                 flatWithdrawRequest = withdrawService.getFlatById(requestId).get();
                 withdrawStatus = flatWithdrawRequest.getStatus().getCode();
+                Thread.sleep(5000);
                 if (withdrawStatus == 10) {
                     Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
                     System.out.println("trx from btc " + transaction);
-                    if(!transaction.getAmount().equals(flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()))) throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
+                    if(!transaction.getAmount().equals(flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))) throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                 }
                 System.out.println("Checking withdraw...");
                 Thread.sleep(2000);
@@ -273,6 +274,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         } while (!acceptedRequest.isPresent());
 
         System.out.println("REQUEST FINDED");
+        Map<String,String> a = new HashMap<>();
     }
 
     private RefillRequestCreateDto prepareRefillRequest(int merchantId, int currencyId) {

@@ -134,6 +134,18 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
+  public void setMinSum(double merchant, double currency, double minSum) {
+    final String sql = "UPDATE MERCHANT_CURRENCY SET min_sum = :min_sum WHERE merchant_id = :merchant AND currency_id = :currency";
+    final Map<String, Double> params = new HashMap<String, Double>() {
+      {
+        put("merchant", merchant);
+        put("currency", currency);
+        put("min_sum", minSum);
+      }};
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
   public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
     final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
             " MERCHANT_CURRENCY.min_sum, " +

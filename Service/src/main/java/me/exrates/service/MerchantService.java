@@ -11,6 +11,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -57,7 +58,10 @@ public interface MerchantService {
 
   BigDecimal getMinSum(Integer merchantId, Integer currencyId);
 
-  void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount);
+    @Transactional
+    void setMinSum(double merchantId, double currencyId, double minSum);
+
+    void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount);
 
   List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime();
 

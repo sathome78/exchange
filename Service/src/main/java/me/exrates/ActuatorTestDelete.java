@@ -20,7 +20,7 @@ public class ActuatorTestDelete implements
         try {
             System.out.println("INIT BOT");
             kodTester.initBot("KOD");
-            kodTester.testCoin(0.001);
+            kodTester.testCoin(0.0001);
         } catch (Exception e) {
             e.printStackTrace();
         }
