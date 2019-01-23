@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.*;
@@ -52,6 +54,8 @@ public class OrdersEventHandleService {
     private UserService userService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private RabbitMqService rabbitMqService;
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -61,10 +65,37 @@ public class OrdersEventHandleService {
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
 
+    public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
+        ExOrder order = orderDto.toExorder();
+        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+        handleAllTrades(order);
+        handleMyTrades(order);
+        handleChart(order);
+        ratesHolder.onRatesChange(order);
+        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+    }
+
 
     @Async
     @TransactionalEventListener
-    void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
+    public void handleOrderEventAsync(CreateOrderEvent event) {
+        ExOrder exOrder = (ExOrder) event.getSource();
+        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
+        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
+    }
+
+    @Async
+    @TransactionalEventListener
+    public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
+        ExOrder exOrder = (ExOrder) event.getSource();
+        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
+        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
+    }
+
+
+    @Async
+    @TransactionalEventListener
+    public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         log.debug("order event {} ", exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
@@ -73,14 +104,16 @@ public class OrdersEventHandleService {
 
     @Async
     @TransactionalEventListener
-    void handleOrderEventAsync(AcceptOrderEvent event) {
+    public void handleOrderEventAsync(AcceptOrderEvent event) {
         log.debug("new thr accept {} ", Thread.currentThread().getName());
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
         handleChart(order);
-        ratesHolder.onRatesChange(order.getCurrencyPairId(), order.getExRate());
+        ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(order);
+        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {

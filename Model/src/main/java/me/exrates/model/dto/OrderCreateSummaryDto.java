@@ -9,6 +9,7 @@ import java.util.Locale;
  */
 
 public class OrderCreateSummaryDto {
+    private OrderCreateDto orderCreateDto;
     private String currencyPairName;
     private String operationTypeName;
     private String balance;
@@ -36,6 +37,7 @@ public class OrderCreateSummaryDto {
         this.totalWithComission = BigDecimalProcessing.formatLocale(orderCreateDto.getTotalWithComission(), locale, 2);
         this.stop = BigDecimalProcessing.formatLocale(orderCreateDto.getStop(), locale, 2);
         this.baseType = orderCreateDto.getOrderBaseType().name();
+        this.orderCreateDto = orderCreateDto;
     }
 
     /*getters setters*/
@@ -132,5 +134,13 @@ public class OrderCreateSummaryDto {
                 ", commission='" + commission + '\'' +
                 ", totalWithComission='" + totalWithComission + '\'' +
                 '}';
+    }
+
+    public OrderCreateDto getOrderCreateDto() {
+        return orderCreateDto;
+    }
+
+    public void setOrderCreateDto(OrderCreateDto orderCreateDto) {
+        this.orderCreateDto = orderCreateDto;
     }
 }

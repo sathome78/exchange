@@ -491,6 +491,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String findById(int userId) {
+        return userDao.getUserById(userId).getEmail();
+    }
+
+    @Override
     public String getPreferedLang(int userId) {
         return userDao.getPreferredLang(userId);
     }
