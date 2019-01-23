@@ -13,11 +13,11 @@ import me.exrates.model.StopOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
@@ -30,10 +30,8 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
-import me.exrates.ngcontroller.model.ResponseUserBalances;
 import me.exrates.ngcontroller.model.SimpleOrderBookItem;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
@@ -60,7 +58,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -488,17 +485,10 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     @Override
     public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
-        BigDecimal minimum = new BigDecimal("0.000000005");
-        BigDecimal acceptableAmount = new BigDecimal("0.00000001");
+        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(orderType, currencyId)
                 .stream()
-                .filter(n -> new BigDecimal(n.getExrate()).compareTo(minimum) >= 0)
-                .map(n -> {
-                    if (new BigDecimal(n.getExrate()).compareTo(acceptableAmount) < 0) {
-                        n.setExrate("0.00000001");
-                    }
-                    return n;
-                })
+                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
         List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
         OrderBookWrapperDto dto = OrderBookWrapperDto
@@ -537,7 +527,7 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
                                                      int currencyPairId, int precision) {
-        MathContext mathContext = new MathContext(precision);
+        MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
                 .stream()
                 .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
@@ -612,7 +602,7 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     private BigDecimal getAmount(List<OrderListDto> list) {
-        BigDecimal amount = new BigDecimal(0);
+        BigDecimal amount = BigDecimal.ZERO;
         for (OrderListDto item : list) {
             amount = amount.add(new BigDecimal(item.getAmountBase()));
         }
