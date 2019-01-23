@@ -81,6 +81,8 @@ public class KYCController {
     @ExceptionHandler(ShuftiProException.class)
     @ResponseBody
     public ErrorInfo shuftiProExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
+        StringBuffer requestURL = req.getRequestURL();
+        log.error("Invocation of request url: {} caused error:", requestURL, exception);
+        return new ErrorInfo(requestURL, exception);
     }
 }
