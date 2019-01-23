@@ -1,15 +1,22 @@
 package me.exrates.service;
 
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
-import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.AdminAuthorityOption;
+import me.exrates.model.Comment;
+import me.exrates.model.TemporalToken;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +33,7 @@ public interface UserService {
 
     int getIdByNickname(String nickname);
 
-    boolean setNickname(String newNickName,String userEmail);
+    boolean setNickname(String newNickName, String userEmail);
 
     boolean hasNickname(String userEmail);
 
@@ -217,11 +224,9 @@ public interface UserService {
 
     void updateGaTag(String gaCookie, String username);
 
-    int updateReferenceIdByUserId(int userId, String kycReference);
+    String getReferenceId();
 
-    String getReferenceIdByUserId(int userId);
+    int updateVerificationStepAndReferenceId(String reference);
 
-    int updateVerificationStatusByUserId(int userId, EventStatus eventStatus);
-
-    int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus);
+    VerificationStep getVerificationStep();
 }

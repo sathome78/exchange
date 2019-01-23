@@ -1,20 +1,32 @@
 package me.exrates.dao;
 
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
-import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.AdminAuthorityOption;
+import me.exrates.model.Comment;
+import me.exrates.model.PagingData;
+import me.exrates.model.TemporalToken;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 
 public interface UserDao {
 
@@ -196,11 +208,9 @@ public interface UserDao {
 
     void updateGaTag(String gaCookie, String username);
 
-    int updateReferenceIdByUserId(int userId, String kycReference);
+    String getReferenceIdByUserEmail(String userEmail);
 
-    String getReferenceIdByUserId(int userId);
+    int updateVerificationStepAndReferenceIdByUserEmail(String reference, String userEmail);
 
-    int updateVerificationStatusByUserId(int userId, EventStatus eventStatus);
-
-    int updateVerificationStatusByReferenceId(String reference, EventStatus eventStatus);
+    int getVerificationStep(String userEmail);
 }

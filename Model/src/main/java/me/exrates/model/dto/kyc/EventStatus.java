@@ -26,6 +26,6 @@ public enum EventStatus {
         return Stream.of(EventStatus.values())
                 .filter(eventStatus -> eventStatus.event.equals(event))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format("Event with status %s not found", event)));
+                .orElseThrow(() -> new RuntimeException(String.format("Event with status %s has not found", event)));
     }
 }

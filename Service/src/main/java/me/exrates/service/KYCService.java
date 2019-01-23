@@ -5,9 +5,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public interface KYCService {
 
-    String getVerificationUrl(int userId, String language, String country);
+    String getVerificationUrl(int stepNumber, String languageCode, String countryCode);
 
-    Pair<String, EventStatus> getVerificationStatus(int userId);
+    Pair<String, EventStatus> getVerificationStatus();
 
-    Pair<String, EventStatus> checkResponseAndUpdateStatus(String response, String s);
+    Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String response, String s);
 }

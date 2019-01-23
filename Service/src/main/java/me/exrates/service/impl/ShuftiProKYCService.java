@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.User;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.service.KYCService;
 import me.exrates.service.UserService;
@@ -28,8 +27,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Objects;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @PropertySource(value = {"classpath:/kyc.properties"})
@@ -90,10 +89,10 @@ public class ShuftiProKYCService implements KYCService {
     }
 
     @Override
-    public String getVerificationUrl(int userId, String language, String country) {
-        User user = userService.getUserById(userId);
+    public String getVerificationUrl(int stepNumber, String languageCode, String countryCode) {
+        final String userEmail = userService.getUserEmailFromSecurityContext();
 
-        VerificationRequest verificationRequest = buildVerificationRequest(user, language, country);
+        VerificationRequest verificationRequest = buildVerificationRequest(userEmail, languageCode, countryCode, stepNumber);
 
         HttpEntity<VerificationRequest> requestEntity = new HttpEntity<>(verificationRequest);
 
@@ -113,55 +112,64 @@ public class ShuftiProKYCService implements KYCService {
 
         JSONObject verificationObject = new JSONObject(response);
         final EventStatus eventStatus = EventStatus.of(verificationObject.getString(EVENT));
-        if (!Objects.equals(eventStatus, EventStatus.PENDING)) {
+        if (!EventStatus.PENDING.equals(eventStatus)) {
             JSONObject errorObject = verificationObject.getJSONObject(ERROR);
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
         }
-
-        int affectedRowCount = userService.updateReferenceIdByUserId(userId, verificationObject.getString(REFERENCE));
-        if (affectedRowCount == 0) {
-            log.debug("User KYC reference have not updated in database");
-        }
         return verificationObject.getString(VERIFICATION_URL).replace("\\", "");
     }
 
-    private VerificationRequest buildVerificationRequest(User user, String language, String country) {
-        return VerificationRequest.builder()
+    private VerificationRequest buildVerificationRequest(String userEmail, String languageCode, String countryCode, int stepNumber) {
+        VerificationRequest.Builder builder = VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
                 .redirectUrl(redirectUrl)
-                .email(user.getEmail())
-                .country(country)
-                .language(language)
-                .verificationMode(verificationMode)
-                .face(Face.builder()
-                        .proof(StringUtils.EMPTY)
-                        .build())
-                .document(Document.builder()
-                        .proof(StringUtils.EMPTY)
-                        .supportedTypes(documentSupportedTypes)
-                        .name(StringUtils.EMPTY)
-                        .dob(StringUtils.EMPTY)
-                        .issueDate(StringUtils.EMPTY)
-                        .expiryDate(StringUtils.EMPTY)
-                        .documentNumber(StringUtils.EMPTY)
-                        .build())
-                .address(Address.builder()
-                        .proof(StringUtils.EMPTY)
-                        .supportedTypes(addressSupportedTypes)
-                        .name(StringUtils.EMPTY)
-                        .fullAddress(StringUtils.EMPTY)
-                        .build())
-                .phone(Phone.builder()
-                        .text(smsText)
-                        .build())
-                .build();
+                .email(userEmail)
+                .country(countryCode)
+                .verificationMode(verificationMode);
+
+        if (nonNull(languageCode)) {
+            builder.language(languageCode);
+        }
+
+        if (stepNumber == 1) {
+            builder
+                    .face(Face.builder()
+                            .proof(StringUtils.EMPTY)
+                            .build())
+                    .document(Document.builder()
+                            .proof(StringUtils.EMPTY)
+                            .supportedTypes(documentSupportedTypes)
+                            .name(StringUtils.EMPTY)
+                            .dob(StringUtils.EMPTY)
+                            .issueDate(StringUtils.EMPTY)
+                            .expiryDate(StringUtils.EMPTY)
+                            .documentNumber(StringUtils.EMPTY)
+                            .build())
+                    .phone(Phone.builder()
+                            .text(smsText)
+                            .build());
+        } else if (stepNumber == 2) {
+            builder
+                    .address(Address.builder()
+                            .proof(StringUtils.EMPTY)
+                            .supportedTypes(addressSupportedTypes)
+                            .name(StringUtils.EMPTY)
+                            .fullAddress(StringUtils.EMPTY)
+                            .build());
+        } else {
+            throw new ShuftiProException(String.format("Unknown step number: %s", stepNumber));
+        }
+        return builder.build();
     }
 
     @Override
-    public Pair<String, EventStatus> getVerificationStatus(int userId) {
-        final String reference = userService.getReferenceIdByUserId(userId);
+    public Pair<String, EventStatus> getVerificationStatus() {
+        final String reference = userService.getReferenceId();
+        if (isNull(reference)) {
+            throw new ShuftiProException("Process of verification data has not started. Reference id is undefined");
+        }
 
         StatusRequest statusRequest = buildStatusRequest(reference);
 
@@ -182,13 +190,8 @@ public class ShuftiProKYCService implements KYCService {
         validateMerchantSignature(signature, response);
 
         JSONObject statusObject = new JSONObject(response);
-        final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
 
-        int affectedRowCount = userService.updateVerificationStatusByUserId(userId, eventStatus);
-        if (affectedRowCount == 0) {
-            log.debug("Verification status have not updated in database");
-        }
-        return Pair.of(reference, eventStatus);
+        return Pair.of(reference, EventStatus.of(statusObject.getString(EVENT)));
     }
 
     private StatusRequest buildStatusRequest(String reference) {
@@ -198,16 +201,19 @@ public class ShuftiProKYCService implements KYCService {
     }
 
     @Override
-    public Pair<String, EventStatus> checkResponseAndUpdateStatus(String signature, String response) {
+    public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
         validateMerchantSignature(signature, response);
 
         JSONObject statusObject = new JSONObject(response);
         final String reference = statusObject.getString(REFERENCE);
         final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
 
-        int affectedRowCount = userService.updateVerificationStatusByReferenceId(reference, eventStatus);
-        if (affectedRowCount == 0) {
-            log.debug("Verification status have not updated in database");
+        if (EventStatus.ACCEPTED.equals(eventStatus)) {
+            log.debug("Verification status: {}. Data has been verified successfully", eventStatus);
+            int affectedRowCount = userService.updateVerificationStepAndReferenceId(reference);
+            if (affectedRowCount == 0) {
+                log.debug("Data have not updated in database");
+            }
         }
         return Pair.of(reference, eventStatus);
     }

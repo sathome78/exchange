@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -34,4 +35,5 @@ public class User {
     private String parentEmail;
     private List<UserFile> userFiles = Collections.emptyList();
     private Integer apiRateLimit;
+    private VerificationStep verificationStep;
 }
