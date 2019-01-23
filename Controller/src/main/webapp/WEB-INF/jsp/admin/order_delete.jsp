@@ -41,7 +41,7 @@
             <div id="order-search" class="collapse">
 
 
-                <form id="delete-order-info__form" class="form_full_height_width" action="/2a8fy7b07dxe44/searchorders" method="get" onclick="getOrders()">
+                <form id="delete-order-info__form" class="form_full_height_width" action="/2a8fy7b07dxe44/searchorders" method="get">
 
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -202,7 +202,7 @@
                                 type="button"><loc:message code="ordersearch.submit"/></button>
                         <button id="delete-order-info__reset" class="delete-order-info__button blue-box"
                                 type="button"><loc:message code="admin.user.transactions.resetFilter"/></button>
-                        <input type="submit" value="post request"><loc:message code="admin.stats.download"/></input>
+                        <button type="button" onclick="getOrders()"><loc:message code="admin.stats.download"/></button>
                     </div>
 
                 </form>

@@ -1022,16 +1022,16 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
-        String sqlSelect = "SELECT orders.id, orders.date_creation, cp.name AS currency_pair_name, " +
-                "UPPER(op_type.name) as operation_type, orders.base_type as order_base_type, " +
-                "orders.exrate, orders.amount_base, us_creator.email AS order_creator_email, " +
-                "us_creator.roleid AS creator_role_id, us_acceptor.email AS order_acceptor_email, " +
-                "us_acceptor.roleid AS acceptor_role_id, orders.status_id " +
-                "FROM EXORDERS as orders " +
-                "JOIN OPERATION_TYPE AS op_type ON (op_type.id = orders.operation_type_id) " +
-                "JOIN CURRENCY_PAIR as cp ON (cp.id = orders.currency_pair_id) " +
-                "JOIN USER as us_creator ON (us_creator.id = orders.user_id) " +
-                "JOIN USER as us_acceptor ON (us_acceptor.id = orders.user_acceptor_id)";
+        String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, cp.name AS currency_pair_name, " +
+                "UPPER(ORDER_OPERATION.name) as operation_type, EXORDERS.base_type as order_base_type, " +
+                "EXORDERS.exrate, EXORDERS.amount_base, CREATOR.email AS order_creator_email, " +
+                "CREATOR.roleid AS creator_role_id, ACCEPTOR.email AS order_acceptor_email, " +
+                "ACCEPTOR.roleid AS acceptor_role_id, EXORDERS.status_id " +
+                "FROM EXORDERS " +
+                "JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
+                "JOIN CURRENCY_PAIR as cp ON (cp.id = EXORDERS.currency_pair_id) " +
+                "JOIN USER as CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
+                "JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
 
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.putAll(adminOrderFilterData.getNamedParams());
@@ -1039,7 +1039,7 @@ public class OrderDaoImpl implements OrderDao {
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
 
-        String selectQuery = String.join(" ", sqlSelect, whereClause);
+        String selectQuery = String.join(" ", sqlSelect, whereClause, "LIMIT 1000");
 
         LOGGER.debug(selectQuery);
 

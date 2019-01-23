@@ -440,7 +440,6 @@ public class ReportController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/report/orders")
     public ResponseEntity getOrders(AdminOrderFilterData adminOrderFilterData, HttpServletRequest request) {
-        adminOrderFilterData.initFilterItems();
         ReportDto reportDto;
         try {
             reportDto = reportService.getOrders(adminOrderFilterData);

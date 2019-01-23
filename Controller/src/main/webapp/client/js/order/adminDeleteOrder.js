@@ -424,24 +424,25 @@ $(function () {
 
 function getOrders() {
     var url = '/2a8fy7b07dxe44/report/orders';
+    var dataReq = $('#delete-order-info__form').serialize();
 
-    var data = $('#delete-order-info__form').serialize();
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader('X-CSRF-Token', $("input[name='_csrf']").val());
+    xhr.responseType = 'blob';
 
-    var req = new XMLHttpRequest();
-    req.open ('POST', url, true);
-    req.responseType = 'blob';
-
-    req.onload = function (event) {
-
-        var blob = req.response;
-        var header = req.getResponseHeader('Content-Disposition');
-        var link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = header.match(/filename="(.+)"/)[1];
-        var resp = req.response;
-        alert(req.response);
+    xhr.onreadystatechange = function () {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            var blob = xhr.response;
+            var header = xhr.getResponseHeader('Content-Disposition');
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = header.match(/filename="(.+)"/)[1];
+            link.click();
+        }
     };
-    // link.click();
-    req.send(data);
-    alert("success");
+
+    xhr.send(dataReq);
+
 }
