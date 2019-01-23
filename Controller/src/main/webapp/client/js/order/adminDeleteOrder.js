@@ -423,26 +423,27 @@ $(function () {
 });
 
 function getOrders() {
-    var url = '/2a8fy7b07dxe44/report/orders';
-    var dataReq = $('#delete-order-info__form').serialize();
+    var r = confirm("Вы точно хотите выгрузить файл с отчетом ?");
+    if (r === true) {
+        var url = '/2a8fy7b07dxe44/report/orders';
+        var dataReq = $('#delete-order-info__form').serialize();
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.setRequestHeader('X-CSRF-Token', $("input[name='_csrf']").val());
-    xhr.responseType = 'blob';
+        var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader('X-CSRF-Token', $("input[name='_csrf']").val());
+            xhr.responseType = 'blob';
 
-    xhr.onreadystatechange = function () {
-        if(xhr.readyState == 4 && xhr.status == 200) {
-            var blob = xhr.response;
-            var header = xhr.getResponseHeader('Content-Disposition');
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = header.match(/filename="(.+)"/)[1];
-            link.click();
-        }
-    };
-
-    xhr.send(dataReq);
-
+            xhr.onreadystatechange = function () {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                    var blob = xhr.response;
+                    var header = xhr.getResponseHeader('Content-Disposition');
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = header.match(/filename="(.+)"/)[1];
+                    link.click();
+                }
+            };
+        xhr.send(dataReq);
+    }
 }

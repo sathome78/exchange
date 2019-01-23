@@ -1022,6 +1022,9 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+        //Need, because table EXORDERS has many data
+        String limit = "LIMIT 100000";
+
         String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, cp.name AS currency_pair_name, " +
                 "UPPER(ORDER_OPERATION.name) as operation_type, EXORDERS.base_type as order_base_type, " +
                 "EXORDERS.exrate, EXORDERS.amount_base, CREATOR.email AS order_creator_email, " +
@@ -1039,7 +1042,7 @@ public class OrderDaoImpl implements OrderDao {
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
 
-        String selectQuery = String.join(" ", sqlSelect, whereClause, "LIMIT 1000");
+        String selectQuery = String.join(" ", sqlSelect, whereClause, limit);
 
         LOGGER.debug(selectQuery);
 

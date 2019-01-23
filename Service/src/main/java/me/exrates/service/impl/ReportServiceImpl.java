@@ -750,14 +750,4 @@ public class ReportServiceImpl implements ReportService {
     private LocalTime parseTime(String timeString) {
         return LocalTime.from(DateTimeFormatter.ofPattern("HH:mm").parse(timeString));
     }
-
-    public static void main(String[] args) {
-        String noww = "2016-11-09 10:30:27";
-        String now = noww.substring(0, noww.indexOf(":")+3);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        DateTimeFormatter QWE = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
-        LocalDateTime formatDateTime = LocalDateTime.parse(now, formatter);
-        System.out.println("Before : " + now);
-        System.out.println("After : " + formatDateTime.format(QWE));
-    }
 }
