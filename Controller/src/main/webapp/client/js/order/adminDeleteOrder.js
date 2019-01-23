@@ -420,5 +420,28 @@ $(function () {
         acceptOrderByAdmin(currentOrderId);
     });
 
-
 });
+
+function getOrders() {
+    var url = '/2a8fy7b07dxe44/report/orders';
+
+    var data = $('#delete-order-info__form').serialize();
+
+    var req = new XMLHttpRequest();
+    req.open ('POST', url, true);
+    req.responseType = 'blob';
+
+    req.onload = function (event) {
+
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        var resp = req.response;
+        alert(req.response);
+    };
+    // link.click();
+    req.send(data);
+    alert("success");
+}
