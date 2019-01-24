@@ -61,8 +61,8 @@ public class withdrawRequestJob {
 
   @PostConstruct
   private void initSchedule() {
-    scheduler.scheduleAtFixedRate(this::setInPostingStatus, 3, 1, TimeUnit.MINUTES);
-    scheduler.scheduleAtFixedRate(this::postWithdraw, 0, 1, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(this::setInPostingStatus, 0, 30, TimeUnit.SECONDS);
+    scheduler.scheduleAtFixedRate(this::postWithdraw, 0, 30, TimeUnit.SECONDS);
   }
 
  // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)

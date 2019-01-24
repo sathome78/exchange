@@ -9,16 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -78,8 +69,6 @@ import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -1491,5 +1480,28 @@ public class OrderDaoImpl implements OrderDao {
                 .amountConvert(rs.getBigDecimal("amount_convert"))
                 .amountCommission(rs.getBigDecimal("amount_commission"))
                 .build());
+    }
+
+    @Override
+    public Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String email) {
+        String sql = "SELECT 1 FROM EXORDERS WHERE user_id = (SELECT id FROM USER WHERE email = :email) " +
+                "AND currency_pair_id = :currency_pair_id " +
+                "AND amount_base = :amount_base " +
+                "AND base_type = :base_type " +
+                "AND commission_id = :commission_id " +
+                "AND date_creation BETWEEN :from AND :to";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", orderCreateDto.getCurrencyPair().getId());
+        params.put("amount_base", orderCreateDto.getAmount());
+        params.put("commission_id", orderCreateDto.getComissionId());
+        params.put("base_type", orderCreateDto.getOrderBaseType().getType());
+        params.put("email", email);
+        params.put("from", from);
+        params.put("to", to);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return null;
+        }
     }
 }

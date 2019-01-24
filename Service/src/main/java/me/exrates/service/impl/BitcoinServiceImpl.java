@@ -199,6 +199,15 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   }
 
+  public static void main(String[] args) {
+    Map<String, Integer> map = new HashMap<>();
+    for(int i = 0; i < 25; i++){
+      map.put(String.valueOf(UUID.randomUUID()), i);
+    }
+    map.forEach((k,v) ->
+            System.out.println(k.hashCode()));
+  }
+
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -619,6 +628,11 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String getMerchantName() {
     return merchantName;
+  }
+
+  @Override
+  public void setConfirmationNeededCount(int confirmationNeededCount) {
+    this.minConfirmations = confirmationNeededCount;
   }
 
   @PreDestroy

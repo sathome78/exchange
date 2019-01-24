@@ -19,8 +19,8 @@ public class ActuatorTestDelete implements
         CoinTester kodTester = contextRefreshedEvent.getApplicationContext().getBean(CoinTester.class);
         try {
             System.out.println("INIT BOT");
-            kodTester.initBot("KOD");
-            kodTester.testCoin(0.0001);
+            kodTester.initBot("RIME");
+            kodTester.testCoin(0.00001);
         } catch (Exception e) {
             e.printStackTrace();
         }

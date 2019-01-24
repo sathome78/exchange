@@ -98,4 +98,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
     default String getNodePropertySource(){
       throw new NotImplementedException();
     }
+
+    default void setConfirmationNeededCount(int confirmationNeededCount){
+      throw new NotImplementedException();
+    }
 }

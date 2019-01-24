@@ -2014,6 +2014,11 @@ public class OrderServiceImpl implements OrderService {
     public void logCallBackData(CallBackLogDto callBackLogDto) {
         callBackDao.logCallBackData(callBackLogDto);
     }
+
+    @Override
+    public Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String principalEmail) {
+        return orderDao.getOrderByOrderCreateDtoAndTime(orderCreateDto, from, to, principalEmail);
+    }
 }
 
 

@@ -408,4 +408,5 @@ public interface OrderService {
                                                                                 List<UserRole> roles);
     void logCallBackData(CallBackLogDto callBackLogDto);
 
+    Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String principalEmail);
 }
