@@ -355,4 +355,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public boolean updateVisibilityCurrencyPairById(int currencyPairId){
         return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
     }
+
+    @Override
+    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
+        return currencyDao.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
+    }
 }

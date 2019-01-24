@@ -581,12 +581,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public List<CurrencyPair> findAllCurrencyPair() {
-        String sql = "SELECT id, name, hidden FROM CURRENCY_PAIR";
+        String sql = "SELECT id, name, hidden, permitted_link FROM CURRENCY_PAIR";
         return jdbcTemplate.query(sql, (rs, i) -> {
             CurrencyPair result = new CurrencyPair();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
             result.setHidden(rs.getBoolean("hidden"));
+            result.setPermittedLink(rs.getBoolean("permitted_link"));
             return result;
         });
     }
@@ -596,6 +597,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
+        String sql = "UPDATE CURRENCY_PAIR SET permitted_link = !permitted_link WHERE id = :currency_pair_id";
+            Map<String, Object> params = new HashMap<>();
+            params.put("currency_pair_id", currencyPairId);
         return jdbcTemplate.update(sql, params) > 0;
     }
 

@@ -19,6 +19,7 @@ public class CurrencyPair {
     private String marketName;
     private CurrencyPairType pairType;
     private boolean hidden;
+    private boolean permittedLink;
 
     public CurrencyPair(Currency currency1, Currency currency2) {
         this.currency1 = currency1;

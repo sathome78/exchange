@@ -1066,6 +1066,13 @@ public class AdminController {
     }
 
     @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update")
+    public ResponseEntity<Void> updateAccessToDirectLinkCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<String>> getPhrases(
             @PathVariable String topic,
