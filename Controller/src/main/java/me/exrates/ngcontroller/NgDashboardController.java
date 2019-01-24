@@ -29,6 +29,7 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -194,41 +196,7 @@ public class NgDashboardController {
     }
 
     /**
-     * Returns a list of user orders path variables status defines which order's status to be retrieved
-     * http method: get
-     * http url: http://exrates_domain.me/info/private/v2/dashboard/orders/{status}
-     * <p>
-     * returns:
-     * {
-     * "count": number, -- entire quantity of items in storage
-     * "items": [
-     * {
-     * "id": number,
-     * "userId": number,
-     * "operationType": string,
-     * "operationTypeEnum": string, -- values: INPUT, OUTPUT, SELL, BUY, WALLET_INNER_TRANSFER, REFERRAL, STORNO, MANUAL, USER_TRANSFER
-     * "stopRate": string, -- for stop orders
-     * "exExchangeRate": string,
-     * "amountBase": string,
-     * "amountConvert": string,
-     * "comissionId": number,
-     * "commissionFixedAmount": string,
-     * "amountWithCommission": string,
-     * "userAcceptorId": number,
-     * "dateCreation": Date,
-     * "dateAcception": Date,
-     * "status": string,  -- values INPROCESS, OPENED, CLOSED, CANCELLED, DELETED, DRAFT, SPLIT_CLOSED
-     * "dateStatusModification": Date,
-     * "commissionAmountForAcceptor": string,
-     * "amountWithCommissionForAcceptor": string,
-     * "currencyPairId": number,
-     * "currencyPairName": string,
-     * "statusString": string,
-     * "orderBaseType": string  -- values: LIMIT, STOP_LIMIT, ICO
-     * },
-     * ...
-     * ]
-     * }
+     * /info/private/v2/dashboard/orders/{status}
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
@@ -237,6 +205,8 @@ public class NgDashboardController {
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
      * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
      *                       "ALL" - both], not required,  default "" - created by user
+     * @param hideCanceled   - selects or skips cancelled orders
+     * @param initial        - if true means that if nothing found for date range we select last ${limit} orders
      * @param dateFrom       - specifies the start of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param dateTo         - specifies the end of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param request        - HttpServletRequest, used by backend to resolve locale
@@ -248,10 +218,11 @@ public class NgDashboardController {
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
-            @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
+            @RequestParam(required = false, name = "limit", defaultValue = "15") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
+            @RequestParam(required = false, name = "initial", defaultValue = "false") Boolean initial,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
@@ -268,14 +239,23 @@ public class NgDashboardController {
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
         try {
-            Map<Integer, List<OrderWideListDto>> ordersMap =
+            Pair<Integer, List<OrderWideListDto>> ordersMap =
                     this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
-                            limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
+                            limit, hideCanceled, initial, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-            pagedResult.setCount(ordersMap.keySet().iterator().next());
-            pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
+            pagedResult.setCount(ordersMap.getKey());
+            pagedResult.setItems(ordersMap.getValue());
 
-            return ResponseEntity.ok(pagedResult);
+            LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+            boolean beforeYesterday = pagedResult
+                    .getItems()
+                    .stream()
+                    .anyMatch(order -> order.getDateCreation().isBefore(yesterday));
+
+            if (beforeYesterday) {
+                return new ResponseEntity<>(pagedResult, HttpStatus.MULTI_STATUS); // 207
+            }
+            return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

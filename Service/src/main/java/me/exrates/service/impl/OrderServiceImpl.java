@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -112,6 +113,7 @@ import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
@@ -1614,15 +1616,29 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                                        String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                        Locale locale, Map<String, String> sortedColumns,
-                                                                        LocalDate dateFrom, LocalDate dateTo) {
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled,
+                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo) {
+        if (dateTo == null) {
+            dateTo = LocalDate.now();
+        }
 
-        int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
-        List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
+        if (dateFrom == null) {
+            dateFrom = dateTo.minusDays(1);
+        }
+        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
+        List<OrderWideListDto> orders;
+        if (recordsCount == 0 && initial) {
+            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, null, null, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
+                    offset, limit, sortedColumns, null, null, hideCanceled);
+        } else if (recordsCount == 0){
+            orders = Lists.newArrayList();
+        } else {
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
                 offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
-        return Collections.singletonMap(records, orders);
+        }
+        return Pair.of(recordsCount, orders);
     }
 
     @Override
