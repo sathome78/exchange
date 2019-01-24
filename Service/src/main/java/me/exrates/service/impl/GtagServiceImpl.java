@@ -62,11 +62,11 @@ public class GtagServiceImpl implements GtagService {
         formData.add("tr", price);
         formData.add("ti", transactionId);
 
-        log.info("Form params " + formData);
+        log.info("Form params for transaction hit" + formData);
 
         Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
 
-        log.info("Response is " + response.readEntity(String.class));
+        log.info("Response is for transaction hit" + response.readEntity(String.class));
         return transactionId;
     }
 
@@ -85,12 +85,12 @@ public class GtagServiceImpl implements GtagService {
         formData.add("ic", tiker);
         formData.add("cu", "USD");
 
-        log.info("Form params " + formData);
+        log.info("Form params for item hit" + formData);
 
         Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
 
         String jsonResponse = response.readEntity(String.class);
 
-        log.info("Response is " + jsonResponse);
+        log.info("Response is for item hit" + jsonResponse);
     }
 }
