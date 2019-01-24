@@ -1618,9 +1618,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                                          String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
-                                                                         LocalDate dateFrom, LocalDate dateTo) {
+                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo) {
+        if (dateTo == null) {
+            dateTo = LocalDate.now();
+        }
 
+        if (dateFrom == null) {
+            dateFrom = dateTo.minusDays(1);
+        }
         int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders;
         if (recordsCount == 0 && initial) {

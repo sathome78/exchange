@@ -196,6 +196,7 @@ public class NgDashboardController {
     }
 
     /**
+     * /info/private/v2/dashboard/orders/{status}
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
@@ -217,7 +218,7 @@ public class NgDashboardController {
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
-            @RequestParam(required = false, name = "limit", defaultValue = "14") Integer limit,
+            @RequestParam(required = false, name = "limit", defaultValue = "15") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
