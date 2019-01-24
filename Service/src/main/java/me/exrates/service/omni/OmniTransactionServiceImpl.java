@@ -68,9 +68,9 @@ public class OmniTransactionServiceImpl implements OmniTransactionService {
 
     @PostConstruct
     private void init() {
-        txScheduler.scheduleAtFixedRate(this::checkTransactions, 3, 8, TimeUnit.MINUTES);
-        unconfScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 5, 10, TimeUnit.MINUTES);
-        unconfScheduler.scheduleAtFixedRate(this::sendToMainAddressJob, 10, 20, TimeUnit.MINUTES);
+        txScheduler.scheduleAtFixedRate(this::checkTransactions, 3, 7, TimeUnit.MINUTES);
+        unconfScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 3, 8, TimeUnit.MINUTES);
+        unconfScheduler.scheduleAtFixedRate(this::sendToMainAddressJob, 10, 90, TimeUnit.MINUTES);
     }
 
     private void checkTransactions() {
