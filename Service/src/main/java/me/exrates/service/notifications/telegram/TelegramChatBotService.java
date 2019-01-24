@@ -36,6 +36,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private final static Logger logger = LogManager.getLogger(TelegramChatBotService.class);
 
     private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+    private final static ChatLang LANGUAGE = ChatLang.EN;
 
     private final SimpMessagingTemplate messagingTemplate;
     private final TelegramChatDao telegramChatDao;
@@ -67,6 +68,20 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        if(update.hasEditedMessage() && update.getEditedMessage().hasText()){
+            Message editedMessage = update.getEditedMessage();
+
+            ChatHistoryDto editedChatMessage = new ChatHistoryDto();
+                editedChatMessage.setMessageId(editedMessage.getMessageId());
+                editedChatMessage.setChatId(editedMessage.getChatId());
+                editedChatMessage.setBody(editedMessage.getText());
+
+            telegramChatDao.updateChatMessage(LANGUAGE, editedChatMessage);
+
+            logger.info("Update chat message from TELEGRAM. Chat id: "+editedMessage.getChatId()+ " | Message id:"+editedMessage.getMessageId()+
+                    "| UserId in Telegram:"+editedMessage.getFrom().getId()+" | Message text" + editedMessage.getText());
+
+        }
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
 
@@ -78,24 +93,27 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
             String nickNameForDb = firstName+" "+Optional.ofNullable(lastName).orElse("");
 
-            ChatLang language = ChatLang.EN;
-
             ChatHistoryDto chatMessage = new ChatHistoryDto();
-            chatMessage.setBody(messageText);
+            chatMessage.setMessageId(message.getMessageId());
+            chatMessage.setChatId(chatId);
+            chatMessage.setTelegramUserId(message.getFrom().getId());
             chatMessage.setEmail(nickNameForDb);
+            chatMessage.setBody(messageText);
             chatMessage.setMessageTime(LocalDateTime.now().format(FORMATTER));
 
-            chatMessage.setChatId(chatId);
 
             Optional.ofNullable(update.getMessage().getReplyToMessage()).ifPresent(messageReply -> {
+                chatMessage.setTelegramUserReplyId(messageReply.getFrom().getId());
+                chatMessage.setMessageReplyId(messageReply.getMessageId());
                 chatMessage.setMessageReplyUsername(messageReply.getFrom().getFirstName()+" "
                         +Optional.ofNullable(messageReply.getFrom().getLastName()).orElse(""));
                 chatMessage.setMessageReplyText(messageReply.getText());
             });
 
-            if(String.valueOf(chatId).equals(chatCommunityId)){
-                telegramChatDao.saveChatMessage(language, chatMessage);
-                String destination = "/topic/chat/".concat(language.val.toLowerCase());
+            //TO DO delete !
+            if(!String.valueOf(chatId).equals(chatCommunityId)){
+                telegramChatDao.saveChatMessage(LANGUAGE, chatMessage);
+                String destination = "/topic/chat/".concat(LANGUAGE.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, toJson(chatMessage));
                 logger.info("Send chat message from TELEGRAM. Chat id: "+chatId+" | From user (userId in Telegram) name:"+nickNameForDb+" | Message text"+messageText);
             } else {

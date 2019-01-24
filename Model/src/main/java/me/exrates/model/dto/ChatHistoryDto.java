@@ -11,10 +11,22 @@ import java.util.stream.Stream;
 @Getter @Setter
 public class ChatHistoryDto  {
 
+    @JsonIgnore
+    private Integer messageId;
+
     private Long chatId;
+
+    @JsonIgnore
+    private Integer telegramUserId;
+
     private String  email;
     private String  body;
     private String messageTime;
+
+    @JsonIgnore
+    private Integer telegramUserReplyId;
+    @JsonIgnore
+    private Integer messageReplyId;
 
     private String messageReplyUsername;
     private String messageReplyText;
