@@ -226,7 +226,11 @@ public interface UserService {
 
     String getReferenceId();
 
-    int updateVerificationStepAndReferenceId(String reference);
+    int updateVerificationStep(String reference);
 
     VerificationStep getVerificationStep();
+
+    int updateReferenceId(String referenceId);
+
+    String getEmailByReferenceId(String referenceId);
 }

@@ -7,8 +7,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.model.Email;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.service.KYCService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.util.ShuftiProUtils;
@@ -52,6 +54,8 @@ public class ShuftiProKYCService implements KYCService {
     private final int digitsNumber;
     private final String verificationMode;
     private final String smsText;
+    private final String emailSubject;
+    private final String emailMessagePattern;
 
     private final List<String> documentSupportedTypes;
     private final List<String> addressSupportedTypes;
@@ -59,6 +63,7 @@ public class ShuftiProKYCService implements KYCService {
     private final RestTemplate restTemplate;
 
     private final UserService userService;
+    private final SendMailService sendMailService;
 
     @Autowired
     public ShuftiProKYCService(@Value("${shufti-pro.verification-url}") String verificationUrl,
@@ -68,11 +73,14 @@ public class ShuftiProKYCService implements KYCService {
                                @Value("${shufti-pro.reference-digits-number}") int digitsNumber,
                                @Value("${shufti-pro.verification-mode}") String verificationMode,
                                @Value("${shufti-pro.phone.sms-text}") String smsText,
+                               @Value("${shufti-pro.email.subject}") String emailSubject,
+                               @Value("${shufti-pro.email.message-pattern}") String emailMessagePattern,
                                @Value("#{'${shufti-pro.document.supported-types}'.split(',')}") List<String> documentSupportedTypes,
                                @Value("#{'${shufti-pro.address.supported-types}'.split(',')}") List<String> addressSupportedTypes,
                                @Value("${shufti-pro.username}") String username,
                                @Value("${shufti-pro.password}") String password,
-                               UserService userService) {
+                               UserService userService,
+                               SendMailService sendMailService) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -80,10 +88,13 @@ public class ShuftiProKYCService implements KYCService {
         this.digitsNumber = digitsNumber;
         this.verificationMode = verificationMode;
         this.smsText = smsText;
+        this.emailSubject = emailSubject;
+        this.emailMessagePattern = emailMessagePattern;
         this.documentSupportedTypes = documentSupportedTypes;
         this.addressSupportedTypes = addressSupportedTypes;
         this.secretKey = password;
         this.userService = userService;
+        this.sendMailService = sendMailService;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -116,6 +127,10 @@ public class ShuftiProKYCService implements KYCService {
             JSONObject errorObject = verificationObject.getJSONObject(ERROR);
             String errorMessage = nonNull(errorObject) ? errorObject.getString(MESSAGE) : StringUtils.EMPTY;
             throw new ShuftiProException(String.format("ShuftiPro KYC verification service: status: %s, error message: %s", eventStatus, errorMessage));
+        }
+        int affectedRowCount = userService.updateReferenceId(verificationObject.getString(REFERENCE));
+        if (affectedRowCount == 0) {
+            log.debug("Reference id have not been updated in database");
         }
         return verificationObject.getString(VERIFICATION_URL).replace("\\", "");
     }
@@ -208,14 +223,29 @@ public class ShuftiProKYCService implements KYCService {
         final String reference = statusObject.getString(REFERENCE);
         final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
 
+        final String userEmail = userService.getEmailByReferenceId(reference);
+
         if (EventStatus.ACCEPTED.equals(eventStatus)) {
-            log.debug("Verification status: {}. Data has been verified successfully", eventStatus);
-            int affectedRowCount = userService.updateVerificationStepAndReferenceId(reference);
+            log.debug("Verification status: {}. Data have been verified successfully", eventStatus);
+            int affectedRowCount = userService.updateVerificationStep(userEmail);
             if (affectedRowCount == 0) {
-                log.debug("Data have not updated in database");
+                log.debug("Verification step have not been updated in database");
             }
         }
+        sendStatusNotification(userEmail, eventStatus);
+        log.debug("Notification have been send successfully");
+
         return Pair.of(reference, eventStatus);
+    }
+
+    private void sendStatusNotification(String userEmail, EventStatus eventStatus) {
+        Email email = Email.builder()
+                .to(userEmail)
+                .subject(emailSubject)
+                .message(String.format(emailMessagePattern, eventStatus))
+                .build();
+
+        sendMailService.sendMailMandrill(email);
     }
 
     private void validateMerchantSignature(String signature, String response) {

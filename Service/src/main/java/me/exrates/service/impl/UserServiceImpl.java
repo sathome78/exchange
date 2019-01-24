@@ -882,8 +882,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateVerificationStepAndReferenceId(String reference) {
-        return userDao.updateVerificationStepAndReferenceIdByUserEmail(reference, getUserEmailFromSecurityContext());
+    public int updateVerificationStep(String userEmail) {
+        return userDao.updateVerificationStep(userEmail);
     }
 
     @Override
@@ -891,5 +891,15 @@ public class UserServiceImpl implements UserService {
         final int verificationStep = userDao.getVerificationStep(getUserEmailFromSecurityContext());
 
         return VerificationStep.of(verificationStep);
+    }
+
+    @Override
+    public int updateReferenceId(String referenceId) {
+        return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
+    }
+
+    @Override
+    public String getEmailByReferenceId(String referenceId) {
+        return userDao.getEmailByReferenceId(referenceId);
     }
 }

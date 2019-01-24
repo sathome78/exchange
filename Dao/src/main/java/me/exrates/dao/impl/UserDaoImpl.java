@@ -1180,6 +1180,7 @@ public class UserDaoImpl implements UserDao {
         namedParameterJdbcTemplate.update(sql, params);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public String getReferenceIdByUserEmail(String userEmail) {
         String sql = "SELECT u.kyc_reference FROM USER u WHERE u.email =:email";
@@ -1192,22 +1193,37 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateVerificationStepAndReferenceIdByUserEmail(String reference, String userEmail) {
-        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
+    public int updateVerificationStep(String userEmail) {
+        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
+
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", userEmail));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public int getVerificationStep(String userEmail) {
+        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
+
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", userEmail), Integer.class);
+    }
+
+    @Transactional
+    @Override
+    public int updateReferenceId(String referenceId, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE email = :email";
+
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("kyc_reference", reference);
+            put("kyc_reference", referenceId);
             put("email", userEmail);
         }};
         return namedParameterJdbcTemplate.update(sql, params);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public int getVerificationStep(String userEmail) {
-        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
+    public String getEmailByReferenceId(String referenceId) {
+        String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
 
-        Map<String, Object> params = new HashMap<String, Object>() {{
-            put("email", userEmail);
-        }};
-        return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
     }
 }
