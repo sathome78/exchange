@@ -65,25 +65,30 @@ public class BtcCoinTesterImpl implements CoinTester {
     private BtcdClient btcdClient;
     private Object withdrawTest = new Object();
     private int withdrawStatus = 0;
+    private StringBuilder stringBuilder;
 
-    public void initBot(String name) throws BitcoindException, IOException, CommunicationException {
+    public void initBot(String name, StringBuilder stringBuilder) throws BitcoindException, IOException, CommunicationException {
         merchantId = merchantService.findByName(name).getId();
         currencyId = currencyService.findByName(name).getId();
         this.name = name;
         btcdClient = prepareBtcClient(name);
+        this.stringBuilder = stringBuilder;
     }
 
     @Override
     public void testCoin(double refillAmount) throws Exception {
-        RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
-
-        setMinConfirmation(1);
-        testAddressGeneration();
-        checkRefill(refillAmount*10, merchantId, currencyId, request);
-        testAutoWithdraw(refillAmount);
-        testManualWithdraw(refillAmount);
-        testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
-
+        try {
+            RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
+            setMinConfirmation(1);
+            testAddressGeneration();
+            checkRefill(refillAmount * 10, merchantId, currencyId, request);
+            testAutoWithdraw(refillAmount);
+            testManualWithdraw(refillAmount);
+            testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
+            stringBuilder.append("Works fine!\n");
+        }catch (Exception e){
+            stringBuilder.append(e.getMessage());
+        }
     }
 
     private void setMinConfirmation(int i) throws NoSuchFieldException {
@@ -95,7 +100,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         try {
             sellOrder(amount, rate, currencyPair, stop);
             buyOrder(amount, rate, currencyPair, stop);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -103,30 +108,34 @@ public class BtcCoinTesterImpl implements CoinTester {
     private void buyOrder(BigDecimal amount, BigDecimal rate, String currencyPair, BigDecimal stop) throws CoinTestException {
         CreateOrder createOrder = new CreateOrder(OperationType.BUY, amount, rate, OrderBaseType.LIMIT, currencyPair, stop).invoke();
         String response = createOrder.getResponse();
-        if(!response.equals("{\"result\":\"The 1 orders have been accepted successfully; \"}")) throw new CoinTestException("unexpected order buy response:\n"+response);
+        if (!response.equals("{\"result\":\"The 1 orders have been accepted successfully; \"}"))
+            throw new CoinTestException("unexpected order buy response:\n" + response);
     }
 
     private void sellOrder(BigDecimal amount, BigDecimal rate, String currencyPair, BigDecimal stop) throws CoinTestException {
         CreateOrder createOrder = new CreateOrder(OperationType.SELL, amount, rate, OrderBaseType.LIMIT, currencyPair, stop).invoke();
         OrderCreateDto orderCreateDto = createOrder.getOrderCreateDto();
         String response = createOrder.getResponse();
-        if(orderService.getOrderByOrderCreateDtoAndTime(orderCreateDto, LocalDateTime.now().minusSeconds(30), LocalDateTime.now(), principalEmail) == null){
+        if (orderService.getOrderByOrderCreateDtoAndTime(orderCreateDto, LocalDateTime.now().minusSeconds(30), LocalDateTime.now(), principalEmail) == null) {
             throw new CoinTestException("Order were not found in db!");
         }
-        if(!response.equals("{\"result\":\"Your order was placed in common stack\"}")) throw new CoinTestException("unexpected order create response:\n"+response);
+        if (!response.equals("{\"result\":\"Your order was placed in common stack\"}"))
+            throw new CoinTestException("unexpected order create response:\n" + response);
     }
 
     private void testAddressGeneration() throws BitcoindException, CommunicationException {
+        stringBuilder.append("Starting test generating address...\n");
         String newAddress = btcdClient.getNewAddress();
         assert newAddress.length() > 10;
         assert btcdClient.getNewAddress().length() > 10;
+        stringBuilder.append("Address generation works fine. Example = " + newAddress + " \n");
 
     }
 
     private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             String withdrawAddress = btcdClient.getNewAddress();
-            System.out.println("address for withdraw " + withdrawAddress);
+            stringBuilder.append("address for withdraw " + withdrawAddress).append("\n");;
 
             WithdrawRequestParamsDto withdrawRequestParamsDto = new WithdrawRequestParamsDto();
             withdrawRequestParamsDto.setCurrency(currencyId);
@@ -153,7 +162,8 @@ public class BtcCoinTesterImpl implements CoinTester {
             withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, new Locale("en"));
 
             Optional<WithdrawRequest> withdrawRequestByAddressOptional = withdrawService.getWithdrawRequestByAddress(withdrawAddress);
-            if(!withdrawRequestByAddressOptional.isPresent()) throw new CoinTestException("Empty withdrawRequestByAddressOptional");
+            if (!withdrawRequestByAddressOptional.isPresent())
+                throw new CoinTestException("Empty withdrawRequestByAddressOptional");
 
             Integer requestId = withdrawRequestByAddressOptional.get().getId();
             WithdrawRequestFlatDto flatWithdrawRequest;
@@ -165,18 +175,18 @@ public class BtcCoinTesterImpl implements CoinTester {
                     Thread.sleep(5000);
                     if (withdrawStatus == 10) {
                         Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
-                        System.out.println("trx from btc " + transaction);
+                        stringBuilder.append("trx from btc " + transaction).append("\n");;
                         if (!compareObjects(transaction.getAmount(), (flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))))
                             throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                     }
-                    System.out.println("Checking withdraw...");
+                    stringBuilder.append("Checking withdraw...current status = " + withdrawStatus).append("\n");;
                     Thread.sleep(2000);
-                } catch (BitcoindException e){
-                    System.out.println(e);
+                } catch (BitcoindException e) {
+                    stringBuilder.append(e).append("\n");;
                 }
             } while (withdrawStatus != 10);
 
-            System.out.println("Withdraw works");
+            stringBuilder.append("Withdraw works").append("\n");;
 
 
         }
@@ -187,7 +197,7 @@ public class BtcCoinTesterImpl implements CoinTester {
             setAutoWithdraw(false);
         }
         String withdrawAddress = btcdClient.getNewAddress();
-        System.out.println("address for manual withdraw " + withdrawAddress);
+        stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
 
         BitcoinService walletService = (BitcoinService) getMerchantServiceByName(name, reffilableServiceMap);
         List<BtcWalletPaymentItemDto> payments = new LinkedList<>();
@@ -198,15 +208,16 @@ public class BtcCoinTesterImpl implements CoinTester {
         do {
             try {
                 transaction = btcdClient.getTransaction(btcPaymentResultDetailedDto.getTxId());
-            } catch (BitcoindException e){
-                System.out.println("Error from btc " + e.getMessage());
+            } catch (BitcoindException e) {
+                stringBuilder.append("Error from btc " + e.getMessage()).append("\n");;
             }
             Thread.sleep(2000);
-            System.out.println("Checking manual transaction");
-            if(transaction != null){
-                System.out.println("Manual trx = " + transaction);
-                if(!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount()))) throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
-                        + " not equals with transaction.getAmount() " + transaction.getAmount());
+            stringBuilder.append("Checking manual transaction").append("\n");;
+            if (transaction != null) {
+                stringBuilder.append("Manual trx = " + transaction).append("\n");;
+                if (!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount())))
+                    throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
+                            + " not equals with transaction.getAmount() " + transaction.getAmount());
             }
         } while (transaction == null);
 
@@ -227,17 +238,18 @@ public class BtcCoinTesterImpl implements CoinTester {
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
-        if(byAddressMerchantAndCurrency.size() == 0) throw new CoinTestException("byAddressMerchantAndCurrency.size() == 0");
+        if (byAddressMerchantAndCurrency.size() == 0)
+            throw new CoinTestException("byAddressMerchantAndCurrency.size() == 0");
 
-        System.out.println("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill);
-        System.out.println("BALANCE = " + btcdClient.getBalance());
+        stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("\n");;
+        stringBuilder.append("BALANCE = " + btcdClient.getBalance()).append("\n");;
         try {
             btcdClient.walletPassphrase("pass123", 2000);
         } catch (Exception e) {
-            System.out.println("Error while trying encrypted wallet " + e.getMessage());
+            stringBuilder.append("Error while trying encrypted wallet " + e.getMessage()).append("\n");;
         }
-        System.out.println("balance = " + btcdClient.getBalance());
-        System.out.println("refill sum = " + refillAmount);
+        stringBuilder.append("balance = " + btcdClient.getBalance()).append("\n");;
+        stringBuilder.append("refill sum = " + refillAmount).append("\n");;
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
 
         Optional<RefillRequestBtcInfoDto> acceptedRequest;
@@ -248,26 +260,26 @@ public class BtcCoinTesterImpl implements CoinTester {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
                 if (isConfirmationsEnough) throw new RuntimeException("Confirmation enough, but refill not working!");
-                System.out.println("NOT NOW(");
+                stringBuilder.append("NOT NOW(").append("\n");;
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
                 if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
                     isConfirmationsEnough = true;
                 }
-                System.out.println("GET TRANSACTION " + transaction);
+                stringBuilder.append("GET TRANSACTION " + transaction).append("\n");;
             } else {
-                System.out.println("accepted amount " + acceptedRequest.get().getAmount());
-                System.out.println("refill amount " + refillAmount);
+                stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("\n");;
+                stringBuilder.append("refill amount " + refillAmount).append("\n");;
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
-                if(!compareObjects(refillRequestBtcInfoDto.getAmount(),(refillAmount)))
+                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (refillAmount)))
                     throw new CoinTestException("!acceptedRequest.get().getAmount().equals(new BigDecimal(refillAmount)), expected " + refillAmount + " but was " + acceptedRequest.get().getAmount());
             }
         } while (!acceptedRequest.isPresent());
 
-        System.out.println("REQUEST FINDED");
-        Map<String,String> a = new HashMap<>();
+        stringBuilder.append("REQUEST FINDED").append("\n");;
+        Map<String, String> a = new HashMap<>();
     }
 
     private RefillRequestCreateDto prepareRefillRequest(int merchantId, int currencyId) {
@@ -316,38 +328,36 @@ public class BtcCoinTesterImpl implements CoinTester {
         throw new RuntimeException("BitcoinService with ticker " + name + " not found!");
     }
 
-    public static void main(String[] args) throws NoSuchFieldException {
-//        System.out.println(normalize("0.000100000000000000004792173602385929598312941379845142364501953125"));
-        System.out.println(new BigDecimal(String.valueOf(1.0E-4)));
-    }
+//    public static void main(String[] args) throws NoSuchFieldException {
+////        stringBuilder.append(normalize("0.000100000000000000004792173602385929598312941379845142364501953125"));
+//        stringBuilder.append(normalize(0.000100000001237861283));
+//    }
 
-    private static boolean compareObjects(Object A, Object B){
+    private static boolean compareObjects(Object A, Object B) {
         return normalize(A).equals(normalize(B));
     }
 
-    private static String normalize(Object B){
+    private static String normalize(Object B) {
         BigDecimal A = new BigDecimal(String.valueOf(B));
         StringBuilder first = new StringBuilder(String.valueOf(A));
         String check = String.valueOf(A);
-        if(check.contains(".")){
-            System.out.println("parsing string " + check);
-            String substring = "";
-            try {
-                substring = check.substring(check.indexOf(".") + 1, check.length() - 1);
-            } catch (Exception e){
-                System.out.println(e);
-            }
-            if(substring.length() > 8){
-                first = new StringBuilder(substring.substring(0,8));
-            }
-        }
+        if (!check.contains(".")) return check;
 
-        for(int i = first.length() - 1; i != -1 ; i--){
-            if(String.valueOf(first.charAt(i)).equals("0")) {
+        String substring = "";
+        substring = check.substring(check.indexOf(".") + 1);
+
+        if (substring.length() > 8) {
+            first = new StringBuilder(substring.substring(0, 8));
+        } else first = new StringBuilder(substring.substring(0, substring.length()));
+
+
+        for (int i = first.length() - 1; i != -1; i--) {
+            if (String.valueOf(first.charAt(i)).equals("0")) {
                 first.deleteCharAt(i);
             } else break;
         }
-        return first.toString();
+        String result = check.substring(0, check.indexOf(".") + 1) + first.toString();
+        return result;
     }
 
     private class CreateOrder {
@@ -402,16 +412,17 @@ public class BtcCoinTesterImpl implements CoinTester {
                 }
                 errorMap.put("order", orderCreateSummaryDto);
                 throw new OrderParamsWrongException();
-            } else {}
+            } else {
+            }
 
             boolean isOrderCreateCorrect = compareObjects(orderCreateSummaryDto.getAmount(), amount)
-            && orderCreateDto.getCurrencyPair().getName().equals(currencyPair)
-            && orderCreateDto.getOperationType().equals(orderType)
-            && compareObjects(orderCreateDto.getExchangeRate(),rate)
-            && compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))
-            && orderCreateDto.getOrderBaseType().equals(baseType);
-            if(!isOrderCreateCorrect) throw new CoinTestException("orderCreateDto incorrect!");
-            System.out.println("Order " + currencyPair + " works!");
+                    && orderCreateDto.getCurrencyPair().getName().equals(currencyPair)
+                    && orderCreateDto.getOperationType().equals(orderType)
+                    && compareObjects(orderCreateDto.getExchangeRate(), rate)
+                    && compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))
+                    && orderCreateDto.getOrderBaseType().equals(baseType);
+            if (!isOrderCreateCorrect) throw new CoinTestException("orderCreateDto incorrect!");
+            stringBuilder.append("Order " + currencyPair + " works!").append("\n");
 
             response = orderService.createOrder(orderCreateDto, CREATE, new Locale("en"));
             return this;
