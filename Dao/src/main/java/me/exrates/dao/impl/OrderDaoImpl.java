@@ -1034,7 +1034,7 @@ public class OrderDaoImpl implements OrderDao {
                 "JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
                 "JOIN CURRENCY_PAIR as cp ON (cp.id = EXORDERS.currency_pair_id) " +
                 "JOIN USER as CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
-                "JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
+                "LEFT JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
 
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.putAll(adminOrderFilterData.getNamedParams());
