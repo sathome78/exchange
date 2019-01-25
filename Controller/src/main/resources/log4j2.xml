@@ -641,7 +641,7 @@
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="jdbc_logger" />
         </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
             <AppenderRef ref="Merchants"/>

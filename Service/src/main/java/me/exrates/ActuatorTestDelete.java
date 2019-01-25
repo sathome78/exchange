@@ -23,6 +23,7 @@ public class ActuatorTestDelete implements
             kodTester.initBot("RIME", stringBuilder);
             String s = kodTester.testCoin(0.00001);
             System.out.println(s);
+            System.out.println(stringBuilder.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
