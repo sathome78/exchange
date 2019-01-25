@@ -88,7 +88,7 @@ public class BtcCoinTesterImpl implements CoinTester {
             stringBuilder.append("Works fine!\n");
             return "Works fine";
         }catch (Exception e){
-            stringBuilder.append(e.getMessage());
+            stringBuilder.append(e.toString());
             return e.getMessage();
         }
     }
@@ -197,7 +197,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     public void testManualWithdraw(double amount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             setAutoWithdraw(false);
-        }
+
         String withdrawAddress = btcdClient.getNewAddress();
         stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
 
@@ -222,8 +222,7 @@ public class BtcCoinTesterImpl implements CoinTester {
                             + " not equals with transaction.getAmount() " + transaction.getAmount());
             }
         } while (transaction == null);
-
-
+        }
     }
 
     private void setAutoWithdraw(boolean isEnabled) {
