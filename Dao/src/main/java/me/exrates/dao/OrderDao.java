@@ -15,6 +15,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -135,4 +136,6 @@ public interface OrderDao {
     List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> roles);
+
+    Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String userId);
 }

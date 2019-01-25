@@ -266,6 +266,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/updatePassword", "/createPassword").permitAll()
             .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(GET, "/nodes/**").permitAll()
+            .antMatchers(GET, "/cointest/**").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()

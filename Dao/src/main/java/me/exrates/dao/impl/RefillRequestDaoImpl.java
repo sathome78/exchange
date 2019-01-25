@@ -23,9 +23,11 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -1355,6 +1357,26 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         params.put("id", requestId);
         params.put("hash", hash);
         namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash) {
+        String sql = "SELECT * FROM REFILL_REQUEST WHERE " +
+                " merchant_id = :merchant_id AND" +
+                " currency_id = :currency_id AND" +
+                " merchant_transaction_id = :hash";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("currency_id", currencyId);
+            put("hash", txHash);
+        }};
+
+        try {
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new BeanPropertyRowMapper<>(RefillRequestBtcInfoDto.class)));
+        } catch (EmptyResultDataAccessException e){
+            return Optional.empty();
+        }
     }
 }
 
