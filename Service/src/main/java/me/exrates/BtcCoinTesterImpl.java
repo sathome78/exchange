@@ -76,7 +76,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public void testCoin(double refillAmount) throws Exception {
+    public String testCoin(double refillAmount) throws Exception {
         try {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
@@ -86,8 +86,10 @@ public class BtcCoinTesterImpl implements CoinTester {
             testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
             stringBuilder.append("Works fine!\n");
+            return "Works fine";
         }catch (Exception e){
             stringBuilder.append(e.getMessage());
+            return e.getMessage();
         }
     }
 
