@@ -408,8 +408,8 @@ public class BtcCoinTesterImpl implements CoinTester {
             if (!errorMap.isEmpty()) {
                 stringBuilder.append("Error map: \n");
                 for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
+                    stringBuilder.append(pair.getKey() + "  " + pair.getValue() + "\n");
                     pair.setValue("message");
-                    stringBuilder.append(pair.getValue() + "\n");
                 }
                 errorMap.put("order", orderCreateSummaryDto);
                 throw new OrderParamsWrongException();
