@@ -1532,6 +1532,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+        adminOrderFilterData.initFilterItems();
+        return orderDao.getOrdersForReport(adminOrderFilterData);
+    }
+
+    @Override
     public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                   OperationType operationType,
                                                                   Integer offset, Integer limit, Locale locale) {

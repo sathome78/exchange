@@ -4,6 +4,7 @@ import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
@@ -76,4 +77,6 @@ public interface ReportService {
     ReportDto getCurrenciesTurnover(LocalDateTime startTime,
                                     LocalDateTime endTime,
                                     List<UserRole> userRoles) throws Exception;
+
+    ReportDto getOrders(AdminOrderFilterData adminOrderFilterData) throws Exception;
 }

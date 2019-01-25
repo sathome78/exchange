@@ -97,4 +97,6 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrencyPair();
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
+
+    boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 }

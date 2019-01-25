@@ -2,14 +2,17 @@ package me.exrates.controller;
 
 import com.google.common.io.ByteSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.ReportDto;
-import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
+import me.exrates.service.OrderService;
 import me.exrates.service.ReportService;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.InputStreamResource;
@@ -18,11 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
@@ -32,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -45,7 +48,12 @@ public class ReportController {
     private MessageSource messageSource;
 
     @Autowired
-    ReportService reportService;
+    private ReportService reportService;
+
+    @Autowired
+    private LocaleResolver localeResolver;
+
+    private final static String DATE_TIME_PATTERN = "yyyy-MM-dd_HH:mm";
 
     @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadTransactions")
     @ResponseBody
@@ -201,9 +209,8 @@ public class ReportController {
                                                          @RequestParam("endTime") String endTimeString,
                                                          @RequestParam("roles") List<UserRole> userRoles,
                                                          Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -235,9 +242,8 @@ public class ReportController {
                                                                        @RequestParam("endTime") String endTimeString,
                                                                        @RequestParam("roles") List<UserRole> userRoles,
                                                                        Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -269,9 +275,8 @@ public class ReportController {
                                                                                 @RequestParam("endTime") String endTimeString,
                                                                                 @RequestParam("roles") List<UserRole> userRoles,
                                                                                 Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -304,9 +309,8 @@ public class ReportController {
                                                      @RequestParam("userEmail") String userEmail,
                                                      Principal principal,
                                                      Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -339,9 +343,8 @@ public class ReportController {
                                                    @RequestParam("roles") List<UserRole> userRoles,
                                                    Principal principal,
                                                    Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -374,9 +377,8 @@ public class ReportController {
                                                            @RequestParam("roles") List<UserRole> userRoles,
                                                            Principal principal,
                                                            Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -408,9 +410,8 @@ public class ReportController {
                                                 @RequestParam("endTime") String endTimeString,
                                                 @RequestParam("roles") List<UserRole> userRoles,
                                                 Locale locale) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN).parse(endTimeString));
 
         ReportDto reportDto;
         try {
@@ -433,6 +434,33 @@ public class ReportController {
         } catch (IOException ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/report/orders")
+    public ResponseEntity getOrders(AdminOrderFilterData adminOrderFilterData, HttpServletRequest request) {
+        ReportDto reportDto;
+        try {
+            reportDto = reportService.getOrders(adminOrderFilterData);
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
         }
     }
 }

@@ -35,6 +35,9 @@
                     <loc:message code="title.hide.currency.pair"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
+                    <loc:message code="title.button.direct.links"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
                     <loc:message code="title.hide.currency.visibility"/>
                 </button>
             </div>
@@ -111,6 +114,23 @@
                 </div>
 
                 <div id="panel4" class="tab-pane">
+                    <div class="col-sm-8 col-sm-offset-2">
+
+                        <table id="currency-pairs-access-to-direct-links-options-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.pair.id"/> </th>
+                                <th><loc:message code="title.hide.currency.pair"/> </th>
+                                <th><loc:message code="title.access"/></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="panel5" class="tab-pane">
                     <div class="col-sm-8 col-sm-offset-2">
 
                         <table id="currency-visibility-options-table">

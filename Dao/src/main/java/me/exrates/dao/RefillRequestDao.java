@@ -144,5 +144,13 @@ public interface RefillRequestDao {
                                                                 List<UserRole> roles,
                                                                 int requesterId);
 
+    List<RefillRequestAddressDto> findByAddress(String address);
+
+    boolean setAddressBlocked(String address, int merchantId, int currencyId, boolean blocked);
+
+    List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
+
+    void setInnerTransferHash(int requestId, String hash);
+
     Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash);
 }

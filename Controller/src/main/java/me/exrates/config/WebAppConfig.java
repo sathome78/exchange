@@ -14,6 +14,7 @@ import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
@@ -300,13 +301,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
     public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+        return new NamedParameterJdbcTemplateWrapper(dataSource);
     }
 
     @Primary
@@ -1729,7 +1730,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "hcxpServiceImpl")
     public MoneroService hcxpService() {
         return new HCXPServiceImpl("merchants/hcxp.properties",
-                "HCXP", "HCXP", 10, 6);
+                "HCXP", "HCXP", 1, 6);
     }
 
     /***tokens based on xem mosaic)****/

@@ -348,6 +348,8 @@ public interface OrderService {
 
     DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
+    List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
+
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);

@@ -211,4 +211,6 @@ public interface UserService {
     long countUserIps(String userEmail);
 
     String getCallBackUrlByEmail(String email, Integer currencyPairId);
+
+    void blockUserByRequest(int userId);
 }
