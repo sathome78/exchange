@@ -177,7 +177,6 @@ public class BtcCoinTesterImpl implements CoinTester {
                     Thread.sleep(5000);
                     if (withdrawStatus == 10) {
                         Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
-                        stringBuilder.append("trx from btc " + transaction).append("\n");;
                         if (!compareObjects(transaction.getAmount(), (flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))))
                             throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                     }
@@ -216,7 +215,6 @@ public class BtcCoinTesterImpl implements CoinTester {
             Thread.sleep(2000);
             stringBuilder.append("Checking manual transaction").append("\n");;
             if (transaction != null) {
-                stringBuilder.append("Manual trx = " + transaction).append("\n");;
                 if (!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount())))
                     throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
                             + " not equals with transaction.getAmount() " + transaction.getAmount());
