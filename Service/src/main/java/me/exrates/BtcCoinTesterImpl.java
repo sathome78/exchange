@@ -406,8 +406,10 @@ public class BtcCoinTesterImpl implements CoinTester {
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, new Locale("en"));
             if (!errorMap.isEmpty()) {
+                stringBuilder.append("Error map: \n");
                 for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
                     pair.setValue("message");
+                    stringBuilder.append(pair.getValue() + "\n");
                 }
                 errorMap.put("order", orderCreateSummaryDto);
                 throw new OrderParamsWrongException();
