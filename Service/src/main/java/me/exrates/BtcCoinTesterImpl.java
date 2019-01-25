@@ -6,6 +6,7 @@ import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.NoArgsConstructor;
+import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
@@ -57,6 +58,8 @@ public class BtcCoinTesterImpl implements CoinTester {
     private OrderService orderService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private WalletDao walletDao;
 
     private int currencyId;
     private int merchantId;
@@ -100,6 +103,8 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     private void testOrder(BigDecimal amount, BigDecimal rate, String currencyPair, BigDecimal stop) throws CoinTestException {
         try {
+            int walletId = walletDao.getWalletId(userService.getIdByEmail(principalEmail), currencyId);
+            walletDao.addToWalletBalance(walletId,amount.multiply(new BigDecimal(100)), new BigDecimal(0));
             sellOrder(amount, rate, currencyPair, stop);
             buyOrder(amount, rate, currencyPair, stop);
         } catch (Exception e) {
