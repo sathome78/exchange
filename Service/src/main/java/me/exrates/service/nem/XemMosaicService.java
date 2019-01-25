@@ -1,5 +1,6 @@
 package me.exrates.service.nem;
 
+import lombok.ToString;
 import me.exrates.model.dto.MosaicIdDto;
 import org.nem.core.model.mosaic.MosaicId;
 import org.nem.core.model.primitive.Quantity;

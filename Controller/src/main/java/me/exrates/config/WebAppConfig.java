@@ -1746,8 +1746,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
-
-    @Bean(name = "npxsServiceImpl")
+    @Bean(name = "npxsDimServiceImpl")
     public XemMosaicService npxsService() {
         return new XemMosaicServiceImpl(
                 "NPXSXEM",
@@ -1768,6 +1767,30 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 1000000,
                 6,
                 new Supply(8999999999L),
+                10);
+    }
+
+    @Bean(name = "dimEurServiceImpl")
+    public XemMosaicService dimEurService() {
+        return new XemMosaicServiceImpl(
+                "DIM.EUR",
+                "DIM.EUR",
+                new MosaicIdDto("dim", "eur"),
+                100,
+                2,
+                new Supply(81000000000L),
+                10);
+    }
+
+    @Bean(name = "dimUsdServiceImpl")
+    public XemMosaicService dimUsdService() {
+        return new XemMosaicServiceImpl(
+                "DIM.USD",
+                "DIM.USD",
+                new MosaicIdDto("dim", "usd"),
+                100,
+                2,
+                new Supply(81000000000L),
                 10);
     }
 
