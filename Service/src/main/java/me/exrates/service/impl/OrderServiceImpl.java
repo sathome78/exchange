@@ -1614,10 +1614,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                        String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                        Locale locale, Map<String, String> sortedColumns,
-                                                                        LocalDate dateFrom, LocalDate dateTo) {
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
+                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled,
+                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
+                                                                         LocalDate dateFrom, LocalDate dateTo) {
 
         int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
