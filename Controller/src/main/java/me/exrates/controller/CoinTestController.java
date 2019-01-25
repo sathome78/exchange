@@ -22,8 +22,7 @@ public class CoinTestController {
         logger = new StringBuilder();
         CoinTester kodTester = applicationContext.getBean(CoinTester.class);
         kodTester.initBot(name.toUpperCase(), logger);
-        kodTester.testCoin(0.00001);
-        return "Works fine! \n";
+        return kodTester.testCoin(0.00001);
     }
 
     @GetMapping(value = "/cointest/log", produces = "text/html")

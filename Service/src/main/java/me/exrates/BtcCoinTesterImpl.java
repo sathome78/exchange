@@ -76,7 +76,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public void testCoin(double refillAmount) throws Exception {
+    public String testCoin(double refillAmount) throws Exception {
         try {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
@@ -86,8 +86,10 @@ public class BtcCoinTesterImpl implements CoinTester {
             testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
             stringBuilder.append("Works fine!\n");
+            return "Works fine";
         }catch (Exception e){
-            stringBuilder.append(e.getMessage());
+            stringBuilder.append(e.toString());
+            return e.getMessage();
         }
     }
 
@@ -175,7 +177,6 @@ public class BtcCoinTesterImpl implements CoinTester {
                     Thread.sleep(5000);
                     if (withdrawStatus == 10) {
                         Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
-                        stringBuilder.append("trx from btc " + transaction).append("\n");;
                         if (!compareObjects(transaction.getAmount(), (flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))))
                             throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                     }
@@ -195,7 +196,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     public void testManualWithdraw(double amount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             setAutoWithdraw(false);
-        }
+
         String withdrawAddress = btcdClient.getNewAddress();
         stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
 
@@ -214,14 +215,12 @@ public class BtcCoinTesterImpl implements CoinTester {
             Thread.sleep(2000);
             stringBuilder.append("Checking manual transaction").append("\n");;
             if (transaction != null) {
-                stringBuilder.append("Manual trx = " + transaction).append("\n");;
                 if (!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount())))
                     throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
                             + " not equals with transaction.getAmount() " + transaction.getAmount());
             }
         } while (transaction == null);
-
-
+        }
     }
 
     private void setAutoWithdraw(boolean isEnabled) {
