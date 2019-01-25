@@ -23,6 +23,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -71,7 +73,9 @@ public class HCXPServiceImpl implements MoneroService {
 
     private Integer decimals;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private String mainAccount;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
 
@@ -88,6 +92,7 @@ public class HCXPServiceImpl implements MoneroService {
             this.LOGIN = props.getProperty("monero.login");
             this.PASSWORD = props.getProperty("monero.password");
             this.MODE = props.getProperty("monero.mode");
+            this.mainAccount = props.getProperty("monero.mainAccount");
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
@@ -168,17 +173,29 @@ public class HCXPServiceImpl implements MoneroService {
             try {
                 wallet = new MoneroWalletRpc(HOST, Integer.parseInt(PORT), LOGIN, PASSWORD);
                 log.info(merchantName + " started");
-                scheduler.scheduleAtFixedRate(new Runnable() {
-                    public void run() {
+                scheduler.scheduleAtFixedRate(() -> {
+                    {
                         checkIncomingTransactions();
                     }
                 }, 3, 3, TimeUnit.MINUTES);
+
+                scheduler.scheduleAtFixedRate(() ->  {
+                    sendToMainAccount();
+                }, 0, 12, TimeUnit.SECONDS); //todo change to HOURS
             }catch (Exception e){
                 log.error(e);
             }
         }else {
             log.info(merchantName + " test mode...");
         }
+    }
+
+    private void sendToMainAccount() {
+        BigInteger balance = wallet.getBalance();
+        BigInteger currentFee = new BigInteger("1000000");
+        balance = balance.min(currentFee);
+        wallet.send(mainAccount, balance, "", 0, 10);
+
     }
 
     private void checkIncomingTransactions(){
