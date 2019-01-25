@@ -1335,7 +1335,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     @Override
     public String getUsernameByRequestId(int requestId) {
-        final String sql = "SELECT u.email" +
+        final String sql = "SELECT u.GA" +
                 " FROM REFILL_REQUEST rr" +
                 " JOIN USER u on u.id = rr.user_id " +
                 " WHERE rr.id = :requestId";
