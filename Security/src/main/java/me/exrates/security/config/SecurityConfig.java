@@ -136,7 +136,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
             .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
             .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
-            .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**")
+            .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**", "/2a8fy7b07dxe44/report/orders")
             .hasAuthority(AdminAuthority.SEE_REPORTS.name())
 
             .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
@@ -148,6 +148,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
                     "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update",
                     "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update",
+                    "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update",
                     "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
             .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
@@ -265,6 +266,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/updatePassword", "/createPassword").permitAll()
             .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(GET, "/nodes/**").permitAll()
+            .antMatchers(GET, "/cointest/**").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()

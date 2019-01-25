@@ -54,7 +54,7 @@ public interface OrderService {
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
 
-    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
+    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, UserRole userRole);
 
     @Transactional
     String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale);
@@ -348,6 +348,8 @@ public interface OrderService {
 
     DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
+    List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData);
+
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
@@ -408,4 +410,5 @@ public interface OrderService {
                                                                                 List<UserRole> roles);
     void logCallBackData(CallBackLogDto callBackLogDto);
 
+    Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String principalEmail);
 }

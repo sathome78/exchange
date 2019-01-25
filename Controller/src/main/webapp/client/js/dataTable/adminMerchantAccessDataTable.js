@@ -160,6 +160,31 @@ $(document).ready(function () {
         }
     });
 
+    var $currencyPairsAccessToDirectLinkTable = $('#currency-pairs-access-to-direct-links-options-table');
+    currencyPairsAccessToDirectLinkTable = $($currencyPairsAccessToDirectLinkTable).DataTable({
+        "ajax": { "url": "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs", "dataSrc": ""},
+        "paging": false,
+        "columns": [
+            {
+                "data": "id",
+                "visible": false
+            },
+            {
+                "data": "name"
+            },
+            {
+                "data": "permittedLink",
+                "render": function (data) {
+                    return '<span>'.concat(data ? '<i class="fa fa-unlock" aria-hidden="true"></i>' : '<i class="fa fa-lock red" aria-hidden="true"></i>')
+                        .concat('</span>');
+                }
+            }
+        ],
+        "createdRow": function (row, data, index) {
+            $(row).attr("data-currencypairid", data.id);
+        }
+    });
+
     $merchantAccessTable.find('tbody').on('click', 'i', function () {
         var operationType = $(this).parent().data('operationtype');
         var merchantId = $(this).parents('tr').data('merchantid');
@@ -189,6 +214,13 @@ $(document).ready(function () {
         var currencyPairId = $(this).parents('tr').data('currencypairid');
         if (confirm($('#prompt-toggle-block').html())) {
             changeVisibilityForCurrencyPair(currencyPairId, this);
+        }
+    });
+
+    $currencyPairsAccessToDirectLinkTable.find('tbody').on('click', 'i', function () {
+        var currencyPairId = $(this).parents('tr').data('currencypairid');
+        if (confirm($('#prompt-toggle-block').html())) {
+            changeAccessToDirectLinkForCurrencyPair(currencyPairId, this);
         }
     });
 
@@ -371,6 +403,23 @@ function changeVisibilityForCurrencyPair(currencyPairId, $element) {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
         url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update',
+        type: 'POST',
+        data: {
+            "currencyPairId":currencyPairId
+        },
+        success: function () {
+            $($element).toggleClass('fa-lock red');
+            $($element).toggleClass('fa-unlock');
+        }
+    });
+}
+
+function changeAccessToDirectLinkForCurrencyPair(currencyPairId, $element) {
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update',
         type: 'POST',
         data: {
             "currencyPairId":currencyPairId

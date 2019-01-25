@@ -202,7 +202,7 @@
                                 type="button"><loc:message code="ordersearch.submit"/></button>
                         <button id="delete-order-info__reset" class="delete-order-info__button blue-box"
                                 type="button"><loc:message code="admin.user.transactions.resetFilter"/></button>
-
+                        <button type="button" class="btn btn-danger btn-sm" onclick="getOrders()"><loc:message code="admin.stats.download"/></button>
                     </div>
 
                 </form>

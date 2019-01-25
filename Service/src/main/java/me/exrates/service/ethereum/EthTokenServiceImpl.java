@@ -16,6 +16,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -118,22 +119,26 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     @PostConstruct
     public void init() {
-        merchant = merchantService.findByName(merchantName);
-        currency = currencyService.findByName(currencyName);
+        try {
+            merchant = merchantService.findByName(merchantName);
+            currency = currencyService.findByName(currencyName);
 
-        currentBlockNumber = new BigInteger("0");
-        pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
-        this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
+            currentBlockNumber = new BigInteger("0");
+            pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+            this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
 
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                try {
-                    transferFundsToMainAccount();
-                }catch (Exception e){
-                    log.error(e);
+            scheduler.scheduleWithFixedDelay(new Runnable() {
+                public void run() {
+                    try {
+                        transferFundsToMainAccount();
+                    } catch (Exception e) {
+                        log.error(e);
+                    }
                 }
-            }
-        }, 3, 10, TimeUnit.MINUTES);
+            }, 3, 10, TimeUnit.MINUTES);
+        } catch (Throwable e){
+            log.error(e);
+        }
     }
 
     @Override

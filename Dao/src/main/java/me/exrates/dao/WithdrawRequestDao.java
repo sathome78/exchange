@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
+import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -65,4 +66,7 @@ public interface WithdrawRequestDao {
                                                                   LocalDateTime endTime, 
                                                                   List<UserRole> userRoles, 
                                                                   int requesterId);
+
+    Optional<WithdrawRequest> findWithdrawRequestByAddress(String withdrawAddress);
+
 }

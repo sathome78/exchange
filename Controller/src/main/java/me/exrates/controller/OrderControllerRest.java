@@ -12,11 +12,6 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.qiwi.request.QiwiRequest;
-import me.exrates.model.dto.qiwi.request.QiwiRequestGetTransactions;
-import me.exrates.model.dto.qiwi.request.QiwiRequestHeader;
-import me.exrates.model.dto.qiwi.response.QiwiResponse;
-import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
@@ -30,12 +25,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -108,7 +100,7 @@ public class OrderControllerRest {
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/
-            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, userService.getUserRoleFromSecurityContext());
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
             if (!errorMap.isEmpty()) {

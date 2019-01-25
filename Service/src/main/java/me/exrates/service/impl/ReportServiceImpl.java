@@ -6,23 +6,10 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.CurrencyRateDto;
-import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.InternalWalletBalancesDto;
-import me.exrates.model.dto.InvoiceReportDto;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.RefillRequestFlatForReportDto;
-import me.exrates.model.dto.ReportDto;
-import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.WalletBalancesDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
@@ -40,15 +27,8 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.job.report.ReportMailingJob;
-import me.exrates.service.util.ReportEightExcelGeneratorUtil;
-import me.exrates.service.util.ReportFiveExcelGeneratorUtil;
-import me.exrates.service.util.ReportFourExcelGeneratorUtil;
-import me.exrates.service.util.ReportNineExcelGeneratorUtil;
-import me.exrates.service.util.ReportSevenExcelGeneratorUtil;
-import me.exrates.service.util.ReportSixExcelGeneratorUtil;
-import me.exrates.service.util.ReportThreeExcelGeneratorUtil;
-import me.exrates.service.util.ReportTwoExcelGeneratorUtil;
-import me.exrates.service.util.ZipUtil;
+import me.exrates.service.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.CronScheduleBuilder;
@@ -71,6 +51,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -101,6 +82,7 @@ import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 @Log4j2
 public class ReportServiceImpl implements ReportService {
 
+    private static final DateTimeFormatter FORMATTER_FOR_FILE_NAME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
 
     private static final Integer TIME_RANGE = 3;
@@ -674,6 +656,35 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
+    @Override
+    public ReportDto getOrders(AdminOrderFilterData adminOrderFilterData) throws Exception{
+        List<OrderReportInfoDto> ordersForReport = orderService.getOrdersForReport(adminOrderFilterData);
+
+        if (isEmpty(ordersForReport)) {
+            throw new Exception("No orders information found in this request");
+        }
+
+        String dateFrom = Optional.ofNullable(adminOrderFilterData.getDateFrom()).get();
+        String dateTo = Optional.ofNullable(adminOrderFilterData.getDateTo()).get();
+
+        if(StringUtils.isNotEmpty(dateFrom)){
+            dateFrom = formatDateForFileName(dateFrom);
+        }
+        if(StringUtils.isNotEmpty(dateTo)){
+            dateTo = formatDateForFileName(dateTo);
+        }
+
+        return ReportDto.builder()
+                .fileName(String.format("orders_%s-%s", dateFrom, dateTo))
+                .content(ReportOrdersExcelGeneratorUtil.generate(ordersForReport))
+                .build();
+    }
+
+    private String formatDateForFileName(String date){
+        LocalDateTime dateFromTemp = LocalDateTime.parse(date.substring(0, date.indexOf(":")+3), FORMATTER_FOR_FILE_NAME);
+        return dateFromTemp.format(FORMATTER_FOR_NAME);
+    }
+
     private Map<String, WalletBalancesDto> getWalletBalances(byte[] zippedBytes) throws Exception {
         try {
             byte[] balancesBytes = ZipUtil.unzip(zippedBytes);
@@ -715,7 +726,6 @@ public class ReportServiceImpl implements ReportService {
                 .withIdentity(MAIL_JOB_NAME)
                 .build();
     }
-
 
     private Trigger createTrigger(int hour, int minute, JobDetail jobDetail) {
         return TriggerBuilder.newTrigger()

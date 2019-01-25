@@ -890,5 +890,14 @@ public class UserServiceImpl implements UserService {
         return userDao.countUserEntrance(userEmail);
     }
 
+    @Override
+    public void blockUserByRequest(int userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setStatus(UserStatus.DELETED);
+        userDao.updateUserStatus(user);
+        userSessionService.invalidateUserSessionExceptSpecific(getEmailById(userId), null);
+    }
+
 
 }

@@ -24,10 +24,14 @@ public class EthTokensContext {
     @PostConstruct
     private void init() {
         merchantServiceMap.forEach((k, v) -> {
-            merchantMapByCurrencies.put(v.currencyId(), v);
-            v.getContractAddress().forEach((address) -> {
-                contractAddressByCurrencies.put(address, v.currencyId());
-            });
+            try {
+                merchantMapByCurrencies.put(v.currencyId(), v);
+                v.getContractAddress().forEach((address) -> {
+                    contractAddressByCurrencies.put(address, v.currencyId());
+                });
+            } catch (Exception e) {
+                log.error(e);
+            }
         });
     }
 

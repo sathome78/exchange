@@ -356,6 +356,12 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     @Transactional
+    public void setMinSum(double merchantId, double currencyId, double minSum) {
+        merchantDao.setMinSum(merchantId, currencyId, minSum);
+    }
+
+    @Override
+    @Transactional
     public void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount) {
         if (amount.compareTo(getMinSum(merchantId, currencyId)) < 0) {
             throw new InvalidAmountException(String.format("merchant: %s currency: %s amount %s", merchantId, currencyId, amount.toString()));

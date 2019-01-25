@@ -629,6 +629,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="omni_log" fileName="${sys:catalina.home}/logs/merchants/omni.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/omni_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
@@ -887,6 +896,9 @@
         </logger>
         <logger name="Qiwi" level="ALL" additivity="false">
             <AppenderRef ref="qiwi_log"/>
+        </logger>
+        <logger name="Omni" level="ALL" additivity="false">
+            <AppenderRef ref="omni_log"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

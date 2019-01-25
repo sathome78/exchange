@@ -9,6 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -19,6 +20,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -78,8 +80,6 @@ import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -1020,6 +1020,50 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+        //Need, because table EXORDERS has many data
+        String limit = "LIMIT 100000";
+
+        String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, cp.name AS currency_pair_name, " +
+                "UPPER(ORDER_OPERATION.name) as operation_type, EXORDERS.base_type as order_base_type, " +
+                "EXORDERS.exrate, EXORDERS.amount_base, CREATOR.email AS order_creator_email, " +
+                "CREATOR.roleid AS creator_role_id, ACCEPTOR.email AS order_acceptor_email, " +
+                "ACCEPTOR.roleid AS acceptor_role_id, EXORDERS.status_id " +
+                "FROM EXORDERS " +
+                "JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
+                "JOIN CURRENCY_PAIR as cp ON (cp.id = EXORDERS.currency_pair_id) " +
+                "JOIN USER as CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
+                "LEFT JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
+
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.putAll(adminOrderFilterData.getNamedParams());
+
+        String criteria = adminOrderFilterData.getSQLFilterClause();
+        String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
+
+        String selectQuery = String.join(" ", sqlSelect, whereClause, limit);
+
+        LOGGER.debug(selectQuery);
+
+        return namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, row) -> {
+            OrderReportInfoDto orderReportInfoDto = new OrderReportInfoDto();
+            orderReportInfoDto.setId(rs.getInt("id"));
+            orderReportInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+            orderReportInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            orderReportInfoDto.setOrderTypeName(rs.getString("operation_type").concat(" ").concat(rs.getString("order_base_type")));
+            orderReportInfoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), Locale.ENGLISH, 2));
+            orderReportInfoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), Locale.ENGLISH, 2));
+            orderReportInfoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+            orderReportInfoDto.setCreatorRole(UserRole.convert(rs.getInt("creator_role_id")).name());
+            orderReportInfoDto.setOrderAcceptorEmail(rs.getString("order_acceptor_email"));
+            orderReportInfoDto.setAcceptorRole(UserRole.convert(rs.getInt("acceptor_role_id")).name());
+            orderReportInfoDto.setOrderStatusName(OrderStatus.convert(rs.getInt("status_id")).toString());
+
+            return orderReportInfoDto;
+        });
+    }
+
+    @Override
     public List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
                                          OperationType orderType, boolean sameRoleOnly, Integer userAcceptorRoleId, OrderBaseType orderBaseType) {
         String sortDirection = "";
@@ -1491,5 +1535,28 @@ public class OrderDaoImpl implements OrderDao {
                 .amountConvert(rs.getBigDecimal("amount_convert"))
                 .amountCommission(rs.getBigDecimal("amount_commission"))
                 .build());
+    }
+
+    @Override
+    public Integer getOrderByOrderCreateDtoAndTime(OrderCreateDto orderCreateDto, LocalDateTime from, LocalDateTime to, String email) {
+        String sql = "SELECT 1 FROM EXORDERS WHERE user_id = (SELECT id FROM USER WHERE email = :email) " +
+                "AND currency_pair_id = :currency_pair_id " +
+                "AND amount_base = :amount_base " +
+                "AND base_type = :base_type " +
+                "AND commission_id = :commission_id " +
+                "AND date_creation BETWEEN :from AND :to";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", orderCreateDto.getCurrencyPair().getId());
+        params.put("amount_base", orderCreateDto.getAmount());
+        params.put("commission_id", orderCreateDto.getComissionId());
+        params.put("base_type", orderCreateDto.getOrderBaseType().getType());
+        params.put("email", email);
+        params.put("from", from);
+        params.put("to", to);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return null;
+        }
     }
 }

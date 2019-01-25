@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
+@Data
 public class BitcoinServiceImpl implements BitcoinService {
 
   @Value("${btcInvoice.blockNotifyUsers}")
@@ -92,6 +94,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
+  public BitcoinServiceImpl() {}
 
 
   @Override
@@ -194,6 +197,15 @@ public class BitcoinServiceImpl implements BitcoinService {
     return merchantService.getCoreWalletPassword(merchantName, currencyName)
             .orElseThrow(() -> new CoreWalletPasswordNotFoundException(String.format("pass not found for merchant %s currency %s", merchantName, currencyName)));
 
+  }
+
+  public static void main(String[] args) {
+    Map<String, Integer> map = new HashMap<>();
+    for(int i = 0; i < 25; i++){
+      map.put(String.valueOf(UUID.randomUUID()), i);
+    }
+    map.forEach((k,v) ->
+            System.out.println(k.hashCode()));
   }
 
   @Override
@@ -618,10 +630,16 @@ public class BitcoinServiceImpl implements BitcoinService {
     return merchantName;
   }
 
+  @Override
+  public void setConfirmationNeededCount(int confirmationNeededCount) {
+    this.minConfirmations = confirmationNeededCount;
+  }
+
   @PreDestroy
   public void shutdown() {
     bitcoinWalletService.shutdown();
     newTxCheckerScheduler.shutdown();
   }
+
 
 }

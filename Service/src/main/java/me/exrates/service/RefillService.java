@@ -84,7 +84,10 @@ public interface RefillService {
 
   void finalizeAcceptRefillRequest(Integer requestId);
 
-  RefillRequestFlatDto getFlatById(Integer id);
+    @Transactional
+    void declineMerchantRefillRequest(Integer requestId);
+
+    RefillRequestFlatDto getFlatById(Integer id);
 
   void revokeRefillRequest(int requestId);
 
@@ -108,7 +111,9 @@ public interface RefillService {
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
 
-  @Transactional
+    RefillRequestFlatAdditionalDataDto getAdditionalData(int requestId);
+
+    @Transactional
   Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
@@ -152,4 +157,20 @@ public interface RefillService {
                                                               LocalDateTime endTime,
                                                               List<UserRole> roles,
                                                               int requesterId);
+
+    void blockUserByFrozeTx(String address, int merchantId, int currencyId);
+
+    List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
+
+    @Transactional
+    int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto);
+
+    @Transactional
+    void setHashByReqestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+
+    @Transactional
+    void setInnerTransferHash(int requestId, String hash);
+
+
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash);
 }

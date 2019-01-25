@@ -80,7 +80,7 @@ public interface CurrencyService {
 
     Currency getById(int id);
 
-    CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType);
+    CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType, UserRole userRole);
 
     List<CurrencyPairLimitDto> findAllCurrencyLimitsForRoleAndType(String roleName, OrderType orderType);
 
@@ -115,4 +115,6 @@ public interface CurrencyService {
     List<CurrencyPair> findAllCurrencyPair();
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
+
+    boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 }

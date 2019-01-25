@@ -21,4 +21,5 @@ public class RefillRequestPutOnBchExamDto {
   private String address;
   private String hash;
   private String blockhash;
+  private int confirmations = 0;
 }

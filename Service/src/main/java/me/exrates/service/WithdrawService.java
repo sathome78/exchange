@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -82,4 +83,8 @@ public interface WithdrawService {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> userRoles,
                                                                 int requesterId);
+
+    Optional<WithdrawRequest> getWithdrawRequestByAddress(String withdrawAddress);
+
+    Optional<WithdrawRequestFlatDto> getFlatById(Integer requestId);
 }
