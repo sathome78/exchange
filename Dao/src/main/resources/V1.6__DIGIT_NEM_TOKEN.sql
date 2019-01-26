@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('DIGIT coin', 'DIGIT', 2, 'nemServiceImpl', 'CRYPTO', 33);
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
+VALUES ('DIGIT coin', 'DIGIT', 2, 'nemServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('DIGIT', 'DIGIT coin', 0, 6, 6, 6);
 
@@ -74,4 +74,15 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'DIGIT'), 'exrateToNem', '0.01');
+
+  INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
+SELECT cur.id AS currency_id, ur.id AS role_id
+FROM CURRENCY cur CROSS JOIN USER_ROLE ur
+WHERE cur.name IN ('DIGIT')
+ORDER BY cur.id, ur.id;
+
+INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
+SELECT cur.id
+FROM CURRENCY cur
+WHERE cur.name IN ('DIGIT');
 

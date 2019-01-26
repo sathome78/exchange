@@ -1759,6 +1759,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 0);
     }
 
+    @Bean(name = "digicServiceImpl")
+    public XemMosaicService digicService() {
+        return new XemMosaicServiceImpl(
+                "DIGIT",
+                "DIGIT",
+                new MosaicIdDto("digit", "coin"),
+                1000000,
+                6,
+                new Supply(8999999999L),
+                10);
+    }
+
     /***stellarAssets****/
     private @Value("${stellar.slt.emitter}")
     String SLT_EMMITER;
