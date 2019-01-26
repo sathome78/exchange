@@ -54,6 +54,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -228,7 +229,16 @@ public class NgDashboardController {
             pagedResult.setCount(ordersTuple.getKey());
             pagedResult.setItems(ordersTuple.getValue());
 
-            return ResponseEntity.ok(pagedResult);
+            LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+            boolean beforeYesterday = pagedResult
+                    .getItems()
+                    .stream()
+                    .anyMatch(order -> order.getDateCreation().isBefore(yesterday));
+
+            if (beforeYesterday) {
+                return new ResponseEntity<>(pagedResult, HttpStatus.MULTI_STATUS); // 207
+            }
+            return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
