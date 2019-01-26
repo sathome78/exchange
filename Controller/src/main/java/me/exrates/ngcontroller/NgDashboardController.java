@@ -1,28 +1,25 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.bittrade.libs.steemj.base.models.OrderBook;
-import me.exrates.config.RabbitConfig;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.model.exceptions.RabbitMqException;
-import me.exrates.model.dto.InputCreateOrderDto;
-import me.exrates.ngcontroller.model.ResponseUserBalances;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.service.RabbitMqService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderAcceptionException;
@@ -65,6 +62,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static java.util.Objects.nonNull;
+import static me.exrates.utils.ValidationUtil.validateCurrencyPair;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard",
@@ -264,8 +264,24 @@ public class NgDashboardController {
     }
 
     @PostMapping("/cancel")
-    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids){
+    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids) {
         orderService.cancelOrders(ids);
+
+        return new ResponseModel<>(true);
+    }
+
+    @PostMapping(value = "/cancel/all")
+    public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pair) {
+
+        if (nonNull(pair)) {
+            pair = pair.toUpperCase();
+
+            validateCurrencyPair(pair);
+
+            orderService.cancelOpenOrdersByCurrencyPair(pair);
+        } else {
+            orderService.cancelAllOpenOrders();
+        }
         return new ResponseModel<>(true);
     }
 
