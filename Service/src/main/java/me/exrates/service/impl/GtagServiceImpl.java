@@ -38,9 +38,9 @@ public class GtagServiceImpl implements GtagService {
         try {
             Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
-            String transactionId = sendTransactionHit(userName, coinsCount, price, tiker);
+            String transactionId = sendTransactionHit(userName, price, tiker);
             log.info("Successfully send transaction hit to gtag");
-            sendItemHit(userName, transactionId, tiker, coinsCount, price);
+            sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
         } catch (Throwable exception) {
@@ -48,9 +48,8 @@ public class GtagServiceImpl implements GtagService {
         }
     }
 
-    private String sendTransactionHit(String userName, String coinsCount, String price, String tiker) {
+    private String sendTransactionHit(String userName, String price, String tiker) {
         String transactionId = UUID.randomUUID().toString();
-        String revenue = new BigDecimal(coinsCount).multiply(new BigDecimal(price)).toPlainString();
 
         MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
 
@@ -60,10 +59,14 @@ public class GtagServiceImpl implements GtagService {
         formData.add("t", "transaction");
         formData.add("in", tiker);
         formData.add("cu", "USD");
-        formData.add("tr", revenue);
+        formData.add("tr", price);
         formData.add("ti", transactionId);
 
+        log.info("Form params for transaction hit" + formData);
+
         Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
+
+        log.info("Response is for transaction hit" + response.readEntity(String.class));
         return transactionId;
     }
 
@@ -82,6 +85,12 @@ public class GtagServiceImpl implements GtagService {
         formData.add("ic", tiker);
         formData.add("cu", "USD");
 
+        log.info("Form params for item hit" + formData);
+
         Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
+
+        String jsonResponse = response.readEntity(String.class);
+
+        log.info("Response is for item hit" + jsonResponse);
     }
 }
