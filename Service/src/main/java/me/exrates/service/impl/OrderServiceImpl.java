@@ -147,6 +147,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -1191,6 +1192,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
+    public void cancelOrders(Collection<String> orderIds) {
+        orderIds.forEach(id -> cancelOrder(Integer.valueOf(id)));
+    }
+
+    @Transactional
+    @Override
     public void cancelOpenOrdersByCurrencyPair(String currencyPair) {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
@@ -1209,8 +1216,8 @@ public class OrderServiceImpl implements OrderService {
         openedOrders.forEach(this::cancelOrder);
     }
 
-    private boolean cancelOrder(ExOrder exOrder) {
-        return cancelOrder(exOrder, null);
+    private void cancelOrder(ExOrder exOrder) {
+        cancelOrder(exOrder, null);
     }
 
     @Transactional(rollbackFor = {Exception.class})
