@@ -91,7 +91,9 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(e);
-            authentication.setAuthenticated(false);
+            if (authentication != null) {
+                authentication.setAuthenticated(false);
+            }
         }
     }
 
