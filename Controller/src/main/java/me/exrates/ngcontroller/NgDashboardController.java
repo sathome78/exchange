@@ -1,34 +1,30 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.bittrade.libs.steemj.base.models.OrderBook;
-import me.exrates.config.RabbitConfig;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.model.exceptions.RabbitMqException;
-import me.exrates.model.dto.InputCreateOrderDto;
-import me.exrates.ngcontroller.model.ResponseUserBalances;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.service.RabbitMqService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,7 +56,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -108,21 +103,8 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        if (inputOrder.getBaseType().equalsIgnoreCase(String.valueOf(OrderBaseType.STOP_LIMIT))) {
-            throw new UnsupportedOperationException("String.valueOf(OrderBaseType.STOP_LIMIT) not supported for now");
-        }
-
-        String result = ngOrderService.createOrder(inputOrder);
-        HashMap<String, String> resultMap = new HashMap<>();
-
-        if (!StringUtils.isEmpty(result)) {
-            resultMap.put("message", "success");
-            rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-            return new ResponseEntity<>(resultMap, HttpStatus.CREATED);
-        } else {
-            resultMap.put("message", "fail");
-            return new ResponseEntity<>(resultMap, HttpStatus.BAD_REQUEST);
-        }
+        rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/order/{id}")
@@ -200,13 +182,14 @@ public class NgDashboardController {
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
+     * @param currencyName   - filter if currency pair join name contains value, default is empty
      * @param page           - requested page, not required,  default 1
      * @param limit          - defines quantity rows per page, not required,  default 14
      * @param sortByCreated  - enables ASC sort by created date, not required,  default DESC
      * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
      *                       "ALL" - both], not required,  default "" - created by user
-     * @param hideCanceled   - selects or skips cancelled orders
-     * @param initial        - if true means that if nothing found for date range we select last ${limit} orders
+     * @param hideCanceled   - hide cancelled orders if true
+     * @param initial        - if true shows last 15 records despite of filter
      * @param dateFrom       - specifies the start of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param dateTo         - specifies the end of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param request        - HttpServletRequest, used by backend to resolve locale
@@ -217,6 +200,7 @@ public class NgDashboardController {
     public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "currencyName", defaultValue = "") String currencyName,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "15") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
@@ -239,12 +223,12 @@ public class NgDashboardController {
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersMap =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, orderStatus, scope, offset,
+            Pair<Integer, List<OrderWideListDto>> ordersTuple =
+                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, currencyName, orderStatus, scope, offset,
                             limit, hideCanceled, initial, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-            pagedResult.setCount(ordersMap.getKey());
-            pagedResult.setItems(ordersMap.getValue());
+            pagedResult.setCount(ordersTuple.getKey());
+            pagedResult.setItems(ordersTuple.getValue());
 
             LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
             boolean beforeYesterday = pagedResult
@@ -271,7 +255,6 @@ public class NgDashboardController {
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-
 
     @GetMapping("/info/{currencyPairId}")
     public ResponseEntity<Map<String, Map<String, String>>> getCurrencyPairInfo(@PathVariable int currencyPairId)

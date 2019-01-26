@@ -2,7 +2,6 @@ package me.exrates.ngcontroller.rabbit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.exrates.config.RabbitConfig;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.service.RabbitMqService;
 import me.exrates.service.cache.MarketRatesHolder;

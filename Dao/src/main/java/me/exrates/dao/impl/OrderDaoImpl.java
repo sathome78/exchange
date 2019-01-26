@@ -970,13 +970,14 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
-                                                       String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, String currencyName,
+                                                       Locale locale, String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
                                                        LocalDate from, LocalDate to, boolean hideCanceled) {
         String userFilterClause;
         String currencyPairClauseWhere = currencyPair == null ? "" : " AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
         String createdBefore = to == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
+        String currencyNameClause = StringUtils.isBlank(currencyName) ? "" : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         switch (scope) {
             case "ALL":
@@ -1015,6 +1016,7 @@ public class OrderDaoImpl implements OrderDao {
                 currencyPairClauseWhere +
                 userFilterClause +
                 orderClause +
+                currencyNameClause +
                 pageClause;
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
         namedParameters.addValue("user_id", userId);
@@ -1028,6 +1030,10 @@ public class OrderDaoImpl implements OrderDao {
         }
         if (to != null) {
             namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
+        }
+
+        if (StringUtils.isBlank(currencyName)) {
+            namedParameters.addValue("currency_name", currencyName);
         }
 
         return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
@@ -1144,13 +1150,14 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, OrderStatus status, String scope,
+    public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, String currencyName, OrderStatus status, String scope,
                                              Integer offset, Integer limit, Locale locale, LocalDate from, LocalDate to,
                                              boolean hideCanceled) {
         String currencyPairClauseJoin = currencyPair == null ? "" : "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
         String currencyPairClauseWhere = currencyPair == null ? "" : "    AND EXORDERS.currency_pair_id = :currencyPairId ";
         String createdAfter = from == null ? "" : " AND EXORDERS.date_creation >= :dateFrom";
         String createdBefore = to == null ? "" : " AND EXORDERS.date_creation <= :dateBefore";
+        String currencyNameClause = StringUtils.isBlank(currencyName) ? "" : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String userFilterClause;
         switch (scope) {
@@ -1175,6 +1182,7 @@ public class OrderDaoImpl implements OrderDao {
                 createdAfter +
                 createdBefore +
                 currencyPairClauseWhere +
+                currencyNameClause +
                 userFilterClause;
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
         namedParameters.addValue("user_id", userId);
@@ -1188,6 +1196,9 @@ public class OrderDaoImpl implements OrderDao {
         }
         if (to != null) {
             namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
+        }
+        if (StringUtils.isBlank(currencyName)) {
+            namedParameters.addValue("currency_name", currencyName);
         }
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
     }
