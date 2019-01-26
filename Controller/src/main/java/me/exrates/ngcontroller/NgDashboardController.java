@@ -61,6 +61,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.util.Objects.nonNull;
+import static me.exrates.utils.ValidationUtil.validateCurrencyPair;
+
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -254,8 +257,24 @@ public class NgDashboardController {
     }
 
     @PostMapping("/cancel")
-    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids){
+    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids) {
         orderService.cancelOrders(ids);
+
+        return new ResponseModel<>(true);
+    }
+
+    @PostMapping(value = "/cancel/all")
+    public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pair) {
+
+        if (nonNull(pair)) {
+            pair = pair.toUpperCase();
+
+            validateCurrencyPair(pair);
+
+            orderService.cancelOpenOrdersByCurrencyPair(pair);
+        } else {
+            orderService.cancelAllOpenOrders();
+        }
         return new ResponseModel<>(true);
     }
 
