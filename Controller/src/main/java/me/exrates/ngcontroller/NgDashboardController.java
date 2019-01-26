@@ -178,6 +178,7 @@ public class NgDashboardController {
     }
 
     /**
+     * /info/private/v2/dashboard/orders/{status}
      *
      * @param status         - user’s order status
      * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
