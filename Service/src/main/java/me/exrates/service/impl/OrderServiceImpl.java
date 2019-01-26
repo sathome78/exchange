@@ -111,7 +111,6 @@ import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
@@ -1612,12 +1611,11 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
-                                                                         LocalDate dateFrom, LocalDate dateTo) {
+    public Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
+                                                                        String scope, Integer offset, Integer limit, boolean hideCanceled,
+                                                                        boolean initial, Locale locale, Map<String, String> sortedColumns,
+                                                                        LocalDate dateFrom, LocalDate dateTo) {
 
         int records = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
