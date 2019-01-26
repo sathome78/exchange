@@ -55,6 +55,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -253,8 +254,8 @@ public class NgDashboardController {
     }
 
     @PostMapping("/cancel")
-    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId){
-        orderService.cancelOrder(orderId);
+    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids){
+        orderService.cancelOrders(ids);
         return new ResponseModel<>(true);
     }
 
