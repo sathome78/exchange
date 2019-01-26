@@ -259,7 +259,7 @@ public class NgDashboardController {
         try {
             Map<Integer, List<OrderWideListDto>> ordersMap =
                     this.orderService.getMyOrdersWithStateMap(userId, currencyPair, currencyName, orderStatus, scope, offset,
-                            limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
+                            limit, hideCanceled,true, locale, sortedColumns, dateFrom, dateTo);
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersMap.keySet().iterator().next());
             pagedResult.setItems(ordersMap.values().stream().findFirst().orElse(Collections.emptyList()));
