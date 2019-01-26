@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
@@ -8,17 +9,22 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
+import me.exrates.ngcontroller.constant.Constants;
+import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.exception.WrongPasswordException;
 import me.exrates.ngcontroller.model.ExceptionDto;
 import me.exrates.ngcontroller.model.UserDocVerificationDto;
 import me.exrates.ngcontroller.model.UserInfoVerificationDto;
 import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
 import me.exrates.ngcontroller.service.UserVerificationService;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -96,8 +102,8 @@ public class NgUserSettingsController {
     //    newPassword: string
     // }
     // 200 - OK
-    // 400 - either current or new password is blank
-    // 403 - wrong main user password
+    // 400 - 1011 - either current or new password is blank
+    // 400 - 1010 - wrong main user password
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String email = getPrincipalEmail();
@@ -108,14 +114,14 @@ public class NgUserSettingsController {
         if (StringUtils.isBlank(currentPassword) || StringUtils.isBlank(newPassword)) {
             String message = String.format("Failed as current password: [%s] or new password is [%s] is empty ", currentPassword, newPassword);
             logger.warn(message);
-            throw new IllegalArgumentException(message);
+            throw new NgDashboardException(message, Constants.ErrorApi.USER_INCORRECT_PASSWORDS);
         }
         currentPassword = RestApiUtils.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
             String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
             logger.warn(message);
-            throw new WrongPasswordException(message);
+            throw new NgDashboardException(message, Constants.ErrorApi.USER_WRONG_CURRENT_PASSWORD);
         }
         newPassword = RestApiUtils.decodePassword(newPassword);
         user.setPassword(newPassword);
@@ -336,6 +342,13 @@ public class NgUserSettingsController {
     @ResponseBody
     public ResponseEntity<Object> AuthExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ResponseEntity<>("Not authorised", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
     private String getPrincipalEmail() {
