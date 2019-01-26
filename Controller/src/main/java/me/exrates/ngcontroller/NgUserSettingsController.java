@@ -224,12 +224,12 @@ public class NgUserSettingsController {
         }
     }
 
-    @GetMapping(COLOR_SCHEME)
-    @ResponseBody
-    public ColorScheme getUserColorScheme() {
-        User user = userService.findByEmail(getPrincipalEmail());
-        return this.layoutSettingsService.getColorScheme(user);
-    }
+//    @GetMapping(COLOR_SCHEME)
+//    @ResponseBody
+//    public ColorScheme getUserColorScheme() {
+//        User user = userService.findByEmail(getPrincipalEmail());
+//        return this.layoutSettingsService.getColorScheme(user);
+//    }
 
     @PutMapping(value = COLOR_SCHEME, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {
