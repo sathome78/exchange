@@ -1,13 +1,17 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.ngcontroller.exception.NgTwoFcatorOuathException;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +61,13 @@ public class NgTwoFaController {
     @ResponseBody
     public ResponseEntity<Void> getSecurityPinCode(HttpServletRequest request) {
         User user = userService.findByEmail(getPrincipalEmail());
-        g2faService.sendGoogleAuthPinConfirm(user, request);
+        try {
+            g2faService.sendGoogleAuthPinConfirm(user, request);
+        } catch (Exception e) {
+            String message = "Failed to send user pincode as : " + e.getMessage();
+            logger.warn(message);
+            throw new NgTwoFcatorOuathException(message, e);
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -90,6 +101,13 @@ public class NgTwoFaController {
             return ResponseEntity.ok(Boolean.TRUE);
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgTwoFcatorOuathException.class})
+    @ResponseBody
+    public ErrorInfo handleTwoFactorUpdateException(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
     private String getPrincipalEmail() {

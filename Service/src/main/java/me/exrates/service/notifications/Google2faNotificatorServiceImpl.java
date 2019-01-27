@@ -205,6 +205,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         Locale locale = localeResolver.resolveLocale(request);
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        System.out.println("GoogleAuthPincode: " + pin);
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
                 new String[] {pin}, locale);
         System.out.println(messageText);
