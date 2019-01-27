@@ -112,7 +112,6 @@ import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1193,7 +1192,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public void cancelOrders(Collection<String> orderIds) {
-        orderIds.forEach(id -> cancelOrder(Integer.valueOf(id)));
+        orderIds.forEach(id -> {
+            try {
+                final int orderId = Integer.parseInt(id);
+                cancelOrder(orderId);
+            } catch (NumberFormatException ex) {
+                log.error("Order id format is wrong. Process of cancel order [{}] have been stopped", id, ex);
+            }
+        });
     }
 
     @Transactional
@@ -1639,11 +1645,11 @@ public class OrderServiceImpl implements OrderService {
             recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, null, null, hideCanceled);
             orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
                     offset, limit, sortedColumns, null, null, hideCanceled);
-        } else if (recordsCount == 0){
+        } else if (recordsCount == 0) {
             orders = Lists.newArrayList();
         } else {
             orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
-                offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
+                    offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
         }
         return Pair.of(recordsCount, orders);
     }
@@ -1787,7 +1793,7 @@ public class OrderServiceImpl implements OrderService {
             return DATE_TIME_FORMATTER.format(date);
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
-           return DATE_TIME_FORMATTER.format(localDateTime);
+            return DATE_TIME_FORMATTER.format(localDateTime);
         }
         return String.valueOf(value);
     }
