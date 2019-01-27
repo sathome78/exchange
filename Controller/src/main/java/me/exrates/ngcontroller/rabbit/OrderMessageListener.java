@@ -41,11 +41,11 @@ public class OrderMessageListener {
         try {
 //            marketRatesHolder.setRateMarket(order.getCurrencyPairId(), order.getRate(), order.getAmount());
             String orderJson = objectMapper.writeValueAsString(order);
-            Message message = MessageBuilder
-                    .withBody(orderJson.getBytes())
-                    .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                    .build();
-            this.messagingTemplate.convertAndSend("/topic/rabbit", message);
+//            Message message = MessageBuilder
+//                    .withBody(orderJson.getBytes())
+//                    .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+//                    .build();
+            this.messagingTemplate.convertAndSend("/topic/rabbit", orderJson);
         } catch (JsonProcessingException e) {
             logger.error("Failed to redirect to rabbit topic", e);
         }

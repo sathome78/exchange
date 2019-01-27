@@ -47,6 +47,7 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -377,10 +378,10 @@ public interface OrderService {
                                                 Integer offset, Integer limit, Locale locale);
 
     @Transactional(readOnly = true)
-    Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                                 String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                 Locale locale, Map<String, String> sortedColumns,
-                                                                 LocalDate dateFrom, LocalDate dateTo);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled,
+                                                                  boolean initial, Locale locale, Map<String, String> sortedColumns,
+                                                                  LocalDate dateFrom, LocalDate dateTo);
 
     @Transactional(readOnly = true)
     List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
