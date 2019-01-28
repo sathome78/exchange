@@ -8,5 +8,5 @@ public interface RabbitMqService {
     String ANGULAR_QUEUE = "angular-queue";
     String JSP_QUEUE = "jsp-queue";
 
-    void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName);
+    String sendOrderInfo(InputCreateOrderDto inputOrder, String queueName);
 }
