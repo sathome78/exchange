@@ -94,7 +94,7 @@ public class MarketRatesHolder {
     public void setRateMarket(ExOrder exOrder) {
         this.setRatesMarketMap(exOrder.getCurrencyPairId(), exOrder.getExRate(), exOrder.getAmountBase());
         InputCreateOrderDto createOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(createOrderDto, RabbitMqService.JSP_QUEUE);
+//        rabbitMqService.sendOrderInfo(createOrderDto, RabbitMqService.JSP_QUEUE);
     }
 
     public void setRateMarket(int currencyPairId, BigDecimal rate, BigDecimal amount) {
