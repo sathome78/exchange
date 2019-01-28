@@ -25,6 +25,7 @@ import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -671,7 +672,13 @@ public class OnlineRestController {
                 }
             });
         }
-        list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
+        list.forEach(p -> {
+            try {
+                p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale));
+            } catch (NoSuchMessageException e) {
+                p.setMarketName(p.getMarket());
+            }
+        });
         return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
     }
 

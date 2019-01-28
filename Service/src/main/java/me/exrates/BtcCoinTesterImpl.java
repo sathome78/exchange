@@ -6,6 +6,7 @@ import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import lombok.NoArgsConstructor;
+import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
@@ -57,6 +58,8 @@ public class BtcCoinTesterImpl implements CoinTester {
     private OrderService orderService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private WalletDao walletDao;
 
     private int currencyId;
     private int merchantId;
@@ -76,7 +79,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public void testCoin(double refillAmount) throws Exception {
+    public String testCoin(double refillAmount) throws Exception {
         try {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
@@ -86,8 +89,10 @@ public class BtcCoinTesterImpl implements CoinTester {
             testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
             stringBuilder.append("Works fine!\n");
+            return "Works fine";
         }catch (Exception e){
-            stringBuilder.append(e.getMessage());
+            stringBuilder.append(e.toString());
+            return e.getMessage();
         }
     }
 
@@ -98,6 +103,8 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     private void testOrder(BigDecimal amount, BigDecimal rate, String currencyPair, BigDecimal stop) throws CoinTestException {
         try {
+            int walletId = walletDao.getWalletId(userService.getIdByEmail(principalEmail), currencyId);
+            walletDao.addToWalletBalance(walletId,amount.multiply(new BigDecimal(100)), new BigDecimal(0));
             sellOrder(amount, rate, currencyPair, stop);
             buyOrder(amount, rate, currencyPair, stop);
         } catch (Exception e) {
@@ -175,7 +182,6 @@ public class BtcCoinTesterImpl implements CoinTester {
                     Thread.sleep(5000);
                     if (withdrawStatus == 10) {
                         Transaction transaction = btcdClient.getTransaction(flatWithdrawRequest.getTransactionHash());
-                        stringBuilder.append("trx from btc " + transaction).append("\n");;
                         if (!compareObjects(transaction.getAmount(), (flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))))
                             throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                     }
@@ -195,7 +201,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     public void testManualWithdraw(double amount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             setAutoWithdraw(false);
-        }
+
         String withdrawAddress = btcdClient.getNewAddress();
         stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
 
@@ -214,14 +220,12 @@ public class BtcCoinTesterImpl implements CoinTester {
             Thread.sleep(2000);
             stringBuilder.append("Checking manual transaction").append("\n");;
             if (transaction != null) {
-                stringBuilder.append("Manual trx = " + transaction).append("\n");;
                 if (!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount())))
                     throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
                             + " not equals with transaction.getAmount() " + transaction.getAmount());
             }
         } while (transaction == null);
-
-
+        }
     }
 
     private void setAutoWithdraw(boolean isEnabled) {
@@ -407,7 +411,9 @@ public class BtcCoinTesterImpl implements CoinTester {
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, new Locale("en"));
             if (!errorMap.isEmpty()) {
+                stringBuilder.append("Error map: \n");
                 for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
+                    stringBuilder.append(pair.getKey() + "  " + pair.getValue() + "\n");
                     pair.setValue("message");
                 }
                 errorMap.put("order", orderCreateSummaryDto);

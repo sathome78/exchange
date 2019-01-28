@@ -1,6 +1,5 @@
 package me.exrates.config;
 
-import info.blockchain.api.exchangerates.Currency;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.BtcCoinTesterImpl;
 import me.exrates.model.Merchant;
@@ -414,10 +413,9 @@ public class CryptocurrencyConfig {
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
     }
 
-
     @Bean
     BtcCoinTesterImpl btcCoinTester(){
         return new BtcCoinTesterImpl();
     }
-
 }
+
