@@ -62,7 +62,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.Objects.nonNull;
-import static me.exrates.utils.ValidationUtil.validateCurrencyPair;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard",
@@ -258,8 +257,7 @@ public class NgDashboardController {
      */
     @PostMapping("/cancel")
     public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
-        orderService.cancelOrder(orderId);
-        return new ResponseModel<>(true);
+        return new ResponseModel<>(orderService.cancelOrder(orderId));
     }
 
     /**
@@ -269,31 +267,28 @@ public class NgDashboardController {
      * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
      */
     @PostMapping("/cancel/list")
-    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids) {
-        orderService.cancelOrders(ids);
-
-        return new ResponseModel<>(true);
+    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<Integer> ids) {
+        return new ResponseModel<>(orderService.cancelOrders(ids));
     }
 
     /**
      * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
      *
-     * @param pair currency pair
+     * @param pairName pair name
      * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
      */
     @PostMapping("/cancel/all")
-    public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pair) {
+    public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
 
-        if (nonNull(pair)) {
-            pair = pair.toUpperCase();
+        boolean canceled;
+        if (nonNull(pairName)) {
+            pairName = pairName.toUpperCase();
 
-            validateCurrencyPair(pair);
-
-            orderService.cancelOpenOrdersByCurrencyPair(pair);
+            canceled = orderService.cancelOpenOrdersByCurrencyPair(pairName);
         } else {
-            orderService.cancelAllOpenOrders();
+            canceled = orderService.cancelAllOpenOrders();
         }
-        return new ResponseModel<>(true);
+        return new ResponseModel<>(canceled);
     }
 
     private String getPrincipalEmail() {

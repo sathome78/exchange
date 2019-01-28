@@ -1183,47 +1183,40 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void cancelOrder(Integer orderId) {
+    public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
 
-        cancelOrder(exOrder);
+        return cancelOrder(exOrder);
     }
 
     @Transactional
     @Override
-    public void cancelOrders(Collection<String> orderIds) {
-        orderIds.forEach(id -> {
-            try {
-                final int orderId = Integer.parseInt(id);
-                cancelOrder(orderId);
-            } catch (NumberFormatException ex) {
-                log.error("Order id format is wrong. Process of cancel order [{}] have been stopped", id, ex);
-            }
-        });
+    public boolean cancelOrders(Collection<Integer> orderIds) {
+        return orderIds.stream().allMatch(this::cancelOrder);
     }
 
     @Transactional
     @Override
-    public void cancelOpenOrdersByCurrencyPair(String currencyPair) {
+    public boolean cancelOpenOrdersByCurrencyPair(String currencyPair) {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
     @Transactional
     @Override
-    public void cancelAllOpenOrders() {
+    public boolean cancelAllOpenOrders() {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
-    private void cancelOrder(ExOrder exOrder) {
-        cancelOrder(exOrder, null);
+    private boolean cancelOrder(ExOrder exOrder) {
+        return cancelOrder(exOrder, null);
     }
 
     @Transactional(rollbackFor = {Exception.class})
