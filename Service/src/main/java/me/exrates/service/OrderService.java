@@ -175,15 +175,15 @@ public interface OrderService {
     void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
 
     @Transactional
-    void cancelOrder(Integer orderId);
+    boolean cancelOrder(Integer orderId);
 
     @Transactional
-    void cancelOrders(Collection<String> orderIds);
+    boolean cancelOrders(Collection<Integer> orderIds);
 
-    void cancelOpenOrdersByCurrencyPair(String currencyPair);
+    boolean cancelOpenOrdersByCurrencyPair(String currencyPair);
 
     @Transactional
-    void cancelAllOpenOrders();
+    boolean cancelAllOpenOrders();
 
     /**
      * Cancels the order and set status "CANCELLED"
@@ -382,9 +382,9 @@ public interface OrderService {
 
     @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                 String scope, Integer offset, Integer limit, boolean hideCanceled, boolean initial,
-                                                                 Locale locale, Map<String, String> sortedColumns,
-                                                                 LocalDate dateFrom, LocalDate dateTo);
+                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled, boolean initial,
+                                                                  Locale locale, Map<String, String> sortedColumns,
+                                                                  LocalDate dateFrom, LocalDate dateTo);
 
     @Transactional(readOnly = true)
     List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
