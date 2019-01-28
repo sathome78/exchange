@@ -224,7 +224,7 @@ public class NgBalanceController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             logger.error("Failed to get single currency balance details", e);
-            throw new NgBalanceException("Failed to get single currency balance details as " +  e.getMessage());
+            throw new NgBalanceException("Failed to get single currency balance details as " + e.getMessage());
         }
     }
 
@@ -236,16 +236,17 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false, name = "initial", defaultValue = "false") boolean initial,
             HttpServletRequest request) {
         String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
         try {
             PagedResult<MyInputOutputHistoryDto> page =
-                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale, initial);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);
-            throw new NgBalanceException("Failed to get user inputOutputData as " +  ex.getMessage());
+            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
         }
     }
 
