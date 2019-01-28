@@ -71,7 +71,10 @@ public class MarketRatesHolder {
     }
 
     public List<StatisticForMarket> getAll() {
-        return ratesMarketMap.values().stream().peek(this::calculatePriceInUSD).collect(Collectors.toList());
+        return ratesMarketMap.values().stream()
+                .peek(this::calculatePriceInUSD)
+                .peek(this::calculateCurrencyVolume)
+                .collect(Collectors.toList());
     }
 
     public Map<Integer, StatisticForMarket> getRatesMarketMap() {
@@ -125,6 +128,7 @@ public class MarketRatesHolder {
         ids.forEach(p -> {
             StatisticForMarket statistic = ratesMarketMap.get(p);
             this.calculatePriceInUSD(statistic);
+            this.calculateCurrencyVolume(statistic);
             result.add(statistic);
         });
         return result;
@@ -163,5 +167,12 @@ public class MarketRatesHolder {
     public BigDecimal getBtcUsdRate() {
         StatisticForMarket dto = ratesMarketMap.getOrDefault(BTC_USD_ID, null);
         return dto == null ? BigDecimal.ZERO : dto.getLastOrderRate();
+    }
+
+    private void calculateCurrencyVolume(StatisticForMarket statisticForMarket) {
+        BigDecimal lastOrderRate = statisticForMarket.getLastOrderRate();
+        BigDecimal volume = statisticForMarket.getVolume();
+        BigDecimal currencyVolume = BigDecimalProcessing.doAction(volume, lastOrderRate, ActionType.MULTIPLY);
+        statisticForMarket.setCurrencyVolume(currencyVolume);
     }
 }

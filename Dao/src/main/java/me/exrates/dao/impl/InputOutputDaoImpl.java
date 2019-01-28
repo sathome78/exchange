@@ -456,7 +456,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "   WHERE USER.email=:email AND " +
                 "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " + curId +
                 " AND RR.date_creation >= :dateFrom " +
-                " AND RR.date_creation <= :dateTo )" +
+                " AND RR.date_creation <= :dateTo" +
                 "  )  " +
 
                 "  UNION " +

@@ -112,7 +112,6 @@ import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1616,26 +1615,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
                                                                          String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo) {
-        if (dateTo == null) {
-            dateTo = LocalDate.now();
-        }
+                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
+                                                                         LocalDate dateFrom, LocalDate dateTo) {
 
-        if (dateFrom == null) {
-            dateFrom = dateTo.minusDays(1);
-        }
-        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
+        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset,
+                limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders;
         if (recordsCount == 0 && initial) {
-            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, null, null, hideCanceled);
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
+            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status,
+                    scope, offset, limit, locale, null, null, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
                     offset, limit, sortedColumns, null, null, hideCanceled);
         } else if (recordsCount == 0){
             orders = Lists.newArrayList();
         } else {
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
                 offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
         }
         return Pair.of(recordsCount, orders);
