@@ -9,9 +9,6 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
-import me.exrates.ngcontroller.constant.Constants;
-import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.exception.WrongPasswordException;
 import me.exrates.ngcontroller.model.ExceptionDto;
 import me.exrates.ngcontroller.model.UserDocVerificationDto;
@@ -102,8 +99,8 @@ public class NgUserSettingsController {
     //    newPassword: string
     // }
     // 200 - OK
-    // 400 - 1011 - either current or new password is blank
-    // 400 - 1010 - wrong main user password
+    // 400 - either current or new password is blank
+    // 403 - wrong main user password
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String email = getPrincipalEmail();
@@ -114,14 +111,14 @@ public class NgUserSettingsController {
         if (StringUtils.isBlank(currentPassword) || StringUtils.isBlank(newPassword)) {
             String message = String.format("Failed as current password: [%s] or new password is [%s] is empty ", currentPassword, newPassword);
             logger.warn(message);
-            throw new NgDashboardException(message, Constants.ErrorApi.USER_INCORRECT_PASSWORDS);
+            throw new IllegalArgumentException(message);
         }
         currentPassword = RestApiUtils.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
             String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
             logger.warn(message);
-            throw new NgDashboardException(message, Constants.ErrorApi.USER_WRONG_CURRENT_PASSWORD);
+            throw new WrongPasswordException(message);
         }
         newPassword = RestApiUtils.decodePassword(newPassword);
         user.setPassword(newPassword);
@@ -224,12 +221,12 @@ public class NgUserSettingsController {
         }
     }
 
-//    @GetMapping(COLOR_SCHEME)
-//    @ResponseBody
-//    public ColorScheme getUserColorScheme() {
-//        User user = userService.findByEmail(getPrincipalEmail());
-//        return this.layoutSettingsService.getColorScheme(user);
-//    }
+    @GetMapping(COLOR_SCHEME)
+    @ResponseBody
+    public ColorScheme getUserColorScheme() {
+        User user = userService.findByEmail(getPrincipalEmail());
+        return this.layoutSettingsService.getColorScheme(user);
+    }
 
     @PutMapping(value = COLOR_SCHEME, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateUserColorScheme(@RequestBody Map<String, String> params) {

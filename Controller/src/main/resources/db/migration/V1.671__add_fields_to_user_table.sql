@@ -1,0 +1,2 @@
+ALTER TABLE USER ADD COLUMN kyc_reference         VARCHAR(8)    NULL;
+ALTER TABLE USER ADD COLUMN kyc_verification_step SMALLINT (1)  NOT NULL DEFAULT 0;
