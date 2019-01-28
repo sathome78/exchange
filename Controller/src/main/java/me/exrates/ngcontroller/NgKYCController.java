@@ -74,14 +74,14 @@ public class NgKYCController {
     // /private/v2/shufti-pro/verification-url/step/{stepNumber}
 
     /**
-     *  /private/v2/shufti-pro/verification-url/step/{step}
+     *  /private/v2/shufti-pro/verification-url/{step}
      * @param step - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
      * @param countryCode - from submitted list
      * @return - verificationUrl to load in iframe (https://shuftipro.com/process/verification/g63K7XCZGdD6mRC5S7mQw5Lc112ioqLMqYGrDQvhzg3qezdUg4ZJ0VAGTLEWjkC8)
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/private/v2/shufti-pro/verification-url/step/{step}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/private/v2/shufti-pro/verification-url/{step}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<String> getVerificationUrl(@PathVariable VerificationStep step,
                                                      @RequestParam(value = "language_code", required = false) String languageCode,
                                                      @RequestParam("country_code") String countryCode) {
