@@ -250,14 +250,38 @@ public class NgDashboardController {
 
     }
 
+    /**
+     * Cancel one open order by order id
+     *
+     * @param orderId order id
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
     @PostMapping("/cancel")
+    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
+        orderService.cancelOrder(orderId);
+        return new ResponseModel<>(true);
+    }
+
+    /**
+     * Cancel open orders by order ids
+     *
+     * @param ids list of orders (can be one or more)
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
+    @PostMapping("/cancel/list")
     public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<String> ids) {
         orderService.cancelOrders(ids);
 
         return new ResponseModel<>(true);
     }
 
-    @PostMapping(value = "/cancel/all")
+    /**
+     * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
+     *
+     * @param pair currency pair
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
+    @PostMapping("/cancel/all")
     public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pair) {
 
         if (nonNull(pair)) {
