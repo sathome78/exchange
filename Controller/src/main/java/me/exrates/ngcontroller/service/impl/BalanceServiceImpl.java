@@ -34,13 +34,7 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -159,17 +153,26 @@ public class BalanceServiceImpl implements BalanceService {
         if (StringUtils.isNotBlank(currencyName)) {
             return dto.getCurrency().toUpperCase().contains(currencyName.toUpperCase());
         }
-        return  true;
+        return true;
     }
 
     @Override
     public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset,
                                                                           int currencyId, LocalDate dateFrom,
-                                                                          LocalDate dateTo, Locale locale) {
+                                                                          LocalDate dateTo, Locale locale, boolean initial) {
+        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale);
+        List<MyInputOutputHistoryDto> historyDtoList = new ArrayList<>();
+        if (recordsCount == 0 && initial) {
+            recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, null, null, currencyId, locale);
+            historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, null, null, locale);
+        } else if (recordsCount != 0) {
+            historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+        }
+
         adjustDates(dateFrom, dateTo);
         PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale));
-        pagedResult.setItems(getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale));
+        pagedResult.setCount(recordsCount);
+        pagedResult.setItems(historyDtoList);
         return pagedResult;
     }
 
@@ -196,7 +199,7 @@ public class BalanceServiceImpl implements BalanceService {
             int minConfirmations = 0;
             // todo to solve later
             if (dto.getCurrencyName().equalsIgnoreCase("USD")
-                || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
+                    || dto.getCurrencyName().equalsIgnoreCase("EUR")) {
                 dto.setMarket("Fiat");
             } else {
                 try {
@@ -347,7 +350,7 @@ public class BalanceServiceImpl implements BalanceService {
         if (currencyType != null && currencyType == CurrencyType.CRYPTO) {
             return p -> !p.getCurrencyName().equalsIgnoreCase("rub");
         } else {
-           return x -> true;
+            return x -> true;
         }
     }
 
