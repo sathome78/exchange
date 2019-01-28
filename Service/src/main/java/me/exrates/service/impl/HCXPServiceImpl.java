@@ -195,7 +195,7 @@ public class HCXPServiceImpl implements MoneroService {
         BigInteger balance = wallet.getBalance();
         BigInteger currentFee = new BigInteger("1000000");
         balance = balance.subtract(currentFee);
-        log.info("Balance from node " + balance + ", amout to send with comission = " + balance);
+        log.info("Balance from node " + wallet.getBalance() + ", amout to send with comission = " + balance);
         MoneroTransaction transaction = wallet.send(mainAccount, balance, "", 0, 10);
         log.info(transaction);
 
