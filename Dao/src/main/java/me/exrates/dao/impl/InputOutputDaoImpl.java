@@ -393,6 +393,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         String limitStr = limit < 1 ? "" : String.format("LIMIT %d ", limit);
         String offsetStr = offset < 1 ? "" : String.format("OFFSET %d ", offset);
         String currencyCondition = currencyId < 1 ? "" : " TRANSACTION.currency_id = :currencyId AND ";
+        String curId = currencyId < 1 ? "" : " AND CUR.id =:currencyId";
         String sql = " SELECT " +
                 "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
                 "    CURRENCY.name as currency, TRANSACTION.amount, " +
@@ -453,7 +454,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
                 "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
                 "   WHERE USER.email=:email AND " +
-                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " +
+                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " + curId +
+                " AND RR.date_creation >= :dateFrom " +
+                " AND RR.date_creation <= :dateTo" +
                 "  )  " +
 
                 "  UNION " +
@@ -478,7 +481,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN USER USER ON USER.id=WR.user_id " +
                 "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
                 "   WHERE USER.email=:email AND " +
-                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
+                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " + curId +
+                " AND WR.date_creation >= :dateFrom " +
+                " AND WR.date_creation <= :dateTo) " +
                 "  )  " +
 
                 "  UNION ALL " +
@@ -502,7 +507,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE USER.email=:email /*AND*/ " +
+                "   WHERE USER.email=:email /*AND*/ " + curId +
+                " AND TR.datetime >= :dateFrom " +
+                " AND TR.datetime <= :dateTo" +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -526,7 +533,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN USER REC ON REC.id = TR.recipient_user_id  " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE REC.email=:email AND TR.status_id = 2 " +
+                "   WHERE REC.email=:email AND TR.status_id = 2 " + curId +
+                " AND TR.datetime >= :dateFrom " +
+                " AND TR.datetime <= :dateTo" +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -549,7 +558,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
                 "     JOIN USER U ON U.id=W.user_id " +
-                "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
+                "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" + curId +
+                " AND TR.datetime >= :dateFrom " +
+                " AND TR.datetime <= :dateTo" +
                 "  )  " +
                 "  ORDER BY datetime DESC, operation_id DESC " + limitStr + offsetStr;
 
