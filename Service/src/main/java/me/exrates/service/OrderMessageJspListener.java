@@ -30,11 +30,13 @@ public class OrderMessageJspListener {
      * This method is triggered if rabbit exchange receives message ({order}) from counterpart application
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
-    public void processOrder(InputCreateOrderDto order) {
-        log.debug("Order Received: " + order);
-        ordersEventHandleService.handleOrderEventOnMessage(order);
+    public String processOrder(InputCreateOrderDto order) {
+        log.info("Order from demo server received: " + order);
         OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), order.getCurrencyPair(), order.getStop());
         orderServiceDemoListener.recordOrderToDB(order,orderCreateSummaryDto.getOrderCreateDto());
+        ordersEventHandleService.handleOrderEventOnMessage(order);
+        log.info("Order saved: " + order);
+        return "success";
     }
 
     // uncomment for testing as this order will be sent from this application
