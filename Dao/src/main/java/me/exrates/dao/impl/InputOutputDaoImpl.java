@@ -508,8 +508,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
                 "   WHERE USER.email=:email /*AND*/ " + curId +
-                " AND TR.datetime >= :dateFrom " +
-                " AND TR.datetime <= :dateTo" +
+                " AND TR.date_creation >= :dateFrom " +
+                " AND TR.date_creation <= :dateTo" +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
