@@ -79,7 +79,7 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public String testCoin(double refillAmount) throws Exception {
+    public String testCoin(double refillAmount) {
         try {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
@@ -193,8 +193,6 @@ public class BtcCoinTesterImpl implements CoinTester {
             } while (withdrawStatus != 10);
 
             stringBuilder.append("Withdraw works").append("\n");;
-
-
         }
     }
 
