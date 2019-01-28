@@ -1,4 +1,4 @@
-package me.exrates.controller;
+package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
@@ -36,16 +36,16 @@ import static me.exrates.service.impl.ShuftiProKYCService.SIGNATURE;
 @Log4j2
 @RestController
 @RequestMapping("/kyc")
-public class KYCController {
+public class NgKYCController {
 
     private final UserService userService;
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
 
     @Autowired
-    public KYCController(UserService userService,
-                         KYCService kycService,
-                         KYCSettingsService kycSettingsService) {
+    public NgKYCController(UserService userService,
+                           KYCService kycService,
+                           KYCSettingsService kycSettingsService) {
         this.userService = userService;
         this.kycService = kycService;
         this.kycSettingsService = kycSettingsService;
@@ -71,19 +71,28 @@ public class KYCController {
         return ResponseEntity.notFound().build();
     }
 
+    // /private/v2/shufti-pro/verification-url/step/{stepNumber}
+
+    /**
+     *  /private/v2/shufti-pro/verification-url/step/{step}
+     * @param step - possible values (LEVEL_ONE, LEVEL_TWO)
+     * @param languageCode - from submitted list
+     * @param countryCode - from submitted list
+     * @return - verificationUrl to load in iframe
+     */
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = "/shufti-pro/verification-url/step/{stepNumber}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> getVerificationUrl(@PathVariable int stepNumber,
+    @GetMapping(value = "/private/v2/shufti-pro/verification-url/step/{step}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<String> getVerificationUrl(@PathVariable VerificationStep step,
                                                      @RequestParam(value = "language_code", required = false) String languageCode,
                                                      @RequestParam("country_code") String countryCode) {
         log.debug("Start getting verification url...");
-        final String verificationUrl = kycService.getVerificationUrl(stepNumber, languageCode, countryCode);
+        final String verificationUrl = kycService.getVerificationUrl(step.getStep(), languageCode, countryCode);
         log.debug("Verification url: {}", verificationUrl);
         return ResponseEntity.ok(verificationUrl);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = "/shufti-pro/verification-status", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/private/v2/shufti-pro/verification-status", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<EventStatus> getVerificationStatus() {
         log.debug("Start getting status url...");
         Pair<String, EventStatus> statusPair = kycService.getVerificationStatus();
@@ -91,22 +100,44 @@ public class KYCController {
         return ResponseEntity.ok(statusPair.getRight());
     }
 
-    @GetMapping(value = "/shufti-pro/countries", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /**
+     *  /private/v2/shufti-pro/countries
+     *
+     * {
+     *     countryName: Ukraine
+     *     countryCode: UA
+     * }
+     */
+    @GetMapping(value = "/private/v2/shufti-pro/countries", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<List<KycCountryDto>> getCountries() {
         return ResponseEntity.ok(kycSettingsService.getCountriesDictionary());
     }
 
-    @GetMapping(value = "/shufti-pro/languages", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+
+    /**
+     * /private/v2/shufti-pro/languages
+     *
+     * {
+     *     languageName: English
+     *     languageCode: EN
+     * }
+     */
+    @GetMapping(value = "/private/v2/shufti-pro/languages", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<List<KycLanguageDto>> getLanguages() {
         return ResponseEntity.ok(kycSettingsService.getLanguagesDictionary());
     }
 
-    @GetMapping(value = "/shufti-pro/current-step", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /**
+     * /private/v2/shufti-pro/current-step
+     *
+     *  returns (NOT_VERIFIED, LEVEL_ONE, LEVEL_TWO)
+     */
+    @GetMapping(value = "/private/v2/shufti-pro/current-step", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<VerificationStep> getCurrentVerificationStep() {
         return ResponseEntity.ok(userService.getVerificationStep());
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ShuftiProException.class)
     @ResponseBody
     public ErrorInfo shuftiProExceptionHandler(HttpServletRequest req, Exception exception) {

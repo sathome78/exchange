@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 public enum VerificationStep {
 
     NOT_VERIFIED(0),
-    VERIFIED_STEP_1(1),
-    VERIFIED_STEP_2(2);
+    LEVEL_ONE(1),
+    LEVEL_TWO(2);
 
     @Getter
     private int step;
@@ -21,6 +21,6 @@ public enum VerificationStep {
         return Stream.of(VerificationStep.values())
                 .filter(verificationStep -> verificationStep.step == step)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format("Step %d has not found", step)));
+                .orElse(VerificationStep.NOT_VERIFIED);
     }
 }
