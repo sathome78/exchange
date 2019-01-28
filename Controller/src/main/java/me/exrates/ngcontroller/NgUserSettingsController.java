@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
@@ -14,11 +15,13 @@ import me.exrates.ngcontroller.model.UserDocVerificationDto;
 import me.exrates.ngcontroller.model.UserInfoVerificationDto;
 import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
 import me.exrates.ngcontroller.service.UserVerificationService;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -336,6 +339,13 @@ public class NgUserSettingsController {
     @ResponseBody
     public ResponseEntity<Object> AuthExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ResponseEntity<>("Not authorised", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({NgDashboardException.class})
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
     private String getPrincipalEmail() {
