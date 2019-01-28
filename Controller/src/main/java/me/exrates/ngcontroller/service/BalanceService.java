@@ -27,7 +27,7 @@ public interface BalanceService {
     PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email);
 
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
-                                                                   LocalDate dateFrom, LocalDate dateTo, Locale locale);
+                                                                   LocalDate dateFrom, LocalDate dateTo, Locale locale, boolean initial);
 
     List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom,
                                                                  LocalDate dateTo, Locale locale);
