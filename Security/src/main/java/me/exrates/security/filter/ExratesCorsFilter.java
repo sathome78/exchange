@@ -19,10 +19,13 @@ public class ExratesCorsFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         HttpServletRequest request = (HttpServletRequest) req;
 
+        // todo uncomment if current branch is angular-master-local, otherwise should be commented
 //        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
 
+        // todo uncomment if current branch is angular-master-dev, otherwise should be commented
         response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
 
+        // todo uncomment if current branch is angular-master, otherwise should be commented
 //        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
 
 

@@ -1629,27 +1629,24 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
                                                                          String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo) {
-        if (dateTo == null) {
-            dateTo = LocalDate.now();
-        }
+                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
+                                                                         LocalDate dateFrom, LocalDate dateTo) {
 
-        if (dateFrom == null) {
-            dateFrom = dateTo.minusDays(1);
-        }
-        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, dateFrom, dateTo, hideCanceled);
+        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset,
+                limit, locale, dateFrom, dateTo, hideCanceled);
         List<OrderWideListDto> orders;
         if (recordsCount == 0 && initial) {
-            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, status, scope, offset, limit, locale, null, null, hideCanceled);
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
+            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status,
+                    scope, offset, limit, locale, null, null, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
                     offset, limit, sortedColumns, null, null, hideCanceled);
-        } else if (recordsCount == 0) {
+        } else if (recordsCount == 0){
             orders = Lists.newArrayList();
         } else {
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, locale, scope,
-                    offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
+                offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
         }
         return Pair.of(recordsCount, orders);
     }
@@ -1793,7 +1790,7 @@ public class OrderServiceImpl implements OrderService {
             return DATE_TIME_FORMATTER.format(date);
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
-            return DATE_TIME_FORMATTER.format(localDateTime);
+           return DATE_TIME_FORMATTER.format(localDateTime);
         }
         return String.valueOf(value);
     }

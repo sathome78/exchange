@@ -52,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -382,10 +381,10 @@ public interface OrderService {
                                                 Integer offset, Integer limit, Locale locale);
 
     @Transactional(readOnly = true)
-    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                  boolean initial, Locale locale, Map<String, String> sortedColumns,
-                                                                  LocalDate dateFrom, LocalDate dateTo);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
+                                                                 String scope, Integer offset, Integer limit, boolean hideCanceled, boolean initial,
+                                                                 Locale locale, Map<String, String> sortedColumns,
+                                                                 LocalDate dateFrom, LocalDate dateTo);
 
     @Transactional(readOnly = true)
     List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
