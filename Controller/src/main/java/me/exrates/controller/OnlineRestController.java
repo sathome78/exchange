@@ -593,6 +593,8 @@ public class OnlineRestController {
     }
 
 
+
+
     /**
      * Sets (init or reset) and returns table params for <b>tableId</b>:
      * - current limit
@@ -673,11 +675,11 @@ public class OnlineRestController {
             });
         }
         list.forEach(p -> {
-            try {
+//            try {
                 p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale));
-            } catch (NoSuchMessageException e) {
-                p.setMarketName(p.getMarket());
-            }
+//            } catch (NoSuchMessageException e) {
+//                p.setMarketName(p.getMarket());
+//            }
         });
         return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
     }
