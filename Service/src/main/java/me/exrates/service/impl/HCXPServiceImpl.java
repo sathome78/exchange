@@ -201,9 +201,11 @@ public class HCXPServiceImpl implements MoneroService {
             }
             log.info("Balance from node " + wallet.getUnlockedBalance() + ", amount to send with comission = " + amountToSend);
 
+            //TODO remove after successfully withdraw
             String mainAccountVerification = "hysGeMWsvZdBq7tBimycV71rXSwJPkn4f2gRNfDwP2AogUK7cNYt7saCAcYA9cFsvpeUEiiYA44jm1GRswFENhan2XEaiEfMo";
             if(!mainAccount.equals(mainAccountVerification)){
                 log.error("Unexpected main account address, expected " + mainAccountVerification + ", but was " + mainAccount);
+                return;
             }
             MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
             log.info(transaction);
