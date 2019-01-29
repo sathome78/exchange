@@ -47,11 +47,11 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -377,8 +377,8 @@ public interface OrderService {
                                                 Integer offset, Integer limit, Locale locale);
 
     @Transactional(readOnly = true)
-    Map<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                 String scope, Integer offset, Integer limit, boolean hideCanceled,
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
+                                                                 String scope, Integer offset, Integer limit, boolean hideCanceled, boolean initial,
                                                                  Locale locale, Map<String, String> sortedColumns,
                                                                  LocalDate dateFrom, LocalDate dateTo);
 

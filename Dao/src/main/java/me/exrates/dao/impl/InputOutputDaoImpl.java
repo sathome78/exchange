@@ -393,6 +393,19 @@ public class InputOutputDaoImpl implements InputOutputDao {
         String limitStr = limit < 1 ? "" : String.format("LIMIT %d ", limit);
         String offsetStr = offset < 1 ? "" : String.format("OFFSET %d ", offset);
         String currencyCondition = currencyId < 1 ? "" : " TRANSACTION.currency_id = :currencyId AND ";
+        String curId = currencyId < 1 ? "" : " AND CUR.id =:currencyId";
+        String dateFromClauseTransaction= dateFrom == null ? "" : " TRANSACTION.datetime >= :dateFrom AND ";
+        String dateFromClauseRefillRequest = dateFrom == null ? "" : "AND RR.date_creation >= :dateFrom";
+        String dateFromClauseWithdrawRequest = dateFrom == null ? "" : " AND WR.date_creation >= :dateFrom";
+        String dateFromClauseTransferwRequest = dateFrom == null ? "" : " AND TR.date_creation >= :dateFrom";
+        String dateFromClauseTransferwRequestTr = dateFrom == null ? "" : " AND TR.datetime >= :dateFrom";
+
+        String dateToClauseTransaction= dateTo == null ? "" : " TRANSACTION.datetime <= :dateTo AND ";
+        String dateToClauseRefillRequest = dateTo == null ? "" : " AND RR.date_creation <= :dateTo";
+        String dateToClauseWithdrawRequest = dateTo == null ? "" : " AND WR.date_creation <= :dateTo";
+        String dateToClauseTransferwRequest = dateTo == null ? "" : " AND TR.date_creation <= :dateTo";
+        String dateToClauseTransferwRequestTr = dateTo == null ? "" : " AND TR.datetime <= :dateTo";
+
         String sql = " SELECT " +
                 "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
                 "    CURRENCY.name as currency, TRANSACTION.amount, " +
@@ -424,7 +437,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "    left join USER on WALLET.user_id=USER.id" +
                 "  WHERE " +
                 "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND " + currencyCondition +
-                " TRANSACTION.datetime >= :dateFrom AND TRANSACTION.datetime <= :dateTo AND " +
+                dateFromClauseTransaction +
+                dateToClauseTransaction +
                 "    USER.email=:email " +
                 "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
 
@@ -453,7 +467,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
                 "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
                 "   WHERE USER.email=:email AND " +
-                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " +
+                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " + curId +
+                dateFromClauseRefillRequest +
+                dateToClauseRefillRequest +
                 "  )  " +
 
                 "  UNION " +
@@ -478,7 +494,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN USER USER ON USER.id=WR.user_id " +
                 "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
                 "   WHERE USER.email=:email AND " +
-                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
+                "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " + curId +
+                dateFromClauseWithdrawRequest +
+                dateToClauseWithdrawRequest +
                 "  )  " +
 
                 "  UNION ALL " +
@@ -502,7 +520,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE USER.email=:email /*AND*/ " +
+                "   WHERE USER.email=:email /*AND*/ " + curId +
+                dateFromClauseTransferwRequest +
+                dateToClauseTransferwRequest +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -526,7 +546,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN USER REC ON REC.id = TR.recipient_user_id  " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE REC.email=:email AND TR.status_id = 2 " +
+                "   WHERE REC.email=:email AND TR.status_id = 2 " + curId +
+                dateFromClauseTransferwRequest +
+                dateToClauseTransferwRequest +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -549,7 +571,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
                 "     JOIN USER U ON U.id=W.user_id " +
-                "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
+                "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" + curId +
+                dateFromClauseTransferwRequestTr+
+                dateToClauseTransferwRequestTr +
                 "  )  " +
                 "  ORDER BY datetime DESC, operation_id DESC " + limitStr + offsetStr;
 
