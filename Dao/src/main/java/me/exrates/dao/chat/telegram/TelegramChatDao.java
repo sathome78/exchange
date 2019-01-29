@@ -9,5 +9,7 @@ public interface TelegramChatDao {
 
     boolean saveChatMessage(ChatLang lang, ChatHistoryDto message);
 
+    boolean updateChatMessage(ChatLang lang, ChatHistoryDto message);
+
     List<ChatHistoryDto> getChatHistoryQuick(ChatLang chatLang);
 }
