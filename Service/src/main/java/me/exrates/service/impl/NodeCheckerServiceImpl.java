@@ -1,11 +1,13 @@
 package me.exrates.service.impl;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.service.NodeCheckerService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class NodeCheckerServiceImpl implements NodeCheckerService {
@@ -26,5 +28,15 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
         } catch (Exception e){
             return null;
         }
+    }
+
+    @Override
+    public List<String> listOfBitcoinServicesNames() {
+        return new LinkedList<>(merchantNodeMap.keySet());
+    }
+
+    @Override
+    public Long getLastBlockTime(String ticker) throws BitcoindException, CommunicationException {
+        return  merchantNodeMap.get(ticker).getLastBlockTime();
     }
 }
