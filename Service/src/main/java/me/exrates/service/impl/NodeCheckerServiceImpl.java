@@ -31,7 +31,7 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
     }
 
     @Override
-    public List<String> listOfBitcoinServicesNames() {
+    public List<String> listOfRefillableServicesNames() {
         return new LinkedList<>(merchantNodeMap.keySet());
     }
 

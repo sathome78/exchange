@@ -8,7 +8,7 @@ import java.util.List;
 public interface NodeCheckerService {
     Long getBTCBlocksCount(String ticker) throws BitcoindException, CommunicationException;
 
-    List<String> listOfBitcoinServicesNames();
+    List<String> listOfRefillableServicesNames();
 
     Long getLastBlockTime(String ticker) throws BitcoindException, CommunicationException;
 }

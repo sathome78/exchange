@@ -3,7 +3,6 @@ package me.exrates.controller;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.service.NodeCheckerService;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +22,7 @@ public class NodeController {
 
     @GetMapping("/listOfCoins") //todo make return all coins that implements IRefillable
     public List<String> listOfBitcoinServicesNames(){
-        return nodeCheckerService.listOfBitcoinServicesNames();
+        return nodeCheckerService.listOfRefillableServicesNames();
     }
 
     @GetMapping(value = "/getBlocksCount")
