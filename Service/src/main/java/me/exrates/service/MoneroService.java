@@ -45,6 +45,5 @@ public interface MoneroService extends IMerchantService, IRefillable, IWithdrawa
         return false;
     }
 
-    @Scheduled(cron = "59 59 23 * * ?")
-    void sendToMainAccount();
+    default void sendToMainAccount(){};
 }
