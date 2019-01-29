@@ -72,7 +72,7 @@ public class TelegramChatDaoImpl implements TelegramChatDao {
 
     public List<ChatHistoryDto> getChatHistoryQuick(ChatLang chatLang) {
         final String sql = "SELECT * FROM (SELECT username, text, message_time,  username_reply, text_reply " +
-                "FROM TELEGRAM_CHAT_" + chatLang.val + " ORDER BY id DESC LIMIT 200) chat ORDER BY id ASC";
+                "FROM TELEGRAM_CHAT_" + chatLang.val + " ORDER BY message_time DESC LIMIT 200) chat ORDER BY id ASC";
         return jdbcTemplate.query(sql, getRowMapper());
     }
 

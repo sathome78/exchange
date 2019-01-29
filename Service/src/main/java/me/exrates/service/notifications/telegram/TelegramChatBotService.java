@@ -110,8 +110,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
                 chatMessage.setMessageReplyText(messageReply.getText());
             });
 
-            //TO DO delete !
-            if(!String.valueOf(chatId).equals(chatCommunityId)){
+            if(String.valueOf(chatId).equals(chatCommunityId)){
                 telegramChatDao.saveChatMessage(LANGUAGE, chatMessage);
                 String destination = "/topic/chat/".concat(LANGUAGE.val.toLowerCase());
                 messagingTemplate.convertAndSend(destination, toJson(chatMessage));
