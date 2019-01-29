@@ -1,6 +1,6 @@
 package me.exrates.config;
 
-/*
+
 import com.amazonaws.SdkClientException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.SSMGetter;
@@ -29,4 +29,4 @@ public class SSMConfiguration {
         }
     }
 }
-*/
+
