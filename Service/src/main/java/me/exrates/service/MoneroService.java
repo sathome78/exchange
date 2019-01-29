@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Created by ajet on
@@ -44,4 +45,6 @@ public interface MoneroService extends IMerchantService, IRefillable, IWithdrawa
         return false;
     }
 
+    @Scheduled(cron = "59 59 23 * * ?")
+    void sendToMainAccount();
 }
