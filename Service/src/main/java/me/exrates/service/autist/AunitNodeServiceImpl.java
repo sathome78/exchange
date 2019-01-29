@@ -108,8 +108,7 @@ public class AunitNodeServiceImpl {
             endpoint = session.getBasicRemote();
             subscribeToTransactions();
         } catch (Exception e) {
-            System.out.println("gabella");
-            e.printStackTrace();
+            log.error("AUNIT node error");
         }
     }
 

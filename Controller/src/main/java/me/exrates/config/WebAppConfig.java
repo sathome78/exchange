@@ -393,10 +393,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        String lookup = ssmGetter.lookup(nodeApiToken);
+        addTokenInterceptor(registry);
+        registry.addInterceptor(new MDCInterceptor());
+    }
+
+    private void addTokenInterceptor(InterceptorRegistry registry) {
+        String lookup;
+        try {
+             lookup = ssmGetter.lookup(nodeApiToken);
+        } catch (Exception e){
+            log.error(e);
+            lookup = "MOCK_TEST";
+        }
         log.info("Password from ssm with path = " + nodeApiToken + " is " + lookup);
         registry.addInterceptor(new TokenInterceptor(lookup)).addPathPatterns("/nodes/**");
-        registry.addInterceptor(new MDCInterceptor());
     }
 
 
