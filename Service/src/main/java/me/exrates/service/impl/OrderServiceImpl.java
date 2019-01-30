@@ -146,6 +146,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -1182,30 +1183,36 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void cancelOrder(Integer orderId) {
+    public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
 
-        cancelOrder(exOrder);
+        return cancelOrder(exOrder);
     }
 
     @Transactional
     @Override
-    public void cancelOpenOrdersByCurrencyPair(String currencyPair) {
+    public boolean cancelOrders(Collection<Integer> orderIds) {
+        return orderIds.stream().allMatch(this::cancelOrder);
+    }
+
+    @Transactional
+    @Override
+    public boolean cancelOpenOrdersByCurrencyPair(String currencyPair) {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
     @Transactional
     @Override
-    public void cancelAllOpenOrders() {
+    public boolean cancelAllOpenOrders() {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
     private boolean cancelOrder(ExOrder exOrder) {
@@ -1628,7 +1635,7 @@ public class OrderServiceImpl implements OrderService {
                     scope, offset, limit, locale, null, null, hideCanceled);
             orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
                     offset, limit, sortedColumns, null, null, hideCanceled);
-        } else if (recordsCount == 0){
+        } else if (recordsCount == 0) {
             orders = Lists.newArrayList();
         } else {
             orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
@@ -1776,7 +1783,7 @@ public class OrderServiceImpl implements OrderService {
             return DATE_TIME_FORMATTER.format(date);
         } else if (value instanceof LocalDateTime) {
             LocalDateTime localDateTime = (LocalDateTime) value;
-           return DATE_TIME_FORMATTER.format(localDateTime);
+            return DATE_TIME_FORMATTER.format(localDateTime);
         }
         return String.valueOf(value);
     }
