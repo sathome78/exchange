@@ -15,7 +15,7 @@ public interface OrderServiceDemoListener {
                                          BigDecimal amount,
                                          BigDecimal rate,
                                          OrderBaseType baseType,
-                                         CurrencyPair currencyPair,
+                                         int currencyPair,
                                          BigDecimal stop);
 
     String recordOrderToDB(InputCreateOrderDto order, OrderCreateDto orderCreateDto);

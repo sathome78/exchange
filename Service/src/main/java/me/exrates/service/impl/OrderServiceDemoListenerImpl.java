@@ -8,7 +8,12 @@ import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.OrderServiceDemoListener;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotCreatableOrderException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.OrderCreationException;
@@ -25,9 +30,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
 
@@ -52,28 +55,24 @@ public class OrderServiceDemoListenerImpl implements OrderServiceDemoListener {
 
     @Autowired
     UserService userService;
-
+    @Autowired
+    MessageSource messageSource;
+    @Autowired
+    LocaleResolver localeResolver;
+    @Autowired
+    StopOrderService stopOrderService;
     @Autowired
     private UserOperationService userOperationService;
 
-    @Autowired
-    MessageSource messageSource;
-
-    @Autowired
-    LocaleResolver localeResolver;
-
-    @Autowired
-    StopOrderService stopOrderService;
-
     @Override
-    public OrderCreateSummaryDto newOrderToSell(OperationType orderType, int  userId, BigDecimal amount, BigDecimal rate, OrderBaseType baseType, CurrencyPair currencyPair, BigDecimal stop) {
+    public OrderCreateSummaryDto newOrderToSell(OperationType orderType, int userId, BigDecimal amount, BigDecimal rate, OrderBaseType baseType, int currencyPair, BigDecimal stop) {
         long before = System.currentTimeMillis();
         try {
             OrderCreateSummaryDto orderCreateSummaryDto;
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             if (baseType == null) baseType = OrderBaseType.LIMIT;
-            CurrencyPair activeCurrencyPair = currencyService.getNotHiddenCurrencyPairByName(currencyPair.getName());
+            CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(currencyPair);
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
             }
