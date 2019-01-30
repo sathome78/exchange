@@ -17,6 +17,7 @@ import me.exrates.ngcontroller.model.ExceptionDto;
 import me.exrates.ngcontroller.model.UserDocVerificationDto;
 import me.exrates.ngcontroller.model.UserInfoVerificationDto;
 import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
+import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.UserVerificationService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.NotificationService;
@@ -155,18 +156,18 @@ public class NgUserSettingsController {
     }
 
     @GetMapping(value = SESSION_INTERVAL)
-    public Integer getSessionPeriod() {
+    public ResponseModel<Integer> getSessionPeriod() {
         SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
-            return 0;
+            new ResponseModel<>(0);
         }
-        return params.getSessionTimeMinutes();
+        return new ResponseModel<>(params.getSessionTimeMinutes());
     }
 
     @PutMapping(value = SESSION_INTERVAL, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateSessionPeriod(@RequestBody Map<String, Integer> body) {
         try {
-            int interval = body.get(SESSION_INTERVAL);
+            int interval = body.get("sessionInterval");
             SessionParams sessionParams = new SessionParams(interval, SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
             if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
                 sessionService.saveOrUpdate(sessionParams, getPrincipalEmail());
