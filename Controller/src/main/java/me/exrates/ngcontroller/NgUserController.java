@@ -216,11 +216,6 @@ public class NgUserController {
         return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
-    private String getAvatarPathPrefix(HttpServletRequest request) {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort() + "/rest";
-    }
-
     @PostMapping("/createPassword")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
                                        HttpServletRequest request) {
@@ -259,6 +254,11 @@ public class NgUserController {
     @ResponseBody
     public ErrorInfo UnauthorizedErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private String getAvatarPathPrefix(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort() + "/rest";
     }
 
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)

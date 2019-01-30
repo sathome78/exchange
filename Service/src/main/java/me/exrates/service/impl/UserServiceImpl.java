@@ -763,7 +763,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /*todo refator it*/
     @Override
     public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
         int userId = getIdByEmail(email);
@@ -775,9 +774,10 @@ public class UserServiceImpl implements UserService {
                     .notificationMessageEventEnum(event)
                     .build();
         }
-        if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
-            return g2faService.checkGoogle2faVerifyCode(pin, userId);
-        }
+        // todo this part is useful when check google auth code but not pin from email
+//        if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
+//            return g2faService.checkGoogle2faVerifyCode(pin, userId);
+//        }
         return passwordEncoder.matches(pin, getPinForEvent(email, event));
     }
 
