@@ -107,12 +107,12 @@ public class NgDashboardController {
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
         ngOrderService.prepareOrder(inputOrder);
-        String result = rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-        if (result.equalsIgnoreCase("success")) {
+        rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+//        if (result.equalsIgnoreCase("success")) {
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+//        } else {
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }
 
     }
 
