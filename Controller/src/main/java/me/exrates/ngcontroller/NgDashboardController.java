@@ -55,10 +55,13 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 @RestController
 @RequestMapping(value = "/info/private/v2/dashboard",
@@ -252,10 +255,46 @@ public class NgDashboardController {
 
     }
 
+    /**
+     * Cancel one open order by order id
+     *
+     * @param orderId order id
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
     @PostMapping("/cancel")
-    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId){
-        orderService.cancelOrder(orderId);
-        return new ResponseModel<>(true);
+    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
+        return new ResponseModel<>(orderService.cancelOrder(orderId));
+    }
+
+    /**
+     * Cancel open orders by order ids
+     *
+     * @param ids list of orders (can be one or more)
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
+    @PostMapping("/cancel/list")
+    public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<Integer> ids) {
+        return new ResponseModel<>(orderService.cancelOrders(ids));
+    }
+
+    /**
+     * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
+     *
+     * @param pairName pair name
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     */
+    @PostMapping("/cancel/all")
+    public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
+
+        boolean canceled;
+        if (nonNull(pairName)) {
+            pairName = pairName.toUpperCase();
+
+            canceled = orderService.cancelOpenOrdersByCurrencyPair(pairName);
+        } else {
+            canceled = orderService.cancelAllOpenOrders();
+        }
+        return new ResponseModel<>(canceled);
     }
 
     private String getPrincipalEmail() {

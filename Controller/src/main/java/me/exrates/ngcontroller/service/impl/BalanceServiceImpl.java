@@ -159,17 +159,21 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset,
                                                                           int currencyId, LocalDate dateFrom,
-                                                                          LocalDate dateTo, Locale locale, boolean initial) {
+                                                                          LocalDate dateTo, Locale locale) {
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale);
-        List<MyInputOutputHistoryDto> historyDtoList = new ArrayList<>();
-        if (recordsCount == 0 && initial) {
-            recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, null, null, currencyId, locale);
-            historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, null, null, locale);
-        } else if (recordsCount != 0) {
-            historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale);
-        }
+        List<MyInputOutputHistoryDto> historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale);
 
         adjustDates(dateFrom, dateTo);
+        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
+        pagedResult.setCount(recordsCount);
+        pagedResult.setItems(historyDtoList);
+        return pagedResult;
+    }
+
+    public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(String email, int limit, int offset, Locale locale){
+        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, null, null, 0, locale);
+        List<MyInputOutputHistoryDto> historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, 0, null, null, locale);
+
         PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
         pagedResult.setCount(recordsCount);
         pagedResult.setItems(historyDtoList);

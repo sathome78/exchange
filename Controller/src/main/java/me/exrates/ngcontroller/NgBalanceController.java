@@ -236,13 +236,29 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            @RequestParam(required = false, name = "initial", defaultValue = "false") boolean initial,
             HttpServletRequest request) {
         String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
         try {
             PagedResult<MyInputOutputHistoryDto> page =
-                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale, initial);
+                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+            return ResponseEntity.ok(page);
+        } catch (Exception ex) {
+            logger.error("Failed to get user inputOutputData", ex);
+            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
+        }
+    }
+
+    @GetMapping("/inputOutputData/default")
+    public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getDefaultMyInputOutputData(
+            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            HttpServletRequest request) {
+        String email = getPrincipalEmail();
+        Locale locale = localeResolver.resolveLocale(request);
+        try {
+            PagedResult<MyInputOutputHistoryDto> page =
+                    balanceService.getDefaultInputOutputHistory(email, limit, offset, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);

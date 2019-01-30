@@ -1,9 +1,12 @@
 package me.exrates.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import me.exrates.controller.exception.InvalidNumberParamException;
 
 import static java.util.Objects.nonNull;
 
+@NoArgsConstructor(access = AccessLevel.NONE)
 public final class ValidationUtil {
 
     public static void validateNaturalInt(Integer number) {
