@@ -30,9 +30,9 @@ public class RabbitMqServiceImpl implements RabbitMqService {
 //        String result = "fail";
         try {
             String orderJson = objectMapper.writeValueAsString(inputOrder);
-
+            logger.info("Send order to old version {}", orderJson);
             try {
-                logger.error("Rabbit Mq is disabled for now");
+                logger.info("Rabbit Mq is disabled for now");
                 this.rabbitTemplate.convertAndSend(queueName, orderJson);
             } catch (AmqpException e) {
                 String msg = "Failed to send data via rabbit queue";
