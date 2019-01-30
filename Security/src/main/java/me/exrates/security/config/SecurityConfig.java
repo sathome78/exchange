@@ -284,8 +284,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 /*user refill action ...*/
                 .antMatchers(POST, "/refill/request/**").authenticated()
                 /*... user refill action*/
-                .antMatchers(GET, "/kyc/private/v2/shufti-pro/verification-url/**", "/kyc/private/v2/shufti-pro/verification-status").authenticated()
-                .antMatchers(GET, "/kyc/private/v2/shufti-pro/countries", "/kyc/private/v2/shufti-pro/languages", "/kyc/private/v2/shufti-pro/current-step").authenticated()
                 .and()
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler());

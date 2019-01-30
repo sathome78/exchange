@@ -35,9 +35,14 @@ import static me.exrates.service.impl.ShuftiProKYCService.SIGNATURE;
 
 @Log4j2
 @RestController
-@RequestMapping("/kyc")
+@RequestMapping(
+        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+        produces = MediaType.APPLICATION_JSON_UTF8_VALUE
+)
 public class NgKYCController {
 
+    private final static String PUBLIC_KYC = "/info/public/v2/shufti-pro";
+    private final static String PRIVATE_KYC = "/info/private/v2/shufti-pro/";
     private final UserService userService;
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
@@ -52,7 +57,7 @@ public class NgKYCController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = "/shufti-pro/callback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = PUBLIC_KYC + "/callback")
     public ResponseEntity callback(HttpServletRequest request) {
         try (BufferedReader reader = new BufferedReader(request.getReader())) {
             final String response = reader.readLine();
@@ -74,14 +79,14 @@ public class NgKYCController {
     // /private/v2/shufti-pro/verification-url/step/{stepNumber}
 
     /**
-     *  /private/v2/shufti-pro/verification-url/{step}
+     *  /info/private/v2/shufti-pro/verification-url/{step}
      * @param step - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
      * @param countryCode - from submitted list
      * @return - verificationUrl to load in iframe (https://shuftipro.com/process/verification/g63K7XCZGdD6mRC5S7mQw5Lc112ioqLMqYGrDQvhzg3qezdUg4ZJ0VAGTLEWjkC8)
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/private/v2/shufti-pro/verification-url/{step}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = PRIVATE_KYC + "/verification-url/{step}")
     public ResponseEntity<String> getVerificationUrl(@PathVariable VerificationStep step,
                                                      @RequestParam(value = "language_code", required = false) String languageCode,
                                                      @RequestParam("country_code") String countryCode) {
@@ -92,7 +97,7 @@ public class NgKYCController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/private/v2/shufti-pro/verification-status", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = PRIVATE_KYC + "/verification-status")
     public ResponseEntity<EventStatus> getVerificationStatus() {
         log.debug("Start getting status url...");
         Pair<String, EventStatus> statusPair = kycService.getVerificationStatus();
@@ -101,38 +106,38 @@ public class NgKYCController {
     }
 
     /**
-     *  /private/v2/shufti-pro/countries
+     *  /info/info/private/v2/shufti-pro/countries
      *
      * {
      *     countryName: Ukraine
      *     countryCode: UA
      * }
      */
-    @GetMapping(value = "/private/v2/shufti-pro/countries", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = PRIVATE_KYC + "/countries")
     public ResponseEntity<List<KycCountryDto>> getCountries() {
         return ResponseEntity.ok(kycSettingsService.getCountriesDictionary());
     }
 
 
     /**
-     * /private/v2/shufti-pro/languages
+     * /info/private/v2/shufti-pro/languages
      *
      * {
      *     languageName: English
      *     languageCode: EN
      * }
      */
-    @GetMapping(value = "/private/v2/shufti-pro/languages", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = PRIVATE_KYC + "/languages")
     public ResponseEntity<List<KycLanguageDto>> getLanguages() {
         return ResponseEntity.ok(kycSettingsService.getLanguagesDictionary());
     }
 
     /**
-     * /private/v2/shufti-pro/current-step
+     * /info/private/v2/shufti-pro/current-step
      *
      *  returns (NOT_VERIFIED, LEVEL_ONE, LEVEL_TWO)
      */
-    @GetMapping(value = "/private/v2/shufti-pro/current-step", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = PRIVATE_KYC + "/current-step")
     public ResponseEntity<VerificationStep> getCurrentVerificationStep() {
         return ResponseEntity.ok(userService.getVerificationStep());
     }

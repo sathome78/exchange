@@ -63,7 +63,7 @@ public class OrdersEventHandleService  {
         handleMyTrades(order);
         handleChart(order);
         // in following methods we dispatch orders between old and new app
-        ratesHolder.onRatesChange(order);
+//        ratesHolder.onRatesChange(order);
         marketRatesHolder.setRateMarket(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
