@@ -3,6 +3,7 @@ package me.exrates.controller.advice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -69,6 +70,15 @@ public class GlobalControllerExceptionHandler {
         log.error("URL: " + req.getRequestURL() + " | Exception " + exception);
         exception.printStackTrace();
         return new ModelAndView("errorPages/generalErrorPage");
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(BannedIpException.class)
+    @ResponseBody
+    public ErrorInfo ipBannedExceptionHandler(HttpServletRequest request, BannedIpException exception) {
+        String clientIp = request.getHeader("client_ip");
+        String message = "Banned ip exception . Banned ip address " + clientIp + " for " + exception.getBanDurationSeconds() + " seconds";
+        return new ErrorInfo(message, exception);
     }
 
 }
