@@ -1175,7 +1175,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Override
     public void updateTxOffsetForAddress(String address, Integer offset) {
-        refillRequestDao.updateTxOffsetForAddress(address, offset);
+        /*refillRequestDao.updateTxOffsetForAddress(address, offset);*/
     }
 
     @Override
@@ -1209,12 +1209,12 @@ public class RefillServiceImpl implements RefillService {
     }
 
     private void fillAdressesDtos(List<RefillRequestAddressShortDto> dtos) {
-        dtos.forEach(p -> {
+        /*dtos.forEach(p -> {
             IRefillable refillable = (IRefillable) (merchantServiceContext.getMerchantService(p.getMerchantId()));
             if (refillable.additionalFieldForRefillIsUsed()) {
                 p.setAddressFieldName(refillable.additionalRefillFieldName());
             }
-        });
+        });*/
     }
 
     @Override
@@ -1229,7 +1229,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Override
     public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
-        refillRequestDao.invalidateAddress(address, merchantId, currencyId);
+        /*refillRequestDao.invalidateAddress(address, merchantId, currencyId);*/
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
@@ -1275,11 +1275,11 @@ public class RefillServiceImpl implements RefillService {
     @Transactional
     @Override
     public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
-        Integer requestId = createRefillRequestByFact(requestAcceptDto);
+       /* Integer requestId = createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
-        /**/
+        *//**//*
         Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
@@ -1289,6 +1289,7 @@ public class RefillServiceImpl implements RefillService {
         userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
         notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
 
-        return requestId;
+        return requestId;*/
+        throw new RuntimeException("not available");
     }
 }
