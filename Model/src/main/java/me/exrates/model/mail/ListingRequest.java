@@ -17,7 +17,6 @@ public class ListingRequest {
     private String name;
     @NotNull
     private String email;
-    @NotNull
     private String telegram;
     private String text;
 }
