@@ -355,6 +355,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring()
-                .antMatchers(POST, "/kyc/shufti-pro/callback");
+                .antMatchers(POST, "/info/public/v2/shufti-pro/callback");
     }
 }
