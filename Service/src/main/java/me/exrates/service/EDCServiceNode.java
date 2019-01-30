@@ -18,4 +18,6 @@ public interface EDCServiceNode {
   void transferToMainAccount(String accountId, Transaction tx) throws IOException, InterruptedException;
 
   void transferFromMainAccount(String accountName, String amount) throws IOException, InterruptedException;
+
+  String extractBalance(final String accountId, final int invoiceId) throws IOException;
 }

@@ -251,7 +251,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     throw new RuntimeException("Invalid response from server:\n" + json);
   }
 
-  private String extractBalance(final String accountId, final int invoiceId) throws IOException {
+  public String extractBalance(final String accountId, final int invoiceId) throws IOException {
     final String LIST_ACCOUNT_BALANCE = "{\"method\": \"list_account_balances\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %s}";
     final String response = makeRpcCallFast(LIST_ACCOUNT_BALANCE, accountId, invoiceId);
     JsonParser parser = new JsonParser();
