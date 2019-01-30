@@ -774,10 +774,9 @@ public class UserServiceImpl implements UserService {
                     .notificationMessageEventEnum(event)
                     .build();
         }
-        // todo this part is useful when check google auth code but not pin from email
-//        if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
-//            return g2faService.checkGoogle2faVerifyCode(pin, userId);
-//        }
+        if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
+            return g2faService.checkGoogle2faVerifyCode(pin, userId);
+        }
         return passwordEncoder.matches(pin, getPinForEvent(email, event));
     }
 
