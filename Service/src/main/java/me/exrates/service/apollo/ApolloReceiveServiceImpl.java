@@ -47,11 +47,11 @@ public class ApolloReceiveServiceImpl {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ScheduledExecutorService unconfirmedScheduler = Executors.newScheduledThreadPool(1);
 
-    @PostConstruct
+    /*@PostConstruct
     private void init() {
         scheduler.scheduleAtFixedRate(this::checkTransactions, 3, 5, TimeUnit.MINUTES);
         unconfirmedScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 5, 8, TimeUnit.MINUTES);
-    }
+    }*/
 
     private void checkTransactions() {
         try {
@@ -86,6 +86,7 @@ public class ApolloReceiveServiceImpl {
                                     put("address", address);
                                     put("hash", hash);
                                     put("amount", amount.toPlainString());
+                                    put("id", String.valueOf(requestAcceptDto.getRequestId()));
                                 }});
                             } catch (RefillRequestAppropriateNotFoundException e) {
                                 log.error(e);
@@ -115,6 +116,7 @@ public class ApolloReceiveServiceImpl {
                             put("address", p.getAddress());
                             put("hash", p.getMerchantTransactionId());
                             put("amount", p.getAmount().toPlainString());
+                            put("id", String.valueOf(p.getId()));
                         }});
                     }
                 } catch (Exception e) {

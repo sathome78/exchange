@@ -24,6 +24,7 @@ import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.HCXPServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
@@ -526,79 +527,79 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
-                "NuShares", "NSR", 20, 20, false, false);
+                "NuShares", "NSR", 30, 20, false, false);
     }
 
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
         return new BitcoinServiceImpl("merchants/aml_wallet.properties",
-                "AML", "ABTC", 20, 20, false);
+                "AML", "ABTC", 30, 20, false);
     }
 
     @Bean(name = "bbccServiceImpl")
     public BitcoinService bbccService() {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
-                "BBX", "BBX", 20, 20, false, false, false);
+                "BBX", "BBX", 30, 20, false, false, false);
     }
 
     @Bean(name = "hsrServiceImpl")
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
-                "HSR", "HSR", 20, 20, false, false);
+                "HSR", "HSR", 30, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
-                "Ethereum", "ETH", 12);
+                "Ethereum", "ETH", 15);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
-                "Ethereum Classic", "ETC", 12);
+                "Ethereum Classic", "ETC", 400);
     }
 
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "EtherZero", "ETZ", 12);
+                "EtherZero", "ETZ", 40);
     }
 
     @Bean(name = "cloServiceImpl")
     public EthereumCommonService cloService() {
         return new EthereumCommonServiceImpl("merchants/callisto.properties",
-                "CLO", "CLO", 12);
+                "CLO", "CLO", 40);
     }
 
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 12);
+                "B2G", "B2G", 40);
     }
 
     @Bean(name = "golServiceImpl")
     public EthereumCommonService golService() {
         return new EthereumCommonServiceImpl("merchants/goldiam.properties",
-                "GOL", "GOL", 12);
+                "GOL", "GOL", 40);
     }
 
     @Bean(name = "cnetServiceImpl")
     public EthereumCommonService cnetService() {
         return new EthereumCommonServiceImpl("merchants/contractnet.properties",
-                "CNET", "CNET", 0);
+                "CNET", "CNET", 110);
     }
 
     @Bean(name = "ntyServiceImpl")
     public EthereumCommonService ntyService() {
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
-                "NTY", "NTY", 12);
+                "NTY", "NTY", 40);
     }
 
     @Bean(name = "etherincServiceImpl")
     public EthereumCommonService etherincService() {
         return new EthereumCommonServiceImpl("merchants/eti.properties",
-                "ETI", "ETI", 12);
+                "ETI", "ETI", 50);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -1546,16 +1547,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL",
                 "MODL", true, ExConvert.Unit.ETHER);
     }
-//
-//    @Bean(name = "ecteServiceImpl")
-//    public EthTokenService ecteService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
-//        return new EthTokenServiceImpl(
-//                tokensList,
-//                "ECTE",
-//                "ECTE", true, ExConvert.Unit.WEI);
-//    }
+
+    @Bean(name = "ecteServiceImpl")
+    public EthTokenService ecteService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ECTE",
+                "ECTE", true, ExConvert.Unit.ETHER);
+    }
 
     @Bean(name = "s4fServiceImpl")
     public EthTokenService s4fService() {
@@ -1575,6 +1576,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "MNC",
                 "MNC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "tcatServiceImpl")
+    public EthTokenService tcatService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaff84e86d72edb971341a6a66eb2da209446fa14");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TCAT",
+                "TCAT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "htServiceImpl")
@@ -1647,6 +1658,47 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WaBi", true, ExConvert.Unit.ETHER);
     }
 
+	@Bean(name = "npxsServiceImpl")
+	public EthTokenService npxsServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xa15c7ebe1f07caf6bff097d8a589fb8ac49ae5b3");
+		return new EthTokenServiceImpl(tokensList, "NPXS","NPXS", true, ExConvert.Unit.ETHER);
+	}
+
+  @Bean(name = "qkcServiceImpl")
+	public EthTokenService qkcServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xea26c4ac16d4a5a106820bc8aee85fd0b7b2b664");
+		return new EthTokenServiceImpl(tokensList, "QKC","QKC", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "hotServiceImpl")
+	public EthTokenService hotServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x6c6ee5e31d828de241282b9606c8e98ea48526e2");
+		return new EthTokenServiceImpl(tokensList, "HOT","HOT", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "zrxServiceImpl")
+	public EthTokenService zrxServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xe41d2489571d322189246dafa5ebde1f4699f498");
+		return new EthTokenServiceImpl(tokensList, "ZRX","ZRX", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "batServiceImpl")
+	public EthTokenService batServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
+		return new EthTokenServiceImpl(tokensList, "BAT","BAT", false, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "rdnServiceImpl")
+	public EthTokenService rdnServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6");
+		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
+	}
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
@@ -1669,19 +1721,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "moneroServiceImpl")
     public MoneroService moneroService() {
         return new MoneroServiceImpl("merchants/monero.properties",
-                "Monero", "XMR", 10, 12);
+                "Monero", "XMR", 15, 12);
     }
 
     @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
-                "DIT", "DIT", 10, 8);
+                "DIT", "DIT", 20, 8);
     }
 
     @Bean(name = "sumoServiceImpl")
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
-                "SUMO", "SUMO", 10, 9);
+                "SUMO", "SUMO", 20, 9);
+    }
+
+    @Bean(name = "hcxpServiceImpl")
+    public MoneroService hcxpService() {
+        return new HCXPServiceImpl("merchants/hcxp.properties",
+                "HCXP", "HCXP", 20, 6);
     }
 
     /***tokens based on xem mosaic)****/
@@ -1697,8 +1755,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
-
-    @Bean(name = "npxsServiceImpl")
+    @Bean(name = "npxsDimServiceImpl")
     public XemMosaicService npxsService() {
         return new XemMosaicServiceImpl(
                 "NPXSXEM",
@@ -1708,6 +1765,42 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(9000000000L),
                 0);
+    }
+
+    @Bean(name = "dimEurServiceImpl")
+    public XemMosaicService dimEurService() {
+        return new XemMosaicServiceImpl(
+                "DIM.EUR",
+                "DIM.EUR",
+                new MosaicIdDto("dim", "eur"),
+                100,
+                2,
+                new Supply(81000000000L),
+                10);
+    }
+
+    @Bean(name = "dimUsdServiceImpl")
+    public XemMosaicService dimUsdService() {
+        return new XemMosaicServiceImpl(
+                "DIM.USD",
+                "DIM.USD",
+                new MosaicIdDto("dim", "usd"),
+                100,
+                2,
+                new Supply(81000000000L),
+                10);
+    }
+
+    @Bean(name = "digicServiceImpl")
+    public XemMosaicService digicService() {
+        return new XemMosaicServiceImpl(
+                "DIGIT",
+                "DIGIT",
+                new MosaicIdDto("digit", "coin"),
+                1000000,
+                6,
+                new Supply(8999999999L),
+                10);
     }
 
     /***stellarAssets****/

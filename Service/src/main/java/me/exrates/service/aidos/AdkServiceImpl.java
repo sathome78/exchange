@@ -227,6 +227,11 @@ public class AdkServiceImpl implements AdkService {
             }
         });
         return resultList;
+        /* to return list without transformations
+         * */
+        /*return StreamSupport.stream(array.spliterator(), false)
+                .map(transaction -> dtoMapper((JSONObject) transaction))
+                .collect(Collectors.toList());*/
     }
 
     @Override

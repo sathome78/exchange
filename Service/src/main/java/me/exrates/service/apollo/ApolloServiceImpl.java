@@ -1,6 +1,7 @@
 package me.exrates.service.apollo;
 
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -122,13 +123,15 @@ public class ApolloServiceImpl implements ApolloService {
         }
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
-
+        int id = Integer.parseInt(params.get("id"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .requestId(id)
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
@@ -136,14 +139,8 @@ public class ApolloServiceImpl implements ApolloService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-
-        Integer requestId = refillService.getRequestId(requestAcceptDto);
-        requestAcceptDto.setRequestId(requestId);
-
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-
-        final String username = refillService.getUsernameByRequestId(requestId);
-
+        final String username = refillService.getUsernameByRequestId(id);
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }

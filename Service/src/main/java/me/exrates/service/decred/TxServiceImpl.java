@@ -40,10 +40,10 @@ public class TxServiceImpl implements TxService {
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @PostConstruct
+    /*@PostConstruct
     private void init() {
         scheduler.scheduleAtFixedRate(this::checkTransactions, 180, 300, TimeUnit.SECONDS);
-    }
+    }*/
 
 
     @Override
