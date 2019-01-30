@@ -106,6 +106,9 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
+        String email = getPrincipalEmail();
+        int userId = userService.getIdByEmail(email);
+        inputOrder.setUserId(userId);
         ngOrderService.prepareOrder(inputOrder);
         rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
 //        if (result.equalsIgnoreCase("success")) {
