@@ -5,10 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Exchange;
-import org.springframework.amqp.core.ExchangeBuilder;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
@@ -29,7 +25,7 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 
 @Configuration
-@PropertySource(value = { "classpath:/rabbit.properties" })
+@PropertySource(value = {"classpath:/rabbit.properties"})
 public class RabbitConfig implements RabbitListenerConfigurer {
 
     public static final String QUEUE_DEAD_ORDERS = "dead-orders-queue";
@@ -62,9 +58,8 @@ public class RabbitConfig implements RabbitListenerConfigurer {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory factory = new CachingConnectionFactory();
-        factory.setHost(host);
-        factory.setPort(port);
+        logger.info("amqp: {}:{}, {}", host, port, username);
+        CachingConnectionFactory factory = new CachingConnectionFactory(host, port);
         factory.setUsername(username);
         factory.setPassword(password);
         return factory;
@@ -91,8 +86,8 @@ public class RabbitConfig implements RabbitListenerConfigurer {
                 .build();
     }
 
-    @Bean(name="rabbitListenerContainerFactory")
-    public SimpleRabbitListenerContainerFactory listenerFactory(){
+    @Bean(name = "rabbitListenerContainerFactory")
+    public SimpleRabbitListenerContainerFactory listenerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory());
         return factory;
