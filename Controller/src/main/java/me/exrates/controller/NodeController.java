@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/nodes")
 public class NodeController {
@@ -19,8 +21,18 @@ public class NodeController {
         this.nodeCheckerService = nodeCheckerService;
     }
 
+    @GetMapping("/listOfCoins") //todo make return all coins that implements IRefillable
+    public List<String> listOfBitcoinServicesNames(){
+        return nodeCheckerService.listOfBitcoinServicesNames();
+    }
+
     @GetMapping(value = "/getBlocksCount")
     public Long getBlocksCount(@RequestParam("ticker") String ticker) throws BitcoindException, CommunicationException {
         return nodeCheckerService.getBTCBlocksCount(ticker);
+    }
+
+    @GetMapping(value = "/getLastBlockTime")
+    public Long getLastBlockTime(@RequestParam("ticker") String ticker) throws BitcoindException, CommunicationException {
+        return nodeCheckerService.getLastBlockTime(ticker);
     }
 }

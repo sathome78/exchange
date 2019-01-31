@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
@@ -244,7 +245,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsPassword;
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
+  
+    private final SSMGetter ssmGetter;
 
+    public WebAppConfig(SSMGetter ssmGetter) {
+        this.ssmGetter = ssmGetter;
+    }
 
     @PostConstruct
     public void init() {
@@ -438,8 +444,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-//        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
+        addTokenInterceptor(registry);
         registry.addInterceptor(new MDCInterceptor());
+    }
+
+    private void addTokenInterceptor(InterceptorRegistry registry) {
+        String lookup;
+        try {
+             lookup = ssmGetter.lookup(nodeApiToken);
+        } catch (Exception e){
+            log.error(e);
+            lookup = "MOCK_TEST";
+        }
+        log.info("Password from ssm with path = " + nodeApiToken + " is " + lookup);
+        registry.addInterceptor(new TokenInterceptor(lookup)).addPathPatterns("/nodes/**");
     }
 
 

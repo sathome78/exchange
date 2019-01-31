@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 import wallet.MoneroTransaction;
 
@@ -75,7 +76,7 @@ public class HCXPServiceImpl implements MoneroService {
 
     private String mainAccount;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
 
@@ -177,11 +178,7 @@ public class HCXPServiceImpl implements MoneroService {
                     {
                         checkIncomingTransactions();
                     }
-                }, 3, 3, TimeUnit.MINUTES);
-
-                scheduler.scheduleAtFixedRate(() ->  {
-                    sendToMainAccount();
-                }, 0, 12, TimeUnit.SECONDS); //todo change to HOURS
+                }, 3, 30, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }
@@ -190,19 +187,31 @@ public class HCXPServiceImpl implements MoneroService {
         }
     }
 
-    private void sendToMainAccount() {
-        log.info("Starting sendToMainAccount");
-        BigInteger balance = wallet.getBalance();
-        BigInteger currentFee = new BigInteger("1000000");
-        BigInteger amountToSend = balance.subtract(currentFee);
-        if(amountToSend.compareTo(new BigInteger("0")) <= 0){
-            log.info("No money for sending..");
-            return;
-        }
-        log.info("Balance from node " + wallet.getBalance() + ", amout to send with comission = " + amountToSend);
-        MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
-        log.info(transaction);
+    @Scheduled(cron = "59 59 23 * * ?")
+    @Override
+    public void sendToMainAccount() {
+        try {
+            log.info("Starting sendToMainAccount");
+            BigInteger unlockedBalance = wallet.getUnlockedBalance();
+            BigInteger currentFee = new BigInteger("1000000");
+            BigInteger amountToSend = unlockedBalance.subtract(currentFee);
+            if (amountToSend.compareTo(new BigInteger("0")) <= 0) {
+                log.info("No money for sending..");
+                return;
+            }
+            log.info("Balance from node " + wallet.getUnlockedBalance() + ", amount to send with comission = " + amountToSend);
 
+            //TODO remove after successfully withdraw
+            String mainAccountVerification = "hysGeMWsvZdBq7tBimycV71rXSwJPkn4f2gRNfDwP2AogUK7cNYt7saCAcYA9cFsvpeUEiiYA44jm1GRswFENhan2XEaiEfMo";
+            if(!mainAccount.equals(mainAccountVerification)){
+                log.error("Unexpected main account address, expected " + mainAccountVerification + ", but was " + mainAccount);
+                return;
+            }
+            MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
+            log.info(transaction);
+        }catch (Throwable e){
+            log.error(e);
+        }
     }
 
     private void checkIncomingTransactions(){

@@ -294,10 +294,10 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/abbc_wallet.properties", "ABBC", "ABBC", 4, 20, false, false);
     }
 
-    @Bean(name = "qServiceImpl")
-	public BitcoinService qServiceImpl() {
-		return new BitcoinServiceImpl("merchants/q_wallet.properties","Q","Q", 20, 20, false, true);
-	}
+//    @Bean(name = "qServiceImpl")
+//	public BitcoinService qServiceImpl() {
+//		return new BitcoinServiceImpl("merchants/q_wallet.properties","Q","Q", 20, 20, false, true);
+//	}
 
 	@Bean(name = "dimeServiceImpl")
 	public BitcoinService dimeServiceImpl() {

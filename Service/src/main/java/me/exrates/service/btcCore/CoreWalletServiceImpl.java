@@ -643,6 +643,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         return btcdClient.getBlockCount();
     }
 
+    @Override
+    public Long getLastBlockTime() throws BitcoindException, CommunicationException {
+        return btcdClient.getBlock(btcdClient.getBestBlockHash()).getTime();
+    }
+
     @PreDestroy
   private void shutDown() {
     outputUnlockingExecutor.shutdown();

@@ -6,6 +6,7 @@ import me.exrates.model.dto.MerchantSpecParamDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,7 +42,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
                 dto.setParamValue(rs.getString("param_value"));
                 return dto;
             });
-        } catch (DataAccessException e) {
+        } catch (IncorrectResultSizeDataAccessException e) {
             log.error(e);
             return null;
         }

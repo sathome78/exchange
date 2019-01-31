@@ -49,4 +49,8 @@ public interface IRefillable extends IMerchantService{
     throw new NotImplimentedMethod("Not implemented yet");
   }
 
+  default Long getLastBlockTime() throws BitcoindException, CommunicationException {
+    throw new NotImplimentedMethod("Not implemented yet");
+  }
+
 }
