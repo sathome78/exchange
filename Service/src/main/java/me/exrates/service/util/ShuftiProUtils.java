@@ -11,14 +11,12 @@ public class ShuftiProUtils {
 
     public static boolean checkMerchantSignature(String signature, String responseBody, String secretKey) {
         String buildMerchantSignature = merchantSignature(secretKey, responseBody);
-        log.info("Merchant signature: {}, generated signature: {}", signature, buildMerchantSignature);
+        log.debug("Merchant signature: {}, generated signature: {}", signature, buildMerchantSignature);
 
         return Objects.equals(signature, buildMerchantSignature);
     }
 
     private static String merchantSignature(String secretKey, String responseBody) {
-        log.info("Secret key: {}", secretKey);
-
         return DigestUtils.sha256Hex(String.join(StringUtils.EMPTY, responseBody, secretKey));
     }
 }
