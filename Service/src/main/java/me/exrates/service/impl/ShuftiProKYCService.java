@@ -38,7 +38,7 @@ import static java.util.Objects.nonNull;
 @Component
 public class ShuftiProKYCService implements KYCService {
 
-    public static final String SIGNATURE = "sp_signature";
+    public static final String SIGNATURE = "Signature";
 
     private static final String EVENT = "event";
     private static final String ERROR = "error";
@@ -220,8 +220,7 @@ public class ShuftiProKYCService implements KYCService {
 
     @Override
     public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
-        //todo: check why signatures not equals
-//        validateMerchantSignature(signature, response);
+        validateMerchantSignature(signature, response);
 
         JSONObject statusObject = new JSONObject(response);
         final String reference = statusObject.getString(REFERENCE);
