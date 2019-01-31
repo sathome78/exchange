@@ -20,12 +20,16 @@ public class CoinTestController {
     @ResponseBody
     public String startTesting(@RequestParam(name = "coin") String name) throws Exception {
         logger = new StringBuilder();
-        CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
-        kodTester.initBot(name.toUpperCase(), logger);
-        return kodTester.testCoin(1);
+        try {
+            CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
+            kodTester.initBot(name.toUpperCase(), logger);
+        } catch (Exception e){
+            logger.append(e.getMessage()).append("\n");
+        }
+        return logger.toString();
     }
 
-    @GetMapping(value = "/cointest/log", produces = "text/html")
+    @GetMapping(value = "/cointest/log", produces = "text/plain")
     @ResponseBody
     public String getLog(){
         return logger.toString();

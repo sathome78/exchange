@@ -94,6 +94,7 @@ public class EthTokenTester implements CoinTester {
         this.name = name;
         this.stringBuilder = stringBuilder;
         prepareContract();
+        stringBuilder.append("Bot init success").append("\n");
     }
 
     private void prepareContract() throws Exception {
