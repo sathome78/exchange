@@ -23,6 +23,7 @@ public class CoinTestController {
         try {
             CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
             kodTester.initBot(name.toUpperCase(), logger);
+            kodTester.testCoin(1);
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");
         }
@@ -34,4 +35,5 @@ public class CoinTestController {
     public String getLog(){
         return logger.toString();
     }
+
 }
