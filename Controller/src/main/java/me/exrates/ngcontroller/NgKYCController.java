@@ -65,7 +65,6 @@ public class NgKYCController {
 
             if (nonNull(response)) {
                 final String signature = request.getHeader(SIGNATURE);
-                log.info("Signature: {}", signature);
 
                 Pair<String, EventStatus> statusPair = kycService.checkResponseAndUpdateVerificationStep(signature, response);
                 log.debug("Verification status: {} [{}]", statusPair.getLeft(), statusPair.getRight());
