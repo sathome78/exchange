@@ -281,7 +281,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-//        flyway.migrate();
+        flyway.migrate();
         return dataSource;
     }
 
@@ -579,7 +579,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "etherincServiceImpl")
     public EthereumCommonService etherincService() {
         return new EthereumCommonServiceImpl("merchants/eti.properties",
-                "ETI", "ETI", 12);
+                "ETI", "ETI", 50);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -1669,6 +1669,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		tokensList.add("0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6");
 		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
 	}
+
+    @Bean(name = "vraServiceImpl")
+    public EthTokenService vraServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdf1d6405df92d981a2fb3ce68f6a03bac6c0e41f");
+        return new EthTokenServiceImpl(tokensList, "VRA", "VRA", true, ExConvert.Unit.ETHER);
+    }
 
 	@Bean(name = "renServiceImpl")
 	public EthTokenService renServiceImpl(){
