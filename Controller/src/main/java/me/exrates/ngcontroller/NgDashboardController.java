@@ -55,6 +55,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -106,7 +107,15 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
+        List<String> list = Arrays.asList("staszp@gmail.com", "stanislav.gorobzeev@upholding.biz", "oleg.podolyan@upholding.biz");
         String email = getPrincipalEmail();
+
+        //temp fix fot testing
+        boolean anyMatch = list.stream().anyMatch(o -> o.equalsIgnoreCase(email));
+        if (!anyMatch) {
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+
         int userId = userService.getIdByEmail(email);
         inputOrder.setUserId(userId);
         ngOrderService.prepareOrder(inputOrder);
