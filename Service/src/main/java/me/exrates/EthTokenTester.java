@@ -115,8 +115,11 @@ public class EthTokenTester implements CoinTester {
     @Override
     public String testCoin(double refillAmount) throws Exception {
         try {
+            stringBuilder.append("Starting prepareRefillRequest\n");
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
+            stringBuilder.append("Set min conf\n");
             setMinConfirmation(MIN_CONFIRMATION_FOR_REFILL);
+            stringBuilder.append("checkNodeConnection\n");
             checkNodeConnection();
             checkRefill(request, "1000000000000000", merchantId, currencyId);
             return stringBuilder.toString();
@@ -126,6 +129,7 @@ public class EthTokenTester implements CoinTester {
     }
 
     private void checkRefill(RefillRequestCreateDto request, String refillAmount, int merchantId, int currencyId) throws Exception {
+        stringBuilder.append("Starting chekc refill").append("\n");
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
