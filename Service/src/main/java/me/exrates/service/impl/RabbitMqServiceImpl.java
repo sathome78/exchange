@@ -11,6 +11,8 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class RabbitMqServiceImpl implements RabbitMqService {
 
@@ -26,22 +28,26 @@ public class RabbitMqServiceImpl implements RabbitMqService {
     }
 
     @Override
-    public void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
-//        String result = "fail";
+    public String sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
+        String result = "fail";
+        String processId = UUID.randomUUID().toString();
+
         try {
             String orderJson = objectMapper.writeValueAsString(inputOrder);
-            logger.info("Send order to old version {}", orderJson);
+            logger.info("{} Send order to old version {}", processId, orderJson);
             try {
-                logger.info("Rabbit Mq is disabled for now");
-                this.rabbitTemplate.convertAndSend(queueName, orderJson);
+                logger.info("{} Going to send by rabbit", processId);
+                byte[] receive = (byte[]) this.rabbitTemplate.convertSendAndReceive(queueName, orderJson);
+                result = new String(receive);
             } catch (AmqpException e) {
-                String msg = "Failed to send data via rabbit queue";
-                logger.error(msg + " " + orderJson, e);
+                String msg = "Failed to send data via rabbit queue ";
+                logger.error("{} {} {} {}", processId, msg, orderJson, e);
                 throw new RabbitMqException(msg);
             }
         } catch (JsonProcessingException e) {
-            logger.error("Failed to send order to old instance", e);
+            logger.error("{} Failed to send order to old instance", processId, e);
         }
-//        return result;
+        logger.info("{} Result from old-server {}", processId, result);
+        return result;
     }
 }
