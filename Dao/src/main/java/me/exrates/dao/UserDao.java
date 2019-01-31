@@ -210,11 +210,15 @@ public interface UserDao {
 
     String getReferenceIdByUserEmail(String userEmail);
 
-    int updateVerificationStep(String userEmail);
+    int updateVerificationStepByEmail(String userEmail);
+
+    int updateReferenceIdByEmail(String userEmail);
 
     int getVerificationStep(String userEmail);
 
     int updateReferenceId(String referenceId, String userEmail);
 
     String getEmailByReferenceId(String referenceId);
+
+    List<String> getAllUsersReferenceIds();
 }

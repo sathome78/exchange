@@ -1193,8 +1193,16 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateVerificationStep(String userEmail) {
-        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
+    public int updateVerificationStepByEmail(String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = NULL, kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
+
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", userEmail));
+    }
+
+    @Transactional
+    @Override
+    public int updateReferenceIdByEmail(String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = NULL WHERE email = :email";
 
         return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", userEmail));
     }
@@ -1225,5 +1233,13 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
 
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<String> getAllUsersReferenceIds() {
+        final String sql = "SELECT u.kyc_reference from USER u WHERE u.kyc_reference IS NOT NULL";
+
+        return namedParameterJdbcTemplate.query(sql, (rs, row) -> rs.getString("kyc_reference"));
     }
 }

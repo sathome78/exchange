@@ -6,10 +6,10 @@ import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import me.exrates.model.dto.kyc.VerificationStep;
-import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
+import me.exrates.service.impl.ShuftiProKYCService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,13 +43,14 @@ public class NgKYCController {
 
     private final static String PUBLIC_KYC = "/info/public/v2/shufti-pro";
     private final static String PRIVATE_KYC = "/info/private/v2/shufti-pro/";
+
     private final UserService userService;
-    private final KYCService kycService;
+    private final ShuftiProKYCService kycService;
     private final KYCSettingsService kycSettingsService;
 
     @Autowired
     public NgKYCController(UserService userService,
-                           KYCService kycService,
+                           ShuftiProKYCService kycService,
                            KYCSettingsService kycSettingsService) {
         this.userService = userService;
         this.kycService = kycService;
@@ -76,13 +77,12 @@ public class NgKYCController {
         return ResponseEntity.notFound().build();
     }
 
-    // /private/v2/shufti-pro/verification-url/step/{stepNumber}
-
     /**
-     *  /info/private/v2/shufti-pro/verification-url/{step}
-     * @param step - possible values (LEVEL_ONE, LEVEL_TWO)
+     * /info/private/v2/shufti-pro/verification-url/{step}
+     *
+     * @param step         - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
-     * @param countryCode - from submitted list
+     * @param countryCode  - from submitted list
      * @return - verificationUrl to load in iframe (https://shuftipro.com/process/verification/g63K7XCZGdD6mRC5S7mQw5Lc112ioqLMqYGrDQvhzg3qezdUg4ZJ0VAGTLEWjkC8)
      */
     @ResponseStatus(HttpStatus.OK)
@@ -106,11 +106,11 @@ public class NgKYCController {
     }
 
     /**
-     *  /info/info/private/v2/shufti-pro/countries
-     *
+     * /info/info/private/v2/shufti-pro/countries
+     * <p>
      * {
-     *     countryName: Ukraine
-     *     countryCode: UA
+     * countryName: Ukraine
+     * countryCode: UA
      * }
      */
     @GetMapping(value = PRIVATE_KYC + "/countries")
@@ -118,13 +118,12 @@ public class NgKYCController {
         return ResponseEntity.ok(kycSettingsService.getCountriesDictionary());
     }
 
-
     /**
      * /info/private/v2/shufti-pro/languages
-     *
+     * <p>
      * {
-     *     languageName: English
-     *     languageCode: EN
+     * languageName: English
+     * languageCode: EN
      * }
      */
     @GetMapping(value = PRIVATE_KYC + "/languages")
@@ -134,8 +133,8 @@ public class NgKYCController {
 
     /**
      * /info/private/v2/shufti-pro/current-step
-     *
-     *  returns (NOT_VERIFIED, LEVEL_ONE, LEVEL_TWO)
+     * <p>
+     * returns (NOT_VERIFIED, LEVEL_ONE, LEVEL_TWO)
      */
     @GetMapping(value = PRIVATE_KYC + "/current-step")
     public ResponseEntity<VerificationStep> getCurrentVerificationStep() {

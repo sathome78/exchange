@@ -6,10 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
 import me.exrates.model.dto.kyc.EventStatus;
-import me.exrates.service.KYCService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
@@ -24,7 +23,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
@@ -33,10 +32,10 @@ import java.util.List;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+@Log4j2
 @PropertySource(value = {"classpath:/kyc.properties"})
-@Slf4j
-@Component
-public class ShuftiProKYCService implements KYCService {
+@Service
+public class ShuftiProKYCService {
 
     public static final String SIGNATURE = "sp_signature";
 
@@ -99,7 +98,6 @@ public class ShuftiProKYCService implements KYCService {
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
 
-    @Override
     public String getVerificationUrl(int stepNumber, String languageCode, String countryCode) {
         final String userEmail = userService.getUserEmailFromSecurityContext();
 
@@ -139,10 +137,13 @@ public class ShuftiProKYCService implements KYCService {
         VerificationRequest.Builder builder = VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
-                .redirectUrl(redirectUrl)
                 .email(userEmail)
                 .country(countryCode)
                 .verificationMode(verificationMode);
+
+        if (StringUtils.isNotEmpty(redirectUrl)) {
+            builder.redirectUrl(redirectUrl);
+        }
 
         if (nonNull(languageCode)) {
             builder.language(languageCode);
@@ -179,14 +180,18 @@ public class ShuftiProKYCService implements KYCService {
         return builder.build();
     }
 
-    @Override
     public Pair<String, EventStatus> getVerificationStatus() {
-        final String reference = userService.getReferenceId();
-        if (isNull(reference)) {
+        final String referenceId = userService.getReferenceId();
+
+        return getVerificationStatus(referenceId);
+    }
+
+    public Pair<String, EventStatus> getVerificationStatus(String referenceId) {
+        if (isNull(referenceId)) {
             throw new ShuftiProException("Process of verification data has not started. Reference id is undefined");
         }
 
-        StatusRequest statusRequest = buildStatusRequest(reference);
+        StatusRequest statusRequest = buildStatusRequest(referenceId);
 
         HttpEntity<StatusRequest> requestEntity = new HttpEntity<>(statusRequest);
 
@@ -206,7 +211,7 @@ public class ShuftiProKYCService implements KYCService {
 
         JSONObject statusObject = new JSONObject(response);
 
-        return Pair.of(reference, EventStatus.of(statusObject.getString(EVENT)));
+        return Pair.of(referenceId, EventStatus.of(statusObject.getString(EVENT)));
     }
 
     private StatusRequest buildStatusRequest(String reference) {
@@ -215,7 +220,6 @@ public class ShuftiProKYCService implements KYCService {
                 .build();
     }
 
-    @Override
     public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
         validateMerchantSignature(signature, response);
 
@@ -223,19 +227,36 @@ public class ShuftiProKYCService implements KYCService {
         final String reference = statusObject.getString(REFERENCE);
         final EventStatus eventStatus = EventStatus.of(statusObject.getString(EVENT));
 
-        final String userEmail = userService.getEmailByReferenceId(reference);
+        return updateVerificationStep(reference, eventStatus);
+    }
 
-        if (EventStatus.ACCEPTED.equals(eventStatus)) {
-            log.debug("Verification status: {}. Data have been verified successfully", eventStatus);
-            int affectedRowCount = userService.updateVerificationStep(userEmail);
-            if (affectedRowCount == 0) {
-                log.debug("Verification step have not been updated in database");
-            }
+    public Pair<String, EventStatus> updateVerificationStep(String referenceId, EventStatus status) {
+        final String userEmail = userService.getEmailByReferenceId(referenceId);
+
+        int affectedRowCount;
+        switch (status) {
+            case ACCEPTED:
+                log.debug("Verification status: {}. Data have been verified successfully", status);
+                affectedRowCount = userService.updateVerificationStepByEmail(userEmail);
+                if (affectedRowCount == 0) {
+                    log.debug("Verification step have not been updated in database");
+                }
+                break;
+            case TIMEOUT:
+                log.debug("Verification status: {}. Time to verify person data have been expired, verification process stopped", status);
+                affectedRowCount = userService.updateReferenceIdByEmail(userEmail);
+                if (affectedRowCount == 0) {
+                    log.debug("Verification step have not been updated in database");
+                }
+                break;
+            default:
+                log.debug("Verification status: {}.", status);
+                break;
         }
-        sendStatusNotification(userEmail, eventStatus);
+        sendStatusNotification(userEmail, status);
         log.debug("Notification have been send successfully");
 
-        return Pair.of(reference, eventStatus);
+        return Pair.of(referenceId, status);
     }
 
     private void sendStatusNotification(String userEmail, EventStatus eventStatus) {
