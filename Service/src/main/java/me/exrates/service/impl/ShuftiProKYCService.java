@@ -220,7 +220,8 @@ public class ShuftiProKYCService implements KYCService {
 
     @Override
     public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
-        validateMerchantSignature(signature, response);
+        //todo: temporary unavailable signature validation
+//        validateMerchantSignature(signature, response);
 
         JSONObject statusObject = new JSONObject(response);
         final String reference = statusObject.getString(REFERENCE);
