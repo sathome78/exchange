@@ -233,7 +233,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             if (needToCheckTokens) {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
             }
-        }, 5, 5, TimeUnit.MINUTES);
+        }, 5, 15, TimeUnit.SECONDS);
 
         if (currencyName.equals("ETI")) {
             scheduler.scheduleWithFixedDelay(() -> {
@@ -540,6 +540,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     public boolean isValidDestinationAddress(String address) {
 
         return withdrawUtils.isValidDestinationAddress(address);
+    }
+
+    @Override
+    public void setConfirmationNeededCount(int minConfirmations){
+        this.minConfirmations = minConfirmations;
     }
 
 }
