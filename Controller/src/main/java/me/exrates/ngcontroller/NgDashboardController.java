@@ -110,12 +110,12 @@ public class NgDashboardController {
         int userId = userService.getIdByEmail(email);
         inputOrder.setUserId(userId);
         ngOrderService.prepareOrder(inputOrder);
-        rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-//        if (result.equalsIgnoreCase("success")) {
+        String result = rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+        if (result.equalsIgnoreCase("success")) {
             return new ResponseEntity<>(HttpStatus.CREATED);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
     }
 

@@ -1,8 +1,10 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.stereotype.Component;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Component
 public class CurrencyPair {
     private int id;
