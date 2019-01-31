@@ -1,5 +1,6 @@
 package me.exrates;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -10,6 +11,7 @@ import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.*;
+import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.ethereum.EthereumCommonService;
 import me.exrates.service.ethereum.ethTokensWrappers.ethTokenERC20;
 import me.exrates.service.exception.CoinTestException;
@@ -70,6 +72,8 @@ public class EthTokenTester implements CoinTester {
     @Autowired
     @Qualifier(value = "ethereumServiceImpl")
     private EthereumCommonService ethereumCommonService;
+    @Autowired
+    private Map<String, EthTokenService> ethServicesMap;
 
     @Value("${ethereum.url}")
     private String url;
@@ -178,12 +182,18 @@ public class EthTokenTester implements CoinTester {
                 stringBuilder.append("refill amount " + refillAmount).append("\n");;
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
-                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (refillAmount)))
+
+                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (convertToStandartScale(new BigDecimal(refillAmount)))))
                     throw new CoinTestException("!acceptedRequest.get().getAmount().equals(new BigDecimal(refillAmount)), expected " + refillAmount + " but was " + acceptedRequest.get().getAmount());
             }
         } while (!acceptedRequest.isPresent());
 
         stringBuilder.append("REQUEST FINDED").append("\n");;
+    }
+
+    private BigDecimal convertToStandartScale(BigDecimal bigDecimal) {
+        EthTokenService ethService = getEthService(coin);
+        return bigDecimal.movePointLeft(ethService.getUnit().getFactor());
     }
 
     private Optional<Transaction> getTransactionByHash(String transactionHash) throws IOException {
@@ -222,6 +232,12 @@ public class EthTokenTester implements CoinTester {
         return new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     }
 
+    private EthTokenService getEthService(String ticker){
+        for (Map.Entry<String, EthTokenService> entry : ethServicesMap.entrySet()) {
+            if(entry.getKey().equalsIgnoreCase(ticker + "ServiceImpl")) return entry.getValue();
+        }
+        return null;
+    }
 //        String blockHash = contract.transfer("0x81fb419ACFDA6F40173b4032215101B09c4933c5", new BigInteger("1")).send().getBlockHash();
 //        System.out.println(blockHash);
 }

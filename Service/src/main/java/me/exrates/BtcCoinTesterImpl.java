@@ -332,10 +332,6 @@ public class BtcCoinTesterImpl implements CoinTester {
         throw new RuntimeException("BitcoinService with ticker " + name + " not found!");
     }
 
-//    public static void main(String[] args) throws NoSuchFieldException {
-////        stringBuilder.append(normalize("0.000100000000000000004792173602385929598312941379845142364501953125"));
-//        stringBuilder.append(normalize(0.000100000001237861283));
-//    }
 
     public static boolean compareObjects(Object A, Object B) {
         return normalize(A).equals(normalize(B));
