@@ -20,9 +20,9 @@ public class CoinTestController {
     @ResponseBody
     public String startTesting(@RequestParam(name = "coin") String name) throws Exception {
         logger = new StringBuilder();
-        CoinTester kodTester = applicationContext.getBean(CoinTester.class);
+        CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
         kodTester.initBot(name.toUpperCase(), logger);
-        return kodTester.testCoin(0.00001);
+        return kodTester.testCoin(1);
     }
 
     @GetMapping(value = "/cointest/log", produces = "text/html")

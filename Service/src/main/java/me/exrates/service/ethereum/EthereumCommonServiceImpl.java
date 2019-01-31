@@ -227,13 +227,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     log.error(e);
                 }
             }
-        }, 1, 24, TimeUnit.HOURS);
+        }, 300, 30, TimeUnit.SECONDS);
 
         checkerScheduler.scheduleWithFixedDelay(() -> {
             if (needToCheckTokens) {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
             }
-        }, 5, 15, TimeUnit.SECONDS);
+        }, 150, 15, TimeUnit.SECONDS);
 
         if (currencyName.equals("ETI")) {
             scheduler.scheduleWithFixedDelay(() -> {
@@ -242,7 +242,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }catch (Exception e){
                     log.error(e);
                 }
-            }, 4, 3, TimeUnit.MINUTES);
+            }, 100, 300, TimeUnit.SECONDS);
         }
     }
 

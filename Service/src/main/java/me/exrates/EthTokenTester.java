@@ -117,14 +117,14 @@ public class EthTokenTester implements CoinTester {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(MIN_CONFIRMATION_FOR_REFILL);
             checkNodeConnection();
-            checkRefill(request, refillAmount, merchantId, currencyId);
+            checkRefill(request, "1000000000000000", merchantId, currencyId);
             return stringBuilder.toString();
         } catch (Exception e){
-            return "error";
+            return stringBuilder.append(e.getMessage()).append("\n").toString();
         }
     }
 
-    private void checkRefill(RefillRequestCreateDto request, double refillAmount, int merchantId, int currencyId) throws Exception {
+    private void checkRefill(RefillRequestCreateDto request, String refillAmount, int merchantId, int currencyId) throws Exception {
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
@@ -133,7 +133,7 @@ public class EthTokenTester implements CoinTester {
 
         stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("\n");;
 
-        String transactionHash = contract.transfer("0x81fb419ACFDA6F40173b4032215101B09c4933c5", new BigInteger("1")).send().getTransactionHash();
+        String transactionHash = contract.transfer(addressForRefill, new BigInteger(refillAmount)).send().getTransactionHash();
         stringBuilder.append("Transaction hash = " + transactionHash).append("\n");
 
 
@@ -167,7 +167,7 @@ public class EthTokenTester implements CoinTester {
                     Thread.sleep(TIME_FOR_REFILL);
                     isConfirmationsEnough = true;
                 }
-                stringBuilder.append("Checking transaction... ").append("\n");;
+                stringBuilder.append("Checking transaction... ").append("\n");
             } else {
                 stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("\n");;
                 stringBuilder.append("refill amount " + refillAmount).append("\n");;
