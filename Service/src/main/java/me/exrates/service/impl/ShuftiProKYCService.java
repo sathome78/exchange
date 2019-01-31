@@ -139,10 +139,13 @@ public class ShuftiProKYCService implements KYCService {
         VerificationRequest.Builder builder = VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
-                .redirectUrl(redirectUrl)
                 .email(userEmail)
                 .country(countryCode)
                 .verificationMode(verificationMode);
+
+        if (StringUtils.isNotEmpty(redirectUrl)) {
+            builder.redirectUrl(redirectUrl);
+        }
 
         if (nonNull(languageCode)) {
             builder.language(languageCode);
