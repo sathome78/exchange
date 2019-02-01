@@ -27,7 +27,7 @@ public class CoinTestController {
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");
         }
-        return logger.toString();
+        return "started";
     }
 
     @GetMapping(value = "/cointest/log", produces = "text/plain")
