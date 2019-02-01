@@ -48,7 +48,7 @@ import static me.exrates.service.ethereum.EthTokenServiceImpl.GAS_LIMIT;
 @PropertySource(value = "classpath:/merchants/ethereum.properties")
 public class EthTokenTester implements CoinTester {
 
-    private static final String principalEmail = "mikita.malykov@upholding.biz";
+    private String principalEmail = "mikita.malykov@upholding.biz";
     private static final int MIN_CONFIRMATION_FOR_REFILL = 1;
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
@@ -91,13 +91,14 @@ public class EthTokenTester implements CoinTester {
 //    private static String name = "DGTX";
     private ethTokenERC20 contract;
 
-    public void initBot(String name, StringBuilder stringBuilder) throws Exception {
+    public void initBot(String name, StringBuilder stringBuilder, String email) throws Exception {
         merchantId = merchantService.findByName(name).getId();
         currencyId = currencyService.findByName(name).getId();
         this.name = name;
         this.stringBuilder = stringBuilder;
         prepareContract();
         stringBuilder.append("Bot init success").append("\n");
+        if(email != null) this.principalEmail = email;
     }
 
     private void prepareContract() throws Exception {

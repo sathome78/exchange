@@ -74,7 +74,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         this.name = name;
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
-        this.principalEmail = email;
+        if(email != null) this.principalEmail = email;
     }
 
     @Override
