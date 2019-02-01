@@ -1717,6 +1717,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "HNI","HNI", true, ExConvert.Unit.ETHER);
 	}
 
+	@Bean(name = "pltcServiceImpl")
+	public EthTokenService pltcServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4");
+		return new EthTokenServiceImpl(tokensList, "PLTC","PLTC", true, ExConvert.Unit.ETHER);
+	}
+
 	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
