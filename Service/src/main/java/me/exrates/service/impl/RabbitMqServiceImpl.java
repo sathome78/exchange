@@ -66,11 +66,11 @@ public class RabbitMqServiceImpl implements RabbitMqService {
             }
             response = new String(messageBack.getBody());
         } catch (Exception e) {
-            logger.error("{} Don't wait response {}", process, e);
+            logger.error("{} Don't wait response {}", processId, e);
             return new RabbitResponse(false, process, "Don't wait response");
         }
         logger.info("{} Result from old-server {}", process, response);
 
-        return new RabbitResponse(response.equalsIgnoreCase("successful"), process);
+        return new RabbitResponse(response.equalsIgnoreCase("success"), process);
     }
 }

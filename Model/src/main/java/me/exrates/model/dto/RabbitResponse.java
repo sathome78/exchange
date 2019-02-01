@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RabbitResponse {
 
     private boolean success;
@@ -20,6 +22,7 @@ public class RabbitResponse {
         this.message = message;
     }
 
+    @JsonProperty("processId")
     public String getProcessId() {
         return processId;
     }
@@ -28,6 +31,7 @@ public class RabbitResponse {
         this.processId = processId;
     }
 
+    @JsonProperty("message")
     public String getMessage() {
         return message;
     }
@@ -36,6 +40,7 @@ public class RabbitResponse {
         this.message = message;
     }
 
+    @JsonProperty("success")
     public boolean isSuccess() {
         return success;
     }
