@@ -49,7 +49,7 @@ public class RabbitMqServiceImpl implements RabbitMqService {
                 logger.info("{} Going to send by rabbit", processId);
                 messageBack = this.rabbitTemplate.sendAndReceive(queueName, message);
 
-            } catch (AmqpException e) {
+            } catch (Exception e) {
                 String msg = "Failed to send data via rabbit queue ";
                 logger.error("{} {} {} {}", processId, msg, orderJson, e);
                 throw new RabbitMqException(msg);
