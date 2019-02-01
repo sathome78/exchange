@@ -278,12 +278,12 @@ public class NgUserController {
     public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({NullPointerException.class})
-    @ResponseBody
-    public ErrorInfo npeHandler(HttpServletRequest req, Exception exception) {
-        logger.error(exception);
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
+//
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    @ExceptionHandler({NullPointerException.class})
+//    @ResponseBody
+//    public ErrorInfo npeHandler(HttpServletRequest req, Exception exception) {
+//        logger.error(exception);
+//        return new ErrorInfo(req.getRequestURL(), exception);
+//    }
 }
