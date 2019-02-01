@@ -59,10 +59,16 @@ public class RabbitMqServiceImpl implements RabbitMqService {
         }
 
         String process = "undefined";
-        if (messageBack != null) {
-            process = (String) messageBack.getMessageProperties().getHeaders().get("process-id");
+        String response = null;
+        try {
+            if (messageBack != null) {
+                process = (String) messageBack.getMessageProperties().getHeaders().get("process-id");
+            }
+            response = new String(messageBack.getBody());
+        } catch (Exception e) {
+            logger.error("{} Don't wait response {}", process, e);
+            new RabbitResponse(false, process, "Don't wait response");
         }
-        String response = new String(messageBack.getBody());
         logger.info("{} Result from old-server {}", process, response);
 
         return new RabbitResponse(response.equalsIgnoreCase("successful"), process);
