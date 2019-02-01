@@ -20,6 +20,7 @@ public class Currency {
   private String name;
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String description;
+  private boolean hidden;
 
   public Currency(int id) {
     this.id = id;
