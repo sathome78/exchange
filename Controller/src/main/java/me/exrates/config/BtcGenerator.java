@@ -212,7 +212,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("HCXP", "HCXPay", 30, false, true, "172.10.13.238", 8090, 5580);
+        generate("DIVI", "Divicoin", 4, false, false, "172.10.13.160", 8090, 12001);
     }
 
 

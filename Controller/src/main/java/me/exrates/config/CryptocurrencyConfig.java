@@ -339,6 +339,12 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 20, 20, false, true);
 	}
 
+	// todo invite Stas 
+@Bean(name = "diviServiceImpl")
+	public BitcoinService diviServiceImpl() {
+		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 4, 20, false, false);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
