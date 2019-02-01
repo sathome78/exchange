@@ -382,11 +382,11 @@ public interface OrderService {
 
     @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled, boolean initial,
-                                                                  Locale locale, Map<String, String> sortedColumns,
-                                                                  LocalDate dateFrom, LocalDate dateTo);
+                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled, Locale locale,
+                                                                  Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo);
 
     @Transactional(readOnly = true)
+
     List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                              String scope, boolean hideCanceled,
                                              Locale locale, LocalDate dateFrom, LocalDate dateTo);
