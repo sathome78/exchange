@@ -22,4 +22,6 @@ public interface EthTokenService {
     default Integer currencyId(){
         return null;
     }
+
+    ExConvert.Unit getUnit();
 }

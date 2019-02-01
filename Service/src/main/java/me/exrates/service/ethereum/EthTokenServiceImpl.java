@@ -67,7 +67,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private final BigInteger GAS_LIMIT = BigInteger.valueOf(180000);
+    public static final BigInteger GAS_LIMIT = BigInteger.valueOf(180000);
 
     private final BigDecimal feeAmount = new BigDecimal("0.01");
 
@@ -93,6 +93,11 @@ public class EthTokenServiceImpl implements EthTokenService {
     @Override
     public Integer currencyId() {
         return currency.getId();
+    }
+
+    @Override
+    public ExConvert.Unit getUnit() {
+        return unit;
     }
 
     public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
@@ -135,7 +140,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                         log.error(e);
                     }
                 }
-            }, 3, 10, TimeUnit.MINUTES);
+            }, 30, 30, TimeUnit.SECONDS);
         } catch (Throwable e){
             log.error(e);
         }
@@ -264,6 +269,10 @@ public class EthTokenServiceImpl implements EthTokenService {
     }
 
     private void transferFundsToMainAccount(){
+        if(this.currencyName.equals("DGTX")){
+            System.out.println("debugging...");
+        }
+
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto){
             try {
@@ -284,19 +293,19 @@ public class EthTokenServiceImpl implements EthTokenService {
                     ethTokenERC20 contractMain = (ethTokenERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(), GAS_PRICE, GAS_LIMIT);
 
                     BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
-                    BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+                    BigDecimal ethBalance = new BigDecimal("10000000000000000");
 
-                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
-                        refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
-                                currency.getId(), false);
-
-                        if ( ethBalance.compareTo(new BigDecimal("0.001")) > 0) {
-                            Transfer.sendFunds(
-                                    ethereumCommonService.getWeb3j(), credentials, ethereumCommonService.getTransferAccAddress(), ethBalance
-                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).sendAsync();
-                        }
-                        continue;
-                    }
+//                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+//                        refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
+//                                currency.getId(), false);
+//
+//                        if ( ethBalance.compareTo(new BigDecimal("0.001")) > 0) {
+//                            Transfer.sendFunds(
+//                                    ethereumCommonService.getWeb3j(), credentials, ethereumCommonService.getTransferAccAddress(), ethBalance
+//                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).sendAsync();
+//                        }
+//                        continue;
+//                    }
 
                     BigInteger futureAllowance = contract.allowance(credentials.getAddress(),
                             ethereumCommonService.getCredentialsMain().getAddress()).send();

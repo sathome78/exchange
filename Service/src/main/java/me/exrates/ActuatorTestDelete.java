@@ -3,12 +3,17 @@ package me.exrates;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.WalletUtils;
+
+import java.io.File;
 
 @Service
 public class ActuatorTestDelete implements
         ApplicationListener<ContextRefreshedEvent>{
 
     private int counter = 0;
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         counter++;
@@ -16,14 +21,10 @@ public class ActuatorTestDelete implements
     }
 
     private void test(ContextRefreshedEvent contextRefreshedEvent) {
-        CoinTester kodTester = contextRefreshedEvent.getApplicationContext().getBean(CoinTester.class);
+        CoinTester kodTester = (CoinTester) contextRefreshedEvent.getApplicationContext().getBean("ethTokenTester");
         try {
-            System.out.println("INIT BOT");
-            StringBuilder stringBuilder = new StringBuilder();
-            kodTester.initBot("RIME", stringBuilder);
-            String s = kodTester.testCoin(0.00001);
-            System.out.println(s);
-            System.out.println(stringBuilder.toString());
+            kodTester.initBot("DGTX", new StringBuilder());
+            kodTester.testCoin(1);
         } catch (Exception e) {
             e.printStackTrace();
         }

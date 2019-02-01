@@ -41,7 +41,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USE
 @NoArgsConstructor
 public class BtcCoinTesterImpl implements CoinTester {
 
-    public static final String principalEmail = "mikita.malykov@upholding.biz";
+    private static final String principalEmail = "mikita.malykov@upholding.biz";
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
     @Autowired
@@ -332,12 +332,8 @@ public class BtcCoinTesterImpl implements CoinTester {
         throw new RuntimeException("BitcoinService with ticker " + name + " not found!");
     }
 
-//    public static void main(String[] args) throws NoSuchFieldException {
-////        stringBuilder.append(normalize("0.000100000000000000004792173602385929598312941379845142364501953125"));
-//        stringBuilder.append(normalize(0.000100000001237861283));
-//    }
 
-    private static boolean compareObjects(Object A, Object B) {
+    public static boolean compareObjects(Object A, Object B) {
         return normalize(A).equals(normalize(B));
     }
 
