@@ -21,12 +21,12 @@ public class ActuatorTestDelete implements
     }
 
     private void test(ContextRefreshedEvent contextRefreshedEvent) {
-        CoinTester kodTester = (CoinTester) contextRefreshedEvent.getApplicationContext().getBean("ethTokenTester");
-        try {
-            kodTester.initBot("DGTX", new StringBuilder());
-            kodTester.testCoin(1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        CoinTester kodTester = (CoinTester) contextRefreshedEvent.getApplicationContext().getBean("ethTokenTester");
+//        try {
+//            kodTester.initBot("DGTX", new StringBuilder());
+//            kodTester.testCoin(1);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 }
