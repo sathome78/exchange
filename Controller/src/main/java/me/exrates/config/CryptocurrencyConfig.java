@@ -314,6 +314,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/bch_wallet.properties","BCH","BCH", 20, 20, false, true);
 	}
 
+    @Bean(name = "diviServiceImpl")
+    public BitcoinService diviServiceImpl() {
+        return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 4, 20, false, false);
+    }
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
