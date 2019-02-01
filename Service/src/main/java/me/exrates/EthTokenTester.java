@@ -1,6 +1,5 @@
 package me.exrates;
 
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -89,7 +88,7 @@ public class EthTokenTester implements CoinTester {
     private static String mainTestPrivateKey = "92562730201626919127666680751712739048456177233249322255821751422413958671494";
     private static String mainTestPublicKey = "4170443246532098761497715728719234481946975701057637192159203344434254472506085562498955849273074226120269972199365634457382511964193135837279887855130261";
     private static String contractTestAddress = "0x1C83501478f1320977047008496DACBD60Bb15ef";
-    private static String coin = "DGTX";
+//    private static String name = "DGTX";
     private ethTokenERC20 contract;
 
     public void initBot(String name, StringBuilder stringBuilder) throws Exception {
@@ -109,15 +108,15 @@ public class EthTokenTester implements CoinTester {
 
         Web3j web3j = Web3j.build(new HttpService("http://172.10.13.51:8549"));
 
-        Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + coin);
+        Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + name);
         Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
-        contract = (ethTokenERC20)method.invoke(null, contractTestAddress, web3j, credentials, gasPrice, GAS_LIMIT);
+        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT);
     }
 
 
     @Override
-    public String testCoin(double refillAmount) throws Exception {
+    public String testCoin(String refillAmount) throws Exception {
         try {
             stringBuilder.append("Starting prepareRefillRequest\n");
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
@@ -125,7 +124,8 @@ public class EthTokenTester implements CoinTester {
             setMinConfirmation(MIN_CONFIRMATION_FOR_REFILL);
             stringBuilder.append("checkNodeConnection\n");
             checkNodeConnection();
-            checkRefill(request, "1000000000000000", merchantId, currencyId);
+            checkRefill(request, refillAmount, merchantId, currencyId);
+//            checkRefill(request, "1000000000000000", merchantId, currencyId);
             return stringBuilder.toString();
         } catch (Exception e){
             return stringBuilder.append(e.getMessage()).append("\n").toString();
@@ -149,7 +149,7 @@ public class EthTokenTester implements CoinTester {
         stringBuilder.append("Checking our transaction in explorer...");
         BigInteger blockNumber = null;
         do {
-            Thread.sleep(3000);
+            Thread.sleep(10000);
             Optional<Transaction> transaction = getTransactionByHash(transactionHash);
             if(!transaction.isPresent()){
                 stringBuilder.append("Couldn't find tx...\n");
@@ -183,16 +183,17 @@ public class EthTokenTester implements CoinTester {
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
 
-                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (convertToStandartScale(new BigDecimal(refillAmount)))))
+                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (convertToStandartScale(new BigDecimal(refillAmount))))) {
                     throw new CoinTestException("!acceptedRequest.get().getAmount().equals(new BigDecimal(refillAmount)), expected " + refillAmount + " but was " + acceptedRequest.get().getAmount());
+                }
+                stringBuilder.append("REQUEST FINDED, accepted amount = " + refillRequestBtcInfoDto.getAmount()).append("\n");;
             }
         } while (!acceptedRequest.isPresent());
 
-        stringBuilder.append("REQUEST FINDED").append("\n");;
     }
 
     private BigDecimal convertToStandartScale(BigDecimal bigDecimal) {
-        EthTokenService ethService = getEthService(coin);
+        EthTokenService ethService = getEthService(name);
         return bigDecimal.movePointLeft(ethService.getUnit().getFactor());
     }
 
