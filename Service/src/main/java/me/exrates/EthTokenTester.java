@@ -149,14 +149,17 @@ public class EthTokenTester implements CoinTester {
         stringBuilder.append("Checking our transaction in explorer...");
         BigInteger blockNumber = null;
         do {
-            Thread.sleep(10000);
-            Optional<Transaction> transaction = getTransactionByHash(transactionHash);
-            if(!transaction.isPresent()){
-                stringBuilder.append("Couldn't find tx...\n");
-                continue;
+            try {
+                Thread.sleep(10000);
+                Optional<Transaction> transaction = getTransactionByHash(transactionHash);
+                if (!transaction.isPresent()) {
+                    stringBuilder.append("Couldn't find tx...\n");
+                    continue;
+                }
+                blockNumber = transaction.get().getBlockNumber();
+            } catch (Exception e){
+                stringBuilder.append(e.getMessage()).append("\n");
             }
-            blockNumber = transaction.get().getBlockNumber();
-
         } while (blockNumber == null);
 
 
