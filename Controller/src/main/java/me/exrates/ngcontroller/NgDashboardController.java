@@ -25,6 +25,7 @@ import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -112,7 +113,7 @@ public class NgDashboardController {
         ngOrderService.prepareOrder(inputOrder);
         rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
 //        if (result.equalsIgnoreCase("success")) {
-            return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.CREATED);
 //        } else {
 //            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 //        }
@@ -190,6 +191,7 @@ public class NgDashboardController {
     }
 
     /**
+     * Filtered orders
      * /info/private/v2/dashboard/orders/{status}
      *
      * @param status         - user’s order status
@@ -201,7 +203,6 @@ public class NgDashboardController {
      * @param scope          - defines requested order type, values ["" - only created, "ACCEPTED" - only accepted,
      *                       "ALL" - both], not required,  default "" - created by user
      * @param hideCanceled   - hide cancelled orders if true
-     * @param initial        - if true shows last 15 records despite of filter
      * @param dateFrom       - specifies the start of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param dateTo         - specifies the end of temporal range, must be in ISO_DATE format (yyyy-MM-dd), if null excluded
      * @param request        - HttpServletRequest, used by backend to resolve locale
@@ -209,53 +210,82 @@ public class NgDashboardController {
      * @throws - 403 bad request
      */
     @GetMapping("/orders/{status}")
-    public ResponseEntity<PagedResult<OrderWideListDto>> getOpenOrders(
+    public ResponseEntity<PagedResult<OrderWideListDto>> getFilteredOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
-            @RequestParam(required = false, name = "currencyName", defaultValue = "") String currencyName,
+            @RequestParam(required = false, name = "currencyName", defaultValue = StringUtils.EMPTY) String currencyName,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "15") Integer limit,
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
-            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
+            @RequestParam(required = false, name = "scope", defaultValue = StringUtils.EMPTY) String scope,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-            @RequestParam(required = false, name = "initial", defaultValue = "false") Boolean initial,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
 
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        final int userId = userService.getIdByEmail(getPrincipalEmail());
 
-        int userId = userService.getIdByEmail(getPrincipalEmail());
-        CurrencyPair currencyPair = currencyPairId > 0
+        final CurrencyPair currencyPair = currencyPairId > 0
                 ? currencyService.findCurrencyPairById(currencyPairId)
                 : null;
+
         Locale locale = localeResolver.resolveLocale(request);
-        int offset = (page - 1) * limit;
-        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
+
+        final int offset = (page - 1) * limit;
+
+        final Map<String, String> sortedColumns = sortByCreated.equals("DESC")
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
+
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple =
-                    this.orderService.getMyOrdersWithStateMap(userId, currencyPair, currencyName, orderStatus, scope, offset,
-                            limit, hideCanceled, initial, locale, sortedColumns, dateFrom, dateTo);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, currencyPair,
+                    currencyName, orderStatus, scope, offset, limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
+
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
             pagedResult.setItems(ordersTuple.getValue());
 
-            LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
-            boolean beforeYesterday = pagedResult
-                    .getItems()
-                    .stream()
-                    .anyMatch(order -> order.getDateCreation().isBefore(yesterday));
-
-            if (beforeYesterday) {
-                return new ResponseEntity<>(pagedResult, HttpStatus.MULTI_STATUS); // 207
-            }
             return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
+    }
 
+    /**
+     * Last orders
+     * /info/private/v2/dashboard/last/orders/{status}
+     *
+     * @param status         - user’s order status
+     * @param hideCanceled   - hide cancelled orders if true
+     * @param request        - HttpServletRequest, used by backend to resolve locale
+     * @return - Pageable list of defined orders with meta info about total orders' count
+     * @throws - 403 bad request
+     */
+    @GetMapping("/last/orders/{status}")
+    public ResponseEntity<PagedResult<OrderWideListDto>> getLastOrders(
+            @PathVariable("status") String status,
+            @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
+            HttpServletRequest request) {
+        final OrderStatus orderStatus = OrderStatus.valueOf(status);
+
+        final int userId = userService.getIdByEmail(getPrincipalEmail());
+
+        Locale locale = localeResolver.resolveLocale(request);
+
+        try {
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, null,
+                    null, orderStatus, StringUtils.EMPTY, 0, 15, hideCanceled, locale,
+                    Collections.emptyMap(), null, null);
+
+            PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
+            pagedResult.setCount(ordersTuple.getKey());
+            pagedResult.setItems(ordersTuple.getValue());
+
+            return ResponseEntity.ok(pagedResult); // 200
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**

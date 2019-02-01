@@ -1623,23 +1623,17 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
-                                                                         LocalDate dateFrom, LocalDate dateTo) {
+                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled, Locale locale,
+                                                                         Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo) {
 
-        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset,
-                limit, locale, dateFrom, dateTo, hideCanceled);
+        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, dateFrom, dateTo, hideCanceled);
+
         List<OrderWideListDto> orders;
-        if (recordsCount == 0 && initial) {
-            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status,
-                    scope, offset, limit, locale, null, null, hideCanceled);
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
-                    offset, limit, sortedColumns, null, null, hideCanceled);
-        } else if (recordsCount == 0){
+        if (recordsCount == 0){
             orders = Lists.newArrayList();
         } else {
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
-                offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope, offset,
+                    limit, sortedColumns, dateFrom, dateTo, hideCanceled);
         }
         return Pair.of(recordsCount, orders);
     }
