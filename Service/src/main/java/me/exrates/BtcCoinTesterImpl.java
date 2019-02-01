@@ -39,7 +39,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USE
 @NoArgsConstructor
 public class BtcCoinTesterImpl implements CoinTester {
 
-    private static final String principalEmail = "mikita.malykov@upholding.biz";
+    private String principalEmail = "mikita.malykov@upholding.biz";
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
     @Autowired
@@ -68,12 +68,13 @@ public class BtcCoinTesterImpl implements CoinTester {
     private int withdrawStatus = 0;
     private StringBuilder stringBuilder;
 
-    public void initBot(String name, StringBuilder stringBuilder) throws BitcoindException, IOException, CommunicationException {
+    public void initBot(String name, StringBuilder stringBuilder, String email) throws BitcoindException, IOException, CommunicationException {
         merchantId = merchantService.findByName(name).getId();
         currencyId = currencyService.findByName(name).getId();
         this.name = name;
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
+        this.principalEmail = email;
     }
 
     @Override

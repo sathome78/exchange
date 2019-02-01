@@ -18,11 +18,12 @@ public class CoinTestController {
 
     @GetMapping("/cointest/start")
     @ResponseBody
-    public String startTesting(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount) throws Exception {
+    public String startTesting(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount,
+                               @RequestParam(name = "email", required = false) String email) throws Exception {
         logger = new StringBuilder();
         try {
             CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
-            kodTester.initBot(name.toUpperCase(), logger);
+            kodTester.initBot(name.toUpperCase(), logger, email);
             kodTester.testCoin(amount);
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");

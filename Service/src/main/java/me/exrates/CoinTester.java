@@ -7,6 +7,6 @@ import me.exrates.service.exception.CoinTestException;
 import java.io.IOException;
 
 public interface CoinTester {
-    void initBot(String name, StringBuilder stringBuilder) throws Exception;
-    String testCoin(String refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException, CoinTestException, Exception;
+    void initBot(String name, StringBuilder stringBuilder, String email) throws Exception;
+    String testCoin(String refillAmount) throws Exception;
 }
