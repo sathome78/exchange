@@ -679,6 +679,8 @@ public class OnlineRestController {
                 p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale));
             } catch (NoSuchMessageException e) {
                 p.setMarketName(p.getMarket());
+            } catch (Exception e){
+                System.out.println(e.getMessage());
             }
         });
         return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
