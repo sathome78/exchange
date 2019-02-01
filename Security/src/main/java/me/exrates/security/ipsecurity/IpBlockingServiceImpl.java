@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentMap;
 @Log4j2(topic = "ip_log")
 @Service
 @PropertySource(value = {"classpath:/ip_ban.properties"})
+@PropertySource(value = {"classpath:/angular.properties"})
 public class IpBlockingServiceImpl implements IpBlockingService {
 
     @Value("${ban.short.attempts.num}")
@@ -35,6 +36,9 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     @Value("${ban.long.time}")
     private Long longBanTime;
 
+    @Value("${dev.mode}")
+    private boolean devMode;
+
     private final Object lock = new Object();
 
     private ConcurrentMap<IpTypesOfChecking, ConcurrentMap<String, LoginAttemptDto>> ipchecker;
@@ -43,28 +47,34 @@ public class IpBlockingServiceImpl implements IpBlockingService {
         ipchecker = new ConcurrentReferenceHashMap<>();
         ipchecker.put(IpTypesOfChecking.LOGIN, new ConcurrentReferenceHashMap<>());
         ipchecker.put(IpTypesOfChecking.OPEN_API, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.CREATE_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.REGISTER, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.UPDATE_MAIN_PASSWORD, new ConcurrentReferenceHashMap<>());
+
     }
 
     @Override
     public void checkIp(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
-        synchronized (lock) {
-            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
-            if (specificIpChecker.containsKey(ipAddress)) {
-                LocalDateTime currentTime = LocalDateTime.now();
-                LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
-                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
-                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
-                } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
-                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
-                }
-                if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
-                    specificIpChecker.remove(ipAddress);
-                } else {
-                    attempt.setStatus(IpBanStatus.ALLOW);
-                }
+        if (!devMode)
+            synchronized (lock) {
+                ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+                if (specificIpChecker.containsKey(ipAddress)) {
+                    LocalDateTime currentTime = LocalDateTime.now();
+                    LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
+                    if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
+                        throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
+                    } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
+                        throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
+                    }
+                    if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
+                        specificIpChecker.remove(ipAddress);
+                    } else {
+                        attempt.setStatus(IpBanStatus.ALLOW);
+                    }
 
+                }
             }
-        }
     }
 
     private boolean checkBanPending(LoginAttemptDto attempt, long banTimeSeconds, LocalDateTime currentTime) {
@@ -73,21 +83,22 @@ public class IpBlockingServiceImpl implements IpBlockingService {
 
     @Override
     public void failureProcessing(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
-        synchronized (lock) {
-            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
-            if (!specificIpChecker.containsKey(ipAddress)) {
-                specificIpChecker.put(ipAddress, new LoginAttemptDto(ipAddress));
-            } else {
-                LoginAttemptDto attemptDto = specificIpChecker.get(ipAddress);
-                attemptDto.addNewAttempt();
-                if (checkNeedToBan(attemptDto, attemptsBeforeLongBan, periodAttemptsBeforeLongBan) && attemptDto.isWasInShortBan()) {
-                    attemptDto.setStatus(IpBanStatus.BAN_LONG);
-                } else if (checkNeedToBan(attemptDto, attemptsBeforeShortBan, periodAttemptsBeforeShortBan)) {
-                    attemptDto.setStatus(IpBanStatus.BAN_SHORT);
-                    attemptDto.setWasInShortBan(true);
+        if (!devMode)
+            synchronized (lock) {
+                ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+                if (!specificIpChecker.containsKey(ipAddress)) {
+                    specificIpChecker.put(ipAddress, new LoginAttemptDto(ipAddress));
+                } else {
+                    LoginAttemptDto attemptDto = specificIpChecker.get(ipAddress);
+                    attemptDto.addNewAttempt();
+                    if (checkNeedToBan(attemptDto, attemptsBeforeLongBan, periodAttemptsBeforeLongBan) && attemptDto.isWasInShortBan()) {
+                        attemptDto.setStatus(IpBanStatus.BAN_LONG);
+                    } else if (checkNeedToBan(attemptDto, attemptsBeforeShortBan, periodAttemptsBeforeShortBan)) {
+                        attemptDto.setStatus(IpBanStatus.BAN_SHORT);
+                        attemptDto.setWasInShortBan(true);
+                    }
                 }
             }
-        }
 
     }
 
