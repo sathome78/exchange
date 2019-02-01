@@ -20,7 +20,6 @@ import me.exrates.service.*;
 import me.exrates.service.exception.CoinTestException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
-import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -28,7 +27,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -79,12 +77,12 @@ public class BtcCoinTesterImpl implements CoinTester {
     }
 
     @Override
-    public String testCoin(double refillAmount) throws Exception {
+    public String testCoin(String refillAmount) throws Exception {
         try {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
             testAddressGeneration();
-            checkRefill(refillAmount * 10, merchantId, currencyId, request);
+            checkRefill(refillAmount + "0", merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
             testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
@@ -139,7 +137,7 @@ public class BtcCoinTesterImpl implements CoinTester {
 
     }
 
-    private void testAutoWithdraw(double refillAmount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
+    private void testAutoWithdraw(String refillAmount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             String withdrawAddress = btcdClient.getNewAddress();
             stringBuilder.append("address for withdraw " + withdrawAddress).append("\n");;
@@ -198,7 +196,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         }
     }
 
-    public void testManualWithdraw(double amount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
+    private void testManualWithdraw(String amount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             setAutoWithdraw(false);
 
@@ -238,7 +236,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
     }
 
-    private void checkRefill(double refillAmount, int merchantId, int currencyId, RefillRequestCreateDto request) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
+    private void checkRefill(String refillAmount, int merchantId, int currencyId, RefillRequestCreateDto request) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);

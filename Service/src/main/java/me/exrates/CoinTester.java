@@ -8,5 +8,5 @@ import java.io.IOException;
 
 public interface CoinTester {
     void initBot(String name, StringBuilder stringBuilder) throws Exception;
-    String testCoin(double refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException, CoinTestException, Exception;
+    String testCoin(String refillAmount) throws IOException, BitcoindException, CommunicationException, InterruptedException, CoinTestException, Exception;
 }

@@ -1,6 +1,5 @@
 package me.exrates;
 
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -112,12 +111,12 @@ public class EthTokenTester implements CoinTester {
         Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + name);
         Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
-        contract = (ethTokenERC20)method.invoke(null, contractTestAddress, web3j, credentials, gasPrice, GAS_LIMIT);
+        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT);
     }
 
 
     @Override
-    public String testCoin(double refillAmount) throws Exception {
+    public String testCoin(String refillAmount) throws Exception {
         try {
             stringBuilder.append("Starting prepareRefillRequest\n");
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
@@ -125,7 +124,8 @@ public class EthTokenTester implements CoinTester {
             setMinConfirmation(MIN_CONFIRMATION_FOR_REFILL);
             stringBuilder.append("checkNodeConnection\n");
             checkNodeConnection();
-            checkRefill(request, "1000000000000000", merchantId, currencyId);
+            checkRefill(request, refillAmount, merchantId, currencyId);
+//            checkRefill(request, "1000000000000000", merchantId, currencyId);
             return stringBuilder.toString();
         } catch (Exception e){
             return stringBuilder.append(e.getMessage()).append("\n").toString();
