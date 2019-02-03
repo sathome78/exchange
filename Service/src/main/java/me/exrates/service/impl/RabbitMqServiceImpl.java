@@ -8,9 +8,6 @@ import me.exrates.service.RabbitMqService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,15 +27,13 @@ public class RabbitMqServiceImpl implements RabbitMqService {
 
     @Override
     public void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName) {
+//        String result = "fail";
         try {
             String orderJson = objectMapper.writeValueAsString(inputOrder);
-            Message message = MessageBuilder
-                    .withBody(orderJson.getBytes())
-                    .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                    .build();
+
             try {
                 logger.error("Rabbit Mq is disabled for now");
-                this.rabbitTemplate.convertAndSend(queueName, message);
+                this.rabbitTemplate.convertSendAndReceive(queueName, orderJson);
             } catch (AmqpException e) {
                 String msg = "Failed to send data via rabbit queue";
                 logger.error(msg + " " + orderJson, e);
@@ -47,6 +42,6 @@ public class RabbitMqServiceImpl implements RabbitMqService {
         } catch (JsonProcessingException e) {
             logger.error("Failed to send order to old instance", e);
         }
-
+//        return result;
     }
 }

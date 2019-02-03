@@ -351,4 +351,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .frameOptions()
                 .sameOrigin();
     }
+
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring()
+                .antMatchers(POST, "/info/public/v2/shufti-pro/callback");
+    }
 }

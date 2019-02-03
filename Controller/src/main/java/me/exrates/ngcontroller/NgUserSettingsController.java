@@ -20,6 +20,9 @@ import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.UserVerificationService;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.service.CheckIp;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
@@ -81,6 +84,9 @@ public class NgUserSettingsController {
     private final PageLayoutSettingsService layoutSettingsService;
     private final UserVerificationService verificationService;
 
+    @Autowired
+    private IpBlockingService ipBlockingService;
+
     @Value("${contacts.feedbackEmail}")
     String feedbackEmail;
 
@@ -106,6 +112,7 @@ public class NgUserSettingsController {
     // 400 - 1011 - either current or new password is blank
     // 400 - 1010 - wrong main user password
     @PutMapping(value = "/updateMainPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CheckIp(value = IpTypesOfChecking.UPDATE_MAIN_PASSWORD)
     public ResponseEntity<Void> updateMainPassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String email = getPrincipalEmail();
         User user = userService.findByEmail(email);
@@ -122,6 +129,7 @@ public class NgUserSettingsController {
             String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
             logger.warn(message);
+            ipBlockingService.failureProcessing(clientIp, IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             throw new NgDashboardException(message, Constants.ErrorApi.USER_WRONG_CURRENT_PASSWORD);
         }
         newPassword = RestApiUtils.decodePassword(newPassword);
@@ -129,6 +137,7 @@ public class NgUserSettingsController {
         user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)) {
+            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
