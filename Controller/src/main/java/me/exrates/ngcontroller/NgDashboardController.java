@@ -257,6 +257,7 @@ public class NgDashboardController {
      * /info/private/v2/dashboard/last/orders/{status}
      *
      * @param status         - user’s order status
+     * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
      * @param hideCanceled   - hide cancelled orders if true
      * @param request        - HttpServletRequest, used by backend to resolve locale
      * @return - Pageable list of defined orders with meta info about total orders' count
@@ -265,16 +266,21 @@ public class NgDashboardController {
     @GetMapping("/last/orders/{status}")
     public ResponseEntity<PagedResult<OrderWideListDto>> getLastOrders(
             @PathVariable("status") String status,
+            @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             HttpServletRequest request) {
         final OrderStatus orderStatus = OrderStatus.valueOf(status);
 
         final int userId = userService.getIdByEmail(getPrincipalEmail());
 
+        final CurrencyPair currencyPair = currencyPairId > 0
+                ? currencyService.findCurrencyPairById(currencyPairId)
+                : null;
+
         Locale locale = localeResolver.resolveLocale(request);
 
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, null,
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, currencyPair,
                     null, orderStatus, StringUtils.EMPTY, 0, 15, hideCanceled, locale,
                     Collections.emptyMap(), null, null);
 
