@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import org.aspectj.lang.JoinPoint;
@@ -21,8 +22,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.util.concurrent.ExecutionException;
 
-
+@Log4j2(topic = "check_ip_aspect")
 @Component
 @Aspect
 @PropertySource(value = {"classpath:/angular.properties"})
@@ -30,8 +32,6 @@ public class CheckIpAspect {
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
-
-    private static final Logger logger = LoggerFactory.getLogger(CheckIpAspect.class);
 
     @Autowired
     private IpBlockingService ipBlockingService;
@@ -48,9 +48,8 @@ public class CheckIpAspect {
             fail();
         }
         String ipAddress = request.getHeader("client_ip");
-        if (!DEV_MODE) {
-            ipBlockingService.checkIp(ipAddress, myAnnotation.value());
-        }
+
+        ipBlockingService.checkIp(ipAddress, myAnnotation.value());
     }
 
 
@@ -59,13 +58,13 @@ public class CheckIpAspect {
         if (requestAttributes instanceof ServletRequestAttributes) {
             return ((ServletRequestAttributes) requestAttributes).getRequest();
         }
-        logger.debug("Not called in the context of an HTTP request");
+        log.debug("Not called in the context of an HTTP request");
         return null;
     }
 
     private void fail() {
         String errorMessage = "Failed to find client_ip header among request headers";
-        logger.warn(errorMessage);
+        log.warn(errorMessage);
         throw new RuntimeException(errorMessage);
     }
 
