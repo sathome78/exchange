@@ -98,6 +98,7 @@ public class EthTokenTester implements CoinTester {
         if(email != null) this.principalEmail = email;
         prepareContract();
         stringBuilder.append("Bot init success").append("\n");
+        if(email != null) this.principalEmail = email;
     }
 
     private void prepareContract() throws Exception {
