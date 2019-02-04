@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
@@ -37,18 +37,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import static me.exrates.BtcCoinTesterImpl.compareObjects;
+import static me.exrates.BtcCoinTester.compareObjects;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.service.ethereum.EthTokenServiceImpl.GAS_LIMIT;
 
 //ethereum.properties
-@Service("ethTokenTester")
-@Scope("prototype")
-@PropertySource(value = "classpath:/merchants/ethereum.properties")
+@Component("ethCoinTester")
+@Scope("prototype")@PropertySource(value = "classpath:/merchants/ethereum.properties")
 public class EthTokenTester implements CoinTester {
 
-    private static final String principalEmail = "mikita.malykov@upholding.biz";
+    private String principalEmail = "mikita.malykov@upholding.biz";
     private static final int MIN_CONFIRMATION_FOR_REFILL = 1;
     @Autowired
     private Map<String, IRefillable> reffilableServiceMap;
@@ -88,14 +87,15 @@ public class EthTokenTester implements CoinTester {
     private static String mainTestPrivateKey = "92562730201626919127666680751712739048456177233249322255821751422413958671494";
     private static String mainTestPublicKey = "4170443246532098761497715728719234481946975701057637192159203344434254472506085562498955849273074226120269972199365634457382511964193135837279887855130261";
     private static String contractTestAddress = "0x1C83501478f1320977047008496DACBD60Bb15ef";
-//    private static String name = "DGTX";
+    //private static String name = "DGTX";
     private ethTokenERC20 contract;
 
-    public void initBot(String name, StringBuilder stringBuilder) throws Exception {
+    public void initBot(String name, StringBuilder stringBuilder, String email) throws Exception {
         merchantId = merchantService.findByName(name).getId();
         currencyId = currencyService.findByName(name).getId();
         this.name = name;
         this.stringBuilder = stringBuilder;
+        if(email != null) this.principalEmail = email;
         prepareContract();
         stringBuilder.append("Bot init success").append("\n");
     }

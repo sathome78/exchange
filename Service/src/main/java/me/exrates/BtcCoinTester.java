@@ -25,6 +25,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -37,7 +39,9 @@ import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 @NoArgsConstructor
-public class BtcCoinTesterImpl implements CoinTester {
+@Component("btcCoinTester")
+@Scope("prototype")
+public class BtcCoinTester implements CoinTester {
 
     private String principalEmail = "mikita.malykov@upholding.biz";
     @Autowired
@@ -74,7 +78,7 @@ public class BtcCoinTesterImpl implements CoinTester {
         this.name = name;
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
-        this.principalEmail = email;
+        if(email != null) this.principalEmail = email;
     }
 
     @Override

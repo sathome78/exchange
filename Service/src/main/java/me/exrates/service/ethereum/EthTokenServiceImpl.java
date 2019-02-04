@@ -100,6 +100,11 @@ public class EthTokenServiceImpl implements EthTokenService {
         return unit;
     }
 
+    @Override
+    public String getMerchantName() {
+        return merchantName;
+    }
+
     public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
                                String currencyName, boolean isERC20, ExConvert.Unit unit) {
         this.contractAddress = contractAddress;
