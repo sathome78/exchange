@@ -139,6 +139,7 @@ public class NgUserController {
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             logger.error("Incorrect password, email = {}", authenticationDto.getEmail());
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             throw new IncorrectPasswordException("Incorrect password");
         }
 
@@ -205,6 +206,7 @@ public class NgUserController {
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
         boolean result = ngUserService.registerUser(userEmailDto, request);
+
 
         if (result) {
             ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
