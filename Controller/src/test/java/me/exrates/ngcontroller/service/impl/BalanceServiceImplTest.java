@@ -39,6 +39,7 @@ public class BalanceServiceImplTest {
     private static final String BTC = "BTC";
     private static final String ETH = "ETH";
     private static final String RUB = "RUB";
+
     private static final CurrencyType TYPE = CurrencyType.CRYPTO;
 
     private static final String EMAIL = "sample@test.com";
