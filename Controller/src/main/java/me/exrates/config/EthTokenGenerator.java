@@ -1,3 +1,4 @@
+/*
 package me.exrates.config;
 
 import me.exrates.service.ethereum.ExConvert;
@@ -494,4 +495,4 @@ public class EthTokenGenerator {
                         "    }\n" +
                         "]");
     }
-}
+}*/

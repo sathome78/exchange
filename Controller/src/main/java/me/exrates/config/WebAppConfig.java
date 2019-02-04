@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -19,7 +18,6 @@ import me.exrates.service.ethereum.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
-import me.exrates.service.impl.HCXPServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
@@ -391,7 +389,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
 //        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
-        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
+//        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
     }
 
 
@@ -1585,16 +1583,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "wabiServiceImpl")
-    public EthTokenService wabiService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "WaBi",
-                "WaBi", true, ExConvert.Unit.ETHER);
-    }
-
     @Bean(name = "poaServiceImpl")
     public EthTokenService poaService() {
         List<String> tokensList = new ArrayList<>();
@@ -1629,7 +1617,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public EthTokenService wabiServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
-		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", false, ExConvert.Unit.ETHER);
+		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", true, ExConvert.Unit.ETHER);
 	}
 
 	//    Qtum tokens:
@@ -1666,12 +1654,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
                 "SUMO", "SUMO", 10, 9);
-    }
-
-    @Bean(name = "hcxpServiceImpl")
-    public MoneroService hcxpService() {
-        return new HCXPServiceImpl("merchants/hcxp.properties",
-                "HCXP", "HCXP", 10, 6);
     }
 
     /***tokens based on xem mosaic)****/
