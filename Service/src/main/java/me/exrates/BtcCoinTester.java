@@ -84,6 +84,7 @@ public class BtcCoinTester implements CoinTester {
     @Override
     public String testCoin(String refillAmount) throws Exception {
         try {
+            testNodeInfo();
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
             testAddressGeneration();
@@ -93,10 +94,16 @@ public class BtcCoinTester implements CoinTester {
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
             stringBuilder.append("Works fine!\n");
             return "Works fine";
-        }catch (Exception e){
+        } catch (Exception e){
             stringBuilder.append(e.toString());
             return e.getMessage();
         }
+    }
+
+    private void testNodeInfo() throws BitcoindException, CommunicationException {
+        stringBuilder.append("------TEST NODE INFO-----").append("/n")
+                .append("Current balance = " + btcdClient.getBalance()).append("/n")
+                .append("You can refill test node on address = " + btcdClient.getNewAddress()).append("\n");
     }
 
     private void setMinConfirmation(int i) throws NoSuchFieldException {

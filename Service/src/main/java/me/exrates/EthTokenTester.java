@@ -25,6 +25,8 @@ import org.springframework.stereotype.Component;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.http.HttpService;
 
@@ -80,8 +82,6 @@ public class EthTokenTester implements CoinTester {
     private int merchantId;
     private String name;
     private final static Integer TIME_FOR_REFILL = 10000;
-    private Object withdrawTest = new Object();
-    private int withdrawStatus = 0;
     private StringBuilder stringBuilder;
     private static String mainTestAccountAddress = "0x0b958aa9601f1ca594fbe76bf879d8c29d578144";
     private static String mainTestPrivateKey = "92562730201626919127666680751712739048456177233249322255821751422413958671494";
@@ -113,6 +113,10 @@ public class EthTokenTester implements CoinTester {
         Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
         contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT);
+        stringBuilder.append("------TEST NODE INFO-----")
+                .append("Main TEST adrress = " + mainTestAccountAddress).append("\n")
+                .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST)).append("\n")
+                .append(name + " token balance = " + contract.balanceOf(credentials.getAddress())).append("\n");
     }
 
 
