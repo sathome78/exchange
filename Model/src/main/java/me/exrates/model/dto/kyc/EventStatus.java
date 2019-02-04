@@ -9,6 +9,7 @@ public enum EventStatus {
     ACCEPTED("verification.accepted"),
     DECLINED("verification.declined"),
     CANCELLED("verification.cancelled"),
+    CHANGED("verification.status.changed"),
 
     PENDING("request.pending"),
     INVALID("request.invalid"),

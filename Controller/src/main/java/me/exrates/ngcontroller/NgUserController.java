@@ -17,7 +17,9 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.CheckIp;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
@@ -97,25 +99,19 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/authenticate")
+    @CheckIp(value = IpTypesOfChecking.LOGIN)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
 
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
 
-        try {
-            if (!DEV_MODE) {
-//                ipBlockingService.checkIp(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-            }
-        } catch (BannedIpException ban) {
-            return new ResponseEntity<>(HttpStatus.DESTINATION_LOCKED); // 419
-        }
-
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
             userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
         }
@@ -179,7 +175,7 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =
@@ -193,7 +189,7 @@ public class NgUserController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-//        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -205,14 +201,18 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/register")
+    @CheckIp(value = IpTypesOfChecking.REGISTER)
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
         boolean result = ngUserService.registerUser(userEmailDto, request);
 
         if (result) {
+            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
-
+        String ipAddress = request.getHeader("client_ip");
+        if (ipAddress == null) ipAddress = request.getRemoteAddr();
+        ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
@@ -224,16 +224,26 @@ public class NgUserController {
     }
 
     @PostMapping("/recoveryPassword")
+    @CheckIp(value = IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD)
     public ResponseEntity requestForRecoveryPassword(@RequestBody @Valid UserEmailDto userEmailDto,
                                                      HttpServletRequest request) {
         boolean result = ngUserService.recoveryPassword(userEmailDto, request);
+        if (!result) {
+            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
+        }
+        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/createRecoveryPassword")
+    @CheckIp(value = IpTypesOfChecking.CREATE_RECOVERY_PASSWORD)
     public ResponseEntity createRecoveryPassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
                                                  HttpServletRequest request) {
         boolean result = ngUserService.createPasswordRecovery(passwordCreateDto, request);
+        if (!result) {
+            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
+        }
+        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
@@ -267,4 +277,12 @@ public class NgUserController {
     public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+//
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    @ExceptionHandler({NullPointerException.class})
+//    @ResponseBody
+//    public ErrorInfo npeHandler(HttpServletRequest req, Exception exception) {
+//        logger.error(exception);
+//        return new ErrorInfo(req.getRequestURL(), exception);
+//    }
 }

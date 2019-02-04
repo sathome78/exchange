@@ -1,8 +1,10 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.stereotype.Component;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Component
 public class CurrencyPair {
     private int id;
@@ -12,8 +14,9 @@ public class CurrencyPair {
     private String market;
     private String marketName;
     private CurrencyPairType pairType;
+    private boolean hidden;
+    private boolean permittedLink;
 
-    /*constructors*/
     public CurrencyPair() {
     }
 
@@ -60,7 +63,6 @@ public class CurrencyPair {
                 '}';
     }
 
-    /*getters setters*/
     public int getId() {
         return id;
     }
@@ -115,5 +117,21 @@ public class CurrencyPair {
 
     public void setPairType(CurrencyPairType pairType) {
         this.pairType = pairType;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public boolean isPermittedLink() {
+        return permittedLink;
+    }
+
+    public void setPermittedLink(boolean permittedLink) {
+        this.permittedLink = permittedLink;
     }
 }

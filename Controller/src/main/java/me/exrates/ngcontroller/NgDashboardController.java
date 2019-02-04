@@ -6,6 +6,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
+import me.exrates.model.dto.RabbitResponse;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
@@ -55,6 +56,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -106,12 +108,25 @@ public class NgDashboardController {
     // /info/private/v2/dashboard/order
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
+        List<String> list = Arrays.asList("staszp@gmail.com", "stanislav.gorobzeev@upholding.biz", "oleg.podolyan@upholding.biz",
+                "evgeniy.gogol@upholding.biz", "ekaterina.hvorostina@upholding.biz");
+        String email = getPrincipalEmail();
+
+//        temp fix fot testing
+        boolean anyMatch = list.stream().anyMatch(o -> o.equalsIgnoreCase(email));
+        if (!anyMatch) {
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        int userId = userService.getIdByEmail(email);
+        inputOrder.setUserId(userId);
         ngOrderService.prepareOrder(inputOrder);
-        String result = rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
-        if (result.equalsIgnoreCase("success")) {
-            return new ResponseEntity<>(HttpStatus.CREATED);
+        RabbitResponse response = rabbitMqService.sendOrderInfo(inputOrder, RabbitMqService.JSP_QUEUE);
+        ResponseModel<RabbitResponse> responseModel = new ResponseModel<>(response);
+        if (response.isSuccess()) {
+            return new ResponseEntity<>(responseModel, HttpStatus.CREATED);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(responseModel, HttpStatus.BAD_REQUEST);
         }
 
     }
