@@ -6,6 +6,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
@@ -55,7 +56,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -238,9 +238,21 @@ public class NgDashboardController {
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
 
+        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
+                .userId(userId)
+                .currencyPair(currencyPair)
+                .currencyName(currencyName)
+                .status(orderStatus)
+                .scope(scope)
+                .offset(offset)
+                .limit(limit)
+                .hideCanceled(hideCanceled)
+                .sortedColumns(sortedColumns)
+                .dateFrom(dateFrom)
+                .dateTo(dateTo)
+                .build();
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, currencyPair,
-                    currencyName, orderStatus, scope, offset, limit, hideCanceled, locale, sortedColumns, dateFrom, dateTo);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
@@ -279,10 +291,18 @@ public class NgDashboardController {
 
         Locale locale = localeResolver.resolveLocale(request);
 
+        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
+                .userId(userId)
+                .currencyPair(currencyPair)
+                .status(orderStatus)
+                .scope(StringUtils.EMPTY)
+                .offset(0)
+                .limit(15)
+                .hideCanceled(hideCanceled)
+                .sortedColumns(Collections.emptyMap())
+                .build();
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(userId, currencyPair,
-                    null, orderStatus, StringUtils.EMPTY, 0, 15, hideCanceled, locale,
-                    Collections.emptyMap(), null, null);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
