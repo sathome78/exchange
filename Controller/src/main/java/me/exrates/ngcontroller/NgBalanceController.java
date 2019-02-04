@@ -2,13 +2,13 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.ngcontroller.exception.NgBalanceException;
@@ -17,7 +17,6 @@ import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.service.OrderService;
 import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -44,7 +43,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -90,16 +88,23 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "false") Boolean excludeZero,
-            @RequestParam(required = false, defaultValue = "") String currencyName,
+            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
             @RequestParam(required = false) CurrencyType currencyType) {
-        String email = getPrincipalEmail();
+        final String email = getPrincipalEmail();
+
+        final BalanceFilterDataDto filter = BalanceFilterDataDto.builder()
+                .limit(limit)
+                .offset(offset)
+                .excludeZero(excludeZero)
+                .currencyName(currencyName)
+                .currencyType(currencyType)
+                .email(email)
+                .build();
         try {
-            PagedResult<MyWalletsDetailedDto> pagedResult =
-                    balanceService.getWalletsDetails(offset, limit, email, excludeZero, currencyType, currencyName);
-            return ResponseEntity.ok(pagedResult);
+            return ResponseEntity.ok(balanceService.getWalletsDetails(filter));
         } catch (Exception ex) {
             logger.error("Failed to get user balances", ex);
-            throw new NgDashboardException("Failed to get user balances" + ex.getMessage());
+            throw new NgDashboardException(String.format("Failed to get user balances: %s", ex.getMessage()));
         }
     }
 

@@ -1,8 +1,8 @@
 package me.exrates.ngcontroller.service;
 
+import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
-import me.exrates.model.enums.CurrencyType;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
 import me.exrates.ngcontroller.model.UserBalancesDto;
 import me.exrates.ngcontroller.util.PagedResult;
@@ -20,7 +20,7 @@ public interface BalanceService {
 
     List<UserBalancesDto> getUserBalances(String tikerName, String sortByCreated, Integer page, Integer limit, int userId);
 
-    PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero, CurrencyType currencyType, String currencyName);
+    PagedResult<MyWalletsDetailedDto> getWalletsDetails(BalanceFilterDataDto filterDataDto);
 
     Optional<MyWalletsDetailedDto> findOne(String email, Integer currencyId);
 
