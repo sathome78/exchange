@@ -81,4 +81,13 @@ public class GlobalControllerExceptionHandler {
         return new ErrorInfo(message, exception);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(BannedIpException.class)
+    @ResponseBody
+    public ErrorInfo ipBannedExceptionHandler(HttpServletRequest request, BannedIpException exception) {
+        String clientIp = request.getHeader("client_ip");
+        String message = "Banned ip exception . Banned ip address " + clientIp + " for " + exception.getBanDurationSeconds() + " seconds";
+        return new ErrorInfo(message, exception);
+    }
+
 }
