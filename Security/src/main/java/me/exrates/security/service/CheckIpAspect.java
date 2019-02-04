@@ -18,6 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.util.Enumeration;
 import java.util.Optional;
 
 @Log4j2(topic = "check_ip_aspect")
@@ -43,6 +44,16 @@ public class CheckIpAspect {
         if (request == null) {
             fail();
         }
+
+        // todo remove
+        StringBuilder stringBuilder = new StringBuilder();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while(headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            stringBuilder.append(String.format("[%s] -> %s ;",  headerName, request.getHeader(headerName)));
+        }
+
+        log.error("REQUEST HEADERS NAMES : " + stringBuilder.toString());
         String ipAddress = Optional.ofNullable(request.getHeader("client_ip"))
                 .orElseThrow(() -> {
                     String message = "Missing header client_ip in request";
