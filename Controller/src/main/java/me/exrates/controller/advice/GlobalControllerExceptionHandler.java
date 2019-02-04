@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
 import me.exrates.security.exception.BannedIpException;
+import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -60,6 +61,13 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(NoPermissionForOperationException.class)
     @ResponseBody
     public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingHeaderException.class)
+    @ResponseBody
+    public ErrorInfo handleMissingHeaderException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
