@@ -45,7 +45,7 @@ public class OrderServiceImplTest {
     private Locale locale;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         locale = new Locale("en");
 
         LocalDate now = LocalDate.now();
