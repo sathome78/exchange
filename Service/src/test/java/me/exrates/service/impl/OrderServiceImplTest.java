@@ -79,7 +79,7 @@ public class OrderServiceImplTest {
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(any(OrderFilterDataDto.class), any(Locale.class));
 
         assertNotNull("Pair could not be null", pair);
-        assertEquals("Number of records could be equal", 1, (int) pair.getLeft());
+        assertEquals("Number of records could be equals", 1, (int) pair.getLeft());
         assertFalse("List could not be empty", pair.getRight().isEmpty());
         assertEquals("The size of list could be equal to one", 1, pair.getRight().size());
 
@@ -99,7 +99,7 @@ public class OrderServiceImplTest {
         verify(orderDao, never()).getMyOrdersWithState(any(OrderFilterDataDto.class), any(Locale.class));
 
         assertNotNull("Pair could not be null", pair);
-        assertEquals("Number of records could be equal", 0, (int) pair.getLeft());
+        assertEquals("Number of records could be equals", 0, (int) pair.getLeft());
         assertTrue("List could be empty", pair.getRight().isEmpty());
 
         log.debug("getMyOrdersWithStateMap_notFoundRecordsTest() - end");
