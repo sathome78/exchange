@@ -15,6 +15,7 @@ import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
@@ -381,9 +382,7 @@ public interface OrderService {
                                                 Integer offset, Integer limit, Locale locale);
 
     @Transactional(readOnly = true)
-    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                  String scope, Integer offset, Integer limit, boolean hideCanceled, Locale locale,
-                                                                  Map<String, String> sortedColumns, LocalDate dateFrom, LocalDate dateTo);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);
 
     @Transactional(readOnly = true)
 
