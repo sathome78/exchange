@@ -46,7 +46,7 @@ public class OrderServiceImplTest {
 
     @Before
     public void setUp() {
-        locale = new Locale("en");
+        locale = Locale.ENGLISH;
 
         LocalDate now = LocalDate.now();
         filter = OrderFilterDataDto.builder()
