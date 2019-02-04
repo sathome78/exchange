@@ -11,6 +11,7 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
@@ -112,12 +113,9 @@ public interface OrderDao {
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                         String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
 
-    Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, String currencyName, OrderStatus status, String scope,
-                                      LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
+    Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto);
 
-    List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, String currencyName,
-                                                Locale locale, String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
-                                                LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
+    List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 

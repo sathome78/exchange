@@ -16,6 +16,7 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RatesUSDForReportDto;
@@ -1054,26 +1055,25 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer getMyOrdersWithStateCount(int userId, CurrencyPair currencyPair, String currencyName, OrderStatus status, String scope,
-                                             LocalDate from, LocalDate to, boolean hideCanceled) {
-        String currencyPairClauseJoin = isNull(currencyPair)
+    public Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto) {
+        String currencyPairClauseJoin = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
-        String currencyPairClauseWhere = isNull(currencyPair)
+        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfter = isNull(from)
+        String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(to)
+        String createdBefore = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation <= :dateBefore";
-        String currencyNameClause = isBlank(currencyName)
+        String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String userFilterClause;
-        switch (scope) {
+        switch (filterDataDto.getScope()) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
                 break;
@@ -1097,43 +1097,41 @@ public class OrderDaoImpl implements OrderDao {
                 + userFilterClause;
 
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
-        namedParameters.addValue("user_id", userId);
-        namedParameters.addValue("statusId", getListOrderStatus(status, hideCanceled));
+        namedParameters.addValue("user_id", filterDataDto.getUserId());
+        namedParameters.addValue("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         namedParameters.addValue("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(currencyPair)) {
-            namedParameters.addValue("currencyPairId", currencyPair.getId());
+        if (nonNull(filterDataDto.getCurrencyPair())) {
+            namedParameters.addValue("currencyPairId", filterDataDto.getCurrencyPair().getId());
         }
-        if (nonNull(from)) {
-            namedParameters.addValue("dateFrom", from, Types.DATE);
+        if (nonNull(filterDataDto.getDateFrom())) {
+            namedParameters.addValue("dateFrom", filterDataDto.getDateFrom(), Types.DATE);
         }
-        if (nonNull(to)) {
-            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
+        if (nonNull(filterDataDto.getDateTo())) {
+            namedParameters.addValue("dateBefore", filterDataDto.getDateTo().plus(1, ChronoUnit.DAYS), Types.DATE);
         }
-        if (isNotBlank(currencyName)) {
-            namedParameters.addValue("currency_name", currencyName);
+        if (isNotBlank(filterDataDto.getCurrencyName())) {
+            namedParameters.addValue("currency_name", filterDataDto.getCurrencyName());
         }
         return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, OrderStatus status, CurrencyPair currencyPair, String currencyName,
-                                                       Locale locale, String scope, Integer offset, Integer limit, Map<String, String> sortedColumns,
-                                                       LocalDate from, LocalDate to, boolean hideCanceled) {
-        String currencyPairClauseWhere = isNull(currencyPair)
+    public List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale) {
+        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfter = isNull(from)
+        String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(to)
+        String createdBefore = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation <= :dateBefore";
-        String currencyNameClause = isBlank(currencyName)
+        String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String userFilterClause;
-        switch (scope) {
+        switch (filterDataDto.getScope()) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
                 break;
@@ -1145,13 +1143,13 @@ public class OrderDaoImpl implements OrderDao {
                 break;
         }
 
-        String orderClause = sortedColumns.isEmpty()
+        String orderClause = filterDataDto.getSortedColumns().isEmpty()
                 ? " ORDER BY date_creation DESC "
                 : " ORDER BY date_creation ASC ";
 
         String pageClause = " LIMIT ";
-        pageClause += limit != 14 ? String.valueOf(limit) : "14";
-        pageClause += offset > 0 ? " OFFSET " + String.valueOf(offset) : StringUtils.EMPTY;
+        pageClause += filterDataDto.getLimit() != 14 ? String.valueOf(filterDataDto.getLimit()) : "14";
+        pageClause += filterDataDto.getOffset() > 0 ? " OFFSET " + String.valueOf(filterDataDto.getOffset()) : StringUtils.EMPTY;
 
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
                 " FROM EXORDERS" +
@@ -1167,20 +1165,20 @@ public class OrderDaoImpl implements OrderDao {
                 + pageClause;
 
         MapSqlParameterSource namedParameters = new MapSqlParameterSource();
-        namedParameters.addValue("user_id", userId);
-        namedParameters.addValue("statusId", getListOrderStatus(status, hideCanceled));
+        namedParameters.addValue("user_id", filterDataDto.getUserId());
+        namedParameters.addValue("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         namedParameters.addValue("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(currencyPair)) {
-            namedParameters.addValue("currencyPairId", currencyPair.getId());
+        if (nonNull(filterDataDto.getCurrencyPair())) {
+            namedParameters.addValue("currencyPairId", filterDataDto.getCurrencyPair().getId());
         }
-        if (nonNull(from)) {
-            namedParameters.addValue("dateFrom", from, Types.DATE);
+        if (nonNull(filterDataDto.getDateFrom())) {
+            namedParameters.addValue("dateFrom", filterDataDto.getDateFrom(), Types.DATE);
         }
-        if (nonNull(to)) {
-            namedParameters.addValue("dateBefore", to.plus(1, ChronoUnit.DAYS), Types.DATE);
+        if (nonNull(filterDataDto.getDateTo())) {
+            namedParameters.addValue("dateBefore", filterDataDto.getDateTo().plus(1, ChronoUnit.DAYS), Types.DATE);
         }
-        if (isNotBlank(currencyName)) {
-            namedParameters.addValue("currency_name", currencyName);
+        if (isNotBlank(filterDataDto.getCurrencyName())) {
+            namedParameters.addValue("currency_name", filterDataDto.getCurrencyName());
         }
 
         return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
