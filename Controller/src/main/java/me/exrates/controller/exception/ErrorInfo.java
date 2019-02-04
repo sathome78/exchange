@@ -1,6 +1,7 @@
 package me.exrates.controller.exception;
 
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import org.slf4j.MDC;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -31,6 +32,7 @@ public class ErrorInfo {
                 this.code = custom.getCode();
             }
         }
+        this.uuid = MDC.get("process.id");
     }
 
     public ErrorInfo(CharSequence url, Throwable ex, String reason) {
