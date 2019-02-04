@@ -77,7 +77,7 @@ public class RabbitConfig implements RabbitListenerConfigurer {
                 .durable(RabbitMqService.ANGULAR_QUEUE)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", QUEUE_DEAD_ORDERS)
-                .withArgument("x-message-ttl", 5000)
+                .withArgument("x-message-ttl", 10000)
                 .build();
     }
 
@@ -87,7 +87,7 @@ public class RabbitConfig implements RabbitListenerConfigurer {
                 .durable(RabbitMqService.JSP_QUEUE)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", QUEUE_DEAD_ORDERS)
-                .withArgument("x-message-ttl", 5000)
+                .withArgument("x-message-ttl", 10000)
                 .build();
     }
 
@@ -122,6 +122,7 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+        rabbitTemplate.setReplyTimeout(15000L);
         return rabbitTemplate;
     }
 

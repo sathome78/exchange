@@ -111,6 +111,7 @@ public class NgUserController {
             user = userService.findByEmail(authenticationDto.getEmail());
             userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
         }
@@ -278,4 +279,12 @@ public class NgUserController {
     public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+//
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    @ExceptionHandler({NullPointerException.class})
+//    @ResponseBody
+//    public ErrorInfo npeHandler(HttpServletRequest req, Exception exception) {
+//        logger.error(exception);
+//        return new ErrorInfo(req.getRequestURL(), exception);
+//    }
 }

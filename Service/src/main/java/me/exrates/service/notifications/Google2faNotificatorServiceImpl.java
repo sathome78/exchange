@@ -171,11 +171,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     @Override
     public boolean disableGoogleAuth(User user, Map<String, String> body) {
         String password = RestApiUtils.decodePassword(body.get("PASSWORD"));
-        String email = body.get("EMAIL");
         String pin = body.get("PINCODE");
-        if (!user.getEmail().equals(email)) {
-            return false;
-        }
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             return false;
