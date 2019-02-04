@@ -18,6 +18,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -27,11 +28,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -618,15 +615,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "WHERE wall.currency_id = :currencyId AND (wall.active_balance > 0 OR wall.reserved_balance > 0)";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("currency_id", currencyId);
+            put("currencyId", currencyId);
         }};
 
-        return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
             CurrencyReportInfoDto result = new CurrencyReportInfoDto();
                 result.setEmail(rs.getString("email"));
-                result.setMerchantId(null);
-                result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
-                result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+                result.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), Locale.ENGLISH, 2));
+                result.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), Locale.ENGLISH, 2));
+                result.setDateUserRegistration(rs.getTimestamp("regdate").toLocalDateTime());
+                result.setDateLastRefillByUser(rs.getTimestamp("date_last_refill").toLocalDateTime());
             return result;
         });
     }

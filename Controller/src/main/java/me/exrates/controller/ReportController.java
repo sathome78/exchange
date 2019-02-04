@@ -467,14 +467,14 @@ public class ReportController {
     @ResponseBody
     @PostMapping(value = "/2a8fy7b07dxe44/report/coin")
     public ResponseEntity getStatsByCoin(int currencyId, HttpServletRequest request) {
-        ReportDto reportDto = null;
+        ReportDto reportDto;
         try {
-//            reportDto = reportService.getOrders(adminOrderFilterData);
+            reportDto = reportService.getStatsByCoin(currencyId);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
         }
-        final byte[] content = null;
+        final byte[] content = reportDto.getContent();
         final String fileName = reportDto.getFileName();
 
         HttpHeaders headers = new HttpHeaders();

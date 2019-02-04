@@ -691,7 +691,7 @@ public class ReportServiceImpl implements ReportService {
         return ReportDto.builder()
                 .fileName(String.format("currency_%s-%s",
                         currencyService.getCurrencyName(currencyId), LocalDateTime.now().format(FORMATTER_FOR_NAME)))
-                .content(null)
+                .content(ReportStatsByCoinExcelGeneratorUtil.generate(statsByCoin))
                 .build();
     }
 

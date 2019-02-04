@@ -362,6 +362,6 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId){
-        return null;
+        return currencyDao.getStatsByCoin(currencyId);
     }
 }
