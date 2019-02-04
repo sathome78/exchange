@@ -7,39 +7,30 @@ import lombok.ToString;
 import me.exrates.model.enums.IpBanStatus;
 
 import java.time.LocalDateTime;
-import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Queue;
 
 @Getter @Setter
 @EqualsAndHashCode
 @ToString
 public class LoginAttemptDto {
     private String ip;
-    private Deque<LocalDateTime> attempts;
+    private Queue<LocalDateTime> attempts;
     private boolean wasInShortBan = false;
+    private LocalDateTime expiresAt;
     private IpBanStatus status = IpBanStatus.ALLOW;
 
     {
         attempts = new LinkedList<>();
-        addNewAttempt();
     }
 
     public LoginAttemptDto(String ip) {
         this.ip = ip;
     }
 
-    public int getAttemptsForPeriod(long periodInSeconds) {
-        LocalDateTime end = LocalDateTime.now();
-        LocalDateTime start = end.minusSeconds(periodInSeconds);
-        return (int) attempts.stream().filter(attempt -> attempt.equals(end) || attempt.isAfter(start) && attempt.isBefore(end)).count();
-    }
-
-    public void addNewAttempt() {
+    public LoginAttemptDto addNewAttempt() {
         attempts.offer(LocalDateTime.now());
-    }
-
-    public LocalDateTime getLastAttemptTime() {
-        return attempts.peekLast();
+        return this;
     }
 
 }

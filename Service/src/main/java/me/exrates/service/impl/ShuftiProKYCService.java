@@ -38,7 +38,7 @@ import static java.util.Objects.nonNull;
 @Component
 public class ShuftiProKYCService implements KYCService {
 
-    public static final String SIGNATURE = "sp_signature";
+    public static final String SIGNATURE = "Signature";
 
     private static final String EVENT = "event";
     private static final String ERROR = "error";
@@ -139,10 +139,13 @@ public class ShuftiProKYCService implements KYCService {
         VerificationRequest.Builder builder = VerificationRequest.builder()
                 .reference(RandomStringUtils.randomAlphanumeric(digitsNumber))
                 .callbackUrl(callbackUrl)
-                .redirectUrl(redirectUrl)
                 .email(userEmail)
                 .country(countryCode)
                 .verificationMode(verificationMode);
+
+        if (StringUtils.isNotEmpty(redirectUrl)) {
+            builder.redirectUrl(redirectUrl);
+        }
 
         if (nonNull(languageCode)) {
             builder.language(languageCode);
@@ -182,6 +185,11 @@ public class ShuftiProKYCService implements KYCService {
     @Override
     public Pair<String, EventStatus> getVerificationStatus() {
         final String reference = userService.getReferenceId();
+
+        return Pair.of(reference, getVerificationStatus(reference));
+    }
+
+    private EventStatus getVerificationStatus(String reference) {
         if (isNull(reference)) {
             throw new ShuftiProException("Process of verification data has not started. Reference id is undefined");
         }
@@ -206,7 +214,7 @@ public class ShuftiProKYCService implements KYCService {
 
         JSONObject statusObject = new JSONObject(response);
 
-        return Pair.of(reference, EventStatus.of(statusObject.getString(EVENT)));
+        return EventStatus.of(statusObject.getString(EVENT));
     }
 
     private StatusRequest buildStatusRequest(String reference) {
@@ -217,7 +225,8 @@ public class ShuftiProKYCService implements KYCService {
 
     @Override
     public Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String signature, String response) {
-        validateMerchantSignature(signature, response);
+        //todo: temporary unavailable signature validation
+//        validateMerchantSignature(signature, response);
 
         JSONObject statusObject = new JSONObject(response);
         final String reference = statusObject.getString(REFERENCE);
@@ -225,12 +234,25 @@ public class ShuftiProKYCService implements KYCService {
 
         final String userEmail = userService.getEmailByReferenceId(reference);
 
-        if (EventStatus.ACCEPTED.equals(eventStatus)) {
-            log.debug("Verification status: {}. Data have been verified successfully", eventStatus);
-            int affectedRowCount = userService.updateVerificationStep(userEmail);
-            if (affectedRowCount == 0) {
-                log.debug("Verification step have not been updated in database");
-            }
+        int affectedRowCount = -1;
+        switch (eventStatus) {
+            case ACCEPTED:
+                log.debug("Verification status: {}. Data have been accepted", eventStatus);
+                affectedRowCount = userService.updateVerificationStep(userEmail);
+                break;
+            case CHANGED:
+                final EventStatus changedTo = getVerificationStatus(reference);
+
+                boolean isAccepted = EventStatus.ACCEPTED.equals(changedTo);
+
+                log.debug("Verification status changed to: {}. Data have been {}", eventStatus, isAccepted ? "accepted" : "declined");
+                if (isAccepted) {
+                    affectedRowCount = userService.updateVerificationStep(userEmail);
+                }
+                break;
+        }
+        if (affectedRowCount == 0) {
+            log.debug("Verification step have not been updated in database");
         }
         sendStatusNotification(userEmail, eventStatus);
         log.debug("Notification have been send successfully");

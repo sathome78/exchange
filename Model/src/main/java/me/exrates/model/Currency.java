@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,11 +14,13 @@ import lombok.ToString;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Currency {
   private int id;
   private String name;
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String description;
+  private boolean hidden;
 
   public Currency(int id) {
     this.id = id;

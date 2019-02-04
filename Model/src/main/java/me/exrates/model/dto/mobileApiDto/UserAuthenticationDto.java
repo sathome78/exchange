@@ -1,7 +1,9 @@
 package me.exrates.model.dto.mobileApiDto;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 
@@ -10,6 +12,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @NoArgsConstructor
+@Getter @Setter
 public class UserAuthenticationDto {
 
     @NotNull(message = "Email is missing")
