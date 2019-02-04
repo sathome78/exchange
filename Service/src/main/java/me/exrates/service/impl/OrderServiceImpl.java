@@ -29,6 +29,7 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
@@ -1622,24 +1623,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus status,
-                                                                         String scope, Integer offset, Integer limit, boolean hideCanceled,
-                                                                         boolean initial, Locale locale, Map<String, String> sortedColumns,
-                                                                         LocalDate dateFrom, LocalDate dateTo) {
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale) {
 
-        int recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status, scope, offset,
-                limit, locale, dateFrom, dateTo, hideCanceled);
+        int recordsCount = orderDao.getMyOrdersWithStateCount(filterDataDto);
+
         List<OrderWideListDto> orders;
-        if (recordsCount == 0 && initial) {
-            recordsCount = orderDao.getMyOrdersWithStateCount(userId, currencyPair, currencyName, status,
-                    scope, offset, limit, locale, null, null, hideCanceled);
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
-                    offset, limit, sortedColumns, null, null, hideCanceled);
-        } else if (recordsCount == 0) {
+        if (recordsCount == 0) {
             orders = Lists.newArrayList();
         } else {
-            orders = orderDao.getMyOrdersWithState(userId, status, currencyPair, currencyName, locale, scope,
-                offset, limit, sortedColumns, dateFrom, dateTo, hideCanceled);
+            orders = orderDao.getMyOrdersWithState(filterDataDto, locale);
         }
         return Pair.of(recordsCount, orders);
     }
