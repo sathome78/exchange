@@ -219,6 +219,7 @@ public class BtcCoinTester implements CoinTester {
         List<BtcWalletPaymentItemDto> payments = new LinkedList<>();
         payments.add(new BtcWalletPaymentItemDto(withdrawAddress, new BigDecimal(amount)));
         BtcPaymentResultDetailedDto btcPaymentResultDetailedDto = walletService.sendToMany(payments).get(0);
+        stringBuilder.append("BtcPaymentResultDetailedDto = " + btcPaymentResultDetailedDto.toString()).append("\n");
 
         Transaction transaction = null;
         do {
