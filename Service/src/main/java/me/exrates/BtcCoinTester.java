@@ -90,9 +90,9 @@ public class BtcCoinTester implements CoinTester {
             testAddressGeneration();
             checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
-            testManualWithdraw(refillAmount);
+//            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
-            stringBuilder.append("Works fine!\n");
+            stringBuilder.append("Everything works fine!\n");
             return "Works fine";
         } catch (Exception e){
             stringBuilder.append(e.toString());
@@ -221,6 +221,10 @@ public class BtcCoinTester implements CoinTester {
         BtcPaymentResultDetailedDto btcPaymentResultDetailedDto = walletService.sendToMany(payments).get(0);
         stringBuilder.append("BtcPaymentResultDetailedDto = " + btcPaymentResultDetailedDto.toString()).append("\n");
 
+        if(btcPaymentResultDetailedDto.getTxId() == null){
+            stringBuilder.append("Cannot check manual withdraw, use walletpassphrase first!");
+            return;
+        }
         Transaction transaction = null;
         do {
             try {
@@ -261,27 +265,25 @@ public class BtcCoinTester implements CoinTester {
         walletPassphrase();
         stringBuilder.append("balance = " + btcdClient.getBalance()).append("\n");;
         stringBuilder.append("refill sum = " + refillAmount).append("\n");;
+        stringBuilder.append("DEBUG: new BigDecimal(refillAmount) = new BigDecimal(refillAmount)").append("\n");
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
 
         Optional<RefillRequestBtcInfoDto> acceptedRequest;
         Integer minConfirmation = getMerchantServiceByName(name, reffilableServiceMap).minConfirmationsRefill();
 
         do {
-            boolean isConfirmationsEnough = false;
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
-                if (isConfirmationsEnough) throw new RuntimeException("Confirmation enough, but refill not working!");
-                stringBuilder.append("NOT NOW(").append("\n");;
+                stringBuilder.append("NOT NOW").append("\n");;
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
                 if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
-                    isConfirmationsEnough = true;
                 }
-                stringBuilder.append("Transaction consfirmation = " + transaction.getConfirmations()).append("\n");;
+                stringBuilder.append("Transaction consfirmation = ").append(transaction.getConfirmations()).append("\n");;
             } else {
-                stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("\n");;
-                stringBuilder.append("refill amount " + refillAmount).append("\n");;
+                stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("\n");;
+                stringBuilder.append("refill amount ").append(refillAmount).append("\n");;
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
                 if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (refillAmount)))
