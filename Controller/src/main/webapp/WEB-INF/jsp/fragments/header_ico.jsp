@@ -105,14 +105,6 @@
                     </li>
                 </sec:authorize>
 
-                <li>
-                    <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
-                       class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
-                </li>
-                <li>
-                    <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
-                       class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
-                </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="hello-my-friend"><a class="nav__link" href="">
 
@@ -462,29 +454,5 @@
         height: 13px;
         margin-left: 10px;
         vertical-align: middle;
-    }
-    .nav__link{
-        padding: 14px 10px !important;
-    }
-    .predictions{
-        position: relative;
-        padding-right: 34px !important;
-    }
-    .predictions:after{
-        position: absolute;
-        top: 8px;
-        right: 0;
-        content:'New';
-        display: inline-block;
-        background-color: #34b646;
-        padding: 0px 8px;
-        -webkit-border-radius: 11px;
-        -moz-border-radius: 11px;
-        border-radius: 11px;
-        text-transform: uppercase;
-        color:#fff;
-        font-size: 8px;
-        line-height: 12px;
-        font-family: 'Roboto';
     }
 </style>

@@ -21,15 +21,7 @@
         banner.style.display = "none"
     }
 </script>
-<%-- Start Jira widget --%>
-<style>
-    iframe[name='JSD widget'] {
-        margin-bottom: 75px;
-        margin-right: 15px;
-    }
-</style>
-<script data-jsd-embedded data-key="37bd65ad-ae58-4d7a-8498-af815d3af05b" data-base-url="https://jsd-widget.atlassian.com" src="https://jsd-widget.atlassian.com/assets/embed.js"></script>
-<%-- End Jira widget --%>
+
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
@@ -67,11 +59,6 @@
         <div class="cols-md-8">
             <ul class="nav header__nav">
                 <li>
-                    <a class="nav__link predictions" href="<c:url value='https://predictionlab.exrates.me/'/>" target="_blank">
-                        Predictions
-                    </a>
-                </li>
-                <li>
                     <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
                         ICO
                     </a>
@@ -108,18 +95,6 @@
                         </sec:authorize>
                     </li>
                 </sec:authorize>
-
-                    <li>
-                        <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
-                           class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
-                    </li>
-                    <li>
-                        <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
-                           class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
-                    </li>
-                <li>
-                    <script data-jsd-embedded data-key="6d1784c2-1ec8-4add-a0b9-e6a45eae9696" data-base-url="https://jsd-widget.atlassian.com" src="https://jsd-widget.atlassian.com/assets/embed.js"></script>
-                </li>
 
                     <sec:authorize access="isAuthenticated()">
                         <li id="hello-my-friend"><a class="nav__link" href="">
@@ -305,7 +280,7 @@
                     <br>
 
                     <div class="field field--btn__new">
-                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
+                        <input id="pin_2fa_login_submit" onclick="sendLoginSuccessGtag()" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
                     </div>
                 </form>
             </div>
@@ -551,29 +526,5 @@
         height: 13px;
         margin-left: 10px;
         vertical-align: middle;
-    }
-    .nav__link{
-        padding: 14px 10px !important;
-    }
-    .predictions{
-        position: relative;
-        padding-right: 34px !important;
-    }
-    .predictions:after{
-        position: absolute;
-        top: 8px;
-        right: 0;
-        content:'New';
-        display: inline-block;
-        background-color: #34b646;
-        padding: 0px 8px;
-        -webkit-border-radius: 11px;
-        -moz-border-radius: 11px;
-        border-radius: 11px;
-        text-transform: uppercase;
-        color:#fff;
-        font-size: 8px;
-        line-height: 12px;
-        font-family: 'Roboto';
     }
 </style>
