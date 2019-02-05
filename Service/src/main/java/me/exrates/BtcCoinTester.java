@@ -214,7 +214,7 @@ public class BtcCoinTester implements CoinTester {
 
         String withdrawAddress = btcdClient.getNewAddress();
         stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
-
+        walletPassphrase();
         BitcoinService walletService = (BitcoinService) getMerchantServiceByName(name, reffilableServiceMap);
         List<BtcWalletPaymentItemDto> payments = new LinkedList<>();
         payments.add(new BtcWalletPaymentItemDto(withdrawAddress, new BigDecimal(amount)));
@@ -258,11 +258,7 @@ public class BtcCoinTester implements CoinTester {
 
         stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("\n");;
         stringBuilder.append("BALANCE = " + btcdClient.getBalance()).append("\n");;
-        try {
-            btcdClient.walletPassphrase("pass123", 2000);
-        } catch (Exception e) {
-            stringBuilder.append("Error while trying encrypted wallet " + e.getMessage()).append("\n");;
-        }
+        walletPassphrase();
         stringBuilder.append("balance = " + btcdClient.getBalance()).append("\n");;
         stringBuilder.append("refill sum = " + refillAmount).append("\n");;
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
@@ -294,7 +290,16 @@ public class BtcCoinTester implements CoinTester {
         } while (!acceptedRequest.isPresent());
 
         stringBuilder.append("REQUEST FINDED").append("\n");;
+        stringBuilder.append("Node balance after refill = " + btcdClient.getBalance()).append("\n");
         Map<String, String> a = new HashMap<>();
+    }
+
+    private void walletPassphrase() {
+        try {
+            btcdClient.walletPassphrase("pass123", 2000);
+        } catch (Exception e) {
+            stringBuilder.append("Error while trying encrypted wallet: \n" + e.getMessage()).append("\n");;
+        }
     }
 
     private RefillRequestCreateDto prepareRefillRequest(int merchantId, int currencyId) {
