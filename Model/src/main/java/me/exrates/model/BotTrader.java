@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 @Getter @Setter
 @ToString
 public class BotTrader {
-    private Integer id;
+    private Integer id ;
     private Integer userId;
     private boolean isEnabled;
     @Min(value = 0, message = "{bot.min.timeout.accept}")
