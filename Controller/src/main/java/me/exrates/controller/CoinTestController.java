@@ -17,8 +17,8 @@ public class CoinTestController {
     private final CoinDispatcher coinDispatcher;
 
     private StringBuilder logger = new StringBuilder("to be continued...");
-    private ExecutorService executor =  Executors.newFixedThreadPool(1);
-
+    private ExecutorService executor =  Executors.newCachedThreadPool();
+    private Thread activeThread = new Thread();
     @Autowired
     public CoinTestController(CoinDispatcher coinDispatcher) {
         this.coinDispatcher = coinDispatcher;
@@ -29,7 +29,8 @@ public class CoinTestController {
     public String startTesting(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount,
                                @RequestParam(name = "email", required = false) String email) throws Exception {
         logger = new StringBuilder();
-        executor.submit(() -> startCoinTest(name, amount, email));
+        activeThread = new Thread(() -> startCoinTest(name, amount, email));
+        activeThread.start();
         return "started";
     }
 
@@ -52,7 +53,7 @@ public class CoinTestController {
     @GetMapping(value = "/cointest/stop", produces = "text/plain")
     @ResponseBody
     public String stop(){
-        executor.shutdown();
+        activeThread.stop();
         return "stopped";
     }
 
