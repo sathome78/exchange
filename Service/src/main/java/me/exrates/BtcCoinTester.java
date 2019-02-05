@@ -281,7 +281,7 @@ public class BtcCoinTester implements CoinTester {
                     Thread.sleep(TIME_FOR_REFILL);
                     isConfirmationsEnough = true;
                 }
-                stringBuilder.append("GET TRANSACTION " + transaction).append("\n");;
+                stringBuilder.append("Transaction consfirmation = " + transaction.getConfirmations()).append("\n");;
             } else {
                 stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("\n");;
                 stringBuilder.append("refill amount " + refillAmount).append("\n");;
