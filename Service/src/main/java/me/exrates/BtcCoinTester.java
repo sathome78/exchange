@@ -265,7 +265,7 @@ public class BtcCoinTester implements CoinTester {
         walletPassphrase();
         stringBuilder.append("balance = " + btcdClient.getBalance()).append("\n");;
         stringBuilder.append("refill sum = " + refillAmount).append("\n");;
-        stringBuilder.append("DEBUG: new BigDecimal(refillAmount) = new BigDecimal(refillAmount)").append("\n");
+        stringBuilder.append("DEBUG: new BigDecimal(refillAmount)" + new BigDecimal(refillAmount)).append("\n");
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
 
         Optional<RefillRequestBtcInfoDto> acceptedRequest;
