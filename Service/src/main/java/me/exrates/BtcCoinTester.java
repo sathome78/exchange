@@ -101,8 +101,8 @@ public class BtcCoinTester implements CoinTester {
     }
 
     private void testNodeInfo() throws BitcoindException, CommunicationException {
-        stringBuilder.append("------TEST NODE INFO-----").append("/n")
-                .append("Current balance = " + btcdClient.getBalance()).append("/n")
+        stringBuilder.append("------TEST NODE INFO-----").append("\n")
+                .append("Current balance = " + btcdClient.getBalance()).append("\n")
                 .append("You can refill test node on address = " + btcdClient.getNewAddress()).append("\n");
     }
 
