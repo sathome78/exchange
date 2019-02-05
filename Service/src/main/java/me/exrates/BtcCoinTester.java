@@ -88,7 +88,7 @@ public class BtcCoinTester implements CoinTester {
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
             testAddressGeneration();
-            checkRefill(refillAmount + "0", merchantId, currencyId, request);
+            checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
             testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
