@@ -25,6 +25,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -37,7 +39,9 @@ import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 @NoArgsConstructor
-public class BtcCoinTesterImpl implements CoinTester {
+@Component("btcCoinTester")
+@Scope("prototype")
+public class BtcCoinTester implements CoinTester {
 
     private String principalEmail = "mikita.malykov@upholding.biz";
     @Autowired
@@ -74,12 +78,13 @@ public class BtcCoinTesterImpl implements CoinTester {
         this.name = name;
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
-        this.principalEmail = email;
+        if(email != null) this.principalEmail = email;
     }
 
     @Override
     public String testCoin(String refillAmount) throws Exception {
         try {
+            testNodeInfo();
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
             setMinConfirmation(1);
             testAddressGeneration();
@@ -89,10 +94,16 @@ public class BtcCoinTesterImpl implements CoinTester {
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
             stringBuilder.append("Works fine!\n");
             return "Works fine";
-        }catch (Exception e){
+        } catch (Exception e){
             stringBuilder.append(e.toString());
             return e.getMessage();
         }
+    }
+
+    private void testNodeInfo() throws BitcoindException, CommunicationException {
+        stringBuilder.append("------TEST NODE INFO-----").append("/n")
+                .append("Current balance = " + btcdClient.getBalance()).append("/n")
+                .append("You can refill test node on address = " + btcdClient.getNewAddress()).append("\n");
     }
 
     private void setMinConfirmation(int i) throws NoSuchFieldException {

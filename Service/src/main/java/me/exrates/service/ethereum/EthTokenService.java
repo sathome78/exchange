@@ -24,4 +24,6 @@ public interface EthTokenService {
     }
 
     ExConvert.Unit getUnit();
+
+    String getMerchantName();
 }

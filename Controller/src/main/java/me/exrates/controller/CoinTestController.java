@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.CoinDispatcher;
 import me.exrates.CoinTester;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -11,10 +12,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class CoinTestController {
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final CoinDispatcher coinDispatcher;
 
     private StringBuilder logger = new StringBuilder("to be continued...");
+
+    @Autowired
+    public CoinTestController(CoinDispatcher coinDispatcher) {
+        this.coinDispatcher = coinDispatcher;
+    }
 
     @GetMapping("/cointest/start")
     @ResponseBody
@@ -22,9 +27,9 @@ public class CoinTestController {
                                @RequestParam(name = "email", required = false) String email) throws Exception {
         logger = new StringBuilder();
         try {
-            CoinTester kodTester = (CoinTester) applicationContext.getBean("ethTokenTester");
-            kodTester.initBot(name.toUpperCase(), logger, email);
-            kodTester.testCoin(amount);
+            CoinTester coinTester = coinDispatcher.getCoinTester(name);
+            coinTester.initBot(name.toUpperCase(), logger, email);
+            coinTester.testCoin(amount);
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");
         }

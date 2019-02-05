@@ -74,6 +74,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.web3j.protocol.core.Ethereum;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -282,7 +283,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-        flyway.migrate();
+//        flyway.migrate();
         return dataSource;
     }
 
@@ -407,6 +408,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         }
         log.info("Password from ssm with path = " + nodeApiToken + " is " + lookup);
         registry.addInterceptor(new TokenInterceptor(lookup)).addPathPatterns("/nodes/**");
+//        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
+//        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
     }
 
 
@@ -1700,7 +1703,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public EthTokenService wabiServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
-		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", false, ExConvert.Unit.ETHER);
+		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", true, ExConvert.Unit.ETHER);
 	}
 
 	@Bean(name = "eltServiceImpl")
