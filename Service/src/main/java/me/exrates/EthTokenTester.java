@@ -46,7 +46,8 @@ import static me.exrates.service.ethereum.EthTokenServiceImpl.GAS_LIMIT;
 
 //ethereum.properties
 @Component("ethCoinTester")
-@Scope("prototype")@PropertySource(value = "classpath:/merchants/ethereum.properties")
+@Scope("prototype")
+@PropertySource(value = "classpath:/merchants/ethereum.properties")
 public class EthTokenTester implements CoinTester {
 
     private String principalEmail = "mikita.malykov@upholding.biz";

@@ -114,6 +114,10 @@
                         </p>
                         <a href="mailto:ListmyCoin@Exrates.me">ListmyCoin@Exrates.me</a>
                     </div>
+                    <div>
+                        <h5 style="margin-top: 32px; margin-bottom: 16px;"><loc:message code="contacts.support.department.title"/></h5>
+                        <a href="mailto:exrates@exrates.me">exrates@exrates.me</a>
+                    </div>
                 </div>
                 <div class="col-md-4 col-md-offset-1">
                     <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">

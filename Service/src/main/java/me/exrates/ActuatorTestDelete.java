@@ -1,5 +1,6 @@
 package me.exrates;
 
+import net.sf.ehcache.bootstrap.BootstrapCacheLoader;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,8 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 
 import java.io.File;
+
+import static org.bitcoinj.core.VarInt.sizeOf;
 
 @Service
 public class ActuatorTestDelete implements
@@ -28,5 +31,10 @@ public class ActuatorTestDelete implements
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    public static void main(String[] args) {
+//        getNativeSize(1);
+        BootstrapCacheLoader.class.getClassLoader();
     }
 }
