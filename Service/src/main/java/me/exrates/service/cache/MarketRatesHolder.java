@@ -48,8 +48,8 @@ public class MarketRatesHolder {
         this.rabbitMqService = rabbitMqService;
     }
 
-//    @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
-//    @PostConstruct
+    @Scheduled(cron = "0 0 * * * ?") //every night on 00-00
+    @PostConstruct
     private void init() {
         log.info("Start fill ratesMarketMap, time = {}", new Date());
         if (!ratesMarketMap.isEmpty()) ratesMarketMap.clear();
