@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -152,7 +153,7 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
 
     void invalidateAddress(String address, Integer merchantId, Integer currencyId);
-    
+
   List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
                                                               LocalDateTime endTime,
                                                               List<UserRole> roles,
@@ -173,4 +174,6 @@ public interface RefillService {
 
 
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash);
+
+    List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
 }

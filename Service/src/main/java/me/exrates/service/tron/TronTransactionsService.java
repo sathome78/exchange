@@ -7,5 +7,5 @@ public interface TronTransactionsService {
 
     void processTransaction(TronReceivedTransactionDto p);
 
-    void processTransaction(String address, String hash, String amount);
+    void processTransaction(int id, String address, String hash, String amount, Integer merchantId, Integer currencyId);
 }

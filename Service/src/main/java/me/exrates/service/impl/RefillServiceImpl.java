@@ -1058,7 +1058,7 @@ public class RefillServiceImpl implements RefillService {
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses){
     return refillRequestDao.findAllAddresses(merchantId, currencyId, isValidStatuses);
   }
-  
+
   //TODO remove after changes in mobile api
   @Override
   public String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale) {
@@ -1188,4 +1188,10 @@ public class RefillServiceImpl implements RefillService {
   public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash) {
     return refillRequestDao.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
   }
+
+
+    @Override
+    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+        return refillRequestDao.findAllAddressesByMerchantWithChilds(merchantId);
+    }
 }

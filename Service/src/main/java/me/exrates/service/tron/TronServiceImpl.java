@@ -1,5 +1,6 @@
 package me.exrates.service.tron;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -59,7 +60,7 @@ public class TronServiceImpl implements TronService {
     private void init() {
         merchantId = merchantService.findByName(MERCHANT_NAME).getId();
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
-        addressesHEX.addAll(refillService.findAddressDtos(merchantId, currencyId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
+        addressesHEX.addAll(refillService.findAddressDtosWithMerchantChild(merchantId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
     }
 
 
@@ -70,7 +71,7 @@ public class TronServiceImpl implements TronService {
                 new Object[]{dto.getAddress()}, request.getLocale());
         addressesHEX.add(dto.getHexAddress());
         return new HashMap<String, String>() {{
-            put("address",  dto.getAddress());
+            put("address", dto.getAddress());
             put("privKey", dto.getPrivateKey());
             put("pubKey", dto.getHexAddress());
             put("message", message);
@@ -86,8 +87,8 @@ public class TronServiceImpl implements TronService {
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(dto.getAddressBase58())
-                .merchantId(merchantId)
-                .currencyId(currencyId)
+                .merchantId(dto.getMerchantId())
+                .currencyId(dto.getCurrencyId())
                 .amount(new BigDecimal(dto.getAmount()))
                 .merchantTransactionId(dto.getHash())
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
@@ -103,8 +104,8 @@ public class TronServiceImpl implements TronService {
             refillService.putOnBchExamRefillRequest(
                     RefillRequestPutOnBchExamDto.builder()
                             .requestId(requestAcceptDto.getRequestId())
-                            .merchantId(merchantId)
-                            .currencyId(currencyId)
+                            .merchantId(requestAcceptDto.getMerchantId())
+                            .currencyId(requestAcceptDto.getCurrencyId())
                             .address(requestAcceptDto.getAddress())
                             .amount(requestAcceptDto.getAmount())
                             .hash(requestAcceptDto.getMerchantTransactionId())
@@ -114,14 +115,20 @@ public class TronServiceImpl implements TronService {
         }
     }
 
+
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName(CURRENCY_NAME);
-        Merchant merchant = merchantService.findByName(MERCHANT_NAME);
+        Integer id = Integer.parseInt(params.get("id"));
+        Integer merchantId = Integer.valueOf(params.get("merchant"));
+        Integer currencyId = Integer.valueOf(params.get("currency"));
+        Currency currency = currencyService.findById(currencyId);
+        Merchant merchant = merchantService.findById(merchantId);
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .requestId(id)
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
@@ -130,7 +137,7 @@ public class TronServiceImpl implements TronService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-    }
+     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -162,5 +169,4 @@ public class TronServiceImpl implements TronService {
 
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
 }
