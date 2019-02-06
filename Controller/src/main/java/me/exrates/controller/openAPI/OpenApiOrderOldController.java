@@ -41,7 +41,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/openapi/v1/orders")
-public class OpenApiOrderController {
+public class OpenApiOrderOldController {
 
     @Autowired
     private OrderService orderService;

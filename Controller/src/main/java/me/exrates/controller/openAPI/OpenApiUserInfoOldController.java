@@ -43,7 +43,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 @SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/user")
-public class OpenApiUserInfoController {
+public class OpenApiUserInfoOldController {
 
     @Autowired
     private WalletService walletService;
