@@ -46,7 +46,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         this.rabbitMqService = rabbitMqService;
     }
 
-    @PostConstruct
+//    @PostConstruct
     private void init() {
         List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs();
         list.forEach(p-> {

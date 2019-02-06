@@ -56,7 +56,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     static {ApiContextInitializer.init();}
 
-    @PostConstruct
+//    @PostConstruct
     private void initBot() {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
