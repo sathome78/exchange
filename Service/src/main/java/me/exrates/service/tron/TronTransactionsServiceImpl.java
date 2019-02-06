@@ -104,6 +104,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         easyTransferByPrivate(dto.getPrivKey(), MAIN_ADDRESS_HEX, accountAmount);
     }
 
+
     private void transferTokenToMainAccount(RefillRequestAddressDto dto, String tokenName, String tokenBchName) {
         JSONArray tokensBalances = tronNodeService.getAccount(dto.getPubKey()).getJSONArray("assetV2");
         long balance = StreamSupport.stream(tokensBalances.spliterator(), true)
