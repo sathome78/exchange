@@ -1,4 +1,4 @@
-package me.exrates.controller.openAPI;
+package me.exrates.ngcontroller.openAPI;
 
 import com.google.common.base.Strings;
 import me.exrates.controller.model.BaseResponse;
@@ -12,11 +12,7 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.CancelOrderException;
-import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
-import me.exrates.service.exception.api.OpenApiError;
-import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.api.*;
 import me.exrates.service.userOperation.UserOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -26,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +37,7 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/openapi/v1/orders")
+@RequestMapping("/info/private/v2/api/orders")
 public class OpenApiOrderController {
 
     @Autowired
@@ -79,7 +76,7 @@ public class OpenApiOrderController {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
         String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
-        String userEmail = userService.getUserEmailFromSecurityContext();
+        String userEmail = getPrincipalEmail();
         int userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
@@ -110,7 +107,7 @@ public class OpenApiOrderController {
     public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
         String orderIdString = retrieveParamFormBody(params, "order_id", true);
         Integer orderId = Integer.parseInt(orderIdString);
-        String userEmail = userService.getUserEmailFromSecurityContext();
+        String userEmail = getPrincipalEmail();
         orderService.acceptOrder(userEmail, orderId);
         return Collections.singletonMap("success", true);
     }
@@ -141,7 +138,7 @@ public class OpenApiOrderController {
     @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) throws CallBackUrlAlreadyExistException {
         Map<String, Object> responseBody = new HashMap<>();
-        String userEmail = userService.getUserEmailFromSecurityContext();
+        String userEmail = getPrincipalEmail();
         int userId = userService.getIdByEmail(userEmail);
         if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
             responseBody.put("status", "false");
@@ -157,7 +154,7 @@ public class OpenApiOrderController {
     @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> updateallback(@RequestBody CallbackURL callbackUrl) {
         Map<String, Object> responseBody = new HashMap<>();
-        String userEmail = userService.getUserEmailFromSecurityContext();
+        String userEmail = getPrincipalEmail();
         int userId = userService.getIdByEmail(userEmail);
         if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL()) && callbackUrl.getPairId() != null) {
             responseBody.put("status", "false");
@@ -277,4 +274,9 @@ public class OpenApiOrderController {
     public OpenApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), "An internal error occured");
     }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
 }

@@ -1,4 +1,4 @@
-package me.exrates.controller.openAPI;
+package me.exrates.ngcontroller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
@@ -22,14 +22,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,13 +33,11 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.*;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController
-@RequestMapping("/openapi/v1/public")
+@RequestMapping("/info/public/v2")
 public class OpenApiPublicController {
 
     @Autowired
