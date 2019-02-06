@@ -104,7 +104,7 @@ public class NgBalanceController {
             return ResponseEntity.ok(balanceService.getWalletsDetails(filter));
         } catch (Exception ex) {
             logger.error("Failed to get user balances", ex);
-            throw new NgDashboardException(String.format("Failed to get user balances: %s", ex.getMessage()));
+            throw new NgDashboardException(String.format("Failed to get user balances: %s", ex.getMessage()), ex);
         }
     }
 
