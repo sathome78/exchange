@@ -470,11 +470,12 @@ function updateWithdrawalTable() {
                     "name": "MER.name",
                     "render": function (data, type, row) {
                         var merchantName = data;
-                        var merchantImageName = '';
-                        if (row.merchantImage && row.merchantImage.image_name != merchantName) {
-                            merchantImageName = ' ' + row.merchantImage.image_name;
+                        var imageName = row.merchantImageName;
+
+                        if (imageName) {
+                            return merchantName + '-' + imageName;
                         }
-                        return merchantName + merchantImageName;
+                        return merchantName;
                     }
                 },
                 {
