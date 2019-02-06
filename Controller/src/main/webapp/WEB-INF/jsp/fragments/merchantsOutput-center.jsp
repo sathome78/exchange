@@ -122,7 +122,7 @@
                           data-comission-depends-on-destination-tag="${merchantCurrency.comissionDependsOnDestinationTag}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
                           data-additional-field-name="${merchantCurrency.additionalFieldName}"
-                          data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
+                          data-merchant-image-id="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
                 </div>
                 <br>
