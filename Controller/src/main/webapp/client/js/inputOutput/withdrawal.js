@@ -472,7 +472,7 @@ function updateWithdrawalTable() {
                         var merchantName = data;
                         var imageName = row.merchantImageName;
 
-                        if (imageName) {
+                        if (imageName && merchantName !== imageName) {
                             return merchantName + '-' + imageName;
                         }
                         return merchantName;
