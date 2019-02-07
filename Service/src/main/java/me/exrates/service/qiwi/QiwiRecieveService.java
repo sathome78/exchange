@@ -2,6 +2,7 @@ package me.exrates.service.qiwi;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 @Log4j2(topic = "Qiwi")
+@PropertySource(value = {"classpath:/angular.properties"})
 public class QiwiRecieveService {
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -25,7 +27,7 @@ public class QiwiRecieveService {
     @Autowired
     private QiwiService qiwiService;
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
+//    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
     private void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
 
@@ -36,8 +38,8 @@ public class QiwiRecieveService {
                 log.info("*** Qiwi *** Process transaction");
                 qiwiService.onTransactionReceive(transaction, transaction.getAmount(), transaction.getCurrency(), transaction.getProvider());
                 // Record the paging token so we can start from here next time.
-                log.info("*** Qiwi *** transaction - currency:"+transaction.getProvider()+" | hash:"+ transaction.get_id()+" Saved");
-            }catch (Exception ex){
+                log.info("*** Qiwi *** transaction - currency:" + transaction.getProvider() + " | hash:" + transaction.get_id() + " Saved");
+            } catch (Exception ex) {
                 ex.getStackTrace();
                 log.error(ex.getMessage());
             }
