@@ -40,7 +40,7 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/openapi/v1/orders")
+@RequestMapping("/api/v1/private/orders")
 public class OpenApiOrderController {
 
     @Autowired

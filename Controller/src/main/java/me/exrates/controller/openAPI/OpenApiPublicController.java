@@ -47,7 +47,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController
-@RequestMapping("/openapi/v1/public")
+@RequestMapping("/api/v1/public")
 public class OpenApiPublicController {
 
     @Autowired

@@ -42,7 +42,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController
-@RequestMapping("/openapi/v1/user")
+@RequestMapping("/api/v1/user")
 public class OpenApiUserInfoController {
 
     @Autowired
