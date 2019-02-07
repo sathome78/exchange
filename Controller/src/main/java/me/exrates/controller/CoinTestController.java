@@ -33,11 +33,11 @@ public class CoinTestController {
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");
         }
-        return "started";
+        return "redirect:/cointest/log";
     }
 
     @GetMapping(value = "/cointest/log", produces = "text/plain")
-    @ResponseBody
+    @ResponseBody //TODO make updatable
     public String getLog(){
         return logger.toString();
     }
