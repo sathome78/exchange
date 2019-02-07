@@ -15,6 +15,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,7 +34,9 @@ public class ReportStatsByCoinExcelGeneratorUtil {
 
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
+        CellStyle getStyleForBodyNumbers = getStyleForBodyNumbers(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
+        CellStyle getStyleForTotalSumm = getStyleForTotalSumm(workbook);
 
         XSSFSheet sheet1 = workbook.createSheet(SHEET1_NAME);
 
@@ -50,11 +54,11 @@ public class ReportStatsByCoinExcelGeneratorUtil {
 
         cell = row.createCell(1, CellType.NUMERIC);
         cell.setCellFormula("SUM(B" + 3 + ":B" + (bound + 2) + ")");
-        cell.setCellStyle(footer1Style);
+        cell.setCellStyle(getStyleForTotalSumm);
 
         cell = row.createCell(2, CellType.NUMERIC);
         cell.setCellFormula("SUM(C" + 3 + ":C" + (bound + 2) + ")");
-        cell.setCellStyle(footer1Style);
+        cell.setCellStyle(getStyleForTotalSumm);
 
         row = sheet1.createRow(1);
 
@@ -96,8 +100,8 @@ public class ReportStatsByCoinExcelGeneratorUtil {
             String activeBalance = stat.getActiveBalance();
             String reserveBalance = stat.getReservedBalance();
 
-            String dateUserRegistration = stat.getDateUserRegistration() != null ? stat.getDateUserRegistration().toString() : "";
-            String dateLastRefillByUser = stat.getDateLastRefillByUser() != null ? stat.getDateUserRegistration().toString() : "";
+            String dateUserRegistration = stat.getDateUserRegistration() != null ? stat.getDateUserRegistration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "";
+            String dateLastRefillByUser = stat.getDateLastRefillByUser() != null ? stat.getDateUserRegistration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "";
 
             row = sheet1.createRow(i + 2);
 
@@ -200,5 +204,54 @@ public class ReportStatsByCoinExcelGeneratorUtil {
         footerStyle.setFont(font);
 
         return footerStyle;
+    }
+
+    private static CellStyle getStyleForTotalSumm(XSSFWorkbook workbook) {
+        CellStyle footerStyle = workbook.createCellStyle();
+        footerStyle.setBorderBottom(BorderStyle.THIN);
+        footerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        footerStyle.setBorderLeft(BorderStyle.THIN);
+        footerStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        footerStyle.setBorderRight(BorderStyle.THIN);
+        footerStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+        footerStyle.setBorderTop(BorderStyle.THIN);
+        footerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        footerStyle.setFillForegroundColor(IndexedColors.CORAL.getIndex());
+        footerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        footerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        XSSFFont font = workbook.createFont();
+        font.setFontName("Arial");
+        font.setFontHeight(10);
+        font.setBold(true);
+        footerStyle.setFont(font);
+
+        DataFormat format = workbook.createDataFormat();
+        footerStyle.setDataFormat(format.getFormat("#.#"));
+
+        return footerStyle;
+    }
+
+    private static CellStyle getStyleForBodyNumbers(XSSFWorkbook workbook) {
+        CellStyle bodyStyle = workbook.createCellStyle();
+        bodyStyle.setBorderBottom(BorderStyle.THIN);
+        bodyStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        bodyStyle.setBorderLeft(BorderStyle.THIN);
+        bodyStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        bodyStyle.setBorderRight(BorderStyle.THIN);
+        bodyStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+        bodyStyle.setBorderTop(BorderStyle.THIN);
+        bodyStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        bodyStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        XSSFFont font = workbook.createFont();
+        font.setFontName("Arial");
+        font.setFontHeight(10);
+        bodyStyle.setFont(font);
+
+        DataFormat format = workbook.createDataFormat();
+        bodyStyle.setDataFormat(format.getFormat("#.#"));
+
+        return bodyStyle;
     }
 }

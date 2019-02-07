@@ -550,9 +550,9 @@ function uploadInputOutputSummaryReport() {
 
 function uploadReportStatsByCoin() {
     var url = '/2a8fy7b07dxe44/report/coin';
-    var dataReq = $('#currencyForReport').val();
+    var selectedCurrency = $('#currency-for-report').children("option:selected").val();
 
-    var substr1 = dataReq.substr(dataReq.indexOf("id=")+3);
+    var substr1 = selectedCurrency.substr(selectedCurrency.indexOf("id=")+3);
     var currencyIdNumber = substr1.substr(0, substr1.indexOf(","));
 
     var params = "currencyId="+currencyIdNumber;

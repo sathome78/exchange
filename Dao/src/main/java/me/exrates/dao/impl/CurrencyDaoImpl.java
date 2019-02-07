@@ -624,7 +624,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 result.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), Locale.ENGLISH, 2));
                 result.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), Locale.ENGLISH, 2));
                 result.setDateUserRegistration(rs.getTimestamp("regdate").toLocalDateTime());
-                result.setDateLastRefillByUser(rs.getTimestamp("date_last_refill").toLocalDateTime());
+                result.setDateLastRefillByUser(rs.getTimestamp("date_last_refill") != null
+                                    ? rs.getTimestamp("date_last_refill").toLocalDateTime() : null);
             return result;
         });
     }

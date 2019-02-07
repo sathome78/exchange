@@ -370,9 +370,9 @@
                     </div>
 
                     <div class="col-md-6">
-                        <select id="user-role" class="input-block-wrapper__input admin-form-input" name="currencyList">
+                        <select id="currency-for-report" class="input-block-wrapper__input admin-form-input" name="currencyList">
                             <c:forEach items="${currencyList}" var="currency">
-                                <option id="currencyForReport" value="${currency}" name="currencyId">${currency.description} (${currency.name})</option>
+                                <option value="${currency}">${currency.description} (${currency.name})</option>
                             </c:forEach>
                         </select>
                     </div>
