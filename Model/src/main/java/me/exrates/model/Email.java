@@ -9,7 +9,7 @@ import org.springframework.core.io.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
@@ -20,9 +20,6 @@ public class Email {
 	private String message;
 	private String subject;
 	private List<Attachment> attachments = new ArrayList<>();
-
-
-
 
 	public static class Attachment {
 		private String name;
