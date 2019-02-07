@@ -153,4 +153,6 @@ public interface RefillRequestDao {
     void setInnerTransferHash(int requestId, String hash);
 
     Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash);
+
+    List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId);
 }

@@ -548,6 +548,34 @@ function uploadInputOutputSummaryReport() {
     req.send();
 }
 
+function uploadReportStatsByCoin() {
+    var url = '/2a8fy7b07dxe44/report/coin';
+    var selectedCurrency = $('#currency-for-report').children("option:selected").val();
+
+    var substr1 = selectedCurrency.substr(selectedCurrency.indexOf("id=")+3);
+    var currencyIdNumber = substr1.substr(0, substr1.indexOf(","));
+
+    var params = "currencyId="+currencyIdNumber;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader('X-CSRF-Token', $("input[name='_csrf']").val());
+    xhr.responseType = 'blob';
+
+    xhr.onreadystatechange = function () {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            var blob = xhr.response;
+            var header = xhr.getResponseHeader('Content-Disposition');
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = header.match(/filename="(.+)"/)[1];
+            link.click();
+        }
+    };
+    xhr.send(params);
+}
+
 function refreshUsersInfo() {
     const url = '/2a8fy7b07dxe44/generalStats/usersInfo?' + getTimeParams() + '&' + getRoleParams();
     $.get(url, function (data) {

@@ -680,6 +680,21 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
+    @Override
+    public ReportDto getStatsByCoin(int currencyId) throws Exception {
+        List<CurrencyReportInfoDto> statsByCoin = currencyService.getStatsByCoin(currencyId);
+
+        if (isEmpty(statsByCoin)) {
+            throw new Exception("No orders information found in this request");
+        }
+
+        return ReportDto.builder()
+                .fileName(String.format("currency_%s-%s",
+                        currencyService.getCurrencyName(currencyId), LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(ReportStatsByCoinExcelGeneratorUtil.generate(statsByCoin))
+                .build();
+    }
+
     private String formatDateForFileName(String date){
         LocalDateTime dateFromTemp = LocalDateTime.parse(date.substring(0, date.indexOf(":")+3), FORMATTER_FOR_FILE_NAME);
         return dateFromTemp.format(FORMATTER_FOR_NAME);
@@ -749,5 +764,9 @@ public class ReportServiceImpl implements ReportService {
 
     private LocalTime parseTime(String timeString) {
         return LocalTime.from(DateTimeFormatter.ofPattern("HH:mm").parse(timeString));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(LocalDateTime.now().format(FORMATTER_FOR_NAME));
     }
 }

@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
@@ -17,6 +18,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -26,11 +28,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -606,6 +604,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
             Map<String, Object> params = new HashMap<>();
             params.put("currency_pair_id", currencyPairId);
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId){
+        String sql = "SELECT us.id, us.email, wall.active_balance, wall.reserved_balance, us.regdate," +
+                "(SELECT date_creation FROM REFILL_REQUEST WHERE currency_id = :currencyId AND user_id = us.id " +
+                "ORDER BY date_creation DESC LIMIT 1) as date_last_refill " +
+                "FROM WALLET as wall JOIN USER as us ON wall.user_id = us.id " +
+                "WHERE wall.currency_id = :currencyId AND (wall.active_balance > 0 OR wall.reserved_balance > 0)";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("currencyId", currencyId);
+        }};
+
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
+            CurrencyReportInfoDto result = new CurrencyReportInfoDto();
+                result.setEmail(rs.getString("email"));
+                result.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), Locale.ENGLISH, 2));
+                result.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), Locale.ENGLISH, 2));
+                result.setDateUserRegistration(rs.getTimestamp("regdate").toLocalDateTime());
+                result.setDateLastRefillByUser(rs.getTimestamp("date_last_refill") != null
+                                    ? rs.getTimestamp("date_last_refill").toLocalDateTime() : null);
+            return result;
+        });
     }
 
 }

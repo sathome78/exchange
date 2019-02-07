@@ -1378,5 +1378,16 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return Optional.empty();
         }
     }
+
+    @Override
+    public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
+        String sql = "SELECT RRA.* FROM MERCHANT M " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
+                "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+    }
 }
 

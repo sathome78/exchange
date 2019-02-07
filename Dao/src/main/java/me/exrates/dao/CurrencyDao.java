@@ -4,6 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
@@ -99,4 +100,6 @@ public interface CurrencyDao {
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
 
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
+
+    List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
 }

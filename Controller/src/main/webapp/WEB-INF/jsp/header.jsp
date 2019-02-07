@@ -37,7 +37,6 @@
 <%--</body>--%>
 <%--</html>--%>
 
-
 <header class="header">
 
     <!-- begin Right block -->

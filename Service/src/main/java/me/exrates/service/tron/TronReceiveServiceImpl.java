@@ -1,17 +1,22 @@
 package me.exrates.service.tron;
 
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
+import me.exrates.model.dto.TronTransactionTypeEnum;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.NumberUtils;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -26,25 +31,28 @@ public class TronReceiveServiceImpl {
     private final TronServiceImpl tronService;
     private final MerchantSpecParamsDao specParamsDao;
     private final TronTransactionsService tronTransactionsService;
+    private final TronTokenContext tronTokenContext;
 
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
     private static final String MERCHANT_NAME = "TRX";
     private static final String CURRENCY_NAME = "TRX";
+    private static final int TRX_DECIMALS = 6;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public TronReceiveServiceImpl(TronNodeService nodeService, TronServiceImpl tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService) {
+    public TronReceiveServiceImpl(TronNodeService nodeService, TronServiceImpl tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService, TronTokenContext tronTokenContext) {
         this.nodeService = nodeService;
         this.tronService = tronService;
         this.specParamsDao = specParamsDao;
         this.tronTransactionsService = tronTransactionsService;
+        this.tronTokenContext = tronTokenContext;
     }
 
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkBlocks, 1, 10, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkBlocks, 5, 5, TimeUnit.MINUTES);
     }
 
     private void checkBlocks() {
@@ -68,8 +76,25 @@ public class TronReceiveServiceImpl {
         transactionDtos.forEach(p->{
             if(tronService.getAddressesHEX().contains(p.getAddress())) {
                 try {
+                    switch (p.getTxType()) {
+                        case TransferContract: {
+                            p.setAmount(parseAmount(p.getRawAmount(), TRX_DECIMALS));
+                            p.setMerchantId(tronService.getMerchantId());
+                            p.setCurrencyId(tronService.getCurrencyId());
+                            break;
+                        }
+                        case TransferAssetContract: {
+                            TronTrc10Token token = tronTokenContext.getByNameTx(p.getAssetName());
+                            p.setAmount(parseAmount(p.getRawAmount(), token.getDecimals()));
+                            p.setMerchantId(token.getMerchantId());
+                            p.setCurrencyId(token.getCurrencyId());
+                            break;
+                        }
+                        default: throw new RuntimeException("unsupported tx type");
+                    }
                     setAdditionalTxInfo(p);
                     RefillRequestAcceptDto dto = tronService.createRequest(p);
+                    p.setId(dto.getRequestId());
                     if (p.isConfirmed()) {
                         tronTransactionsService.processTransaction(p);
                     } else {
@@ -92,14 +117,14 @@ public class TronReceiveServiceImpl {
 
     private void setAdditionalTxInfo(TronReceivedTransactionDto dto) throws Exception {
         JSONObject rawResponse = nodeService.getTransaction(dto.getHash());
-        String tokenName = rawResponse.getString("tokenName");
-        if (!tokenName.equals(CURRENCY_NAME)) {
-            throw new Exception("unsupported token " + dto.getHash());
-        }
-        if (dto.getRawAmount() != rawResponse.getLong("amount")) {
+        JSONObject contractData = rawResponse.getJSONObject("contractData");
+        if (dto.getRawAmount() != contractData.getLong("amount")) {
             throw new Exception("incorrect amount " + dto.getHash());
         }
-        dto.setAddressBase58(rawResponse.getString("transferToAddress"));
+        if (dto.getTxType().getContractType() != rawResponse.getInt("contractType")) {
+            throw new Exception("incorrect contractType " + dto.getTxType());
+        }
+        dto.setAddressBase58(rawResponse.getString("toAddress"));
         dto.setConfirmed(rawResponse.getBoolean("confirmed"));
     }
 
@@ -107,12 +132,29 @@ public class TronReceiveServiceImpl {
         List<TronReceivedTransactionDto> list = new ArrayList<>();
         transactions.forEach(p->{
             try {
-                list.add(TronReceivedTransactionDto.fromJson((JSONObject) p));
+                list.add(fromJson((JSONObject) p));
             } catch (Exception e) {
                 log.error(e);
             }
         });
         return list;
+    }
+
+    private TronReceivedTransactionDto fromJson(JSONObject transaction) {
+        Preconditions.checkArgument(transaction.getJSONArray("ret").getJSONObject(0).getString("contractRet").equals("SUCCESS"), "contract result not success");
+        JSONObject contractData = transaction.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0);
+        String type = contractData.getString("type");
+        TronTransactionTypeEnum txType = TronTransactionTypeEnum.valueOf(type);
+        JSONObject parameters = contractData.getJSONObject("parameter").getJSONObject("value");
+        TronReceivedTransactionDto dto = new TronReceivedTransactionDto(parameters.getLong("amount"), transaction.getString("txID"), parameters.getString("to_address"));
+        dto.setRawAmount(parameters.getLong("amount"));
+        dto.setTxType(txType);
+        dto.setAssetName(parameters.optString("asset_name"));
+        return dto;
+    }
+
+    private static String parseAmount(long amount, Integer decimals) {
+        return new BigDecimal(amount).multiply(new BigDecimal(Math.pow(10, -decimals))).setScale(decimals, RoundingMode.HALF_DOWN).toPlainString();
     }
 
     private void saveLastBlock(long blockNum) {
