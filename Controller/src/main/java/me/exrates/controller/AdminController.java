@@ -1466,6 +1466,7 @@ public class AdminController {
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
         modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
+        modelAndView.addObject("currencyList", currencyService.findAllCurrency());
 
 
         return modelAndView;

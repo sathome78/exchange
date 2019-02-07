@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
@@ -606,6 +607,28 @@ public class CurrencyDaoImpl implements CurrencyDao {
             Map<String, Object> params = new HashMap<>();
             params.put("currency_pair_id", currencyPairId);
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId){
+        String sql = "SELECT us.id, us.email, wall.active_balance, wall.reserved_balance, us.regdate," +
+                "(SELECT date_creation FROM REFILL_REQUEST WHERE currency_id = :currencyId AND user_id = us.id " +
+                "ORDER BY date_creation DESC LIMIT 1) as date_last_refill " +
+                "FROM WALLET as wall JOIN USER as us ON wall.user_id = us.id " +
+                "WHERE wall.currency_id = :currencyId AND (wall.active_balance > 0 OR wall.reserved_balance > 0)";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("currency_id", currencyId);
+        }};
+
+        return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+            CurrencyReportInfoDto result = new CurrencyReportInfoDto();
+                result.setEmail(rs.getString("email"));
+                result.setMerchantId(null);
+                result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
+                result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+            return result;
+        });
     }
 
 }

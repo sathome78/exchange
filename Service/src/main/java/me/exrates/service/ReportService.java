@@ -79,4 +79,6 @@ public interface ReportService {
                                     List<UserRole> userRoles) throws Exception;
 
     ReportDto getOrders(AdminOrderFilterData adminOrderFilterData) throws Exception;
+
+    ReportDto getStatsByCoin(int currencyId) throws Exception;
 }

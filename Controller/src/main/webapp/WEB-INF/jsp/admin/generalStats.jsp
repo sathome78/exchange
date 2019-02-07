@@ -48,6 +48,9 @@
                 <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.mailing"/>
                 </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="admin.generalStats.menu.download.stat.by.coin"/>
+                </button>
             </div>
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
@@ -358,6 +361,23 @@
                             </tr>
                             </thead>
                         </table>
+                    </div>
+                </div>
+
+                <div id="panel7" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="admin.generalStats.menu.download.stat.by.coin"/></h4>
+                    </div>
+
+                    <div class="col-md-6">
+                        <select id="user-role" class="input-block-wrapper__input admin-form-input" name="currencyList">
+                            <c:forEach items="${currencyList}" var="currency">
+                                <option id="currencyForReport" value="${currency}">${currency.description} (${currency.name})</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <button onclick="javascript:getArchiveInputOutput();return false;" class="btn btn-warning"><loc:message code="admin.stats.download"/></button>
                     </div>
                 </div>
             </div>

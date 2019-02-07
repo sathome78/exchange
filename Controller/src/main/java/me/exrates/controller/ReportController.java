@@ -463,4 +463,31 @@ public class ReportController {
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
         }
     }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/report/coin")
+    public ResponseEntity getStatsByCoin(int currencyId, HttpServletRequest request) {
+        ReportDto reportDto = null;
+        try {
+//            reportDto = reportService.getOrders(adminOrderFilterData);
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = null;
+        final String fileName = reportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, localeResolver.resolveLocale(request)), HttpStatus.NO_CONTENT);
+        }
+    }
 }
