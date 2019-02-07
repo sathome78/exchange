@@ -9,6 +9,7 @@ import me.exrates.ngcontroller.service.BalanceService;
 import me.exrates.ngcontroller.service.NgWalletService;
 import me.exrates.ngcontroller.util.PagedResult;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verify;
 public class BalanceServiceImplTest {
 
     private static final String BTC = "BTC";
+    private static final String TEST_BTC = "TBTC";
     private static final String ETH = "ETH";
     private static final String RUB = "RUB";
 
@@ -70,6 +72,7 @@ public class BalanceServiceImplTest {
                 .offset(0)
                 .excludeZero(true)
                 .currencyName(BTC)
+                .currencyId(1)
                 .currencyType(TYPE)
                 .email(EMAIL)
                 .build();
@@ -86,7 +89,7 @@ public class BalanceServiceImplTest {
         verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
 
         assertNotNull("Result could not be null", pagedResult);
-        assertEquals("Result count could be equals", 0, pagedResult.getCount());
+        assertEquals("Result count could be equals to 0", 0, pagedResult.getCount());
         assertTrue("Result items list could be empty", pagedResult.getItems().isEmpty());
 
         log.debug("getWalletsDetails_emptyDetailsListTest() - end");
@@ -112,7 +115,7 @@ public class BalanceServiceImplTest {
         verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
 
         assertNotNull("Result could not be null", pagedResult);
-        assertEquals("Result count could be equals", 0, pagedResult.getCount());
+        assertEquals("Result count could be equals to 0", 0, pagedResult.getCount());
         assertTrue("Result items list could be empty", pagedResult.getItems().isEmpty());
 
         log.debug("getWalletsDetails_detailsListWithOneResultZeroBalancesTest() - start");
@@ -145,16 +148,16 @@ public class BalanceServiceImplTest {
         verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
 
         assertNotNull("Result could not be null", pagedResult);
-        assertEquals("Result count could be equals", 1, pagedResult.getCount());
+        assertEquals("Result count could be equals to 1", 1, pagedResult.getCount());
         assertFalse("Result items list could not be empty", pagedResult.getItems().isEmpty());
-        assertEquals("Result items list size could be equal to one", 1, pagedResult.getItems().size());
+        assertEquals("Result items list size could be equal to 1", 1, pagedResult.getItems().size());
 
         log.debug("getWalletsDetails_detailsListWithTwoResultsOneResultRubTest() - start");
     }
 
     @Test
-    public void getWalletsDetails_detailsListWithTwoResultsTest() {
-        log.debug("getWalletsDetails_detailsListWithTwoResultsTest() - start");
+    public void getWalletsDetails_detailsListWithTwoResultsCurrencyIdMoreThanZeroTest() {
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdMoreThanZeroTest() - start");
 
         List<MyWalletsDetailedDto> result = new ArrayList<>();
 
@@ -179,11 +182,91 @@ public class BalanceServiceImplTest {
         verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
 
         assertNotNull("Result could not be null", pagedResult);
-        assertEquals("Result count could be equals", 1, pagedResult.getCount());
+        assertEquals("Result count could be equals to 1", 1, pagedResult.getCount());
         assertFalse("Result items list could not be empty", pagedResult.getItems().isEmpty());
-        assertEquals("Result items list size could be equal to one", 1, pagedResult.getItems().size());
+        assertEquals("Result items list size could be equal to 1", 1, pagedResult.getItems().size());
 
-        log.debug("getWalletsDetails_detailsListWithTwoResultsTest() - start");
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdMoreThanZeroTest() - start");
+    }
+
+    @Test
+    public void getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameNotBlankTest() {
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameNotBlankTest() - start");
+
+        List<MyWalletsDetailedDto> result = new ArrayList<>();
+
+        MyWalletsDetailedDto detailedDto1 = new MyWalletsDetailedDto();
+        detailedDto1.setCurrencyId(4);
+        detailedDto1.setCurrencyName(TEST_BTC);
+        detailedDto1.setActiveBalance("20");
+        detailedDto1.setReservedBalance("5");
+        result.add(detailedDto1);
+
+        MyWalletsDetailedDto detailedDto2 = new MyWalletsDetailedDto();
+        detailedDto2.setCurrencyId(1);
+        detailedDto2.setCurrencyName(BTC);
+        detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedBalance("1");
+        result.add(detailedDto2);
+
+        doReturn(result).when(ngWalletService).getAllWalletsForUserDetailed(EMAIL, locale, TYPE);
+
+        PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(filter.toBuilder()
+                .currencyId(0)
+                .build());
+
+        verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
+
+        assertNotNull("Result could not be null", pagedResult);
+        assertEquals("Result count could be equals to 2", 2, pagedResult.getCount());
+        assertFalse("Result items list could not be empty", pagedResult.getItems().isEmpty());
+        assertEquals("Result items list size could be equal to 2", 2, pagedResult.getItems().size());
+
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameNotBlankTest() - start");
+    }
+
+    @Test
+    public void getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameBlankTest() {
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameBlankTest() - start");
+
+        List<MyWalletsDetailedDto> result = new ArrayList<>();
+
+        MyWalletsDetailedDto detailedDto1 = new MyWalletsDetailedDto();
+        detailedDto1.setCurrencyId(4);
+        detailedDto1.setCurrencyName(TEST_BTC);
+        detailedDto1.setActiveBalance("20");
+        detailedDto1.setReservedBalance("5");
+        result.add(detailedDto1);
+
+        MyWalletsDetailedDto detailedDto2 = new MyWalletsDetailedDto();
+        detailedDto2.setCurrencyId(1);
+        detailedDto2.setCurrencyName(BTC);
+        detailedDto2.setActiveBalance("10");
+        detailedDto2.setReservedBalance("1");
+        result.add(detailedDto2);
+
+        MyWalletsDetailedDto detailedDto3 = new MyWalletsDetailedDto();
+        detailedDto3.setCurrencyId(2);
+        detailedDto3.setCurrencyName(ETH);
+        detailedDto3.setActiveBalance("15");
+        detailedDto3.setReservedBalance("15");
+        result.add(detailedDto3);
+
+        doReturn(result).when(ngWalletService).getAllWalletsForUserDetailed(EMAIL, locale, TYPE);
+
+        PagedResult<MyWalletsDetailedDto> pagedResult = balanceService.getWalletsDetails(filter.toBuilder()
+                .currencyId(0)
+                .currencyName(StringUtils.EMPTY)
+                .build());
+
+        verify(ngWalletService, atLeastOnce()).getAllWalletsForUserDetailed(anyString(), any(Locale.class), any(CurrencyType.class));
+
+        assertNotNull("Result could not be null", pagedResult);
+        assertEquals("Result count could be equals to 3", 3, pagedResult.getCount());
+        assertFalse("Result items list could not be empty", pagedResult.getItems().isEmpty());
+        assertEquals("Result items list size could be equal to 3", 3, pagedResult.getItems().size());
+
+        log.debug("getWalletsDetails_detailsListWithTwoResultsCurrencyIdEqualsZeroAndCurrencyNameBlankTest() - start");
     }
 
     @Test(expected = Exception.class)
