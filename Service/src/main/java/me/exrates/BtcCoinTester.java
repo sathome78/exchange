@@ -79,6 +79,7 @@ public class BtcCoinTester implements CoinTester {
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
         if(email != null) this.principalEmail = email;
+        stringBuilder.append("Init success for coin " + name).append("\n");
     }
 
     @Override

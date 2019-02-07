@@ -44,7 +44,6 @@ import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.service.ethereum.EthTokenServiceImpl.GAS_LIMIT;
 
-//ethereum.properties
 @Component("ethCoinTester")
 @Scope("prototype")@PropertySource(value = "classpath:/merchants/ethereum.properties")
 public class EthTokenTester implements CoinTester {
@@ -97,8 +96,8 @@ public class EthTokenTester implements CoinTester {
         this.stringBuilder = stringBuilder;
         if(email != null) this.principalEmail = email;
         prepareContract();
-        stringBuilder.append("Bot init success").append("\n");
         if(email != null) this.principalEmail = email;
+        stringBuilder.append("Init success for coin " + name).append("\n");
     }
 
     private void prepareContract() throws Exception {
@@ -130,7 +129,6 @@ public class EthTokenTester implements CoinTester {
             stringBuilder.append("checkNodeConnection\n");
             checkNodeConnection();
             checkRefill(request, refillAmount, merchantId, currencyId);
-//            checkRefill(request, "1000000000000000", merchantId, currencyId);
             return stringBuilder.toString();
         } catch (Exception e){
             return stringBuilder.append(e.getMessage()).append("\n").toString();
@@ -147,7 +145,7 @@ public class EthTokenTester implements CoinTester {
 
         stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("\n");;
 
-        String transactionHash = contract.transfer(addressForRefill, new BigInteger(refillAmount)).send().getTransactionHash();
+        String transactionHash = contract.transfer(addressForRefill, convertToContractScale(refillAmount)).send().getTransactionHash();
         stringBuilder.append("Transaction hash = " + transactionHash).append("\n");
 
 
@@ -191,13 +189,18 @@ public class EthTokenTester implements CoinTester {
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
 
-                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (convertToStandartScale(new BigDecimal(refillAmount))))) {
+                if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (new BigDecimal(refillAmount)))) {
                     throw new CoinTestException("!acceptedRequest.get().getAmount().equals(new BigDecimal(refillAmount)), expected " + refillAmount + " but was " + acceptedRequest.get().getAmount());
                 }
                 stringBuilder.append("REQUEST FINDED, accepted amount = " + refillRequestBtcInfoDto.getAmount()).append("\n");;
             }
         } while (!acceptedRequest.isPresent());
 
+    }
+
+    private BigInteger convertToContractScale(String refillAmount) {
+        EthTokenService ethService = getEthService(name);
+        return new BigDecimal(refillAmount).multiply(new BigDecimal(10 * ethService.getUnit().getFactor())).toBigInteger();
     }
 
     private BigDecimal convertToStandartScale(BigDecimal bigDecimal) {
