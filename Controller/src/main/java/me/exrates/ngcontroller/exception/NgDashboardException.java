@@ -11,6 +11,10 @@ public class NgDashboardException extends RuntimeException {
         this.code = code;
     }
 
+    public NgDashboardException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public Integer getCode() {
         return code;
     }
