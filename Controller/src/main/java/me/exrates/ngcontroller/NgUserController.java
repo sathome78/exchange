@@ -160,9 +160,9 @@ public class NgUserController {
             if (!g2faService.checkGoogle2faVerifyCode(authenticationDto.getPin(), userId)) {
                 throw new IncorrectPinException("Incorrect google auth code");
             }
-        } else if (!DEV_MODE) {
+        } else {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() > 1 && authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() % 3 == 0) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 throw new IncorrectPinException("Incorrect pin code");
@@ -175,7 +175,7 @@ public class NgUserController {
         } catch (IncorrectPinException wrongPin) {
             return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
         }
         AuthTokenDto authTokenDto =
