@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller.service.impl;
 
+import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.BalancesShortDto;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -34,9 +35,17 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class BalanceServiceImpl implements BalanceService {
@@ -77,32 +86,28 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(int offset, int limit, String email, boolean excludeZero,
-                                                               CurrencyType currencyType, String currencyName) {
-        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType)
+    public PagedResult<MyWalletsDetailedDto> getWalletsDetails(BalanceFilterDataDto filterDataDto) {
+        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(filterDataDto.getEmail(), Locale.ENGLISH, filterDataDto.getCurrencyType())
                 .stream()
-                .filter(excludeRub(currencyType))
-                .collect(Collectors.toList());
-        if (excludeZero) {
+                .filter(excludeRub(filterDataDto.getCurrencyType()))
+                .collect(toList());
+
+        if (filterDataDto.getExcludeZero()) {
             details = details.stream()
                     .filter(filterZeroActiveBalance())
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
-        if (!StringUtils.isEmpty(currencyName)) {
+        if (StringUtils.isNotEmpty(filterDataDto.getCurrencyName())) {
             details = details
                     .stream()
-                    .filter(item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase()))
-                    .filter(containsNameOrDescription(currencyName))
-                    .collect(Collectors.toList());
+                    .filter(item -> Objects.equals(filterDataDto.getCurrencyName().toUpperCase(), item.getCurrencyName().toUpperCase()))
+                    .collect(toList());
         }
-        PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, offset, limit);
-        setBtcUsdAmoun(detailsPage.getItems());
-        return detailsPage;
-    }
+        PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, filterDataDto.getOffset(), filterDataDto.getLimit());
 
-    private Predicate<MyWalletsDetailedDto> containsNameOrDescription(String currencyName) {
-        return item -> item.getCurrencyName().toUpperCase().contains(currencyName.toUpperCase())
-                || item.getCurrencyDescription().toUpperCase().contains(currencyName.toUpperCase());
+        setBtcUsdAmoun(detailsPage.getItems());
+
+        return detailsPage;
     }
 
     @Override
@@ -110,23 +115,24 @@ public class BalanceServiceImpl implements BalanceService {
         List<MyWalletsDetailedDto> wallets = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, null);
         return wallets
                 .stream()
-                .filter(w -> w.getCurrencyId() == currencyId)
+                .filter(w -> w.getCurrencyId().equals(currencyId))
                 .findFirst();
     }
 
     private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
         Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
         Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
+
         BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
         walletsDetails.forEach(p -> {
             BigDecimal sumBalances = new BigDecimal(p.getActiveBalance()).add(new BigDecimal(p.getReservedBalance())).setScale(8, RoundingMode.HALF_DOWN);
             BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
             BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
             BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
+
             p.setBtcAmount(dto.getBalanceBtc().setScale(8, RoundingMode.HALF_DOWN).toPlainString());
             p.setUsdAmount(dto.getBalanceUsd().setScale(2, RoundingMode.HALF_DOWN).toPlainString());
         });
-
     }
 
 
@@ -145,7 +151,7 @@ public class BalanceServiceImpl implements BalanceService {
                             Date dateTwo = getDateFromString(o2.getDate());
                             return dateTwo.compareTo(dateOne);
                         }))
-                        .collect(Collectors.toList());
+                        .collect(toList());
         return getSafeSubList(requests, offset, limit);
     }
 
@@ -170,7 +176,7 @@ public class BalanceServiceImpl implements BalanceService {
         return pagedResult;
     }
 
-    public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(String email, int limit, int offset, Locale locale){
+    public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(String email, int limit, int offset, Locale locale) {
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, null, null, 0, locale);
         List<MyInputOutputHistoryDto> historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, 0, null, null, locale);
 
