@@ -144,7 +144,7 @@ public interface OrderDao {
 
     List<OpenOrderDto> getOpenOrders(Integer currencyPairId, OrderType orderType);
 
-    List<TradeHistoryDto> getTradeHistory(Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit);
+    List<TradeHistoryDto> getTradeHistory(Integer currencyPairId, LocalDateTime fromDate, LocalDateTime toDate, Integer limit, String direction);
 
     List<UserOrdersDto> getUserOpenOrders(Integer userId, Integer currencyPairId);
 

@@ -450,7 +450,7 @@ public interface OrderService {
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
-    List<TradeHistoryDto> getTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
+    List<TradeHistoryDto> getTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit, String direction);
 
     List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName);
 

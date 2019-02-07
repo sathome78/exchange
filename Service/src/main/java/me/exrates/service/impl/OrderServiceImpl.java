@@ -2238,14 +2238,16 @@ public class OrderServiceImpl implements OrderService {
     public List<TradeHistoryDto> getTradeHistory(String currencyPairName,
                                                  @NotNull LocalDate fromDate,
                                                  @NotNull LocalDate toDate,
-                                                 @Null Integer limit) {
+                                                 @Null Integer limit,
+                                                 @Null String direction) {
         final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
 
         return orderDao.getTradeHistory(
                 currencyPairId,
                 LocalDateTime.of(fromDate, LocalTime.MIN),
                 LocalDateTime.of(toDate, LocalTime.MAX),
-                limit);
+                limit,
+                direction);
     }
 
     @Override

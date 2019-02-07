@@ -1710,7 +1710,11 @@ public class OrderDaoImpl implements OrderDao {
     public List<TradeHistoryDto> getTradeHistory(Integer currencyPairId,
                                                  LocalDateTime fromDate,
                                                  LocalDateTime toDate,
-                                                 Integer limit) {
+                                                 Integer limit,
+                                                 String direction) {
+        String directionSql = "ASC".equalsIgnoreCase(direction)
+                ? " ORDER BY o.date_acception ASC"
+                : " ORDER BY o.date_acception DESC";
         String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
 
         String sql = "SELECT o.id as order_id, " +
@@ -1724,8 +1728,8 @@ public class OrderDaoImpl implements OrderDao {
                 " FROM EXORDERS o" +
                 " JOIN COMMISSION c on o.commission_id = c.id" +
                 " WHERE o.currency_pair_id=:currency_pair_id AND o.status_id=:status_id" +
-                " AND o.date_acception BETWEEN :start_date AND :end_date" +
-                " ORDER BY o.date_acception ASC"
+                " AND o.date_acception BETWEEN :start_date AND :end_date"
+                + directionSql
                 + limitSql;
 
         Map<String, Object> params = new HashMap<>();
