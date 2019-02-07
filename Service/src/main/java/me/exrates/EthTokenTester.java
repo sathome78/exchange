@@ -98,7 +98,7 @@ public class EthTokenTester implements CoinTester {
         if(email != null) this.principalEmail = email;
         prepareContract();
         if(email != null) this.principalEmail = email;
-        stringBuilder.append("Init success for coin " + name).append("\n");
+        stringBuilder.append("Init success for coin " + name).append("<br>");
     }
 
     private void prepareContract() throws Exception {
@@ -114,40 +114,40 @@ public class EthTokenTester implements CoinTester {
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
         contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT);
         stringBuilder.append("------TEST NODE INFO-----")
-                .append("Main TEST adrress = " + mainTestAccountAddress).append("\n")
-                .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("\n")
-                .append(name + " token balance = " + contract.balanceOf(credentials.getAddress()).send()).append("\n");
+                .append("Main TEST adrress = " + mainTestAccountAddress).append("<br>")
+                .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>")
+                .append(name + " token balance = " + contract.balanceOf(credentials.getAddress()).send()).append("<br>");
     }
 
 
     @Override
     public String testCoin(String refillAmount) throws Exception {
         try {
-            stringBuilder.append("Starting prepareRefillRequest\n");
+            stringBuilder.append("Starting prepareRefillRequest<br>");
             RefillRequestCreateDto request = prepareRefillRequest(merchantId, currencyId);
-            stringBuilder.append("Set min conf\n");
+            stringBuilder.append("Set min conf<br>");
             setMinConfirmation(MIN_CONFIRMATION_FOR_REFILL);
-            stringBuilder.append("checkNodeConnection\n");
+            stringBuilder.append("checkNodeConnection<br>");
             checkNodeConnection();
             checkRefill(request, refillAmount, merchantId, currencyId);
             return stringBuilder.toString();
         } catch (Exception e){
-            return stringBuilder.append(e.getMessage()).append("\n").toString();
+            return stringBuilder.append(e.getMessage()).append("<br>").toString();
         }
     }
 
     private void checkRefill(RefillRequestCreateDto request, String refillAmount, int merchantId, int currencyId) throws Exception {
-        stringBuilder.append("Starting chekc refill").append("\n");
+        stringBuilder.append("Starting chekc refill").append("<br>");
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
         if (byAddressMerchantAndCurrency.size() == 0)
             throw new CoinTestException("byAddressMerchantAndCurrency.size() == 0");
 
-        stringBuilder.append("ADDRESS FOR REFILL FROM BIRZHA " + addressForRefill).append("\n");;
+        stringBuilder.append("ADDRESS FOR REFILL FROM BIRZHA " + addressForRefill).append("<br>");;
 
         String transactionHash = contract.transfer(addressForRefill, convertToContractScale(refillAmount)).send().getTransactionHash();
-        stringBuilder.append("Transaction hash = " + transactionHash).append("\n");
+        stringBuilder.append("Transaction hash = " + transactionHash).append("<br>");
 
 
         stringBuilder.append("Checking our transaction in explorer...");
@@ -157,12 +157,12 @@ public class EthTokenTester implements CoinTester {
                 Thread.sleep(10000);
                 Optional<Transaction> transaction = getTransactionByHash(transactionHash);
                 if (!transaction.isPresent()) {
-                    stringBuilder.append("Couldn't find tx...\n");
+                    stringBuilder.append("Couldn't find tx...<br>");
                     continue;
                 }
                 blockNumber = transaction.get().getBlockNumber();
             } catch (Exception e){
-                stringBuilder.append(e.getMessage()).append("\n");
+                stringBuilder.append(e.getMessage()).append("<br>");
             }
         } while (blockNumber == null);
 
@@ -174,7 +174,7 @@ public class EthTokenTester implements CoinTester {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, transactionHash);
             if (!acceptedRequest.isPresent()) {
                 if (isConfirmationsEnough) throw new RuntimeException("Confirmation enough, but refill not working!");
-                stringBuilder.append("NOT NOW(").append("\n");;
+                stringBuilder.append("NOT NOW(").append("<br>");;
                 Thread.sleep(2000);
 
 
@@ -183,17 +183,17 @@ public class EthTokenTester implements CoinTester {
                     Thread.sleep(TIME_FOR_REFILL);
                     isConfirmationsEnough = true;
                 }
-                stringBuilder.append("Checking transaction... ").append("\n");
+                stringBuilder.append("Checking transaction... ").append("<br>");
             } else {
-                stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("\n");;
-                stringBuilder.append("refill amount " + refillAmount).append("\n");;
+                stringBuilder.append("accepted amount " + acceptedRequest.get().getAmount()).append("<br>");;
+                stringBuilder.append("refill amount " + refillAmount).append("<br>");;
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
 
                 if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (new BigDecimal(refillAmount)))) {
                     throw new CoinTestException("!acceptedRequest.get().getAmount().equals(new BigDecimal(refillAmount)), expected " + refillAmount + " but was " + acceptedRequest.get().getAmount());
                 }
-                stringBuilder.append("REQUEST FINDED, accepted amount = " + refillRequestBtcInfoDto.getAmount()).append("\n");;
+                stringBuilder.append("REQUEST FINDED, accepted amount = " + refillRequestBtcInfoDto.getAmount()).append("<br>");;
             }
         } while (!acceptedRequest.isPresent());
 

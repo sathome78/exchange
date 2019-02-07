@@ -29,9 +29,10 @@ public class CoinTestController {
     public String startTesting(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount,
                                @RequestParam(name = "email", required = false) String email) throws Exception {
         logger = new StringBuilder();
+        logger.append("<a href = \"/cointest/stop\">STOP</a>").append("<br>");
         activeThread = new Thread(() -> startCoinTest(name, amount, email));
         activeThread.start();
-        return "started";
+        return "redirect:/cointest/log";
     }
 
     private void startCoinTest(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount, @RequestParam(name = "email", required = false) String email) {
@@ -42,10 +43,9 @@ public class CoinTestController {
         } catch (Exception e){
             logger.append(e.getMessage()).append("\n");
         }
-        return "redirect:/cointest/log";
     }
 
-    @GetMapping(value = "/cointest/log", produces = "text/plain")
+    @GetMapping(value = "/cointest/log", produces = "text/html")
     @ResponseBody //TODO make updatable
     public String getLog(){
         return logger.toString();

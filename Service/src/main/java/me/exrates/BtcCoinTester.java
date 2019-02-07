@@ -79,7 +79,7 @@ public class BtcCoinTester implements CoinTester {
         btcdClient = prepareBtcClient(name);
         this.stringBuilder = stringBuilder;
         if(email != null) this.principalEmail = email;
-        stringBuilder.append("Init success for coin " + name).append("\n");
+        stringBuilder.append("Init success for coin " + name).append("<br>");
     }
 
     @Override
@@ -93,7 +93,7 @@ public class BtcCoinTester implements CoinTester {
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
-            stringBuilder.append("Everything works fine!\n");
+            stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
             stringBuilder.append(e.toString());
@@ -102,9 +102,9 @@ public class BtcCoinTester implements CoinTester {
     }
 
     private void testNodeInfo() throws BitcoindException, CommunicationException {
-        stringBuilder.append("------TEST NODE INFO-----").append("\n")
-                .append("Current balance = " + btcdClient.getBalance()).append("\n")
-                .append("You can refill test node on address = " + btcdClient.getNewAddress()).append("\n");
+        stringBuilder.append("------TEST NODE INFO-----").append("<br>")
+                .append("Current balance = " + btcdClient.getBalance()).append("<br>")
+                .append("You can refill test node on address = " + btcdClient.getNewAddress()).append("<br>");
     }
 
     private void setMinConfirmation(int i) throws NoSuchFieldException {
@@ -127,7 +127,7 @@ public class BtcCoinTester implements CoinTester {
         CreateOrder createOrder = new CreateOrder(OperationType.BUY, amount, rate, OrderBaseType.LIMIT, currencyPair, stop).invoke();
         String response = createOrder.getResponse();
         if (!response.equals("{\"result\":\"The 1 orders have been accepted successfully; \"}"))
-            throw new CoinTestException("unexpected order buy response:\n" + response);
+            throw new CoinTestException("unexpected order buy response:<br>" + response);
     }
 
     private void sellOrder(BigDecimal amount, BigDecimal rate, String currencyPair, BigDecimal stop) throws CoinTestException {
@@ -138,22 +138,22 @@ public class BtcCoinTester implements CoinTester {
             throw new CoinTestException("Order were not found in db!");
         }
         if (!response.equals("{\"result\":\"Your order was placed in common stack\"}"))
-            throw new CoinTestException("unexpected order create response:\n" + response);
+            throw new CoinTestException("unexpected order create response:<br>" + response);
     }
 
     private void testAddressGeneration() throws BitcoindException, CommunicationException {
-        stringBuilder.append("Starting test generating address...\n");
+        stringBuilder.append("Starting test generating address...<br>");
         String newAddress = btcdClient.getNewAddress();
         assert newAddress.length() > 10;
         assert btcdClient.getNewAddress().length() > 10;
-        stringBuilder.append("Address generation works fine. Example = " + newAddress + " \n");
+        stringBuilder.append("Address generation works fine. Example = " + newAddress + " <br>");
 
     }
 
     private void testAutoWithdraw(String refillAmount) throws BitcoindException, CommunicationException, InterruptedException, CoinTestException {
         synchronized (withdrawTest) {
             String withdrawAddress = btcdClient.getNewAddress();
-            stringBuilder.append("address for withdraw " + withdrawAddress).append("\n");;
+            stringBuilder.append("address for withdraw " + withdrawAddress).append("<br>");;
 
             WithdrawRequestParamsDto withdrawRequestParamsDto = new WithdrawRequestParamsDto();
             withdrawRequestParamsDto.setCurrency(currencyId);
@@ -196,14 +196,14 @@ public class BtcCoinTester implements CoinTester {
                         if (!compareObjects(transaction.getAmount(), (flatWithdrawRequest.getAmount().subtract(flatWithdrawRequest.getCommissionAmount()))))
                             throw new CoinTestException("Amount expected " + transaction.getAmount() + ", but was " + flatWithdrawRequest.getAmount().min(flatWithdrawRequest.getCommissionAmount()));
                     }
-                    stringBuilder.append("Checking withdraw...current status = " + withdrawStatus).append("\n");;
+                    stringBuilder.append("Checking withdraw...current status = " + withdrawStatus).append("<br>");;
                     Thread.sleep(2000);
                 } catch (BitcoindException e) {
-                    stringBuilder.append(e).append("\n");;
+                    stringBuilder.append(e).append("<br>");;
                 }
             } while (withdrawStatus != 10);
 
-            stringBuilder.append("Withdraw works").append("\n");;
+            stringBuilder.append("Withdraw works").append("<br>");;
 
 
         }
@@ -214,13 +214,13 @@ public class BtcCoinTester implements CoinTester {
             setAutoWithdraw(false);
 
         String withdrawAddress = btcdClient.getNewAddress();
-        stringBuilder.append("address for manual withdraw " + withdrawAddress).append("\n");;
+        stringBuilder.append("address for manual withdraw " + withdrawAddress).append("<br>");;
         walletPassphrase();
         BitcoinService walletService = (BitcoinService) getMerchantServiceByName(name, reffilableServiceMap);
         List<BtcWalletPaymentItemDto> payments = new LinkedList<>();
         payments.add(new BtcWalletPaymentItemDto(withdrawAddress, new BigDecimal(amount)));
         BtcPaymentResultDetailedDto btcPaymentResultDetailedDto = walletService.sendToMany(payments).get(0);
-        stringBuilder.append("BtcPaymentResultDetailedDto = " + btcPaymentResultDetailedDto.toString()).append("\n");
+        stringBuilder.append("BtcPaymentResultDetailedDto = " + btcPaymentResultDetailedDto.toString()).append("<br>");
 
         if(btcPaymentResultDetailedDto.getTxId() == null){
             stringBuilder.append("Cannot check manual withdraw, use walletpassphrase first!");
@@ -231,10 +231,10 @@ public class BtcCoinTester implements CoinTester {
             try {
                 transaction = btcdClient.getTransaction(btcPaymentResultDetailedDto.getTxId());
             } catch (BitcoindException e) {
-                stringBuilder.append("Error from btc " + e.getMessage()).append("\n");;
+                stringBuilder.append("Error from btc " + e.getMessage()).append("<br>");;
             }
             Thread.sleep(2000);
-            stringBuilder.append("Checking manual transaction").append("\n");;
+            stringBuilder.append("Checking manual transaction").append("<br>");;
             if (transaction != null) {
                 if (!compareObjects(btcPaymentResultDetailedDto.getAmount(), (transaction.getAmount())))
                     throw new CoinTestException("btcPaymentResultDetailedDto.getAmount() = " + btcPaymentResultDetailedDto.getAmount()
@@ -261,12 +261,12 @@ public class BtcCoinTester implements CoinTester {
         if (byAddressMerchantAndCurrency.size() == 0)
             throw new CoinTestException("byAddressMerchantAndCurrency.size() == 0");
 
-        stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("\n");;
-        stringBuilder.append("BALANCE = " + btcdClient.getBalance()).append("\n");;
+        stringBuilder.append("ADDRESS FRO REFILL FROM BIRZHA " + addressForRefill).append("<br>");;
+        stringBuilder.append("BALANCE = " + btcdClient.getBalance()).append("<br>");;
         walletPassphrase();
-        stringBuilder.append("balance = " + btcdClient.getBalance()).append("\n");;
-        stringBuilder.append("refill sum = " + refillAmount).append("\n");;
-        stringBuilder.append("DEBUG: new BigDecimal(refillAmount)" + new BigDecimal(refillAmount)).append("\n");
+        stringBuilder.append("balance = " + btcdClient.getBalance()).append("<br>");;
+        stringBuilder.append("refill sum = " + refillAmount).append("<br>");;
+        stringBuilder.append("DEBUG: new BigDecimal(refillAmount)" + new BigDecimal(refillAmount)).append("<br>");
         String txHash = btcdClient.sendToAddress(addressForRefill, new BigDecimal(refillAmount));
 
         Optional<RefillRequestBtcInfoDto> acceptedRequest;
@@ -275,16 +275,16 @@ public class BtcCoinTester implements CoinTester {
         do {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
-                stringBuilder.append("NOT NOW").append("\n");;
+                stringBuilder.append("NOT NOW").append("<br>");;
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
                 if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
                 }
-                stringBuilder.append("Transaction consfirmation = ").append(transaction.getConfirmations()).append("\n");;
+                stringBuilder.append("Transaction consfirmation = ").append(transaction.getConfirmations()).append("<br>");;
             } else {
-                stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("\n");;
-                stringBuilder.append("refill amount ").append(refillAmount).append("\n");;
+                stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("<br>");;
+                stringBuilder.append("refill amount ").append(refillAmount).append("<br>");;
                 RefillRequestBtcInfoDto refillRequestBtcInfoDto = acceptedRequest.get();
                 refillRequestBtcInfoDto.setAmount(new BigDecimal(refillRequestBtcInfoDto.getAmount().doubleValue()));
                 if (!compareObjects(refillRequestBtcInfoDto.getAmount(), (refillAmount)))
@@ -292,8 +292,8 @@ public class BtcCoinTester implements CoinTester {
             }
         } while (!acceptedRequest.isPresent());
 
-        stringBuilder.append("REQUEST FINDED").append("\n");;
-        stringBuilder.append("Node balance after refill = " + btcdClient.getBalance()).append("\n");
+        stringBuilder.append("REQUEST FINDED").append("<br>");;
+        stringBuilder.append("Node balance after refill = " + btcdClient.getBalance()).append("<br>");
         Map<String, String> a = new HashMap<>();
     }
 
@@ -301,7 +301,7 @@ public class BtcCoinTester implements CoinTester {
         try {
             btcdClient.walletPassphrase("pass123", 2000);
         } catch (Exception e) {
-            stringBuilder.append("Error while trying encrypted wallet: \n" + e.getMessage()).append("\n");;
+            stringBuilder.append("Error while trying encrypted wallet: <br>" + e.getMessage()).append("<br>");;
         }
     }
 
@@ -426,9 +426,9 @@ public class BtcCoinTester implements CoinTester {
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, new Locale("en"));
             if (!errorMap.isEmpty()) {
-                stringBuilder.append("Error map: \n");
+                stringBuilder.append("Error map: <br>");
                 for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
-                    stringBuilder.append(pair.getKey() + "  " + pair.getValue() + "\n");
+                    stringBuilder.append(pair.getKey() + "  " + pair.getValue() + "<br>");
                     pair.setValue("message");
                 }
                 errorMap.put("order", orderCreateSummaryDto);
@@ -443,7 +443,7 @@ public class BtcCoinTester implements CoinTester {
                     && compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))
                     && orderCreateDto.getOrderBaseType().equals(baseType);
             if (!isOrderCreateCorrect) throw new CoinTestException("orderCreateDto incorrect!");
-            stringBuilder.append("Order " + currencyPair + " works!").append("\n");
+            stringBuilder.append("Order " + currencyPair + " works!").append("<br>");
 
             response = orderService.createOrder(orderCreateDto, CREATE, new Locale("en"));
             return this;
