@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,38 +51,43 @@ public class ReportOrdersExcelGeneratorUtil {
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(2, CellType.STRING);
+        cell.setCellValue("Принят");
+        cell.setCellStyle(header1Style);
+
+
+        cell = row.createCell(3, CellType.STRING);
         cell.setCellValue("Валютная пара");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(3, CellType.STRING);
+        cell = row.createCell(4, CellType.STRING);
         cell.setCellValue("Тип ордера");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(4, CellType.STRING);
+        cell = row.createCell(5, CellType.STRING);
         cell.setCellValue("Курc");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(5, CellType.STRING);
+        cell = row.createCell(6, CellType.STRING);
         cell.setCellValue("Количество");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(6, CellType.STRING);
+        cell = row.createCell(7, CellType.STRING);
         cell.setCellValue("Создал");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(7, CellType.STRING);
+        cell = row.createCell(8, CellType.STRING);
         cell.setCellValue("Роль пользователя-создателя");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(8, CellType.STRING);
+        cell = row.createCell(9, CellType.STRING);
         cell.setCellValue("Принял");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(9, CellType.STRING);
+        cell = row.createCell(10, CellType.STRING);
         cell.setCellValue("Роль пользователя-принял");
         cell.setCellStyle(header1Style);
 
-        cell = row.createCell(10, CellType.STRING);
+        cell = row.createCell(11, CellType.STRING);
         cell.setCellValue("Статус");
         cell.setCellStyle(header1Style);
 
@@ -107,6 +113,8 @@ public class ReportOrdersExcelGeneratorUtil {
         sheet.setColumnWidth(9, sheet.getColumnWidth(9) + 256);
         sheet.autoSizeColumn(10, true);
         sheet.setColumnWidth(10, sheet.getColumnWidth(10) + 256);
+        sheet.autoSizeColumn(11, true);
+        sheet.setColumnWidth(11, sheet.getColumnWidth(11) + 256);
 
         //body
         int i=0;
@@ -114,47 +122,54 @@ public class ReportOrdersExcelGeneratorUtil {
 
             row = sheet.createRow(i + 1);
 
+            String dateCreation = order.getDateCreation() != null ? order.getDateCreation().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "-";
+            String dateAcception = order.getDateAcception() != null ? order.getDateAcception().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "-";
+
             cell = row.createCell(0, CellType.NUMERIC);
             cell.setCellValue(order.getId());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(order.getDateCreation().toString());
+            cell.setCellValue(dateCreation);
             cell.setCellStyle(body1Style);
 
-            cell = row.createCell(2, CellType.NUMERIC);
-            cell.setCellValue(order.getCurrencyPairName());
+            cell = row.createCell(2, CellType.STRING);
+            cell.setCellValue(dateAcception);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
-            cell.setCellValue(order.getOrderTypeName());
+            cell.setCellValue(order.getCurrencyPairName());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(4, CellType.NUMERIC);
-            cell.setCellValue(order.getExrate());
+            cell.setCellValue(order.getOrderTypeName());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(5, CellType.NUMERIC);
-            cell.setCellValue(order.getAmountBase());
+            cell.setCellValue(order.getExrate());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(6, CellType.NUMERIC);
-            cell.setCellValue(order.getOrderCreatorEmail());
+            cell.setCellValue(order.getAmountBase());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(7, CellType.NUMERIC);
-            cell.setCellValue(order.getCreatorRole());
+            cell.setCellValue(order.getOrderCreatorEmail());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
-            cell.setCellValue(order.getOrderAcceptorEmail());
+            cell.setCellValue(order.getCreatorRole());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
-            cell.setCellValue(order.getAcceptorRole());
+            cell.setCellValue(order.getOrderAcceptorEmail());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(10, CellType.NUMERIC);
+            cell.setCellValue(order.getAcceptorRole());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(11, CellType.NUMERIC);
             cell.setCellValue(order.getOrderStatusName());
             cell.setCellStyle(body1Style);
 

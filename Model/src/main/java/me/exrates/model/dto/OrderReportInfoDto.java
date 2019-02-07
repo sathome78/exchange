@@ -14,6 +14,8 @@ public class OrderReportInfoDto {
     private int id;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateCreation;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime dateAcception;
     private String currencyPairName;
     private String orderTypeName;
     private String exrate;

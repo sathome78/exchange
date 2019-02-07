@@ -1024,7 +1024,7 @@ public class OrderDaoImpl implements OrderDao {
         //Need, because table EXORDERS has many data
         String limit = "LIMIT 100000";
 
-        String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, cp.name AS currency_pair_name, " +
+        String sqlSelect = "SELECT EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception, cp.name AS currency_pair_name, " +
                 "UPPER(ORDER_OPERATION.name) as operation_type, EXORDERS.base_type as order_base_type, " +
                 "EXORDERS.exrate, EXORDERS.amount_base, CREATOR.email AS order_creator_email, " +
                 "CREATOR.roleid AS creator_role_id, ACCEPTOR.email AS order_acceptor_email, " +
@@ -1049,6 +1049,8 @@ public class OrderDaoImpl implements OrderDao {
             OrderReportInfoDto orderReportInfoDto = new OrderReportInfoDto();
             orderReportInfoDto.setId(rs.getInt("id"));
             orderReportInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+            orderReportInfoDto.setDateAcception(rs.getTimestamp("date_acception") != null
+                                            ? rs.getTimestamp("date_acception").toLocalDateTime() : null);
             orderReportInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderReportInfoDto.setOrderTypeName(rs.getString("operation_type").concat(" ").concat(rs.getString("order_base_type")));
             orderReportInfoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), Locale.ENGLISH, 2));
@@ -1056,7 +1058,7 @@ public class OrderDaoImpl implements OrderDao {
             orderReportInfoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
             orderReportInfoDto.setCreatorRole(UserRole.convert(rs.getInt("creator_role_id")).name());
             orderReportInfoDto.setOrderAcceptorEmail(rs.getString("order_acceptor_email"));
-            orderReportInfoDto.setAcceptorRole(UserRole.convert(rs.getInt("acceptor_role_id")).name());
+            orderReportInfoDto.setAcceptorRole(rs.getInt("acceptor_role_id") != 0 ? UserRole.convert(rs.getInt("acceptor_role_id")).name() : null);
             orderReportInfoDto.setOrderStatusName(OrderStatus.convert(rs.getInt("status_id")).toString());
 
             return orderReportInfoDto;
