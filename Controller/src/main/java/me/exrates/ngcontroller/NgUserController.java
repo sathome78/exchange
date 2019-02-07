@@ -139,6 +139,7 @@ public class NgUserController {
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             logger.error("Incorrect password, email = {}", authenticationDto.getEmail());
+            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             throw new IncorrectPasswordException("Incorrect password");
         }
 
@@ -206,6 +207,7 @@ public class NgUserController {
 
         boolean result = ngUserService.registerUser(userEmailDto, request);
 
+
         if (result) {
             ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
@@ -214,11 +216,6 @@ public class NgUserController {
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         return new ResponseEntity(HttpStatus.BAD_REQUEST);
-    }
-
-    private String getAvatarPathPrefix(HttpServletRequest request) {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort() + "/rest";
     }
 
     @PostMapping("/createPassword")
@@ -269,6 +266,11 @@ public class NgUserController {
     @ResponseBody
     public ErrorInfo UnauthorizedErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private String getAvatarPathPrefix(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort() + "/rest";
     }
 
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)

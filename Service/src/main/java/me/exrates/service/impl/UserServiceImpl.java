@@ -750,7 +750,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /*todo refator it*/
     @Override
     public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
         int userId = getIdByEmail(email);

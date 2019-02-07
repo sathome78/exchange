@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS USER_PAGE_LAYOUT_SETTINGS (
-  user_id INT NOT NULL PRIMARY KEY,
-  color_scheme ENUM('LIGHT', 'DARK') DEFAULT 'LIGHT',
-  is_low_color_enabled BOOLEAN DEFAULT FALSE,
-  FOREIGN KEY (user_id) references `USER`(`id`)
-) DEFAULT CHARACTER SET = utf8;
