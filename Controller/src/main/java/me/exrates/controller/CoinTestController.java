@@ -19,6 +19,7 @@ public class CoinTestController {
     private StringBuilder logger = new StringBuilder("to be continued...");
     private ExecutorService executor =  Executors.newCachedThreadPool();
     private Thread activeThread = new Thread();
+
     @Autowired
     public CoinTestController(CoinDispatcher coinDispatcher) {
         this.coinDispatcher = coinDispatcher;

@@ -201,7 +201,7 @@ public class EthTokenTester implements CoinTester {
 
     private BigInteger convertToContractScale(String refillAmount) {
         EthTokenService ethService = getEthService(name);
-        return new BigDecimal(refillAmount).multiply(new BigDecimal(10 * ethService.getUnit().getFactor())).toBigInteger();
+        return new BigDecimal(refillAmount).multiply(new BigDecimal(10).pow(ethService.getUnit().getFactor())).toBigInteger();
     }
 
     private BigDecimal convertToStandartScale(BigDecimal bigDecimal) {
