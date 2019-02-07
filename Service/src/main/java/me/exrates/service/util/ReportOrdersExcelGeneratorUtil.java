@@ -125,6 +125,9 @@ public class ReportOrdersExcelGeneratorUtil {
             String dateCreation = order.getDateCreation() != null ? order.getDateCreation().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "-";
             String dateAcception = order.getDateAcception() != null ? order.getDateAcception().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "-";
 
+            String acceptorEmail = order.getOrderAcceptorEmail() != null ? order.getOrderAcceptorEmail() : "-";
+            String acceptorRole = order.getAcceptorRole() != null ? order.getAcceptorRole() : "-";
+
             cell = row.createCell(0, CellType.NUMERIC);
             cell.setCellValue(order.getId());
             cell.setCellStyle(body1Style);
@@ -162,11 +165,11 @@ public class ReportOrdersExcelGeneratorUtil {
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
-            cell.setCellValue(order.getOrderAcceptorEmail());
+            cell.setCellValue(acceptorEmail);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(10, CellType.NUMERIC);
-            cell.setCellValue(order.getAcceptorRole());
+            cell.setCellValue(acceptorRole);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(11, CellType.NUMERIC);
