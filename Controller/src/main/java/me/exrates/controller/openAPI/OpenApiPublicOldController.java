@@ -47,7 +47,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 @SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/public")
-public class OpenApiPublicController {
+public class OpenApiPublicOldController {
 
     @Autowired
     private OrderService orderService;
@@ -134,7 +134,7 @@ public class OpenApiPublicController {
     }
 
     /**
-     * @api {get} /openapi/v1/public/history/{currency_pair}?from_date&to_date&limit Trade History
+     * @api {get} /openapi/v1/public/history/{currency_pair}?from_date&to_date&limit&direction Trade History
      * @apiName Trade History
      * @apiGroup Public API
      * @apiPermission user
@@ -142,8 +142,9 @@ public class OpenApiPublicController {
      * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
      * @apiParam {LocalDate} to_date end date of search (date format: yyyy-MM-dd)
      * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero, default value: 50) (optional)
+     * @apiParam {String} result direction (allowed values: ASC or DESC, default value: ASC) (optional)
      * @apiParamExample Request Example:
-     * openapi/v1/public/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=20
+     * openapi/v1/public/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=20&direction=DESC
      * @apiSuccess {Array} Array of trade info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.order_id Order id
@@ -159,7 +160,8 @@ public class OpenApiPublicController {
     public ResponseEntity<BaseResponse<List<TradeHistoryDto>>> getTradeHistory(@PathVariable(value = "currency_pair") String currencyPair,
                                                                                @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
                                                                                @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-                                                                               @RequestParam(required = false, defaultValue = "50") Integer limit) {
+                                                                               @RequestParam(required = false, defaultValue = "50") Integer limit,
+                                                                               @RequestParam(required = false, defaultValue = "ASC") String direction) {
         if (fromDate.isAfter(toDate)) {
             return ResponseEntity.badRequest().body(BaseResponse.error("From date is after to date"));
         }
@@ -169,7 +171,7 @@ public class OpenApiPublicController {
 
         final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
 
-        return ResponseEntity.ok(BaseResponse.success(orderService.getTradeHistory(transformedCurrencyPair, fromDate, toDate, limit)));
+        return ResponseEntity.ok(BaseResponse.success(orderService.getTradeHistory(transformedCurrencyPair, fromDate, toDate, limit, direction)));
     }
 
     /**

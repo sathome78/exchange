@@ -113,7 +113,6 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
-
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {

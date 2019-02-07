@@ -1840,4 +1840,5 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return ClientBuilder.newBuilder().build();
     }
 
+
 }

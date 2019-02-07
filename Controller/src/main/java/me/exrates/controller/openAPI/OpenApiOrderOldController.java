@@ -1,21 +1,25 @@
 package me.exrates.controller.openAPI;
 
+import com.google.common.base.Strings;
 import me.exrates.controller.model.BaseResponse;
+import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
 import me.exrates.model.dto.openAPI.OrderParamsDto;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.AlreadyAcceptedOrderException;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.OrderNotFoundException;
+import me.exrates.service.exception.*;
+import me.exrates.service.exception.api.CancelOrderException;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +33,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
@@ -39,13 +41,19 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/openapi/v1/orders")
-public class OpenApiOrderController {
+public class OpenApiOrderOldController {
 
     @Autowired
     private OrderService orderService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserOperationService userOperationService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * @api {post} /openapi/v1/orders/create Create order
@@ -72,9 +80,39 @@ public class OpenApiOrderController {
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
         String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
+        if (!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
+        }
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
                 orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
         return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
+    }
+
+    /**
+     * @api {get} /openapi/v1/orders/accept Accept order
+     * @apiName Accept order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Accepts order
+     * @apiParam {Integer} order_id Id of order to be accepted
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/accept
+     * RequestBody: Map{order_id=123}
+     * @apiSuccess {Map} success=true Acceptance result
+     */
+    @PreAuthorize("hasAuthority('TRADE') and hasAuthority('ACCEPT_BY_ID')")
+    @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
+        String orderIdString = retrieveParamFormBody(params, "order_id", true);
+        Integer orderId = Integer.parseInt(orderIdString);
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        orderService.acceptOrder(userEmail, orderId);
+        return Collections.singletonMap("success", true);
     }
 
     /**
@@ -99,28 +137,36 @@ public class OpenApiOrderController {
         return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
     }
 
-    /**
-     * @api {get} /openapi/v1/orders/accept Accept order
-     * @apiName Accept order
-     * @apiGroup Order API
-     * @apiUse APIHeaders
-     * @apiPermission NonPublicAuth
-     * @apiDescription Accepts order
-     * @apiParam {Integer} order_id Id of order to be accepted
-     * @apiParamExample Request Example:
-     * /openapi/v1/orders/accept
-     * RequestBody: Map{order_id=123}
-     * @apiSuccess {Map} success=true Acceptance result
-     */
     @PreAuthorize("hasAuthority('TRADE')")
-    @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
-        String orderIdString = retrieveParamFormBody(params, "order_id", true);
-        Integer orderId = Integer.parseInt(orderIdString);
+    @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) throws CallBackUrlAlreadyExistException {
+        Map<String, Object> responseBody = new HashMap<>();
         String userEmail = userService.getUserEmailFromSecurityContext();
-        orderService.acceptOrder(userEmail, orderId);
-        return Collections.singletonMap("success", true);
+        int userId = userService.getIdByEmail(userEmail);
+        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
+            responseBody.put("status", "false");
+            responseBody.put("error", " Callback url is null or empty");
+            return responseBody;
+        }
+        int affectedRowCount = userService.setCallbackURL(userId, callbackUrl);
+        responseBody.put("status", affectedRowCount != 0);
+        return responseBody;
+    }
+
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Object> updateallback(@RequestBody CallbackURL callbackUrl) {
+        Map<String, Object> responseBody = new HashMap<>();
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL()) && callbackUrl.getPairId() != null) {
+            responseBody.put("status", "false");
+            responseBody.put("error", " Callback url is null or empty");
+            return responseBody;
+        }
+        int affectedRowCount = userService.updateCallbackURL(userId, callbackUrl);
+        responseBody.put("status", affectedRowCount != 0);
+        return responseBody;
     }
 
     /**
@@ -175,6 +221,13 @@ public class OpenApiOrderController {
         return new OpenApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(CallBackUrlAlreadyExistException.class)
+    @ResponseBody
+    public OpenApiError callBackExistException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.CALL_BACK_URL_ALREADY_EXISTS, req.getRequestURL(), exception);
+    }
+
     @ResponseStatus(NOT_ACCEPTABLE)
     @ExceptionHandler(CurrencyPairNotFoundException.class)
     @ResponseBody
@@ -204,6 +257,19 @@ public class OpenApiOrderController {
         return new OpenApiError(ErrorCode.ORDER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(FORBIDDEN)
+    @ExceptionHandler(UserOperationAccessException.class)
+    @ResponseBody
+    public OpenApiError userOperationAccessExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.BLOCED_TRADING, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NO_CONTENT)
+    @ExceptionHandler(CancelOrderException.class)
+    @ResponseBody
+    public OpenApiError CancelOrderExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.NOT_CANCELLED, req.getRequestURL(), exception);
+    }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)

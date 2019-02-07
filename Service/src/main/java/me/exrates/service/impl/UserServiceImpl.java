@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.model.AdminAuthorityOption;
@@ -9,12 +10,7 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -26,20 +22,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.UserService;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.AuthenticationNotAvailableException;
-import me.exrates.service.exception.CommentNonEditableException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.ResetPasswordExpirationException;
-import me.exrates.service.exception.TokenNotFoundException;
-import me.exrates.service.exception.UnRegisteredUserDeleteException;
-import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.*;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
@@ -108,6 +92,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private G2faService g2faService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -901,5 +888,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getEmailByReferenceId(String referenceId) {
         return userDao.getEmailByReferenceId(referenceId);
+    }
+
+    @Override
+    public int updateCallbackURL(int userId, CallbackURL callbackUrl) {
+        return userSettingService.updateCallbackURL(userId, callbackUrl);
+    }
+
+    @Override
+    public int setCallbackURL(int userId, CallbackURL callbackUrl) {
+        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId, callbackUrl.getPairId()))) {
+            throw new CallBackUrlAlreadyExistException("Callback already present");
+        }
+        return userSettingService.addCallbackURL(userId, callbackUrl);
     }
 }
