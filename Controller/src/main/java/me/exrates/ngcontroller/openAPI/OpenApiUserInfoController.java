@@ -1,11 +1,7 @@
-package me.exrates.controller.openAPI;
+package me.exrates.ngcontroller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
-import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
-import me.exrates.model.dto.openAPI.TransactionDto;
-import me.exrates.model.dto.openAPI.UserOrdersDto;
-import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
-import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.dto.openAPI.*;
 import me.exrates.service.OrderService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
@@ -19,14 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,13 +25,11 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.utils.ValidationUtil.validateNaturalInt;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.*;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController
-@RequestMapping("/openapi/v1/user")
+@RequestMapping("/info/private/v2/api/user")
 public class OpenApiUserInfoController {
 
     @Autowired

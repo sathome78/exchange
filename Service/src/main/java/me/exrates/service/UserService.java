@@ -5,11 +5,7 @@ import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -233,4 +229,9 @@ public interface UserService {
     int updateReferenceId(String referenceId);
 
     String getEmailByReferenceId(String referenceId);
+
+    int updateCallbackURL(int userId, CallbackURL callbackUrl);
+
+    int setCallbackURL(int userId, CallbackURL callbackUrl);
+
 }
