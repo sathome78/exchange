@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -87,23 +88,33 @@ public class BalanceServiceImpl implements BalanceService {
 
     @Override
     public PagedResult<MyWalletsDetailedDto> getWalletsDetails(BalanceFilterDataDto filterDataDto) {
-        List<MyWalletsDetailedDto> details = ngWalletService.getAllWalletsForUserDetailed(filterDataDto.getEmail(), Locale.ENGLISH, filterDataDto.getCurrencyType())
-                .stream()
-                .filter(excludeRub(filterDataDto.getCurrencyType()))
-                .collect(toList());
+        final String email = filterDataDto.getEmail();
+        final Integer currencyId = filterDataDto.getCurrencyId();
+        final String currencyName = filterDataDto.getCurrencyName();
+        final CurrencyType currencyType = filterDataDto.getCurrencyType();
+        final Boolean excludeZero = filterDataDto.getExcludeZero();
+        final Integer offset = filterDataDto.getOffset();
+        final Integer limit = filterDataDto.getLimit();
 
-        if (filterDataDto.getExcludeZero()) {
-            details = details.stream()
-                    .filter(filterZeroActiveBalance())
-                    .collect(toList());
+        Stream<MyWalletsDetailedDto> detailedDtoStream = ngWalletService.getAllWalletsForUserDetailed(email, Locale.ENGLISH, currencyType)
+                .stream()
+                .filter(excludeRub(currencyType));
+
+        if (excludeZero) {
+            detailedDtoStream = detailedDtoStream
+                    .filter(wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0);
         }
-        if (StringUtils.isNotEmpty(filterDataDto.getCurrencyName())) {
-            details = details
-                    .stream()
-                    .filter(item -> Objects.equals(filterDataDto.getCurrencyName().toUpperCase(), item.getCurrencyName().toUpperCase()))
-                    .collect(toList());
+        if (currencyId > 0) {
+            detailedDtoStream = detailedDtoStream
+                    .filter(wallet -> Objects.equals(currencyId, wallet.getCurrencyId()));
+        } else if (currencyId == 0 && StringUtils.isNotBlank(currencyName)) {
+            detailedDtoStream = detailedDtoStream
+                    .filter(wallet -> wallet.getCurrencyName().contains(currencyName)
+                            || wallet.getCurrencyDescription().contains(currencyName));
         }
-        PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(details, filterDataDto.getOffset(), filterDataDto.getLimit());
+        List<MyWalletsDetailedDto> balanceDetails = detailedDtoStream.collect(toList());
+
+        PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
         setBtcUsdAmoun(detailsPage.getItems());
 
@@ -133,11 +144,6 @@ public class BalanceServiceImpl implements BalanceService {
             p.setBtcAmount(dto.getBalanceBtc().setScale(8, RoundingMode.HALF_DOWN).toPlainString());
             p.setUsdAmount(dto.getBalanceUsd().setScale(2, RoundingMode.HALF_DOWN).toPlainString());
         });
-    }
-
-
-    private Predicate<MyWalletsDetailedDto> filterZeroActiveBalance() {
-        return wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0;
     }
 
     @Override
