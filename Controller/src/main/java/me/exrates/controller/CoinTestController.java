@@ -25,7 +25,6 @@ public class CoinTestController {
     }
 
     @GetMapping("/cointest/start")
-    @ResponseBody
     public String startTesting(@RequestParam(name = "coin") String name, @RequestParam(name = "amount") String amount,
                                @RequestParam(name = "email", required = false) String email) throws Exception {
         logger = new StringBuilder();
