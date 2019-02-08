@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.service.exception.WalletsApiException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -25,6 +27,8 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,6 +42,8 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 @Component
 public class WalletsApi {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private static final String ETHEREUM_CONTRACTS_PROPERTY_FILE = "ethereum_contracts.properties";
 
@@ -69,7 +75,7 @@ public class WalletsApi {
                                 e -> e.getValue().toString())));
     }
 
-    public Map<String, BigDecimal> getBalances() {
+    public Map<String, Pair<BigDecimal, LocalDateTime>> getBalances() {
         ResponseEntity<WalletsData[]> responseEntity;
         try {
             responseEntity = restTemplate.getForEntity(url, WalletsData[].class);
@@ -85,7 +91,11 @@ public class WalletsApi {
                 ? Arrays.stream(body)
                 .collect(toMap(
                         wallet -> wallet.name,
-                        wallet -> new BigDecimal(wallet.currentAmount.replace(" ", ""))
+                        wallet -> Pair.of(
+                                new BigDecimal(wallet.currentAmount.replace(" ", "")),
+                                StringUtils.isNotEmpty(wallet.date)
+                                        ? LocalDateTime.parse(wallet.date, FORMATTER)
+                                        : null)
                 ))
                 : Collections.emptyMap();
     }
@@ -191,6 +201,7 @@ public class WalletsApi {
 
         String name;
         String currentAmount;
+        String date;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

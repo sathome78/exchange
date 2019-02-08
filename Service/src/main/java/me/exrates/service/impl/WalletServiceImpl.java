@@ -57,6 +57,7 @@ import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.WalletNotFoundException;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -89,6 +92,8 @@ import static java.util.stream.Collectors.toSet;
 @Service
 @Transactional
 public class WalletServiceImpl implements WalletService {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private static final int decimalPlaces = 9;
 
@@ -528,7 +533,7 @@ public class WalletServiceImpl implements WalletService {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, BigDecimal> balances = walletsApi.getBalances();
+        final Map<String, Pair<BigDecimal, LocalDateTime>> balances = walletsApi.getBalances();
 
         if (rates.isEmpty() || balances.isEmpty()) {
             log.info("Exchange or wallet api did not return any data");
@@ -540,19 +545,23 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            BigDecimal mainBalance = balances.get(currencyName);
+            Pair<BigDecimal, LocalDateTime> pairBalances = balances.get(currencyName);
 
-            if (isNull(pairRates) || isNull(mainBalance)) {
+            if (isNull(pairRates) || isNull(pairBalances)) {
                 continue;
             }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
+
+            final BigDecimal mainBalance = pairBalances.getLeft();
+            final LocalDateTime lastBalanceUpdate = pairBalances.getRight();
 
             ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
                     .usdRate(usdRate)
                     .btcRate(btcRate)
                     .mainBalance(mainBalance)
+                    .lastUpdatedDate(lastBalanceUpdate)
                     .build();
             walletDao.updateExternalMainWalletBalances(exWallet);
         }
@@ -579,10 +588,13 @@ public class WalletServiceImpl implements WalletService {
             String[] data = compositeKey.split("\\|\\|");
             final String currencySymbol = data[0];
             final String walletAddress = data[1];
+            final LocalDateTime lastReservedBalanceUpdate = StringUtils.isNotEmpty(data[3])
+                    ? LocalDateTime.parse(data[3], FORMATTER)
+                    : null;
 
             Currency currency = currencyService.findByName(currencySymbol);
 
-            walletDao.updateExternalReservedWalletBalances(currency.getId(), walletAddress, balance);
+            walletDao.updateExternalReservedWalletBalances(currency.getId(), walletAddress, balance, lastReservedBalanceUpdate);
         }
         log.info("Process of updating external reserved wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
