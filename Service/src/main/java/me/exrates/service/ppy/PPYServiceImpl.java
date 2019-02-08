@@ -1,4 +1,4 @@
-package me.exrates.service.bitshares;
+package me.exrates.service.ppy;
 
 import com.google.common.hash.Hashing;
 import lombok.Data;
@@ -10,6 +10,7 @@ import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.bitshares.BitsharesService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
@@ -32,7 +33,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
@@ -40,7 +40,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 //@Log4j2(topic = "aunit")
 @Data
 @ClientEndpoint
-public class BitsharesServiceImpl implements BitsharesService {
+public class PPYServiceImpl implements BitsharesService {
 
     public static final long PERIOD = 3L;
     private long SCANING_INITIAL_DELAY;
@@ -76,7 +76,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     private final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
+    public PPYServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         log = Logger.getLogger(merchantName);
@@ -336,7 +336,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     public void onMessage(String msg) {
         System.out.println(msg);
         try {
-            if (msg.contains("notice")) setIrreversableBlock(msg);
+            if (msg.contains("last_irreversible_block_num")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
             else log.info("unrecogrinzed msg from aunit \n" + msg);
         } catch (Exception e) {
@@ -413,7 +413,7 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     private void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
-        int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
+        int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(3).getInt(lastIrreversebleBlockParam);
         synchronized (this) {
             if (blockNumber > lastIrreversibleBlockValue) {
                 for (; lastIrreversibleBlockValue <= blockNumber; lastIrreversibleBlockValue++) {
@@ -427,8 +427,15 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     //Example for decrypting memo
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+//        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+//
+//        System.out.println(s);
 
-        System.out.println(s);
+        JSONObject jsonObject = new JSONObject("{\"id\":10,\"result\":{\"previous\":\"0042e245acd0f68f3bb8587959ba75aec84a7e9d\",\"timestamp\":\"2017-11-07T00:30:36\",\"witness\":\"1.6.13\",\"next_secret_hash\":\"ef2be95cc30aae30ee8352b58b7e1afe3f01b756\",\"previous_secret\":\"5a049fc34ab937861a4a14deae4c107818a5c016\",\"transaction_merkle_root\":\"0000000000000000000000000000000000000000\",\"extensions\":[],\"witness_signature\":\"206d5094985c8db1f9c9e32b8520a86609421fb005d3fc3b9cb588939ed1faaa9e195a9d19c5bea435bb1910ba60e97469e96d2be1c62c50c0fa04e1a931312be2\",\"transactions\":[]}}");
+
+        JSONObject block = jsonObject;
+//        if (block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
+        JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
+        System.out.println(jsonObject);
     }
 }

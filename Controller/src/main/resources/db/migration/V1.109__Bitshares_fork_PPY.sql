@@ -1,5 +1,5 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('PeerPlays', 'PPY', 2, 'PPYServiceImpl', 'CRYPTO');
+VALUES ('PeerPlays', 'PPY', 2, 'ppyServiceImpl', 'CRYPTO');
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('PPY', 'PeerPlays', 0, 8, 8, 8);
 
@@ -86,3 +86,6 @@ INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
 SELECT cur.id
 FROM CURRENCY cur
 WHERE cur.name IN ('PPY');
+
+INSERT IGNORE INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
+((SELECT id FROM MERCHANT WHERE name = 'PPY'), 'last_irreversible_block_num', 100000);
