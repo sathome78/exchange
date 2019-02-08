@@ -89,6 +89,7 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "false") Boolean excludeZero,
             @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
+            @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false) CurrencyType currencyType) {
         final String email = getPrincipalEmail();
 
@@ -97,6 +98,7 @@ public class NgBalanceController {
                 .offset(offset)
                 .excludeZero(excludeZero)
                 .currencyName(currencyName)
+                .currencyId(currencyId)
                 .currencyType(currencyType)
                 .email(email)
                 .build();

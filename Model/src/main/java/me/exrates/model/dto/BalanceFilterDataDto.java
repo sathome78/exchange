@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import me.exrates.model.enums.CurrencyType;
 
 @Getter
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class BalanceFilterDataDto {
@@ -17,6 +17,7 @@ public class BalanceFilterDataDto {
     private Integer offset;
     private Boolean excludeZero;
     private String currencyName;
+    private Integer currencyId;
     private CurrencyType currencyType;
     private String email;
 }
