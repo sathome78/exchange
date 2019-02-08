@@ -9,10 +9,10 @@ import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.ngcontroller.exception.NgResponseException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgUserService;
-import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingCredentialException;
@@ -99,88 +99,83 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/authenticate")
-    @CheckIp(value = IpTypesOfChecking.LOGIN)
+//    @CheckIp(value = IpTypesOfChecking.LOGIN)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
 
         logger.info("authenticate, email = {}, ip = {}", authenticationDto.getEmail(),
                 authenticationDto.getClientIp());
 
+
+        if (StringUtils.isBlank(authenticationDto.getEmail())
+                || StringUtils.isBlank(authenticationDto.getPassword())) {
+            String message = String.format("User with email: [%s] and/or password: [%s] not found", authenticationDto.getEmail(), authenticationDto.getPassword());
+            logger.warn(message);
+            throw new NgResponseException("USER_CREDENTIALS_NOT_COMPLETE", message);
+        }
+
         User user;
         try {
             user = userService.findByEmail(authenticationDto.getEmail());
             userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-            logger.debug("User with email {} not found", authenticationDto.getEmail());
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            String message = String.format("User with email %s not found", authenticationDto.getEmail());
+            logger.warn(message, esc);
+            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
         }
 
         if (user.getStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
-            return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
+            String message = String.format("User with email %s registration is not complete", authenticationDto.getEmail());
+            logger.debug(message);
+            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
         }
         if (user.getStatus() == UserStatus.DELETED) {
-            return new ResponseEntity<>(HttpStatus.GONE); // 410
-        }
-
-        if (user.getStatus() == UserStatus.REGISTERED) {
-            return new ResponseEntity<>(HttpStatus.UPGRADE_REQUIRED); // 426
-        }
-        if (user.getStatus() == UserStatus.DELETED) {
-            return new ResponseEntity<>(HttpStatus.GONE); // 410
-        }
-
-        if (StringUtils.isBlank(authenticationDto.getEmail())
-                || StringUtils.isBlank(authenticationDto.getPassword())) {
-            throw new MissingCredentialException("Credentials missing");
+            String message = String.format("User with email %s is not active", authenticationDto.getEmail());
+            logger.debug(message);
+            throw new NgResponseException("USER_NOT_ACTIVE", message);
         }
         String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            logger.error("Incorrect password, email = {}", authenticationDto.getEmail());
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-            throw new IncorrectPasswordException("Incorrect password");
+            String message = String.format("Invalid password and/or email [%s]", authenticationDto.getEmail());
+            logger.error(message);
+            throw new NgResponseException("INVALID_CREDENTIALS", message);
         }
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
-
-        if (!DEV_MODE) {
-
-            if (isEmpty(authenticationDto.getPin())) {
-
-                if (!shouldLoginWithGoogle) {
-                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
-                }
-                return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
+        if (isEmpty(authenticationDto.getPin())) {
+            if (!shouldLoginWithGoogle) {
+                secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
             }
+            String mode = shouldLoginWithGoogle ? "GOOGLE" : "EMAIL";
+            String message = String.format("User with email: %s must login with %s authorization code", authenticationDto.getEmail(), mode);
+            String title = String.format("REQUIRED_%s_AUTHORIZATION_CODE", mode);
+            throw new NgResponseException(title, message);
         }
 
         if (shouldLoginWithGoogle) {
             Integer userId = userService.getIdByEmail(authenticationDto.getEmail());
             if (!g2faService.checkGoogle2faVerifyCode(authenticationDto.getPin(), userId)) {
-                throw new IncorrectPinException("Incorrect google auth code");
+                String message = String.format("Invalid google auth code from user %s", authenticationDto.getEmail());
+                throw new NgResponseException("GOOGLE_AUTHORIZATION_FAILED", message);
             }
         } else {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() % 3 == 0 && authenticationDto.getTries() > 1) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
-                throw new IncorrectPinException("Incorrect pin code");
+                String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
+                throw new NgResponseException("EMAIL_AUTHORIZATION_FAILED", message);
             }
         }
-
-        Optional<AuthTokenDto> authTokenResult;
-        try {
-            authTokenResult = authTokenService.retrieveTokenNg(authenticationDto, authenticationDto.getClientIp());
-        } catch (IncorrectPinException wrongPin) {
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
-        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 401
-        }
         AuthTokenDto authTokenDto =
-                authTokenResult.orElseThrow(() -> new Exception("Failed to authenticate user with email: " + authenticationDto.getEmail()));
+                authTokenService.retrieveTokenNg(authenticationDto, authenticationDto.getClientIp())
+                        .orElseThrow(() -> {
+                            String message = String.format("Failed to get token for user %s", authenticationDto.getEmail());
+                            return new NgResponseException("FAILED_TO_GET_USER_TOKEN", message);
+                        });
 
         authTokenDto.setNickname(user.getNickname());
         authTokenDto.setUserId(user.getId());
@@ -190,7 +185,7 @@ public class NgUserController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
-        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
 
@@ -206,7 +201,6 @@ public class NgUserController {
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
 
         boolean result = ngUserService.registerUser(userEmailDto, request);
-
 
         if (result) {
             ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
