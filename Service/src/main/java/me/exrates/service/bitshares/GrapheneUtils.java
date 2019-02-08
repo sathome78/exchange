@@ -1,4 +1,4 @@
-package me.exrates.service.autist;// GrapheneUtils.java, by @alexpmorris, 2018-02-22
+package me.exrates.service.bitshares;// GrapheneUtils.java, by @alexpmorris, 2018-02-22
 //
 // easily verify messages passed between javascript <-> java using a graphene keypair
 //
