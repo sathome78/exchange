@@ -14,6 +14,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
+import me.exrates.service.ppy.PPYServiceImpl;
 import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
@@ -435,7 +436,7 @@ public class CryptocurrencyConfig {
     //Bitshares
     @Bean(name = "ppyServiceImpl")
     public BitsharesService bitsharesService(){
-        return new BitsharesServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
+        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
     }
 
     @Bean(name = "aunitServiceImpl")
