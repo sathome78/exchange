@@ -102,7 +102,10 @@ public class BalanceServiceImpl implements BalanceService {
 
         if (excludeZero) {
             detailedDtoStream = detailedDtoStream
-                    .filter(wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0);
+                    .filter(wallet -> new BigDecimal(wallet.getActiveBalance()).compareTo(BigDecimal.ZERO) > 0
+                            || new BigDecimal(wallet.getReservedByOrders()).compareTo(BigDecimal.ZERO) > 0
+                            || new BigDecimal(wallet.getReservedByMerchant()).compareTo(BigDecimal.ZERO) > 0
+                            || new BigDecimal(wallet.getOnConfirmation()).compareTo(BigDecimal.ZERO) > 0);
         }
         if (currencyId > 0) {
             detailedDtoStream = detailedDtoStream
