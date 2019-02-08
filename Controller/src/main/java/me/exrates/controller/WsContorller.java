@@ -25,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -111,6 +112,21 @@ public class WsContorller {
     @SubscribeMapping("/orders/sfwfrf442fewdf/{currencyPairId}")
     public String subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
+    }
+
+    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairId}")
+    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) throws Exception {
+        return initOrdersNotAgregated(currencyPairId);
+    }
+
+    private List<OrdersListWrapper> initOrdersNotAgregated(Integer currencyPair) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+        if (cp == null) {
+            return null;
+        }
+        OrdersListWrapper sellOrders = new OrdersListWrapper(orderService.getOpenOrders(cp.getName(), OrderType.SELL), OperationType.SELL.name(), currencyPair);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(orderService.getOpenOrders(cp.getName(), OrderType.BUY), OperationType.BUY.name(), currencyPair);
+        return Arrays.asList(sellOrders, buyOrders);
     }
 
 

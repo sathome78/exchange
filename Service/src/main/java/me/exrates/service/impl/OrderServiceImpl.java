@@ -1455,12 +1455,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
         result = new ArrayList<>(result);
         result = result.stream()
-                .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                    @Override
-                    public int compare(OrderListDto o1, OrderListDto o2) {
-                        return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
-                    }
-                })
+                .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate())))
                 .collect(toList());
         result.forEach(e -> {
             e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
