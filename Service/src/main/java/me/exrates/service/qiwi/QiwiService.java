@@ -53,7 +53,7 @@ public interface QiwiService extends IRefillable, IWithdrawable {
 
     @Override
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
-        return true;
+        return false;
     }
 
     void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant);
