@@ -106,6 +106,9 @@ public class BalanceServiceImplTest {
         detailedDto1.setCurrencyName(BTC);
         detailedDto1.setActiveBalance("0");
         detailedDto1.setReservedBalance("0");
+        detailedDto1.setReservedByOrders("0");
+        detailedDto1.setReservedByMerchant("0");
+        detailedDto1.setOnConfirmation("0");
         result.add(detailedDto1);
 
         doReturn(result).when(ngWalletService).getAllWalletsForUserDetailed(EMAIL, locale, TYPE);
