@@ -1,7 +1,9 @@
 package me.exrates.controller.exception;
 
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.ngcontroller.exception.NgResponseException;
 import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -17,6 +19,7 @@ public class ErrorInfo {
     public final String url;
     public final String cause;
     public final String detail;
+    public String title;
     public String uuid;
     public Integer code;
 
@@ -33,6 +36,20 @@ public class ErrorInfo {
             }
         }
         this.uuid = MDC.get("process.id");
+    }
+
+    public ErrorInfo(CharSequence url, NgResponseException exception) {
+        this.url = url.toString();
+        this.cause = exception.getClass().getSimpleName();
+        this.detail =  exception.getMessage();
+        this.title = exception.getTitle();
+        this.code = exception.getHttpStatus().value();
+        this.uuid = MDC.get("process.id");
+    }
+
+    public ErrorInfo(CharSequence url, Throwable ex, HttpStatus status) {
+        this(url, ex);
+        this.code = status.value();
     }
 
     public ErrorInfo(CharSequence url, Throwable ex, String reason) {
