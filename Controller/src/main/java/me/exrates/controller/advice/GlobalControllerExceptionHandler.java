@@ -3,6 +3,7 @@ package me.exrates.controller.advice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
+import me.exrates.ngcontroller.exception.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
@@ -68,6 +69,13 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(MissingHeaderException.class)
     @ResponseBody
     public ErrorInfo handleMissingHeaderException(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(NgResponseException.class)
+    @ResponseBody
+    public ErrorInfo handleNgUserAuthenticationException(HttpServletRequest req, NgResponseException exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
