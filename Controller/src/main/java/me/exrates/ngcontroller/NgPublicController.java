@@ -5,9 +5,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
+import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.StatisticForMarket;
@@ -16,12 +18,15 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.ngcontroller.exception.NgResponseException;
 import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -66,7 +71,7 @@ import java.util.stream.Collectors;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
-@RequestMapping(value = "/info/public/v2/",
+@RequestMapping(value = "/info/public/v2",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
@@ -78,11 +83,11 @@ public class NgPublicController {
     private final CurrencyService currencyService;
     private final IpBlockingService ipBlockingService;;
     private final UserService userService;
+    private final NgUserService ngUserService;
     private final SimpMessagingTemplate messagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
-    private final TelegramChatBotService telegramChatBotService;
     private final TelegramChatDao telegramChatDao;
     private final MarketRatesHolder marketRatesHolder;
 
@@ -90,7 +95,7 @@ public class NgPublicController {
     public NgPublicController(ChatService chatService,
                               CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
-                              SimpMessagingTemplate messagingTemplate,
+                              NgUserService ngUserService, SimpMessagingTemplate messagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
@@ -101,21 +106,38 @@ public class NgPublicController {
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
+        this.ngUserService = ngUserService;
         this.messagingTemplate = messagingTemplate;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
-        this.telegramChatBotService = telegramChatBotService1;
+        TelegramChatBotService telegramChatBotService = telegramChatBotService1;
         this.telegramChatDao = telegramChatDao;
         this.marketRatesHolder = marketRatesHolder;
     }
 
     @GetMapping(value = "/if_email_exists")
-    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
-//        Boolean unique = processIpBlocking(request, "email", email,
-//                () -> userService.ifEmailIsUnique(email));
-        // we may use this elsewhere, so exists is opposite to unique
-        return new ResponseEntity<>(!userService.ifEmailIsUnique(email), HttpStatus.OK);
+    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email) {
+        User user;
+        try {
+            user = userService.findByEmail(email);
+        } catch (UserNotFoundException esc) {
+            String message = String.format("User with email %s not found", email);
+            logger.warn(message, esc);
+            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
+        }
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            ngUserService.resendEmailForFinishRegistration(user);
+            String message = String.format("User with email %s registration is not complete", email);
+            logger.debug(message);
+            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            String message = String.format("User with email %s is not active", email);
+            logger.debug(message);
+            throw new NgResponseException("USER_NOT_ACTIVE", message);
+        }
+        return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
 
     @GetMapping("/is_google_2fa_enabled")
