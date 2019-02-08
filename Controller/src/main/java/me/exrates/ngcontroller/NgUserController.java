@@ -99,7 +99,7 @@ public class NgUserController {
     }
 
     @PostMapping(value = "/authenticate")
-    @CheckIp(value = IpTypesOfChecking.LOGIN)
+//    @CheckIp(value = IpTypesOfChecking.LOGIN)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) throws Exception {
 
@@ -111,7 +111,7 @@ public class NgUserController {
             user = userService.findByEmail(authenticationDto.getEmail());
             userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
         } catch (UserNotFoundException esc) {
-            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
             logger.debug("User with email {} not found", authenticationDto.getEmail());
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);  // 422
         }
@@ -144,15 +144,12 @@ public class NgUserController {
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
 
-        if (!DEV_MODE) {
+        if (isEmpty(authenticationDto.getPin())) {
 
-            if (isEmpty(authenticationDto.getPin())) {
-
-                if (!shouldLoginWithGoogle) {
-                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
-                }
-                return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
+            if (!shouldLoginWithGoogle) {
+                secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
             }
+            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT); //418
         }
 
         if (shouldLoginWithGoogle) {
@@ -162,7 +159,7 @@ public class NgUserController {
             }
         } else {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
-                if (authenticationDto.getTries() % 3 == 0) {
+                if (authenticationDto.getTries() % 3 == 0 && authenticationDto.getTries() > 1) {
                     secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
                 }
                 throw new IncorrectPinException("Incorrect pin code");
