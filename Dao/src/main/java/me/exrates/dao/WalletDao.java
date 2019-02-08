@@ -23,6 +23,7 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -125,5 +126,5 @@ public interface WalletDao {
 
     BigDecimal retrieveSummaryBTC();
 
-    void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance);
+    void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance, LocalDateTime lastReservedBalanceUpdate);
 }
