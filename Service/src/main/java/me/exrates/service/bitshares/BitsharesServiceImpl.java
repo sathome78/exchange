@@ -34,7 +34,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
+import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
+
 
 //@PropertySource("classpath:/merchants/aunit.properties")
 //@Log4j2(topic = "aunit")
