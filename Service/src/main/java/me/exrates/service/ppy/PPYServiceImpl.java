@@ -91,7 +91,7 @@ public class PPYServiceImpl implements BitsharesService {
             this.SCANING_INITIAL_DELAY = SCANING_INITIAL_DELAY;
 //            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
             connectAndSubscribe();
-        } catch (IOException e){
+        } catch (Exception e){
             log.error(e);
         }
     }
