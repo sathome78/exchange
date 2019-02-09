@@ -78,6 +78,7 @@ public class PPYServiceImpl implements BitsharesService {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public PPYServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
+        System.out.println("PPY constructor");
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         log = Logger.getLogger(merchantName);
@@ -258,6 +259,8 @@ public class PPYServiceImpl implements BitsharesService {
     }
 
     private void connectAndSubscribe() {
+        System.out.println("PPY connectAndSubscribe");
+
         try {
             WS_SERVER_URL = URI.create(wsUrl);
             session = ContainerProvider.getWebSocketContainer()
@@ -274,6 +277,8 @@ public class PPYServiceImpl implements BitsharesService {
     }
 
     private void subscribeToTransactions() throws IOException {
+        System.out.println("PPY subscribeToTransactions");
+
         JSONObject login = new JSONObject();
         login.put("id", 0);
         login.put("method", "call");
@@ -330,6 +335,8 @@ public class PPYServiceImpl implements BitsharesService {
         endpoint.sendText(subscribe.toString());
 
         endpoint.sendText(get_object.toString());
+        System.out.println("PPY subscribeToTransactions done");
+
 
     }
 

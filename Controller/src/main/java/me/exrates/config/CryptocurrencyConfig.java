@@ -433,11 +433,11 @@ public class CryptocurrencyConfig {
         return new TronTrc10Token("BTT", "BTT", 0, "1000491", "31303030343931", "1000491");
     }*/
 
-//    //Bitshares
-//    @Bean(name = "ppyServiceImpl")
-//    public BitsharesService bitsharesService(){
-//        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
-//    }
+    //Bitshares
+    @Bean(name = "ppyServiceImpl")
+    public BitsharesService bitsharesService(){
+        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
+    }
 //
 //    @Bean(name = "aunitServiceImpl")
 //    public BitsharesService aunitServiceImpl(){
