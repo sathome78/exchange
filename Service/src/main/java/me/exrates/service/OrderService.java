@@ -332,6 +332,8 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
+    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+
     /**
      * Returns data of
      * - userId by email,

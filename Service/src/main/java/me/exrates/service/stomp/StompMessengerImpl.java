@@ -66,6 +66,11 @@ public class StompMessengerImpl implements StompMessenger{
        sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
    }
 
+    @Override
+    public void sendRefreshTradeOrdersDetailMessage(Integer pairId, String message){
+        sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairId.toString()), message);
+    }
+
    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
       Set<SimpSubscription> subscriptions =
               findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));

@@ -11,6 +11,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
@@ -1534,6 +1535,21 @@ public class OrderServiceImpl implements OrderService {
         return resultList;
     }
 
+    @Override
+    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        return Arrays.asList(sellOrders, buyOrders);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
@@ -1709,7 +1725,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         if (currentOrderStatus.equals(OrderStatus.OPENED)) {
-            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
+            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true, true));
         }
         return processedRows;
     }

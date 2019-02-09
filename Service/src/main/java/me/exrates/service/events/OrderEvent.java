@@ -1,6 +1,7 @@
 package me.exrates.service.events;
 
 import me.exrates.model.ExOrder;
+import me.exrates.model.enums.OrderEventEnum;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -15,5 +16,15 @@ public class OrderEvent extends ApplicationEvent {
      */
     public OrderEvent(ExOrder source) {
         super(source);
+    }
+
+    private OrderEventEnum orderEventEnum;
+
+    public OrderEventEnum getOrderEventEnum() {
+        return orderEventEnum;
+    }
+
+    public void setOrderEventEnum(OrderEventEnum orderEventEnum) {
+        this.orderEventEnum = orderEventEnum;
     }
 }

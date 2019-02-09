@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
@@ -115,20 +116,9 @@ public class WsContorller {
     }
 
     @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairId}")
-    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) throws Exception {
-        return initOrdersNotAgregated(currencyPairId);
+    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) {
+        return orderService.getOpenOrdersForWs(currencyPairId);
     }
-
-    private List<OrdersListWrapper> initOrdersNotAgregated(Integer currencyPair) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
-        if (cp == null) {
-            return null;
-        }
-        OrdersListWrapper sellOrders = new OrdersListWrapper(orderService.getOpenOrders(cp.getName(), OrderType.SELL), OperationType.SELL.name(), currencyPair);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(orderService.getOpenOrders(cp.getName(), OrderType.BUY), OperationType.BUY.name(), currencyPair);
-        return Arrays.asList(sellOrders, buyOrders);
-    }
-
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
@@ -142,5 +132,7 @@ public class WsContorller {
                 (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
         return objectsArray.toString();
     }
+
+
 
 }
