@@ -380,7 +380,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
         JSONObject memo = transaction.getJSONObject("memo");
         try {
-            String memoText = decryptBTSmemo(privateKey, memo.toString());
+            String memoText = decryptBTSmemo(privateKey, memo.toString(), merchantName);
             if (lisfOfMemo.contains(memoText)) {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount"));
 
@@ -428,7 +428,7 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     //Example for decrypting memo
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+        String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
 
         System.out.println(s);
     }

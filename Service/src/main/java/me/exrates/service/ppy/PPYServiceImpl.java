@@ -387,7 +387,7 @@ public class PPYServiceImpl implements BitsharesService {
     private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
         JSONObject memo = transaction.getJSONObject("memo");
         try {
-            String memoText = decryptBTSmemo(privateKey, memo.toString());
+            String memoText = decryptBTSmemo(privateKey, memo.toString(), merchantName);
             if (lisfOfMemo.contains(memoText)) {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount"));
 

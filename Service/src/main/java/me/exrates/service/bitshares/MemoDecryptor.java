@@ -67,7 +67,7 @@ public class MemoDecryptor {
     }
 
 
-    public static String decryptBTSmemo(String privKey, String memo) throws NoSuchAlgorithmException {
+    public static String decryptBTSmemo(String privKey, String memo, String merchantName) throws NoSuchAlgorithmException {
         if (!memo.startsWith("{") || !memo.endsWith("}")) memo = new String(Base64.decode(memo));
         Any json_memo = JsonIterator.deserialize(memo);
         if (json_memo.get(KEY_NONCE).valueType().equals(ValueType.INVALID))
@@ -78,9 +78,9 @@ public class MemoDecryptor {
         ECKey privateKey = GrapheneUtils.GrapheneWifToPrivateKey(privKey);
         String publicKey = GrapheneUtils.getAddressFromPublicKey(fromKey.substring(0, 3), privateKey);
         PublicKey pubKey = null;
-        if (publicKey.equals(fromKey)) pubKey = new PublicKey(toKey);
+        if (publicKey.equals(fromKey)) pubKey = new PublicKey(toKey, merchantName);
         else
-            pubKey = new PublicKey(fromKey);
+            pubKey = new PublicKey(fromKey, merchantName);
         String message = json_memo.get(KEY_MESSAGE).toString();
         return decryptMessage(privateKey, pubKey, nonce, Util.hexToBytes(message));
     }
