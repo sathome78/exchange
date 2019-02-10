@@ -1,4 +1,4 @@
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 
 import com.google.common.base.Objects;
@@ -41,7 +41,7 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
         }
     }
 
-    public me.exrates.service.autist.ECKey getKey() {
+    public ECKey getKey() {
         return ECKey.fromPrivate(Arrays.copyOf(this.bytes, 32), this.isPubKeyCompressed());
     }
 

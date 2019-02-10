@@ -1,4 +1,4 @@
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -8,7 +8,7 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.math.BigDecimal;
 
-public interface AunitService extends IRefillable , IWithdrawable {
+public interface BitsharesService extends IRefillable , IWithdrawable {
 
 
     @Override

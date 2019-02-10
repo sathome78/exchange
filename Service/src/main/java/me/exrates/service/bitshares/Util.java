@@ -1,4 +1,4 @@
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 import org.spongycastle.crypto.DataLengthException;
 import org.spongycastle.crypto.InvalidCipherTextException;

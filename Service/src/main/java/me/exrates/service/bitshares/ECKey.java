@@ -3,7 +3,7 @@
 // (powered by Fernflower decompiler)
 //
 
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -93,7 +93,7 @@ public class ECKey {
     }
 
     protected ECKey(@Nullable BigInteger priv, ECPoint pub) {
-        this(priv, new LazyECPoint((ECPoint)Preconditions.checkNotNull(pub)));
+        this(priv, new LazyECPoint((ECPoint) Preconditions.checkNotNull(pub)));
     }
 
     protected ECKey(@Nullable BigInteger priv, LazyECPoint pub) {
@@ -104,7 +104,7 @@ public class ECKey {
         }
 
         this.priv = priv;
-        this.pub = (LazyECPoint)Preconditions.checkNotNull(pub);
+        this.pub = (LazyECPoint) Preconditions.checkNotNull(pub);
     }
 
     public static ECPoint compressPoint(ECPoint point) {
@@ -187,14 +187,14 @@ public class ECKey {
     @Deprecated
     public ECKey(EncryptedData encryptedPrivateKey, byte[] pubKey, KeyCrypter keyCrypter) {
         this((byte[])null, pubKey);
-        this.keyCrypter = (KeyCrypter)Preconditions.checkNotNull(keyCrypter);
+        this.keyCrypter = (KeyCrypter) Preconditions.checkNotNull(keyCrypter);
         this.encryptedPrivateKey = encryptedPrivateKey;
     }
 
     public static ECKey fromEncrypted(EncryptedData encryptedPrivateKey, KeyCrypter crypter, byte[] pubKey) {
         ECKey key = fromPublicOnly(pubKey);
-        key.encryptedPrivateKey = (EncryptedData)Preconditions.checkNotNull(encryptedPrivateKey);
-        key.keyCrypter = (KeyCrypter)Preconditions.checkNotNull(crypter);
+        key.encryptedPrivateKey = (EncryptedData) Preconditions.checkNotNull(encryptedPrivateKey);
+        key.keyCrypter = (KeyCrypter) Preconditions.checkNotNull(crypter);
         return key;
     }
 
@@ -714,7 +714,7 @@ public class ECKey {
         ToStringHelper helper = MoreObjects.toStringHelper(this).omitNullValues();
         helper.add("pub HEX", this.getPublicKeyAsHex());
         if (includePrivate) {
-            ECKey decryptedKey = this.isEncrypted() ? this.decrypt((KeyParameter)Preconditions.checkNotNull(aesKey)) : this;
+            ECKey decryptedKey = this.isEncrypted() ? this.decrypt((KeyParameter) Preconditions.checkNotNull(aesKey)) : this;
 
             try {
                 helper.add("priv HEX", decryptedKey.getPrivateKeyAsHex());

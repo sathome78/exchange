@@ -1,4 +1,4 @@
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 import javax.annotation.Nullable;
 

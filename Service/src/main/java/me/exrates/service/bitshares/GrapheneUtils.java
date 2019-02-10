@@ -1,4 +1,4 @@
-package me.exrates.service.autist;// GrapheneUtils.java, by @alexpmorris, 2018-02-22
+package me.exrates.service.bitshares;// GrapheneUtils.java, by @alexpmorris, 2018-02-22
 //
 // easily verify messages passed between javascript <-> java using a graphene keypair
 //
@@ -74,13 +74,13 @@ public class GrapheneUtils {
         return actualChecksum;
     }
 
-    // use this method to retrieve the accountAddress representation of the public key
+    // use this method to retrieve the mainAddressId representation of the public key
     // associated with a particular private key
     // prefix = STM, BTS, EOS, GLS, etc...
     // privKey is the ECKey object holding the associated private key
     public static String getAddressFromPublicKey(String prefix, ECKey privKey) {
         try {
-            // Recreate the accountAddress from the public key.
+            // Recreate the mainAddressId from the public key.
             byte [] pubBytes;
             if (privKey.isCompressed()) pubBytes = privKey.getPubKey(); else
                 pubBytes = org.bitcoinj.core.ECKey.fromPublicOnly(org.bitcoinj.core.ECKey.compressPoint(privKey.getPubKeyPoint())).getPubKey();

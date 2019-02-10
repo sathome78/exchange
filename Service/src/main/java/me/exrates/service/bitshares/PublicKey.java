@@ -1,4 +1,4 @@
-package me.exrates.service.autist;
+package me.exrates.service.bitshares;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,14 +28,14 @@ public class PublicKey implements ByteTransformable {
     private String prefix;
 
     @JsonCreator
-    public PublicKey(String address) {
+    public PublicKey(String address, String merchantName) {
         if (address != null && !"".equals(address)) {
-            if (address.length() != 55) {
-                LOGGER.error("The provided accountAddress '{}' has an invalid length and will not be set.", address);
+            if (address.length() < 20) {
+                LOGGER.error("The provided mainAddressId '{}' has an invalid length and will not be set.", address);
                 this.setPublicKey(null);
             } else {
-                this.prefix = address.substring(0, 5);
-                byte[] decodedAddress = Base58.decode(address.substring(5, address.length()));
+                this.prefix = address.substring(0, merchantName.length());
+                byte[] decodedAddress = Base58.decode(address.substring(merchantName.length(), address.length()));
                 byte[] potentialPublicKey = Arrays.copyOfRange(decodedAddress, 0, decodedAddress.length - 4);
                 byte[] expectedChecksum = Arrays.copyOfRange(decodedAddress, decodedAddress.length - 4, decodedAddress.length);
                 byte[] actualChecksum = this.calculateChecksum(potentialPublicKey);
@@ -49,7 +49,7 @@ public class PublicKey implements ByteTransformable {
                 this.setPublicKey(ECKey.fromPublicOnly(potentialPublicKey));
             }
         } else {
-            LOGGER.warn("An empty accountAddress has been provided. This can cause some problems if you plan to broadcast this key.");
+            LOGGER.warn("An empty mainAddressId has been provided. This can cause some problems if you plan to broadcast this key.");
             this.setPublicKey(null);
         }
 
@@ -73,7 +73,7 @@ public class PublicKey implements ByteTransformable {
         try {
             return this.prefix + Base58.encode(Bytes.concat(new byte[][]{this.toByteArray(), Arrays.copyOfRange(this.calculateChecksum(this.toByteArray()), 0, 4)}));
         } catch (NullPointerException | SteemInvalidTransactionException var2) {
-            LOGGER.debug("An error occured while generating an accountAddress from a public key.", var2);
+            LOGGER.debug("An error occured while generating an mainAddressId from a public key.", var2);
             return "";
         }
     }
