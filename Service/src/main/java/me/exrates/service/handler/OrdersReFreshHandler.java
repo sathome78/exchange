@@ -32,7 +32,9 @@ public class OrdersReFreshHandler {
     }
 
     void addOrderToQueue(OrderWsDetailDto dto) {
-        dtos.add(dto);
+        synchronized (this) {
+            dtos.add(dto);
+        }
         check();
     }
 
@@ -40,8 +42,10 @@ public class OrdersReFreshHandler {
         if (semaphore.tryAcquire()) {
             try {
                 TimeUnit.MILLISECONDS.sleep(refreshTime);
-                sendMessage(dtos);
-                dtos.clear();
+                synchronized (this) {
+                    sendMessage(dtos);
+                    dtos.clear();
+                }
             } catch (InterruptedException e) {
                 log.error(e);
             } finally {
