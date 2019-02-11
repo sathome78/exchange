@@ -209,7 +209,7 @@ public class EntryController {
         return model;
     }
 
-    @RequestMapping(value = {"/ico_dashboard"})
+    /*@RequestMapping(value = {"/ico_dashboard"})
     public ModelAndView icoDashboard(
             @RequestParam(required = false) String errorNoty,
             @RequestParam(required = false) String successNoty,
@@ -231,7 +231,7 @@ public class EntryController {
             successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
-        /**/
+        *//**//*
         if (StringUtils.isEmpty(errorNoty)) {
             errorNoty = (String) request.getSession().getAttribute("errorNoty");
             request.getSession().removeAttribute("errorNoty");
@@ -239,13 +239,13 @@ public class EntryController {
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
             errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
-        /**/
+        *//**//*
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-       /* model.addObject("notify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));*/
+       *//* model.addObject("notify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));*//*
         model.setViewName("globalPages/ico_dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -271,7 +271,7 @@ public class EntryController {
                     .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
         return model;
-    }
+    }*/
 
 
     @RequestMapping("/settings")

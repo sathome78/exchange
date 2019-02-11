@@ -101,7 +101,7 @@ public class ChartController {
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
 
-    @OnlineMethod
+ /*   @OnlineMethod
     @RequestMapping(value = "/ico_dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData2(
             @QueryParam("symbol") String symbol,
@@ -109,7 +109,7 @@ public class ChartController {
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-/*        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+*//*        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
@@ -119,7 +119,7 @@ public class ChartController {
 
         LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
         String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*//*
 
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
@@ -137,26 +137,29 @@ public class ChartController {
                 .stream().map(CandleDto::new).collect(Collectors.toList());
         return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
 
-    }
+    }*/
 
 
-    @OnlineMethod
+/*    @OnlineMethod
     @RequestMapping(value = "/ico_dashboard/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime2() {
         return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
-    }
+    }*/
 
+/*
     @OnlineMethod
     @RequestMapping(value = "/ico_dashboard/config", method = RequestMethod.GET)
     public ResponseEntity getChartConfig2() {
         return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
     }
+*/
 
-    @OnlineMethod
+/*    @OnlineMethod
     @RequestMapping(value = "/ico_dashboard/symbols", method = RequestMethod.GET)
     public ResponseEntity getChartSymbol2(@QueryParam("symbol") String symbol) {
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
-    }
+    }*/
+
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
 
         return Json.createObjectBuilder()
