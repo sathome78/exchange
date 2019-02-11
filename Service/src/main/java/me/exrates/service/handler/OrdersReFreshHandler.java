@@ -54,7 +54,6 @@ public class OrdersReFreshHandler {
         }
     }
 
-    @Synchronized
     private void sendMessage(List<OrderWsDetailDto> dtos) {
         try {
             stompMessenger.sendRefreshTradeOrdersDetailMessage(pairId, objectMapper.writeValueAsString(dtos));
