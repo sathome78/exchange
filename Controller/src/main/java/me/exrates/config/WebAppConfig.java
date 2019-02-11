@@ -283,7 +283,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-//        flyway.migrate();
+        flyway.migrate();
         return dataSource;
     }
 
@@ -1725,6 +1725,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4");
 		return new EthTokenServiceImpl(tokensList, "PLTC","PLTC", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "vrbsServiceImpl")
+	public EthTokenService vrbsServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
+		return new EthTokenServiceImpl(tokensList, "VRBS","VRBS", false, ExConvert.Unit.ETHER);
 	}
 
 	//    Qtum tokens:
