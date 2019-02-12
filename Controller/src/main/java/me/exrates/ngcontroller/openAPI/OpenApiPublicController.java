@@ -4,10 +4,7 @@ import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
-import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.dto.openAPI.OrderBookItem;
-import me.exrates.model.dto.openAPI.TickerJsonDto;
-import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.*;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
@@ -246,6 +243,15 @@ public class OpenApiPublicController {
                 .map(CandleChartItemReducedDto::new)
                 .collect(toList());
         return ResponseEntity.ok(BaseResponse.success(resultList));
+    }
+
+
+
+    @GetMapping(value = "/open-orders/{order_type}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
+                                         @RequestParam("currency_pair") String currencyPair) {
+        String currencyPairName = transformCurrencyPair(currencyPair);
+        return orderService.getOpenOrders(currencyPairName, orderType);
     }
 
     @ResponseStatus(BAD_REQUEST)

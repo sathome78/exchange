@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -463,4 +464,8 @@ public interface OrderService {
     List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
     List<TransactionDto> getOrderTransactions(Integer orderId);
+
+    List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                         @Null Integer limit,
+                                         @Null Integer offset);
 }

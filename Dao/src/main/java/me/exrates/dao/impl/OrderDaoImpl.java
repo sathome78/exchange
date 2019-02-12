@@ -2078,4 +2078,28 @@ public class OrderDaoImpl implements OrderDao {
             return Arrays.asList(OrderStatus.CLOSED.getStatus(), OrderStatus.DELETED.getStatus(), OrderStatus.CANCELLED.getStatus());
         }
     }
+
+
+    @Override
+    public List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int limit, int offset) {
+
+        String currencyPairSql = nonNull(currencyPairId) ? " AND EO.currency_pair_id = :currency_pair_id " : StringUtils.EMPTY;
+        String limitSql = limit > 0 ? " LIMIT :limit " : StringUtils.EMPTY;
+        String offsetSql = (limit > 0 && offset > 0) ? "OFFSET :offset" : StringUtils.EMPTY;
+
+        String sql = "SELECT EO.id AS order_id, EO.amount_base, EO.exrate, CP.name AS currency_pair_name, EO.operation_type_id, " +
+                " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
+                " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                " WHERE (EO.user_id = :user_id OR EO.user_acceptor_id = :user_id) AND EO.status_id = IN (:status_id) " + currencyPairSql +
+                " ORDER BY EO.date_creation DESC " + limitSql + offsetSql;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("currency_pair_id", currencyPairId);
+        params.put("status_id", Arrays.asList(OrderStatus.CLOSED, OrderStatus.OPENED, OrderStatus.INPROCESS, OrderStatus.CANCELLED, OrderStatus.DELETED));
+        params.put("limit", limit);
+        params.put("offset", offset);
+        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
+
+    }
 }
