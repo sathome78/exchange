@@ -33,7 +33,7 @@ public class UserRoleServiceImpl implements UserRoleService {
   @Transactional(readOnly = true)
   public List<Integer> getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum) {
     return getRealUserRoleByBusinessRoleList(businessUserRoleEnum).stream()
-        .map(e -> e.getRole())
+        .map(UserRole::getRole)
         .collect(Collectors.toList());
   }
 
@@ -41,7 +41,7 @@ public class UserRoleServiceImpl implements UserRoleService {
   @Transactional(readOnly = true)
   public String[] getRealUserRoleNameByBusinessRoleArray(BusinessUserRoleEnum businessUserRoleEnum) {
     return getRealUserRoleByBusinessRoleList(businessUserRoleEnum).stream()
-        .toArray(size->new String[size]);
+        .toArray(String[]::new);
   }
 
   @Override

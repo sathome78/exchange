@@ -59,12 +59,13 @@
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
-                                <th><loc:message code="admin.currencyLimits.id"/></th>
+                                <th><loc:message code="admin.currencyLimits.currencyId"/></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
                                 <th><loc:message code="admin.currencyLimits.usdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimitUsdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
+                                <th><loc:message code="admin.currencyLimits.changeAutomaticallyByUSD"/></th>
                             </tr>
                             </thead>
                         </table>
@@ -116,7 +117,7 @@
 
         </div>
 </main>
-<div id="editLimitModal" class="modal modal-small fade">
+<div id="editLimitModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -160,7 +161,25 @@
                                     code="admin.currencyLimits.minLimit"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="minAmount" class="input-block-wrapper__input" type="number">
+                            <input id="minAmount" name="minAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.minLimitUSD"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="minAmountUSD" name="minAmountUSD" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.usdRate"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="usdRate" class="input-block-wrapper__input" type="number" readonly>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
