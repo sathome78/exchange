@@ -109,6 +109,7 @@ import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniServiceImpl;
