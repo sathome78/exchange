@@ -465,7 +465,7 @@ public interface OrderService {
 
     List<TransactionDto> getOrderTransactions(Integer orderId);
 
-    List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
-                                         @Null Integer limit,
-                                         @Null Integer offset);
+    List<UserOrdersDto> getAllUserOrders( String currencyPairName,
+                                          Integer limit,
+                                          Integer offset);
 }
