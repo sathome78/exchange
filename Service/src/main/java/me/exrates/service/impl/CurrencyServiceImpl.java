@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
@@ -11,7 +12,12 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
@@ -19,6 +25,8 @@ import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
+import me.exrates.service.util.BigDecimalConverter;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -26,7 +34,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -35,6 +50,7 @@ import static java.util.Objects.isNull;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 
@@ -98,39 +114,21 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, maxDailyRequest);
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, minAmountUSD, maxDailyRequest);
     }
 
     @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest) {
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
 
-        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, maxDailyRequest);
+        currencyDao.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
     }
 
     @Override
     public List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType) {
-
-        List<CurrencyLimit> currencyLimits = currencyDao.retrieveCurrencyLimitsForRoles(
+        return currencyDao.retrieveCurrencyLimitsForRoles(
                 userRoleService.getRealUserRoleIdByBusinessRoleList(roleName),
                 operationType);
-
-        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-
-        for (CurrencyLimit currencyLimit : currencyLimits) {
-            String currencyName = currencyLimit.getCurrency().getName();
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            if (isNull(pairRates)) {
-                continue;
-            }
-            BigDecimal usdRate = pairRates.getLeft();
-            currencyLimit.setCurrencyUsdRate(usdRate);
-
-            BigDecimal minSumUSDRate = currencyLimit.getMinSum().multiply(usdRate);
-            currencyLimit.setMinSumUsdRate(minSumUSDRate);
-        }
-
-        return currencyLimits;
     }
 
     @Override
@@ -162,7 +160,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public String amountToString(final BigDecimal amount, final String currency) {
         return amount.setScale(resolvePrecision(currency), ROUND_HALF_UP)
-//                .stripTrailingZeros()
                 .toPlainString();
     }
 
@@ -221,7 +218,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Transactional(readOnly = true)
     public Set<String> getCurrencyPermittedNameList(Integer userId) {
         return currencyDao.findCurrencyOperationPermittedByUserList(userId).stream()
-                .map(e -> e.getCurrencyName())
+                .map(UserCurrencyOperationPermissionDto::getCurrencyName)
                 .collect(Collectors.toSet());
     }
 
@@ -336,32 +333,78 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public List<Currency> findAllCurrency(){
+    public List<Currency> findAllCurrency() {
         return currencyDao.findAllCurrency();
     }
 
     @Override
-    public boolean updateVisibilityCurrencyById(int currencyId){
+    public boolean updateVisibilityCurrencyById(int currencyId) {
         return currencyDao.updateVisibilityCurrencyById(currencyId);
     }
 
     @Override
-    public List<CurrencyPair> findAllCurrencyPair(){
+    public List<CurrencyPair> findAllCurrencyPair() {
         return currencyDao.findAllCurrencyPair();
     }
 
     @Override
-    public boolean updateVisibilityCurrencyPairById(int currencyPairId){
+    public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
         return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
     }
 
     @Override
-    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
+    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId) {
         return currencyDao.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
     }
 
     @Override
-    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId){
+    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId) {
         return currencyDao.getStatsByCoin(currencyId);
+    }
+
+    @Override
+    public boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd) {
+        return currencyDao.setPropertyCalculateLimitToUsd(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), recalculateToUsd);
+    }
+
+    @Override
+    public void updateWithdrawLimits() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of updating withdraw limits start...");
+
+        List<CurrencyLimit> currencyLimits = currencyDao.getAllCurrencyLimits();
+
+        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+
+        if (rates.isEmpty()) {
+            log.info("Exchange api did not return data");
+            return;
+        }
+
+        for (CurrencyLimit currencyLimit : currencyLimits) {
+            final String currencyName = currencyLimit.getCurrency().getName();
+            final boolean recalculateToUsd = currencyLimit.isRecalculateToUsd();
+            BigDecimal minSumUsdRate = currencyLimit.getMinSumUsdRate();
+            BigDecimal minSum = currencyLimit.getMinSum();
+
+            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+
+            if (isNull(pairRates)) {
+                continue;
+            }
+            final BigDecimal usdRate = pairRates.getLeft();
+            currencyLimit.setCurrencyUsdRate(usdRate);
+
+            if (recalculateToUsd) {
+                minSum = BigDecimalConverter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                currencyLimit.setMinSum(minSum);
+            } else {
+                minSumUsdRate = minSum.multiply(usdRate);
+                currencyLimit.setMinSumUsdRate(minSumUsdRate);
+            }
+        }
+        currencyDao.updateWithdrawLimits(currencyLimits);
+
+        log.info("Process of updating withdraw limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 }
