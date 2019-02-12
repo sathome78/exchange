@@ -463,4 +463,9 @@ public interface OrderService {
     List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
     List<TransactionDto> getOrderTransactions(Integer orderId);
+
+    List<UserOrdersDto> getAllUserOrders( String currencyPairName,
+                                          Integer limit,
+                                          Integer offset);
+
 }

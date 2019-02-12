@@ -2320,6 +2320,18 @@ public class OrderServiceImpl implements OrderService {
 
         return orderDao.getOrderTransactions(userId, orderId);
     }
+
+    @Transactional(readOnly = true)
+    public List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                                @Null Integer limit,
+                                                @Null Integer offset) {
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
+        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
+        int queryOffset = offset == null ? 0 : offset;
+        return orderDao.getUserOrders(userId, currencyPairId, queryLimit, queryOffset);
+    }
 }
 
 
