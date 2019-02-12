@@ -3,10 +3,7 @@ package me.exrates.service.casinocoin;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-/**
- * Created by maks on 11.05.2017.
- */
-public interface RippleService extends IRefillable, IWithdrawable {
+public interface CasinoCoinService extends IRefillable, IWithdrawable {
 
     /*return: true if tx validated; false if not validated but validationin process,
         throws Exception if declined*/

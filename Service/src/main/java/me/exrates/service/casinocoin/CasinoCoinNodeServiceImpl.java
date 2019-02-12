@@ -14,17 +14,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Created by maks on 05.05.2017.
- */
-@Log4j2(topic = "ripple_log")
+@Log4j2(topic = "casinocoin")
 @Service
-@PropertySource("classpath:/merchants/ripple.properties")
-public class RippledNodeServiceImpl implements RippledNodeService {
+@PropertySource("classpath:/merchants/casinocoin.properties")
+public class CasinoCoinNodeServiceImpl implements CasinoCoinNodeService {
 
     @Autowired
     private RestTemplate restTemplate;
-    private @Value("${ripple.rippled.rpcUrl}") String rpcUrl;
+
+    @Value("${ripple.rippled.rpcUrl}")
+    private String rpcUrl;
 
     private static final String SIGN_RPC = "{\n" +
             "                     \"method\": \"sign\",\n" +

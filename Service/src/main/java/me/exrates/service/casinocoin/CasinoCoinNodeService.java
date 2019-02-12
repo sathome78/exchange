@@ -4,10 +4,7 @@ import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import org.json.JSONObject;
 
-/**
- * Created by maks on 05.05.2017.
- */
-public interface RippledNodeService {
+public interface CasinoCoinNodeService {
 
     void signTransaction(RippleTransaction transaction);
 

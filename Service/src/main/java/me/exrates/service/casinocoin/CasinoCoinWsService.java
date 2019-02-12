@@ -24,28 +24,36 @@ import java.util.Optional;
 @ClientEndpoint
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
-public class CasinoCoinWsServiceImpl {
+public class CasinoCoinWsService {
 
-    private @Value("${ripple.rippled.ws}") String wsUrl;
-    private @Value("${ripple.account.address}") String address;
+    private static final String CSC_TICKER = "CSC";
+
+    private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";
+
+    private static final String GET_TX_COMMAND_ID = "get transaction";
+
+    @Value("${ripple.rippled.ws}")
+    private String wsUrl;
+    @Value("${ripple.account.address}")
+    private String address;
+
     private URI WS_SERVER_URL;
 
     private Session session;
+
     private boolean access = false;
     private volatile RemoteEndpoint.Basic endpoint = null;
-    private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";
-    private static final String GET_TX_COMMAND_ID = "get transaction";
     private volatile boolean shutdown = false;
-    private Merchant merchant;
-    private static final String XRP_MERCHANT = "Ripple";
 
-    private final RippleService rippleService;
+    private Merchant merchant;
+
+    private final CasinoCoinService casinoCoinService;
     private final MerchantService merchantService;
     private final WithdrawService withdrawService;
 
     @Autowired
-    public CasinoCoinWsServiceImpl(RippleService rippleService, MerchantService merchantService, WithdrawService withdrawService) {
-        this.rippleService = rippleService;
+    public CasinoCoinWsService(CasinoCoinService casinoCoinService, MerchantService merchantService, WithdrawService withdrawService) {
+        this.casinoCoinService = casinoCoinService;
         this.merchantService = merchantService;
         this.withdrawService = withdrawService;
     }
@@ -55,7 +63,7 @@ public class CasinoCoinWsServiceImpl {
     public void init() {
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
-        merchant = merchantService.findByName(XRP_MERCHANT);
+        merchant = merchantService.findByName(CSC_TICKER);
     }
 
     public String getAddress() {
@@ -131,7 +139,7 @@ public class CasinoCoinWsServiceImpl {
         String amount = result.getJSONObject("meta").getString("delivered_amount");
         String hash = result.getString("hash");
         log.debug("{} {} {}", hash, destinationTag, amount);
-        rippleService.onTransactionReceive(hash, destinationTag, amount);
+        casinoCoinService.onTransactionReceive(hash, destinationTag, amount);
     }
 
     private void connectAndSubscribe() {
