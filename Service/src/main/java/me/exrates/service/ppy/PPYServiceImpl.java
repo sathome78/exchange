@@ -32,13 +32,6 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
     protected void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(3).getInt(lastIrreversebleBlockParam);
-        synchronized (this) {
-            if (blockNumber > lastIrreversibleBlockValue) {
-                for (; lastIrreversibleBlockValue <= blockNumber; lastIrreversibleBlockValue++) {
-                    getBlock(lastIrreversibleBlockValue);
-                }
-                merchantSpecParamsDao.updateParam(merchant.getName(), lastIrreversebleBlockParam, String.valueOf(lastIrreversibleBlockValue));
-            }
-        }
+        getUnprocessedBlocks(blockNumber);
     }
 }
