@@ -442,12 +442,8 @@ public class MerchantServiceImpl implements MerchantService {
     public Properties getPassMerchantProperties(String merchantName) {
         Properties props = new Properties();
         String fullPath = String.join("", walletPropsFolder, merchantName, "_pass.properties");
-        try {
-            FileInputStream inputStream = new FileInputStream(new File(fullPath));
-            props.load(inputStream);
-        } catch (Throwable throwable){
-
-        }
+        FileInputStream inputStream = new FileInputStream(new File(fullPath));
+        props.load(inputStream);
         return props;
     }
 
