@@ -480,8 +480,8 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     }
 
     @Override
-    public BTSBlockInfo getRequestedBlocksInfo(int blockNum) {
-        return blockTransactionInfoMap.keySet().stream().filter(e -> e.getBlockNum() == blockNum).findFirst().orElse(null);
+    public TransactionsInfo getRequestedBlocksInfo(int blockNum) {
+        return blockTransactionInfoMap.entrySet().stream().filter(e -> e.getKey().getBlockNum() == blockNum).findFirst().orElse(null).getValue();
     }
 
     //Example for decrypting memo don't delete

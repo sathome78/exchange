@@ -2,6 +2,7 @@ package me.exrates.service.bitshares;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.TransactionsInfo;
 import me.exrates.model.dto.BTSBlockInfo;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -67,5 +68,5 @@ public interface BitsharesService extends IRefillable , IWithdrawable {
 
     void requestBlockTransactionsInfo(BTSBlockInfo BTSBlockInfo);
 
-    BTSBlockInfo getRequestedBlocksInfo(int blockNum);
+    TransactionsInfo getRequestedBlocksInfo(int blockNum);
 }

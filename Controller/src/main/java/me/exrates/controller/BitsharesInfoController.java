@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.dto.BTSBlockInfo;
 import me.exrates.service.bitshares.BitsharesDispatcher;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/bitshares")
+@RestController
+@RequestMapping("/bitshares")
 public class BitsharesInfoController {
 
     private final BitsharesDispatcher bitsharesDispatcher;
