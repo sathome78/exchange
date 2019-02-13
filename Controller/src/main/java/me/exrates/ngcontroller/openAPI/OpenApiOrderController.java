@@ -175,7 +175,7 @@ public class OpenApiOrderController {
      * @apiDescription Cancel order by order id
      * @apiParam {String} pairName currency pair (if currency pair have not set - cancel all open orders)
      * @apiParamExample Request Example:
-     * /info/private/v2/api/orders/cancel/all?btc_usd
+     * /info/private/v2/api/orders/cancel/all?currency_pair=btc_usd
      * @apiSuccess {Boolean} success Cancellation result
      */
     @PreAuthorize("hasAuthority('TRADE')")
