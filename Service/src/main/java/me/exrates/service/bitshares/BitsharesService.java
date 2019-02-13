@@ -63,4 +63,6 @@ public interface BitsharesService extends IRefillable , IWithdrawable {
     RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount);
 
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
+
+    void requestBlockTransactionsInfo(int blockNum);
 }

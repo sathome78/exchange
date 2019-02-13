@@ -4,6 +4,7 @@ import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.BitsharesBlockInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -76,6 +77,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     protected volatile RemoteEndpoint.Basic endpoint;
     protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private Map<Integer, BitsharesBlockInfo> blockTransactionInfoMap = new LinkedHashMap<>();
 
     public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
         this.merchantName = merchantName;
@@ -352,7 +354,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         try {
             if (msg.contains("notice")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
-            else log.info("unrecogrinzed msg from aunit \n" + msg);
+            else log.info("unrecogrinzed msg from " + merchantName + "\n" + msg);
         } catch (Exception e) {
             log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
         }
@@ -428,6 +430,10 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     protected void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
+        getUnprocessedBlocks(blockNumber);
+    }
+
+    protected void getUnprocessedBlocks(int blockNumber) {
         synchronized (this) {
             if (blockNumber > lastIrreversibleBlockValue) {
                 for (; lastIrreversibleBlockValue <= blockNumber; lastIrreversibleBlockValue++) {
@@ -438,11 +444,24 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
+    @Override
+    public void requestBlockTransactionsInfo(int blockNum) {
+        blockTransactionInfoMap.put(blockNum, null);
+        getBlock(blockNum);
+    }
 
     //Example for decrypting memo don't delete
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
+//        String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
+//
+//        System.out.println(s);
 
-        System.out.println(s);
+        JSONObject block = new JSONObject();
+        block.put("id", 10);
+        block.put("method", "call");
+        block.put("params", new JSONArray().put(2).put("get_block").put(new JSONArray().put(100000)));
+
+        System.out.println(block);
+
     }
 }
