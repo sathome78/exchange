@@ -69,7 +69,9 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
         String address;
 
     }
-
+ /*
+  *  getBalanceByAddress(); method is not using for now. It will be available in next up
+  */
     public String getBalanceByAddress(String address){
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
         requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
