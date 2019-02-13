@@ -5,11 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.dto.BitsharesTransactionInfo;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BitsharesBlockInfo {
-    private List<BitsharesTransactionInfo> listOfTransactionInfo;
+public class TransactionsInfo {
+    private List<BitsharesTransactionInfo> listOfTransactionInfo = new LinkedList<>();
 }
