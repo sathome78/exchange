@@ -1,4 +1,4 @@
-package me.exrates;
+package me.exrates.cointest;
 
 import net.sf.ehcache.bootstrap.BootstrapCacheLoader;
 import org.springframework.context.ApplicationListener;
