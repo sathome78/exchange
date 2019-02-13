@@ -212,7 +212,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("DIVI", "Divicoin", 4, false, false, "172.10.13.160", 8090, 12001);
+        generate("OWC", "OduwaCoin", 20, false, false, "172.10.13.160", 8090, 12101);
     }
 
 
