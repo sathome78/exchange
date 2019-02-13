@@ -74,7 +74,6 @@ import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -117,6 +116,7 @@ import me.exrates.service.omni.OmniServiceImpl;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
+import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -173,7 +173,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -842,18 +841,38 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
-                                                  @RequestParam OperationType operationType,
-                                                  @RequestParam String roleName,
-                                                  @RequestParam BigDecimal minAmount,
-                                                  @RequestParam Integer maxDailyRequest,
-                                                  @RequestParam(required = false) Object allRolesEdit) {
-        if (allRolesEdit != null) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, maxDailyRequest);
+    public ResponseEntity editCurrencyLimit(@RequestParam int currencyId,
+                                            @RequestParam OperationType operationType,
+                                            @RequestParam String roleName,
+                                            @RequestParam(defaultValue = "0") BigDecimal minAmount,
+                                            @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
+                                            @RequestParam Integer maxDailyRequest,
+                                            @RequestParam(required = false) Object allRolesEdit) {
+        if (nonNull(allRolesEdit)) {
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxDailyRequest);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/recalculate-limit-to-usd", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyRecalculateLimitToUsd(@RequestParam int currencyId,
+                                                           @RequestParam OperationType operationType,
+                                                           @RequestParam String roleName,
+                                                           @RequestParam Boolean recalculateToUsd) {
+        return currencyService.setPropertyCalculateLimitToUsd(currencyId, operationType, roleName, recalculateToUsd)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<BigDecimal> convertMinSum(@RequestParam BigDecimal minSum) {
+        return ResponseEntity.ok(BigDecimalConverter.convert(minSum));
     }
 
     @AdminLoggable
