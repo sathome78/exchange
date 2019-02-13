@@ -97,3 +97,30 @@
             async defer>
     </script>
 </c:if>
+
+<style>
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>

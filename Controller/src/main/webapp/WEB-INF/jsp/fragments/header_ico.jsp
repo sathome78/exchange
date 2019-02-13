@@ -34,6 +34,11 @@
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
+                <li>
+                    <a class="nav__link predictions" href="<c:url value='https://predictionlab.exrates.me/'/>" target="_blank">
+                        Predictions
+                    </a>
+                </li>
                 <li id="menu-traiding">
                     <a class="nav__link" style="color: #d9dbff;" href="<c:url value='#'/>">ICO</a>
                 </li>
@@ -330,3 +335,30 @@
             async defer>
     </script>
 </c:if>
+
+<style>
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>
