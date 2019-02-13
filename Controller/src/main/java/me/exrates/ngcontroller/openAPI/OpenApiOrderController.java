@@ -11,8 +11,16 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.*;
+import me.exrates.service.exception.AlreadyAcceptedOrderException;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.service.exception.OrderNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.exception.api.CancelOrderException;
+import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
+import me.exrates.service.exception.api.OpenApiError;
+import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.userOperation.UserOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -25,16 +33,36 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
+import static java.util.Objects.nonNull;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/info/private/v2/api/orders")
@@ -53,7 +81,7 @@ public class OpenApiOrderController {
     private MessageSource messageSource;
 
     /**
-     * @api {post} /openapi/v1/orders/create Create order
+     * @api {post} /info/private/v2/api/orders/create Create order
      * @apiName Creates order
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -64,7 +92,7 @@ public class OpenApiOrderController {
      * @apiParam {Number} amount Amount in base currency
      * @apiParam {Number} price Exchange rate
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/create
+     * /info/private/v2/api/orders/create
      * RequestBody:{currency_pair, order_type, amount, price}
      * @apiSuccess {Object} orderCreationResult Order creation result information
      * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
@@ -89,7 +117,7 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/accept Accept order
+     * @api {get} /info/private/v2/api/orders/accept Accept order
      * @apiName Accept order
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -97,7 +125,7 @@ public class OpenApiOrderController {
      * @apiDescription Accepts order
      * @apiParam {Integer} order_id Id of order to be accepted
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/accept
+     * /info/private/v2/api/orders/accept
      * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success=true Acceptance result
      */
@@ -113,7 +141,7 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {post} /openapi/v1/orders/cancel Cancel order by order id
+     * @api {post} /info/private/v2/api/orders/cancel Cancel order by order id
      * @apiName Cancel order by order id
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -121,7 +149,7 @@ public class OpenApiOrderController {
      * @apiDescription Cancel order by order id
      * @apiParam {String} order_id Id of order to be cancelled
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/cancel
+     * /info/private/v2/api/orders/cancel
      * RequestBody: Map{order_id=123}
      * @apiSuccess {Map} success Cancellation result
      */
@@ -132,6 +160,37 @@ public class OpenApiOrderController {
 
         orderService.cancelOrder(orderId);
         return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
+    }
+
+    /**
+     * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
+     *
+     * @param pairName pair name
+     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @api {post} /info/private/v2/api/orders/cancel/all?pairName Cancel all open orders by currency pair
+     * @apiName Cancel order by order id
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Cancel order by order id
+     * @apiParam {String} pairName currency pair (if currency pair have not set - cancel all open orders)
+     * @apiParamExample Request Example:
+     * /info/private/v2/api/orders/cancel/all?btc_usd
+     * @apiSuccess {Boolean} success Cancellation result
+     */
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PostMapping("/cancel/all")
+    public ResponseEntity<BaseResponse<Boolean>> cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
+
+        boolean canceled;
+        if (nonNull(pairName)) {
+            pairName = pairName.toUpperCase();
+
+            canceled = orderService.cancelOpenOrdersByCurrencyPair(pairName);
+        } else {
+            canceled = orderService.cancelAllOpenOrders();
+        }
+        return ResponseEntity.ok(BaseResponse.success(canceled));
     }
 
     @PreAuthorize("hasAuthority('TRADE')")
@@ -167,7 +226,7 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/open/{order_type}?currency_pair Open orders
+     * @api {get} /info/private/v2/api/orders/open/{order_type}?currency_pair Open orders
      * @apiName Open orders
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -176,7 +235,7 @@ public class OpenApiOrderController {
      * @apiParam {String} order_type Type of order (BUY or SELL)
      * @apiParam {String} currency_pair Name of currency pair
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/open/SELL?btc_usd
+     * /info/private/v2/api/orders/open/SELL?btc_usd
      * @apiSuccess {Array} openOrder Open Order Result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
