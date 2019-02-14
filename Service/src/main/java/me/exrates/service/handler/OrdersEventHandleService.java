@@ -68,6 +68,8 @@ public class OrdersEventHandleService {
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
     private Map<Integer, OrdersReFreshHandler> mapOrders = new ConcurrentHashMap<>();
 
+    private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
+
     public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
         ExOrder order = orderDto.toExorder();
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
@@ -249,6 +251,14 @@ public class OrdersEventHandleService {
         OrdersReFreshHandler handler = mapOrders
                 .computeIfAbsent(pairId, k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairId));
         handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
+    }
+
+    @Async
+    void handlePersonalOrders(ExOrder exOrder, OrderEventEnum orderEvent) {
+        Integer pairId = exOrder.getCurrencyPairId();
+        UserPersonalOrdersHandler handler = personalOrdersHandlerMap
+                .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
+        handler.addOrderToQueueInstant(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
     }
 
     @Async

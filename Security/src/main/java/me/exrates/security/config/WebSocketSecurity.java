@@ -1,6 +1,7 @@
 package me.exrates.security.config;
 
 import me.exrates.model.UserRoleSettings;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.messaging.MessageSecur
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
 import org.springframework.security.messaging.web.csrf.CsrfChannelInterceptor;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -45,6 +47,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/*").permitAll()
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/detailed/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
+                .simpSubscribeDestMatchers("/user/queue/my_orders/*").hasAnyAuthority(Arrays.stream(UserRole.values()).map(Enum::name).toArray(String[]::new))
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .anyMessage().permitAll();

@@ -14,6 +14,8 @@ public interface StompMessenger {
 
     void sendRefreshTradeOrdersDetailMessage(Integer pairId, String message);
 
+    void sendPersonalOpenOrdersAndDealsToUser(Integer userId, Integer currencyPair, String message);
+
     void sendMyTradesToUser(int userId, Integer currencyPair);
 
     void sendAllTrades(Integer currencyPair);
