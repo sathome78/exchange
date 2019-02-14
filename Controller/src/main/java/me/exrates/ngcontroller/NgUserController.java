@@ -15,7 +15,6 @@ import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
@@ -36,8 +35,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -198,18 +197,23 @@ public class NgUserController {
 
     @PostMapping(value = "/register")
     @CheckIp(value = IpTypesOfChecking.REGISTER)
-    public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto, HttpServletRequest request) {
+    public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto,
+                                   HttpServletRequest request,
+                                   BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        boolean result = ngUserService.registerUser(userEmailDto, request);
+        boolean registered = ngUserService.registerUser(userEmailDto, request);
 
-        if (result) {
+        if (registered) {
             ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
         String ipAddress = request.getHeader("client_ip");
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
-        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().build();
     }
 
     private String getAvatarPathPrefix(HttpServletRequest request) {
