@@ -10,8 +10,8 @@ import javax.websocket.OnMessage;
 @ClientEndpoint
 public class PPYServiceImpl extends BitsharesServiceImpl {
 
-    public PPYServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
-        super(merchantName, currencyName, propertySource, SCANING_INITIAL_DELAY);
+    public PPYServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY, int decimal) {
+        super(merchantName, currencyName, propertySource, SCANING_INITIAL_DELAY, decimal);
     }
 
     @OnMessage

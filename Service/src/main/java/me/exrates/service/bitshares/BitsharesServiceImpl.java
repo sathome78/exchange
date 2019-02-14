@@ -67,6 +67,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
     protected int lastIrreversibleBlockValue; //
     private String privateKey;
+    private int decimal;
 
     protected Merchant merchant;
     private Currency currency;
@@ -76,9 +77,10 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
+    public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY, int decimal) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
+        this.decimal = decimal;
         log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
@@ -421,7 +423,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     }
 
     private BigDecimal reduceAmount(BigDecimal amount) {
-        return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
+        return amount.multiply(new BigDecimal(Math.pow(10, (-1)*decimal))).setScale(decimal, RoundingMode.HALF_DOWN);
     }
 
     protected void setIrreversableBlock(String msg) {
@@ -436,7 +438,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             }
         }
     }
-
 
     //Example for decrypting memo don't delete
     public static void main(String[] args) throws NoSuchAlgorithmException {
