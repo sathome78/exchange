@@ -226,6 +226,28 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public List<OrderListDto> getMyOpenOrdersForCurrencyPair(CurrencyPair currencyPair, OrderType orderType, int userId) {
+        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
+                "  FROM EXORDERS " +
+                "  WHERE status_id = 2 and operation_type_id = :type_id and currency_pair_id = :currency_pair_id and user_id = :user_id " +
+                "  ORDER BY exrate ASC";
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", currencyPair.getId());
+        namedParameters.put("type_id", orderType.getOperationType().type);
+        namedParameters.put("user_id", userId);
+        return slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+            OrderListDto order = new OrderListDto();
+            order.setId(rs.getInt("id"));
+            order.setUserId(rs.getInt("user_id"));
+            order.setOrderType(OperationType.convert(rs.getInt("operation_type_id")));
+            order.setExrate(rs.getString("exrate"));
+            order.setAmountBase(rs.getString("amount_base"));
+            order.setAmountConvert(rs.getString("amount_convert"));
+            return order;
+        });
+    }
+
+    @Override
     public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId) {
         String sql = "SELECT exrate FROM EXORDERS WHERE status_id = 3 AND currency_pair_id = :currency_pair_id AND operation_type_id = :operation_type_id " +
                 "ORDER BY date_acception DESC, id DESC LIMIT 1";

@@ -20,6 +20,7 @@ public class OrderWsDetailDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateAcception;
     private String orderEvent;
+    private long timestamp;
 
     public OrderWsDetailDto(ExOrder exOrder, OrderEventEnum orderEventEnum) {
         this.id = exOrder.getId();
@@ -29,6 +30,7 @@ public class OrderWsDetailDto {
         this.amountConvert = exOrder.getAmountConvert().toPlainString();
         this.orderEvent = orderEventEnum.name();
         this.dateAcception = exOrder.getDateAcception();
+        this.timestamp = exOrder.getEventTimestamp();
     }
 
     public OrderWsDetailDto(OrderListDto dto) {

@@ -16,6 +16,7 @@ public class OrderEvent extends ApplicationEvent {
      */
     public OrderEvent(ExOrder source) {
         super(source);
+        source.setEventTimestamp(getTimestamp());
     }
 
     private OrderEventEnum orderEventEnum;
@@ -27,4 +28,6 @@ public class OrderEvent extends ApplicationEvent {
     public void setOrderEventEnum(OrderEventEnum orderEventEnum) {
         this.orderEventEnum = orderEventEnum;
     }
+
+
 }

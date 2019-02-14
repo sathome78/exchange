@@ -424,4 +424,5 @@ public interface OrderService {
                                          @Null Integer limit,
                                          @Null Integer offset);
 
+    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
 }

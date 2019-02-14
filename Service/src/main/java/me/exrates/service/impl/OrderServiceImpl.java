@@ -2098,6 +2098,22 @@ public class OrderServiceImpl implements OrderService {
     public void logCallBackData(CallBackLogDto callBackLogDto) {
         callBackDao.logCallBackData(callBackLogDto);
     }
+
+    @Override
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+        Integer userId = userService.getIdByEmail(userName);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPairId);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPairId);
+        return Arrays.asList(sellOrders, buyOrders);
+    }
 }
 
 

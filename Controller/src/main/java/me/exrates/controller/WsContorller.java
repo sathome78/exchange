@@ -120,6 +120,11 @@ public class WsContorller {
         return orderService.getOpenOrdersForWs(currencyPairId);
     }
 
+    @SubscribeMapping("/queue/my_orders/{currencyPairId}")
+    public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable Integer currencyPairId, Principal principal) {
+        return orderService.getMyOpenOrdersForWs(currencyPairId, principal.getName());
+    }
+
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {

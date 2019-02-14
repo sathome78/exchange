@@ -35,6 +35,8 @@ public class ExOrder {
     private BigDecimal stop;
     private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
     private BigDecimal partiallyAcceptedAmount;
+
+    private long eventTimestamp;
     /*constructors*/
     public ExOrder() {
     }

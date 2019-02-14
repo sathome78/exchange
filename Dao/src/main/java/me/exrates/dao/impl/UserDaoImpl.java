@@ -169,8 +169,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean create(User user) {
-        String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
-                "values(:nickname,:email,:password,:phone,:status,:roleid)";
+        String sqlUser = "insert into USER(pub_id, nickname,email,password,phone,status,roleid ) " +
+                "values(SUBSTRING(MD5(:email), 1, 20), :nickname, :email, :password, :phone, :status, :roleid)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
         String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
                 "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
