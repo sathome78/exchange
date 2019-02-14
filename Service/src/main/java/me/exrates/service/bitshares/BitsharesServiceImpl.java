@@ -37,15 +37,12 @@ import java.util.concurrent.TimeUnit;
 import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
 
 
-//@PropertySource("classpath:/merchants/aunit.properties")
-//@Log4j2(topic = "aunit")
 @Data
 @ClientEndpoint
-public class BitsharesServiceImpl implements BitsharesService {
+public abstract class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 3L;
-    private long SCANING_INITIAL_DELAY;
-    private Logger log;
+    public static final long PERIOD = 5L;
+    protected Logger log;
 
     @Autowired
     private MessageSource messageSource;
@@ -58,38 +55,38 @@ public class BitsharesServiceImpl implements BitsharesService {
     @Autowired
     private MerchantService merchantService;
     @Autowired
-    private MerchantSpecParamsDao merchantSpecParamsDao;
+    protected MerchantSpecParamsDao merchantSpecParamsDao;
+//    @Autowired
+//    private GtagService gtagService;
 
     private String mainAddress;
     private String mainAddressId;
-    private String merchantName;
+    protected String merchantName;
     private String currencyName;
     private String wsUrl;
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    private int lastIrreversibleBlockValue; //
+    protected int lastIrreversibleBlockValue; //
     private String privateKey;
 
-    private Merchant merchant;
+    protected Merchant merchant;
     private Currency currency;
     private URI WS_SERVER_URL;
     private volatile Session session;
-    private volatile RemoteEndpoint.Basic endpoint;
-    private final String lastIrreversebleBlockParam = "last_irreversible_block_num";
-    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    protected volatile RemoteEndpoint.Basic endpoint;
+    protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
-        log = Logger.getLogger(merchantName);
+        log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
             props.load(this.getClass().getClassLoader().getResourceAsStream(propertySource));
             mainAddress = props.getProperty("mainAddress");
             mainAddressId = props.getProperty("mainAddressId");
             wsUrl = props.getProperty("wsUrl");
-            this.SCANING_INITIAL_DELAY = SCANING_INITIAL_DELAY;
-//            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
-            connectAndSubscribe();
+            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
         } catch (IOException e){
             log.error(e);
         }
@@ -97,29 +94,32 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     @PostConstruct
     public void setUp() {
-        privateKey = merchantService.getPassMerchantProperties(merchantName).getProperty("privateKey");
-        currency = currencyService.findByName(currencyName);
-        merchant = merchantService.findByName(merchantName);
-        MerchantSpecParamDto merchantSpecParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlockParam);
-        if(merchantSpecParam == null){
-            log.error("Can not find merchant spec param with merchantId = " + merchant.getId() + " and param name = " + lastIrreversebleBlockParam + ", using default value = 0");
-            lastIrreversibleBlockValue = 0;
-        } else {
-            lastIrreversibleBlockValue = Integer.valueOf(merchantSpecParam.getParamValue());
+        try {
+            privateKey = merchantService.getPassMerchantProperties(merchantName).getProperty("privateKey");
+            currency = currencyService.findByName(currencyName);
+            merchant = merchantService.findByName(merchantName);
+            MerchantSpecParamDto merchantSpecParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlockParam);
+            if(merchantSpecParam == null){
+                log.error("Can not find merchant spec param with merchantId = " + merchant.getId() + " and param name = " + lastIrreversebleBlockParam + ", using default value = 0");
+                lastIrreversibleBlockValue = 0;
+            } else {
+                lastIrreversibleBlockValue = Integer.valueOf(merchantSpecParam.getParamValue());
+            }
+        }catch (Exception ex){
+            log.error(ex);
         }
     }
 
-//    private void reconnect() {
-//        System.out.println("RECONNECT");
-//        if (!session.isOpen()) {
-//            try {
-//                connectAndSubscribe();
-//            } catch (Exception e) {
-//                log.error(e);
-//            }
-//        }
-//    }
-
+    private void reconnect() {
+        log.info("Bitshares reconnect()");
+        if (session == null || !session.isOpen()) {
+            try {
+                connectAndSubscribe();
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+    }
     @Override
     public Merchant getMerchant() {
         return merchant;
@@ -142,6 +142,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         }};
     }
 
+
     private Integer generateUniqDestinationTag(int userId) {
         Optional<Integer> id;
         int destinationTag;
@@ -157,7 +158,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         String idInString = String.valueOf(userId);
         int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
         if (randomNumberLength < 0) {
-            throw new MerchantInternalException("Error generating new destination tag for " + merchantName + " for user with id " + userId);
+            throw new MerchantInternalException("error generating new destination tag for aunit" + userId);
         }
         String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
@@ -178,18 +179,29 @@ public class BitsharesServiceImpl implements BitsharesService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+//            requestId = refillService.getRequestId(requestAcceptDto);
+//            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            setIdAndAccept(requestAcceptDto);
+            requestId = setIdAndAccept(requestAcceptDto);
         }
+//        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+//        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
-    private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+    private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+            return requestId;
         } catch (Exception e) {
             log.error(e);
             throw e;
@@ -199,7 +211,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-            log.error(merchantName + " transaction allready received!!! " + hash);
+            log.error("aunit transaction allready received!!! {}" + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -242,6 +254,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         throw new RuntimeException("Not supported");
     }
 
+
     @Override
     public String getMainAddress() {
         return mainAddress;
@@ -273,7 +286,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-    private void subscribeToTransactions() throws IOException {
+    public void subscribeToTransactions() throws IOException {
         JSONObject login = new JSONObject();
         login.put("id", 0);
         login.put("method", "call");
@@ -335,7 +348,6 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     @OnMessage
     public void onMessage(String msg) {
-        System.out.println(msg);
         try {
             if (msg.contains("notice")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
@@ -347,7 +359,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     }
 
     @SneakyThrows
-    private void getBlock(int blockNum) {
+    protected void getBlock(int blockNum) {
         JSONObject block = new JSONObject();
         block.put("id", 10);
         block.put("method", "call");
@@ -355,7 +367,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(block.toString());
     }
 
-    private void processIrreversebleBlock(String trx) {
+    protected void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
         if (block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
         JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
@@ -412,7 +424,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
-    private void setIrreversableBlock(String msg) {
+    protected void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
         synchronized (this) {
@@ -426,7 +438,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     }
 
 
-    //Example for decrypting memo
+    //Example for decrypting memo don't delete
     public static void main(String[] args) throws NoSuchAlgorithmException {
         String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
 

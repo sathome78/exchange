@@ -1,4 +1,4 @@
-package me.exrates;
+package me.exrates.cointest;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;

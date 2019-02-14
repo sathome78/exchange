@@ -1,7 +1,7 @@
 package me.exrates.config;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.BtcCoinTester;
+import me.exrates.cointest.BtcCoinTester;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
@@ -9,7 +9,6 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.bitshares.BitsharesService;
-import me.exrates.service.bitshares.BitsharesServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
@@ -442,7 +441,7 @@ public class CryptocurrencyConfig {
     //Bitshares
     @Bean(name = "ppyServiceImpl")
     public BitsharesService bitsharesService(){
-        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
+        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 10);
     }
 //
 //    @Bean(name = "aunitServiceImpl")
