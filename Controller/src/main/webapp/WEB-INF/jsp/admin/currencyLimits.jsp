@@ -179,7 +179,7 @@
                                     code="admin.currencyLimits.usdRate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="usdRate" class="input-block-wrapper__input" type="number" readonly>
+                            <input id="usdRate" name="usdRate" class="input-block-wrapper__input" type="number" readonly>
                         </div>
                     </div>
                     <div class="input-block-wrapper">

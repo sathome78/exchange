@@ -53,7 +53,7 @@ public class AisiServiceImpl implements AisiService {
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
             put("address", address);
-            put("message", message + " " + address);
+            put("message", message);
             put("qr", address);
         }};
     }
