@@ -1,12 +1,14 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.aisi.Transaction;
 import me.exrates.service.AisiCurrencyService;
 import me.exrates.service.AisiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -26,21 +28,16 @@ public class AisiRecieveService {
     private void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
 
-        aisiCurrencyService.getAccountTransactions();
+        aisiCurrencyService.getAccountTransactions().stream().forEach(accountTransaction -> {
+            String transaction_id = accountTransaction.getTransaction_id();
+            Transaction transaction = aisiCurrencyService.getTransactionInformation(transaction_id);
 
-        qiwiExternalService.getLastTransactions().stream()
-                .filter(trans -> trans.getTx_type().equals(TRANSACTION_TYPE)
-                        && trans.getTx_status().equals(TRANSACTION_STATUS)).forEach(transaction -> {
-            try {
-                log.info("*** Qiwi *** Process transaction");
-                qiwiService.onTransactionReceive(transaction, transaction.getAmount(), transaction.getCurrency(), transaction.getProvider());
-                log.info("*** Qiwi *** After process transaction");
-            }catch (Exception ex){
-                ex.getStackTrace();
-                log.error(ex.getMessage());
-            }
+            aisiService.onTransactionReceive(transaction, transaction_id);
         });
-        log.info("*** Qiwi ** Get transactions for process");
     }
 
+    @PreDestroy
+    public void shutdown() {
+        scheduler.shutdown();
+    }
 }

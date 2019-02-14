@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.aisi.Transaction;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +63,24 @@ public class AisiServiceImpl implements AisiService {
         }};
     }
 
+    public void onTransactionReceive(Transaction transaction, String transaction_id){
+        log.info("*** Aisi *** Income transaction {} " + transaction_id);
+
+        Map<String, String> paramsMap = new HashMap<>();
+        paramsMap.put("hash", transaction_id);
+        paramsMap.put("address", transaction.getReceiver());
+        paramsMap.put("amount", transaction.getAmount());
+        try {
+            this.processPayment(paramsMap);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error("*** Aisi *** refill address not found {}", transaction);
+        }
+    }
+
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName(params.get("currency"));
-        Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal fullAmount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -75,7 +88,6 @@ public class AisiServiceImpl implements AisiService {
                 .currencyId(currency.getId())
                 .amount(fullAmount)
                 .merchantTransactionId(hash)
-                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);

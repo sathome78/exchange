@@ -74,7 +74,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
     }
 
-    public AccauntTransaction[] getAccountTransactions(){
+    public List<AccauntTransaction> getAccountTransactions(){
         Integer max = Integer.MAX_VALUE;
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
         requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
@@ -91,8 +91,8 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
         } catch (Exception ex) {
             log.warn("Error : {}", ex.getMessage());
         }
-
-        return responseEntity.getBody();
+        AccauntTransaction[] accauntTransactions = responseEntity.getBody();
+        return Arrays.asList(accauntTransactions);
     }
 
     public Transaction getTransactionInformation(String transaction_id){
@@ -114,18 +114,6 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
         return responseEntity.getBody();
     }
-
-//    @JsonInclude(JsonInclude.Include.NON_NULL)
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-//    private static class Transaction {
-//
-//        @JsonProperty("Transaction")
-//        String timestamp;
-//        String sender;
-//        String receiver;
-//        String amount;
-//    }
 
  /*
   *  getBalanceByAddress(); method is not using for now. It will be available in next up

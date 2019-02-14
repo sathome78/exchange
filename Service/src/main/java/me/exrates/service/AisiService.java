@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.dto.aisi.Transaction;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
@@ -39,4 +40,6 @@ public interface AisiService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    void onTransactionReceive(Transaction transaction, String transaction_id);
 }
