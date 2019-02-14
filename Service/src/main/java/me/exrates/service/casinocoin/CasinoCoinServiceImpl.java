@@ -167,4 +167,9 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
     public boolean isValidDestinationAddress(String address) {
         return withdrawUtils.isValidDestinationAddress(mainAddress, address);
     }
+
+    @Override
+    public String getMainAddress() {
+        return mainAddress;
+    }
 }

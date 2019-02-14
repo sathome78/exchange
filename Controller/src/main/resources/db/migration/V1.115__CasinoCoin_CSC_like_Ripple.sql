@@ -1,7 +1,7 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('CasinoCoin', 'CSC', 2, 'cscServiceImpl', 'CRYPTO');
+VALUES ('CasinoCoin', 'CSC', 2, 'casinoCoinServiceImpl', 'CRYPTO');
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('CSC', 'CasinoCoin', 0, 5, 5, 5);
+VALUES ('CSC', 'CasinoCoin', 0, 8, 8, 8);
 
 INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='CSC'));
 
@@ -84,6 +84,3 @@ INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
 SELECT cur.id
 FROM CURRENCY cur
 WHERE cur.name IN ('CSC');
-
-/*INSERT IGNORE INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'CSC'), 'last_irreversible_block_num', 2736365);*/

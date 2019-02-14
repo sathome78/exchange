@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class CasinoCoinWsServiceImplTest {
+public class RippleWsServiceImplTest {
 
 
     @Mock
