@@ -28,35 +28,6 @@ $(document).ready(function () {
             var operationType = $('#operationType').val();
             var userRole = $('#roleName').val();
 
-            $('input#minAmount').keyup(function() {
-                var amount = $(this).val() * currentUsdRate;
-                $('input#minAmountUSD').val(amount);
-            });
-
-            $('input#minAmountUSD').keyup(function() {
-                var amount = $(this).val() / currentUsdRate;
-                if (amount === Infinity || isNaN(amount)) {
-                    $('input#minAmount').val('0');
-                } else {
-                    $.ajax({
-                        headers: {
-                            'X-CSRF-Token': $("input[name='_csrf']").val()
-                        },
-                        url: '/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum',
-                        type: 'GET',
-                        data: {
-                            "minSum": amount
-                        },
-                        success: function (data) {
-                            $('input#minAmount').val(data);
-                        },
-                        error: function (error) {
-                            $('input#minAmount').val('0');
-                        }
-                    });
-                }
-            });
-
             $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
             $('#currency-name').val(currencyName);
             $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
@@ -68,6 +39,44 @@ $(document).ready(function () {
             $('#editLimitModal').modal();
         }
     });
+
+    $('input#minAmount').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() * usdRate;
+
+        $('input#minAmountUSD').val(amount);
+    });
+
+    $('input#minAmountUSD').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() / usdRate;
+
+        if (amount === Infinity || isNaN(amount)) {
+            $('input#minAmount').val('0');
+        } else {
+            formatMinAmount(amount);
+        }
+    });
+
+    function formatMinAmount(amount) {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum',
+            type: 'GET',
+            data: {
+                "minSum": amount
+            },
+            success: function (data) {
+                $('input#minAmount').val(data);
+            },
+            error: function (error) {
+                console.log(error);
+                $('input#minAmount').val('0');
+            }
+        });
+    }
 
     $($currencyPairLimitsTable).find('tbody').on('click', 'tr', function () {
         var rowData = currencyPairLimitDataTable.row(this).data();

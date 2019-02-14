@@ -348,6 +348,12 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 4, 20, false, false);
 	}
 
+@Bean(name = "owcServiceImpl")
+	public BitcoinService owcServiceImpl() {
+		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 20, 20, false, false);
+	}
+
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
