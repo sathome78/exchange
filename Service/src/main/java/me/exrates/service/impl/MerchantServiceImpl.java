@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import javafx.util.Pair;
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.CreditsOperation;
@@ -27,9 +26,9 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
+import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantNotFoundException;
@@ -41,6 +40,9 @@ import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.util.BigDecimalConverter;
+import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -62,11 +65,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 
@@ -95,14 +100,16 @@ public class MerchantServiceImpl implements MerchantService {
     private MessageSource messageSource;
 
     @Autowired
-    private NotificationService notificationService;
+    private MerchantServiceContext merchantServiceContext;
 
     @Autowired
-    private MerchantServiceContext merchantServiceContext;
-    @Autowired
     private CommissionService commissionService;
+
     @Autowired
     private CurrencyService currencyService;
+
+    @Autowired
+    private ExchangeApi exchangeApi;
 
     private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
 
@@ -175,7 +182,7 @@ public class MerchantServiceImpl implements MerchantService {
     private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
         return currencies.stream()
                 .map(Currency::getId)
-                .map(currencyId -> new Pair<>(currencyId, merchantDao.findAllByCurrency(currencyId)))
+                .map(currencyId -> Pair.of(currencyId, merchantDao.findAllByCurrency(currencyId)))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
@@ -315,8 +322,8 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw) {
-        merchantDao.toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractMerchantCommissionForWithdraw);
+    public void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw) {
+        merchantDao.toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName, subtractMerchantCommissionForWithdraw);
     }
 
     @Override
@@ -535,5 +542,51 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
         return merchantDao.findTokenMerchantsByParentId(parentId);
+    }
+
+    @Override
+    public boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd) {
+        return merchantDao.setPropertyRecalculateCommissionLimitToUsd(merchantName, currencyName, recalculateToUsd);
+    }
+
+    @Override
+    public void updateMerchantCommissionsLimits() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        LOG.info("Process of updating merchant commissions limits start...");
+
+        List<MerchantCurrencyOptionsDto> merchantCommissionsLimits = merchantDao.getAllMerchantCommissionsLimits();
+
+        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+
+        if (rates.isEmpty()) {
+            LOG.info("Exchange api did not return data");
+            return;
+        }
+
+        for (MerchantCurrencyOptionsDto merchantCommissionsLimit : merchantCommissionsLimits) {
+            final String currencyName = merchantCommissionsLimit.getCurrencyName();
+            final boolean recalculateToUsd = merchantCommissionsLimit.isRecalculateToUsd();
+            BigDecimal minFixedCommissionUsdRate = merchantCommissionsLimit.getMinFixedCommissionUsdRate();
+            BigDecimal minFixedCommission = merchantCommissionsLimit.getMinFixedCommission();
+
+            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+
+            if (isNull(pairRates)) {
+                continue;
+            }
+            final BigDecimal usdRate = pairRates.getLeft();
+            merchantCommissionsLimit.setCurrencyUsdRate(usdRate);
+
+            if (recalculateToUsd) {
+                minFixedCommission = BigDecimalConverter.convert(minFixedCommissionUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                merchantCommissionsLimit.setMinFixedCommission(minFixedCommission);
+            } else {
+                minFixedCommissionUsdRate = minFixedCommission.multiply(usdRate);
+                merchantCommissionsLimit.setMinFixedCommissionUsdRate(minFixedCommissionUsdRate);
+            }
+        }
+        merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimits);
+
+        LOG.info("Process of updating merchant commissions limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 }

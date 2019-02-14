@@ -1,8 +1,11 @@
 package me.exrates.service;
 
 import lombok.SneakyThrows;
-import me.exrates.model.*;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.Transaction;
 import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
@@ -14,66 +17,71 @@ import me.exrates.model.enums.OperationType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface MerchantService {
 
-  List<Merchant> findAllByCurrency(Currency currency);
+    List<Merchant> findAllByCurrency(Currency currency);
 
-  List<Merchant> findAll();
+    List<Merchant> findAll();
 
-  String resolveTransactionStatus(Transaction transaction, Locale locale);
+    String resolveTransactionStatus(Transaction transaction, Locale locale);
 
-  String sendDepositNotification(String toWallet, String email,
-                                 Locale locale, CreditsOperation creditsOperation, String depositNotification);
+    String sendDepositNotification(String toWallet, String email,
+                                   Locale locale, CreditsOperation creditsOperation, String depositNotification);
 
-  Merchant findById(int id);
-  @SneakyThrows
-  Merchant findByName(String name);
+    Merchant findById(int id);
 
-  List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
+    @SneakyThrows
+    Merchant findByName(String name);
 
-  List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
+    List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-  Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
+    List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
 
-  List<TransferMerchantApiDto> findTransferMerchants();
+    Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
 
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
+    List<TransferMerchantApiDto> findTransferMerchants();
 
-  Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
+    List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
-  Map<String, String> formatResponseMessage(Transaction transaction);
+    Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
 
-    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+    Map<String, String> formatResponseMessage(Transaction transaction);
+
+    void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  void setBlockForAll(OperationType operationType, boolean blockStatus);
+    void setBlockForAll(OperationType operationType, boolean blockStatus);
 
-  void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
+    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
-  BigDecimal getMinSum(Integer merchantId, Integer currencyId);
+    BigDecimal getMinSum(Integer merchantId, Integer currencyId);
 
     @Transactional
     void setMinSum(double merchantId, double currencyId, double minSum);
 
     void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount);
 
-  List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime();
+    List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime();
 
-  MerchantCurrencyLifetimeDto getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
+    MerchantCurrencyLifetimeDto getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
-  MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
+    MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
-  void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType);
+    void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  List<String> retrieveBtcCoreBasedMerchantNames();
+    List<String> retrieveBtcCoreBasedMerchantNames();
 
-  CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale);
+    CoreWalletDto retrieveCoreWalletByMerchantName(String merchantName, Locale locale);
 
     List<CoreWalletDto> retrieveCoreWallets(Locale locale);
 
@@ -95,9 +103,13 @@ public interface MerchantService {
 
     List<Integer> getIdsByProcessType(List<String> processType);
 
-  boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
+    boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
-  void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+    void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
+
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    void updateMerchantCommissionsLimits();
 }

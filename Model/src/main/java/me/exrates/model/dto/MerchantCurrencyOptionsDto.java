@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,7 +13,9 @@ import java.math.BigDecimal;
  * Created by OLEG on 28.11.2016.
  */
 @Getter @Setter
+@Builder(builderClassName = "Builder")
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class MerchantCurrencyOptionsDto {
     private Integer merchantId;
@@ -22,6 +26,8 @@ public class MerchantCurrencyOptionsDto {
     private BigDecimal outputCommission;
     private BigDecimal transferCommission;
     private BigDecimal minFixedCommission;
+    private BigDecimal minFixedCommissionUsdRate;
+    private BigDecimal currencyUsdRate;
     private Boolean isRefillBlocked;
     private Boolean isWithdrawBlocked;
     private Boolean isTransferBlocked;
@@ -29,5 +35,5 @@ public class MerchantCurrencyOptionsDto {
     private Integer withdrawAutoDelaySeconds;
     private BigDecimal withdrawAutoThresholdAmount;
     private Boolean isMerchantCommissionSubtractedForWithdraw;
-
+    private boolean recalculateToUsd;
 }

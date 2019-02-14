@@ -12,17 +12,17 @@ import java.util.Locale;
 
 public interface CommissionDao {
 
-	Commission getCommission(OperationType operationType, UserRole userRole);
+    Commission getCommission(OperationType operationType, UserRole userRole);
 
-  Commission getCommission(OperationType operationType, Integer userId);
+    Commission getCommission(OperationType operationType, Integer userId);
 
-  Commission getDefaultCommission(OperationType operationType);
+    Commission getDefaultCommission(OperationType operationType);
 
-	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
+    BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
-  BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType);
+    BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  List<Commission> getEditableCommissions();
+    List<Commission> getEditableCommissions();
 
     List<CommissionShortEditDto> getEditableCommissionsByRoles(List<Integer> roleIds, Locale locale);
 
@@ -34,6 +34,6 @@ public interface CommissionDao {
 
     BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
 
-  Commission getCommissionById(Integer commissionId);
+    Commission getCommissionById(Integer commissionId);
 }
 
