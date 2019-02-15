@@ -1,7 +1,7 @@
 package me.exrates.service;
 
-import me.exrates.model.dto.aisi.AccauntTransaction;
-import me.exrates.model.dto.aisi.Transaction;
+
+import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public interface AisiCurrencyService {
 
     String getBalanceByAddress(String address);
 
-    List<AccauntTransaction> getAccountTransactions();
+    List<Transaction> getAccountTransactions();
 
-    Transaction getTransactionInformation(String transaction_id);
+    void getTransactionInformation(String transaction_id);
 }

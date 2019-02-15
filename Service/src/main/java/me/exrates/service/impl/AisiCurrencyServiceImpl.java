@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.aisi.AccauntTransaction;
-import me.exrates.model.dto.aisi.Transaction;
 import me.exrates.service.AisiCurrencyService;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -26,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 @Log4j2
@@ -74,7 +74,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
     }
 
-    public void test(){
+    public List<Transaction> getAccountTransactions(){
         Integer max = Integer.MAX_VALUE;
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
         requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
@@ -82,31 +82,18 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
                 .fromHttpUrl("https://api.aisi.io/transaction/account/" + max)
                 .queryParams(requestParameters)
                 .build();
-        ResponseEntity<AllTransactions> responseEntity = null;
+        ResponseEntity<Transactions> responseEntity = null;
         try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), AllTransactions.class);
+            responseEntity = restTemplate.getForEntity(builder.toUriString(), Transactions.class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 log.warn("Error : {}", responseEntity.getStatusCodeValue());
             }
         } catch (Exception ex) {
             log.warn("Error : {}", ex.getMessage());
         }
-        AllTransactions allTransactions = responseEntity.getBody();
-        Transactions[] transactions = allTransactions.transactions;
-        Arrays.asList(transactions).stream().forEach(tranc -> {
-          String str = tranc.transaction_ID;
-            System.out.println(str);
-        });
 
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class AllTransactions {
-
-        @JsonProperty("AllTransactions")
-        Transactions[] transactions;
+        Transaction[] transactions = responseEntity.getBody().transaction;
+        return Arrays.asList(transactions);
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -115,31 +102,28 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
     private static class Transactions {
 
         @JsonProperty("Transactions")
-        String transaction_ID;
+        Transaction[] transaction;
     }
 
-    public List<AccauntTransaction> getAccountTransactions(){
-        Integer max = Integer.MAX_VALUE;
-        final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
-        requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
-        UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("https://api.aisi.io/transaction/account/" + max)
-                .queryParams(requestParameters)
-                .build();
-        ResponseEntity<AccauntTransaction[]> responseEntity = null;
-        try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), AccauntTransaction[].class);
-            if (responseEntity.getStatusCodeValue() != 200) {
-                log.warn("Error : {}", responseEntity.getStatusCodeValue());
-            }
-        } catch (Exception ex) {
-            log.warn("Error : {}", ex.getMessage());
-        }
-        AccauntTransaction[] accauntTransactions = responseEntity.getBody();
-        return Arrays.asList(accauntTransactions);
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @Data
+    public static class Transaction {
+
+        @JsonProperty("Transaction_ID")
+        private String transaction_id;
+        @JsonProperty("TimeStamp")
+        private String timeStamp;
+        @JsonProperty("SenderAddress")
+        private String senderAddress;
+        @JsonProperty("RecieverAddress")
+        private String recieverAddress;
+        @JsonProperty("Amount")
+        private String amount;
     }
 
-    public Transaction getTransactionInformation(String transaction_id){
+    public void getTransactionInformation(String transaction_id){
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
         requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
         UriComponents builder = UriComponentsBuilder
@@ -156,7 +140,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
             log.warn("Error : {}", ex.getMessage());
         }
 
-        return responseEntity.getBody();
+//        return responseEntity.getBody();
     }
 
  /*

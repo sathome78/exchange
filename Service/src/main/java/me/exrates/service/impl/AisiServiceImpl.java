@@ -6,7 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.aisi.Transaction;
+import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +63,11 @@ public class AisiServiceImpl implements AisiService {
         }};
     }
 
-    public void onTransactionReceive(Transaction transaction, String transaction_id){
-        log.info("*** Aisi *** Income transaction {} " + transaction_id);
-
+    public void onTransactionReceive(Transaction transaction){
+        log.info("*** Aisi *** Income transaction {} " + transaction);
         Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("hash", transaction_id);
-        paramsMap.put("address", transaction.getReceiver());
+        paramsMap.put("hash", transaction.getTransaction_id());
+        paramsMap.put("address", transaction.getRecieverAddress());
         paramsMap.put("amount", transaction.getAmount());
         try {
             this.processPayment(paramsMap);
@@ -108,4 +107,5 @@ public class AisiServiceImpl implements AisiService {
     public boolean isValidDestinationAddress(String address) {
         return false;
     }
+
 }
