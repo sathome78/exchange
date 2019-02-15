@@ -91,7 +91,7 @@ public class BtcCoinTester implements CoinTester {
             testAddressGeneration();
             checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
-//            testManualWithdraw(refillAmount);
+            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/BTC", BigDecimal.valueOf(0.00));
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/USD", BigDecimal.valueOf(0.00));
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/ETH", BigDecimal.valueOf(0.00));
