@@ -25,7 +25,7 @@ public class AisiRecieveService {
     private AisiService aisiService;
 
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
-    private void checkIncomePayment() {
+    void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
 
         aisiCurrencyService.getAccountTransactions().stream().forEach(accountTransaction -> {
