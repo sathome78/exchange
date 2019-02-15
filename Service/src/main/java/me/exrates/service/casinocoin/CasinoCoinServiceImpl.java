@@ -13,7 +13,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,16 +32,19 @@ import java.util.*;
 @PropertySource("classpath:/merchants/casinocoin.properties")
 public class CasinoCoinServiceImpl implements CasinoCoinService {
 
-    private static final String CSC_TICKER = "CSC";
+    private static final String DESTINATION_TAG_ERR_MSG = "message.casinocoin.tagError";
 
-    private static final int MAX_TAG_DESTINATION_DIGITS = 9;
+    @Value("${casinocoin.ticker}")
+    private String casinoCoinTicker;
 
-    private static final String DESTINATION_TAG_ERR_MSG = "message.ripple.tagError";
+    @Value("${casinocoin.max.tag.destination.digits}")
+    private int maxTagDestinationDigits;
+
+    @Value("${casinocoin.account.address}")
+    private String mainAddress;
 
     @Autowired
     private CasinoCoinTransactionService casinoCoinTransactionService;
-    @Autowired
-    private CasinoCoinNodeService casinoCoinNodeService;
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -53,30 +56,13 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
     @Autowired
     private WithdrawUtils withdrawUtils;
 
-    @Value("${casinocoin.account.address}")
-    private String systemAddress;
-
     private Merchant merchant;
     private Currency currency;
 
-    /*method for admin manual check transaction by hash*//*
-  @Override
-  public void manualCheckNotReceivedTransaction(String hash) {
-    JSONObject response = rippledNodeService.getTransaction(hash);
-    onTransactionReceive(response);
-  }*/
-
     @PostConstruct
     public void init(){
-        currency = currencyService.findByName(CSC_TICKER);
-        merchant = merchantService.findByName(CSC_TICKER);
-    }
-
-    /*return: true if tx validated; false if not validated but validation in process,
-    throws Exception if declined*/
-    @Override
-    public boolean checkSendedTransaction(String hash, String additionalParams) {
-        return casinoCoinTransactionService.checkSendedTransactionConsensus(hash, additionalParams);
+        currency = currencyService.findByName(casinoCoinTicker);
+        merchant = merchantService.findByName(casinoCoinTicker);
     }
 
     @Override
@@ -99,18 +85,15 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        if (!CSC_TICKER.equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
-            throw new WithdrawRequestPostException("Currency not supported by merchant");
-        }
-        return casinoCoinTransactionService.withdraw(withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("CasinoCoin | Not implimented method");
     }
 
     /*generate 9 digits(Unsigned Integer) for identifying payment */
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.xrp",
-                new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
+        String message = messageSource.getMessage("merchants.refill.csc",
+                new String[]{mainAddress, destinationTag.toString()}, request.getLocale());
         DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
             put("address", myFormatter.format(destinationTag));
@@ -149,11 +132,6 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
         }
     }
 
-    @Override
-    public String getMainAddress() {
-        return systemAddress;
-    }
-
     private Integer generateUniqDestinationTag(int userId) {
         Optional<Integer> id;
         int destinationTag;
@@ -168,7 +146,7 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     private Integer generateDestinationTag(int userId) {
         String idInString = String.valueOf(userId);
-        int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
+        int randomNumberLength = maxTagDestinationDigits - idInString.length();
         if (randomNumberLength < 0) {
             throw new MerchantInternalException("error generating new destination tag for ripple" + userId);
         }
@@ -187,6 +165,6 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-        return withdrawUtils.isValidDestinationAddress(systemAddress, address);
+        return withdrawUtils.isValidDestinationAddress(mainAddress, address);
     }
 }

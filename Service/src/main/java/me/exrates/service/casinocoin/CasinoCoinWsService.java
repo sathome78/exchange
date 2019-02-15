@@ -26,55 +26,37 @@ import java.util.Optional;
 @PropertySource("classpath:/merchants/casinocoin.properties")
 public class CasinoCoinWsService {
 
-    private static final String CSC_TICKER = "CSC";
-
     private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";
-
     private static final String GET_TX_COMMAND_ID = "get transaction";
 
-    @Value("${ripple.rippled.ws}")
+    @Value("${casinocoin.ws}")
     private String wsUrl;
-    @Value("${ripple.account.address}")
-    private String address;
+
+    @Value("${casinocoin.account.address}")
+    private String mainAddress;
 
     private URI WS_SERVER_URL;
-
     private Session session;
 
     private boolean access = false;
     private volatile RemoteEndpoint.Basic endpoint = null;
     private volatile boolean shutdown = false;
 
-    private Merchant merchant;
-
-    private final CasinoCoinService casinoCoinService;
-    private final MerchantService merchantService;
-    private final WithdrawService withdrawService;
-
     @Autowired
-    public CasinoCoinWsService(CasinoCoinService casinoCoinService, MerchantService merchantService, WithdrawService withdrawService) {
-        this.casinoCoinService = casinoCoinService;
-        this.merchantService = merchantService;
-        this.withdrawService = withdrawService;
-    }
-
+    private CasinoCoinService casinoCoinService;
 
     @PostConstruct
     public void init() {
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
-        merchant = merchantService.findByName(CSC_TICKER);
-    }
-
-    public String getAddress() {
-        return address;
     }
 
     @OnMessage
     public void onMessage(String msg) {
-        log.debug("income ripple message {}", msg);
+        log.debug("Income message {}", msg);
+
         try {
-            JSONObject jsonMessage = null;
+            JSONObject jsonMessage;
             try {
                 jsonMessage = new JSONObject(msg);
             } catch (Exception e) {
@@ -84,22 +66,21 @@ public class CasinoCoinWsService {
             Object messageType = jsonMessage.get("type");
             Object status = jsonMessage.get("status");
             if ("transaction".equals(messageType)) {
-                log.debug(messageType);
+
+                log.debug("Transaction | income message type: ", messageType);
+
                 JSONObject transaction = jsonMessage.getJSONObject("transaction");
                 if(jsonMessage.getBoolean("validated") && transaction.get("TransactionType")
-                        .equals("Payment") && transaction.get("Destination").equals(getAddress())) {
+                        .equals("Payment") && transaction.get("Destination").equals(mainAddress)) {
                     if (transaction.has("SendMax")) {
-                        log.debug("not supported or fake transaction!!!");
+
+                        log.debug("Transaction | Not supported or fake transaction!!!");
+
                         return;
                     }
                     /*its refill transaction, we can process it*/
                     getTransaction(transaction.getString("hash"));
-                } else if(jsonMessage.getBoolean("validated") && transaction.get("TransactionType")
-                        .equals("Payment") && transaction.get("Account").equals(getAddress())) {
-                    /*its withdraw transaction, we can finalize it*/
-                    String hash = transaction.getString("hash");
-                    Optional<Integer> requestId = withdrawService.getRequestIdByHashAndMerchantId(hash, merchant.getId());
-                    requestId.ifPresent(integer -> withdrawService.finalizePostWithdrawalRequest(requestId.get()));
+
                 }
             }
             if ("response".equals(messageType)) {
@@ -109,36 +90,41 @@ public class CasinoCoinWsService {
                         try {
                             subscribeToTransactions();
                         } catch (Exception e) {
-                           log.error("ripple ws error {}", e);
+                           log.error("Error | WebSocket error {}", e);
                         }
                     }
                     return;
                 }
-
                 if (jsonMessage.get("id").equals(SUBSCRIBE_COMAND_ID)) {
                     access = true;
-                    log.debug("ripple node ws subscribe confirmed");
+
+                    log.debug("INFO | CasinoCoin WebSocket subscribe confirmed");
+
                 } else if (jsonMessage.get("id").equals(GET_TX_COMMAND_ID)) {
-                    log.debug("process transaction from response");
+
+                    log.debug("TRANSACTION | Process transaction from response");
+
                     processIncomeTransaction(jsonMessage.getJSONObject("result"));
                 }
             }
         } catch (Exception e) {
-            log.error("exception {}", e);
+            log.error("ERROR | Exception {}", e);
         }
     }
 
+    private void processIncomeTransaction(JSONObject result) {
+        log.debug("TRANSACTION | Process income transaction (method) {}", result);
 
-
-    void processIncomeTransaction(JSONObject result) {
-        log.debug("process {}", result);
-        if (!result.get("Destination").equals(getAddress()) || StringUtils.isEmpty(result.getInt("DestinationTag"))) {
+        if (!result.get("Destination").equals(mainAddress) || StringUtils.isEmpty(result.getInt("DestinationTag"))) {
             return;
         }
+
         Integer destinationTag = result.getInt("DestinationTag");
         String amount = result.getJSONObject("meta").getString("delivered_amount");
         String hash = result.getString("hash");
-        log.debug("{} {} {}", hash, destinationTag, amount);
+
+        log.debug("TRANSACTION | Income transaction | Hash: {} DestinationTag: {} Amount: {}", hash, destinationTag, amount);
+
         casinoCoinService.onTransactionReceive(hash, destinationTag, amount);
     }
 
@@ -153,10 +139,12 @@ public class CasinoCoinWsService {
             log.debug("session {}", session);
             endpoint = session.getBasicRemote();
             access = true;
-            log.debug("ripple node ws connection established");
+
+            log.debug("INFO | CasinoCoin WebSocket connection established");
+
             subscribeToTransactions();
         } catch (Exception e) {
-            log.error("error connection to ripple node {}", e);
+            log.error("ERROR | Error connection to CasinoCoin WebSocket {}", e);
         }
     }
 
@@ -164,23 +152,26 @@ public class CasinoCoinWsService {
         JSONObject object = new JSONObject();
         object.put("id", SUBSCRIBE_COMAND_ID);
         object.put("command", "subscribe");
-        object.put("accounts", new JSONArray().put(getAddress()));
-       /* object.put("streams", new JSONArray().put("transactions"));*/
-        log.debug("message to send {}" + object.toString() );
+        object.put("accounts", new JSONArray().put(mainAddress));
+
+        log.debug("INFO | Subscribe to transactions message to send {}" + object.toString() );
+
         endpoint.sendText(object.toString());
     }
 
-     void getTransaction (String hash) throws IOException {
+     private void getTransaction(String hash) throws IOException {
         JSONObject object = new JSONObject();
         object.put("id", GET_TX_COMMAND_ID);
         object.put("command", "tx");
         object.put("transaction", hash);
-        log.debug("message to send {}" + object.toString() );
+
+        log.debug("TRANSACTION | Message to send {}" + object.toString() );
+
         endpoint.sendText(object.toString());
     }
 
     @Scheduled(initialDelay = 120000, fixedDelay = 120000)
-    public void checkSessionAndReconnect() throws IOException {
+    public void checkSessionAndReconnect() {
         if (access && !session.isOpen()) {
             connectAndSubscribe();
         }
@@ -188,7 +179,7 @@ public class CasinoCoinWsService {
 
     @OnClose
     public void close(final Session session, final CloseReason reason) {
-        log.error("Connection lost. Session closed : {}. Reason : {}", session, reason);
+        log.error("ERROR | Connection lost. Session closed : {}. Reason : {}", session, reason);
         if (!shutdown) {
             connectAndSubscribe();
         }
@@ -200,7 +191,7 @@ public class CasinoCoinWsService {
             shutdown = true;
             session.close();
         } catch (IOException e) {
-            log.error("error closing session");
+            log.error("ERROR | Closing session");
         }
     }
 
