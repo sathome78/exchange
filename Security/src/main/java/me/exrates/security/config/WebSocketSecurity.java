@@ -47,10 +47,12 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/*").permitAll()
                 .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/detailed/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
-                .simpSubscribeDestMatchers("/user/queue/my_orders/*").hasAnyAuthority(Arrays.stream(UserRole.values()).map(Enum::name).toArray(String[]::new))
+                .simpSubscribeDestMatchers("/user/queue/my_orders/*").authenticated()
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .anyMessage().permitAll();
     }
+
+
 
 }

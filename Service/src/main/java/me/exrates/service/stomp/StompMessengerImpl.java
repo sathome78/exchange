@@ -99,7 +99,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, final Integer currencyPair, String message) {
-        String destination = "/queue/my_orders/ ".concat(currencyPair.toString());
+        String destination = "/queue/my_orders/".concat(currencyPair.toString());
         messagingTemplate.convertAndSendToUser(userService.findEmailById(userId), destination, message);
     }
 

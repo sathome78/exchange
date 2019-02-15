@@ -31,10 +31,10 @@
         <spring-core.version>4.3.7.RELEASE</spring-core.version>
         <spring-context.version>4.3.7.RELEASE</spring-context.version>
         <spring-test.version>4.3.7.RELEASE</spring-test.version>
-        <spring-expression.version>4.3.7.RELEASE</spring-expression.version>
+        <spring-expression.version>4.3.16.RELEASE</spring-expression.version>
         <spring-security.version>4.1.0.RELEASE</spring-security.version>
-        <spring-websocket.version>4.3.2.RELEASE</spring-websocket.version>
-        <spring-messaging.version>4.3.10.RELEASE</spring-messaging.version>
+        <spring-websocket.version>4.3.22.RELEASE</spring-websocket.version>
+        <spring-messaging.version>4.3.22.RELEASE</spring-messaging.version>
         <bitcoinj.version>0.14.3</bitcoinj.version>
         <aspectj.version>1.8.10</aspectj.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>

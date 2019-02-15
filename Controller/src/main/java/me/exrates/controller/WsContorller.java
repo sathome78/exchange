@@ -21,7 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
@@ -29,6 +32,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Created by Maks on 24.08.2017.
@@ -51,6 +55,8 @@ public class WsContorller {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ChartsCache chartsCache;
+    @Autowired
+    private DefaultSimpUserRegistry registry;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -125,7 +131,7 @@ public class WsContorller {
         return orderService.getMyOpenOrdersForWs(currencyPairId, principal.getName());
     }
 
-    private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
+    private String initOrders(Integer currencyPair, UserRole userRole) throws IOException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
             return null;

@@ -103,8 +103,7 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-        log.debug("order event {} ", exOrder);
-        System.out.println("event " + event.getOrderEventEnum() + exOrder);
+        handlePersonalOrders(exOrder, event.getOrderEventEnum());
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         handleCallBack(event);
         if (exOrder.getUserAcceptorId() != 0) {
@@ -259,6 +258,9 @@ public class OrdersEventHandleService {
         UserPersonalOrdersHandler handler = personalOrdersHandlerMap
                 .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
         handler.addOrderToQueueInstant(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
+        if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId()) {
+            handler.addOrderToQueueInstant(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
+        }
     }
 
     @Async
