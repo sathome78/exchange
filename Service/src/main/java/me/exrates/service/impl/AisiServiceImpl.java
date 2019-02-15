@@ -54,6 +54,7 @@ public class AisiServiceImpl implements AisiService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
+
         String address = aisiCurrencyService.generateNewAddress();
         String message = messageSource.getMessage("merchants.refill.aisi",
                 new Object[] {address}, request.getLocale());

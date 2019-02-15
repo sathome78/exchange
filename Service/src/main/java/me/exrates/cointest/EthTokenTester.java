@@ -1,4 +1,4 @@
-package me.exrates;
+package me.exrates.cointest;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.http.HttpService;
@@ -39,7 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import static me.exrates.BtcCoinTester.compareObjects;
+import static me.exrates.cointest.BtcCoinTester.compareObjects;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.service.ethereum.EthTokenServiceImpl.GAS_LIMIT;

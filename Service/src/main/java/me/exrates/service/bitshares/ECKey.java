@@ -281,7 +281,7 @@ public class ECKey {
 
     public BigInteger getPrivKey() {
         if (this.priv == null) {
-            throw new ECKey.MissingPrivateKeyException();
+            throw new MissingPrivateKeyException();
         } else {
             return this.priv;
         }
@@ -291,30 +291,30 @@ public class ECKey {
         return this.pub.isCompressed();
     }
 
-    public ECKey.ECDSASignature sign(Sha256Hash input) throws KeyCrypterException {
+    public ECDSASignature sign(Sha256Hash input) throws KeyCrypterException {
         return this.sign(input, (KeyParameter)null);
     }
 
-    public ECKey.ECDSASignature sign(Sha256Hash input, @Nullable KeyParameter aesKey) throws KeyCrypterException {
+    public ECDSASignature sign(Sha256Hash input, @Nullable KeyParameter aesKey) throws KeyCrypterException {
         KeyCrypter crypter = this.getKeyCrypter();
         if (crypter != null) {
             if (aesKey == null) {
-                throw new ECKey.KeyIsEncryptedException();
+                throw new KeyIsEncryptedException();
             } else {
                 return this.decrypt(aesKey).sign(input);
             }
         } else if (this.priv == null) {
-            throw new ECKey.MissingPrivateKeyException();
+            throw new MissingPrivateKeyException();
         } else {
             return this.doSign(input, this.priv);
         }
     }
 
-    protected ECKey.ECDSASignature doSign(Sha256Hash input, BigInteger privateKeyForSigning) {
+    protected ECDSASignature doSign(Sha256Hash input, BigInteger privateKeyForSigning) {
         if (Secp256k1Context.isEnabled()) {
             try {
                 byte[] signature = NativeSecp256k1.sign(input.getBytes(), CryptoUtils.bigIntegerToBytes(privateKeyForSigning, 32));
-                return ECKey.ECDSASignature.decodeFromDER(signature);
+                return ECDSASignature.decodeFromDER(signature);
             } catch (AssertFailException var6) {
                 log.error("Caught AssertFailException inside secp256k1", var6);
                 throw new RuntimeException(var6);
@@ -328,11 +328,11 @@ public class ECKey {
             ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(privateKeyForSigning, CURVE);
             signer.init(true, privKey);
             BigInteger[] components = signer.generateSignature(input.getBytes());
-            return (new ECKey.ECDSASignature(components[0], components[1])).toCanonicalised();
+            return (new ECDSASignature(components[0], components[1])).toCanonicalised();
         }
     }
 
-    public static boolean verify(byte[] data, ECKey.ECDSASignature signature, byte[] pub) {
+    public static boolean verify(byte[] data, ECDSASignature signature, byte[] pub) {
         if (FAKE_SIGNATURES) {
             return true;
         } else if (Secp256k1Context.isEnabled()) {
@@ -365,7 +365,7 @@ public class ECKey {
                 return false;
             }
         } else {
-            return verify(data, ECKey.ECDSASignature.decodeFromDER(signature), pub);
+            return verify(data, ECDSASignature.decodeFromDER(signature), pub);
         }
     }
 
@@ -373,7 +373,7 @@ public class ECKey {
         return verify(hash, signature, this.getPubKey());
     }
 
-    public boolean verify(Sha256Hash sigHash, ECKey.ECDSASignature signature) {
+    public boolean verify(Sha256Hash sigHash, ECDSASignature signature) {
         return verify(sigHash.getBytes(), signature, this.getPubKey());
     }
 
@@ -383,7 +383,7 @@ public class ECKey {
         }
     }
 
-    public void verifyOrThrow(Sha256Hash sigHash, ECKey.ECDSASignature signature) throws SignatureException {
+    public void verifyOrThrow(Sha256Hash sigHash, ECDSASignature signature) throws SignatureException {
         if (!verify(sigHash.getBytes(), signature, this.getPubKey())) {
             throw new SignatureException();
         }
@@ -446,7 +446,7 @@ public class ECKey {
     public String signMessage(String message, Charset charset, @Nullable KeyParameter aesKey, @Nullable byte[] headerBytes) {
         byte[] data = CryptoUtils.formatMessageForSigning(message, charset, headerBytes);
         Sha256Hash hash = Sha256Hash.twiceOf(data);
-        ECKey.ECDSASignature sig = this.sign(hash, aesKey);
+        ECDSASignature sig = this.sign(hash, aesKey);
         int recId = -1;
 
         int headerByte;
@@ -475,7 +475,7 @@ public class ECKey {
     }
 
     public String signMessage(Sha256Hash messageHash, @Nullable KeyParameter aesKey) {
-        ECKey.ECDSASignature sig = this.sign(messageHash, aesKey);
+        ECDSASignature sig = this.sign(messageHash, aesKey);
         int recId = -1;
 
         int headerByte;
@@ -514,7 +514,7 @@ public class ECKey {
             if (header >= 27 && header <= 34) {
                 BigInteger r = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 1, 33));
                 BigInteger s = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 33, 65));
-                new ECKey.ECDSASignature(r, s);
+                new ECDSASignature(r, s);
                 boolean compressed = false;
                 if (header >= 31) {
                     compressed = true;
@@ -537,7 +537,7 @@ public class ECKey {
     }
 
     @Nullable
-    public static ECKey recoverFromSignature(int recId, ECKey.ECDSASignature sig, Sha256Hash message, boolean compressed) {
+    public static ECKey recoverFromSignature(int recId, ECDSASignature sig, Sha256Hash message, boolean compressed) {
         Preconditions.checkArgument(recId >= 0, "recId must be positive");
         Preconditions.checkArgument(sig.r.signum() >= 0, "r must be positive");
         Preconditions.checkArgument(sig.s.signum() >= 0, "s must be positive");
@@ -753,7 +753,7 @@ public class ECKey {
         FAKE_SIGNATURES = false;
     }
 
-    public static class KeyIsEncryptedException extends ECKey.MissingPrivateKeyException {
+    public static class KeyIsEncryptedException extends MissingPrivateKeyException {
         public KeyIsEncryptedException() {
         }
     }
@@ -776,8 +776,8 @@ public class ECKey {
             return this.s.compareTo(ECKey.HALF_CURVE_ORDER) <= 0;
         }
 
-        public ECKey.ECDSASignature toCanonicalised() {
-            return !this.isCanonical() ? new ECKey.ECDSASignature(this.r, ECKey.CURVE.getN().subtract(this.s)) : this;
+        public ECDSASignature toCanonicalised() {
+            return !this.isCanonical() ? new ECDSASignature(this.r, ECKey.CURVE.getN().subtract(this.s)) : this;
         }
 
         public byte[] encodeToDER() {
@@ -788,10 +788,10 @@ public class ECKey {
             }
         }
 
-        public static ECKey.ECDSASignature decodeFromDER(byte[] bytes) throws IllegalArgumentException {
+        public static ECDSASignature decodeFromDER(byte[] bytes) throws IllegalArgumentException {
             ASN1InputStream decoder = null;
 
-            ECKey.ECDSASignature var6;
+            ECDSASignature var6;
             try {
                 decoder = new ASN1InputStream(bytes);
                 ASN1Primitive seqObj = decoder.readObject();
@@ -814,7 +814,7 @@ public class ECKey {
                     throw new IllegalArgumentException(var16);
                 }
 
-                var6 = new ECKey.ECDSASignature(r.getPositiveValue(), s.getPositiveValue());
+                var6 = new ECDSASignature(r.getPositiveValue(), s.getPositiveValue());
             } catch (IOException var17) {
                 throw new IllegalArgumentException(var17);
             } finally {
@@ -844,7 +844,7 @@ public class ECKey {
             if (this == o) {
                 return true;
             } else if (o != null && this.getClass() == o.getClass()) {
-                ECKey.ECDSASignature other = (ECKey.ECDSASignature)o;
+                ECDSASignature other = (ECDSASignature)o;
                 return this.r.equals(other.r) && this.s.equals(other.s);
             } else {
                 return false;

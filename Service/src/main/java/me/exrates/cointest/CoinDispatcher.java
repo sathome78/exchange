@@ -1,4 +1,4 @@
-package me.exrates;
+package me.exrates.cointest;
 
 import me.exrates.service.BitcoinService;
 import me.exrates.service.ethereum.EthTokenService;
