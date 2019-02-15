@@ -93,6 +93,8 @@ public class BtcCoinTester implements CoinTester {
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/USD", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/ETH", BigDecimal.valueOf(0.00));
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
