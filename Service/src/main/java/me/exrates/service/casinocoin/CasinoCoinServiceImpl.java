@@ -8,11 +8,11 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +52,6 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
     private RefillService refillService;
     @Autowired
     private WithdrawUtils withdrawUtils;
-    @Autowired
-    private GtagService gtagService;
 
     @Value("${casinocoin.account.address}")
     private String systemAddress;
@@ -88,7 +86,11 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
         paramsMap.put("address", String.valueOf(destinationTag));
         paramsMap.put("amount", amount);
 
-        this.processPayment(paramsMap);
+        try {
+            this.processPayment(paramsMap);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error("CasinoCoin refill address not found {}", destinationTag);
+        }
     }
 
     private boolean checkTransactionForDuplicate(String hash) {
@@ -118,7 +120,7 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     @Synchronized
     @Override
-    public void processPayment(Map<String, String> params) {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException{
         String address = params.get("address");
         String hash = params.get("hash");
 
@@ -137,13 +139,14 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-
-        int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
-
-        final String username = refillService.getUsernameByRequestId(requestId);
-
-        log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        try {
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.debug("RefillRequestAppropriateNotFoundException: " + params);
+            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        }
     }
 
     @Override
