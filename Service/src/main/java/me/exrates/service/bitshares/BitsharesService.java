@@ -8,6 +8,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 public interface BitsharesService extends IRefillable , IWithdrawable {
@@ -66,7 +67,7 @@ public interface BitsharesService extends IRefillable , IWithdrawable {
 
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 
-    void requestBlockTransactionsInfo(BTSBlockInfo BTSBlockInfo);
+    void requestBlockTransactionsInfo(BTSBlockInfo BTSBlockInfo) throws IOException;
 
     TransactionsInfo getRequestedBlocksInfo(int blockNum);
 }

@@ -1,17 +1,16 @@
 package me.exrates.service.creo;
 
-import lombok.Data;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.PostConstruct;
 import javax.websocket.ClientEndpoint;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Data
 @ClientEndpoint
 public class CreoServiceImpl extends BitsharesServiceImpl {
 
@@ -41,14 +40,29 @@ public class CreoServiceImpl extends BitsharesServiceImpl {
     }
 
     @Override
-    public void onMessage(String msg){
-        try {
-            if (msg.contains("last_irreversible_block_num")) setIrreversableBlock(msg);
-            else if (msg.contains("previous")) processIrreversebleBlock(msg);
-            else log.info("unrecogrinzed msg from aunit \n" + msg);
-        } catch (Exception e) {
-            log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
-        }
+    protected boolean isContainsLastIrreversibleBlockInfo(String jsonRpc){
+        return jsonRpc.contains("last_irreversible_block_num");
+    }
+
+    @Override
+    public int getLastIrreversableBlock(String msg){
+        return new JSONObject(msg).getJSONObject("result").getInt("last_irreversible_block_num");
+    }
+
+    @Override
+    protected void getBlock(int blockNum) throws IOException {
+        JSONObject block = new JSONObject();
+        block.put("id", 10);
+        block.put("jsonrpc", "2.0");
+        block.put("method", "block_api.get_block");
+        block.put("params", new JSONObject().put("block_num", blockNum));
+
+        endpoint.sendText(block.toString());
+    }
+
+    @Override
+    protected JSONArray extractTransactionsFromBlock(JSONObject block) {
+        return block.getJSONObject("result").getJSONObject("block").getJSONArray("transactions");
     }
 
 }
