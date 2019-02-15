@@ -134,7 +134,7 @@ public class TransferRequestController {
             Principal principal, Locale locale,
             HttpServletRequest servletRequest) {
         User user = userService.findByEmail(principal.getName());
-        if (user.getNickname().equals(recipient) || user.getEmail().equals(recipient)) {
+        if (user.getNickname() != null && (user.getNickname().equals(recipient) || user.getEmail().equals(recipient))) {
             throw new InvalidNicknameException(messageSource
                     .getMessage("transfer.selfNickname", null, locale));
         }
