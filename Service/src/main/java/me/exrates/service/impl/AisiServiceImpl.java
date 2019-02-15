@@ -12,6 +12,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -65,6 +66,14 @@ public class AisiServiceImpl implements AisiService {
 
     public void onTransactionReceive(Transaction transaction){
         log.info("*** Aisi *** Income transaction {} " + transaction);
+        if (checkTransactionForDuplicate(transaction)) {
+            log.warn("*** Aisi *** transaction {} already accepted", transaction.getTransaction_id());
+            return;
+        }
+        if (transaction.getRecieverAddress() == null){
+            log.warn("*** Aisi *** Address is null");
+            return;
+        }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.getTransaction_id());
         paramsMap.put("address", transaction.getRecieverAddress());
@@ -106,6 +115,11 @@ public class AisiServiceImpl implements AisiService {
     @Override
     public boolean isValidDestinationAddress(String address) {
         return false;
+    }
+
+    private boolean checkTransactionForDuplicate(Transaction transaction) {
+        return StringUtils.isEmpty(StringUtils.isEmpty(transaction.getTransaction_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                transaction.getTransaction_id()).isPresent());
     }
 
 }

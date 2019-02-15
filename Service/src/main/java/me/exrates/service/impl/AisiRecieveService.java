@@ -2,7 +2,6 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.AisiCurrencyService;
-import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 import me.exrates.service.AisiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

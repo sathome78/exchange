@@ -13,5 +13,4 @@ public interface AisiCurrencyService {
 
     List<Transaction> getAccountTransactions();
 
-    void getTransactionInformation(String transaction_id);
 }
