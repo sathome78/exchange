@@ -2,7 +2,6 @@ package me.exrates.service.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
@@ -257,9 +256,9 @@ public class OrdersEventHandleService {
         Integer pairId = exOrder.getCurrencyPairId();
         UserPersonalOrdersHandler handler = personalOrdersHandlerMap
                 .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
-        handler.addOrderToQueueInstant(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
+        handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
         if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId()) {
-            handler.addOrderToQueueInstant(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
+            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
         }
     }
 

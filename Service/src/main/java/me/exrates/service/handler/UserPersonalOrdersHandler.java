@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -29,6 +27,7 @@ public class UserPersonalOrdersHandler {
     private final long refreshTime = 1000; /*in millis*/
     private Timer timer;
 
+
     public UserPersonalOrdersHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, Integer pairId) {
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
@@ -36,28 +35,15 @@ public class UserPersonalOrdersHandler {
         this.timer = new Timer();
     }
 
-    void addOrderToQueue(OrderWsDetailDto dto, Integer userId) {
-        checkAndCreateSynchronizers(userId);
-
-        synchronized (synchronizersMap.get(userId).getObjectSync()) {
-            List<OrderWsDetailDto> value = orders.get(userId);
-            if (value == null) {
-                value = new CopyOnWriteArrayList<>();
-                value.add(dto);
-                orders.put(userId, value);
-            }
+    void addToQueueForSend(OrderWsDetailDto dto, Integer userId) {
+        if (!synchronizersMap.containsKey(userId)) {
+            checkAndCreateSynchronizersAndList(userId);
         }
-        orders.get(userId).add(dto);
+        synchronized(synchronizersMap.get(userId).getObjectSync()) {
+            orders.get(userId).add(dto);
+        }
         send(userId);
     }
-
-    @Synchronized
-    private void checkAndCreateSynchronizers(Integer userId) {
-        synchronizersMap.putIfAbsent(userId, SynchronizersObject.init());
-    }
-
-
-
 
     private void send(Integer userId) {
         //достаю синхронизатор
@@ -68,24 +54,30 @@ public class UserPersonalOrdersHandler {
                 //sleep потока
                 TimeUnit.MILLISECONDS.sleep(refreshTime);
                 //блокирую дальнейшую запись в лист
-                synchronizersMap.get(userId).getLocker().lock();
-                //делаю send
-                List<OrderWsDetailDto> data = orders.get(userId);
-                sendMessage(data, userId);
-                //очищаю основной лист
-                data.clear();
+                synchronized(synchronizersMap.get(userId).getObjectSync()) {
+                    //делаю send
+                    List<OrderWsDetailDto> data = orders.get(userId);
+                    sendMessage(data, userId);
+                    //очищаю основной лист
+                    data.clear();
+                }
             } catch (InterruptedException e) {
                 log.error(e);
             } finally {
                 //открываю доступ потокам
                 synchronizersMap.get(userId).getSemaphore().release();
-                //открываю запись в лист
-                synchronizersMap.get(userId).getLocker().unlock();
             }
         }
     }
 
-    void addOrderToQueueInstant(OrderWsDetailDto dto, Integer userId) {
+    @Synchronized
+    private void checkAndCreateSynchronizersAndList(Integer userId) {
+        synchronizersMap.putIfAbsent(userId, SynchronizersObject.init());
+        orders.putIfAbsent(userId, new ArrayList<>());
+    }
+
+    /*to instant send without timings and groupings*/
+    void sendInstant(OrderWsDetailDto dto, Integer userId) {
         sendMessage(new ArrayList<OrderWsDetailDto>(){{add(dto);}}, userId);
     }
 
