@@ -1,4 +1,4 @@
-package me.exrates.config;
+/**//*package me.exrates.config;
 
 
 import com.amazonaws.SdkClientException;
@@ -30,3 +30,4 @@ public class SSMConfiguration {
     }
 }
 
+*/
