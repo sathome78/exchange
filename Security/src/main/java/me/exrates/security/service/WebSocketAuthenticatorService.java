@@ -21,13 +21,15 @@ public class WebSocketAuthenticatorService {
 
     private final AuthTokenService authTokenService;
     private final UserDetailsService userDetailsService;
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final OpenApiAuthService openApiAuthService;
 
     @Autowired
-    public WebSocketAuthenticatorService(AuthTokenService authTokenService, UserDetailsService userDetailsService) {
+    public WebSocketAuthenticatorService(AuthTokenService authTokenService, UserDetailsService userDetailsService, OpenApiAuthService openApiAuthService) {
         this.authTokenService = authTokenService;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.openApiAuthService = openApiAuthService;
     }
 
     public UsernamePasswordAuthenticationToken getAuthenticatedOrFailByJwt(final String token, final String ip){
@@ -69,11 +71,16 @@ public class WebSocketAuthenticatorService {
         if(!passwordEncoder.matches(password, user.getPassword())) {
             throw new InvalidCredentialsException();
         }
+        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
+    }
 
-//		logger.error("$$$$$$ Registered user: " + SecurityContextHolder.getContext().getAuthentication().getName());
-//		if(!(user.getUsername().equals(SecurityContextHolder.getContext().getAuthentication().getName()))){
-//			throw new BadCredentialsException("Current principal is not the same with user (username) " + user.getUsername());
-//		}
+    public UsernamePasswordAuthenticationToken getAuthenticatedOrFailByHMAC(String method, String endpoint, Long timestamp, String publicKey, String signatureHex) {
+        UserDetails user;
+        try {
+            user = openApiAuthService.getUserByPublicKey(method, endpoint, timestamp, publicKey, signatureHex);
+        } catch (Exception e) {
+            throw new InvalidCredentialsException();
+        }
         return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 }
