@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,6 +58,8 @@ public class OrdersEventHandleService {
     private StompMessenger stompMessenger;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private DefaultSimpUserRegistry registry;
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -256,8 +259,10 @@ public class OrdersEventHandleService {
         Integer pairId = exOrder.getCurrencyPairId();
         UserPersonalOrdersHandler handler = personalOrdersHandlerMap
                 .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
-        handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
-        if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId()) {
+        if (registry.getUser(userService.getEmailById(exOrder.getUserId())) != null) {
+            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
+        }
+        if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId() && registry.getUser(userService.getEmailById(exOrder.getUserAcceptorId())) != null) {
             handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
         }
     }
