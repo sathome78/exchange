@@ -1,5 +1,5 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('RobboCoach', 'RBC', 2, 'rbcServiceImpl', 'CRYPTO');
+VALUES ('RobboCoach', 'RBC', 2, 'wavesServiceImpl', 'CRYPTO');
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('RBC', 'RobboCoach', 0, 8, 8, 8);
 
