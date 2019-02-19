@@ -402,6 +402,11 @@ public class CryptocurrencyConfig {
         return new WavesServiceImpl("WAVES", "Waves", "merchants/waves.properties");
     }
 
+    @Bean(name = "rbcServiceImpl")
+    public WavesService rbcServiceImpl() {
+        return new WavesServiceImpl("RBC", "RBC", "merchants/waves.properties");
+    }
+
     @Bean(name = "lunesServiceImpl")
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
