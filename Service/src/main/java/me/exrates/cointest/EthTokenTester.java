@@ -111,7 +111,7 @@ public class EthTokenTester implements CoinTester {
         Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + name);
         Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
-        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT);
+        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT.multiply(new BigInteger("2")));
         stringBuilder.append("------TEST NODE INFO-----")
                 .append("Main TEST adrress = " + mainTestAccountAddress).append("<br>")
                 .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>")

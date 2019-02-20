@@ -98,6 +98,7 @@ public class BtcCoinTester implements CoinTester {
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
+            e.printStackTrace();
             stringBuilder.append(e.toString());
             return e.getMessage();
         }
