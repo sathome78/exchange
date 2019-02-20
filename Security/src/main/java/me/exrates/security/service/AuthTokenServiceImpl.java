@@ -121,7 +121,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         DefaultClaims claims;
         try {
             claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
-            claims.forEach((key, value) -> logger.info(key + " :: " + value + " :: " + value.getClass()));
         } catch (Exception ex) {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
@@ -163,15 +162,14 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     }
 
     @Override
-    public Optional<AuthTokenDto> retrieveTokenNg(UserAuthenticationDto dto, String clientIp) {
-        return prepareAuthTokenNg(dto.getEmail(), clientIp);
+    public Optional<AuthTokenDto> retrieveTokenNg(UserAuthenticationDto dto) {
+        return prepareAuthTokenNg(dto.getEmail());
     }
 
     @Override
-    public Optional<AuthTokenDto> retrieveTokenNg(String email, HttpServletRequest request) {
+    public Optional<AuthTokenDto> retrieveTokenNg(String email) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        String ipAddress = IpUtils.getClientIpAddress(request);
-        return prepareAuthTokenNg(userDetails.getUsername(), ipAddress);
+        return prepareAuthTokenNg(userDetails.getUsername());
     }
 
     @Override
@@ -237,11 +235,10 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         }
     }
 
-    private Optional<AuthTokenDto> prepareAuthTokenNg(String username, String clientIp) {
+    private Optional<AuthTokenDto> prepareAuthTokenNg(String username) {
         ApiAuthToken token = createAuthToken(username);
         Map<String, Object> tokenData = new HashMap<>();
         tokenData.put("token_id", token.getId());
-        tokenData.put("client_ip", clientIp);
         tokenData.put("username", token.getUsername());
         tokenData.put("value", token.getValue());
         JwtBuilder jwtBuilder = Jwts.builder();

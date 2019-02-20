@@ -20,9 +20,9 @@ public interface AuthTokenService {
     @Scheduled(fixedDelay = 24L * 60L * 60L * 1000L, initialDelay = 60000L)
     void deleteExpiredTokens();
 
-    Optional<AuthTokenDto> retrieveTokenNg(UserAuthenticationDto dto, String clientIp);
+    Optional<AuthTokenDto> retrieveTokenNg(UserAuthenticationDto dto);
 
-    Optional<AuthTokenDto> retrieveTokenNg(String email, HttpServletRequest request);
+    Optional<AuthTokenDto> retrieveTokenNg(String email);
 
     boolean isValid(HttpServletRequest request);
 

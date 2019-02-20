@@ -126,7 +126,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         boolean update = userService.updateUserSettings(updateUserDto);
         if (update) {
-            Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveTokenNg(user.getEmail(), request);
+            Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveTokenNg(user.getEmail());
             AuthTokenDto authTokenDto =
                     null;
             try {

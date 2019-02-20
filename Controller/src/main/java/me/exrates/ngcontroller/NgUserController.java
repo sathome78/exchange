@@ -50,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -106,42 +108,7 @@ public class NgUserController {
                 authenticationDto.getClientIp());
 
 
-        if (StringUtils.isBlank(authenticationDto.getEmail())
-                || StringUtils.isBlank(authenticationDto.getPassword())) {
-            String message = String.format("User with email: [%s] and/or password: [%s] not found", authenticationDto.getEmail(), authenticationDto.getPassword());
-            logger.warn(message);
-            throw new NgResponseException("USER_CREDENTIALS_NOT_COMPLETE", message);
-        }
-
-        User user;
-        try {
-            user = userService.findByEmail(authenticationDto.getEmail());
-            userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
-        } catch (UserNotFoundException esc) {
-//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
-            String message = String.format("User with email %s not found", authenticationDto.getEmail());
-            logger.warn(message, esc);
-            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
-        }
-
-        if (user.getStatus() == UserStatus.REGISTERED) {
-            ngUserService.resendEmailForFinishRegistration(user);
-            String message = String.format("User with email %s registration is not complete", authenticationDto.getEmail());
-            logger.debug(message);
-            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
-        }
-        if (user.getStatus() == UserStatus.DELETED) {
-            String message = String.format("User with email %s is not active", authenticationDto.getEmail());
-            logger.debug(message);
-            throw new NgResponseException("USER_NOT_ACTIVE", message);
-        }
-        String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
-        UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            String message = String.format("Invalid password and/or email [%s]", authenticationDto.getEmail());
-            logger.error(message);
-            throw new NgResponseException("INVALID_CREDENTIALS", message);
-        }
+        User user = authenticateUser(authenticationDto, request);
 
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
@@ -169,21 +136,7 @@ public class NgUserController {
                 throw new NgResponseException("EMAIL_AUTHORIZATION_FAILED", message);
             }
         }
-        AuthTokenDto authTokenDto =
-                authTokenService.retrieveTokenNg(authenticationDto, authenticationDto.getClientIp())
-                        .orElseThrow(() -> {
-                            String message = String.format("Failed to get token for user %s", authenticationDto.getEmail());
-                            return new NgResponseException("FAILED_TO_GET_USER_TOKEN", message);
-                        });
-
-        authTokenDto.setNickname(user.getNickname());
-        authTokenDto.setUserId(user.getId());
-        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
-        String avatarLogicalPath = userService.getAvatarPath(user.getId());
-        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
-        authTokenDto.setAvatarPath(avatarFullPath);
-        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
-        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+        AuthTokenDto authTokenDto = createToken(authenticationDto, request, user);
 //        ipBlockingService.successfulProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK); // 200
     }
@@ -276,6 +229,65 @@ public class NgUserController {
     @ResponseBody
     public ErrorInfo IncorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    private User authenticateUser(@RequestBody @Valid UserAuthenticationDto authenticationDto, HttpServletRequest request) {
+        if (StringUtils.isBlank(authenticationDto.getEmail())
+                || StringUtils.isBlank(authenticationDto.getPassword())) {
+            String message = String.format("User with email: [%s] and/or password: [%s] not found", authenticationDto.getEmail(), authenticationDto.getPassword());
+            logger.warn(message);
+            throw new NgResponseException("USER_CREDENTIALS_NOT_COMPLETE", message);
+        }
+
+        User user;
+        try {
+            user = userService.findByEmail(authenticationDto.getEmail());
+            userService.updateGaTag(getCookie(request.getHeader("GACookies")), user.getEmail());
+        } catch (UserNotFoundException esc) {
+//            ipBlockingService.failureProcessing(authenticationDto.getClientIp(), IpTypesOfChecking.LOGIN);
+            String message = String.format("User with email %s not found", authenticationDto.getEmail());
+            logger.warn(message, esc);
+            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
+        }
+
+        if (user.getStatus() == UserStatus.REGISTERED) {
+            ngUserService.resendEmailForFinishRegistration(user);
+            String message = String.format("User with email %s registration is not complete", authenticationDto.getEmail());
+            logger.debug(message);
+            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            String message = String.format("User with email %s is not active", authenticationDto.getEmail());
+            logger.debug(message);
+            throw new NgResponseException("USER_NOT_ACTIVE", message);
+        }
+        String password = RestApiUtils.decodePassword(authenticationDto.getPassword());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getEmail());
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            String message = String.format("Invalid password and/or email [%s]", authenticationDto.getEmail());
+            logger.error(message);
+            throw new NgResponseException("INVALID_CREDENTIALS", message);
+        }
+        return user;
+    }
+
+    private AuthTokenDto createToken(@RequestBody @Valid UserAuthenticationDto authenticationDto, HttpServletRequest request, User user) {
+        AuthTokenDto authTokenDto =
+                authTokenService.retrieveTokenNg(authenticationDto)
+                        .orElseThrow(() -> {
+                            String message = String.format("Failed to get token for user %s", authenticationDto.getEmail());
+                            return new NgResponseException("FAILED_TO_GET_USER_TOKEN", message);
+                        });
+
+        authTokenDto.setNickname(user.getNickname());
+        authTokenDto.setUserId(user.getId());
+        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
+        String avatarLogicalPath = userService.getAvatarPath(user.getId());
+        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
+        authTokenDto.setAvatarPath(avatarFullPath);
+        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
+        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+        return authTokenDto;
     }
 //
 //    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
