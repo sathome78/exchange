@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="process.id=%X{process.id}  %d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message  %n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="jdbc_logger" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="merchant" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <logger name="org.quartz" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="bitcoin_core" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.apache.http" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.springframework" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
+            <appender-ref ref="Console" />
+        </logger>
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
+            <appender-ref ref="Console" />
+        </logger>
+        <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="mobileAPI" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!--WALLET ... -->
+        <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.service.impl.WalletServiceImpl" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <!--... WALLET-->
+
+        <!--PROXY-->
+        <Logger name="me.exrates.service.impl.proxy" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!--profiling-->
+        <Logger name="profile" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!--job-->
+        <Logger name="job" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="withdraw" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="refill" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="transfer" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <logger name="exceptions_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="exceptions_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="withdraw_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="withdraw_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="refill_asp_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="refill_asp_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="transfer_asp_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="transfer_asp_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="survey_result" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="survey" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="bot_trader" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="admin_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="stellar_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ripple_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="nem_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="neo_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="qtum_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ethereum_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ethereum_classic_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="etherzero_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="callisto_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="bitcoiin2g_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="goldiam_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="contractnet_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="nexty_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="eth_tokens_log" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="monero_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ditcoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="sumokoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="hcxp_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="edc_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="iota_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ws_stomp_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="tracker" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.telegram.telegrambots.exceptions.TelegramApiRequestException" additivity="false" level="ALL">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="message_notify" additivity="false" level="ALL">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="waves_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="lisk_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="config" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <logger name="ip_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="test" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="cache" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="decred" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="achain" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="tron" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="open_api" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="etherinc_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
+        </logger>
+        <logger name="adk_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="control_aspect_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="apollo" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="aunit" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ppy" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="email_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="Qiwi" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="omni_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
+        <Root level="DEBUG">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
