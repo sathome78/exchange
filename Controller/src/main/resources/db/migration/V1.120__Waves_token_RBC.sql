@@ -1,5 +1,5 @@
-INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('RobboCoach', 'RBC', 2, 'wavesServiceImpl', 'CRYPTO');
+INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('RobboCoach', 'RBC', 2, 'wavesServiceImpl', 'CRYPTO', 50);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('RBC', 'RobboCoach', 0, 8, 8, 8);
 
@@ -9,7 +9,7 @@ INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='RBC'),
           (SELECT id from CURRENCY WHERE name='RBC'),
-          0.0001);
+          0.00000001);
 
 INSERT IGNORE INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='RBC')
 , '/client/img/merchants/RBC.png', 'RBC', (SELECT id from CURRENCY WHERE name='RBC'));
@@ -47,13 +47,13 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='RBC/ETH';
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'RBC'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'RBC'), 0.00000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'RBC'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'RBC'), 0.00000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'RBC'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'RBC'), 0.00000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), '/client/img/merchants/transfer.png', 'Transfer', (select id from CURRENCY where name = 'RBC'));
