@@ -91,7 +91,7 @@ public class BtcCoinTester implements CoinTester {
             testAddressGeneration();
             checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
-            testManualWithdraw(refillAmount);
+//            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/BTC", BigDecimal.valueOf(0.00));
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/USD", BigDecimal.valueOf(0.00));
             testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/ETH", BigDecimal.valueOf(0.00));
@@ -206,7 +206,7 @@ public class BtcCoinTester implements CoinTester {
                 }
             } while (withdrawStatus != 10);
 
-            stringBuilder.append("Withdraw works").append("<br>");;
+            stringBuilder.append("Auto-withdraw works").append("<br>");
 
 
         }
@@ -284,7 +284,10 @@ public class BtcCoinTester implements CoinTester {
                 if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
                 }
-                stringBuilder.append("Transaction consfirmation = ").append(transaction.getConfirmations()).append("<br>");;
+                String trxConf = "Transaction consfirmation = ";
+                int confirmationIndex = stringBuilder.indexOf("Transaction consfirmation =");
+                if(confirmationIndex != -1) stringBuilder = new StringBuilder(stringBuilder.substring(0, confirmationIndex));
+                stringBuilder.append(trxConf).append(transaction.getConfirmations()).append("<br>");;
             } else {
                 stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("<br>");;
                 stringBuilder.append("refill amount ").append(refillAmount).append("<br>");;

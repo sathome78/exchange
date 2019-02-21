@@ -117,11 +117,9 @@ public class EthTokenTester implements CoinTester {
                 .append("   gasLimitIncreased = " + gasLimitIncreased)
                 .append("<br>");
 
-        stringBuilder.append("------TEST NODE INFO-----")
-                .append("Main TEST adrress = " + mainTestAccountAddress).append("<br>")
-                .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>")
-                .append(name + " token balance = " + contract.balanceOf(credentials.getAddress()).send()).append("<br>");
+        stringBuilder.append("------TEST NODE INFO-----").append("Main TEST adrress = ").append(mainTestAccountAddress).append("<br>").append("Test balance ETH = ").append(web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>").append(name).append(" token balance = ").append(contract.balanceOf(credentials.getAddress()).send()).append("<br>");
     }
+
 
     @Override
     public String testCoin(String refillAmount) throws Exception {
