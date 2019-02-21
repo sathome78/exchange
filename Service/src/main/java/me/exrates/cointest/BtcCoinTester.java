@@ -445,6 +445,13 @@ public class BtcCoinTester implements CoinTester {
                 throw new OrderParamsWrongException();
             } else {
             }
+            stringBuilder
+                    .append(" amount: " + orderCreateSummaryDto.getAmount() + " " + amount).append("<br>")
+                    .append(" getCurrencyPair: " + orderCreateDto.getCurrencyPair().getName() + " " + currencyPair).append("<br>")
+                    .append(" getOperationType: " + orderCreateDto.getOperationType() + " " + orderType).append("<br>")
+                    .append(" orderCreateDto.getExchangeRate(): " + orderCreateDto.getExchangeRate() + " " + rate).append("<br>")
+                    .append(" amount: " + orderCreateDto.getTotal() + " " + baseType).append("<br>");
+
 
             boolean isOrderCreateCorrect = compareObjects(orderCreateSummaryDto.getAmount(), amount)
                     && orderCreateDto.getCurrencyPair().getName().equals(currencyPair)
