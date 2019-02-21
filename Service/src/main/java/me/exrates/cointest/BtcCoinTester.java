@@ -96,10 +96,10 @@ public class BtcCoinTester implements CoinTester {
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
-            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
-            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
-//            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/USD", BigDecimal.valueOf(0.00));
-//            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
+            Thread.sleep(5000);
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/USD", BigDecimal.valueOf(0.00));
+            Thread.sleep(5000);
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
@@ -142,6 +142,7 @@ public class BtcCoinTester implements CoinTester {
         CreateOrder createOrder = new CreateOrder(OperationType.SELL, amount, rate, OrderBaseType.LIMIT, currencyPair, stop).invoke();
         OrderCreateDto orderCreateDto = createOrder.getOrderCreateDto();
         String response = createOrder.getResponse();
+        stringBuilder.append("Response from order creator: " + response).append("<br>");
         if (orderService.getOrderByOrderCreateDtoAndTime(orderCreateDto, LocalDateTime.now().minusSeconds(30), LocalDateTime.now(), principalEmail) == null) {
             throw new CoinTestException("Order were not found in db!");
         }
