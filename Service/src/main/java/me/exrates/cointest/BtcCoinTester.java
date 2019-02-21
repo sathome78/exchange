@@ -367,8 +367,9 @@ public class BtcCoinTester implements CoinTester {
     }
 
     public static void main(String[] args) {
-
+        System.out.println(compareObjects(new BigDecimal("0.000001"), new BigDecimal("0.0000010")));
     }
+
     private static String normalize(Object B) {
         BigDecimal A = new BigDecimal(String.valueOf(B));
         StringBuilder first = new StringBuilder(String.valueOf(A));
@@ -449,11 +450,12 @@ public class BtcCoinTester implements CoinTester {
             } else {
             }
             stringBuilder
-                    .append(" amount: " + orderCreateSummaryDto.getAmount() + " " + amount).append("<br>")
-                    .append(" getCurrencyPair: " + orderCreateDto.getCurrencyPair().getName() + " " + currencyPair).append("<br>")
-                    .append(" getOperationType: " + orderCreateDto.getOperationType() + " " + orderType).append("<br>")
-                    .append(" orderCreateDto.getExchangeRate(): " + orderCreateDto.getExchangeRate() + " " + rate).append("<br>")
-                    .append(" orderCreateDto.getOrderBaseType(): " + orderCreateDto.getOrderBaseType() + " " + baseType).append("<br>");
+                    .append(" amount: " + orderCreateSummaryDto.getAmount() + " " + amount + " " + compareObjects(orderCreateSummaryDto.getAmount(), amount)).append("<br>")
+                    .append(" getCurrencyPair: " + orderCreateDto.getCurrencyPair().getName() + " " + currencyPair + " " + orderCreateDto.getCurrencyPair().getName().equals(currencyPair)).append("<br>")
+                    .append(" getOperationType: " + orderCreateDto.getOperationType() + " " + orderType + " " + orderCreateDto.getOperationType().equals(orderType)).append("<br>")
+                    .append(" orderCreateDto.getExchangeRate(): " + orderCreateDto.getExchangeRate() + " " + rate + " " + compareObjects(orderCreateDto.getExchangeRate(), rate)).append("<br>")
+                    .append(" orderCreateDto.getOrderBaseType(): " + orderCreateDto.getOrderBaseType() + " " + baseType + " " + orderCreateDto.getOrderBaseType().equals(baseType)).append("<br>")
+                    .append(" orderCreateDto.getTotal(): " + orderCreateDto.getTotal() + " " + amount.multiply(rate) + " " + compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))).append("<br>");
 
 
             boolean isOrderCreateCorrect = compareObjects(orderCreateSummaryDto.getAmount(), amount)
