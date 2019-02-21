@@ -95,9 +95,9 @@ public class BtcCoinTester implements CoinTester {
             checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
-            testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/BTC", BigDecimal.valueOf(0.00));
-            testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/USD", BigDecimal.valueOf(0.00));
-            testOrder(BigDecimal.valueOf(0.000001), BigDecimal.valueOf(0.000001), name + "/ETH", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/USD", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
@@ -282,7 +282,6 @@ public class BtcCoinTester implements CoinTester {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
                 refillRequestJob.forceCheckPaymentsForCoin(name);
-                stringBuilder.append("NOT NOW").append("<br>");;
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
                 if (transaction.getConfirmations() >= minConfirmation) {
@@ -367,7 +366,7 @@ public class BtcCoinTester implements CoinTester {
     }
 
     public static void main(String[] args) {
-        System.out.println(compareObjects(new BigDecimal("0.000001"), new BigDecimal("0.0000010")));
+        System.out.println(new BigDecimal("0.0001").multiply(new BigDecimal("0.00010")));
     }
 
     private static String normalize(Object B) {
