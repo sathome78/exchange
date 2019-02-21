@@ -96,8 +96,10 @@ public class BtcCoinTester implements CoinTester {
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
             testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
 //            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/USD", BigDecimal.valueOf(0.00));
-            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
+//            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
@@ -301,7 +303,7 @@ public class BtcCoinTester implements CoinTester {
             }
         } while (!acceptedRequest.isPresent());
 
-        stringBuilder.append("REQUEST FINDED").append("<br>");;
+        stringBuilder.append("THE REQUEST WAS FOUND").append("<br>");;
         stringBuilder.append("Node balance after refill = " + btcdClient.getBalance()).append("<br>");
         Map<String, String> a = new HashMap<>();
     }
