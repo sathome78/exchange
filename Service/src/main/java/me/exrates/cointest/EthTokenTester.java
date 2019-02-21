@@ -111,7 +111,8 @@ public class EthTokenTester implements CoinTester {
         Class clazz = Class.forName("me.exrates.service.ethereum.ethTokensWrappers." + name);
         Method method = clazz.getMethod("load", String.class, Web3j.class, Credentials.class, BigInteger.class, BigInteger.class);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
-        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, GAS_LIMIT.multiply(new BigInteger("2")));
+        BigInteger gasLimitIncreased = GAS_LIMIT.multiply(new BigInteger("2"));
+        contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, gasLimitIncreased);
         stringBuilder.append("------TEST NODE INFO-----")
                 .append("Main TEST adrress = " + mainTestAccountAddress).append("<br>")
                 .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>")
@@ -136,7 +137,7 @@ public class EthTokenTester implements CoinTester {
     }
 
     private void checkRefill(RefillRequestCreateDto request, String refillAmount, int merchantId, int currencyId) throws Exception {
-        stringBuilder.append("Starting chekc refill").append("<br>");
+        stringBuilder.append("Starting check refill").append("<br>");
         Map<String, Object> refillRequest = refillService.createRefillRequest(request);
         String addressForRefill = (String) ((Map) refillRequest.get("params")).get("address");
         List<RefillRequestAddressDto> byAddressMerchantAndCurrency = refillService.findByAddressMerchantAndCurrency(addressForRefill, merchantId, currencyId);
