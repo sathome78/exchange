@@ -366,6 +366,9 @@ public class BtcCoinTester implements CoinTester {
         return normalize(A).equals(normalize(B));
     }
 
+    public static void main(String[] args) {
+
+    }
     private static String normalize(Object B) {
         BigDecimal A = new BigDecimal(String.valueOf(B));
         StringBuilder first = new StringBuilder(String.valueOf(A));
@@ -450,7 +453,7 @@ public class BtcCoinTester implements CoinTester {
                     .append(" getCurrencyPair: " + orderCreateDto.getCurrencyPair().getName() + " " + currencyPair).append("<br>")
                     .append(" getOperationType: " + orderCreateDto.getOperationType() + " " + orderType).append("<br>")
                     .append(" orderCreateDto.getExchangeRate(): " + orderCreateDto.getExchangeRate() + " " + rate).append("<br>")
-                    .append(" amount: " + orderCreateDto.getTotal() + " " + baseType).append("<br>");
+                    .append(" orderCreateDto.getOrderBaseType(): " + orderCreateDto.getOrderBaseType() + " " + baseType).append("<br>");
 
 
             boolean isOrderCreateCorrect = compareObjects(orderCreateSummaryDto.getAmount(), amount)
