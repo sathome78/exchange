@@ -20,6 +20,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.CoinTestException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.job.invoice.RefillRequestJob;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -62,6 +63,8 @@ public class BtcCoinTester implements CoinTester {
     private UserService userService;
     @Autowired
     private WalletDao walletDao;
+    @Autowired
+    private RefillRequestJob refillRequestJob;
 
     private int currencyId;
     private int merchantId;
@@ -278,6 +281,7 @@ public class BtcCoinTester implements CoinTester {
         do {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
+                refillRequestJob.forceCheckPaymentsForCoin(name);
                 stringBuilder.append("NOT NOW").append("<br>");;
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
@@ -285,8 +289,8 @@ public class BtcCoinTester implements CoinTester {
                     Thread.sleep(TIME_FOR_REFILL);
                 }
                 String trxConf = "Transaction consfirmation = ";
-                int confirmationIndex = stringBuilder.indexOf("Transaction consfirmation =");
-                if(confirmationIndex != -1) stringBuilder = new StringBuilder(stringBuilder.substring(0, confirmationIndex));
+//                int confirmationIndex = stringBuilder.indexOf("Transaction consfirmation =");
+//                if(confirmationIndex != -1) stringBuilder = new StringBuilder(stringBuilder.substring(0, confirmationIndex));
                 stringBuilder.append(trxConf).append(transaction.getConfirmations()).append("<br>");;
             } else {
                 stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("<br>");;
