@@ -113,12 +113,15 @@ public class EthTokenTester implements CoinTester {
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
         BigInteger gasLimitIncreased = GAS_LIMIT.multiply(new BigInteger("2"));
         contract = (ethTokenERC20)method.invoke(null, getEthService(name).getContractAddress().get(0), web3j, credentials, gasPrice, gasLimitIncreased);
+        stringBuilder.append("Contract: " + getEthService(name).getContractAddress().get(0))
+                .append("   gasLimitIncreased = " + gasLimitIncreased)
+                .append("<br>");
+
         stringBuilder.append("------TEST NODE INFO-----")
                 .append("Main TEST adrress = " + mainTestAccountAddress).append("<br>")
                 .append("Test balance ETH = " + web3j.ethGetBalance(mainTestAccountAddress, DefaultBlockParameterName.LATEST).send().getBalance()).append("<br>")
                 .append(name + " token balance = " + contract.balanceOf(credentials.getAddress()).send()).append("<br>");
     }
-
 
     @Override
     public String testCoin(String refillAmount) throws Exception {
@@ -145,7 +148,9 @@ public class EthTokenTester implements CoinTester {
             throw new CoinTestException("byAddressMerchantAndCurrency.size() == 0");
 
         stringBuilder.append("ADDRESS FOR REFILL FROM BIRZHA " + addressForRefill).append("<br>");;
-
+        stringBuilder.append("addressForRefill = " + addressForRefill)
+                .append("   converted amount = " + convertToContractScale(refillAmount))
+                .append("<br>");
         String transactionHash = contract.transfer(addressForRefill, convertToContractScale(refillAmount)).send().getTransactionHash();
         stringBuilder.append("Transaction hash = " + transactionHash).append("<br>");
 
