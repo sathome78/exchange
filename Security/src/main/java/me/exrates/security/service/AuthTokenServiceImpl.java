@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @Service
-@PropertySource(value = {"classpath:/mobile.properties", "classpath:/angular.properties"})
+@PropertySource(value = {"classpath:/mobile.properties"})
 public class AuthTokenServiceImpl implements AuthTokenService {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
     private static final int PIN_WAIT_MINUTES = 20;
@@ -51,17 +51,14 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Value("${token.key}")
     private String TOKEN_KEY;
 
-    @Value("${token.duration}")
+    @Value("${token.duration: 120}")
     private long TOKEN_DURATION_TIME;
 
-    @Value("${token.max.duration}")
+    @Value("${token.max.duration: 120}")
     private long TOKEN_MAX_DURATION_TIME;
 
     @Value("${pass.encode.key}")
     private String PASS_ENCODE_KEY;
-
-    @Value("${dev.mode}")
-    private boolean DEV_MODE;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -137,17 +134,13 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             if (!(username.equals(savedToken.getUsername()) && value.equals(savedToken.getValue()))) {
                 throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
             }
-            LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
-            LocalDateTime finalExpiration = new Date(claims.get("expiration", Long.class)).toInstant()
+            LocalDateTime expiration = new Date(claims.get("expiration", Long.class)).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();
-            if (expiration.isAfter(LocalDateTime.now()) && finalExpiration.isAfter(LocalDateTime.now())) {
-                UserDetails user = userDetailsService.loadUserByUsername(username);
-                apiAuthTokenDao.prolongToken(tokenId);
-                return user;
-            } else {
+            if (expiration.isBefore(LocalDateTime.now())) {
                 apiAuthTokenDao.deleteExpiredToken(tokenId);
                 throw new TokenException("Token expired", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
             }
+            return userDetailsService.loadUserByUsername(username);
         } else {
             throw new TokenException("Token not found", ErrorCode.TOKEN_NOT_FOUND);
         }
