@@ -58,6 +58,16 @@ public class RefillRequestJob {
 
     }
 
+    public void forceCheckPaymentsForCoin(String ticker) {
+
+        try {
+            getBitcoinServiceByMerchantName(ticker).scanForUnprocessedTransactions(null);
+        } catch (Exception e) {
+            log.error(e);
+        }
+
+    }
+
     @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
     public void refillPaymentsForNonSupportedCoins() {
         try {
