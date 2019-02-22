@@ -344,13 +344,13 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 20, 20, false, true);
 	}
 
-	// todo invite Stas
-@Bean(name = "diviServiceImpl")
+
+    @Bean(name = "diviServiceImpl")
 	public BitcoinService diviServiceImpl() {
 		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 4, 20, false, false);
 	}
 
-@Bean(name = "owcServiceImpl")
+    @Bean(name = "owcServiceImpl")
 	public BitcoinService owcServiceImpl() {
 		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 20, 20, false, false);
 	}
