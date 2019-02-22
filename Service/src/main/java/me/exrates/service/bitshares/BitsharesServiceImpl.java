@@ -352,7 +352,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
     @OnMessage
     public void onMessage(String msg) {
-        System.out.println(msg);
         try {
             if (isContainsLastIrreversibleBlockInfo(msg)) getUnprocessedBlocks(msg);
             else if (isIrreversibleBlockInfo(msg)) processIrreversebleBlock(msg);
