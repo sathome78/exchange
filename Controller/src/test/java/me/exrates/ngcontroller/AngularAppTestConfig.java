@@ -6,6 +6,7 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
+import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.SecureService;
@@ -55,12 +56,18 @@ import java.util.Map;
 @EnableWebMvc
 @ComponentScan(basePackages = {
         "me.exrates.ngcontroller",
+        "me.exrates.controller.advice"
 })
 public class AngularAppTestConfig {
 
     @Bean
     public UserService userService() {
         return Mockito.mock(UserService.class);
+    }
+
+    @Bean
+    public NgUserService ngUserService() {
+        return Mockito.mock(NgUserService.class);
     }
 
     @Bean
