@@ -15,6 +15,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 //https://www.baeldung.com/integration-testing-in-spring
@@ -54,10 +58,15 @@ public class NgPublicControllerTest {
     @Test
     public void checkIfNewUserEmailExists_whenUserNotFound() throws Exception {
         when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
+        String email = "test@test.com";
         try {
             mockMvc.perform(MockMvcRequestBuilders.get("/api/public/v2/if_email_exists")
-                    .param("email", "test@test.com")
-                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+                    .param("email", email)
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andDo(print()).andExpect(status().isBadRequest())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("USER_EMAIL_NOT_FOUND"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.detail").value(String.format("User with email %s not found", email)))
+                    .andReturn();
             fail("UserNotFoundException is expected");
         } catch (Exception e) {
             assertTrue(e.getCause() instanceof UserNotFoundException);
@@ -71,7 +80,7 @@ public class NgPublicControllerTest {
                 .param("email", "test@test.com")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(Boolean.class)))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
         verifyNoMoreInteractions(userService);
