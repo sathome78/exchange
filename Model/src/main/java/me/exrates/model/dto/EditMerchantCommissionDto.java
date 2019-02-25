@@ -14,10 +14,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @ToString
 public class EditMerchantCommissionDto {
-    private Integer merchantId;
-    private Integer currencyId;
+    private String merchantName;
+    private String currencyName;
     private BigDecimal inputValue;
     private BigDecimal outputValue;
     private BigDecimal transferValue;
     private BigDecimal minFixedAmount;
+    private BigDecimal minFixedAmountUSD;
 }

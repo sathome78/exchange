@@ -70,8 +70,11 @@
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.usdRate"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.minFixedUSD"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.subtractForWithdraw"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.changeAutomaticallyByUSD"/></th>
                             </tr>
                             </thead>
                         </table>
@@ -140,7 +143,7 @@
     </div>
 </div>
 
-<div id="editMerchantCommissionModal" class="modal fade">
+<div id="editMerchantCommissionModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -150,14 +153,12 @@
             </div>
             <div class="modal-body">
                 <form id="edit-merchantCommission-form" class="form_full_width form_auto_height">
-                    <input type="hidden" name="merchantId" >
-                    <input type="hidden" name="currencyId" >
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label for="merchantName" class="input-block-wrapper__label"><loc:message code="withdrawal.merchant"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="merchantName" class="input-block-wrapper__input" readonly type="text">
+                            <input id="merchantName" name="merchantName" class="input-block-wrapper__input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -165,7 +166,7 @@
                             <label for="currencyName" class="input-block-wrapper__label"><loc:message code="withdrawal.currency"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="currencyName" class="input-block-wrapper__input" readonly type="text">
+                            <input id="currencyName" name="currencyName" class="input-block-wrapper__input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -189,7 +190,23 @@
                             <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.minFixed"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="minFixedAmount" class="input-block-wrapper__input" type="number">
+                            <input id="minFixedAmount"  name="minFixedAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.minFixedUSD"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="minFixedAmountUSD" name="minFixedAmountUSD" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.usdRate"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="usdRate" name="usdRate" class="input-block-wrapper__input" type="number" readonly>
                         </div>
                     </div>
                     <button id="submitMerchantCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
@@ -209,8 +226,6 @@
             </div>
             <div class="modal-body">
                 <form id="edit-transferCommission-form" class="form_full_width form_auto_height">
-                    <input type="hidden" name="merchantId" >
-                    <input type="hidden" name="currencyId" >
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label for="merchantName" class="input-block-wrapper__label"><loc:message code="withdrawal.merchant"/></label>

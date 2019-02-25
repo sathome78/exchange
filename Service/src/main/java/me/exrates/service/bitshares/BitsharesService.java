@@ -2,10 +2,13 @@ package me.exrates.service.bitshares;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.TransactionsInfo;
+import me.exrates.model.dto.BTSBlockInfo;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 public interface BitsharesService extends IRefillable , IWithdrawable {
@@ -63,4 +66,8 @@ public interface BitsharesService extends IRefillable , IWithdrawable {
     RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount);
 
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
+
+    void requestBlockTransactionsInfo(BTSBlockInfo BTSBlockInfo) throws IOException;
+
+    TransactionsInfo getRequestedBlocksInfo(int blockNum);
 }

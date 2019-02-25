@@ -4,6 +4,7 @@ import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.TransactionsInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -65,8 +66,9 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     private String currencyName;
     private String wsUrl;
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    protected int lastIrreversibleBlockValue; //
+    protected int lastIrreversibleBlockValue;
     private String privateKey;
+    private int decimal;
 
     protected Merchant merchant;
     private Currency currency;
@@ -75,10 +77,12 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     protected volatile RemoteEndpoint.Basic endpoint;
     protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private Map<BTSBlockInfo, TransactionsInfo> blockTransactionInfoMap = new LinkedHashMap<>();
 
-    public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
+    public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY, int decimal) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
+        this.decimal = decimal;
         log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
@@ -349,9 +353,9 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     @OnMessage
     public void onMessage(String msg) {
         try {
-            if (msg.contains("notice")) setIrreversableBlock(msg);
-            else if (msg.contains("previous")) processIrreversebleBlock(msg);
-            else log.info("unrecogrinzed msg from aunit \n" + msg);
+            if (isContainsLastIrreversibleBlockInfo(msg)) getUnprocessedBlocks(msg);
+            else if (isIrreversibleBlockInfo(msg)) processIrreversebleBlock(msg);
+            else log.info("unrecogrinzed msg from " + merchantName + "\n" + msg);
         } catch (Exception e) {
             log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
         }
@@ -359,7 +363,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     }
 
     @SneakyThrows
-    protected void getBlock(int blockNum) {
+    protected void getBlock(int blockNum) throws IOException {
         JSONObject block = new JSONObject();
         block.put("id", 10);
         block.put("method", "call");
@@ -369,8 +373,10 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
     protected void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
-        if (block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
-        JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
+        saveTransactionsInfo(block);
+
+        JSONArray transactions = extractTransactionsFromBlock(block);
+        if (transactions.length() == 0) return;
 
         List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
         try {
@@ -385,6 +391,37 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             log.debug(e);
         }
 
+    }
+
+    protected JSONArray extractTransactionsFromBlock(JSONObject block) {
+        return block.getJSONObject("result").getJSONArray("transactions");
+    }
+
+    private void saveTransactionsInfo(JSONObject block) {
+        Optional<BTSBlockInfo> blockInfoOptional = blockTransactionInfoMap.keySet().stream().filter(e -> e.getPreviousHash().equals(block.getJSONObject("result").getString("previous"))).findFirst();
+        if(!blockInfoOptional.isPresent()) return;
+
+            JSONArray transactions = extractTransactionsFromBlock(block);
+            for (int i = 0; i < transactions.length(); i++) {
+                JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
+                BitsharesTransactionInfo newTransactionInfo = BitsharesTransactionInfo.builder()
+                        .amount(reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount")))
+                        .from(transaction.getString("from"))
+                        .to(transaction.getString("to"))
+                        .memo(tryToDecryptMemo(transaction.getJSONObject("memo"))).build();
+
+                TransactionsInfo transactionsInfo = blockTransactionInfoMap.get(blockInfoOptional.get());
+                transactionsInfo.getListOfTransactionInfo().add(newTransactionInfo);
+                blockTransactionInfoMap.put(blockInfoOptional.get(), transactionsInfo);
+            }
+    }
+
+    private String tryToDecryptMemo(JSONObject memo) {
+        try {
+            return decryptBTSmemo(privateKey, memo.toString(), merchantName);
+        } catch (NoSuchAlgorithmException e) {
+            return "Can not decrypt memo";
+        }
     }
 
 
@@ -421,15 +458,19 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     }
 
     private BigDecimal reduceAmount(BigDecimal amount) {
-        return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
+        return amount.multiply(new BigDecimal(Math.pow(10, (-1)*decimal))).setScale(decimal, RoundingMode.HALF_DOWN);
     }
 
-    protected void setIrreversableBlock(String msg) {
-        JSONObject message = new JSONObject(msg);
-        int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
+    protected int getLastIrreversableBlock(String jsonRpc) {
+        JSONObject message = new JSONObject(jsonRpc);
+        return message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
+    }
+
+    protected void getUnprocessedBlocks(String msg) throws IOException {
+        int currentLastIrreversibleBlock = getLastIrreversableBlock(msg);
         synchronized (this) {
-            if (blockNumber > lastIrreversibleBlockValue) {
-                for (; lastIrreversibleBlockValue <= blockNumber; lastIrreversibleBlockValue++) {
+            if (currentLastIrreversibleBlock > lastIrreversibleBlockValue) {
+                for (; lastIrreversibleBlockValue <= currentLastIrreversibleBlock; lastIrreversibleBlockValue++) {
                     getBlock(lastIrreversibleBlockValue);
                 }
                 merchantSpecParamsDao.updateParam(merchant.getName(), lastIrreversebleBlockParam, String.valueOf(lastIrreversibleBlockValue));
@@ -437,11 +478,23 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-
-    //Example for decrypting memo don't delete
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
-
-        System.out.println(s);
+    @Override
+    public void requestBlockTransactionsInfo(BTSBlockInfo blockNum) throws IOException {
+        blockTransactionInfoMap.put(blockNum, new TransactionsInfo());
+        getBlock(blockNum.getBlockNum());
     }
+
+    @Override
+    public TransactionsInfo getRequestedBlocksInfo(int blockNum) {
+        return blockTransactionInfoMap.entrySet().stream().filter(e -> e.getKey().getBlockNum() == blockNum).findFirst().orElse(null).getValue();
+    }
+
+    protected boolean isContainsLastIrreversibleBlockInfo(String jsonRpc){
+        return jsonRpc.contains("notice");
+    }
+
+    private boolean isIrreversibleBlockInfo(String msg) {
+        return msg.contains("previous");
+    }
+
 }

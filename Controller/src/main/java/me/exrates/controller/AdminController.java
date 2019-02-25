@@ -962,6 +962,17 @@ public class AdminController {
     }
 
     @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantCommissions/recalculate-commission-limit-to-usd", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyRecalculateCommissionLimitToUsd(@RequestParam String merchantName,
+                                                                     @RequestParam String currencyName,
+                                                                     @RequestParam Boolean recalculateToUsd) {
+        return merchantService.setPropertyRecalculateCommissionLimitToUsd(merchantName, currencyName, recalculateToUsd)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/editUserOperationTypeAuthorities/submit", method = RequestMethod.POST)
     public RedirectView editUserOperationTypeAuthorities(@ModelAttribute UserOperationAuthorityOptionsForm userOperationAuthorityOptionsForm, Principal principal,
                                                          RedirectAttributes redirectAttributes) {
@@ -1002,16 +1013,16 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
+    public ResponseEntity editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
         commissionService.updateMerchantCommission(editMerchantCommissionDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw", method = RequestMethod.POST)
     @ResponseBody
-    public void toggleSubtractMerchantCommissionForWithdraw(@RequestParam Integer merchantId, @RequestParam Integer currencyId,
+    public void toggleSubtractMerchantCommissionForWithdraw(@RequestParam String merchantName, @RequestParam String currencyName,
                                                             @RequestParam Boolean subtractMerchantCommissionForWithdraw) {
-        merchantService.toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractMerchantCommissionForWithdraw);
+        merchantService.toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName, subtractMerchantCommissionForWithdraw);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)

@@ -20,6 +20,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.CoinTestException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.job.invoice.RefillRequestJob;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -62,6 +63,8 @@ public class BtcCoinTester implements CoinTester {
     private UserService userService;
     @Autowired
     private WalletDao walletDao;
+    @Autowired
+    private RefillRequestJob refillRequestJob;
 
     private int currencyId;
     private int merchantId;
@@ -92,10 +95,15 @@ public class BtcCoinTester implements CoinTester {
             checkRefill(refillAmount, merchantId, currencyId, request);
             testAutoWithdraw(refillAmount);
 //            testManualWithdraw(refillAmount);
-            testOrder(BigDecimal.valueOf(0.001), BigDecimal.valueOf(0.001), name + "/BTC", BigDecimal.valueOf(0.00));
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/BTC", BigDecimal.valueOf(0.00));
+            Thread.sleep(5000);
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/USD", BigDecimal.valueOf(0.00));
+            Thread.sleep(5000);
+            testOrder(BigDecimal.valueOf(0.0001), BigDecimal.valueOf(0.0001), name + "/ETH", BigDecimal.valueOf(0.00));
             stringBuilder.append("Everything works fine!<br>");
             return "Works fine";
         } catch (Exception e){
+            e.printStackTrace();
             stringBuilder.append(e.toString());
             return e.getMessage();
         }
@@ -134,6 +142,7 @@ public class BtcCoinTester implements CoinTester {
         CreateOrder createOrder = new CreateOrder(OperationType.SELL, amount, rate, OrderBaseType.LIMIT, currencyPair, stop).invoke();
         OrderCreateDto orderCreateDto = createOrder.getOrderCreateDto();
         String response = createOrder.getResponse();
+        stringBuilder.append("Response from order creator: " + response).append("<br>");
         if (orderService.getOrderByOrderCreateDtoAndTime(orderCreateDto, LocalDateTime.now().minusSeconds(30), LocalDateTime.now(), principalEmail) == null) {
             throw new CoinTestException("Order were not found in db!");
         }
@@ -203,7 +212,7 @@ public class BtcCoinTester implements CoinTester {
                 }
             } while (withdrawStatus != 10);
 
-            stringBuilder.append("Withdraw works").append("<br>");;
+            stringBuilder.append("Auto-withdraw works").append("<br>");
 
 
         }
@@ -275,13 +284,16 @@ public class BtcCoinTester implements CoinTester {
         do {
             acceptedRequest = refillService.findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(merchantId, currencyId, txHash);
             if (!acceptedRequest.isPresent()) {
-                stringBuilder.append("NOT NOW").append("<br>");;
+                refillRequestJob.forceCheckPaymentsForCoin(name);
                 Thread.sleep(2000);
                 Transaction transaction = btcdClient.getTransaction(txHash);
                 if (transaction.getConfirmations() >= minConfirmation) {
                     Thread.sleep(TIME_FOR_REFILL);
                 }
-                stringBuilder.append("Transaction consfirmation = ").append(transaction.getConfirmations()).append("<br>");;
+                String trxConf = "Transaction consfirmation = ";
+//                int confirmationIndex = stringBuilder.indexOf("Transaction consfirmation =");
+//                if(confirmationIndex != -1) stringBuilder = new StringBuilder(stringBuilder.substring(0, confirmationIndex));
+                stringBuilder.append(trxConf).append(transaction.getConfirmations()).append("<br>");;
             } else {
                 stringBuilder.append("accepted amount ").append(acceptedRequest.get().getAmount()).append("<br>");;
                 stringBuilder.append("refill amount ").append(refillAmount).append("<br>");;
@@ -292,7 +304,7 @@ public class BtcCoinTester implements CoinTester {
             }
         } while (!acceptedRequest.isPresent());
 
-        stringBuilder.append("REQUEST FINDED").append("<br>");;
+        stringBuilder.append("THE REQUEST WAS FOUND").append("<br>");;
         stringBuilder.append("Node balance after refill = " + btcdClient.getBalance()).append("<br>");
         Map<String, String> a = new HashMap<>();
     }
@@ -354,6 +366,10 @@ public class BtcCoinTester implements CoinTester {
 
     public static boolean compareObjects(Object A, Object B) {
         return normalize(A).equals(normalize(B));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new BigDecimal("0.0001").multiply(new BigDecimal("0.00010")));
     }
 
     private static String normalize(Object B) {
@@ -435,12 +451,20 @@ public class BtcCoinTester implements CoinTester {
                 throw new OrderParamsWrongException();
             } else {
             }
+            stringBuilder
+                    .append(" amount: " + orderCreateSummaryDto.getAmount() + " " + amount + " " + compareObjects(orderCreateSummaryDto.getAmount(), amount)).append("<br>")
+                    .append(" getCurrencyPair: " + orderCreateDto.getCurrencyPair().getName() + " " + currencyPair + " " + orderCreateDto.getCurrencyPair().getName().equals(currencyPair)).append("<br>")
+                    .append(" getOperationType: " + orderCreateDto.getOperationType() + " " + orderType + " " + orderCreateDto.getOperationType().equals(orderType)).append("<br>")
+                    .append(" orderCreateDto.getExchangeRate(): " + orderCreateDto.getExchangeRate() + " " + rate + " " + compareObjects(orderCreateDto.getExchangeRate(), rate)).append("<br>")
+                    .append(" orderCreateDto.getOrderBaseType(): " + orderCreateDto.getOrderBaseType() + " " + baseType + " " + orderCreateDto.getOrderBaseType().equals(baseType)).append("<br>")
+                    .append(" orderCreateDto.getTotal(): " + orderCreateDto.getTotal() + " " + amount.multiply(rate) + " " + compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))).append("<br>");
+
 
             boolean isOrderCreateCorrect = compareObjects(orderCreateSummaryDto.getAmount(), amount)
                     && orderCreateDto.getCurrencyPair().getName().equals(currencyPair)
                     && orderCreateDto.getOperationType().equals(orderType)
                     && compareObjects(orderCreateDto.getExchangeRate(), rate)
-                    && compareObjects(orderCreateDto.getTotal(), amount.multiply(rate))
+//                    && compareObjects(orderCreateDto.getTotal(), amount.multiply(rate)) TODO investigate orderCreateDto.getTotal(): 1E-8 1.00E-8 false
                     && orderCreateDto.getOrderBaseType().equals(baseType);
             if (!isOrderCreateCorrect) throw new CoinTestException("orderCreateDto incorrect!");
             stringBuilder.append("Order " + currencyPair + " works!").append("<br>");

@@ -9,6 +9,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.bitshares.BitsharesService;
+import me.exrates.service.bitshares.BitsharesServiceImpl;
+import me.exrates.service.creo.CreoServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
@@ -439,15 +441,20 @@ public class CryptocurrencyConfig {
     }*/
 
     //Bitshares
-    @Bean(name = "ppyServiceImpl")
-    public BitsharesService bitsharesService(){
-        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 10);
-    }
+//    @Bean(name = "ppyServiceImpl")
+//    public BitsharesService bitsharesService(){
+//        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 6, 5); // TODO
+//    }
 //
 //    @Bean(name = "aunitServiceImpl")
 //    public BitsharesService aunitServiceImpl(){
-//        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 100);
+//        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 5, 5){};
 //    }
+
+    @Bean(name = "creoServiceImpl")
+    public BitsharesService bitsharesService(){
+        return new CreoServiceImpl("CREO", "CREO", "merchants/creo.properties", 0, 3);
+    }
 
     //Auto-testing
     @Bean

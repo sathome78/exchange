@@ -18,14 +18,10 @@ $(document).ready(function () {
 
     $($transferCommissionTable).on('click', 'tr', function () {
         var rowData = transfersDataTable.row(this).data();
-        var merchantId = rowData.merchantId;
-        var currencyId = rowData.currencyId;
         var merchantName = rowData.merchantName;
         var currencyName = rowData.currencyName;
         var transferCommissionValue = parseFloat(rowData.transferCommission);
         var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
-        $($editTransferForm).find('input[name="merchantId"]').val(merchantId);
-        $($editTransferForm).find('input[name="currencyId"]').val(currencyId);
         $($editTransferForm).find('input[name="merchantName"]').val(merchantName);
         $($editTransferForm).find('input[name="currencyName"]').val(currencyName);
         $($editTransferForm).find('input[name="transferValue"]').val(transferCommissionValue);
@@ -44,34 +40,77 @@ $(document).ready(function () {
         $('#editCommissionModal').modal();
     });
 
-    $($merchantCommissionTable).on('click', 'tr', function () {
-        var rowData = merchantsCommissionsDataTable.row(this).data();
-        var merchantId = rowData.merchantId;
-        var currencyId = rowData.currencyId;
-        var merchantName = rowData.merchantName;
-        var currencyName = rowData.currencyName;
-        var inputCommissionValue = parseFloat(rowData.inputCommission);
-        var outputCommissionValue = parseFloat(rowData.outputCommission);
-        var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
-        $($merchantCommissionForm).find('input[name="merchantId"]').val(merchantId);
-        $($merchantCommissionForm).find('input[name="currencyId"]').val(currencyId);
-        $('#merchantName').val(merchantName);
-        $('#currencyName').val(currencyName);
-        $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
-        $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
-        $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
-        $('#editMerchantCommissionModal').modal();
+    $($merchantCommissionTable).on('click', 'tr', function (event) {
+        var target = $(event.target);
+        if(!target.is('input#chkbox')) {
+            var rowData = merchantsCommissionsDataTable.row(this).data();
+            var merchantName = rowData.merchantName;
+            var currencyName = rowData.currencyName;
+            var inputCommissionValue = parseFloat(rowData.inputCommission);
+            var outputCommissionValue = parseFloat(rowData.outputCommission);
+            var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
+            var minFixedOutputCommissionUsdRate = parseFloat(rowData.minFixedCommissionUsdRate);
+            var usdRate = parseFloat(rowData.currencyUsdRate);
+            $('#merchantName').val(merchantName);
+            $('#currencyName').val(currencyName);
+            $($merchantCommissionForm).find('input[name="merchantName"]').val(merchantName);
+            $($merchantCommissionForm).find('input[name="currencyName"]').val(currencyName);
+            $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
+            $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
+            $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
+            $($merchantCommissionForm).find('input[name="minFixedAmountUSD"]').val(minFixedOutputCommissionUsdRate);
+            $($merchantCommissionForm).find('input[name="usdRate"]').val(usdRate);
+            $('#editMerchantCommissionModal').modal();
+        }
     });
+
+    $('input#minFixedAmount').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() * usdRate;
+
+        $('input#minFixedAmountUSD').val(amount);
+    });
+
+    $('input#minFixedAmountUSD').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() / usdRate;
+
+        if (amount === Infinity || isNaN(amount)) {
+            $('input#minFixedAmount').val('0');
+        } else {
+            formatMinAmount(amount);
+        }
+    });
+
+    function formatMinAmount(amount) {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum',
+            type: 'GET',
+            data: {
+                "minSum": amount
+            },
+            success: function (data) {
+                $('input#minFixedAmount').val(data);
+            },
+            error: function (error) {
+                console.log(error);
+                $('input#minFixedAmount').val('0');
+            }
+        });
+    }
 
     $($merchantCommissionTable).on('click', 'i', function (e) {
         var event = e || window.event;
         event.stopPropagation();
         var row = $(this).parents('tr');
         var rowData = merchantsCommissionsDataTable.row(row).data();
-        var merchantId = rowData.merchantId;
-        var currencyId = rowData.currencyId;
+        var merchantName = rowData.merchantName;
+        var currencyName = rowData.currencyName;
         var subtractFromWithdraw = !rowData.isMerchantCommissionSubtractedForWithdraw;
-        toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractFromWithdraw)
+        toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName, subtractFromWithdraw)
     });
 
 
@@ -129,13 +168,49 @@ function updateMerchantCommissionsDataTable() {
                     "data": "currencyName"
                 },
                 {
-                    "data": "inputCommission"
+                    "data": "inputCommission",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
-                    "data": "outputCommission"
+                    "data": "outputCommission",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
-                    "data": "minFixedCommission"
+                    "data": "currencyUsdRate",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "minFixedCommission",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "minFixedCommissionUsdRate",
+                    "render": function (data, type) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "isMerchantCommissionSubtractedForWithdraw",
@@ -144,10 +219,49 @@ function updateMerchantCommissionsDataTable() {
                             .concat('</span>');
                     },
                     "className": "text-center"
+                },
+                {
+                    "data": "recalculateToUsd",
+                    "render": function (data, type, row) {
+                        var merchantName = row.merchantName;
+                        var currencyName = row.currencyName;
+
+                        var checkbox;
+                        if (data) {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setPropertyRecalculateLimitToUsd(this, \'' + merchantName + '\', \'' + currencyName + '\')" checked />';
+                        } else {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setPropertyRecalculateLimitToUsd(this, \'' + merchantName + '\', \'' + currencyName + '\')"/>';
+                        }
+                        return checkbox;
+                    }
                 }
             ]
         });
     }
+}
+
+function setPropertyRecalculateLimitToUsd(elem, merchantName, currencyName) {
+    $('#editMerchantCommissionModal').modal('hide');
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/merchantCommissions/recalculate-commission-limit-to-usd',
+        type: 'POST',
+        data: {
+            "merchantName": merchantName,
+            "currencyName": currencyName,
+            "recalculateToUsd": elem.checked
+        },
+        success: function () {
+            updateMerchantCommissionsDataTable()
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
 }
 
 function updateTransferCommissionTable() {
@@ -282,10 +396,10 @@ function submitTransferCommission() {
     });
 }
 
-function toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractFromWithdraw) {
+function toggleSubtractMerchantCommissionForWithdraw(merchantName, currencyName, subtractFromWithdraw) {
     var formData = new FormData();
-    formData.append("merchantId", merchantId);
-    formData.append("currencyId", currencyId);
+    formData.append("merchantName", merchantName);
+    formData.append("currencyName", currencyName);
     formData.append("subtractMerchantCommissionForWithdraw", subtractFromWithdraw);
     $.ajax({
         headers: {

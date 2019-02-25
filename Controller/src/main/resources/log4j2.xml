@@ -276,6 +276,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="casinocoin_log" fileName="${sys:catalina.home}/logs/crypto/casinocoin_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/casinocoin_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="nem_log" fileName="${sys:catalina.home}/logs/crypto/nem_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/nem_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -773,6 +782,9 @@
         </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
+        </logger>
+        <logger name="casinocoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="casinocoin_log"/>
         </logger>
         <logger name="nem_log" level="ALL" additivity="false">
             <AppenderRef ref="nem_log"/>
