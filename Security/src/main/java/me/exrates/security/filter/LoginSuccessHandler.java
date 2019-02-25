@@ -82,11 +82,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
-            try {
-                ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
-            } catch (Exception e) {
-                log.error(ExceptionUtils.getFullStackTrace(e));
-            }
+            ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
             String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
             request.getSession().removeAttribute("lastPageBeforeLogin");
             if (!StringUtils.isEmpty(lastPage)) {
@@ -95,7 +91,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
-            log.error(e.getStackTrace());
+            log.error(ExceptionUtils.getFullStackTrace(e));
             authentication.setAuthenticated(false);
         }
     }
