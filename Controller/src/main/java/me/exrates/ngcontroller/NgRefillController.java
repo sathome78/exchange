@@ -17,11 +17,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.ngcontroller.exception.NgCurrencyNotFoundException;
 import me.exrates.ngcontroller.exception.NgRefillException;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
@@ -48,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -75,19 +72,22 @@ public class NgRefillController {
     private final RefillService refillService;
     private final UserService userService;
 
+    private final GtagRefillService gtagRefillService;
+
     @Autowired
     public NgRefillController(CurrencyService currencyService,
                               InputOutputService inputOutputService,
                               UserService userService,
                               MerchantService merchantService,
                               MessageSource messageSource,
-                              RefillService refillService) {
+                              RefillService refillService, GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
         this.userService = userService;
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.gtagRefillService = gtagRefillService;
     }
 
     // /info/private/v2/balances/refill/crypto-currencies
@@ -104,6 +104,18 @@ public class NgRefillController {
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
+        }
+    }
+
+    @GetMapping("/afgssr/gtag")
+    public Map<String, String> getGtagRequests() {
+        Map<String, String> gtagCount = new HashMap<>();
+        try {
+            String principalEmail = getPrincipalEmail();
+            gtagCount.put("count", String.valueOf(gtagRefillService.getUserRequests(principalEmail)));
+            return gtagCount;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 

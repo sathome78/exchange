@@ -142,8 +142,6 @@ public class OnlineRestController {
     private ExchangeRatesHolder exchangeRatesHolder;
     @Autowired
     private RefillService refillService;
-    @Autowired
-    private GtagRefillService gtagRefillService;
 
     private final String HEADER_SECURITY = "username";
 
@@ -162,17 +160,6 @@ public class OnlineRestController {
         }
     }
 
-    @GetMapping("/afgssr/gtag")
-    public Map<String, String> getGtagRequests(Principal principal) {
-        Map<String, String> gtagCount = new HashMap<>();
-        try {
-            gtagCount.put("count", String.valueOf(gtagRefillService.getUserRequests(principal.getName())));
-            return gtagCount;
-        } catch (Exception e) {
-            log.error(e);
-            throw new RuntimeException(e.getMessage());
-        }
-    }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({
