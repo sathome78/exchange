@@ -218,4 +218,6 @@ public interface UserDao {
 
     long countUserEntrance(String email);
 
+    Integer getUserIdByGa(String email);
+
 }
