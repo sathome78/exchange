@@ -118,7 +118,7 @@ public class AisiServiceImpl implements AisiService {
         return false;
     }
 
-    public boolean checkTransactionForDuplicate(Transaction transaction) {
+    private boolean checkTransactionForDuplicate(Transaction transaction) {
         return StringUtils.isEmpty(StringUtils.isEmpty(transaction.getTransaction_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
                 transaction.getTransaction_id()).isPresent());
     }
