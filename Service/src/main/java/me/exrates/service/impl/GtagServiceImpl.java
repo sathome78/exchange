@@ -1,6 +1,8 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.GtagRefillRequests;
+import me.exrates.dao.UserDao;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,6 +35,13 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private ExchangeApi exchangeApi;
 
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private GtagRefillRequests gtagRefillRequests;
+
     public void sendGtagEvents(String coinsCount, String tiker, String userName) {
         if (!enable) return;
         try {
@@ -43,6 +52,7 @@ public class GtagServiceImpl implements GtagService {
             sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
+            saveGtagRefillRequest(userName);
         } catch (Throwable exception) {
             log.warn("Unable to send statistic to gtag ", exception);
         }
@@ -93,4 +103,19 @@ public class GtagServiceImpl implements GtagService {
 
         log.info("Response is " + jsonResponse);
     }
+
+    public void saveGtagRefillRequest(String userName) {
+        Integer userIdByGa = userDao.getUserIdByGa(userName);
+        try {
+            Integer userId = gtagRefillRequests.getUserIdOfGtagRequests(userIdByGa);
+            if (userId == null) {
+                gtagRefillRequests.addFirstCount(userIdByGa);
+            } else {
+                gtagRefillRequests.updateUserRequestsCount(userIdByGa);
+            }
+        } catch (Exception e) {
+            log.warn("Unable to update number of User requests count");
+        }
+    }
+
 }

@@ -1284,4 +1284,12 @@ public class UserDaoImpl implements UserDao {
         return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
     }
 
+    @Transactional(readOnly = true)
+    public Integer getUserIdByGa(String email) {
+        String sql = "SELECT u.ID FROM USER u WHERE u.email =:email";
+
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), Integer.class);
+
+    }
+
 }
