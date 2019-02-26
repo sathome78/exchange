@@ -21,8 +21,13 @@ public class GtagRefillServiceImpl implements GtagRefillService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Integer getUserRequests(String username) {
         Integer userIdByGa = userDao.getUserIdByGa(username);
-        Integer count = gtagRefillRequests.getUserRequestsCount(userIdByGa);
+
+        return gtagRefillRequests.getUserRequestsCount(userIdByGa);
+    }
+
+    @Override
+    public void resetCount(String username) {
+        Integer userIdByGa = userDao.getUserIdByGa(username);
         gtagRefillRequests.resetCount(userIdByGa);
-        return count;
     }
 }

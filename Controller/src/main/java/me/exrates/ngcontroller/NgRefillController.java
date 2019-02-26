@@ -31,16 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -107,13 +98,28 @@ public class NgRefillController {
         }
     }
 
+
+
     @GetMapping("/afgssr/gtag")
     public Map<String, String> getGtagRequests() {
-        Map<String, String> gtagCount = new HashMap<>();
+        Map<String, String> response = new HashMap<>();
         try {
             String principalEmail = getPrincipalEmail();
-            gtagCount.put("count", String.valueOf(gtagRefillService.getUserRequests(principalEmail)));
-            return gtagCount;
+            response.put("count", String.valueOf(gtagRefillService.getUserRequests(principalEmail)));
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/afgssr/gtag")
+    public Map<String,String> resetGtagRequests(){
+        Map<String, String> response = new HashMap<>();
+        try {
+            String principalEmail = getPrincipalEmail();
+            gtagRefillService.resetCount(principalEmail);
+            response.put("reset", "true");
+            return response;
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
