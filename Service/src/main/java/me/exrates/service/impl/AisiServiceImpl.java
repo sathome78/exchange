@@ -66,7 +66,7 @@ public class AisiServiceImpl implements AisiService {
     }
 
     public void onTransactionReceive(Transaction transaction){
-        log.info("*** Aisi *** Income transaction {} " + transaction);
+        log.warn("*** Aisi *** Income transaction {} " + transaction);
         if (checkTransactionForDuplicate(transaction)) {
             log.warn("*** Aisi *** transaction {} already accepted", transaction.getTransaction_id());
             return;
@@ -118,7 +118,7 @@ public class AisiServiceImpl implements AisiService {
         return false;
     }
 
-    private boolean checkTransactionForDuplicate(Transaction transaction) {
+    public boolean checkTransactionForDuplicate(Transaction transaction) {
         return StringUtils.isEmpty(StringUtils.isEmpty(transaction.getTransaction_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
                 transaction.getTransaction_id()).isPresent());
     }

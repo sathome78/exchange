@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -23,17 +25,27 @@ public class AisiRecieveService {
     @Autowired
     private AisiService aisiService;
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 30 * 1)
     void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
+// address filter
+// dublicate hash
 
-        aisiCurrencyService.getAccountTransactions().stream().forEach(transaction -> {
-            aisiService.onTransactionReceive(transaction);
-        });
+        Set<AisiCurrencyServiceImpl.Transaction> set;
+    try {
+        aisiCurrencyService.getAccountTransactions().stream()
+                .filter(trans -> settrans.getRecieverAddress() ).forEach(transaction ->
+            aisiService.onTransactionReceive(transaction));
+    } catch (Exception e){
+        e.getStackTrace();
+        log.error(e.getMessage());
+    }
     }
 
     @PreDestroy
     public void shutdown() {
         scheduler.shutdown();
     }
+
+
 }
