@@ -2,13 +2,13 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.GtagRefillRequests;
+import me.exrates.dao.UserDao;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.client.Client;
@@ -36,7 +36,7 @@ public class GtagServiceImpl implements GtagService {
     private ExchangeApi exchangeApi;
 
     @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private UserDao userDao;
 
     @Autowired
     private GtagRefillRequests gtagRefillRequests;
@@ -104,9 +104,15 @@ public class GtagServiceImpl implements GtagService {
     }
 
     public void saveGtagRefillRequest(String userName) {
-        try{
-            gtagRefillRequests.updateUserRequestsCount(userName);
-        }catch (Exception e){
+        Integer userIdByGa = userDao.getUserIdByGa(userName);
+        try {
+            Integer userId = gtagRefillRequests.getUserIdOfGtagRequests(userIdByGa);
+            if (userId == null) {
+                gtagRefillRequests.addFirstCount(userIdByGa);
+            } else {
+                gtagRefillRequests.updateUserRequestsCount(userIdByGa);
+            }
+        } catch (Exception e) {
             log.warn("Unable to update number of User requests count");
         }
     }

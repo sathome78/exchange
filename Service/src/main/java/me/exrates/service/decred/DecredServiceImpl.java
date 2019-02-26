@@ -2,6 +2,7 @@ package me.exrates.service.decred;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.UserDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -46,6 +47,8 @@ public class DecredServiceImpl implements DecredService {
     private WithdrawUtils withdrawUtils;
     @Autowired
     private GtagService gtagService;
+    @Autowired
+    private UserDao userDao;
 
     private Merchant merchant;
     private Currency currency;

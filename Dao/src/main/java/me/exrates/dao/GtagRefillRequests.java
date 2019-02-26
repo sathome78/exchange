@@ -2,9 +2,14 @@ package me.exrates.dao;
 
 public interface GtagRefillRequests {
 
-    void updateUserRequestsCount(String username);
+    void updateUserRequestsCount(Integer username);
 
-    Integer getUserRequestsCount(String username);
+    Integer getUserRequestsCount(Integer username);
 
-    void resetCount(String username);
+    void resetCount(Integer username);
+
+    Integer getUserIdOfGtagRequests(Integer userName);
+
+    void addFirstCount(Integer userName);
+
 }
