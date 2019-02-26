@@ -1,12 +1,14 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.GtagRefillRequests;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.client.Client;
@@ -33,6 +35,12 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private ExchangeApi exchangeApi;
 
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    private GtagRefillRequests gtagRefillRequests;
+
     public void sendGtagEvents(String coinsCount, String tiker, String userName) {
         if (!enable) return;
         try {
@@ -43,6 +51,7 @@ public class GtagServiceImpl implements GtagService {
             sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
+            saveGtagRefillRequest(userName);
         } catch (Throwable exception) {
             log.warn("Unable to send statistic to gtag ", exception);
         }
@@ -93,4 +102,14 @@ public class GtagServiceImpl implements GtagService {
 
         log.info("Response is " + jsonResponse);
     }
+
+    public void saveGtagRefillRequest(String userName) {
+        try{
+            gtagRefillRequests.updateUserRequestsCount(userName);
+        }catch (Exception e){
+            log.warn("Unable to update number of User requests count");
+        }
+    }
+
+
 }

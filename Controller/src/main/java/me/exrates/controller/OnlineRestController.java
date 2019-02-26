@@ -3,6 +3,7 @@ package me.exrates.controller;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.GtagRefillRequests;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.*;
@@ -15,6 +16,7 @@ import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.RefillRequestMerchantException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.impl.GtagServiceImpl;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -140,6 +142,8 @@ public class OnlineRestController {
     private ExchangeRatesHolder exchangeRatesHolder;
     @Autowired
     private RefillService refillService;
+    @Autowired
+    private GtagRefillService gtagRefillService;
 
     private final String HEADER_SECURITY = "username";
 
@@ -155,6 +159,18 @@ public class OnlineRestController {
         } catch (Exception e) {
             log.error(e);
             throw new RefillRequestMerchantException(e.getMessage());
+        }
+    }
+
+    @GetMapping("/afgssr/gtag")
+    public Map<String, String> getGtagRequests(Principal principal) {
+        Map<String, String> gtagCount = new HashMap<>();
+        try {
+            gtagCount.put("count", String.valueOf(gtagRefillService.getUserRequests(principal.getName())));
+            return gtagCount;
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
