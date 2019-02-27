@@ -7,14 +7,13 @@ import me.exrates.model.dto.merchants.waves.WavesAddress;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.exception.WavesRestException;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -98,9 +97,17 @@ public class WavesRestClientImpl implements WavesRestClient {
         Map<String, Object> params = new HashMap<>();
         params.put("address", address);
         params.put("limit", MAX_TRANSACTION_QUERY_LIMIT);
-        ResponseEntity<List<List<WavesTransaction>>> transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
-                HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+
+        ResponseEntity<List<List<WavesTransaction>>> transactionsResult;
+        try {
+            transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
+                    HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+        }catch (Exception jsonEx) {
+                log.error(jsonEx);
+                return null;
+        }
         return transactionsResult.getBody().stream().flatMap(List::stream).collect(Collectors.toList());
+
     }
 
 

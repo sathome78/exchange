@@ -1,5 +1,7 @@
 package me.exrates.service;
 
+
+import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
@@ -39,4 +41,6 @@ public interface AisiService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    void onTransactionReceive(Transaction transaction);
 }
