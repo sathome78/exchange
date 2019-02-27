@@ -97,6 +97,7 @@ public class AisiServiceImpl implements AisiService {
                 .currencyId(currency.getId())
                 .amount(fullAmount)
                 .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
