@@ -5,6 +5,7 @@ import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.service.events.BtcBlockEvent;
 import me.exrates.service.events.BtcWalletEvent;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.springframework.context.event.EventListener;
@@ -98,4 +99,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
     default String getNodePropertySource(){
       throw new NotImplementedException();
     }
+
+  default List<BtcTransactionHistoryDto> listTransactions(int page) {
+    throw new NotImplimentedMethod("");
+  }
 }

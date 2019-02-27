@@ -647,6 +647,29 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         return btcdClient.getBlock(btcdClient.getBestBlockHash()).getTime();
     }
 
+    @Override
+    public List<BtcTransactionHistoryDto> listTransaction(int page) {
+        try {
+            int transactionPerPageCount = 20;
+            return btcdClient.listTransactions("", transactionPerPageCount, page * transactionPerPageCount).stream()
+                    .map(payment -> {
+                        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                        dto.setTxId(payment.getTxId());
+                        dto.setAddress(payment.getAddress());
+                        dto.setBlockhash(payment.getBlockHash());
+                        dto.setCategory(payment.getCategory().getName());
+                        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                        dto.setConfirmations(payment.getConfirmations());
+                        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                        return dto;
+                    }).collect(Collectors.toList());
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
+    }
+
     @PreDestroy
   private void shutDown() {
     outputUnlockingExecutor.shutdown();

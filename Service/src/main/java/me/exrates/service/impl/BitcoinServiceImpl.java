@@ -433,7 +433,12 @@ public class BitcoinServiceImpl implements BitcoinService {
   public List<BtcTransactionHistoryDto> listAllTransactions() {
     return bitcoinWalletService.listAllTransactions();
   }
-  
+
+  @Override
+  public List<BtcTransactionHistoryDto> listTransactions(int page) {
+    return bitcoinWalletService.listTransaction(page);
+  }
+
   @Override
   public BigDecimal estimateFee() {
     return bitcoinWalletService.estimateFee(40);
