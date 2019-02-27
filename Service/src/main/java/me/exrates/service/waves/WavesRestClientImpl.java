@@ -99,9 +99,13 @@ public class WavesRestClientImpl implements WavesRestClient {
         params.put("limit", MAX_TRANSACTION_QUERY_LIMIT);
 
         ResponseEntity<List<List<WavesTransaction>>> transactionsResult;
-
+        try {
             transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
                     HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+        }catch (Exception jsonEx) {
+            log.error(jsonEx);
+            return null;
+        }
 
         return transactionsResult.getBody().stream().flatMap(List::stream).collect(Collectors.toList());
 
