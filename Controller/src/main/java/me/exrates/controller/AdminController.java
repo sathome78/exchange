@@ -1201,6 +1201,12 @@ public class AdminController {
         return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) {
+        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
     @ResponseBody
     public List<OmniTxDto> getOmniTransactions() {

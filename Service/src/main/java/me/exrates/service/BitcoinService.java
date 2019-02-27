@@ -103,4 +103,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   default List<BtcTransactionHistoryDto> listTransactions(int page) {
     throw new NotImplimentedMethod("");
   }
+
+    default List<BtcTransactionHistoryDto> findTransactions(String value){
+      throw new NotImplimentedMethod("");
+    }
 }
