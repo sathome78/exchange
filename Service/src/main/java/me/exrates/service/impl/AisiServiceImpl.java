@@ -17,14 +17,15 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Log4j2
 @Service
 public class AisiServiceImpl implements AisiService {
 
-    private final static String MERCHANT_NAME = "AISI";
-    private final static String CURRENCY_NAME = "AISI";
+    public final static String MERCHANT_NAME = "AISI";
+    public final static String CURRENCY_NAME = "AISI";
 
     @Autowired
     private MerchantService merchantService;
@@ -63,6 +64,16 @@ public class AisiServiceImpl implements AisiService {
             put("message", message);
             put("qr", address);
         }};
+    }
+
+    public void checkAddressForTransactionReceive(List<String> listOfAddress, Transaction transaction){
+      try {
+          if (listOfAddress.contains(transaction.getRecieverAddress())) {
+              onTransactionReceive(transaction);
+          }
+      } catch (Exception e){
+          log.error(e + " error in AisiServiceImpl.checkAddressForTransactionReceive()");
+      }
     }
 
     public void onTransactionReceive(Transaction transaction){
