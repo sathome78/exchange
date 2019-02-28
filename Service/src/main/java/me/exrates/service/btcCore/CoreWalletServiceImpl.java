@@ -660,7 +660,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
-        return btcdClient.listTransactions("", page * transactionsPerPage, page == 0 ? 1 : page * transactionsPerPage + transactionsPerPage).stream()
+        return btcdClient.listTransactions("", transactionsPerPage, page * transactionsPerPage).stream()
                 .map(payment -> {
                     BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                     dto.setTxId(payment.getTxId());
