@@ -1,5 +1,7 @@
 package me.exrates.service;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.merchants.btc.*;
@@ -104,7 +106,7 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
     throw new NotImplimentedMethod("");
   }
 
-    default List<BtcTransactionHistoryDto> findTransactions(String value){
+    default List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException {
       throw new NotImplimentedMethod("");
     }
 }

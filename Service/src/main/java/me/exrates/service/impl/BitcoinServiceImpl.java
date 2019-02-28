@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 @Data
 public class BitcoinServiceImpl implements BitcoinService {
 
+  private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
 
@@ -440,12 +441,12 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
 
   @Override
-  public List<BtcTransactionHistoryDto> findTransactions(String value) {
+  public List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException {
 
     List<BtcTransactionHistoryDto> result = new ArrayList<>();
-    List<BtcTransactionHistoryDto> transactions = new ArrayList<>();
+    List<BtcTransactionHistoryDto> transactions;
 
-    for (int i = 0; (transactions = listTransactions(i)).size() > 0; i++){
+    for (int i = 0; (transactions = bitcoinWalletService.getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
       List<BtcTransactionHistoryDto> matches = transactions.stream().filter(e -> e.getAddress().equals(value) || e.getBlockhash().equals(value) || e.getTxId().equals(value)).collect(Collectors.toList());
       result.addAll(matches);
     }
