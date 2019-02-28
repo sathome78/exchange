@@ -82,10 +82,6 @@ public class AisiServiceImpl implements AisiService {
             log.warn("*** Aisi *** transaction {} already accepted", transaction.getTransaction_id());
             return;
         }
-        if (transaction.getRecieverAddress() == null){
-            log.warn("*** Aisi *** Address is null");
-            return;
-        }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.getTransaction_id());
         paramsMap.put("address", transaction.getRecieverAddress());
@@ -131,8 +127,8 @@ public class AisiServiceImpl implements AisiService {
     }
 
     private boolean checkTransactionForDuplicate(Transaction transaction) {
-        return StringUtils.isEmpty(StringUtils.isEmpty(transaction.getTransaction_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
-                transaction.getTransaction_id()).isPresent());
+        return StringUtils.isEmpty(transaction.getTransaction_id()) || StringUtils.isEmpty(transaction.getRecieverAddress()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                transaction.getTransaction_id()).isPresent();
     }
 
 }
