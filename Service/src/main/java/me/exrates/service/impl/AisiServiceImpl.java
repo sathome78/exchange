@@ -17,14 +17,15 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Log4j2
 @Service
 public class AisiServiceImpl implements AisiService {
 
-    private final static String MERCHANT_NAME = "AISI";
-    private final static String CURRENCY_NAME = "AISI";
+    public final static String MERCHANT_NAME = "AISI";
+    public final static String CURRENCY_NAME = "AISI";
 
     @Autowired
     private MerchantService merchantService;
@@ -65,14 +66,20 @@ public class AisiServiceImpl implements AisiService {
         }};
     }
 
+    public void checkAddressForTransactionReceive(List<String> listOfAddress, Transaction transaction){
+      try {
+          if (listOfAddress.contains(transaction.getRecieverAddress())) {
+              onTransactionReceive(transaction);
+          }
+      } catch (Exception e){
+          log.error(e + " error in AisiServiceImpl.checkAddressForTransactionReceive()");
+      }
+    }
+
     public void onTransactionReceive(Transaction transaction){
-        log.info("*** Aisi *** Income transaction {} " + transaction);
+        log.warn("*** Aisi *** Income transaction {} " + transaction);
         if (checkTransactionForDuplicate(transaction)) {
             log.warn("*** Aisi *** transaction {} already accepted", transaction.getTransaction_id());
-            return;
-        }
-        if (transaction.getRecieverAddress() == null){
-            log.warn("*** Aisi *** Address is null");
             return;
         }
         Map<String, String> paramsMap = new HashMap<>();
@@ -97,6 +104,7 @@ public class AisiServiceImpl implements AisiService {
                 .currencyId(currency.getId())
                 .amount(fullAmount)
                 .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
@@ -119,8 +127,8 @@ public class AisiServiceImpl implements AisiService {
     }
 
     private boolean checkTransactionForDuplicate(Transaction transaction) {
-        return StringUtils.isEmpty(StringUtils.isEmpty(transaction.getTransaction_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
-                transaction.getTransaction_id()).isPresent());
+        return StringUtils.isEmpty(transaction.getTransaction_id()) || StringUtils.isEmpty(transaction.getRecieverAddress()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                transaction.getTransaction_id()).isPresent();
     }
 
 }

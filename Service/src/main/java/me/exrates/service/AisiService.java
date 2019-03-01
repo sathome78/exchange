@@ -5,6 +5,8 @@ import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.util.List;
+
 public interface AisiService extends IRefillable, IWithdrawable {
 
     @Override
@@ -41,6 +43,8 @@ public interface AisiService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    void checkAddressForTransactionReceive(List<String> listOfAddress, Transaction transaction);
 
     void onTransactionReceive(Transaction transaction);
 }

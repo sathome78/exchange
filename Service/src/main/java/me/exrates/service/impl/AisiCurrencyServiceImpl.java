@@ -116,6 +116,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
         private String recieverAddress;
         @JsonProperty("Amount")
         private String amount;
+
     }
 
   /*

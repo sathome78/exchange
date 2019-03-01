@@ -1,13 +1,17 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.service.AisiCurrencyService;
-import me.exrates.service.AisiService;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -23,17 +27,42 @@ public class AisiRecieveService {
     @Autowired
     private AisiService aisiService;
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private RefillService refillService;
+
+    private Merchant merchant;
+    private Currency currency;
+
+    @PostConstruct
+    public void init() {
+        currency = currencyService.findByName(AisiServiceImpl.CURRENCY_NAME);
+        merchant = merchantService.findByName(AisiServiceImpl.MERCHANT_NAME);
+    }
+
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 30 * 1)
     void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
+        List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
 
-        aisiCurrencyService.getAccountTransactions().stream().forEach(transaction -> {
-            aisiService.onTransactionReceive(transaction);
-        });
+    try {
+        aisiCurrencyService.getAccountTransactions().stream()
+                .forEach(transaction ->
+            aisiService.checkAddressForTransactionReceive(listOfAddress, transaction));
+    } catch (Exception e){
+        e.getStackTrace();
+        log.error(e.getMessage());
+    }
     }
 
     @PreDestroy
     public void shutdown() {
         scheduler.shutdown();
     }
+
+
 }
