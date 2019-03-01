@@ -2006,7 +2006,7 @@ public class OrderDaoImpl implements OrderDao {
                 currencyNameJoinClauseForStopLimits +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) " +
-                " WHERE STOP_ORDERS.user_id = :user_id " +
+                " AND STOP_ORDERS.user_id = :user_id " +
                 createdAfterStopLimit +
                 createdBeforeStopLimit +
                 currencyPairClauseWhereForStopLimit +
