@@ -437,7 +437,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         String dateToClauseTransferwRequestTr = isNull(dateTo) ? StringUtils.EMPTY : " AND TR.datetime <= :dateTo";
 
         String sql = " SELECT " +
-                "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
+                "    IFNULL(IFNULL(WITHDRAW_REQUEST.date_creation,REFILL_REQUEST.date_creation),TRANSACTION.datetime) AS datetime, " +
                 "    CURRENCY.name as currency, TRANSACTION.amount, " +
                 "    IF (WITHDRAW_REQUEST.id IS NOT NULL, (WITHDRAW_REQUEST.commission + WITHDRAW_REQUEST.merchant_commission), TRANSACTION.commission_amount) AS commission_amount, " +
                 "    MERCHANT.name AS merchant,  " +
