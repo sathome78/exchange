@@ -28,7 +28,6 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 public class RabbitConfig implements RabbitListenerConfigurer {
 
     private final Logger logger = LogManager.getLogger(RabbitConfig.class);
-    public static final String QUEUE_DEAD_ORDERS = "dead-orders-queue";
     public static final String topicExchangeName = "inout-service";
 
     @Value("${rabbit.host}")
@@ -43,18 +42,6 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     @Value("${rabbit.password}")
     private String password;
 
-//    @Value("${rabbit.exchange}")
-//    public String exchangeOrders;
-
-//    @Value("${rabbit.jsp.queue}")
-//    public String REFILL_QUEUE;
-
-//    @Value("${rabbit.angular.queue}")
-//    public String ANGULAR_QUEUE;
-
-//    @Value("${rabbit.dead.items}")
-//    private String QUEUE_DEAD_ORDERS;
-
     @Bean
     public ConnectionFactory connectionFactory() {
         logger.info("amqp: {}:{}, {}", host, port, username);
@@ -68,9 +55,6 @@ public class RabbitConfig implements RabbitListenerConfigurer {
     public Queue refillQueue() {
         return QueueBuilder
                 .durable(RabbitMqService.REFILL_QUEUE)
-                .withArgument("x-dead-letter-exchange", "")
-                .withArgument("x-dead-letter-routing-key", QUEUE_DEAD_ORDERS)
-                .withArgument("x-message-ttl", 10000)
                 .build();
     }
 
@@ -79,11 +63,6 @@ public class RabbitConfig implements RabbitListenerConfigurer {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory());
         return factory;
-    }
-
-    @Bean
-    Queue deadLetterQueue() {
-        return QueueBuilder.durable(QUEUE_DEAD_ORDERS).build();
     }
 
     @Bean
