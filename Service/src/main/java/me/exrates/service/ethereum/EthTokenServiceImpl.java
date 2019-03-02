@@ -274,7 +274,7 @@ public class EthTokenServiceImpl implements EthTokenService {
         }
     }
 
-    private void transferFundsToMainAccount() {
+    private void transferFundsToMainAccount(){
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto) {
             try {

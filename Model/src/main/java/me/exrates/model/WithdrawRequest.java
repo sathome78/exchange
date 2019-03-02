@@ -4,6 +4,7 @@ import lombok.*;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class WithdrawRequest {
+public class WithdrawRequest implements Serializable {
   private Integer id;
   private String wallet;
   private String destinationTag;
