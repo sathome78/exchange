@@ -2,9 +2,10 @@ package me.exrates.model;
 
 import me.exrates.model.util.BigDecimalProcessing;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class Wallet {
+public class Wallet implements Serializable {
 	
 	private int id;
 	private int currencyId;

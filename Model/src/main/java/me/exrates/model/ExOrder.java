@@ -8,6 +8,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
  */
 @Component
 @Getter @Setter
-public class ExOrder {
+public class ExOrder implements Serializable {
     private int id;
     private int userId;
     private int currencyPairId;

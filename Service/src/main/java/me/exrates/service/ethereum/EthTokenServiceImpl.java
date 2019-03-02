@@ -274,10 +274,6 @@ public class EthTokenServiceImpl implements EthTokenService {
     }
 
     private void transferFundsToMainAccount(){
-        if(this.currencyName.equals("DGTX")){
-            System.out.println("debugging...");
-        }
-
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto){
             try {
