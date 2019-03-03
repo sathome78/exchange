@@ -17,8 +17,6 @@
 
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%--INTERCOM CHAT--%>
-    <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
    <%-- <%@include file="../tools/alexa.jsp" %>--%>
 

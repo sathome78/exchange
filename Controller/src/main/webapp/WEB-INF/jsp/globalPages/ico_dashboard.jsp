@@ -21,8 +21,6 @@
     <%--<%@include file="../tools/alexa.jsp" %>--%>
     <%--ZOPIM CHAT--%>
     <%--<%@include file="../tools/zopim.jsp" %>--%>
-    <%--INTERCOM CHAT--%>
-    <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
