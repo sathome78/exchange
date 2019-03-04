@@ -1292,11 +1292,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-        if (exOrder != null) {
-            return cancelOrder(exOrder);
-        } else {
-            return stopOrderServiceImpl.cancelOrder(orderId, null);
-        }
+        return cancelOrder(exOrder);
     }
 
     @Transactional

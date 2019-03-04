@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -81,6 +82,7 @@ public class NgDashboardController {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final StopOrderService stopOrderService;
+    private final StopOrderService stopOrderServiceImpl;
 
 
     @Autowired
@@ -92,7 +94,7 @@ public class NgDashboardController {
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
                                  SimpMessagingTemplate messagingTemplate,
-                                 StopOrderService stopOrderService) {
+                                 StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
@@ -102,6 +104,7 @@ public class NgDashboardController {
         this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
+        this.stopOrderServiceImpl = stopOrderServiceImpl;
     }
 
     // /info/private/v2/dashboard/order
@@ -330,7 +333,12 @@ public class NgDashboardController {
      */
     @PostMapping("/cancel")
     public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
-        return new ResponseModel<>(orderService.cancelOrder(orderId));
+        ExOrder orderById = orderService.getOrderById(orderId);
+        if (orderById != null) {
+            return new ResponseModel<>(orderService.cancelOrder(orderId));
+        } else {
+            return new ResponseModel<>(stopOrderServiceImpl.cancelOrder(orderId, null));
+        }
     }
 
     /**
