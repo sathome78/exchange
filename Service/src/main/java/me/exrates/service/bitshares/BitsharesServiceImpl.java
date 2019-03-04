@@ -48,7 +48,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
-    private RefillService refillService;
+    protected RefillService refillService;
     @Autowired
     private WithdrawUtils withdrawUtils;
     @Autowired
@@ -61,7 +61,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 //    private GtagService gtagService;
 
     private String mainAddress;
-    private String mainAddressId;
+    protected String mainAddressId;
     protected String merchantName;
     private String currencyName;
     private String wsUrl;
@@ -71,7 +71,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     private int decimal;
 
     protected Merchant merchant;
-    private Currency currency;
+    protected Currency currency;
     private URI WS_SERVER_URL;
     private volatile Session session;
     protected volatile RemoteEndpoint.Basic endpoint;
@@ -371,6 +371,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(block.toString());
     }
 
+
     protected void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
         saveTransactionsInfo(block);
@@ -381,16 +382,19 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
         try {
             for (int i = 0; i < transactions.length(); i++) {
-                JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
+                JSONObject transaction = extractTransaction(transactions, i);
 
-                if (transaction.getString("to").equals(mainAddressId)) makeRefill(lisfOfMemo, transaction);
+                if (transaction.getString("to").equals(mainAddressId)) makeRefill(lisfOfMemo, transaction, StringUtils.EMPTY);
 
             }
 
         } catch (JSONException e) {
             log.debug(e);
         }
+    }
 
+    protected JSONObject extractTransaction(JSONArray transactions, int i) {
+        return transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
     }
 
     protected JSONArray extractTransactionsFromBlock(JSONObject block) {
@@ -426,7 +430,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
 
     @SneakyThrows
-    private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
+    protected void makeRefill(List<String> lisfOfMemo, JSONObject transaction, String hash) {
         JSONObject memo = transaction.getJSONObject("memo");
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString(), merchantName);
@@ -444,7 +448,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     }
 
 
-    private void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
+    protected void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
         Map<String, String> map = new HashMap<>();
         map.put("address", address);
         map.put("hash", hash);
@@ -457,7 +461,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-    private BigDecimal reduceAmount(BigDecimal amount) {
+    protected BigDecimal reduceAmount(BigDecimal amount) {
         return amount.multiply(new BigDecimal(Math.pow(10, (-1)*decimal))).setScale(decimal, RoundingMode.HALF_DOWN);
     }
 

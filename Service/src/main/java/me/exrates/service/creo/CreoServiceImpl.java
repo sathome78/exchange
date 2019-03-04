@@ -1,12 +1,18 @@
 package me.exrates.service.creo;
 
+import com.google.common.hash.Hashing;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.annotation.PostConstruct;
 import javax.websocket.ClientEndpoint;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -65,4 +71,42 @@ public class CreoServiceImpl extends BitsharesServiceImpl {
         return block.getJSONObject("result").getJSONObject("block").getJSONArray("transactions");
     }
 
+    @Override
+    protected JSONObject extractTransaction(JSONArray transactions, int i) {
+        return transactions.getJSONObject(i).getJSONArray("operations").getJSONObject(0).getJSONObject("value");
+    }
+
+    @Override
+    protected void makeRefill(List<String> lisfOfMemo, JSONObject transaction, String hash) {
+        String memoText = transaction.getString("memo");
+        if (lisfOfMemo.contains(memoText)) {
+            BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount"));
+
+            prepareAndProcessTx(Hashing.sha256()
+                    .hashString(hash, StandardCharsets.UTF_8)
+                    .toString(), memoText, amount);
+
+        }
+    }
+
+    @Override
+    protected void processIrreversebleBlock(String trx) {
+        JSONObject block = new JSONObject(trx);
+
+        JSONArray transactions = extractTransactionsFromBlock(block);
+        if (transactions.length() == 0) return;
+
+        List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
+        try {
+            for (int i = 0; i < transactions.length(); i++) {
+                JSONObject transaction = extractTransaction(transactions, i);
+
+                if (transaction.getString("to").equals(mainAddressId)) makeRefill(lisfOfMemo, transaction, transactions.getJSONObject(0).getJSONArray("signatures").getString(i));
+
+            }
+
+        } catch (JSONException e) {
+            log.debug(e);
+        }
+    }
 }
