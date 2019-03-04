@@ -18,14 +18,4 @@ public class TokenWrappersGenerator {
                 "me.exrates.service.ethereum.ethTokensWrappers"});
     }
 
-    public static void generateWrapper(String ticker, String filePathToBinAbiFiles, String filePathToWrappers, String wrappersPackage) throws Exception{
-        SolidityFunctionWrapperGenerator.run(new String[]{
-                "generate",
-                filePathToBinAbiFiles+ticker+".bin",
-                filePathToBinAbiFiles+ticker+".abi",
-                "-o",
-                filePathToWrappers,
-                "-p",
-                wrappersPackage});
-    }
 }
