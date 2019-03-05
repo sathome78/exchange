@@ -2,14 +2,18 @@ package me.exrates.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
+import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
@@ -17,6 +21,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
+import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.util.OpenApiUtils;
@@ -28,6 +33,7 @@ import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
@@ -122,6 +128,16 @@ public class WsContorller {
     @SubscribeMapping("/orders/sfwfrf442fewdf/{currencyPairId}")
     public String subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
+    }
+
+    @SubscribeMapping("/order_book/{pairName}/{precision}")
+    public List<OrderBookWrapperDto> subscribeOrdersBook(@DestinationVariable String pairName, @DestinationVariable Integer precision) {
+        PrecissionsEnum precissionsEnum = PrecissionsEnum.convert(precision);
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(OpenApiUtils.transformCurrencyPair(pairName));
+        Preconditions.checkNotNull(currencyPair);
+        return ImmutableList.of(
+                orderService.findAllOrderBookItems(OrderType.SELL, currencyPair.getId(), precissionsEnum.getValue()),
+                orderService.findAllOrderBookItems(OrderType.BUY , currencyPair.getId(), precissionsEnum.getValue()));
     }
 
     @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairName}")

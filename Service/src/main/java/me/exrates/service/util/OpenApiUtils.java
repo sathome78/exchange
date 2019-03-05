@@ -15,4 +15,8 @@ public class OpenApiUtils {
         }
         return currencyPair.replace('_', '/').toUpperCase();
     }
+
+    public static String transformCurrencyPairBack(String currencyPair) {
+        return currencyPair.replace('/', '_').toLowerCase();
+    }
 }

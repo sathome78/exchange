@@ -4,7 +4,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -12,6 +14,7 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,9 +28,12 @@ public class OrdersEventsHandler {
 
     @Autowired
     private StompMessenger stompMessenger;
+    @Autowired
+    private CurrencyService currencyService;
 
-    private Integer pairId;
+    private CurrencyPair currencyPair;
     private OperationType operationType;
+
 
     private AtomicInteger eventsCount = new AtomicInteger(0);
 
@@ -47,9 +53,8 @@ public class OrdersEventsHandler {
 
     private OrdersEventsHandler(Integer pairId, OperationType operationType) {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        this.pairId = pairId;
         this.operationType = operationType;
-        timer = new Timer();
+        this.currencyPair = currencyService.findCurrencyPairById(pairId);
     }
 
     public static OrdersEventsHandler init(Integer pairId, OperationType operationType) {
@@ -60,15 +65,16 @@ public class OrdersEventsHandler {
         eventsCount.incrementAndGet();
         calculateLoadFactor();
         if (SEMAPHORE.tryAcquire()) {
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    lastEventsCountBeforeSend = eventsCount.get();
-                    eventsCount.set(0);
-                    SEMAPHORE.release();
-                    stompMessenger.sendRefreshTradeOrdersMessage(pairId, operationType);
-                }
-            }, getProperlyRefreshTime((long) (loadFactor * refreshTime)));
+            try {
+                TimeUnit.MILLISECONDS.sleep(getProperlyRefreshTime((long) (loadFactor * refreshTime)));
+                lastEventsCountBeforeSend = eventsCount.get();
+                eventsCount.set(0);
+            } catch (InterruptedException e) {
+               log.error(e);
+            } finally {
+                SEMAPHORE.release();
+                stompMessenger.sendRefreshTradeOrdersMessage(currencyPair, operationType);
+            }
         }
     }
 

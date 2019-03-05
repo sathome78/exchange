@@ -35,7 +35,7 @@
         <spring-expression.version>4.3.16.RELEASE</spring-expression.version>
         <spring-security.version>4.2.0.RELEASE</spring-security.version>
         <spring-websocket.version>4.3.22.RELEASE</spring-websocket.version>
-        <spring-messaging.version>4.3.22.RELEASE</spring-messaging.version>
+        <spring-messaging.version>5.1.5.RELEASE</spring-messaging.version>
         <bitcoinj.version>0.14.3</bitcoinj.version>
         <aspectj.version>1.8.10</aspectj.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>

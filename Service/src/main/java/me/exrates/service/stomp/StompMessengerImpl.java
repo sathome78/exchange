@@ -1,16 +1,21 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ChartsCache;
+import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @Log4j2(topic = "ws_stomp_log")
 @Component
-public class StompMessengerImpl implements StompMessenger{
+public class StompMessengerImpl implements StompMessenger {
 
     @Autowired
     private OrderService orderService;
@@ -59,11 +64,36 @@ public class StompMessengerImpl implements StompMessenger{
 
 
    @Override
-   public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
-       String message = orderService.getOrdersForRefresh(pairId, operationType, null);
-       sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
-       sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(pairId.toString()), message);
-       sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
+   public void sendRefreshTradeOrdersMessage(CurrencyPair currencyPair, OperationType operationType){
+       String message = orderService.getOrdersForRefresh(currencyPair.getId(), operationType, null);
+       sendMessageToDestination("/app/trade_orders/".concat(String.valueOf(currencyPair.getId())), message);
+       sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
+       sendMessageToOrderBookNg(currencyPair, operationType);
+       /*sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);*/
+   }
+
+   private void sendMessageToOrderBookNg(CurrencyPair currencyPair, OperationType operationType) {
+       String pairName = OpenApiUtils.transformCurrencyPairBack(currencyPair.getName());
+       String basePath2 = "/order_book/%s/%d";
+       List<PrecissionsEnum> finalSubscribed = new ArrayList<>();
+       Arrays.stream(PrecissionsEnum.values()).forEach(p -> {
+           String path = String.format(basePath2, pairName, p.getValue());
+           System.out.println("select " + path);
+           Set<SimpSubscription> subscribers = findSubscribersByDestination(path);
+           if (subscribers.size() > 0) {
+               System.out.println("added " + path);
+               finalSubscribed.add(p);
+           }
+       });
+       String basePath = "/app/order_book/%s/%d";
+       List<PrecissionsEnum> subscribed = Arrays.asList(PrecissionsEnum.values());
+       Map<PrecissionsEnum, String> result = orderService.findAllOrderBookItemsForAllPrecissions(OrderType.fromOperationType(operationType), currencyPair.getId(), subscribed);
+       result.forEach((k,v) -> {
+           String path = String.format(basePath, pairName, k.getValue());
+           System.out.println("send " + path);
+           sendMessageToDestination(path, v);
+       });
+
    }
 
     @Override

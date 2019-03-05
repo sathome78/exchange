@@ -48,6 +48,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderDeleteStatus;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.TransactionSourceType;
@@ -2427,6 +2428,39 @@ public class OrderServiceImpl implements OrderService {
                     new BigDecimal(marketStatistic.getPredLastOrderRate())));
         }
         return dto;
+    }
+
+    @Override
+    public Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList) {
+        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
+                .stream()
+                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
+                .collect(Collectors.toList());
+        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
+        Map<PrecissionsEnum, String> result = new HashMap<>();
+        precissionsList.forEach(p->{
+            try {
+                List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, p.getValue());
+                OrderBookWrapperDto dto = OrderBookWrapperDto
+                        .builder()
+                        .orderType(orderType)
+                        .orderBookItems(simpleOrderBookItems)
+                        .total(getWrapperTotal(simpleOrderBookItems))
+                        .build();
+                if (marketStatistic != null) {
+                    dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
+                    dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                    dto.setPositive(safeCompareBigDecimals(
+                            new BigDecimal(marketStatistic.getLastOrderRate()),
+                            new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                }
+                result.put(p, objectMapper.writeValueAsString(dto));
+            } catch (Exception e) {
+                log.error(e);
+            }
+        });
+        return result;
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
