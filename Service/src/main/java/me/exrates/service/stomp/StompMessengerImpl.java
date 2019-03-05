@@ -1,16 +1,22 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ChartsCache;
+import me.exrates.service.util.BiTuple;
+import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -42,6 +48,8 @@ public class StompMessengerImpl implements StompMessenger{
     private UserService userService;
     @Autowired
     private ChartsCache chartsCache;
+    @Autowired
+    CurrencyService currencyService;
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -108,15 +116,17 @@ public class StompMessengerImpl implements StompMessenger{
    public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
        String userEmail = userService.getEmailById(userId);
        String destination = "/queue/personal/".concat(currencyPair.toString());
-       String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
+       String message = String.valueOf(orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES).right);
        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
    }
 
     @Override
-    public void sendAllTrades(final Integer currencyPair) {
-        String destination = "/app/trades/".concat(currencyPair.toString());
-        String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
-        sendMessageToDestination(destination, message);
+    public void sendAllTrades(CurrencyPair currencyPair) {
+        BiTuple<String, String> results = orderService.getTradesForRefresh(currencyPair.getId(), null, RefreshObjectsEnum.ALL_TRADES);
+        sendMessageToDestination("/app/trades/".concat(String.valueOf(currencyPair.getId())), results.right);
+        String destination = "/app/all_trades/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPair.getName()));
+        System.out.println(destination);
+        sendMessageToDestination(destination, results.left);
     }
 
     @Override

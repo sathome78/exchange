@@ -1,5 +1,6 @@
 package me.exrates.service.stomp;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.OperationType;
 
@@ -18,7 +19,7 @@ public interface StompMessenger {
 
     void sendMyTradesToUser(int userId, Integer currencyPair);
 
-    void sendAllTrades(Integer currencyPair);
+    void sendAllTrades(CurrencyPair currencyPair);
 
     void sendChartData(Integer currencyPairId);
 

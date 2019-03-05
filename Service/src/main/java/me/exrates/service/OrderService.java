@@ -33,13 +33,13 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -387,7 +387,7 @@ public interface OrderService {
 
     List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
-    String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
+    BiTuple getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
     @Transactional(readOnly = true)
     String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;

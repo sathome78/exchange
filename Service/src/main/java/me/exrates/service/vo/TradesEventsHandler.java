@@ -2,6 +2,8 @@ package me.exrates.service.vo;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.CurrencyPair;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -17,8 +19,10 @@ public class TradesEventsHandler {
 
     @Autowired
     private StompMessenger stompMessenger;
+    @Autowired
+    private CurrencyService currencyService;
 
-    private int currencyPairId;
+    private CurrencyPair currencyPair;
 
     private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
@@ -27,7 +31,7 @@ public class TradesEventsHandler {
 
     private TradesEventsHandler(int currencyPairId) {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        this.currencyPairId = currencyPairId;
+        this.currencyPair = currencyService.findCurrencyPairById(currencyPairId);
     }
 
     public static TradesEventsHandler init(int currencyPairId) {
@@ -38,11 +42,12 @@ public class TradesEventsHandler {
         if (SEMAPHORE.tryAcquire()) {
             try {
                 Thread.sleep(LATENCY);
+                stompMessenger.sendAllTrades(currencyPair);
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
+            } finally {
+                SEMAPHORE.release();
             }
-            SEMAPHORE.release();
-            stompMessenger.sendAllTrades(currencyPairId);
         }
 
     }

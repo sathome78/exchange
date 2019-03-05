@@ -91,6 +91,7 @@ import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
@@ -1906,17 +1907,19 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
+    public BiTuple<String, String> getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
         List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(email,
                 new BackDealInterval("24 HOUR"),
-                100,
+                50,
                 cp,
                 Locale.ENGLISH);
         try {
-            return new JSONArray() {{
+            String responseForOldFront = new JSONArray() {{
                 put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId)));
             }}.toString();
+            String dtosOnly = objectMapper.writeValueAsString(dtos);
+            return new BiTuple(dtosOnly, responseForOldFront);
         } catch (JsonProcessingException e) {
             log.error(e);
             return null;
@@ -1928,7 +1931,7 @@ public class OrderServiceImpl implements OrderService {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
         List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
                 new BackDealInterval("24 HOUR"),
-                100,
+                50,
                 cp,
                 Locale.ENGLISH);
         JSONArray jsonArray = new JSONArray() {{
@@ -1937,7 +1940,7 @@ public class OrderServiceImpl implements OrderService {
         if (principal != null) {
             List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
                     new BackDealInterval("24 HOUR"),
-                    100,
+                    50,
                     cp,
                     Locale.ENGLISH);
             jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(myDtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
