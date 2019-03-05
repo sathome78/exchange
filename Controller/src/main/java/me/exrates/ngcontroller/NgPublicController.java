@@ -40,6 +40,8 @@ import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -83,6 +85,8 @@ public class NgPublicController {
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final NgUserService ngUserService;
+
+
     private final SimpMessagingTemplate messagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
@@ -95,6 +99,7 @@ public class NgPublicController {
                               CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
                               NgUserService ngUserService,
+                              @Qualifier("simpMessagingTemplate")
                               SimpMessagingTemplate messagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,

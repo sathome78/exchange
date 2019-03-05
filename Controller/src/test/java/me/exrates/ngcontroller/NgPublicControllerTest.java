@@ -14,10 +14,13 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.notifications.G2faService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
+import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -26,19 +29,24 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.handler.HandlerExceptionResolverComposite;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import java.util.ArrayList;
+
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -101,7 +109,7 @@ public class NgPublicControllerTest {
         User user = new User();
         user.setStatus(UserStatus.ACTIVE);
         when(userService.findByEmail(anyString())).thenReturn(user);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/public/v2/if_email_exists")
+        mockMvc.perform(get("/api/public/v2/if_email_exists")
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk());
@@ -115,7 +123,7 @@ public class NgPublicControllerTest {
         when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
 
         String actualMessage = String.format("User with email %s not found", EMAIL);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/public/v2/if_email_exists")
+        mockMvc.perform(get("/api/public/v2/if_email_exists")
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -132,7 +140,7 @@ public class NgPublicControllerTest {
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
 
         String actualMessage = String.format("User with email %s registration is not complete", EMAIL);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/public/v2/if_email_exists")
+        mockMvc.perform(get("/api/public/v2/if_email_exists")
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -148,7 +156,7 @@ public class NgPublicControllerTest {
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
         String actualMessage = String.format("User with email %s is not active", EMAIL);
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/public/v2/if_email_exists")
+        mockMvc.perform(get("/api/public/v2/if_email_exists")
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -158,11 +166,47 @@ public class NgPublicControllerTest {
     }
 
     @Test
-    public void isGoogleTwoFAEnabled() {
+    public void isGoogleTwoFAEnabled_WhenTrue() throws Exception{
+        when(g2faService.isGoogleAuthenticatorEnable(EMAIL)).thenReturn(Boolean.TRUE);
+
+        mockMvc.perform(get("/api/public/v2/is_google_2fa_enabled?email={email}"
+                , EMAIL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string("true"));
+
     }
 
     @Test
-    public void checkIfNewUserUsernameExists() {
+    public void isGoogleTwoFAEnabled_WhenFalse() throws Exception{
+        when(g2faService.isGoogleAuthenticatorEnable(EMAIL)).thenReturn(Boolean.FALSE);
+
+        mockMvc.perform(get("/api/public/v2/is_google_2fa_enabled")
+                .param("email", EMAIL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string("false"));
+
+    }
+
+    @Test
+    public void checkIfNewUserUsernameExists_WhenUsernameExists() throws Exception {
+        when(userService.ifNicknameIsUnique("username")).thenReturn(Boolean.TRUE);
+
+        mockMvc.perform(get("/api/public/v2/if_username_exists")
+                .param("username", "username")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    public void checkIfNewUserUsernameExists_WhenUsernameNotExists() throws Exception {
+        when(userService.ifNicknameIsUnique("username")).thenReturn(Boolean.FALSE);
+
+        mockMvc.perform(get("/api/public/v2/if_username_exists")
+                .param("username", "username")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
     }
 
     @Test
