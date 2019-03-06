@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edcmerchant.properties"})
+@Conditional(MonolitConditional.class)
 public class EDCServiceImpl implements EDCService {
 
     private @Value("${edcmerchant.token}")
