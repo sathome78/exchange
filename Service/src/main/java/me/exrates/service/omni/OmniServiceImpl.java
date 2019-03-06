@@ -35,6 +35,7 @@ import java.util.Map;
 
 @Log4j2(topic = "omni_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class OmniServiceImpl implements OmniService {
 
     private final WithdrawUtils withdrawUtils;

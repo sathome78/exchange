@@ -20,6 +20,7 @@ import java.util.Map;
 
 @Service
 @Log4j2
+@Conditional(MonolitConditional.class)
 public class InvoiceServiceImpl implements InvoiceService {
 
   @Autowired

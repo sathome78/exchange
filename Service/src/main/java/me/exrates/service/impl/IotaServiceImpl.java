@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "iota_log")
 @Service
 @PropertySource("classpath:/merchants/iota.properties")
+@Conditional(MonolitConditional.class)
 public class IotaServiceImpl implements IotaService {
 
     @Autowired

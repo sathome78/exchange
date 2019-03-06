@@ -3,27 +3,16 @@ package me.exrates.service.impl;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.InterkassaActionUrlDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.AlgorithmService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InterkassaService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
-import me.exrates.service.exception.InterKassaMerchantException;
-import me.exrates.service.exception.InterKassaMerchantNotFoundException;
-import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
-import me.exrates.service.exception.RefillRequestNotFoundException;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
+import me.exrates.service.*;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,18 +25,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
+@Conditional(MonolitConditional.class)
 public class InterkassaServiceImpl implements InterkassaService {
 
     private static final String POST = "post";
