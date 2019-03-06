@@ -3,24 +3,24 @@ package me.exrates.config;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.cointest.BtcCoinTester;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.bitshares.BitsharesService;
-import me.exrates.service.bitshares.BitsharesServiceImpl;
 import me.exrates.service.creo.CreoServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
-import me.exrates.service.ppy.PPYServiceImpl;
 import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
@@ -29,6 +29,7 @@ import java.util.Map;
 
 @Log4j2(topic = "config")
 @Configuration
+@Conditional(MonolitConditional.class)
 public class CryptocurrencyConfig {
 
     @Autowired

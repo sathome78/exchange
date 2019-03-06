@@ -722,4 +722,9 @@ public class WalletServiceImpl implements WalletService {
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
     }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, int currencyId) {
+        return walletDao.findByUserAndCurrency(userId, currencyId);
+    }
 }
