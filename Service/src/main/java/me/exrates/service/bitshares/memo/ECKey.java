@@ -3,7 +3,7 @@
 // (powered by Fernflower decompiler)
 //
 
-package me.exrates.service.bitshares;
+package me.exrates.service.bitshares.memo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

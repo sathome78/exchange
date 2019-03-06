@@ -1,4 +1,4 @@
-package me.exrates.service.bitshares;
+package me.exrates.service.bitshares.memo;
 
 import com.google.common.primitives.Bytes;
 import com.jsoniter.JsonIterator;

@@ -4,7 +4,6 @@ import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantSpecParamsDao;
-import me.exrates.model.TransactionsInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -35,14 +34,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
+import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 
 
 @Data
 @ClientEndpoint
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 5L;
+    public static final long PERIOD = 1L;
     protected Logger log;
 
     @Autowired
@@ -66,7 +65,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     private String currencyName;
     private String wsUrl;
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    protected int lastIrreversibleBlockValue;
+    protected int lastIrreversibleBlockValue; //
     private String privateKey;
     private int decimal;
 
@@ -77,7 +76,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     protected volatile RemoteEndpoint.Basic endpoint;
     protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private Map<BTSBlockInfo, TransactionsInfo> blockTransactionInfoMap = new LinkedHashMap<>();
 
     public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY, int decimal) {
         this.merchantName = merchantName;
@@ -124,6 +122,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             }
         }
     }
+
     @Override
     public Merchant getMerchant() {
         return merchant;
@@ -311,11 +310,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         history.put("method", "call");
         history.put("params", new JSONArray().put(1).put("history").put(new JSONArray()));
 
-        JSONObject orders = new JSONObject();
-        orders.put("id", 4);
-        orders.put("method", "call");
-        orders.put("params", new JSONArray().put(1).put("orders").put(new JSONArray()));
-
         JSONObject chainId = new JSONObject();
         chainId.put("id", 5);
         chainId.put("method", "call");
@@ -330,7 +324,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         JSONObject subscribe = new JSONObject();
         subscribe.put("id", 7);
         subscribe.put("method", "call");
-        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(false)));
+        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(7).put(false)));
 
         endpoint.sendText(login.toString());
 
@@ -339,8 +333,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(netw.toString());
 
         endpoint.sendText(history.toString());
-
-        endpoint.sendText(orders.toString());
 
         endpoint.sendText(chainId.toString());
 
@@ -371,10 +363,8 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(block.toString());
     }
 
-
     protected void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
-        saveTransactionsInfo(block);
 
         JSONArray transactions = extractTransactionsFromBlock(block);
         if (transactions.length() == 0) return;
@@ -390,41 +380,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
         } catch (JSONException e) {
             log.debug(e);
-        }
-    }
-
-    protected JSONObject extractTransaction(JSONArray transactions, int i) {
-        return transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
-    }
-
-    protected JSONArray extractTransactionsFromBlock(JSONObject block) {
-        return block.getJSONObject("result").getJSONArray("transactions");
-    }
-
-    private void saveTransactionsInfo(JSONObject block) {
-        Optional<BTSBlockInfo> blockInfoOptional = blockTransactionInfoMap.keySet().stream().filter(e -> e.getPreviousHash().equals(block.getJSONObject("result").getString("previous"))).findFirst();
-        if(!blockInfoOptional.isPresent()) return;
-
-            JSONArray transactions = extractTransactionsFromBlock(block);
-            for (int i = 0; i < transactions.length(); i++) {
-                JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
-                BitsharesTransactionInfo newTransactionInfo = BitsharesTransactionInfo.builder()
-                        .amount(reduceAmount(transaction.getJSONObject("amount").getBigDecimal("amount")))
-                        .from(transaction.getString("from"))
-                        .to(transaction.getString("to"))
-                        .memo(tryToDecryptMemo(transaction.getJSONObject("memo"))).build();
-
-                TransactionsInfo transactionsInfo = blockTransactionInfoMap.get(blockInfoOptional.get());
-                transactionsInfo.getListOfTransactionInfo().add(newTransactionInfo);
-                blockTransactionInfoMap.put(blockInfoOptional.get(), transactionsInfo);
-            }
-    }
-
-    private String tryToDecryptMemo(JSONObject memo) {
-        try {
-            return decryptBTSmemo(privateKey, memo.toString(), merchantName);
-        } catch (NoSuchAlgorithmException e) {
-            return "Can not decrypt memo";
         }
     }
 
@@ -447,7 +402,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-
     protected void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
         Map<String, String> map = new HashMap<>();
         map.put("address", address);
@@ -465,11 +419,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         return amount.multiply(new BigDecimal(Math.pow(10, (-1)*decimal))).setScale(decimal, RoundingMode.HALF_DOWN);
     }
 
-    protected int getLastIrreversableBlock(String jsonRpc) {
-        JSONObject message = new JSONObject(jsonRpc);
-        return message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
-    }
-
     protected void getUnprocessedBlocks(String msg) throws IOException {
         int currentLastIrreversibleBlock = getLastIrreversableBlock(msg);
         synchronized (this) {
@@ -482,16 +431,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-    @Override
-    public void requestBlockTransactionsInfo(BTSBlockInfo blockNum) throws IOException {
-        blockTransactionInfoMap.put(blockNum, new TransactionsInfo());
-        getBlock(blockNum.getBlockNum());
-    }
-
-    @Override
-    public TransactionsInfo getRequestedBlocksInfo(int blockNum) {
-        return blockTransactionInfoMap.entrySet().stream().filter(e -> e.getKey().getBlockNum() == blockNum).findFirst().orElse(null).getValue();
-    }
 
     protected boolean isContainsLastIrreversibleBlockInfo(String jsonRpc){
         return jsonRpc.contains("notice");
@@ -501,4 +440,24 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         return msg.contains("previous");
     }
 
+    protected int getLastIrreversableBlock(String jsonRpc) {
+        JSONObject message = new JSONObject(jsonRpc);
+        return message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
+    }
+
+    protected JSONObject extractTransaction(JSONArray transactions, int i) {
+        return transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
+    }
+
+
+    protected JSONArray extractTransactionsFromBlock(JSONObject block) {
+        return block.getJSONObject("result").getJSONArray("transactions");
+    }
+
+    //Example for decrypting memo don't delete
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
+
+        System.out.println(s);
+    }
 }
