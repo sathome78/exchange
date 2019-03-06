@@ -141,7 +141,7 @@ public class NgRefillController {
     }
 
 
-    // /info/private/v2/balances/refill/merchants/input?currency=${currencyName}
+    // /api/private/v2/balances/refill/merchants/input?currency=${currencyName}
 
     /**
      * Return merchant to get necessary refill fields specified by currency name

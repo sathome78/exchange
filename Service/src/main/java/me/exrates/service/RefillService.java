@@ -21,13 +21,13 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -52,6 +52,8 @@ public interface RefillService {
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
     Integer createRefillRequestByFact(RefillRequestAcceptDto request);
+
+    Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum);
 
     void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
 
@@ -195,4 +197,6 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
 
     List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
+
+    Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId);
 }

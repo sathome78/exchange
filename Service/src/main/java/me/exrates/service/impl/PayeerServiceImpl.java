@@ -79,8 +79,8 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   @Override
-  public void processPayment(@RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    checkSign(params);
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+//    checkSign(params);
     Integer requestId = Integer.valueOf(params.get("m_orderid"));
     String merchantTransactionId = params.get("m_operation_id");
     Currency currency = currencyService.findByName(params.get("m_curr"));

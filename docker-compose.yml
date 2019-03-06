@@ -7,7 +7,7 @@ services:
 #  db:
 #    image: "mysql:5.7"
 #    ports:
-#      - "7306:3306"
+#      - "3306:3306"
 #    volumes:
 #      - /Users/stas/db_exrates_4:/var/lib/mysql
 #    environment:

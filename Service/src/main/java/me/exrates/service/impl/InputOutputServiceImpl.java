@@ -272,8 +272,6 @@ public class InputOutputServiceImpl implements InputOutputService {
     @Override
     public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
         filter = filter.toBuilder()
-                .limit(0)
-                .offset(0)
                 .operationTypes(getOperationTypesList())
                 .build();
         List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(filter, locale);

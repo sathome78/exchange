@@ -268,7 +268,7 @@ public class NgBalanceController {
 
     @GetMapping("/inputOutputData/default")
     public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getDefaultMyInputOutputData(
-            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "15") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
@@ -277,6 +277,10 @@ public class NgBalanceController {
                 .email(getPrincipalEmail())
                 .limit(limit)
                 .offset(offset)
+                .currencyId(0)
+                .currencyName(StringUtils.EMPTY)
+                .dateFrom(null)
+                .dateTo(null)
                 .build();
         try {
             PagedResult<MyInputOutputHistoryDto> page = balanceService.getDefaultInputOutputHistory(filter, locale);

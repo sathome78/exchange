@@ -7,12 +7,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.KycDao;
+import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.Email;
+import me.exrates.model.User;
+import me.exrates.model.UserVerificationInfo;
+import me.exrates.model.dto.kyc.CreateApplicantDto;
+import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.dto.kyc.IdentityData;
+import me.exrates.model.dto.kyc.PersonKycDto;
+import me.exrates.model.dto.kyc.ResponseCreateAplicantDto;
+import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.exceptions.KycException;
 import me.exrates.service.KYCService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
+import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +42,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -36,7 +52,7 @@ import static java.util.Objects.nonNull;
 @PropertySource(value = {"classpath:/kyc.properties"})
 @Slf4j
 @Component
-public class ShuftiProKYCService implements KYCService {
+public class KYCServiceImpl implements KYCService {
 
     public static final String SIGNATURE = "Signature";
 
@@ -64,23 +80,29 @@ public class ShuftiProKYCService implements KYCService {
 
     private final UserService userService;
     private final SendMailService sendMailService;
+    private final KycHttpClient kycHttpClient;
+    private final KycDao kycDao;
+    private final UserVerificationInfoDao userVerificationInfoDao;
 
     @Autowired
-    public ShuftiProKYCService(@Value("${shufti-pro.verification-url}") String verificationUrl,
-                               @Value("${shufti-pro.status-url}") String statusUrl,
-                               @Value("${shufti-pro.callback-url}") String callbackUrl,
-                               @Value("${shufti-pro.redirect-url}") String redirectUrl,
-                               @Value("${shufti-pro.reference-digits-number}") int digitsNumber,
-                               @Value("${shufti-pro.verification-mode}") String verificationMode,
-                               @Value("${shufti-pro.phone.sms-text}") String smsText,
-                               @Value("${shufti-pro.email.subject}") String emailSubject,
-                               @Value("${shufti-pro.email.message-pattern}") String emailMessagePattern,
-                               @Value("#{'${shufti-pro.document.supported-types}'.split(',')}") List<String> documentSupportedTypes,
-                               @Value("#{'${shufti-pro.address.supported-types}'.split(',')}") List<String> addressSupportedTypes,
-                               @Value("${shufti-pro.username}") String username,
-                               @Value("${shufti-pro.password}") String password,
-                               UserService userService,
-                               SendMailService sendMailService) {
+    public KYCServiceImpl(@Value("${shufti-pro.verification-url}") String verificationUrl,
+                          @Value("${shufti-pro.status-url}") String statusUrl,
+                          @Value("${shufti-pro.callback-url}") String callbackUrl,
+                          @Value("${shufti-pro.redirect-url}") String redirectUrl,
+                          @Value("${shufti-pro.reference-digits-number}") int digitsNumber,
+                          @Value("${shufti-pro.verification-mode}") String verificationMode,
+                          @Value("${shufti-pro.phone.sms-text}") String smsText,
+                          @Value("${shufti-pro.email.subject}") String emailSubject,
+                          @Value("${shufti-pro.email.message-pattern}") String emailMessagePattern,
+                          @Value("#{'${shufti-pro.document.supported-types}'.split(',')}") List<String> documentSupportedTypes,
+                          @Value("#{'${shufti-pro.address.supported-types}'.split(',')}") List<String> addressSupportedTypes,
+                          @Value("${shufti-pro.username}") String username,
+                          @Value("${shufti-pro.password}") String password,
+                          UserService userService,
+                          KycDao kycDao,
+                          SendMailService sendMailService,
+                          KycHttpClient kycHttpClient,
+                          UserVerificationInfoDao userVerificationInfoDao) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -95,6 +117,9 @@ public class ShuftiProKYCService implements KYCService {
         this.secretKey = password;
         this.userService = userService;
         this.sendMailService = sendMailService;
+        this.kycHttpClient = kycHttpClient;
+        this.kycDao = kycDao;
+        this.userVerificationInfoDao = userVerificationInfoDao;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -258,6 +283,43 @@ public class ShuftiProKYCService implements KYCService {
         log.debug("Notification have been send successfully");
 
         return Pair.of(reference, eventStatus);
+    }
+
+    @Override
+    public OnboardingResponseDto startKyCProcessing(IdentityData identityData, String email) {
+        User user = userService.findByEmail(email);
+        if (user.getKycStatus().equalsIgnoreCase("success")) {
+            throw new KycException("Already passed KYC");
+        }
+
+        //start create applicant
+        String uuid = UUID.randomUUID().toString();
+        userService.updateKycReferenceByEmail(email, uuid);
+        PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(identityData));
+        CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
+
+        ResponseCreateAplicantDto response = kycHttpClient.createApplicant(createApplicantDto);
+
+        if (!response.getState().equalsIgnoreCase("INITIAL")) {
+            throw new KycException("Error while start processing KYC, state " + response.getState()
+                    + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
+        }
+
+        DocTypeEnum typeDoc = identityData.getTypeDoc();
+        String docId = RandomStringUtils.random(18, true, false);
+
+        String callBackUrl = String.format("https://exrates.me/api/public/v2/shufti-pro/webhook/%s", uuid);
+
+        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, typeDoc, docId);
+        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), typeDoc, docId));
+
+        return kycHttpClient.createOnBoarding(onBoardingDto);
+    }
+
+    @Override
+    public boolean updateUserVerificationInfo(User user, KycStatusResponseDto kycStatusResponseDto) {
+        userService.updateKycStatusById(user.getEmail(), kycStatusResponseDto.getStatus());
+        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
     }
 
     private void sendStatusNotification(String userEmail, EventStatus eventStatus) {

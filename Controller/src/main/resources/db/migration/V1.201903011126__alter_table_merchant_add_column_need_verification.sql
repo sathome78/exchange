@@ -1,0 +1,1 @@
+ALTER TABLE MERCHANT ADD COLUMN needVerification tinyint(1) NOT NULL DEFAULT 0;

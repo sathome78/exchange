@@ -272,7 +272,7 @@ public class OrdersEventHandleService {
                     .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
             handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
         } catch (Exception e) {
-            log.error(e);
+            log.error("error handleOrdersDetailed() {}", e);
         }
     }
 
@@ -289,7 +289,7 @@ public class OrdersEventHandleService {
                 handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
             }
         } catch (Exception e) {
-           log.error(e);
+           log.error("ERROR handlePersonalOrders {}", e);
         }
     }
 

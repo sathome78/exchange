@@ -321,14 +321,14 @@ public class NgOrderServiceImpl implements NgOrderService {
                     orderService.getLastOrderPriceByCurrencyPair(currencyPair);
 
             if (currentRateOptional.isPresent()) {
-                logger.info("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());
+                logger.debug("Currency {} rate {}", currencyPair.getName(), currentRateOptional.get());
                 BigDecimal rateNow = BigDecimalProcessing.normalize(currentRateOptional.get());
                 result.setCurrencyRate(rateNow.toPlainString());
             }
 
             ExOrderStatisticsDto orderStatistic =
                     orderService.getOrderStatistic(currencyPair, ChartPeriodsEnum.HOURS_24.getBackDealInterval(), null);
-            logger.info("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
+            logger.debug("Current statistic for currency {}, statistic: {}", currencyPair.getName(), orderStatistic);
             if (orderStatistic != null) {
                 result.setLastCurrencyRate(orderStatistic.getFirstOrderRate());//or orderStatistic.getLastOrderRate() ??
                 result.setRateLow(orderStatistic.getMinRate());

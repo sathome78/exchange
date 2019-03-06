@@ -202,7 +202,7 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT.needVerification AS needVerification," +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -228,6 +228,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("merchant_id", resultSet.getInt("merchant_id"));
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+                merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
                 return merchantCurrency;
             });
         } catch (EmptyResultDataAccessException e) {

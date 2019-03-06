@@ -2,6 +2,8 @@ package me.exrates.dao.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import me.exrates.dao.QuberaDao;
+import me.exrates.dao.impl.QuberaDaoImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.test.context.transaction.TransactionConfiguration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
@@ -27,14 +32,7 @@ public class TestConfiguration {
 
     @Bean(name = "slaveDataSource")
     public DataSource slaveDataSource() {
-        HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(dbSlaveClassname);
-        hikariConfig.setJdbcUrl(dbSlaveUrl);
-        hikariConfig.setUsername(dbSlaveUser);
-        hikariConfig.setPassword(dbSlavePassword);
-        hikariConfig.setMaximumPoolSize(50);
-        hikariConfig.setReadOnly(true);
-        return new HikariDataSource(hikariConfig);
+        return getDataSource();
     }
 
     @DependsOn("slaveDataSource")
@@ -45,6 +43,22 @@ public class TestConfiguration {
 
     @Bean(name = "masterDataSource")
     public DataSource masterDataSource() {
+        return getDataSource();
+    }
+
+    @DependsOn("masterDataSource")
+    @Bean(name = "masterTemplate")
+    public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @Bean
+    public QuberaDao quberaDao(@Qualifier("masterTemplate") NamedParameterJdbcTemplate masterTemplate,
+                               @Qualifier("slaveTemplate") NamedParameterJdbcTemplate slaveTemplate) {
+        return new QuberaDaoImpl(masterTemplate, slaveTemplate);
+    }
+
+    private DataSource getDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDriverClassName(dbSlaveClassname);
         hikariConfig.setJdbcUrl(dbSlaveUrl);
@@ -53,11 +67,5 @@ public class TestConfiguration {
         hikariConfig.setMaximumPoolSize(50);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
-    }
-
-    @DependsOn("masterDataSource")
-    @Bean(name = "masterTemplate")
-    public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
     }
 }

@@ -36,6 +36,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.object.MappingSqlQuery;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.Authentication;
@@ -75,7 +76,7 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -114,6 +115,7 @@ public class UserDaoImpl implements UserDao {
             user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
             user.setFinpassword(resultSet.getString("finpassword"));
+            user.setKycStatus(resultSet.getString("kyc_status"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
@@ -132,6 +134,7 @@ public class UserDaoImpl implements UserDao {
             user.setPhone(resultSet.getString("phone"));
             user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));
+            user.setKycStatus(resultSet.getString("kyc_status"));
             return user;
         };
     }
@@ -364,6 +367,21 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public Optional<String> findKycReferenceByEmail(String email) {
+        String sql = "SELECT kyc_reference FROM USER WHERE USER.email = :email";
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("email", email);
+            }
+        };
+        try {
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public UserShortDto findShortByEmail(String email) {
         String sql = "SELECT id, email, password, status FROM USER WHERE email = :email";
         try {
@@ -377,6 +395,19 @@ public class UserDaoImpl implements UserDao {
             });
         } catch (EmptyResultDataAccessException e) {
             throw new UserNotFoundException(String.format("email: %s", email));
+        }
+    }
+
+    @Override
+    public boolean updateKycStatusByEmail(String email, String result) {
+        String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("value", result);
+        params.addValue("email", email);
+        try {
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
         }
     }
 
@@ -1243,7 +1274,7 @@ public class UserDaoImpl implements UserDao {
         String whereClause = "";
         Map<String, Object> params = new HashMap<>();
         if (userRoleList.size() > 0) {
-            whereClause = "WHERE U.roleid IN (:roles)";
+            whereClause = " WHERE U.roleid IN (:roles)";
             params.put("roles", userRoleList);
         }
         return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
@@ -1260,7 +1291,6 @@ public class UserDaoImpl implements UserDao {
             dto.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toLocalDateTime());
             return dto;
         });
-
     }
 
     @Override
@@ -1288,6 +1318,40 @@ public class UserDaoImpl implements UserDao {
 
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), Integer.class);
 
+    }
+
+    @Override
+    public String getKycStatusByEmail(String email) {
+        String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
+        return namedParameterJdbcTemplate.queryForObject(sql,  Collections.singletonMap("email", email), String.class);
+    }
+
+    @Override
+    public boolean updateKycReferenceIdByEmail(String email, String refernceUID) {
+        String sql = "UPDATE USER SET kyc_reference = :value WHERE email = :email";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("value", refernceUID);
+        params.addValue("email", email);
+        try {
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public Optional<User> findByKycReferenceId(String referenceId) {
+        String sql = SELECT_USER + "WHERE USER.kyc_reference = :referenceId";
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("referenceId", referenceId);
+            }
+        };
+        try {
+            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper()));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
 }

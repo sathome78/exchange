@@ -1004,6 +1004,28 @@ public class UserServiceImpl implements UserService {
         return userDao.verifyToken(token);
     }
 
+    @Override
+    public String getUserKycStatusByEmail(String email) {
+        return userDao.getKycStatusByEmail(email);
+    }
 
+    @Override
+    public boolean updateKycReferenceByEmail(String email, String referenceUID) {
+        return userDao.updateKycReferenceIdByEmail(email, referenceUID);
+    }
+
+    @Override
+    public User findByKycReferenceId(String referenceId) {
+        return userDao.findByKycReferenceId(referenceId).orElseThrow(() -> {
+            String message = String.format("User not found for reference %s", referenceId);
+            log.warn(message);
+            return new UserNotFoundException(message);
+        });
+    }
+
+    @Override
+    public boolean updateKycStatusById(String email, String status) {
+        return userDao.updateKycStatusByEmail(email, status);
+    }
 
 }

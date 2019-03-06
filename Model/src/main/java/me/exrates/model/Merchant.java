@@ -19,6 +19,7 @@ public class Merchant {
     private Integer refillOperationCountLimitForUserPerDay;
     private Boolean additionalTagForWithdrawAddressIsUsed;
     private Integer tokensParrentId;
+    private Boolean needVerification;
 
 
     public Merchant(int id) {

@@ -195,12 +195,6 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
-        filter = filter.toBuilder()
-                .currencyId(0)
-                .currencyName(StringUtils.EMPTY)
-                .dateFrom(null)
-                .dateTo(null)
-                .build();
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(filter, locale);
 
         List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();

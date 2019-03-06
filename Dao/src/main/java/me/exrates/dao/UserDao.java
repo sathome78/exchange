@@ -85,7 +85,11 @@ public interface UserDao {
 
     boolean update(UpdateUserDto user);
 
+    Optional<String> findKycReferenceByEmail(String email);
+
     UserShortDto findShortByEmail(String email);
+
+    boolean updateKycStatusByEmail(String email, String result);
 
     User findByNickname(String nickname);
 
@@ -220,4 +224,9 @@ public interface UserDao {
 
     Integer getUserIdByGa(String email);
 
+    String getKycStatusByEmail(String email);
+
+    boolean updateKycReferenceIdByEmail(String email, String refernceUID);
+
+    Optional<User> findByKycReferenceId(String referenceId);
 }

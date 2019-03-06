@@ -220,6 +220,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/okpay/payment/failure").permitAll()
             .antMatchers(POST, "/merchants/payeer/payment/status",
                     "/merchants/payeer/payment/success").permitAll()
+            .antMatchers(POST, "/merchants/qubera/payment/status",
+                    "/merchants/qubera/success").permitAll()
             .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**").permitAll()
             .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**",  "/chat/history").permitAll()
             .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
@@ -340,6 +342,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/okpay/payment/status",
                     "/merchants/payeer/payment/success",
                     "/merchants/payeer/payment/status",
+                    "/merchants/qubera/payment/success",
+                    "/merchants/qubera/payment/status",
                     "/test/**",
                     "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http

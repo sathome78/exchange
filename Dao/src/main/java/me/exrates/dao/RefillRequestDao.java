@@ -5,6 +5,7 @@ import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.dto.OperationUserDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -17,6 +18,7 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 
 import java.math.BigDecimal;
@@ -53,6 +55,8 @@ public interface RefillRequestDao {
     Integer getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, List<Integer> statusList);
 
     Optional<Integer> findUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+
+    Optional<Integer> autoCreate(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum);
 
     Optional<Integer> create(RefillRequestCreateDto request);
 
@@ -160,4 +164,6 @@ public interface RefillRequestDao {
     List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId);
 
     List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
+
+    Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId);
 }

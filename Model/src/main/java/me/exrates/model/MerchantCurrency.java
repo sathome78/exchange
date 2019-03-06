@@ -42,4 +42,5 @@ public class MerchantCurrency {
     private Boolean comissionDependsOnDestinationTag;
     private Boolean specMerchantComission;
     private Boolean availableForRefill;
+    private Boolean needVerification;
 }

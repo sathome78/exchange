@@ -118,7 +118,7 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
-        user.setUserStatus(UserStatus.ACTIVE);
+        user.setStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
         updateUserDto.setPassword(password);

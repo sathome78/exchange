@@ -245,4 +245,11 @@ public interface UserService {
 
     TemporalToken verifyUserEmailForForgetPassword(String token);
 
+    String getUserKycStatusByEmail(String email);
+
+    boolean updateKycReferenceByEmail(String email, String referenceUID);
+
+    User findByKycReferenceId(String referenceId);
+
+    boolean updateKycStatusById(String email, String status);
 }

@@ -342,6 +342,11 @@ public class RefillServiceImpl implements RefillService {
     }
 
     @Override
+    public Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
+        return refillRequestDao.autoCreate(request, userId, commissionId, statusEnum).orElse(0);
+    }
+
+    @Override
     @Transactional
     public void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale) {
         Integer requestId = invoiceConfirmData.getInvoiceId();
@@ -740,7 +745,9 @@ public class RefillServiceImpl implements RefillService {
             /**/
             Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
             /**/
-            BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+            BigDecimal commission = refillRequest.getCommissionId() > 0
+                    ? commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId())
+                    : BigDecimal.ZERO;
             Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
             if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
                 commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
@@ -1314,6 +1321,11 @@ public class RefillServiceImpl implements RefillService {
             p.setNeededConfirmations(merchant.minConfirmationsRefill());
         });
         return dtos;
+    }
+
+    @Override
+    public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId) {
+        return refillRequestDao.findFlatByUserIdAndMerchantIdAndCurrencyId(userId, merchantId, currencyId);
     }
 
 }

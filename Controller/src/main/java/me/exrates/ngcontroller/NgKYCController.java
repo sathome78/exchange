@@ -2,10 +2,16 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.User;
 import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.dto.kyc.IdentityData;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.exceptions.KycException;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.UserService;
@@ -15,10 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,12 +34,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
 import static java.util.Objects.nonNull;
-import static me.exrates.service.impl.ShuftiProKYCService.SIGNATURE;
+import static me.exrates.service.impl.KYCServiceImpl.SIGNATURE;
 
 @Log4j2
 @RestController
@@ -75,6 +84,17 @@ public class NgKYCController {
             log.info("Callback response unmarshalling failed", ex);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    // https://exrates.me/api/public/v2/shufti-pro/webhook/{referenceId}
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}")
+    public ResponseEntity<Void> callback(HttpServletRequest request,
+                                   @PathVariable String referenceId,
+                                   @RequestBody KycStatusResponseDto kycStatusResponseDto) {
+        User user = userService.findByKycReferenceId(referenceId);
+        kycService.updateUserVerificationInfo(user, kycStatusResponseDto);
+        return ResponseEntity.ok().build();
     }
 
     // /private/v2/shufti-pro/verification-url/step/{stepNumber}
@@ -144,6 +164,18 @@ public class NgKYCController {
         return ResponseEntity.ok(userService.getVerificationStep());
     }
 
+    @GetMapping("/api/private/v2/kyc/status")
+    public ResponseModel<String> getStatusKyc() {
+        String email = getPrincipalEmail();
+        return new ResponseModel<>(userService.getUserKycStatusByEmail(email));
+    }
+
+    @PostMapping("/api/private/v2/kyc/start")
+    public ResponseModel<OnboardingResponseDto> startKycProcessing(@RequestBody @Valid IdentityData identityData) {
+        String email = getPrincipalEmail();
+        return new ResponseModel<>(kycService.startKyCProcessing(identityData, email));
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ShuftiProException.class)
     @ResponseBody
@@ -152,4 +184,19 @@ public class NgKYCController {
         log.error("Invocation of request url: {} caused error:", requestURL, exception);
         return new ErrorInfo(requestURL, exception);
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(KycException.class)
+    @ResponseBody
+    public ErrorInfo exceptionHandler(HttpServletRequest req, Exception exception) {
+        StringBuffer requestURL = req.getRequestURL();
+        log.error("Invocation of request url: {} caused error:", requestURL, exception);
+        return new ErrorInfo(requestURL, exception);
+    }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+
 }

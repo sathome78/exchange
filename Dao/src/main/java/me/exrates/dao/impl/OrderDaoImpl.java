@@ -546,7 +546,13 @@ public class OrderDaoImpl implements OrderDao {
 
         try {
             String sql = "SELECT " +
-                    "   CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.scale AS currency_pair_scale, CP.type AS type,      " +
+                    "   CP.name AS currency_pair_name, CP.market AS market, CP.scale AS currency_pair_scale, CP.id AS currency_pair_id, CP.type AS type,      " +
+                    "   CP.currency1_id as currency1_id, " +
+                    "   (SELECT SUM(EX.amount_base) " +
+                    "       FROM EXORDERS EX  " +
+                    "       WHERE  " +
+                    "       (EX.currency_pair_id = CP.id)  AND  " +
+                    "       (EX.status_id = :status_id)) AS volume, " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
