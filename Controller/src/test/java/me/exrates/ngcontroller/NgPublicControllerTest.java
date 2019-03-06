@@ -175,6 +175,7 @@ public class NgPublicControllerTest {
 
     @Test
     public void isGoogleTwoFAEnabled_WhenTrue() throws Exception{
+
         when(g2faService.isGoogleAuthenticatorEnable(EMAIL)).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(get("/api/public/v2/is_google_2fa_enabled?email={email}"
