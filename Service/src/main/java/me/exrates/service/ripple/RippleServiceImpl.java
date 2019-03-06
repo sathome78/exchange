@@ -37,6 +37,7 @@ import java.util.Random;
 @Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
+@Conditional(MonolitConditional.class)
 public class RippleServiceImpl implements RippleService {
 
     private @Value("${ripple.account.address}")

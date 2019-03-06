@@ -26,6 +26,7 @@ import java.util.Map;
 
 @Service
 @PropertySource("classpath:/merchants/privat24.properties")
+@Conditional(MonolitConditional.class)
 public class Privat24ServiceImpl implements Privat24Service {
 
     private @Value("${privat24.url}") String url;

@@ -31,6 +31,7 @@ import java.util.*;
 @Log4j2(topic = "casinocoin_log")
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
+@Conditional(MonolitConditional.class)
 public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     private static final String DESTINATION_TAG_ERR_MSG = "message.casinocoin.tagError";

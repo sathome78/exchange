@@ -25,6 +25,7 @@ import java.util.TreeMap;
 
 @Service
 @PropertySource("classpath:/merchants/yandex_kassa.properties")
+@Conditional(MonolitConditional.class)
 public class YandexKassaServiceImpl implements YandexKassaService {
 
     private @Value("${yandex_kassa.shopId}") String shopId;

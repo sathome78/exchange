@@ -33,6 +33,7 @@ import java.util.Optional;
 @Log4j2(topic = "apollo")
 @PropertySource("classpath:/merchants/apollo.properties")
 @Service
+@Conditional(MonolitConditional.class)
 public class ApolloServiceImpl implements ApolloService {
 
     private @Value("${apollo.url}")
