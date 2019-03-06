@@ -161,4 +161,6 @@ public interface WalletService {
     BigDecimal retrieveSummaryBTC();
 
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
+
+    Wallet findByUserAndCurrency(int userId, int currencyId);
 }
