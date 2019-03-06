@@ -220,18 +220,29 @@ public class NgPublicControllerTest {
 
     @Test
     public void getChatMessages_WhenOK() throws Exception {
+        ChatHistoryDto historyDto = new ChatHistoryDto();
+        List<ChatHistoryDto> listHistoryDto = Arrays.asList(historyDto);
+
+        when(telegramChatDao.getChatHistoryQuick(ChatLang.EN)).thenReturn(listHistoryDto);
+
+        mockMvc.perform(get("/api/public/v2/chat/history")
+                .param("lang", anyString())
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(jsonPath("$[0].messages").exists());
+
+    }
+
+    @Test
+    public void getChatMessages_WhenException() throws Exception {
 //        ChatHistoryDto historyDto = new ChatHistoryDto();
 //        List<ChatHistoryDto> listHistoryDto = Arrays.asList(historyDto);
-//        LocalDate date = LocalDate.now();
-//        ChatHistoryDateWrapperDto dto = new ChatHistoryDateWrapperDto(date, listHistoryDto);
 //
 //        when(telegramChatDao.getChatHistoryQuick(ChatLang.EN)).thenReturn(listHistoryDto);
 //
 //        mockMvc.perform(get("/api/public/v2/chat/history")
 //                .param("lang", anyString())
 //                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-//                .andDo(print())
-//                .andExpect(jsonPath("$[0].messages").value(dto));
+//                .andExpect(jsonPath("$[0].messages").exists());
 
     }
 
