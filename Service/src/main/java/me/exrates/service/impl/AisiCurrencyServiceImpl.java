@@ -11,6 +11,8 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -22,12 +24,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 @Log4j2
 @Service
+@PropertySource("classpath:/merchants/aisi_wallet.properties")
 public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
     private RestTemplate restTemplate;
+
+    @Value("${aisi.mainaddress}")
+    private String apiKey;
 
     @Autowired
     public AisiCurrencyServiceImpl() {
@@ -42,7 +49,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
     public String generateNewAddress() {
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
-        requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
+        requestParameters.add("api_key", apiKey);
         UriComponents builder = UriComponentsBuilder
                 .fromHttpUrl("https://api.aisi.io/account/address/new")
                 .queryParams(requestParameters)
@@ -72,14 +79,14 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
     public List<Transaction> getAccountTransactions(){
         Integer max = Integer.MAX_VALUE;
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
-        requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
+        requestParameters.add("api_key", apiKey);
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("https://api.aisi.io/transaction/account/" + max)
+                .fromHttpUrl("https://api.aisi.io/transaction/account/{max}")
                 .queryParams(requestParameters)
                 .build();
         ResponseEntity<Transactions> responseEntity = null;
         try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), Transactions.class);
+            responseEntity = restTemplate.getForEntity(builder.toUriString(), Transactions.class, max);
             if (responseEntity.getStatusCodeValue() != 200) {
                 log.warn("Error : {}", responseEntity.getStatusCodeValue());
             }
@@ -124,14 +131,14 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
   */
     public String getBalanceByAddress(String address){
         final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
-        requestParameters.add("api_key", "970E22216DA4C486CC22EEF9A58CD30E5B3A8A0D22A62F5D5B57222D16337814CEF3E7B1D7227C4754C733FE39F433F5C4E4E0F8B6D9D8F76F893BBA4");
+        requestParameters.add("api_key", apiKey);
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("https://api.aisi.io/account/" + address + "/balance")
+                .fromHttpUrl("https://api.aisi.io/account/{address}/balance")
                 .queryParams(requestParameters)
                 .build();
         ResponseEntity<Balance> responseEntity = null;
         try {
-            responseEntity = restTemplate.getForEntity(builder.toUriString(), Balance.class);
+            responseEntity = restTemplate.getForEntity(builder.toUriString(), Balance.class, address);
             if (responseEntity.getStatusCodeValue() != 200) {
                 log.warn("Error : {}", responseEntity.getStatusCodeValue());
             }
