@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -44,7 +43,7 @@ public class AisiRecieveService {
         merchant = merchantService.findByName(AisiServiceImpl.MERCHANT_NAME);
     }
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 30 * 1)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 5)
     void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
         List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
