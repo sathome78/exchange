@@ -12,6 +12,8 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -26,6 +28,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -61,6 +65,7 @@ import static me.exrates.model.enums.TransactionSourceType.REFILL;
  */
 
 @Repository
+@Conditional(MonolitConditional.class)
 public class RefillRequestDaoImpl implements RefillRequestDao {
 
     private static final Logger log = LogManager.getLogger("refill");

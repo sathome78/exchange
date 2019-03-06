@@ -6,6 +6,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -13,12 +14,7 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
@@ -30,18 +26,14 @@ import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -53,6 +45,7 @@ import static java.util.Objects.isNull;
  */
 @Log4j2
 @Service
+@Conditional(MonolitConditional.class)
 public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired

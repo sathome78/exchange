@@ -30,6 +30,9 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
 import me.exrates.model.dto.RefillRequestsAdminTableDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.*;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
@@ -41,6 +44,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -85,6 +89,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -132,6 +137,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
+@Conditional(MonolitConditional.class)
 public class RefillServiceImpl implements RefillService {
 
     @Value("${invoice.blockNotifyUsers}")
