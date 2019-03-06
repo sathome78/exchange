@@ -28,7 +28,7 @@ public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerC
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService));
+//        registration.interceptors(new AuthChannelInterceptorAdapter(webSocketAuthenticatorService));
     }
 }
 

@@ -1,9 +1,13 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
+import me.exrates.model.dto.ChatHistoryDateWrapperDto;
+import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.enums.ChatLang;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.ngcontroller.service.NgUserService;
@@ -37,7 +41,11 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.handler.HandlerExceptionResolverComposite;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
@@ -210,7 +218,21 @@ public class NgPublicControllerTest {
     }
 
     @Test
-    public void getChatMessages() {
+    public void getChatMessages_WhenOK() throws Exception {
+//        ChatHistoryDto historyDto = new ChatHistoryDto();
+//        LocalDate date = LocalDate.now();
+//        ChatHistoryDateWrapperDto dto = new ChatHistoryDateWrapperDto(date, Arrays.asList(historyDto));
+//
+//        when(Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(),telegramChatDao.getChatHistoryQuick(ChatLang.EN))).thenReturn(Arrays.asList(dto)));
+//        List<ChatHistoryDto> chatHistoryDto = Lists.newArrayList(telegramChatDao.getChatHistoryQuick(ChatLang.EN));
+//        List<ChatHistoryDateWrapperDto> chatHistoryDateWrapperDto = Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(),
+//                chatHistoryDto));
+
+//        mockMvc.perform(get("/api/public/v2/chat/history")
+//                .param("lang", anyString())
+//                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+//                .andReturn();
+
     }
 
     @Test
