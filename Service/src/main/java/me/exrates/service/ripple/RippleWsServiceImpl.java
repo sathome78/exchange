@@ -2,12 +2,14 @@ package me.exrates.service.ripple;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.MerchantService;
 import me.exrates.service.WithdrawService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import java.util.Optional;
 @ClientEndpoint
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
+@Conditional(MonolitConditional.class)
 public class RippleWsServiceImpl {
 
     private @Value("${ripple.rippled.ws}") String wsUrl;

@@ -1,6 +1,8 @@
 package me.exrates.service.tron;
 
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Conditional(MonolitConditional.class)
 public class TronTokenContext {
 
     @Autowired

@@ -27,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemNodeService {
 
     private @Value("${ncc.server.url}")String nccServer;

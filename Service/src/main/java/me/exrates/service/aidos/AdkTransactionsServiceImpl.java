@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "adk_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class AdkTransactionsServiceImpl implements TransactionsCheckService {
 
 
