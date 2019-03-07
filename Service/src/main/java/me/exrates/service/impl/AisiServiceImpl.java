@@ -117,7 +117,7 @@ public class AisiServiceImpl implements AisiService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+         throw new RuntimeException("Not supported");
     }
 
     @Override
