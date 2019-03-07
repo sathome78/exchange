@@ -114,8 +114,6 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private UserTransferService userTransferService;
     @Autowired
-    private CryptoCurrencyBalances cryptoCurrencyBalances;
-    @Autowired
     private OrderService orderService;
     @Autowired
     private ExchangeApi exchangeApi;

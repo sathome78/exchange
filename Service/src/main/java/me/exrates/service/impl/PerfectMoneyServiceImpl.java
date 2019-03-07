@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
@@ -20,6 +21,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,7 @@ import java.util.Properties;
  */
 @Service
 @PropertySource("classpath:/merchants/perfectmoney.properties")
+@Conditional(MonolitConditional.class)
 public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     private @Value("${perfectmoney.url}")

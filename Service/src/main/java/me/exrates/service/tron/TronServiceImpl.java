@@ -11,6 +11,8 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
