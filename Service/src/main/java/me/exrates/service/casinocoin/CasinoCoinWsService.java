@@ -1,13 +1,12 @@
 package me.exrates.service.casinocoin;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.Merchant;
-import me.exrates.service.MerchantService;
-import me.exrates.service.WithdrawService;
+import me.exrates.model.condition.MonolitConditional;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,12 @@ import javax.annotation.PreDestroy;
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 
 @Log4j2(topic = "casinocoin_log")
 @ClientEndpoint
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
+@Conditional(MonolitConditional.class)
 public class CasinoCoinWsService {
 
     private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";

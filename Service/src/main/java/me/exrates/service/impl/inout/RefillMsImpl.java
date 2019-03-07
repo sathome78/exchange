@@ -1,9 +1,10 @@
-package me.exrates.service;
+package me.exrates.service.impl.inout;
 
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.RefillRequestAddressShortDto;
+import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -12,7 +13,10 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,8 +25,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-
-public class RefillMicroserviceImpl implements RefillService {
+@Service
+@Conditional(MicroserviceConditional.class)
+public class RefillMsImpl implements RefillService {
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {

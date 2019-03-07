@@ -12,6 +12,8 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
@@ -30,6 +32,7 @@ import org.nem.core.model.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +54,7 @@ import java.util.Optional;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemServiceImpl implements NemService {
 
     @Autowired
