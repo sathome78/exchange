@@ -2,6 +2,7 @@ package me.exrates.service.btcCore;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -79,5 +80,11 @@ public interface CoreWalletService {
 
   List<BtcTransactionHistoryDto> listTransaction(int page);
 
+  PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue);
+
   List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException;
 }
