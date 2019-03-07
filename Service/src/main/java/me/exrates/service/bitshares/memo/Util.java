@@ -1,4 +1,4 @@
-package me.exrates.service.bitshares;
+package me.exrates.service.bitshares.memo;
 
 import org.spongycastle.crypto.DataLengthException;
 import org.spongycastle.crypto.InvalidCipherTextException;

@@ -6,7 +6,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransferDto;
 import me.exrates.service.RefillService;
-import me.exrates.service.bitshares.Preconditions;
+import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
