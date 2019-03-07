@@ -258,7 +258,7 @@ public class NgPublicControllerTest {
     public void getAllPairs_WhenOk() throws Exception {
 //        CurrencyPair currencyPair = new CurrencyPair();
 //        List<CurrencyPair> currencyPairs = ImmutableList.of(currencyPair);
-//
+//kkk
 //        when(currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN)).thenReturn(currencyPairs);
 //        mockMvc.perform(get("/api/public/v2/all-pairs")
 //                .contentType(APPLICATION_JSON_UTF8_VALUE))
