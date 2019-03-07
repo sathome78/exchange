@@ -19,6 +19,7 @@ import java.net.URISyntaxException;
 @Log4j2(topic = "omni_log")
 @Service
 @PropertySource("classpath:/merchants/omni.properties")
+@Conditional(MonolitConditional.class)
 public class OmniNodeServiceImpl implements OmniNodeService {
 
     private @Value("${node.omni.rpc.host}")String nodeHost;

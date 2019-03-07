@@ -1,6 +1,8 @@
 package me.exrates.service.stellar;
 
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import org.stellar.sdk.Asset;
 
@@ -12,6 +14,7 @@ import java.util.Map;
  * Created by Maks on 04.04.2018.
  */
 @Component
+@Conditional(MonolitConditional.class)
 public class StellarAsssetsContext {
 
     @Autowired

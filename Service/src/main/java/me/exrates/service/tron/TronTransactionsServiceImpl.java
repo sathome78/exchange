@@ -1,6 +1,7 @@
 package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
@@ -12,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ import java.util.stream.StreamSupport;
 @Log4j2(topic = "tron")
 @PropertySource("classpath:/merchants/tron.properties")
 @Service
+@Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @Autowired

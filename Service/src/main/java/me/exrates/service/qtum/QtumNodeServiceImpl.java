@@ -22,6 +22,7 @@ import java.util.*;
 @Service
 @Log4j2(topic = "qtum_log")
 @PropertySource("classpath:/merchants/qtum.properties")
+@Conditional(MonolitConditional.class)
 public class QtumNodeServiceImpl implements QtumNodeService {
 
     @Autowired

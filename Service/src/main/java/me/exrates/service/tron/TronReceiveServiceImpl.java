@@ -4,6 +4,7 @@ package me.exrates.service.tron;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
@@ -11,8 +12,8 @@ import me.exrates.model.dto.TronTransactionTypeEnum;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
-import org.springframework.util.NumberUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "tron")
 @Service
+@Conditional(MonolitConditional.class)
 public class TronReceiveServiceImpl {
 
     private final TronNodeService nodeService;

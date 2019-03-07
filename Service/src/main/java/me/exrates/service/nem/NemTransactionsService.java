@@ -34,6 +34,7 @@ import java.util.HashMap;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemTransactionsService {
 
     private @Value("${nem.transaction.version}")Integer version;
