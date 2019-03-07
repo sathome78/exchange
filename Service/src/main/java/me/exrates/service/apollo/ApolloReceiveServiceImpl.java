@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "apollo")
 @PropertySource("classpath:/merchants/apollo.properties")
 @Component
+@Conditional(MonolitConditional.class)
 public class ApolloReceiveServiceImpl {
 
 

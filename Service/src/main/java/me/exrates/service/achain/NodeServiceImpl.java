@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 @PropertySource("classpath:/merchants/achain.properties")
 @Log4j2(topic = "achain")
 @Component
+@Conditional(MonolitConditional.class)
 public class NodeServiceImpl implements NodeService {
 
     private final SDKHttpClient httpClient;

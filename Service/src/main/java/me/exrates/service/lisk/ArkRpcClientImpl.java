@@ -24,6 +24,7 @@ import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskRes
 @Log4j2(topic = "lisk_log")
 @Service
 @Scope("prototype")
+@Conditional(MonolitConditional.class)
 public class ArkRpcClientImpl implements ArkRpcClient {
     @Autowired
     private RestTemplate restTemplate;

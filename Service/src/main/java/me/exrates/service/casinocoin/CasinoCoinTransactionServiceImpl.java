@@ -23,6 +23,7 @@ import java.util.Map;
 @Log4j2(topic = "casinocoin_log")
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
+@Conditional(MonolitConditional.class)
 public class CasinoCoinTransactionServiceImpl implements CasinoCoinTransactionService {
 
     @Value("${casinocoin.amount.multiplier}")

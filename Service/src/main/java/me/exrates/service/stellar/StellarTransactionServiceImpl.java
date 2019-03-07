@@ -1,6 +1,7 @@
 package me.exrates.service.stellar;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.StellarNetworkModeEnum;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
@@ -8,6 +9,7 @@ import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.stellar.sdk.*;
@@ -30,6 +32,7 @@ import java.util.Map;
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
+@Conditional(MonolitConditional.class)
 public class StellarTransactionServiceImpl implements StellarTransactionService {
 
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);
