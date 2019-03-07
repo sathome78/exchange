@@ -187,6 +187,7 @@ public class NgPublicController {
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
+            // todo to handle with error handler
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         final ChatMessage message;
