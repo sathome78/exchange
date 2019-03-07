@@ -2,7 +2,9 @@ package me.exrates.controller;
 
 import me.exrates.cointest.CoinDispatcher;
 import me.exrates.cointest.CoinTester;
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Controller
+@Conditional(MonolitConditional.class)
 public class CoinTestController {
 
     private final CoinDispatcher coinDispatcher;

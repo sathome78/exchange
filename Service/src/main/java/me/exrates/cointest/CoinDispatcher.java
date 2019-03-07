@@ -1,16 +1,19 @@
 package me.exrates.cointest;
 
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.ethereum.EthTokenService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
+@Conditional(MonolitConditional.class)
 public class CoinDispatcher {
 
     private final Map<String, IRefillable> stringIRefillableMap;

@@ -1,8 +1,10 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BTSBlockInfo;
 import me.exrates.service.bitshares.BitsharesDispatcher;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/bitshares")
+@Conditional(MonolitConditional.class)
 public class BitsharesInfoController {
 
     private final BitsharesDispatcher bitsharesDispatcher;

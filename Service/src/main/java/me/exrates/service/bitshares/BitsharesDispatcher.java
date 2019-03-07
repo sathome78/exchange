@@ -1,13 +1,16 @@
 package me.exrates.service.bitshares;
 
 import me.exrates.model.TransactionsInfo;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BTSBlockInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
+@Conditional(MonolitConditional.class)
 public class BitsharesDispatcher {
     private final Map<String, BitsharesService> bitsharesServiceMap;
 

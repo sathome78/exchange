@@ -1906,6 +1906,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
+    @Conditional(MonolitConditional.class)
     public QtumTokenService spcService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("57931faffdec114056a49adfcaa1caac159a1a25");
@@ -1914,6 +1915,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "hlcServiceImpl")
+    @Conditional(MonolitConditional.class)
     public QtumTokenService hlcService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
@@ -1923,24 +1925,28 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     //**** Monero ****/
     @Bean(name = "moneroServiceImpl")
+    @Conditional(MonolitConditional.class)
     public MoneroService moneroService() {
         return new MoneroServiceImpl("merchants/monero.properties",
                 "Monero", "XMR", 10, 12);
     }
 
     @Bean(name = "ditcoinServiceImpl")
+    @Conditional(MonolitConditional.class)
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
     }
 
     @Bean(name = "sumoServiceImpl")
+    @Conditional(MonolitConditional.class)
     public MoneroService sumoService() {
         return new MoneroServiceImpl("merchants/sumokoin.properties",
                 "SUMO", "SUMO", 10, 9);
     }
 
     @Bean(name = "hcxpServiceImpl")
+    @Conditional(MonolitConditional.class)
     public MoneroService hcxpService() {
         return new HCXPServiceImpl("merchants/hcxp.properties",
                 "HCXP", "HCXP", 1, 6);
@@ -1948,6 +1954,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService dimCoinService() {
         return new XemMosaicServiceImpl(
                 "DimCoin",
@@ -1960,6 +1967,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "npxsDimServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService npxsService() {
         return new XemMosaicServiceImpl(
                 "NPXSXEM",
@@ -1972,6 +1980,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "digicServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService digicService() {
         return new XemMosaicServiceImpl(
                 "DIGIT",
@@ -1984,6 +1993,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "dimEurServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService dimEurService() {
         return new XemMosaicServiceImpl(
                 "DIM.EUR",
@@ -1996,6 +2006,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "dimUsdServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService dimUsdService() {
         return new XemMosaicServiceImpl(
                 "DIM.USD",
@@ -2012,6 +2023,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String SLT_EMMITER;
 
     @Bean(name = "sltStellarService")
+    @Conditional(MonolitConditional.class)
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
                 "SLT",
@@ -2020,6 +2032,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "ternStellarService")
+    @Conditional(MonolitConditional.class)
     public StellarAsset ternStellarService() {
         return new StellarAsset("TERN",
                 "TERN",
@@ -2028,11 +2041,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean("vexaniumContract")
+    @Conditional(MonolitConditional.class)
     public AchainContract achainContractService() {
         return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
     }
 
     @Bean(name = "vntStellarService")
+    @Conditional(MonolitConditional.class)
     public StellarAsset vntStellarService() {
         return new StellarAsset("VNT",
                 "VNT",
