@@ -5,6 +5,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.FiatPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -446,5 +447,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<CurrencyPair> getPairsBySecondPartName(String partName) {
         return currencyDao.findAllCurrenciesBySecondPartName(partName);
+    }
+
+    @Override
+    public List<FiatPair> getAllFiatPairs() {
+        return currencyDao.getAllFiatPairs();
     }
 }

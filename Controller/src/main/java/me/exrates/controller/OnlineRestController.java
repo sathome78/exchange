@@ -45,6 +45,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -213,7 +214,9 @@ public class OnlineRestController {
 
         if (resultWallet.size() > 1) {
 
-            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
+            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates().stream()
+                    .map(ExOrderStatisticsShortByPairsDto::new)
+                    .collect(toList());
 
             final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
             resultOrders.stream()

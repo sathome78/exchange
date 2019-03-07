@@ -6,7 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.enums.CurrencyPairType;
+
+import java.math.BigDecimal;
 
 /**
  * Created by Valk
@@ -34,6 +37,9 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private Integer currency1Id;
     private String currencyVolume;
 
+    private BigDecimal high24hr;
+    private BigDecimal low24hr;
+
     public ExOrderStatisticsShortByPairsDto() {
         this.needRefresh = true;
     }
@@ -53,6 +59,22 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
         this.type = exOrderStatisticsShortByPairsDto.type;
         this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
         this.pairOrder = exOrderStatisticsShortByPairsDto.pairOrder;
+    }
+
+    public ExOrderStatisticsShortByPairsDto(CacheOrderStatisticDto statistic) {
+        this.currencyPairId = statistic.getCurrencyPairId();
+        this.currencyPairName = statistic.getCurrencyPairName();
+        this.currencyPairPrecision = statistic.getCurrencyPairPrecision();
+        this.type = statistic.getCurrencyPairType();
+        this.lastOrderRate = statistic.getLastOrderRate().toPlainString();
+        this.predLastOrderRate = statistic.getPredLastOrderRate().toPlainString();
+        this.percentChange = statistic.getPercentChange().toPlainString();
+        this.volume = statistic.getVolume().toPlainString();
+        this.currencyVolume = statistic.getCurrencyVolume().toPlainString();
+        this.market = statistic.getMarket();
+        this.priceInUSD = statistic.getPriceInUSD().toPlainString();
+        this.high24hr = statistic.getHigh24hr();
+        this.low24hr = statistic.getLow24hr();
     }
 
     @Override

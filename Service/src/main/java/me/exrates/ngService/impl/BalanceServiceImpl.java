@@ -141,14 +141,14 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     private void setBtcUsdAmount(List<MyWalletsDetailedDto> walletsDetails) {
-        Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
-        Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
+        Map<String, BigDecimal> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
+        Map<String, BigDecimal> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
 
         BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
         walletsDetails.forEach(p -> {
             BigDecimal sumBalances = new BigDecimal(p.getActiveBalance()).add(new BigDecimal(p.getReservedBalance())).setScale(8, RoundingMode.HALF_DOWN);
-            BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-            BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BigDecimal usdRate = usdRateMapped.getOrDefault(p.getCurrencyName(), BigDecimal.ZERO);
+            BigDecimal btcRate = btcRateMapped.getOrDefault(p.getCurrencyName(), BigDecimal.ZERO);
             BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
 
             p.setBtcAmount(dto.getBalanceBtc().setScale(8, RoundingMode.HALF_DOWN).toPlainString());
@@ -301,14 +301,14 @@ public class BalanceServiceImpl implements BalanceService {
         BalancesShortDto result = BalancesShortDto.zeroBalances();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalBtc =
-                exchangeRatesHolder.getAllRates()
-                        .stream()
+                exchangeRatesHolder.getAllRates().stream()
+                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
                         .findFirst();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalUsd =
-                exchangeRatesHolder.getAllRates()
-                        .stream()
+                exchangeRatesHolder.getAllRates().stream()
+                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/USD"))
                         .findFirst();
 

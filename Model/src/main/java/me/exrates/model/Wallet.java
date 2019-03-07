@@ -123,7 +123,7 @@ public class Wallet {
 		return "Wallet{" +
 				"id=" + id +
 				", currencyId=" + currencyId +
-				", userId=" + user.getEmail() +
+//				", userId=" + user.getEmail() +
 				", activeBalance=" + activeBalance +
 				", reservedBalance=" + reservedBalance +
 				", name='" + name + '\'' +

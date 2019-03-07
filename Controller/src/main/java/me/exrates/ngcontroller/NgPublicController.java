@@ -20,15 +20,15 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.NgOrderService;
-import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.ngService.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -65,8 +65,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
@@ -202,7 +202,7 @@ public class NgPublicController {
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
                 orderService.findAllOrderBookItems(OrderType.SELL, pairId, precision),
-                orderService.findAllOrderBookItems(OrderType.BUY ,pairId, precision));
+                orderService.findAllOrderBookItems(OrderType.BUY, pairId, precision));
     }
 
     @GetMapping("/info/{currencyPairId}")
@@ -219,7 +219,9 @@ public class NgPublicController {
 
     @GetMapping("/info/max/{name}")
     public ResponseModel getMaxCurrencyPair24h(@PathVariable("name") String name) {
-        List<ExOrderStatisticsShortByPairsDto> all = exchangeRatesHolder.getAllRates();
+        List<ExOrderStatisticsShortByPairsDto> all = exchangeRatesHolder.getAllRates().stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
 
         Optional<ExOrderStatisticsShortByPairsDto> max = all.stream()
                 .filter(o -> o.getCurrencyPairName().startsWith(name.toUpperCase()))
@@ -307,7 +309,7 @@ public class NgPublicController {
             return currencies
                     .stream()
                     .filter(cur -> cur.getName().equalsIgnoreCase("RUB"))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();

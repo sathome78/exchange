@@ -8,6 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
@@ -482,4 +483,6 @@ public interface OrderService {
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
+
+    List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName);
 }

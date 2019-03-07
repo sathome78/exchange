@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -7,6 +8,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.*;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -2266,6 +2268,38 @@ public class OrderDaoImpl implements OrderDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+        String sql = "{call GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(:currency_pair_name)}";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_name", currencyPairName);
+
+        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
+            ResultSet rs = ps.executeQuery();
+            List<CacheOrderStatisticDto> list = Lists.newArrayList();
+            while (rs.next()) {
+                CacheOrderStatisticDto statistic = CacheOrderStatisticDto.builder()
+                        .currencyPairId(rs.getInt("currency_pair_id"))
+                        .currencyPairName(rs.getString("currency_pair_name"))
+                        .currencyPairPrecision(rs.getInt("currency_pair_precision"))
+                        .currencyPairType(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                        .lastOrderRate(rs.getBigDecimal("last"))
+                        .predLastOrderRate(rs.getBigDecimal("first"))
+                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH))
+                        .volume(rs.getBigDecimal("baseVolume"))
+                        .currencyVolume(rs.getBigDecimal("quoteVolume"))
+                        .market(rs.getString("market"))
+                        .high24hr(rs.getBigDecimal("high24hr"))
+                        .low24hr(rs.getBigDecimal("low24hr"))
+                        .build();
+                list.add(statistic);
+            }
+            rs.close();
+            return list;
+        });
     }
 
     private RowMapper<ExOrder> getExOrderRowMapper() {

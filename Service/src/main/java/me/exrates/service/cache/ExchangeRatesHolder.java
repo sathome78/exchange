@@ -1,7 +1,7 @@
 package me.exrates.service.cache;
 
 import me.exrates.model.ExOrder;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.enums.TradeMarket;
 
 import java.math.BigDecimal;
@@ -12,13 +12,13 @@ public interface ExchangeRatesHolder {
 
     void onRatesChange(ExOrder exOrder);
 
-    ExOrderStatisticsShortByPairsDto getOne(Integer id);
+    CacheOrderStatisticDto getOne(Integer currencyPairId);
 
-    List<ExOrderStatisticsShortByPairsDto> getAllRates();
+    List<CacheOrderStatisticDto> getAllRates();
 
-    List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id);
+    List<CacheOrderStatisticDto> getCurrenciesRates(List<Integer> id);
 
-    Map<Integer, String> getRatesForMarket(TradeMarket market);
+    Map<String, BigDecimal> getRatesForMarket(TradeMarket market);
 
     BigDecimal getBtcUsdRate();
 }
