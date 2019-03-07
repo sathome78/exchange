@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/inout")
 @RequiredArgsConstructor
+//TODO add security via SSM
 public class InputServiceController {
 
     private final WalletService walletService;

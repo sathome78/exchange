@@ -33,8 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
