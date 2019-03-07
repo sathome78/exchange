@@ -65,8 +65,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
@@ -221,7 +221,9 @@ public class NgPublicController {
 
     @GetMapping("/info/max/{name}")
     public ResponseModel getMaxCurrencyPair24h(@PathVariable("name") String name) {
-        List<ExOrderStatisticsShortByPairsDto> all = exchangeRatesHolder.getAllRates();
+        List<ExOrderStatisticsShortByPairsDto> all = exchangeRatesHolder.getAllRates().stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
 
         Optional<ExOrderStatisticsShortByPairsDto> max = all.stream()
                 .filter(o -> o.getCurrencyPairName().startsWith(name.toUpperCase()))
@@ -309,7 +311,7 @@ public class NgPublicController {
             return currencies
                     .stream()
                     .filter(cur -> cur.getName().equalsIgnoreCase("RUB"))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();

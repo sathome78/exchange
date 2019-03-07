@@ -21,6 +21,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
@@ -123,7 +124,6 @@ import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.exception.process.WalletCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
-import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
@@ -151,6 +151,7 @@ import org.web3j.abi.datatypes.Int;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -175,10 +176,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -228,10 +225,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     StopOrderService stopOrderService;
     @Autowired
-    RatesHolder ratesHolder;
-    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
-    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
-    @Autowired
     private OrderDao orderDao;
     @Autowired
     private CallBackLogDao callBackDao;
@@ -261,15 +254,6 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
-
-    @PostConstruct
-    public void init() {
-        coinmarketScheduler.scheduleAtFixedRate(() -> {
-            List<CoinmarketApiDto> newData = getCoinmarketDataForActivePairs(null, new BackDealInterval("24 HOUR"));
-            coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
-        }, 0, 30, TimeUnit.MINUTES);
-    }
-
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -398,7 +382,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
-        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
+        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds).stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
         Locale locale = Locale.ENGLISH;
         dto.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
@@ -1485,11 +1471,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName) {
-        if (StringUtils.isEmpty(currencyPairName) && coinmarketCachedData != null && !coinmarketCachedData.isEmpty()) {
-            return coinmarketCachedData;
-        } else {
-            return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("24 HOUR"));
-        }
+        return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("24 HOUR"));
     }
 
     @Override
@@ -2132,10 +2114,12 @@ public class OrderServiceImpl implements OrderService {
         return res;
     }
 
-    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> statisticList) {
-        statisticList = Stream.of(
-                statisticList
-                        .stream()
+    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<CacheOrderStatisticDto> statisticList) {
+        List<ExOrderStatisticsShortByPairsDto> orders = statisticList.stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
+        orders = Stream.of(
+                orders.stream()
                         .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
                 statisticList
                         .stream()
@@ -2477,7 +2461,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel() {
-        return exchangeRatesHolder.getAllRates();
+        return exchangeRatesHolder.getAllRates().stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
     }
 
     @Override
@@ -2520,20 +2506,19 @@ public class OrderServiceImpl implements OrderService {
                 .orderBookItems(simpleOrderBookItems)
                 .total(getWrapperTotal(simpleOrderBookItems))
                 .build();
-        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
+        CacheOrderStatisticDto statistic = exchangeRatesHolder.getOne(currencyId);
         if (nonNull(statistic)) {
-            final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
-            final BigDecimal predLastOrderRate = new BigDecimal(statistic.getPredLastOrderRate());
-
-            dto.setLastExrate(safeFormatBigDecimal(lastOrderRate));
-            dto.setPreLastExrate(safeFormatBigDecimal(predLastOrderRate));
-            dto.setPositive(safeCompareBigDecimals(lastOrderRate, predLastOrderRate));
+            dto.setLastExrate(safeFormatBigDecimal(statistic.getLastOrderRate()));
+            dto.setPreLastExrate(safeFormatBigDecimal(statistic.getPredLastOrderRate()));
+            dto.setPositive(safeCompareBigDecimals(
+                    statistic.getLastOrderRate(),
+                    statistic.getPredLastOrderRate()));
         }
         return dto;
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
         return orderDao.getDailyCoinmarketDataForCache(currencyPairName);
     }
 

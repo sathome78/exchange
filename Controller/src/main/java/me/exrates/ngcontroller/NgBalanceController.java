@@ -58,6 +58,8 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+import static java.util.stream.Collectors.toList;
+
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -172,7 +174,9 @@ public class NgBalanceController {
         map.put("mapWallets", resultWallet);
 
         if (resultWallet.size() > 1) {
-            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
+            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates().stream()
+                    .map(ExOrderStatisticsShortByPairsDto::new)
+                    .collect(toList());
 
             final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
             resultOrders

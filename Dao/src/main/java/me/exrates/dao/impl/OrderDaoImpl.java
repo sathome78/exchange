@@ -9,6 +9,8 @@ import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.jdbc.OrderRowMapper;
+import me.exrates.model.*;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -2278,7 +2280,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
         String sql = "{call GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(:currency_pair_name)}";
 
         Map<String, Object> params = new HashMap<>();
@@ -2286,22 +2288,21 @@ public class OrderDaoImpl implements OrderDao {
 
         return namedParameterJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
-            List<ExOrderStatisticsShortByPairsDto> list = Lists.newArrayList();
+            List<CacheOrderStatisticDto> list = Lists.newArrayList();
             while (rs.next()) {
-                ExOrderStatisticsShortByPairsDto statistic = ExOrderStatisticsShortByPairsDto.builder()
+                CacheOrderStatisticDto statistic = CacheOrderStatisticDto.builder()
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
-                        .lastOrderRate(convertToPlainString(rs,"last"))
-                        .predLastOrderRate(convertToPlainString(rs, "first"))
-                        .percentChange(calculatePercentChange(rs))
-                        .volume(convertToPlainString(rs,"baseVolume"))
-                        .currencyVolume(convertToPlainString(rs, "quoteVolume"))
+                        .currencyPairType(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                        .lastOrderRate(rs.getBigDecimal("last"))
+                        .predLastOrderRate(rs.getBigDecimal("first"))
+                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH))
+                        .volume(rs.getBigDecimal("baseVolume"))
+                        .currencyVolume(rs.getBigDecimal("quoteVolume"))
                         .market(rs.getString("market"))
-                        .high24hr(convertToPlainString(rs,"high24hr"))
-                        .low24hr(convertToPlainString(rs,"low24hr"))
-                        .hidden(rs.getBoolean("hidden"))
+                        .high24hr(rs.getBigDecimal("high24hr"))
+                        .low24hr(rs.getBigDecimal("low24hr"))
                         .build();
                 list.add(statistic);
             }

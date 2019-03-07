@@ -2,6 +2,7 @@ DROP PROCEDURE IF EXISTS GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE;
 
 DELIMITER //
 
+PROCEDURE GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(IN currency_pair varchar(45))
 CREATE PROCEDURE GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(IN currency_pair varchar(45))
 BEGIN
     DECLARE currency_pair_name VARCHAR(45);
@@ -132,6 +133,11 @@ WHERE (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) IS NU
             quoteVolume,
             currency_pair_precision,
             market,
+            currency_pair_type,
+            hidden);
+
+          FETCH AGRIGATE
+          INTO currency_pair_name, currency_pair_id, baseVolume, quoteVolume, first, last, high24hr, low24hr, currency_pair_precision, market, currency_pair_type;
             currency_pair_type,
             hidden);
 
