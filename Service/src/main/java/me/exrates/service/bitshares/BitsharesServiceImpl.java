@@ -41,7 +41,7 @@ import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 @ClientEndpoint
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 1L;
+    private static final long RECONNECT_PERIOD = 60;
     protected Logger log;
 
     @Autowired
@@ -88,7 +88,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             mainAddress = props.getProperty("mainAddress");
             mainAddressId = props.getProperty("mainAddressId");
             wsUrl = props.getProperty("wsUrl");
-            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(this::reconnectAndSubscribe, SCANING_INITIAL_DELAY, RECONNECT_PERIOD, TimeUnit.MINUTES);
         } catch (IOException e){
             log.error(e);
         }
@@ -112,15 +112,30 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-    private void reconnect() {
-        log.info("Bitshares reconnect()");
-        if (session == null || !session.isOpen()) {
-            try {
-                connectAndSubscribe();
-            } catch (Exception e) {
-                log.error(e);
-            }
+    private void reconnectAndSubscribe() {
+        try {
+            close();
+
+            WS_SERVER_URL = URI.create(wsUrl);
+            session = ContainerProvider.getWebSocketContainer()
+                    .connectToServer(this, WS_SERVER_URL);
+            session.setMaxBinaryMessageBufferSize(5012000);
+            session.setMaxTextMessageBufferSize(5012000);
+            session.setMaxIdleTimeout(Long.MAX_VALUE);
+
+            endpoint = session.getBasicRemote();
+            subscribeToTransactions();
+        } catch (Exception e) {
+            log.error(merchantName + " node error " + e.getMessage());
         }
+    }
+
+    private void close() throws IOException {
+        endpoint = null;
+        if(session != null){
+            session.close();
+        }
+        WS_SERVER_URL = null;
     }
 
     @Override
@@ -271,22 +286,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
     @Override
     public String getMerchantName() {
         return merchantName;
-    }
-
-    private void connectAndSubscribe() {
-        try {
-            WS_SERVER_URL = URI.create(wsUrl);
-            session = ContainerProvider.getWebSocketContainer()
-                    .connectToServer(this, WS_SERVER_URL);
-            session.setMaxBinaryMessageBufferSize(5012000);
-            session.setMaxTextMessageBufferSize(5012000);
-            session.setMaxIdleTimeout(Long.MAX_VALUE);
-
-            endpoint = session.getBasicRemote();
-            subscribeToTransactions();
-        } catch (Exception e) {
-            log.error(merchantName + " node error " + e.getMessage());
-        }
     }
 
     public void subscribeToTransactions() throws IOException {
