@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "eth_tokens_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class EthTokenServiceImpl implements EthTokenService {
 
     private Merchant merchant;

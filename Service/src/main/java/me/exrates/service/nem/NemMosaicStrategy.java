@@ -1,7 +1,9 @@
 package me.exrates.service.nem;
 
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MosaicIdDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -12,6 +14,7 @@ import java.util.Map;
  * Created by Maks on 27.02.2018.
  */
 @Component
+@Conditional(MonolitConditional.class)
 public class NemMosaicStrategy {
 
     @Autowired
