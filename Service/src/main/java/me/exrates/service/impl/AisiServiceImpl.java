@@ -9,6 +9,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.impl.AisiCurrencyServiceImpl.Transaction;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,8 @@ public class AisiServiceImpl implements AisiService {
     private CurrencyService currencyService;
     @Autowired
     private RefillService refillService;
-
+    @Autowired
+    private WithdrawUtils withdrawUtils;
     @Autowired
     private final AisiCurrencyService aisiCurrencyService;
 
@@ -117,12 +119,12 @@ public class AisiServiceImpl implements AisiService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+         throw new RuntimeException("Not supported");
     }
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-        return false;
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     private boolean checkTransactionForDuplicate(Transaction transaction) {
