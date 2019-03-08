@@ -1,14 +1,15 @@
 package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 @Service
 @Log4j2
+@Conditional(MonolitConditional.class)
 public class RefillRequestJob {
 
     @Autowired
