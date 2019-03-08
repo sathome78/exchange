@@ -1,6 +1,7 @@
 package me.exrates.service.nem;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.NisNotReadyException;
 import me.exrates.service.exception.NisTransactionException;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 import org.nem.core.time.TimeInstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
