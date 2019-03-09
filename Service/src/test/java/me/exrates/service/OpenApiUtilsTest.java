@@ -20,6 +20,10 @@ public class OpenApiUtilsTest {
     private String EDR_BTC_LOWER = "edr_btc";
     private String EDR_BTC_HIGHER = "EDR_BTC";
 
+    private String DIM_USD_BTC = "DIM.USD/BTC";
+    private String DIM_USD_BTC_LOWER = "dim.usd_btc";
+    private String DIM_USD_BTC_HIGHER = "DIM.USD_BTC";
+
     private String BAD_CURRENCY_PAIR = "QQQQQQQQQ/BTC";
 
 
@@ -37,7 +41,7 @@ public class OpenApiUtilsTest {
 
         assertEquals(HT_BTC, pair);
 
-        pair = OpenApiUtils.transformCurrencyPair(HT_BTC_LOWER);
+        pair = OpenApiUtils.transformCurrencyPair(HT_BTC_HIGHER);
 
         assertEquals(HT_BTC, pair);
 
@@ -45,9 +49,17 @@ public class OpenApiUtilsTest {
 
         assertEquals(EDR_BTC, pair);
 
-        pair = OpenApiUtils.transformCurrencyPair(EDR_BTC_LOWER);
+        pair = OpenApiUtils.transformCurrencyPair(EDR_BTC_HIGHER);
 
         assertEquals(EDR_BTC, pair);
+
+        pair = OpenApiUtils.transformCurrencyPair(DIM_USD_BTC_LOWER);
+
+        assertEquals(DIM_USD_BTC, pair);
+
+        pair = OpenApiUtils.transformCurrencyPair(DIM_USD_BTC_HIGHER);
+
+        assertEquals(DIM_USD_BTC, pair);
     }
 
     @Test(expected = InvalidCurrencyPairFormatException.class)
