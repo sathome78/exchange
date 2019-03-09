@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"userWallet"})
+@ToString
 @EqualsAndHashCode
 public class Transaction implements Serializable {
     private int id;

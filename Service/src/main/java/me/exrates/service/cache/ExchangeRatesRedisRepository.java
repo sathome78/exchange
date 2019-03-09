@@ -1,6 +1,6 @@
 package me.exrates.service.cache;
 
-import me.exrates.model.dto.CacheOrderStatisticDto;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -27,29 +28,30 @@ public class ExchangeRatesRedisRepository {
         ops = redisTemplate.opsForHash();
     }
 
-    public void put(CacheOrderStatisticDto statistic) {
+    public void put(ExOrderStatisticsShortByPairsDto statistic) {
         ops.put(key, statistic.getCurrencyPairName(), statistic);
     }
 
-    public CacheOrderStatisticDto get(String currencyPairName) {
-        return (CacheOrderStatisticDto) ops.get(key, currencyPairName);
+    public ExOrderStatisticsShortByPairsDto get(String currencyPairName) {
+        return (ExOrderStatisticsShortByPairsDto) ops.get(key, currencyPairName);
     }
 
     public boolean exist(String currencyPairName) {
         return ops.hasKey(key, currencyPairName);
     }
 
-    public List<CacheOrderStatisticDto> getAll() {
-        return ops.values(key).stream()
-                .map(o -> (CacheOrderStatisticDto) o)
-                .collect(toList());
+    public List<ExOrderStatisticsShortByPairsDto> getAll() {
+        return ops.values(key)
+                .stream()
+                .map(o -> (ExOrderStatisticsShortByPairsDto) o)
+                .collect(Collectors.toList());
     }
 
-    public List<CacheOrderStatisticDto> getByNames(List<String> names) {
+    public List<ExOrderStatisticsShortByPairsDto> getByNames(List<String> names) {
         return ops.multiGet(key, Collections.unmodifiableCollection(names))
                 .stream()
-                .map(o -> (CacheOrderStatisticDto) o)
-                .collect(toList());
+                .map(o -> (ExOrderStatisticsShortByPairsDto) o)
+                .collect(Collectors.toList());
     }
 
     public void delete(String currencyPairName) {
@@ -57,12 +59,12 @@ public class ExchangeRatesRedisRepository {
     }
 
     @Transactional
-    public void batchUpdate(List<CacheOrderStatisticDto> statisticList) {
+    public void batchUpdate(List<ExOrderStatisticsShortByPairsDto> statisticList) {
         statisticList.forEach(this::update);
     }
 
     @Transactional
-    public void update(CacheOrderStatisticDto statistic) {
+    public void update(ExOrderStatisticsShortByPairsDto statistic) {
         delete(statistic.getCurrencyPairName());
         put(statistic);
     }

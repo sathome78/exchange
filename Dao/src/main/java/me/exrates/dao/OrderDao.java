@@ -165,5 +165,5 @@ public interface OrderDao {
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
-    List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName);
+    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
 }

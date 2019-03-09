@@ -288,13 +288,11 @@ public class BalanceServiceImpl implements BalanceService {
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalBtc =
                 exchangeRatesHolder.getAllRates().stream()
-                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
                         .findFirst();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalUsd =
                 exchangeRatesHolder.getAllRates().stream()
-                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/USD"))
                         .findFirst();
 

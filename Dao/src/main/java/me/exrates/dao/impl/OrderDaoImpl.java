@@ -15,6 +15,10 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -2280,7 +2284,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
         String sql = "{call GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(:currency_pair_name)}";
 
         Map<String, Object> params = new HashMap<>();
@@ -2288,21 +2292,21 @@ public class OrderDaoImpl implements OrderDao {
 
         return namedParameterJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
-            List<CacheOrderStatisticDto> list = Lists.newArrayList();
+            List<ExOrderStatisticsShortByPairsDto> list = Lists.newArrayList();
             while (rs.next()) {
-                CacheOrderStatisticDto statistic = CacheOrderStatisticDto.builder()
+                ExOrderStatisticsShortByPairsDto statistic = ExOrderStatisticsShortByPairsDto.builder()
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .currencyPairType(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
-                        .lastOrderRate(rs.getBigDecimal("last"))
-                        .predLastOrderRate(rs.getBigDecimal("first"))
-                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH))
-                        .volume(rs.getBigDecimal("baseVolume"))
-                        .currencyVolume(rs.getBigDecimal("quoteVolume"))
+                        .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                        .lastOrderRate(rs.getBigDecimal("last").toPlainString())
+                        .predLastOrderRate(rs.getBigDecimal("first").toPlainString())
+                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? "0" : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH).toPlainString())
+                        .volume(rs.getBigDecimal("baseVolume").toPlainString())
+                        .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
                         .market(rs.getString("market"))
-                        .high24hr(rs.getBigDecimal("high24hr"))
-                        .low24hr(rs.getBigDecimal("low24hr"))
+                        .high24hr(rs.getBigDecimal("high24hr").toPlainString())
+                        .low24hr(rs.getBigDecimal("low24hr").toPlainString())
                         .build();
                 list.add(statistic);
             }
