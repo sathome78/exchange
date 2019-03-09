@@ -69,6 +69,32 @@ public class QuberaDaoImpl implements QuberaDao {
     }
 
     @Override
+    public boolean existAccountByUserEmailAndCurrencyName(String email, String currency) {
+        String sql = "SELECT CASE WHEN count(*) > 0" +
+                " THEN TRUE ELSE FALSE END" +
+                " FROM QUBERA_USER_DETAILS qud" +
+                " INNER JOIN USER u on qud.user_id = u.id" +
+                " INNER JOIN CURRENCY c on qud.currency_id = c.id" +
+                " WHERE u.email = :email AND c.name = :currency";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        params.addValue("currency", currency);
+
+        return slaveJdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
+    public String getAccountByUserEmail(String email) {
+        String sql = "SELECT account_number" +
+                " FROM QUBERA_USER_DETAILS" +
+                " INNER JOIN USER u on QUBERA_USER_DETAILS.user_id = u.id" +
+                " WHERE u.email = :email";
+
+        return slaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+    }
+
+    @Override
     public Integer findUserIdByAccountNumber(String accountNumber) {
         String sql = "SELECT user_id FROM QUBERA_USER_DETAILS  WHERE account_number = :account_number;";
         MapSqlParameterSource params = new MapSqlParameterSource();

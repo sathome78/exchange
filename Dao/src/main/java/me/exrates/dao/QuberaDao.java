@@ -13,4 +13,8 @@ public interface QuberaDao {
     boolean saveUserDetails(int userId, int currencyId, String accountNumber, String iban);
 
     Map<String, String> getUserDetailsForCurrency(int userId, int currencyId);
+
+    boolean existAccountByUserEmailAndCurrencyName(String email, String currency);
+
+    String getAccountByUserEmail(String email);
 }

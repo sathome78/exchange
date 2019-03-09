@@ -7,7 +7,7 @@
 @apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X GET \
+ curl -X POST \
       http://localhost:8080/api/private/v2/merchants/qubera/account/create \
       -H 'Content-Type: application/json' \
       -H 'exrates-rest-token: $token' \
@@ -51,4 +51,70 @@ HTTP/1.1 400 OK
     "code": 1200
 }
 
+###
+
+###
+@api {get} /api/private/v2/merchants/qubera/account/check/:currencyName Check qubera account exist
+@apiName  Check qubera account exist
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X GET \
+      http://localhost:8080/api/private/v2/merchants/qubera/account/check/EUR \
+
+      -H 'exrates-rest-token: $token' \
+
+
+@apiParam {String} currencyName - currency name
+
+
+@apiSuccess {boolean} data Data
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": true
+      }
+###
+
+###
+@api {get} /api/private/v2/merchants/qubera/account/info Get balance info
+@apiName  Get balance info
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X GET \
+      http://localhost:8080/api/private/v2/merchants/qubera/account/info \
+
+      -H 'exrates-rest-token: $token' \
+
+@apiSuccess {Object} data Data
+@apiSuccess {String} data.accountState
+@apiSuccess {String} data.currency
+@apiSuccess {Number} data.availableBalance
+@apiSuccess {Number} data.currentBalance
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": {
+          "accountState": "ACTIVE",
+          "availableBalance": 500,
+          "currency": "EUR",
+          "currentBalance": 800
+        }
+      }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
 ###

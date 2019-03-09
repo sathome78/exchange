@@ -7,6 +7,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.User;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountCreateDto;
+import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.QuberaRequestDto;
@@ -143,5 +144,22 @@ public class QuberaServiceImpl implements QuberaService {
             throw new NgDashboardException("Error while saving response",
                     Constants.ErrorApi.QUBERA_SAVE_ACCOUNT_RESPONSE_ERROR);
         }
+    }
+
+    @Override
+    public boolean checkAccountExist(String email, String currencyName) {
+        return quberaDao.existAccountByUserEmailAndCurrencyName(email, currencyName);
+    }
+
+    @Override
+    public AccountInfoDto getInfoAccount(String email) {
+        String account = quberaDao.getAccountByUserEmail(email);
+        if (account == null) {
+            logger.error("Account not found " + email);
+            throw new NgDashboardException("Account not found " + email,
+                    Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
+        }
+
+        return kycHttpClient.getBalanceAccount(account);
     }
 }

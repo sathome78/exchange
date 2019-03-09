@@ -2,6 +2,7 @@ package me.exrates.service.kyc.http;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
+import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
@@ -109,6 +110,27 @@ public class KycHttpClient {
             log.error("Error create account {}", responseEntity.getBody());
             throw new NgDashboardException("Error while creating account",
                     Constants.ErrorApi.QUBERA_CREATE_ACCOUNT_RESPONSE_ERROR);
+        }
+
+        return responseEntity.getBody();
+    }
+
+    public AccountInfoDto getBalanceAccount(String account) {
+        String finalUrl = uriApi + "/account/" + account + "/balance";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+        HttpEntity<?> request = new HttpEntity<>(headers);
+
+        ResponseEntity<AccountInfoDto> responseEntity =
+                template.exchange(uri, HttpMethod.GET, request, AccountInfoDto.class);
+
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            log.error("Error create account {}", responseEntity.getBody());
+            throw new NgDashboardException("Error response account balance",
+                    Constants.ErrorApi.QUBERA_ACCOUNT_RESPONSE_ERROR);
         }
 
         return responseEntity.getBody();
