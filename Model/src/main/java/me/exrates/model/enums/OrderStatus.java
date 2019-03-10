@@ -12,7 +12,8 @@ public enum OrderStatus {
     CANCELLED(4),
     DELETED(5),
     DRAFT(6),
-    SPLIT_CLOSED(7);
+    SPLIT_CLOSED(7),
+    PARTIALLY_ACCEPTED(8);
 
     private final int status;
 
