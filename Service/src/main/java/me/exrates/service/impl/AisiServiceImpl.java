@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Log4j2
+@Log4j2 (topic = "aisi_log")
 @Service
 public class AisiServiceImpl implements AisiService {
 
     public final static String MERCHANT_NAME = "AISI";
     public final static String CURRENCY_NAME = "AISI";
+    public final static String STATUS_OK = "1";
 
     @Autowired
     private MerchantService merchantService;
@@ -108,7 +109,12 @@ public class AisiServiceImpl implements AisiService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            String tempStatus = aisiCurrencyService.createNewTransaction(address, fullAmount);
+            if (tempStatus.equals(STATUS_OK)) {
+                refillService.autoAcceptRefillRequest(requestAcceptDto);
+            } else {
+                log.error("STATUS is not OK = " + tempStatus + ". Error in aisiCurrencyService.createNewTransaction(address, fullAmount)");
+            }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
