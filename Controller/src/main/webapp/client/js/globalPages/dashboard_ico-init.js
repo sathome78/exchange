@@ -61,9 +61,6 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-/*    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-        subscribeChart();
-    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -160,21 +157,6 @@ function subscribeStatistics() {
         }, headers);
     }
 }
-
-/*function subscribeChart() {
-    if (chartSubscription != undefined) {
-        chartSubscription.unsubscribe();
-    }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
-        }, headers);
-    }
-}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {

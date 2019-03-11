@@ -146,7 +146,6 @@ public class OrdersEventHandleService {
     @Async
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
-        log.debug("new thr accept {} ", Thread.currentThread().getName());
         ExOrder order = (ExOrder) event.getSource();
         handleAllTrades(order);
         handleMyTrades(order);
@@ -169,9 +168,9 @@ public class OrdersEventHandleService {
         if (url != null) {
             CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, userId);
             orderService.logCallBackData(callBackLogDto);
-            log.info("*** Callback. User userId:" + userId + " | Callback:" + callBackLogDto);
+            log.debug("*** Callback. User userId:" + userId + " | Callback:" + callBackLogDto);
         } else {
-            log.info("*** Callback url wasn't set. User userId:" + userId);
+            log.debug("*** Callback url wasn't set. User userId:" + userId);
         }
     }
 
@@ -308,11 +307,15 @@ public class OrdersEventHandleService {
         handler.onAcceptOrderEvent(exOrder.getUserAcceptorId());
     }
 
-    @Async
-    void handleChart(ExOrder exOrder) {
-        ChartRefreshHandler handler = mapChart
-                .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));
-        handler.onAcceptOrderEvent();
+
+    private void handleChart(ExOrder exOrder) {
+        try {
+            ChartRefreshHandler handler = mapChart
+                    .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));
+            handler.onAcceptOrderEvent();
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
 }

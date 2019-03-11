@@ -2,9 +2,7 @@ package me.exrates.service.vo;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
-import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
@@ -18,16 +16,12 @@ import java.util.concurrent.Semaphore;
 public class ChartRefreshHandler {
     @Autowired
     private ChartsCacheManager chartsCacheManager;
-    @Autowired
-    private StompMessenger stompMessenger;
-    @Autowired
-    private ChartsCache chartsCache;
 
     private int currencyPairId;
 
     private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
-    private static final int LATENCY = 1000;
+    private static final int LATENCY = 2000;
 
 
     private ChartRefreshHandler(int currencyPairId) {
@@ -47,9 +41,7 @@ public class ChartRefreshHandler {
                 } catch (InterruptedException e) {
                     log.error("interrupted ", e);
                 }
-                chartsCache.updateCache(currencyPairId);
                 chartsCacheManager.onUpdateEvent(currencyPairId);
-                stompMessenger.sendChartData(currencyPairId);
             }
         } finally {
             SEMAPHORE.release();

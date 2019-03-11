@@ -88,7 +88,7 @@ public class ChartsCacheManager {
     }
 
 
-    @Async
+    /*@Async
     @EventListener
     void handleChartUpdate(ChartCacheUpdateEvent event) {
         List<CandleChartItemDto> data = (List<CandleChartItemDto>)event.getSource();
@@ -96,7 +96,7 @@ public class ChartsCacheManager {
         stompMessenger.sendChartData(event.getPairId(),
                 event.getTimeFrame().getResolution().toString(),
                 dataToSend);
-    }
+    }*/
 
     private String prepareDataToSend(List<CandleChartItemDto> data, Integer currencyPairId, final ChartTimeFrame backDealInterval) {
         List<CandleDto> resultData = data.stream().map(CandleDto::new).collect(Collectors.toList());

@@ -128,7 +128,7 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                     public void run() {
                             timerLock = new ReentrantLock();
                             updateCache(true);
-                            eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
+                            /*eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));*/
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 

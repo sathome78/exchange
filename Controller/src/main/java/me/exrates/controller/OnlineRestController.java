@@ -400,7 +400,7 @@ public class OnlineRestController {
      * @return: "null" if user is not login. List the data of user's wallet current statistics
      * @author ValkSam
      */
-    @OnlineMethod
+    /*@OnlineMethod
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
@@ -410,15 +410,15 @@ public class OnlineRestController {
         final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
         log.error("chartType {}", chartType);
-        /**/
+        *//**//*
         ArrayList<List> arrayListMain = new ArrayList<>();
-        /*in first row return backDealInterval - to synchronize period menu with it*/
+        *//*in first row return backDealInterval - to synchronize period menu with it*//*
         arrayListMain.add(new ArrayList<Object>() {{
             add(backDealInterval);
         }});
-        /**/
+        *//**//*
         if (chartType == ChartType.AREA) {
-            /*GOOGLE*/
+            *//*GOOGLE*//*
             List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
             for (Map<String, Object> row : rows) {
                 Timestamp dateAcception = (Timestamp) row.get("dateAcception");
@@ -426,11 +426,11 @@ public class OnlineRestController {
                 BigDecimal volume = (BigDecimal) row.get("volume");
                 if (dateAcception != null) {
                     ArrayList<Object> arrayList = new ArrayList<>();
-                    /*values*/
+                    *//*values*//*
                     arrayList.add(dateAcception.toString());
                     arrayList.add(exrate.doubleValue());
                     arrayList.add(volume.doubleValue());
-                    /*titles of values for chart tip*/
+                    *//*titles of values for chart tip*//*
                     arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
                     arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
                     arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
@@ -438,11 +438,11 @@ public class OnlineRestController {
                 }
             }
         } else if (chartType == ChartType.CANDLE) {
-            /*GOOGLE*/
+            *//*GOOGLE*//*
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
-                /*values*/
+                *//*values*//*
                 arrayList.add(candle.getBeginPeriod().toString());
                 arrayList.add(candle.getEndPeriod().toString());
                 arrayList.add(candle.getOpenRate());
@@ -453,11 +453,11 @@ public class OnlineRestController {
                 arrayListMain.add(arrayList);
             }
         } else if (chartType == ChartType.STOCK) {
-            /*AMCHARTS*/
+            *//*AMCHARTS*//*
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
-                /*values*/
+                *//*values*//*
                 arrayList.add(candle.getBeginDate().toString());
                 arrayList.add(candle.getEndDate().toString());
                 arrayList.add(candle.getOpenRate());
@@ -470,7 +470,7 @@ public class OnlineRestController {
         }
         request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
         return arrayListMain;
-    }
+    }*/
 
     /**
      * Sets (init or reset) and returns current params:
