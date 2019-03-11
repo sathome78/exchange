@@ -44,6 +44,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.newOrders.Order;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
@@ -2137,5 +2138,42 @@ public class OrderDaoImpl implements OrderDao {
             return null;
         }
         return timestamp.toLocalDateTime();
+    }
+
+
+    @Override
+    public boolean setStatusNew(int orderId, OrderStatus status) {
+        String sql = "UPDATE ORDERS SET order_status_id =:status_id WHERE id = :id";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", String.valueOf(status.getStatus()));
+        namedParameters.put("id", String.valueOf(orderId));
+        int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+        return result > 0;
+    }
+
+    @Override
+    public int createOrder(Order order) {
+        String sql = "INSERT INTO ORDERS" +
+                "  (user_id, currency_pair_id, order_type_id, exrate, amount_base, amount_convert, commission_id, commission_maker_fixed_amount, order_status_id, base_type)" +
+                "  VALUES " +
+                "  (:user_id, :currency_pair_id, :order_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount, :order_status_id, :base_type)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("user_id", order.getUserId())
+                .addValue("currency_pair_id", order.getCurrencyPairId())
+                .addValue("order_type_id", order.getOrderTypeId())
+                .addValue("exrate", order.getExrate())
+                .addValue("amount_base", order.getAmountBase())
+                .addValue("amount_convert", order.getAmountConvert())
+                .addValue("commission_id", order.getCommissionId())
+                .addValue("commission_fixed_amount", order.getCommissionMakerFixedAmount())
+                .addValue("order_status_id", order.getOrderStatusId())
+                .addValue("base_type", order.getBaseType());
+        int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
+        int id = (int) keyHolder.getKey().longValue();
+        if (result <= 0) {
+            id = 0;
+        }
+        return id;
     }
 }

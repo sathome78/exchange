@@ -1,6 +1,11 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -2030,6 +2035,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         Client build = ClientBuilder.newBuilder().build();
         build.register(new LoggingFilter());
         return build;
+    }
+
+    @Bean
+    public HazelcastInstance hazelcastInstance() {
+        Config config = new Config();
+        String instanceName = "First instance";
+        config.setInstanceName(instanceName);
+        config.setProperty("pool.size","10");
+        NetworkConfig network = config.getNetworkConfig();
+        JoinConfig join = network.getJoin();
+        join.getMulticastConfig().setEnabled(false);
+        HazelcastInstance hz = Hazelcast.newHazelcastInstance(config);
+        return hz;
     }
 
 }

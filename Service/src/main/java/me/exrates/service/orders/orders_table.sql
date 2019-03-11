@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS ORDERS
   amount_base                     DECIMAL (20, 8) NOT NULL,
   amount_convert                  DECIMAL (20, 8) NOT NULL,
   amount_accepted                 DECIMAL (20, 8) DEFAULT NULL,
+  amount_available                DECIMAL (20, 8) NOT NULL,
   exrate                          DECIMAL (20, 8) NOT NULL,
   commission_maker_fixed_amount   DECIMAL (20, 8) NOT NULL,
   commission_id                    INT NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS ORDERS
   date_of_creation                TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_of_last_update             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   base_type                       enum('LIMIT', 'ICO'),
+
 
   CONSTRAINT trades_user_id_user_id_fk FOREIGN KEY (user_id) REFERENCES USER (id),
   CONSTRAINT trades_currency_pair_id_currency_pair_id_fk FOREIGN KEY (currency_pair_id) REFERENCES CURRENCY_PAIR (id),

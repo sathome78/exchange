@@ -23,6 +23,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.newOrders.Order;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
 
@@ -55,6 +56,8 @@ public interface OrderDao {
     boolean updateOrder(int orderId, ExOrder order);
 
     List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
+
+    int createOrder(Order exOrder);
 
     void postAcceptedOrderToDB(ExOrder exOrder);
 
@@ -152,4 +155,5 @@ public interface OrderDao {
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
+    boolean setStatusNew(int orderId, OrderStatus status);
 }
