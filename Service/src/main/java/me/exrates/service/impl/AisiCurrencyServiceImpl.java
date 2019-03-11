@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-@Log4j2
+@Log4j2 (topic = "aisi_log")
 @Service
 @PropertySource("classpath:/merchants/aisi_wallet.properties")
 public class AisiCurrencyServiceImpl implements AisiCurrencyService {
