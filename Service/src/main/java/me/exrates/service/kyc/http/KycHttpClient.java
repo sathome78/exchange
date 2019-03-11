@@ -5,6 +5,7 @@ import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
@@ -31,8 +32,10 @@ import java.net.URI;
 @PropertySource("classpath:/merchants/qubera.properties")
 public class KycHttpClient {
 
-    private @Value("${qubera.kyc.url}") String uriApi;
-    private @Value("${qubera.kyc.apiKey}") String apiKey;
+    private @Value("${qubera.kyc.url}")
+    String uriApi;
+    private @Value("${qubera.kyc.apiKey}")
+    String apiKey;
 
     private RestTemplate template;
 
@@ -116,7 +119,7 @@ public class KycHttpClient {
     }
 
     public AccountInfoDto getBalanceAccount(String account) {
-        String finalUrl = uriApi + "/account/" + account + "/balance";
+        String finalUrl = uriApi + "/v2/account/" + account + "/balance";
         HttpHeaders headers = new HttpHeaders();
         headers.set("apiKey", apiKey);
 
@@ -135,4 +138,28 @@ public class KycHttpClient {
 
         return responseEntity.getBody();
     }
+
+    public Boolean createPaymentToMaster(QuberaPaymentToMasterDto paymentToMasterDto) {
+        String finalUrl = uriApi + "/payment/master";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+
+        HttpEntity<?> request = new HttpEntity<>(paymentToMasterDto, headers);
+
+        ResponseEntity<AccountQuberaResponseDto> responseEntity =
+                template.exchange(uri, HttpMethod.POST, request, AccountQuberaResponseDto.class);
+
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            log.error("Error create account {}", responseEntity.getBody());
+            throw new NgDashboardException("Error while creating payment to master",
+                    Constants.ErrorApi.QUBERA_PAYMENT_TO_MASTER_ERROR);
+        } else {
+            return true;
+        }
+    }
+
 }

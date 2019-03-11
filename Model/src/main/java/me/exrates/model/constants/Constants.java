@@ -11,5 +11,6 @@ public interface Constants {
         int QUBERA_SAVE_ACCOUNT_RESPONSE_ERROR = 1202;
         int QUBERA_ACCOUNT_NOT_FOUND_ERROR = 1203;
         int QUBERA_ACCOUNT_RESPONSE_ERROR = 1204;
+        int QUBERA_PAYMENT_TO_MASTER_ERROR = 1205;
     }
 }

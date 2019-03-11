@@ -93,18 +93,64 @@ HTTP/1.1 400 OK
 
 @apiSuccess {Object} data Data
 @apiSuccess {String} data.accountState
-@apiSuccess {String} data.currency
-@apiSuccess {Number} data.availableBalance
-@apiSuccess {Number} data.currentBalance
+@apiSuccess {Object} data.availableBalance
+@apiSuccess {Object} data.availableBalance.amount
+@apiSuccess {Object} data.availableBalance.currencyCode
+@apiSuccess {Object} data.currentBalance.amount
+@apiSuccess {Object} data.currentBalance.currencyCode
 
 @apiSuccessExample {json} Success-Response:
       {
         "data": {
           "accountState": "ACTIVE",
-          "availableBalance": 500,
-          "currency": "EUR",
-          "currentBalance": 800
-        }
+          "availableBalance": {
+                "amount": 800,
+                "currencyCode": "EUR"
+              }
+          "currentBalance": {
+                "amount": 1000,
+                "currencyCode": "EUR"
+              }
+      }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {get} /api/private/v2/merchants/qubera/payment/toMaster Create payment to master
+@apiName  Create payment to master
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/toMaster \
+  -H 'Content-Type: application/json' \
+  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
+  -d '{
+	    "amount":10.0,
+	    "currencyCode":"EUR"
+}'
+
+@apiParam {String} amount - for example: 10 or 10.0 or 10.00
+@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
+
+@apiSuccess {Boolean} data Data
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": true
       }
 
 @apiErrorExample {json} Error-Response:

@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.PaymentRequestDto;
 import me.exrates.model.dto.QuberaRequestDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -98,8 +99,9 @@ public class QuberaMerchantController {
         return null;
     }
 
-    @PostMapping(value = "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentToMaster() {
+    @PostMapping(value = PRIVATE_KYC + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseModel<?> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
         return null;
     }
 

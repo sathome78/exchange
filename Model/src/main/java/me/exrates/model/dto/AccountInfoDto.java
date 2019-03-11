@@ -11,8 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AccountInfoDto {
     private String accountState;
-    private Integer availableBalance;
-    private String currency;
-    private Integer currentBalance;
-
+    private QuberaBalanceDto availableBalance;
+    private QuberaBalanceDto currentBalance;
 }

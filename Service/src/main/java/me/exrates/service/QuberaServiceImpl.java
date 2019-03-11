@@ -10,6 +10,8 @@ import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.PaymentRequestDto;
+import me.exrates.model.dto.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.QuberaRequestDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -163,5 +165,21 @@ public class QuberaServiceImpl implements QuberaService {
         }
 
         return kycHttpClient.getBalanceAccount(account);
+    }
+
+    @Override
+    public boolean createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto) {
+        String account = quberaDao.getAccountByUserEmail(email);
+
+        if (account == null) {
+            logger.error("Account not found " + email);
+            throw new NgDashboardException("Account not found " + email,
+                    Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
+        }
+
+        QuberaPaymentToMasterDto paymentToMasterDto =
+                new QuberaPaymentToMasterDto(paymentRequestDto.getCurrencyCode(), paymentRequestDto.getAmount(),
+                account, "Inner transfer");
+        return kycHttpClient.createPaymentToMaster(paymentToMasterDto);
     }
 }
