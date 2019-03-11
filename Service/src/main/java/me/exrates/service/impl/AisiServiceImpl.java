@@ -108,18 +108,19 @@ public class AisiServiceImpl implements AisiService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        String tempStatus = aisiCurrencyService.createNewTransaction(address, fullAmount);
+        if (tempStatus.equals(STATUS_OK)) {
         try {
-            String tempStatus = aisiCurrencyService.createNewTransaction(address, fullAmount);
-            if (tempStatus.equals(STATUS_OK)) {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
-            } else {
-                log.error("STATUS is not OK = " + tempStatus + ". Error in aisiCurrencyService.createNewTransaction(address, fullAmount)");
-            }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+                Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+                requestAcceptDto.setRequestId(requestId);
+                refillService.autoAcceptRefillRequest(requestAcceptDto);
+        }
+        } else {
+            log.error("STATUS is not OK = " + tempStatus + ". Error in aisiCurrencyService.createNewTransaction(address, fullAmount)");
         }
     }
 
