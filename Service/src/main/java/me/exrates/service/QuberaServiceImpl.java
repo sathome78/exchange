@@ -69,6 +69,8 @@ public class QuberaServiceImpl implements QuberaService {
         if (requestId == null) {
             throw new RefillRequestIdNeededException(request.toString());
         }
+
+        //todo check params
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
         Map<String, String> refillParams = Maps.newHashMap();
         String iban = details.getOrDefault("iban", "");
