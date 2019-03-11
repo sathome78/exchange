@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -33,8 +34,11 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
 
     private RestTemplate restTemplate;
 
-    @Value("${aisi.mainaddress}")
+    @Value("${aisi.apikey}")
     private String apiKey;
+
+    @Value("${aisi.mainaddress}")
+    private String mainaddress;
 
     @Autowired
     public AisiCurrencyServiceImpl() {
@@ -123,6 +127,40 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
         private String recieverAddress;
         @JsonProperty("Amount")
         private String amount;
+
+    }
+
+    public String createNewTransaction(String address, BigDecimal amount){
+        final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
+        requestParameters.add("api_key", apiKey);
+        UriComponents builder = UriComponentsBuilder
+                .fromHttpUrl("https://api.aisi.io/transaction/create/{FROM_ADDRESS}/{TO_ADDRESS}/{AMOUNT}")
+                .queryParams(requestParameters)
+                .build();
+        ResponseEntity<CreatedTransaction> responseEntity = null;
+        try {
+            responseEntity = restTemplate.getForEntity(builder.toUriString(), CreatedTransaction.class,
+                    address, mainaddress, amount.toString());
+            if (responseEntity.getStatusCodeValue() != 200) {
+                log.warn("Error : {}", responseEntity.getStatusCodeValue());
+            }
+        } catch (Exception ex) {
+            log.warn("Error : {}", ex.getMessage());
+        }
+        return responseEntity.getBody().result;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class CreatedTransaction {
+
+        @JsonProperty("Transaction_Identifier")
+        String transactionIdentifier;
+        @JsonProperty("Result")
+        String result;
+        @JsonProperty("ResultMessage")
+        String resultMessage;
 
     }
 
