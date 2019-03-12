@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
@@ -29,6 +28,7 @@ import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.properties.SsmProperties;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
@@ -217,8 +217,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
-    @Value("${ssm.token.api.inout}")
-    private String nodeApiToken;
 
     private String dbMasterUser;
     private String dbMasterPassword;
@@ -233,10 +231,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
-    private final SSMGetter ssmGetter;
+    private final String inoutTokenValue;
 
-    public WebAppConfig(SSMGetter ssmGetter) {
-        this.ssmGetter = ssmGetter;
+    public WebAppConfig(SsmProperties ssmProperties) {
+        this.inoutTokenValue = ssmProperties.getInoutToken();
     }
 
     @PostConstruct
@@ -444,11 +442,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     private void addTokenInterceptor(InterceptorRegistry registry) {
-        String tokenValue;
-        tokenValue = ssmGetter.lookup(nodeApiToken);
 
-        log.info("Password from ssm with path = " + nodeApiToken + " is " + tokenValue.charAt(0) + "***" + tokenValue.charAt(tokenValue.length() - 1));
-        registry.addInterceptor(new TokenInterceptor(tokenValue)).addPathPatterns("/inout/**");
+        log.info("Password from ssm with path = " + inoutTokenValue + " is " + inoutTokenValue.charAt(0) + "***" + inoutTokenValue.charAt(inoutTokenValue.length() - 1));
+        registry.addInterceptor(new TokenInterceptor(inoutTokenValue)).addPathPatterns("/inout/**");
     }
 
 
@@ -2089,6 +2085,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean
+    @Primary
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
         HttpClient client = b.build();
