@@ -1,35 +1,25 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.service.UserService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
-import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-public class LanguageControllerTest {
+public class LanguageControllerTest extends AngularApiCommonTest {
 
     @Mock
     private UserService userService;
@@ -83,6 +73,40 @@ public class LanguageControllerTest {
     }
 
     @Test
-    public void updateUserLanguage() {
+    public void updateUserLanguage_accepted() throws Exception {
+        Mockito.when(principal.getName()).thenReturn("TEST_EMAIL");
+        Mockito.when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        Mockito.when(userService.setPreferedLang(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .patch("/user-language/update")
+                .param("language", "NEW_LANGUAGE")
+                .principal(principal);
+
+        mockMvc.perform(requestBuilder)
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isAccepted());
+
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(userService, times(1)).setPreferedLang(anyInt(), anyObject());
+    }
+
+    @Test
+    public void updateUserLanguage_invalid() throws Exception {
+        Mockito.when(principal.getName()).thenReturn("TEST_EMAIL");
+        Mockito.when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        Mockito.when(userService.setPreferedLang(anyInt(), anyObject())).thenReturn(Boolean.FALSE);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .patch("/user-language/update")
+                .param("language", "NEW_LANGUAGE")
+                .principal(principal);
+
+        mockMvc.perform(requestBuilder)
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(userService, times(1)).setPreferedLang(anyInt(), anyObject());
     }
 }
