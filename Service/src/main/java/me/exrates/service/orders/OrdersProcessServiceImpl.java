@@ -16,6 +16,7 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.newOrders.Order;
+import me.exrates.model.newOrders.Trade;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
@@ -120,11 +121,12 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
         lock.tryLock(20, TimeUnit.SECONDS);
 
         try {
+
             /*get datarelated to user*/
             boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
 
             /*get list of orders ready to accept form hazelcast*/
-            List<Order> acceptableOrders = Collections.emptyList();/* get orders from hazelcast here */
+            List<Order> acceptableOrders = Collections.emptyList();/* get orders from hazelcast here, orders must be for update */
             /*List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
                        OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());*/
             if (acceptableOrders.isEmpty()) {
@@ -159,7 +161,7 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
 
             /*accept orders for partially accept*/
             if (orderForPartialAccept != null) {
-                BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+                acceptPartially(sumForPartialAccept, orderForPartialAccept, orderCreateDto);
                 orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                 orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
             }   /*create order for the rest of sum*/
@@ -181,8 +183,12 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
         }
     }
 
-    private void acceptPartially() {
-
+    private void acceptPartially(BigDecimal sumForPartialAccept, Order orderForPartialAccept, OrderCreateDto orderCreateDto) {
+        orderForPartialAccept.setOrderStatusId(OrderStatus.PARTIALLY_ACCEPTED.getStatus());
+        Trade trade = new Trade();
+        trade.setAmountBase(sumForPartialAccept);
+        trade.setAmountConvert();
+        trade.se
     }
 
 

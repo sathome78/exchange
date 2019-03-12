@@ -5,11 +5,12 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderType;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class Order {
+public class Order implements Serializable {
 
     private Integer id;
     private Integer userId;
