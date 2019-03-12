@@ -25,7 +25,9 @@ public class LanguageController {
     public ResponseEntity<String> getUserLanguage(Principal principal) {
         String email = principal.getName();
         Optional<String> language = Optional.ofNullable(userService.getPreferedLangByEmail(email));
-        language.ifPresent(ResponseEntity::ok);
+        if (language.isPresent()) {
+            return new ResponseEntity<>("en", HttpStatus.OK);
+        }
         return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
