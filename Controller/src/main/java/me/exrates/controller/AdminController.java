@@ -30,6 +30,7 @@ import me.exrates.service.*;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.*;
+import me.exrates.service.B2XTransferToReserveAccount;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
@@ -89,6 +90,7 @@ import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
+import static me.exrates.model.enums.GroupUserRoleEnum.*;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.*;
@@ -163,6 +165,7 @@ public class AdminController {
     private AdkService adkService;
     @Autowired
     private OmniService omniService;
+
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
