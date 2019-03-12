@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl.inout;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
@@ -9,6 +9,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.service.WithdrawService;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class WithdrawMsServiceImpl implements WithdrawService {
+public class WithdrawServiceMsImpl implements WithdrawService {
     @Override
     public Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale) {
         return null;

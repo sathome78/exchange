@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl.inout;
 
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -10,6 +10,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.service.TransferService;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class TransferMsServiceImpl implements TransferService {
+public class TransferServiceMsImpl implements TransferService {
     @Override
     public Map<String, Object> createTransferRequest(TransferRequestCreateDto request) {
         return null;
