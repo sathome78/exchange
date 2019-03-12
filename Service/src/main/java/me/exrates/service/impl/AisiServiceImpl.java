@@ -26,7 +26,6 @@ import java.util.Map;
 public class AisiServiceImpl implements AisiService {
 
     public final static String MERCHANT_NAME = "AISI";
-    public final static String CURRENCY_NAME = "AISI";
     public final static String STATUS_OK = "1";
 
     @Autowired
@@ -48,7 +47,7 @@ public class AisiServiceImpl implements AisiService {
 
     @PostConstruct
     public void init() {
-        currency = currencyService.findByName(CURRENCY_NAME);
+        currency = currencyService.findByName(MERCHANT_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
     }
 
@@ -79,7 +78,7 @@ public class AisiServiceImpl implements AisiService {
     }
 
     public void onTransactionReceive(Transaction transaction){
-        log.warn("*** Aisi *** Income transaction {} " + transaction);
+        log.info("*** Aisi *** Income transaction {} " + transaction);
         if (checkTransactionForDuplicate(transaction)) {
             log.warn("*** Aisi *** transaction {} already accepted", transaction.getTransaction_id());
             return;
@@ -110,6 +109,7 @@ public class AisiServiceImpl implements AisiService {
                 .build();
 
         String tempStatus = aisiCurrencyService.createNewTransaction(address, fullAmount);
+        // compares status ok (1) with actual "Result" given by API
         if (tempStatus.equals(STATUS_OK)) {
         try {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);

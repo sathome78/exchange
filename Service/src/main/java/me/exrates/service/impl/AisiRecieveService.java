@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Service
-@Log4j2(topic = "Aisi")
+@Log4j2 (topic = "aisi_log")
 public class AisiRecieveService {
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -39,7 +39,7 @@ public class AisiRecieveService {
 
     @PostConstruct
     public void init() {
-        currency = currencyService.findByName(AisiServiceImpl.CURRENCY_NAME);
+        currency = currencyService.findByName(AisiServiceImpl.MERCHANT_NAME);
         merchant = merchantService.findByName(AisiServiceImpl.MERCHANT_NAME);
     }
 
