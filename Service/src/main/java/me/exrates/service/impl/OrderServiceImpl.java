@@ -115,6 +115,7 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
+import me.exrates.service.util.CollectionUtil;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -161,6 +162,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -179,7 +181,6 @@ import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.model.enums.OrderActionEnum.CREATE_SPLIT;
 import static me.exrates.model.enums.OrderActionEnum.DELETE;
 import static me.exrates.model.enums.OrderActionEnum.DELETE_SPLIT;
-import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 @Log4j2
 @Service
@@ -200,7 +201,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(Collectors.toList());
+            .collect(toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     @Autowired
@@ -1318,7 +1319,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-        if (isNull(exOrder)) {
+        if (Objects.isNull(exOrder)) {
             return false;
         }
         return cancelOrder(exOrder);
@@ -1330,10 +1331,9 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
-        if (isEmpty(openedOrders)) {
+        if (CollectionUtil.isEmpty(openedOrders)) {
             return false;
         }
-
         return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
@@ -1343,10 +1343,9 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
-        if (isEmpty(openedOrders)) {
+        if (CollectionUtil.isEmpty(openedOrders)) {
             return false;
         }
-
         return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
