@@ -1772,6 +1772,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "rvcServiceImpl")
     public EthTokenService rvcServiceImpl(){
         List<String> tokensList = new ArrayList<>();
+
         tokensList.add("0xa3eBd756729904Ba2A39289751d96D9B2eAc793b");
         return new EthTokenServiceImpl(tokensList, "RVC","RVC", true, ExConvert.Unit.ETHER);
     }
