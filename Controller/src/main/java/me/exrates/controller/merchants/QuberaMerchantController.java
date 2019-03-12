@@ -100,14 +100,15 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = PRIVATE_KYC + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-        quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
-        return null;
+    public ResponseModel<Boolean> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        boolean result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
+        return new ResponseModel<>(result);
     }
 
     @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentFromMaster() {
-        return null;
+    public ResponseModel<Boolean> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        boolean result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
+        return new ResponseModel<>(result);
     }
 
     private String getPrincipalEmail() {

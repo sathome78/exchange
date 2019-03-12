@@ -139,8 +139,9 @@ public class KycHttpClient {
         return responseEntity.getBody();
     }
 
-    public Boolean createPaymentToMaster(QuberaPaymentToMasterDto paymentToMasterDto) {
-        String finalUrl = uriApi + "/payment/master";
+    public Boolean createPaymentInternal(QuberaPaymentToMasterDto paymentToMasterDto, boolean toMaster) {
+        String finalUrl = toMaster ? uriApi + "/payment/master" : uriApi + "/payment/internal";
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         headers.set("apiKey", apiKey);

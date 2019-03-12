@@ -54,4 +54,6 @@ public interface QuberaService extends IRefillable, IWithdrawable {
     AccountInfoDto getInfoAccount(String principalEmail);
 
     boolean createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto);
+
+    boolean createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto);
 }

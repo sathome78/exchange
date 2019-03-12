@@ -47,6 +47,7 @@ public class QuberaServiceImpl implements QuberaService {
 
     private @Value("${qubera.threshold.length}") int thresholdLength;
     private @Value("${qubera.poolId}") int poolId;
+    private @Value("${qubera.master.account}") String masterAccount;
 
     @Autowired
     public QuberaServiceImpl(CurrencyService currencyService,
@@ -177,9 +178,32 @@ public class QuberaServiceImpl implements QuberaService {
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
 
-        QuberaPaymentToMasterDto paymentToMasterDto =
-                new QuberaPaymentToMasterDto(paymentRequestDto.getCurrencyCode(), paymentRequestDto.getAmount(),
-                account, "Inner transfer");
-        return kycHttpClient.createPaymentToMaster(paymentToMasterDto);
+        QuberaPaymentToMasterDto paymentToMasterDto = new QuberaPaymentToMasterDto();
+        paymentToMasterDto.setAmount(paymentRequestDto.getAmount());
+        paymentToMasterDto.setAccountNumber(account);
+        paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
+        paymentToMasterDto.setNarrative("Inner transfer");
+
+        return kycHttpClient.createPaymentInternal(paymentToMasterDto, true);
+    }
+
+    @Override
+    public boolean createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto) {
+        String account = quberaDao.getAccountByUserEmail(email);
+
+        if (account == null) {
+            logger.error("Account not found " + email);
+            throw new NgDashboardException("Account not found " + email,
+                    Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
+        }
+
+        QuberaPaymentToMasterDto paymentToMasterDto = new QuberaPaymentToMasterDto();
+        paymentToMasterDto.setAmount(paymentRequestDto.getAmount());
+        paymentToMasterDto.setSenderAccountNumber(account);
+        paymentToMasterDto.setBeneficiaryAccountNumber(masterAccount);
+        paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
+        paymentToMasterDto.setNarrative("Inner transfer");
+
+        return kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
     }
 }

@@ -164,3 +164,44 @@ HTTP/1.1 400 OK
     "code": 1200
 }
 ###
+
+###
+@api {get} /api/private/v2/merchants/qubera/payment/fromMaster Create payment from master
+@apiName  Create payment from master
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/fromMaster \
+  -H 'Content-Type: application/json' \
+  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d' \
+  -d '{
+	    "amount":10.0,
+	    "currencyCode":"EUR"
+}'
+
+@apiParam {String} amount - for example: 10 or 10.0 or 10.00
+@apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
+
+@apiSuccess {Boolean} data Data
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": true
+      }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
