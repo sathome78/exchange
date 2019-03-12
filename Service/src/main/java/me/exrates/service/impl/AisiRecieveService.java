@@ -40,6 +40,7 @@ public class AisiRecieveService {
     @PostConstruct
     public void init() {
         currency = currencyService.findByName(AisiServiceImpl.MERCHANT_NAME);
+
         merchant = merchantService.findByName(AisiServiceImpl.MERCHANT_NAME);
     }
 
