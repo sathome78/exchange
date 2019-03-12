@@ -10,7 +10,9 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.RefillService;
@@ -62,6 +64,11 @@ public class RefillMsImpl implements RefillService {
 
     @Override
     public Integer createRefillRequestByFact(RefillRequestAcceptDto request) {
+        return null;
+    }
+
+    @Override
+    public Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
         return null;
     }
 
@@ -118,6 +125,11 @@ public class RefillMsImpl implements RefillService {
     @Override
     public void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) throws RefillRequestAppropriateNotFoundException {
 
+    }
+
+    @Override
+    public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+        return null;
     }
 
     @Override
@@ -307,6 +319,21 @@ public class RefillMsImpl implements RefillService {
     }
 
     @Override
+    public String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId) {
+        return null;
+    }
+
+    @Override
+    public String getUsernameByRequestId(int requestId) {
+        return null;
+    }
+
+    @Override
+    public Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        return null;
+    }
+
+    @Override
     public void blockUserByFrozeTx(String address, int merchantId, int currencyId) {
 
     }
@@ -322,7 +349,7 @@ public class RefillMsImpl implements RefillService {
     }
 
     @Override
-    public void setHashByReqestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
+    public void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
 
     }
 
@@ -332,12 +359,17 @@ public class RefillMsImpl implements RefillService {
     }
 
     @Override
-    public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantIdAndCurrencyIdAndTransactionId(int merchantId, int currencyId, String txHash) {
-        return Optional.empty();
+    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+        return null;
     }
 
     @Override
-    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+    public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
+        return null;
+    }
+
+    @Override
+    public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId) {
         return null;
     }
 

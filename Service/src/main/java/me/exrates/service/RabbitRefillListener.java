@@ -3,9 +3,11 @@ package me.exrates.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.vo.WalletOperationData;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.io.IOException;
 @EnableRabbit
 @Component
 @RequiredArgsConstructor
+@Conditional(MicroserviceConditional.class)
 public class RabbitRefillListener {
 
     private final RefillService refillService;
