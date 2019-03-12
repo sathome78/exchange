@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.service.LiqpayService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
 import org.apache.log4j.LogManager;
@@ -27,8 +28,8 @@ public class LiqpayMerchantController {
     @Autowired
     private TransactionService transactionService;
 
-//    @Autowired
-//    private LiqpayService liqpayService;
+    @Autowired
+    private LiqpayService liqpayService;
 
     @Autowired
     private MessageSource messageSource;
