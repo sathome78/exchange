@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
+import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -87,8 +89,6 @@ import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-//import me.exrates.SSMGetter;
 
 @Log4j2(topic = "config")
 @EnableAsync
@@ -217,6 +217,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
+    @Value("${ssm.token.api.inout}")
+    private String nodeApiToken;
+
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -229,6 +232,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsPassword;
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
+
+    private final SSMGetter ssmGetter;
+
+    public WebAppConfig(SSMGetter ssmGetter) {
+        this.ssmGetter = ssmGetter;
+    }
 
     @PostConstruct
     public void init() {
@@ -433,6 +442,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new SecurityInterceptor());
         registry.addInterceptor(new MDCInterceptor());
     }
+
+    private void addTokenInterceptor(InterceptorRegistry registry) {
+        String tokenValue;
+        tokenValue = ssmGetter.lookup(nodeApiToken);
+
+        log.info("Password from ssm with path = " + nodeApiToken + " is " + tokenValue.charAt(0) + "***" + tokenValue.charAt(tokenValue.length() - 1));
+        registry.addInterceptor(new TokenInterceptor(tokenValue)).addPathPatterns("/inout/**");
+    }
+
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
