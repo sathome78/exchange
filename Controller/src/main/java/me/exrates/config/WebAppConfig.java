@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
@@ -223,8 +224,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     private final String inoutTokenValue;
 
-    public WebAppConfig(SsmProperties ssmProperties) {
-        this.inoutTokenValue = ssmProperties.getInoutToken();
+    public WebAppConfig(SSMGetter ssmGetter, SsmProperties ssmProperties) {
+        this.inoutTokenValue = ssmGetter.lookup(ssmProperties.getInoutTokenPath());
     }
 
     @PostConstruct
