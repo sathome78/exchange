@@ -1734,6 +1734,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "htServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService htService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x6f259637dcd74c767781e37bc6133cd6a68aa161");
