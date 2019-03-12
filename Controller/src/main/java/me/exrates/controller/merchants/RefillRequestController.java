@@ -76,10 +76,6 @@ public class RefillRequestController {
           @RequestBody RefillRequestParamsDto requestParamsDto,
           Principal principal,
           Locale locale, HttpServletRequest servletRequest) {
-
-
-
-
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }

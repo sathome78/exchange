@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
+import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -85,8 +87,6 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
-//import me.exrates.SSMGetter;
 
 @Log4j2(topic = "config")
 @EnableAsync
@@ -207,7 +207,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
-    @Value("${ssm.token.api.nodes}")
+    @Value("${ssm.token.api.inout}")
     private String nodeApiToken;
 
     private String dbMasterUser;
@@ -223,11 +223,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
-//    private final SSMGetter ssmGetter;
+    private final SSMGetter ssmGetter;
 
-/*    public WebAppConfig(SSMGetter ssmGetter) {
+    public WebAppConfig(SSMGetter ssmGetter) {
         this.ssmGetter = ssmGetter;
-    }*/
+    }
 
     @PostConstruct
     public void init() {
@@ -399,17 +399,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     private void addTokenInterceptor(InterceptorRegistry registry) {
-        String lookup;
-        try {
-//             lookup = ssmGetter.lookup(nodeApiToken);
-        } catch (Exception e){
-            log.error(e);
-            lookup = "MOCK_TEST";
-        }
-//        log.info("Password from ssm with path = " + nodeApiToken + " is " + lookup);
-//        registry.addInterceptor(new TokenInterceptor(lookup)).addPathPatterns("/nodes/**");
-//        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
-//        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
+        String tokenValue;
+        tokenValue = ssmGetter.lookup(nodeApiToken);
+
+        log.info("Password from ssm with path = " + nodeApiToken + " is " + tokenValue.charAt(0) + "***" + tokenValue.charAt(tokenValue.length() - 1));
+        registry.addInterceptor(new TokenInterceptor(tokenValue)).addPathPatterns("/inout/**");
     }
 
 
