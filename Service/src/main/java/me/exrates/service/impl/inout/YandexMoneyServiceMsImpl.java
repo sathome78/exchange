@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl.inout;
 
 import com.yandex.money.api.methods.RequestPayment;
 import me.exrates.model.CreditsOperation;
@@ -6,6 +6,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class YandexMoneyMsServiceImpl implements YandexMoneyService {
+public class YandexMoneyServiceMsImpl implements YandexMoneyService {
     @Override
     public List<String> getAllTokens() {
         return null;

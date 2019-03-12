@@ -10,17 +10,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-
 @Service
 @Conditional(MicroserviceConditional.class)
-public class YandexKassaServiceImpl implements YandexKassaService {
+public class Privat24ServiceMsImpl implements Privat24Service {
     @Override
     public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
         return null;
     }
 
     @Override
-    public boolean confirmPayment(Map<String, String> params) {
+    public boolean confirmPayment(Map<String, String> params, String signature, String payment) {
         return false;
     }
 

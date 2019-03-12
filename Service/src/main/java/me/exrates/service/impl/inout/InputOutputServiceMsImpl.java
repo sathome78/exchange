@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl.inout;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
+import me.exrates.service.InputOutputService;
 import me.exrates.service.properties.InOutProperties;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
@@ -32,7 +33,7 @@ import java.util.Optional;
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
-public class InputOutputMsServiceImpl implements InputOutputService {
+public class InputOutputServiceMsImpl implements InputOutputService {
 
     private static final String API_PREPARE_CREDITS_OPERATION = "/api/prepareCreditsOperation";
     private final RestTemplate template;

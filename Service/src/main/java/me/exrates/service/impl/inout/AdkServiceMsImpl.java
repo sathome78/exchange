@@ -1,4 +1,4 @@
-package me.exrates.service.aidos;
+package me.exrates.service.impl.inout;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.MerchantService;
+import me.exrates.service.aidos.AdkService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class AdkMsServiceImpl implements AdkService {
+public class AdkServiceMsImpl implements AdkService {
     @Override
     public Merchant getMerchant() {
         return null;
