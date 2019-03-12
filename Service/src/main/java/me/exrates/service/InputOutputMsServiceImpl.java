@@ -12,9 +12,13 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
+import me.exrates.service.properties.InOutProperties;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +31,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InputOutputMsServiceImpl implements InputOutputService {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate template;
+    private final InOutProperties properties;
+
 
     @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
@@ -51,8 +57,17 @@ public class InputOutputMsServiceImpl implements InputOutputService {
 
     @Override
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale) {
-        //restTemplate...
-        return Optional.empty();
+        HttpHeaders headers = getHeaders();
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "");
+
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Optional<CreditsOperation>> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.POST,
+                entity, new ParameterizedTypeReference<Optional<CreditsOperation>>() {});
+        return response.getBody();
     }
 
     @Override
@@ -73,5 +88,12 @@ public class InputOutputMsServiceImpl implements InputOutputService {
     @Override
     public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
         return null;
+    }
+
+    private HttpHeaders getHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add(properties.getTokenName(), properties.getTokenValue());
+        return headers;
     }
 }

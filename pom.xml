@@ -526,6 +526,11 @@
             <artifactId>spring-rabbit</artifactId>
             <version>${rabbit.version}</version>
         </dependency>
+        <dependency>
+            <groupId>me.exrates</groupId>
+            <artifactId>ssm-integration</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
 
 
