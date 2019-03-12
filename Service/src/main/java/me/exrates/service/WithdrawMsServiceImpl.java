@@ -2,7 +2,6 @@ package me.exrates.service;
 
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.WithdrawRequest;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -156,15 +155,5 @@ public class WithdrawMsServiceImpl implements WithdrawService {
     @Override
     public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId) {
         return null;
-    }
-
-    @Override
-    public Optional<WithdrawRequest> getWithdrawRequestByAddress(String withdrawAddress) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<WithdrawRequestFlatDto> getFlatById(Integer requestId) {
-        return Optional.empty();
     }
 }

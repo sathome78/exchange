@@ -1322,4 +1322,9 @@ public class RefillServiceImpl implements RefillService {
         return dtos;
     }
 
+    @Override
+    public void processRefillRequest(WalletOperationData walletOperationData) {
+
+    }
+
 }
