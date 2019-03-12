@@ -3,9 +3,9 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import me.exrates.dao.UserDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
@@ -16,10 +16,17 @@ import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.InputOutputService;
+import me.exrates.service.UserService;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.properties.InOutProperties;
+import me.exrates.service.util.RequestUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -37,9 +44,11 @@ public class InputOutputServiceMsImpl implements InputOutputService {
 
     private static final String API_PREPARE_CREDITS_OPERATION = "/api/prepareCreditsOperation";
     private final RestTemplate template;
+    private final RequestUtil requestUtil;
     private final InOutProperties properties;
-    private final UserDao userDao;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
+    private final MessageSource messageSource;
 
     @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
@@ -64,8 +73,10 @@ public class InputOutputServiceMsImpl implements InputOutputService {
     @Override
     @SneakyThrows
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_PREPARE_CREDITS_OPERATION + appendUserId(userEmail));
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), prepareHeaders());
+        setUserRecipient(locale, payment);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_PREPARE_CREDITS_OPERATION);
+        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), requestUtil.prepareHeaders(userEmail));
         ResponseEntity<Optional<CreditsOperation>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -74,16 +85,19 @@ public class InputOutputServiceMsImpl implements InputOutputService {
         return response.getBody();
     }
 
-    private String appendUserIdAndLocale(String userEmail, Locale locale) {
-        return appendUserId(userEmail) + "&locale="+locale;
-    }
 
-    private String appendUserId(String userEmail) {
-        return appendUserId(userDao.getIdByEmail(userEmail));
-    }
 
-    private String appendUserId(int userId) {
-        return "?user_id=" + userId;
+    private void setUserRecipient(Locale locale, Payment payment) {
+        User userRecipient;
+        try {
+            if (!StringUtils.isEmpty(payment.getRecipient())) {
+                userRecipient = userService.getIdByNickname(payment.getRecipient()) > 0 ?
+                        userService.findByNickname(payment.getRecipient()) : userService.findByEmail(payment.getRecipient());
+                payment.setUserRecipient(userRecipient);
+            }
+        } catch (RuntimeException e) {
+            throw new UserNotFoundException(messageSource.getMessage("transfer.nonExistentUser", new Object[]{payment.getRecipient()}, locale));
+        }
     }
 
     @Override
@@ -106,10 +120,5 @@ public class InputOutputServiceMsImpl implements InputOutputService {
         return null;
     }
 
-    private HttpHeaders prepareHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add(properties.getTokenName(), properties.getTokenValue());
-        return headers;
-    }
+
 }
