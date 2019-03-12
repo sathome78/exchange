@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class EDCMsServiceImpl implements EDCService {
+public class PayeerServiceMsImpl implements PayeerService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         return null;

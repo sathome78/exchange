@@ -29,7 +29,7 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
-public class RefillMsImpl implements RefillService {
+public class RefillServiceMsImpl implements RefillService {
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
