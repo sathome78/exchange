@@ -1,6 +1,5 @@
 package me.exrates.service.omni;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
@@ -19,10 +18,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-@Log4j2(topic = "omni_log")
 @Service
 @Conditional(MicroserviceConditional.class)
-public class OmniMsServiceImpl implements OmniService {
+public class OmniServiceMsImpl implements OmniService {
     @Override
     public void putOnBchExam(RefillRequestPutOnBchExamDto dto) {
 
