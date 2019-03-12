@@ -1,5 +1,7 @@
 package me.exrates.service.impl.inout;
 
+import lombok.RequiredArgsConstructor;
+import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
@@ -24,8 +26,11 @@ import java.util.Set;
 
 @Service
 @Conditional(MicroserviceConditional.class)
+@RequiredArgsConstructor
 public class CurrencyServiceMsImpl implements CurrencyService {
 
+
+    private final CurrencyDao currencyDao;
 
     @Override
     public String getCurrencyName(int currencyId) {
@@ -89,7 +94,7 @@ public class CurrencyServiceMsImpl implements CurrencyService {
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
-        return null;
+        return currencyDao.getAllCurrencyPairsWithHidden(type); //TODO remove
     }
 
     @Override
