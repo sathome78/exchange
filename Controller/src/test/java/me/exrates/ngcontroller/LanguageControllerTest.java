@@ -23,7 +23,6 @@ public class LanguageControllerTest extends AngularApiCommonTest {
 
     @Mock
     private UserService userService;
-
     @Mock
     private Principal principal;
 
