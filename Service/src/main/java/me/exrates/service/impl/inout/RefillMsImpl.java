@@ -41,6 +41,7 @@ public class RefillMsImpl implements RefillService {
 
     @Override
     public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
+        //TODO inout
         return Optional.empty();
     }
 
@@ -176,7 +177,8 @@ public class RefillMsImpl implements RefillService {
 
     @Override
     public boolean checkInputRequestsLimit(int currencyId, String email) {
-        return false;
+        //TODO inout
+        return true;
     }
 
     @Override

@@ -18,11 +18,12 @@ import java.io.IOException;
 public class RabbitRefillListener {
 
     private final RefillService refillService;
+    private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = RabbitMqService.REFILL_QUEUE)
     public void processRefillEvent(String walletOperationData) {
         try {
-            refillService.processRefillRequest(new ObjectMapper().readValue(walletOperationData, WalletOperationData.class));
+            refillService.processRefillRequest(objectMapper.readValue(walletOperationData, WalletOperationData.class));
         } catch (IOException e) {
             e.printStackTrace();
         }
