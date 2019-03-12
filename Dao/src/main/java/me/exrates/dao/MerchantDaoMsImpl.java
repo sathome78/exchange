@@ -8,6 +8,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -47,11 +48,6 @@ public class MerchantDaoMsImpl implements MerchantDao {
     @Override
     public BigDecimal getMinSum(int merchant, int currency) {
         return null;
-    }
-
-    @Override
-    public void setMinSum(double merchant, double currency, double minSum) {
-
     }
 
     @Override
@@ -190,6 +186,11 @@ public class MerchantDaoMsImpl implements MerchantDao {
     }
 
     @Override
+    public BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant) {
+        return null;
+    }
+
+    @Override
     public boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd) {
         return false;
     }
@@ -202,5 +203,15 @@ public class MerchantDaoMsImpl implements MerchantDao {
     @Override
     public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
 
+    }
+
+    @Override
+    public boolean checkAvailable(Integer currencyId, Integer merchantId) {
+        return false;
+    }
+
+    @Override
+    public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType) {
+        return null;
     }
 }

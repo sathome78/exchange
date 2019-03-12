@@ -82,6 +82,11 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
     }
 
     @Override
+    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+        return null;
+    }
+
+    @Override
     public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
 
     }
@@ -104,6 +109,11 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
                 " WHERE hidden IS NOT TRUE " + typeClause +
                 " ORDER BY -pair_order DESC";
         return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+    }
+
+    @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
+        return null;
     }
 
     @Override
@@ -254,5 +264,20 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
     @Override
     public void updateWithdrawLimits(List<CurrencyLimit> currencyLimits) {
 
+    }
+
+    @Override
+    public List<Currency> getCurrencies(MerchantProcessType... processType) {
+        return null;
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName) {
+        return null;
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName) {
+        return null;
     }
 }
