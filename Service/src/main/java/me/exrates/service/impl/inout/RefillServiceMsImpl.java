@@ -1,5 +1,8 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
@@ -17,8 +20,16 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.properties.InOutProperties;
+import me.exrates.service.util.RequestUtil;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,7 +40,16 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
+@RequiredArgsConstructor
 public class RefillServiceMsImpl implements RefillService {
+
+    private static final String GET_ADDRESS_BY_MERCHANT_ID_AND_CURRENCY_ID_AND_USER_ID = "/api/getAddressByMerchantIdAndCurrencyIdAndUserId";
+    private static final String CHECK_INPUT_REQUESTS_LIMIT = "/api/checkInputRequestsLimit";
+    private static final String CREATE_REFILL_REQUEST = "/api/createRefillRequest";
+    private final InOutProperties properties;
+    private final ObjectMapper objectMapper;
+    private final RequestUtil requestUtil;
+    private final RestTemplate template;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -37,14 +57,30 @@ public class RefillServiceMsImpl implements RefillService {
     }
 
     @Override
+    @SneakyThrows
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto) {
-        return null;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
+        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
+        ResponseEntity<Map<String, Object>> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.POST,
+                entity, new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        return response.getBody();
     }
 
     @Override
     public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
-        //TODO inout
-        return Optional.empty();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + GET_ADDRESS_BY_MERCHANT_ID_AND_CURRENCY_ID_AND_USER_ID)
+                .queryParam("currency_id", currencyId)
+                .queryParam("merchant_id", merchantId);
+
+        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(userId));
+        ResponseEntity<Optional<String>> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity, new ParameterizedTypeReference<Optional<String>>() {});
+        return response.getBody();
     }
 
     @Override
@@ -189,8 +225,15 @@ public class RefillServiceMsImpl implements RefillService {
 
     @Override
     public boolean checkInputRequestsLimit(int currencyId, String email) {
-        //TODO inout
-        return true;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CHECK_INPUT_REQUESTS_LIMIT)
+                .queryParam("currency_id", currencyId);
+        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));
+        ResponseEntity<Boolean> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity, Boolean.class);
+
+        return response.getBody();
     }
 
     @Override
