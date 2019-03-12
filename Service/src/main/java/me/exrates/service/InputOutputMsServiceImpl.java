@@ -1,6 +1,9 @@
 package me.exrates.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import me.exrates.dao.UserDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -31,9 +34,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InputOutputMsServiceImpl implements InputOutputService {
 
+    private static final String API_PREPARE_CREDITS_OPERATION = "/api/prepareCreditsOperation";
     private final RestTemplate template;
     private final InOutProperties properties;
-
+    private final UserDao userDao;
+    private final ObjectMapper objectMapper;
 
     @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
@@ -56,18 +61,28 @@ public class InputOutputMsServiceImpl implements InputOutputService {
     }
 
     @Override
+    @SneakyThrows
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale) {
-        HttpHeaders headers = getHeaders();
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "");
-
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_PREPARE_CREDITS_OPERATION + appendUserId(userEmail));
+        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), prepareHeaders());
         ResponseEntity<Optional<CreditsOperation>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
                 entity, new ParameterizedTypeReference<Optional<CreditsOperation>>() {});
+
         return response.getBody();
+    }
+
+    private String appendUserIdAndLocale(String userEmail, Locale locale) {
+        return appendUserId(userEmail) + "&locale="+locale;
+    }
+
+    private String appendUserId(String userEmail) {
+        return appendUserId(userDao.getIdByEmail(userEmail));
+    }
+
+    private String appendUserId(int userId) {
+        return "?user_id=" + userId;
     }
 
     @Override
@@ -90,7 +105,7 @@ public class InputOutputMsServiceImpl implements InputOutputService {
         return null;
     }
 
-    private HttpHeaders getHeaders() {
+    private HttpHeaders prepareHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         headers.add(properties.getTokenName(), properties.getTokenValue());
