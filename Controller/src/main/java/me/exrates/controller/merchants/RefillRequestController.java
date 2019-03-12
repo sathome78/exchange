@@ -5,7 +5,6 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
-import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -15,12 +14,14 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.userOperation.UserOperationService;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -82,7 +83,7 @@ public class RefillRequestController {
     if(!accessToOperationForUser) {
       throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
     }
-    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) { //TODO
+    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
     }
     Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
@@ -107,25 +108,13 @@ public class RefillRequestController {
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
 
-    setUserRecipient(locale, payment);
-
       CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return refillService.createRefillRequest(request);
   }
 
-    private void setUserRecipient(Locale locale, Payment payment) {
-        User recipient = null;
-        try {
-            if (!StringUtils.isEmpty(payment.getRecipient())) {
-                recipient = userService.getIdByNickname(payment.getRecipient()) > 0 ?
-                        userService.findByNickname(payment.getRecipient()) : userService.findByEmail(payment.getRecipient());
-            }
-        } catch (RuntimeException e) {
-            throw new UserNotFoundException(messageSource.getMessage("transfer.nonExistentUser", new Object[]{payment.getRecipient()}, locale));
-        }
-    }
+
 
 
     @RequestMapping(value = "/refill/request/revoke", method = POST)
