@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.LocaleResolver;
@@ -31,8 +32,7 @@ import java.util.Collections;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -170,7 +170,35 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void revokeWithdrawRequest() {
+    public void revokeWithdrawRequest_isOk() throws Exception {
+        Integer requestId = 225;
+        String operation = "REFILL";
+
+        doNothing().when(refillService).revokeRefillRequest(anyInt());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(refillService, times(1)).revokeRefillRequest(anyInt());
+    }
+
+    @Test
+    public void revokeWithdrawRequest_exception() throws Exception {
+        Integer requestId = 225;
+        String errorOperation = "LLIFER";
+        String ngBalanceException = "Failed to revoke such for operation LLIFER";
+
+        doNothing().when(refillService).revokeRefillRequest(anyInt());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
+
+        verify(refillService, never()).revokeRefillRequest(anyInt());
     }
 
     @Test
