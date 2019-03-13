@@ -253,7 +253,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public void init() {
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
-        log.debug(arguments.stream().collect(Collectors.joining("; ")));
+        log.debug(String.join("; ", arguments));
         Properties properties = new Properties();
         try {
             if (isOuterFile) {

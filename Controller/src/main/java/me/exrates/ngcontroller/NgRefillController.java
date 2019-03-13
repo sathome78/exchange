@@ -89,8 +89,10 @@ public class NgRefillController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO).stream()
-                    .filter(o-> !o.getName().equalsIgnoreCase("rub")).collect(Collectors.toList());
+            return currencyService.getCurrencies(MerchantProcessType.CRYPTO)
+                    .stream()
+                    .filter(o-> !o.getName().equalsIgnoreCase("rub"))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
@@ -171,10 +173,6 @@ public class NgRefillController {
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
         List<MerchantCurrency> merchantCurrencyData =
                 merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        merchantCurrencyData.forEach(o -> {
-            boolean availableRefill = merchantService.checkAvailableRefill(o.getCurrencyId(), o.getMerchantId());
-            o.setAvailableForRefill(availableRefill);
-        });
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, getPrincipalEmail());
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);

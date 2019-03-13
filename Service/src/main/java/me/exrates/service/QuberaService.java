@@ -1,5 +1,7 @@
 package me.exrates.service;
 
+import me.exrates.model.dto.AccountCreateDto;
+import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.QuberaRequestDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -42,4 +44,6 @@ public interface QuberaService extends IRefillable, IWithdrawable {
   }
 
   boolean logResponse(QuberaRequestDto requestDto);
+
+  AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto);
 }

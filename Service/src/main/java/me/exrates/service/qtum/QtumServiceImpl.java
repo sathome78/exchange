@@ -26,6 +26,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,7 +157,7 @@ public class QtumServiceImpl implements QtumService {
 
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(merchant.getName(),
                 qtumSpecParamName).getParamValue());
-        Set<String> addresses = refillService.findAllAddresses(merchant.getId(), currency.getId()).stream().distinct().collect(Collectors.toSet());
+        Set<String> addresses = new HashSet<>(refillService.findAllAddresses(merchant.getId(), currency.getId()));
 
         String blockNumberHash = qtumNodeService.getBlockHash(lastReceivedBlock);
 

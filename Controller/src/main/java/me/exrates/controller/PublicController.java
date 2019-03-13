@@ -3,13 +3,11 @@ package me.exrates.controller;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
 import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +118,11 @@ public class PublicController {
 
     private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
         List<CoinmarketApiDto> list = orderService.getDailyCoinmarketData(currencyPair);
-        return list.stream().collect(Collectors.toMap(dto -> dto.getCurrency_pair_name().replace('/', '_'), CoinmarketApiJsonDto::new));
+        return list
+                .stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getCurrency_pair_name().replace('/', '_'),
+                        CoinmarketApiJsonDto::new));
     }
 
     private long getTiming(long before) {

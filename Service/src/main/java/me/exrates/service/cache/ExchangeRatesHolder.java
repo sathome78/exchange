@@ -12,13 +12,13 @@ public interface ExchangeRatesHolder {
 
     void onRatesChange(ExOrder exOrder);
 
-    ExOrderStatisticsShortByPairsDto getOne(Integer id);
+    ExOrderStatisticsShortByPairsDto getOne(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllRates();
 
     List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id);
 
-    Map<Integer, String> getRatesForMarket(TradeMarket market);
+    Map<String, BigDecimal> getRatesForMarket(TradeMarket market);
 
     BigDecimal getBtcUsdRate();
 }

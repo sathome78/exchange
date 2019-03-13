@@ -1,5 +1,6 @@
 package me.exrates.model.enums.invoice;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 public interface InvoiceStatus {
 
   default Set<InvoiceStatus> getAvailableNextStatesSet(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-    Set<InvoiceStatus> availableNextStates = schemaMap.values().stream().collect(Collectors.toSet());
+    Set<InvoiceStatus> availableNextStates = new HashSet<>(schemaMap.values());
     assert (availableNextStates.size() == schemaMap.values().size());
     return availableNextStates;
   }

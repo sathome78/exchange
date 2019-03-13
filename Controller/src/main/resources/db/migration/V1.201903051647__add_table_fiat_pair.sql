@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS FIAT_PAIR
   CONSTRAINT fiat_par_currency2_id_fk FOREIGN KEY (currency2_id) REFERENCES CURRENCY (id)
 ) AUTO_INCREMENT=3000;
 
-INSERT IGNORE INTO FIAT_PAIR(currency1_id, currency2_id, ticker_name) VALUES (20, 2, 'AED/USD');
+ INSERT IGNORE INTO FIAT_PAIR(currency1_id, currency2_id, ticker_name) VALUES (20, 2, 'AED/USD');
 INSERT IGNORE INTO FIAT_PAIR(currency1_id, currency2_id, ticker_name) VALUES (8, 2, 'CNY/USD');
 INSERT IGNORE INTO FIAT_PAIR(currency1_id, currency2_id, ticker_name) VALUES (3, 2, 'EUR/USD');
 INSERT IGNORE INTO FIAT_PAIR(currency1_id, currency2_id, ticker_name) VALUES (10, 2, 'IDR/USD');

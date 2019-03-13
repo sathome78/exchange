@@ -1,6 +1,8 @@
 package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
@@ -109,7 +111,6 @@ import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.impl.B2XTransferToReserveAccount;
-import me.exrates.service.impl.EDCServiceNodeImpl;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificatorsService;
@@ -187,7 +188,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
@@ -301,7 +301,10 @@ public class AdminController {
 
     private String retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum businessUserRole) {
         List<UserRole> roles = userRoleService.getRealUserRoleByBusinessRoleList(businessUserRole);
-        return roles.stream().map(e -> "'" + e.name() + "'").collect(Collectors.joining(",", "hasAnyAuthority(", ")"));
+        return roles
+                .stream()
+                .map(e -> "'" + e.name() + "'")
+                .collect(Collectors.joining(",", "hasAnyAuthority(", ")"));
     }
 
     @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
@@ -442,7 +445,10 @@ public class AdminController {
     public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id, @RequestParam(defaultValue = "false") Boolean onlyBalances) {
         boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
         return getExtendedInfo && !onlyBalances ? walletService.getAllUserWalletsForAdminDetailed(id) :
-                walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
+                walletService.getAllWallets(id)
+                        .stream()
+                        .map(WalletFormattedDto::new)
+                        .collect(Collectors.toList());
     }
 
     @AdminLoggable
@@ -594,8 +600,10 @@ public class AdminController {
         List<Merchant> merchantList = merchantService.findAll();
         merchantList.sort(Comparator.comparing(Merchant::getName));
         model.addObject("merchants", merchantList);
-        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
         AuthorityOptionsForm form = new AuthorityOptionsForm();
         form.setUserId(user.getId());
         form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
@@ -604,7 +612,10 @@ public class AdminController {
         userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(user.getId(), localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
         model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
-        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId())
+                .stream()
+                .map(e -> e.getAdminAuthority().name())
+                .collect(Collectors.joining(",")));
         model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
         model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
@@ -927,7 +938,8 @@ public class AdminController {
             return redirectView;
         }
         String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
-        sessionRegistry.getAllPrincipals().stream()
+        sessionRegistry.getAllPrincipals()
+                .stream()
                 .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
                 .findFirst()
                 .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
@@ -995,7 +1007,8 @@ public class AdminController {
             return redirectView;
         }
         String updatedUserEmail = userService.getUserById(userOperationAuthorityOptionsForm.getUserId()).getEmail();
-        sessionRegistry.getAllPrincipals().stream()
+        sessionRegistry.getAllPrincipals()
+                .stream()
                 .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
                 .findFirst()
                 .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
@@ -1121,11 +1134,12 @@ public class AdminController {
         String lang = userService.getPreferedLangByEmail(email);
         Locale userLocale = Locale.forLanguageTag(StringUtils.isEmpty(lang) ? "EN" : lang);
         UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
-        List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
+        List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic)
+                .stream()
                 .map(e -> messageSource.getMessage(e, null, userLocale))
                 .collect(Collectors.toList());
         return new HashMap<String, List<String>>() {{
-            put("lang", Arrays.asList(userLocale.getLanguage()));
+            put("lang", Collections.singletonList(userLocale.getLanguage()));
             put("list", phrases);
         }};
     }
@@ -1204,6 +1218,24 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams)  throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(tableParams);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/pageableTransactions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
@@ -1368,11 +1400,14 @@ public class AdminController {
         Currency byName = currencyService.findByName(currencyName);
 
         List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
-        List<Merchant> collect = allByCurrency.stream().
+        List<Merchant> collect = allByCurrency
+                .stream().
                 filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
         Map<String, String> collect1 = collect.
                 stream().
-                collect(toMap(Merchant::getName, merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
+                collect(Collectors.toMap(
+                        Merchant::getName,
+                        merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
 
 
         return new ResponseEntity<>(collect1, HttpStatus.OK);
@@ -1508,8 +1543,11 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats", method = GET)
     public ModelAndView generalStats() {
         Map<UserRole, Boolean> defaultRoleFilter = new EnumMap<>(UserRole.class);
-        defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
-                .collect(toMap(value -> value, value -> false)));
+        defaultRoleFilter.putAll(Stream.of(UserRole.values())
+                .filter(value -> value != ROLE_CHANGE_PASSWORD)
+                .collect(Collectors.toMap(
+                        value -> value,
+                        value -> false)));
         userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
@@ -1743,7 +1781,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve", method = POST)
     public ResponseEntity sendMoneyToReserveAddress(@RequestParam("transactionCount") int transactionCount,
-                                       @RequestParam("transactionAmount") String amount) {
+                                                    @RequestParam("transactionAmount") String amount) {
         b2XTransferToReserveAccount.transferToReserveAccountFromNode(transactionCount, amount);
         return ResponseEntity.ok().build();
     }
@@ -1781,7 +1819,10 @@ public class AdminController {
     }
 
     public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+        System.out.println(WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList()));
     }
 
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Builder(builderClassName = "Builder")
 @Setter
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class DocumentToCapture {
     private String code;
     private String label;

@@ -14,5 +14,5 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class PersonKycDto {
-    List<IdentityData> persons;
+    List<IdentityDataKyc> persons;
 }

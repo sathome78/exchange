@@ -187,7 +187,9 @@ public class MerchantServiceImpl implements MerchantService {
         return currencies.stream()
                 .map(Currency::getId)
                 .map(currencyId -> Pair.of(currencyId, merchantDao.findAllByCurrency(currencyId)))
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(
+                        Pair::getKey,
+                        Pair::getValue));
     }
 
     @Override

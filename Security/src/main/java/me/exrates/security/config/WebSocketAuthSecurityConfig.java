@@ -3,6 +3,7 @@ package me.exrates.security.config;
 import me.exrates.security.service.AuthChannelInterceptorAdapter;
 import me.exrates.security.service.WebSocketAuthenticatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -11,6 +12,7 @@ import org.springframework.web.socket.config.annotation.AbstractWebSocketMessage
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 @Configuration
+@ComponentScan(basePackages = "me.exrates.security")
 @Order(Ordered.HIGHEST_PRECEDENCE + 50)
 public class WebSocketAuthSecurityConfig extends AbstractWebSocketMessageBrokerConfigurer {
 

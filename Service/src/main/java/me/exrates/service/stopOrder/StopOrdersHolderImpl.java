@@ -13,7 +13,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
@@ -43,26 +47,39 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     public void init() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
         List<StopOrder> activeOrders = stopOrderService
-                .getActiveStopOrdersByCurrencyPairsId(currencyPairs.stream().map(CurrencyPair::getId).collect(Collectors.toList()));
-        currencyPairs.forEach(p->{
-            List<StopOrder> thisPairsOrders = activeOrders.stream().filter(i->i.getCurrencyPairId() == p.getId()).collect(Collectors.toList());
+                .getActiveStopOrdersByCurrencyPairsId(currencyPairs
+                        .stream()
+                        .map(CurrencyPair::getId)
+                        .collect(Collectors.toList()));
+        currencyPairs.forEach(p -> {
+            List<StopOrder> thisPairsOrders = activeOrders
+                    .stream()
+                    .filter(i -> i.getCurrencyPairId() == p.getId())
+                    .collect(Collectors.toList());
             ConcurrentSkipListSet<StopOrderSummaryDto> sellSet = new ConcurrentSkipListSet<>(comparator);
-            thisPairsOrders.stream().filter(i->i.getOperationType().equals(OperationType.SELL)).forEach(i->{
-                sellSet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
-            });
+            thisPairsOrders
+                    .stream()
+                    .filter(i -> i.getOperationType().equals(OperationType.SELL))
+                    .forEach(i -> {
+                        sellSet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
+                    });
             sellOrdersMap.put(p.getId(), sellSet);
-            log.debug("sell set for currency {} size: {}", p.getId(),sellSet.size());
+            log.debug("sell set for currency {} size: {}", p.getId(), sellSet.size());
             ConcurrentSkipListSet<StopOrderSummaryDto> buySet = new ConcurrentSkipListSet<>(comparator);
-            thisPairsOrders.stream().filter(i->i.getOperationType().equals(OperationType.BUY)).forEach(i->{
-                buySet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
-            });
+            thisPairsOrders
+                    .stream()
+                    .filter(i -> i.getOperationType().equals(OperationType.BUY))
+                    .forEach(i -> {
+                        buySet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
+                    });
             buyOrdersMap.put(p.getId(), buySet);
             log.debug("buy set for currency {} size: {}", p.getId(), buySet.size());
         });
-        }
+    }
 
     /**
-     * return set with orders by this currency pair @pairId pair which has higher or equal @rate*/
+     * return set with orders by this currency pair @pairId pair which has higher or equal @rate
+     */
     @Override
     public NavigableSet<StopOrderSummaryDto> getSellOrdersForPairAndStopRate(int pairId, BigDecimal rate) {
         if (!sellOrdersMap.containsKey(pairId)) {
@@ -76,7 +93,8 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     }
 
     /**
-     * return set with orders by this currency pair @pairId pair which has lower or equal @rate*/
+     * return set with orders by this currency pair @pairId pair which has lower or equal @rate
+     */
     @Override
     public NavigableSet<StopOrderSummaryDto> getBuyOrdersForPairAndStopRate(int pairId, BigDecimal rate) {
         if (!buyOrdersMap.containsKey(pairId)) {
@@ -137,8 +155,6 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     private void addNewPairToMap(Map<Integer, ConcurrentSkipListSet<StopOrderSummaryDto>> map, Integer currencyPairId) {
         map.put(currencyPairId, new ConcurrentSkipListSet<>(comparator));
     }
-
-
 
 
 }

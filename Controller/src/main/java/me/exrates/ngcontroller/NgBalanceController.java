@@ -53,6 +53,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
@@ -175,7 +178,8 @@ public class NgBalanceController {
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
                     walletTotalUsdDtoList.add(walletTotalUsdDto);
                 }
-                resultOrders.stream()
+                resultOrders
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))

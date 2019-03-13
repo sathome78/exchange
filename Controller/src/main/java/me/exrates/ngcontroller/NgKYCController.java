@@ -2,9 +2,8 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.User;
 import me.exrates.model.dto.kyc.EventStatus;
-import me.exrates.model.dto.kyc.IdentityData;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import me.exrates.model.dto.kyc.VerificationStep;
@@ -45,13 +44,12 @@ import static me.exrates.service.impl.KYCServiceImpl.SIGNATURE;
 @Log4j2
 @RestController
 @RequestMapping(
-        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
 public class NgKYCController {
 
-    private final static String PUBLIC_KYC = "/api/public/v2/shufti-pro";
-    private final static String PRIVATE_KYC = "/api/private/v2/shufti-pro/";
+    private final static String PUBLIC_KYC = "/api/public/v2/kyc";
+    private final static String PRIVATE_KYC = "/api/private/v2/kyc/";
     private final UserService userService;
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
@@ -66,7 +64,7 @@ public class NgKYCController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = PUBLIC_KYC + "/callback")
+    @PostMapping(value = PUBLIC_KYC + "/callback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity callback(HttpServletRequest request) {
         try (BufferedReader reader = new BufferedReader(request.getReader())) {
             final String response = reader.readLine();
@@ -86,21 +84,19 @@ public class NgKYCController {
         return ResponseEntity.notFound().build();
     }
 
-    // https://exrates.me/api/public/v2/shufti-pro/webhook/{referenceId}
+    // https://exrates.me/api/public/v2/webhook/{referenceId}
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}")
-    public ResponseEntity<Void> callback(HttpServletRequest request,
-                                   @PathVariable String referenceId,
-                                   @RequestBody KycStatusResponseDto kycStatusResponseDto) {
-        User user = userService.findByKycReferenceId(referenceId);
-        kycService.updateUserVerificationInfo(user, kycStatusResponseDto);
+    @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> callback(@PathVariable String referenceId,
+                                         @RequestBody KycStatusResponseDto kycStatusResponseDto) {
+        kycService.processingCallBack(referenceId, kycStatusResponseDto);
         return ResponseEntity.ok().build();
     }
 
     // /private/v2/shufti-pro/verification-url/step/{stepNumber}
 
     /**
-     * /info/private/v2/shufti-pro/verification-url/{step}
+     * /info/private/v2/verification-url/{step}
      *
      * @param step         - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
@@ -128,7 +124,7 @@ public class NgKYCController {
     }
 
     /**
-     * /info/info/private/v2/shufti-pro/countries
+     * /info/info/private/v2/countries
      * <p>
      * {
      * countryName: Ukraine
@@ -142,7 +138,7 @@ public class NgKYCController {
 
 
     /**
-     * /info/private/v2/shufti-pro/languages
+     * /info/private/v2/languages
      * <p>
      * {
      * languageName: English
@@ -164,16 +160,16 @@ public class NgKYCController {
         return ResponseEntity.ok(userService.getVerificationStep());
     }
 
-    @GetMapping("/api/private/v2/kyc/status")
+    @GetMapping(PRIVATE_KYC + "/status")
     public ResponseModel<String> getStatusKyc() {
         String email = getPrincipalEmail();
         return new ResponseModel<>(userService.getUserKycStatusByEmail(email));
     }
 
-    @PostMapping("/api/private/v2/kyc/start")
-    public ResponseModel<OnboardingResponseDto> startKycProcessing(@RequestBody @Valid IdentityData identityData) {
+    @PostMapping(value = PRIVATE_KYC + "/start", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<OnboardingResponseDto> startKycProcessing(@RequestBody @Valid IdentityDataRequest identityDataRequest) {
         String email = getPrincipalEmail();
-        return new ResponseModel<>(kycService.startKyCProcessing(identityData, email));
+        return new ResponseModel<>(kycService.startKyCProcessing(identityDataRequest, email));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

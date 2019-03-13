@@ -360,7 +360,6 @@ public class NgDashboardController {
      */
     @PostMapping("/cancel/all")
     public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
-
         boolean canceled;
         if (nonNull(pairName)) {
             pairName = pairName.toUpperCase();

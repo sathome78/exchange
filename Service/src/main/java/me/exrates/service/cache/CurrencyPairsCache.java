@@ -39,6 +39,10 @@ public class CurrencyPairsCache {
     }
 
     public CurrencyPair getPairByName(String pairName) {
-        return pairsMap.values().stream().filter(p->p.getName().equalsIgnoreCase(pairName)).findFirst().orElse(null);
+        return pairsMap.values()
+                .stream()
+                .filter(p->p.getName().equalsIgnoreCase(pairName))
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -196,7 +196,8 @@ public enum RefillStatusEnum implements InvoiceStatus {
   }
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue) {
-    return schemaMap.keySet().stream()
+    return schemaMap.keySet()
+            .stream()
         .filter(e->e.isMatchesTheParamsValue(paramsValue))
         .collect(Collectors.toSet());
   }

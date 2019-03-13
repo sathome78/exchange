@@ -227,16 +227,20 @@ public class TransferRequestController {
     public ModelAndView vouchers(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
         List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-                .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+                .stream()
+                .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+                .collect(Collectors.toList());
         params.put("currencies", permittedCurrencies);
         if (!permittedCurrencies.isEmpty()) {
-            List<Integer> currencyList = permittedCurrencies.stream()
+            List<Integer> currencyList = permittedCurrencies
+                    .stream()
                     .map(UserCurrencyOperationPermissionDto::getCurrencyId)
                     .collect(Collectors.toList());
             List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.USER_TRANSFER)
                     .stream()
                     .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-                    .distinct().collect(Collectors.toList());
+                    .distinct()
+                    .collect(Collectors.toList());
             params.put("merchants", merchants);
         }
         List<TransferStatusEnum> statuses = new ArrayList<>(Arrays.asList(TransferStatusEnum.values()));

@@ -14,10 +14,11 @@ import lombok.Setter;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseCreateAplicantDto {
+public class ResponseCreateApplicantDto {
     private String uid;
     private String creationDate;
     private String lastUpdateDate;
     private String lastReportStatus;
     private String state;
+    private String error;
 }

@@ -85,8 +85,6 @@ import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 @Log4j2
 @Service
@@ -141,9 +139,20 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
         return walletDao.getAllUserWalletsForAdminDetailed(userId,
-                WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                WithdrawStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                RefillStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()));
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                RefillStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()));
     }
 
 
@@ -151,7 +160,10 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                    String email, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<MyWalletsDetailedDto>() {{
@@ -165,8 +177,14 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
         List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
-        Set<Integer> currencies = pairList.stream().map(p -> p.getCurrency2().getId()).collect(Collectors.toSet());
-        currencies.addAll(pairList.stream().map(p -> p.getCurrency1().getId()).collect(toSet()));
+        Set<Integer> currencies = pairList
+                .stream()
+                .map(p -> p.getCurrency2().getId())
+                .collect(Collectors.toSet());
+        currencies.addAll(pairList
+                .stream()
+                .map(p -> p.getCurrency1().getId())
+                .collect(Collectors.toSet()));
         return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
     }
 
@@ -298,7 +316,10 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
     }
 
@@ -450,7 +471,11 @@ public class WalletServiceImpl implements WalletService {
             if (!userWalletSummaryDtos.contains(item)) {
                 userWalletSummaryDtos.add(new UserWalletSummaryDto(item));
             } else {
-                UserWalletSummaryDto storedItem = userWalletSummaryDtos.stream().filter(e -> e.equals(item)).findAny().get();
+                UserWalletSummaryDto storedItem = userWalletSummaryDtos
+                        .stream()
+                        .filter(e -> e.equals(item))
+                        .findAny()
+                        .get();
                 storedItem.increment(item);
             }
         }
@@ -493,15 +518,17 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
         Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
-                .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
-        return walletDao.getWalletBalancesSummaryByGroups().stream()
-                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
-
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
-                        .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
+                .collect(Collectors.toMap(Enum::name, val -> BigDecimal.ZERO));
+        return walletDao.getWalletBalancesSummaryByGroups()
+                .stream()
+                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet()
+                .stream()
+                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
+                        .stream()
+                        .collect(Collectors.toMap(dto -> dto.getReportGroupUserRole().name(),
                                 UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
                                 balancesMapSupplier)), ReportGroupUserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
+                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
                 .collect(Collectors.toList());
 
     }
@@ -509,13 +536,18 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
-        return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
+        return walletDao.getWalletBalancesSummaryByRoles(roles
+                .stream()
+                .map(UserRole::getRole)
+                .collect(Collectors.toList()))
                 .stream()
                 //wolper 19.04.18
-                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet().stream()
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
+                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet()
+                .stream()
+                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
+                        .stream()
                         .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
+                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
                 .collect(Collectors.toList());
     }
 
@@ -625,7 +657,8 @@ public class WalletServiceImpl implements WalletService {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances().stream()
+        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances()
+                .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         if (rates.isEmpty() || balances.isEmpty()) {

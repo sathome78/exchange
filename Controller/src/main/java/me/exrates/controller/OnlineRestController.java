@@ -4,19 +4,53 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
-import me.exrates.model.dto.*;
-import me.exrates.model.dto.onlineTableDto.*;
-import me.exrates.model.enums.*;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CurrentParams;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.RefFilterData;
+import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefsListContainer;
+import me.exrates.model.dto.TableParams;
+import me.exrates.model.dto.WalletTotalUsdDto;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NotificationDto;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.enums.ChartType;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.PagingDirection;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.NewsService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.OrderService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.RefillService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.RefillRequestMerchantException;
-import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.stopOrder.StopOrderService;
-import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -30,17 +64,33 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -175,7 +225,9 @@ public class OnlineRestController {
 
     @GetMapping("/trade_pairs")
     public Map<String, Integer> getAllAvailableMainPairs() {
-        return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN).stream().collect(Collectors.toMap(CurrencyPair::getName, CurrencyPair::getId));
+        return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN)
+                .stream()
+                .collect(Collectors.toMap(CurrencyPair::getName, CurrencyPair::getId));
     }
 
 
@@ -216,7 +268,8 @@ public class OnlineRestController {
             List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
 
             final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
-            resultOrders.stream()
+            resultOrders
+                    .stream()
                     .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
                     .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
 
@@ -229,7 +282,8 @@ public class OnlineRestController {
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
                     walletTotalUsdDtoList.add(walletTotalUsdDto);
                 }
-                resultOrders.stream()
+                resultOrders
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
@@ -256,7 +310,10 @@ public class OnlineRestController {
                 }
             });
 
-            map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getSumUSD().doubleValue()).sum());
+            map.put("sumTotalUSD", walletTotalUsdDtoList
+                    .stream()
+                    .mapToDouble(w -> w.getSumUSD().doubleValue())
+                    .sum());
         }
 
         return map;
@@ -400,7 +457,7 @@ public class OnlineRestController {
      * @return: "null" if user is not login. List the data of user's wallet current statistics
      * @author ValkSam
      */
-    @OnlineMethod
+    /*@OnlineMethod
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
@@ -410,15 +467,15 @@ public class OnlineRestController {
         final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
         log.error("chartType {}", chartType);
-        /**/
+        *//**//*
         ArrayList<List> arrayListMain = new ArrayList<>();
-        /*in first row return backDealInterval - to synchronize period menu with it*/
+        *//*in first row return backDealInterval - to synchronize period menu with it*//*
         arrayListMain.add(new ArrayList<Object>() {{
             add(backDealInterval);
         }});
-        /**/
+        *//**//*
         if (chartType == ChartType.AREA) {
-            /*GOOGLE*/
+            *//*GOOGLE*//*
             List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
             for (Map<String, Object> row : rows) {
                 Timestamp dateAcception = (Timestamp) row.get("dateAcception");
@@ -426,11 +483,11 @@ public class OnlineRestController {
                 BigDecimal volume = (BigDecimal) row.get("volume");
                 if (dateAcception != null) {
                     ArrayList<Object> arrayList = new ArrayList<>();
-                    /*values*/
+                    *//*values*//*
                     arrayList.add(dateAcception.toString());
                     arrayList.add(exrate.doubleValue());
                     arrayList.add(volume.doubleValue());
-                    /*titles of values for chart tip*/
+                    *//*titles of values for chart tip*//*
                     arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
                     arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
                     arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
@@ -438,11 +495,11 @@ public class OnlineRestController {
                 }
             }
         } else if (chartType == ChartType.CANDLE) {
-            /*GOOGLE*/
+            *//*GOOGLE*//*
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
-                /*values*/
+                *//*values*//*
                 arrayList.add(candle.getBeginPeriod().toString());
                 arrayList.add(candle.getEndPeriod().toString());
                 arrayList.add(candle.getOpenRate());
@@ -453,11 +510,11 @@ public class OnlineRestController {
                 arrayListMain.add(arrayList);
             }
         } else if (chartType == ChartType.STOCK) {
-            /*AMCHARTS*/
+            *//*AMCHARTS*//*
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
-                /*values*/
+                *//*values*//*
                 arrayList.add(candle.getBeginDate().toString());
                 arrayList.add(candle.getEndDate().toString());
                 arrayList.add(candle.getOpenRate());
@@ -470,7 +527,7 @@ public class OnlineRestController {
         }
         request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
         return arrayListMain;
-    }
+    }*/
 
     /**
      * Sets (init or reset) and returns current params:
@@ -678,7 +735,10 @@ public class OnlineRestController {
                 p.setMarketName(p.getMarket());
             }
         });
-        return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
+        return list
+                .stream()
+                .sorted(Comparator.comparing(CurrencyPair::getName))
+                .collect(Collectors.groupingBy(CurrencyPair::getMarket));
     }
 
 

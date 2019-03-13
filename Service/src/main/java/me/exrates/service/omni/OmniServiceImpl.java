@@ -181,7 +181,11 @@ public class OmniServiceImpl implements OmniService {
     public OmniBalanceDto getUsdtBalances() {
         try {
             List<OmniBalanceDto> dtos = objectMapper.readValue(omniNodeService.getOmniBalances(), new TypeReference<List<OmniBalanceDto>>(){});
-            return dtos.stream().filter(p -> USDT_PROPERTY_ID.equals(p.getPropertyid())).findFirst().orElse(OmniBalanceDto.getZeroBalancesDto(USDT_PROPERTY_ID, USDT_TOKEN_NAME));
+            return dtos
+                    .stream()
+                    .filter(p -> USDT_PROPERTY_ID.equals(p.getPropertyid()))
+                    .findFirst()
+                    .orElse(OmniBalanceDto.getZeroBalancesDto(USDT_PROPERTY_ID, USDT_TOKEN_NAME));
         } catch (IOException e) {
            log.error(e);
             return null;

@@ -269,6 +269,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
             .antMatchers("/updatePassword", "/createPassword").permitAll()
+            .antMatchers(POST, "/ieo/subscribe").permitAll()
             .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()

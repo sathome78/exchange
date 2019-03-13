@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -244,9 +245,10 @@ public class OpenApiPublicController {
         final CurrencyPair currencyPairByName = currencyService.getCurrencyPairByName(transformCurrencyPair(currencyPair));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
 
-        List<CandleChartItemReducedDto> resultList = orderService.getDataForCandleChart(currencyPairByName, interval).stream()
+        List<CandleChartItemReducedDto> resultList = orderService.getDataForCandleChart(currencyPairByName, interval)
+                .stream()
                 .map(CandleChartItemReducedDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         return ResponseEntity.ok(BaseResponse.success(resultList));
     }
 
@@ -256,7 +258,10 @@ public class OpenApiPublicController {
 
 
     private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
-        return data.stream().map(TickerJsonDto::new).collect(toList());
+        return data
+                .stream()
+                .map(TickerJsonDto::new)
+                .collect(toList());
     }
 
     @ResponseStatus(BAD_REQUEST)

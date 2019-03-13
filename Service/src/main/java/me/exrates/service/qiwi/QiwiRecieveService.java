@@ -29,9 +29,11 @@ public class QiwiRecieveService {
     private void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
 
-        qiwiExternalService.getLastTransactions().stream()
+        qiwiExternalService.getLastTransactions()
+                .stream()
                 .filter(trans -> trans.getTx_type().equals(TRANSACTION_TYPE)
-                        && trans.getTx_status().equals(TRANSACTION_STATUS)).forEach(transaction -> {
+                        && trans.getTx_status().equals(TRANSACTION_STATUS))
+                .forEach(transaction -> {
             try {
                 log.info("*** Qiwi *** Process transaction");
                 qiwiService.onTransactionReceive(transaction, transaction.getAmount(), transaction.getCurrency(), transaction.getProvider());

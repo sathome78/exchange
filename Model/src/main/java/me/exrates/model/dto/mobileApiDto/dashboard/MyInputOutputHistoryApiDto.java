@@ -48,7 +48,8 @@ public class MyInputOutputHistoryApiDto {
     
     
     @Getter(onMethod = @__({@JsonIgnore}))
-    private final Set<WithdrawStatusEnum> FINAL_STATUSES = Stream.of(POSTED_AUTO, POSTED_MANUAL).collect(Collectors.toSet());
+    private final Set<WithdrawStatusEnum> FINAL_STATUSES = Stream.of(POSTED_AUTO, POSTED_MANUAL)
+            .collect(Collectors.toSet());
 
     public MyInputOutputHistoryApiDto(MyInputOutputHistoryDto dto, MessageSource messageSource, Locale locale) {
         this.datetime = dto.getDatetime();

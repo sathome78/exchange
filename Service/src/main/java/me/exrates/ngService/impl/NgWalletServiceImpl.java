@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
@@ -30,9 +31,10 @@ public class NgWalletServiceImpl implements NgWalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale, CurrencyType currencyType) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream()
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
                 .map(InvoiceStatus::getCode)
-                .collect(toList());
+                .collect(Collectors.toList());
         List<MerchantProcessType> processTypes = isNull(currencyType)
                 ? MerchantProcessType.getAllCoinsTypes()
                 : currencyType.getMerchantProcessTypeList();
