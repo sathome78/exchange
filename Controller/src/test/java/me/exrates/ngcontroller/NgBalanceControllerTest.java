@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.model.enums.CurrencyType;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.BalanceService;
 import me.exrates.service.RefillService;
@@ -29,12 +30,10 @@ import java.util.Collections;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -75,7 +74,10 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL)
                 .build();
 
-        Mockito.when(balanceService.getWalletsDetails(anyObject())).thenReturn(getPagedResult());
+        PagedResult<MyWalletsDetailedDto> myWalletsDetailedDtoPagedResult = new PagedResult<>();
+        myWalletsDetailedDtoPagedResult.setItems(Collections.singletonList(getMockMyWalletsDetailedDto()));
+
+        Mockito.when(balanceService.getWalletsDetails(anyObject())).thenReturn(myWalletsDetailedDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
@@ -120,7 +122,51 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getPendingRequests() {
+    public void getPendingRequests_isOk() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/pendingRequests")
+                .build();
+
+        PagedResult<RefillPendingRequestDto> myWalletsDetailedDtoPagedResult = new PagedResult<>();
+        myWalletsDetailedDtoPagedResult.setItems(Collections.singletonList(getMockRefillPendingRequestDto()));
+
+        Mockito.when(balanceService.getPendingRequests(anyInt(), anyInt(), anyString(), anyString())).thenReturn(myWalletsDetailedDtoPagedResult);
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items.[0].requestId", is(777)))
+                .andExpect(jsonPath("$.items.[0].date", is("TEST_DATE")))
+                .andExpect(jsonPath("$.items.[0].currency", is("TEST_CURRENCY")))
+                .andExpect(jsonPath("$.items.[0].amount", is(100.0)))
+                .andExpect(jsonPath("$.items.[0].commission", is(10.0)))
+                .andExpect(jsonPath("$.items.[0].system", is("TEST_SYSTEM")))
+                .andExpect(jsonPath("$.items.[0].status", is("TEST_STATUS")))
+                .andExpect(jsonPath("$.items.[0].operation", is("TEST_OPERATION")));
+
+        verify(balanceService, times(1)).getPendingRequests(anyInt(), anyInt(), anyString(), anyString());
+    }
+
+    @Test
+    public void getPendingRequests_exception() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/pendingRequests")
+                .build();
+
+        PagedResult<RefillPendingRequestDto> myWalletsDetailedDtoPagedResult = new PagedResult<>();
+        myWalletsDetailedDtoPagedResult.setItems(Collections.singletonList(getMockRefillPendingRequestDto()));
+
+        Mockito.when(balanceService.getPendingRequests(anyInt(), anyInt(), anyString(), anyString())).thenThrow(Exception.class);
+
+        String ngDashboardException = "Failed to get pending requests: null";
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngDashboardException)));
+
+        verify(balanceService, times(1)).getPendingRequests(anyInt(), anyInt(), anyString(), anyString());
     }
 
     @Test

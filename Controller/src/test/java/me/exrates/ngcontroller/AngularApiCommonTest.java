@@ -7,15 +7,13 @@ import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.ngUtil.PagedResult;
-import org.apache.commons.lang.StringUtils;
+import me.exrates.model.ngModel.RefillPendingRequestDto;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 
 public abstract class AngularApiCommonTest {
@@ -57,15 +55,7 @@ public abstract class AngularApiCommonTest {
         return user;
     }
 
-    protected PagedResult<MyWalletsDetailedDto> getPagedResult() {
-        PagedResult<MyWalletsDetailedDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(1);
-        pagedResult.setItems(Arrays.asList(getMyWalletsDetailedDto()));
-
-        return pagedResult;
-    }
-
-    protected MyWalletsDetailedDto getMyWalletsDetailedDto() {
+    protected MyWalletsDetailedDto getMockMyWalletsDetailedDto() {
         MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
         myWalletsDetailedDto.setId(100);
         myWalletsDetailedDto.setUserId(1);
@@ -87,7 +77,11 @@ public abstract class AngularApiCommonTest {
         return myWalletsDetailedDto;
     }
 
-    protected BalanceFilterDataDto getBalanceFilterDataDto() {
+    protected RefillPendingRequestDto getMockRefillPendingRequestDto() {
+        return new RefillPendingRequestDto(777, "TEST_DATE", "TEST_CURRENCY", 100.0, 10.0, "TEST_SYSTEM", "TEST_STATUS", "TEST_OPERATION");
+    }
+
+    protected BalanceFilterDataDto getMockBalanceFilterDataDto() {
         return new BalanceFilterDataDto(25, 5, false, "XRP", 100, CurrencyType.CRYPTO, "test@gmail.com");
     }
 }
