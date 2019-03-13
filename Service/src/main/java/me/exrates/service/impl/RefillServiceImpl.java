@@ -4,32 +4,7 @@ import com.google.common.base.Preconditions;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.PagingData;
-import me.exrates.model.Payment;
-import me.exrates.model.RefillRequestAddressShortDto;
-import me.exrates.model.User;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.OperationUserDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.RefillRequestBtcInfoDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestFlatForReportDto;
-import me.exrates.model.dto.RefillRequestManualDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
-import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
-import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.*;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.*;
@@ -38,12 +13,6 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -53,31 +22,9 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.RefillService;
-import me.exrates.service.RequestLimitExceededException;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
-import me.exrates.service.exception.CreatorForTheRefillRequestNotDefinedException;
-import me.exrates.service.exception.FileLoadingException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestConditionsForAcceptAreCorruptedException;
-import me.exrates.service.exception.RefillRequestCreationByFactException;
-import me.exrates.service.exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException;
-import me.exrates.service.exception.RefillRequestExpectedAddressNotDetermineException;
-import me.exrates.service.exception.RefillRequestGeneratingAdditionalAddressNotAvailableException;
-import me.exrates.service.exception.RefillRequestIllegalStatusException;
-import me.exrates.service.exception.RefillRequestNotFoundException;
-import me.exrates.service.exception.RefillRequestRevokeException;
-import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.model.vo.WalletOperationMsDto;
+import me.exrates.service.*;
+import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -1335,7 +1282,7 @@ public class RefillServiceImpl implements RefillService {
     }
 
     @Override
-    public void processRefillRequest(WalletOperationData walletOperationData) {
-
+    public void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
+        throw new NotImplimentedMethod("");
     }
 }

@@ -17,6 +17,7 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
@@ -423,12 +424,13 @@ public class RefillServiceMsImpl implements RefillService {
     }
 
     @Override
-    public void processRefillRequest(WalletOperationData walletOperationData) {
+    public void processRefillRequest(WalletOperationMsDto dto) {
+        WalletOperationData walletOperationData = dto.getWalletOperationData();
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if (walletTransferStatus != SUCCESS) {
             throw new RefillRequestRevokeException(walletTransferStatus.name());
         }
-        CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(walletOperationData.getCurrencyId()));
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(dto.getCurrencyId()));
         companyWalletService.deposit(
                 companyWallet,
                 walletOperationData.getAmount(),

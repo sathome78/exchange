@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MicroserviceConditional;
-import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Conditional;
@@ -24,9 +24,9 @@ public class RabbitRefillListener {
     private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = RabbitMqService.REFILL_QUEUE)
-    public void processRefillEvent(String walletOperationData) {
+    public void processRefillEvent(String walletOperationMsDto) {
         try {
-            refillService.processRefillRequest(objectMapper.readValue(walletOperationData, WalletOperationData.class));
+            refillService.processRefillRequest(objectMapper.readValue(walletOperationMsDto, WalletOperationMsDto.class));
         } catch (IOException e) {
             e.printStackTrace();
         }
