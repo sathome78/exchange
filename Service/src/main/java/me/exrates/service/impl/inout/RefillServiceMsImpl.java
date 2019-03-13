@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.RefillRequestAddressShortDto;
+import me.exrates.model.*;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -15,11 +13,15 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.service.CompanyWalletService;
 import me.exrates.service.RefillService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.springframework.context.annotation.Conditional;
@@ -38,6 +40,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
+
 @Service
 @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
@@ -50,6 +54,8 @@ public class RefillServiceMsImpl implements RefillService {
     private final ObjectMapper objectMapper;
     private final RequestUtil requestUtil;
     private final RestTemplate template;
+    private final WalletService walletService;
+    private final CompanyWalletService companyWalletService;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -418,6 +424,15 @@ public class RefillServiceMsImpl implements RefillService {
 
     @Override
     public void processRefillRequest(WalletOperationData walletOperationData) {
-
+        WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+        if (walletTransferStatus != SUCCESS) {
+            throw new RefillRequestRevokeException(walletTransferStatus.name());
+        }
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(walletOperationData.getCurrencyId()));
+        companyWalletService.deposit(
+                companyWallet,
+                walletOperationData.getAmount(),
+                walletOperationData.getCommissionAmount()
+        );
     }
 }
