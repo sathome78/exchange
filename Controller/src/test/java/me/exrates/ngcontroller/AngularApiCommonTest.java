@@ -3,13 +3,20 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import me.exrates.model.User;
+import me.exrates.model.dto.BalanceFilterDataDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.ngUtil.PagedResult;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
 
 public abstract class AngularApiCommonTest {
 
@@ -50,4 +57,37 @@ public abstract class AngularApiCommonTest {
         return user;
     }
 
+    protected PagedResult<MyWalletsDetailedDto> getPagedResult() {
+        PagedResult<MyWalletsDetailedDto> pagedResult = new PagedResult<>();
+        pagedResult.setCount(1);
+        pagedResult.setItems(Arrays.asList(getMyWalletsDetailedDto()));
+
+        return pagedResult;
+    }
+
+    protected MyWalletsDetailedDto getMyWalletsDetailedDto() {
+        MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
+        myWalletsDetailedDto.setId(100);
+        myWalletsDetailedDto.setUserId(1);
+        myWalletsDetailedDto.setCurrencyId(111);
+        myWalletsDetailedDto.setCurrencyPrecision(222);
+        myWalletsDetailedDto.setCurrencyName("TEST_CURRENCY_NAME");
+        myWalletsDetailedDto.setCurrencyDescription("TEST_CURRENCY_DESCRIPTION");
+        myWalletsDetailedDto.setActiveBalance("TEST_ACTIVE_BALANCE");
+        myWalletsDetailedDto.setOnConfirmation("TEST_ON_CONFIRMATION");
+        myWalletsDetailedDto.setOnConfirmationStage("TEST_ON_CONFIRMATION_STAGE");
+        myWalletsDetailedDto.setOnConfirmationCount("TEST_ON_CONFIRMATION_COUNT");
+        myWalletsDetailedDto.setReservedBalance("TEST_RESERVED_BALANCE");
+        myWalletsDetailedDto.setReservedByOrders("TEST_RESERVED_BY_ORDERS");
+        myWalletsDetailedDto.setReservedByMerchant("TEST_RESERVED_BY_MERCHANT");
+        myWalletsDetailedDto.setBtcAmount("TEST_BTC_AMOUNT");
+        myWalletsDetailedDto.setUsdAmount("TEST_USD_AMOUNT");
+        myWalletsDetailedDto.setConfirmations(Collections.EMPTY_LIST);
+
+        return myWalletsDetailedDto;
+    }
+
+    protected BalanceFilterDataDto getBalanceFilterDataDto() {
+        return new BalanceFilterDataDto(25, 5, false, "XRP", 100, CurrencyType.CRYPTO, "test@gmail.com");
+    }
 }
