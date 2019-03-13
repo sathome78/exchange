@@ -2,60 +2,24 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
-import me.exrates.model.dto.ExternalReservedWalletAddressDto;
-import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.InternalWalletBalancesDto;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.TransferDto;
-import me.exrates.model.dto.UserGroupBalanceDto;
-import me.exrates.model.dto.UserRoleBalanceDto;
-import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.dto.WalletFormattedDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.*;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.ReportGroupUserRole;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CryptoCurrencyBalances;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
-import me.exrates.service.exception.BalanceChangeException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.exception.WalletNotFoundException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -70,12 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -84,9 +43,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 @Log4j2
 @Service
@@ -114,8 +71,6 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private UserTransferService userTransferService;
     @Autowired
-    private CryptoCurrencyBalances cryptoCurrencyBalances;
-    @Autowired
     private OrderService orderService;
     @Autowired
     private ExchangeApi exchangeApi;
@@ -141,9 +96,20 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
         return walletDao.getAllUserWalletsForAdminDetailed(userId,
-                WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                WithdrawStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                RefillStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()));
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                RefillStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()));
     }
 
 
@@ -151,7 +117,10 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                    String email, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<MyWalletsDetailedDto>() {{
@@ -165,8 +134,14 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
         List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
-        Set<Integer> currencies = pairList.stream().map(p -> p.getCurrency2().getId()).collect(Collectors.toSet());
-        currencies.addAll(pairList.stream().map(p -> p.getCurrency1().getId()).collect(toSet()));
+        Set<Integer> currencies = pairList
+                .stream()
+                .map(p -> p.getCurrency2().getId())
+                .collect(Collectors.toSet());
+        currencies.addAll(pairList
+                .stream()
+                .map(p -> p.getCurrency1().getId())
+                .collect(Collectors.toSet()));
         return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
     }
 
@@ -298,7 +273,10 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
     }
 
@@ -450,7 +428,11 @@ public class WalletServiceImpl implements WalletService {
             if (!userWalletSummaryDtos.contains(item)) {
                 userWalletSummaryDtos.add(new UserWalletSummaryDto(item));
             } else {
-                UserWalletSummaryDto storedItem = userWalletSummaryDtos.stream().filter(e -> e.equals(item)).findAny().get();
+                UserWalletSummaryDto storedItem = userWalletSummaryDtos
+                        .stream()
+                        .filter(e -> e.equals(item))
+                        .findAny()
+                        .get();
                 storedItem.increment(item);
             }
         }
@@ -493,15 +475,17 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
         Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
-                .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
-        return walletDao.getWalletBalancesSummaryByGroups().stream()
-                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
-
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
-                        .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
+                .collect(Collectors.toMap(Enum::name, val -> BigDecimal.ZERO));
+        return walletDao.getWalletBalancesSummaryByGroups()
+                .stream()
+                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet()
+                .stream()
+                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
+                        .stream()
+                        .collect(Collectors.toMap(dto -> dto.getReportGroupUserRole().name(),
                                 UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
                                 balancesMapSupplier)), ReportGroupUserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
+                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
                 .collect(Collectors.toList());
 
     }
@@ -509,13 +493,18 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
-        return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
+        return walletDao.getWalletBalancesSummaryByRoles(roles
+                .stream()
+                .map(UserRole::getRole)
+                .collect(Collectors.toList()))
                 .stream()
                 //wolper 19.04.18
-                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet().stream()
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
+                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet()
+                .stream()
+                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
+                        .stream()
                         .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
+                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
                 .collect(Collectors.toList());
     }
 
@@ -625,7 +614,8 @@ public class WalletServiceImpl implements WalletService {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances().stream()
+        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances()
+                .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         if (rates.isEmpty() || balances.isEmpty()) {
@@ -737,5 +727,10 @@ public class WalletServiceImpl implements WalletService {
             return null;
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
+    }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, int currencyId) {
+        return walletDao.findByUserAndCurrency(userId, currencyId);
     }
 }

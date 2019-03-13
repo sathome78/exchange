@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,11 +37,12 @@ public class UserSessionService {
     /**
      * Method expire user session(-s) except specific session with specific session id (2nd parameter)
      * 1st parameter (String userEmail):
-     *  - user email (get user by email);
+     * - user email (get user by email);
      * 2nd parameter (String specificSessionId):
-     *  - RequestContextHolder.currentRequestAttributes().getSessionId() - get current session id;
-     *  - null (when null, expire all session of user);
-     *  - other String (session id);
+     * - RequestContextHolder.currentRequestAttributes().getSessionId() - get current session id;
+     * - null (when null, expire all session of user);
+     * - other String (session id);
+     *
      * @param userEmail
      * @param specificSessionId
      */
@@ -51,28 +53,34 @@ public class UserSessionService {
                     return userEmail.equals(principal.getUsername());
                 })
                 .findFirst();
-        if (updatedUser.isPresent()) {
-            sessionRegistry.getAllSessions(updatedUser.get(), false).stream().filter(session -> session.getSessionId() != specificSessionId).collect(Collectors.toList()).forEach(SessionInformation::expireNow);
-        }
+        updatedUser.ifPresent(o -> sessionRegistry.getAllSessions(o, false)
+                .stream()
+                .filter(session -> !session.getSessionId().equals(specificSessionId))
+                .collect(Collectors.toList()).forEach(SessionInformation::expireNow));
     }
 
     public List<UserSessionDto> retrieveUserSessionInfo() {
         List<UserSessionDto> result = null;
         try {
-            Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
+            Map<String, String> usersSessions = sessionRegistry.getAllPrincipals()
+                    .stream()
                     .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-                    .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
-                        UserDetails user = (UserDetails) sessionInformation.getPrincipal();
-                        return user.getUsername();
-                    }));
-            log.debug("USsize ", + usersSessions.size());
-            Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
-                    .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
-            log.debug("USinfosize ", + userSessionInfo.size());
+                    .collect(Collectors.toMap(
+                            SessionInformation::getSessionId,
+                            sessionInformation -> {
+                                UserDetails user = (UserDetails) sessionInformation.getPrincipal();
+                                return user.getUsername();
+                            }));
+            log.debug("USsize ", +usersSessions.size());
+            Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(new HashSet<>(usersSessions.values()))
+                    .stream()
+                    .collect(Collectors.toMap(
+                            UserSessionInfoDto::getUserEmail,
+                            userSessionInfoDto -> userSessionInfoDto));
+            log.debug("USinfosize ", +userSessionInfo.size());
             result = usersSessions.entrySet().stream()
                     .map(entry -> {
-                        UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
-                        return dto;
+                        return new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
                     }).collect(Collectors.toList());
         } catch (Exception e) {
             log.error("session_error {}", e);

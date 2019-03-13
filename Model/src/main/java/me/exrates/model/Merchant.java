@@ -3,6 +3,8 @@ package me.exrates.model;
 import lombok.*;
 import me.exrates.model.enums.MerchantProcessType;
 
+import java.io.Serializable;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -10,7 +12,7 @@ import me.exrates.model.enums.MerchantProcessType;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class Merchant {
+public class Merchant implements Serializable {
     private int id;
     private String name;
     private String description;

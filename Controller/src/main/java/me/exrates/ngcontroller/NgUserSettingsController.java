@@ -194,7 +194,9 @@ public class NgUserSettingsController {
             return notificationService
                     .getNotificationOptionsByUser(userId)
                     .stream()
-                    .collect(Collectors.toMap(NotificationOption::getEvent, NotificationOption::isSendEmail));
+                    .collect(Collectors.toMap(
+                            NotificationOption::getEvent,
+                            NotificationOption::isSendEmail));
         } catch (Exception e) {
             return Collections.emptyMap();
         }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.exceptions.KycException;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -20,6 +21,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class RequestOnBoardingDto {
     private InterfaceSetting interfaceSettings;
     private List<DocumentToCapture> documentsToCapture;

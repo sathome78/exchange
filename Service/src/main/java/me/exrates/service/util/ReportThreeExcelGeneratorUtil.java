@@ -345,7 +345,8 @@ public class ReportThreeExcelGeneratorUtil {
         sheet2.autoSizeColumn(6, true);
         sheet2.setColumnWidth(6, sheet2.getColumnWidth(6) + 256);
 
-        Map<String, List<CurrencyPairTurnoverReportDto>> currencyPairsTurnoverMap = currencyPairsTurnover.stream()
+        Map<String, List<CurrencyPairTurnoverReportDto>> currencyPairsTurnoverMap = currencyPairsTurnover
+                .stream()
                 .collect(Collectors.groupingBy(CurrencyPairTurnoverReportDto::getCurrencyAccountingName));
 
         bound = currencyPairsTurnoverMap.size();
@@ -394,12 +395,14 @@ public class ReportThreeExcelGeneratorUtil {
             final BigDecimal usdRate = ratePair.getLeft();
             final BigDecimal btcRate = ratePair.getRight();
 
-            final BigDecimal sumAmountConvert = value.stream()
+            final BigDecimal sumAmountConvert = value
+                    .stream()
                     .map(CurrencyPairTurnoverReportDto::getAmountConvert)
                     .filter(Objects::nonNull)
                     .reduce(BigDecimal::add)
                     .orElse(BigDecimal.ZERO);
-            final BigDecimal sumAmountCommission = value.stream()
+            final BigDecimal sumAmountCommission = value
+                    .stream()
                     .map(CurrencyPairTurnoverReportDto::getAmountCommission)
                     .filter(Objects::nonNull)
                     .reduce(BigDecimal::add)

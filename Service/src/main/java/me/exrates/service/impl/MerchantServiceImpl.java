@@ -2,12 +2,9 @@ package me.exrates.service.impl;
 
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantDao;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.Email;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
@@ -23,24 +20,10 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantNotFoundException;
-import me.exrates.service.exception.MerchantServiceBeanNameNotDefinedException;
-import me.exrates.service.exception.MerchantServiceNotFoundException;
-import me.exrates.service.exception.ScaleForAmountNotSetException;
-import me.exrates.service.merchantStrategy.IMerchantService;
-import me.exrates.service.merchantStrategy.IRefillable;
-import me.exrates.service.merchantStrategy.ITransferable;
-import me.exrates.service.merchantStrategy.IWithdrawable;
-import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.exception.*;
+import me.exrates.service.merchantStrategy.*;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
@@ -50,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -59,13 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,6 +59,7 @@ import static me.exrates.model.enums.OperationType.USER_TRANSFER;
  */
 @Service
 @PropertySource("classpath:/merchants.properties")
+@Conditional(MonolitConditional.class)
 public class MerchantServiceImpl implements MerchantService {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
@@ -187,7 +166,9 @@ public class MerchantServiceImpl implements MerchantService {
         return currencies.stream()
                 .map(Currency::getId)
                 .map(currencyId -> Pair.of(currencyId, merchantDao.findAllByCurrency(currencyId)))
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(
+                        Pair::getKey,
+                        Pair::getValue));
     }
 
     @Override

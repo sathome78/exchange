@@ -61,7 +61,9 @@ public class NgChartController {
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList());
         return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
     }
 

@@ -19,7 +19,7 @@ public abstract class TableFilterData {
         filterItems = Stream.of(items).filter(checkNotEmpty())
                 .collect(Collectors.toList());
     }
-    
+
     private Predicate<FilterDataItem> checkNotEmpty() {
         return item -> !(item.getValue() == null
                 || String.valueOf(item.getValue()).isEmpty()
@@ -27,7 +27,11 @@ public abstract class TableFilterData {
     }
 
     public Map<String, Object> getNamedParams() {
-        return filterItems.stream().collect(Collectors.toMap(FilterDataItem::getName, FilterDataItem::getValue));
+        return filterItems
+                .stream()
+                .collect(Collectors.toMap(
+                        FilterDataItem::getName,
+                        FilterDataItem::getValue));
     }
 
     public String getSQLFilterClause() {

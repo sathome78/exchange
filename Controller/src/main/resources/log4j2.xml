@@ -663,6 +663,15 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="aisi_log" fileName="${sys:catalina.home}/logs/merchants/aisi.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/aisi_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
@@ -933,6 +942,9 @@
         </logger>
         <logger name="omni_log" level="ALL" additivity="false">
             <AppenderRef ref="omni_log"/>
+        </logger>
+        <logger name="aisi_log" level="ALL" additivity="false">
+            <AppenderRef ref="aisi_log"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

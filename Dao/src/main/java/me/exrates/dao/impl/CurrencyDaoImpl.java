@@ -5,7 +5,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.FiatPair;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -13,17 +13,13 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -37,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,7 +54,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
+    public static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(rs.getInt("id"));
         currencyPair.setName(rs.getString("name"));
@@ -808,31 +805,5 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 return currencyLimits.size();
             }
         });
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<FiatPair> getAllFiatPairs() {
-        final String sql = "SELECT id, currency1_id, currency2_id, ticker_name, market, hidden hidden" +
-                " FROM FIAT_PAIR";
-
-        return jdbcTemplate.query(sql, (rs, i) -> FiatPair.builder()
-                .id(rs.getInt("id"))
-                .currency1(rs.getInt("currency1_id"))
-                .currency2(rs.getInt("currency2_id"))
-                .name(rs.getString("ticker_name"))
-                .market(rs.getString("market"))
-                .hidden(rs.getBoolean("hidden"))
-                .build());
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public FiatPair getFiatPairByName(String pairName) {
-        final String sql = "SELECT id, currency1_id AS currency1, currency2_id AS currency2, ticker_name AS name, market, hidden hidden" +
-                " FROM FIAT_PAIR" +
-                " WHERE ticker_name = :ticker_name";
-
-        return npJdbcTemplate.queryForObject(sql, Collections.singletonMap("ticker_name", pairName), FiatPair.class);
     }
 }

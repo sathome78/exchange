@@ -99,7 +99,10 @@ public class ChartsCacheManager {
     }*/
 
     private String prepareDataToSend(List<CandleChartItemDto> data, Integer currencyPairId, final ChartTimeFrame backDealInterval) {
-        List<CandleDto> resultData = data.stream().map(CandleDto::new).collect(Collectors.toList());
+        List<CandleDto> resultData = data
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList());
         try {
             return objectMapper.writeValueAsString(resultData);
         } catch (JsonProcessingException e) {

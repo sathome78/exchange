@@ -2,6 +2,7 @@ package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.MerchantService;
@@ -9,6 +10,7 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.ripple.RippleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.concurrent.Executors;
 
 @Service
 @Log4j2
+@Conditional(MonolitConditional.class)
 public class RippleJobs {
 
     @Autowired

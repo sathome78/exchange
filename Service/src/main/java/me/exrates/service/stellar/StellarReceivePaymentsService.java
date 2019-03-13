@@ -2,10 +2,12 @@ package me.exrates.service.stellar;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import org.glassfish.jersey.media.sse.EventSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.stellar.sdk.AssetTypeNative;
@@ -27,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "stellar_log")
 @Component
 @PropertySource("classpath:/merchants/stellar.properties")
+@Conditional(MonolitConditional.class)
 public class StellarReceivePaymentsService {
 
     @Autowired

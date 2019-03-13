@@ -109,10 +109,13 @@ public class StockExchange {
     }
 
     public Map<String, CurrencyPair> getAliasedCurrencyPairs(BiFunction<String, String, String> transformer) {
-       return availableCurrencyPairs.stream().collect(Collectors.toMap(currencyPair -> transformer.apply(
-               currencyAliases.getOrDefault(currencyPair.getCurrency1().getName(), currencyPair.getCurrency1().getName()),
-               currencyAliases.getOrDefault(currencyPair.getCurrency2().getName(), currencyPair.getCurrency2().getName())),
-                currencyPair -> currencyPair));
+        return availableCurrencyPairs
+                .stream()
+                .collect(Collectors.toMap(
+                        currencyPair -> transformer.apply(
+                                currencyAliases.getOrDefault(currencyPair.getCurrency1().getName(), currencyPair.getCurrency1().getName()),
+                                currencyAliases.getOrDefault(currencyPair.getCurrency2().getName(), currencyPair.getCurrency2().getName())),
+                        currencyPair -> currencyPair));
 
     }
 

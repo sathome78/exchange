@@ -1,7 +1,9 @@
 package me.exrates.service.ethereum;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -13,6 +15,7 @@ import java.util.Map;
  */
 @Log4j2
 @Component
+@Conditional(MonolitConditional.class)
 public class EthTokensContext {
 
     @Autowired

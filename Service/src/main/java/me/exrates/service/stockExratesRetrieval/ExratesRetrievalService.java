@@ -25,7 +25,8 @@ public class ExratesRetrievalService implements StockExrateRetrievalService {
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         return orderService.getCoinmarketDataForActivePairs("", new BackDealInterval("24 HOUR"))
                 .stream()
-                .map(dto -> new StockExchangeStats(dto, stockExchange)).collect(Collectors.toList());
+                .map(dto -> new StockExchangeStats(dto, stockExchange))
+                .collect(Collectors.toList());
     }
 
 }

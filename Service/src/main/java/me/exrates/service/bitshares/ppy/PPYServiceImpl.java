@@ -1,7 +1,9 @@
 package me.exrates.service.bitshares.ppy;
 
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONObject;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
@@ -10,6 +12,7 @@ import java.io.IOException;
 
 @ClientEndpoint
 @Service("ppyServiceImpl")
+@Conditional(MonolitConditional.class)
 public class PPYServiceImpl extends BitsharesServiceImpl {
 
     private static final String name = "PPY";

@@ -2,31 +2,48 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
-import me.exrates.model.enums.*;
+import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.News;
+import me.exrates.model.SessionParams;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.ChangePasswordDto;
+import me.exrates.model.dto.Generic2faResponseDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.PinDto;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.exceptions.InvalidCredentialsException;
 import me.exrates.model.exceptions.SessionParamTimeExceedException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.NewsService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.SessionParamsService;
+import me.exrates.service.SurveyService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
-import me.exrates.service.notifications.*;
-import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.session.UserSessionService;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +59,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
@@ -172,8 +196,8 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         model.addObject("notify2fa", principal != null
-                                                && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
-                                                && !userService.isLogin2faUsed(principal.getName()));
+                && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
+                && !userService.isLogin2faUsed(principal.getName()));
         WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
         if (principal != null && !surveyService.checkPollIsDoneByUser(principal.getName())) {
             model.addObject("firstLogin", true);
@@ -183,7 +207,7 @@ public class EntryController {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
-            userService.updateGaTag(getGaCookie(request),principal.getName());
+            userService.updateGaTag(getGaCookie(request), principal.getName());
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
@@ -201,7 +225,8 @@ public class EntryController {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN)
+                    .stream()
                     .filter(p -> p.getPairType() == CurrencyPairType.MAIN)
                     .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
@@ -266,7 +291,8 @@ public class EntryController {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO)
+            .stream()
                     .filter(p -> p.getPairType() == CurrencyPairType.ICO)
                     .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
@@ -287,7 +313,7 @@ public class EntryController {
         notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
         NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
         notificationOptionsForm.setOptions(notificationOptions);*/
-        if(request.getParameter("2fa") != null) {
+        if (request.getParameter("2fa") != null) {
             mav.addObject("activeTabId", "2fa-options-wrapper");
         }
         mav.addObject("user", user);
@@ -295,7 +321,7 @@ public class EntryController {
         mav.addObject("sectionid", map != null && map.containsKey("sectionid") ? map.get("sectionid") : null);
         //mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
-       /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
+        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("sessionMinTime", sessionService.getMinSessionTime());
@@ -343,9 +369,12 @@ public class EntryController {
         Object message;
         if (result.hasErrors()) {
             response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(toList());
+            message = result.getAllErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(toList());
         } else {
-            if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
+            if (bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
                 updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
                 updateUserDto.setEmail(principal.getName());
@@ -357,12 +386,14 @@ public class EntryController {
                 message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
             }
         }
-        return new JSONObject(){{put("message", message);}}.toString();
+        return new JSONObject() {{
+            put("message", message);
+        }}.toString();
     }
 
     /*todo move this method from admin controller*/
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user,@RequestParam("nickname")String newNickName, BindingResult result,
+    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, @RequestParam("nickname") String newNickName, BindingResult result,
                                                HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
         registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
 
@@ -370,10 +401,10 @@ public class EntryController {
             redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
         } else {
-            boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
-            if(userNicknameUpdated){
+            boolean userNicknameUpdated = userService.setNickname(newNickName, principal.getName());
+            if (userNicknameUpdated) {
                 redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
-            }else{
+            } else {
                 redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
             }
         }
@@ -400,23 +431,23 @@ public class EntryController {
     }
 
 
-   /* @RequestMapping("/settings/notificationOptions/submit")
-    public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request, Principal principal) {
-        notificationOptionsForm.getOptions().forEach(LOGGER::debug);
-        RedirectView redirectView = new RedirectView("/settings");
-        int userId = userService.getIdByEmail(principal.getName());
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
-                stream().
-                map(option ->
-                        {
-                            option.setUserId(userId);
-                            return option;
-                        }
-                ).
-                collect(toList());
-        //TODO uncomment after turning notifications on
-        *//*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
+    /* @RequestMapping("/settings/notificationOptions/submit")
+     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
+                                                   HttpServletRequest request, Principal principal) {
+         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
+         RedirectView redirectView = new RedirectView("/settings");
+         int userId = userService.getIdByEmail(principal.getName());
+         List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
+                 stream().
+                 map(option ->
+                         {
+                             option.setUserId(userId);
+                             return option;
+                         }
+                 ).
+                 collect(toList());
+         //TODO uncomment after turning notifications on
+         *//*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
                     localeResolver.resolveLocale(request)));
             return redirectView;
@@ -468,7 +499,7 @@ public class EntryController {
 
 
     @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect_check_creds", method = POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/settings/2FaOptions/google2fa_connect_check_creds", method = POST, produces = "application/json;charset=UTF-8")
     public void connectGoogleAuthenticator(String password, String code, HttpServletRequest request, HttpServletResponse response, Principal principal) {
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
@@ -485,7 +516,7 @@ public class EntryController {
 
 
     @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "application/json;charset=UTF-8")
     public String CheckPinAndSet(String pin, HttpServletRequest request, Principal principal) {
         HttpSession session = request.getSession();
         Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(userService.getIdByEmail(principal.getName())));
@@ -494,7 +525,7 @@ public class EntryController {
             session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
             throw new SessionParamTimeExceedException(messageSource.getMessage("message.enter.creds.again", null, localeResolver.resolveLocale(request)));
         }
-        Preconditions.checkArgument( pin.length() > 2 && pin.length() < 10);
+        Preconditions.checkArgument(pin.length() > 2 && pin.length() < 10);
         if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
             session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
         } else {
@@ -503,11 +534,13 @@ public class EntryController {
             throw new IncorrectPinException(res);
         }
         g2faService.setEnable2faGoogleAuth(userService.getIdByEmail(principal.getName()), true);
-        return new JSONObject(){{put("message", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));}}.toString();
+        return new JSONObject() {{
+            put("message", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));
+        }}.toString();
     }
 
     @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "application/json;charset=UTF-8")
     public String disconnectGoogleAuthenticator(String password, String code, HttpServletResponse response, Principal principal, HttpServletRequest request) {
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
@@ -519,7 +552,9 @@ public class EntryController {
             g2faService.setEnable2faGoogleAuth(user.getId(), false);
             g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
         }
-        return new JSONObject(){{put("message", messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request)));}}.toString();
+        return new JSONObject() {{
+            put("message", messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request)));
+        }}.toString();
     }
 
 
@@ -793,7 +828,7 @@ public class EntryController {
         for (Cookie cookie : cookies) {
             String name = cookie.getName();
             if ("_ga".equalsIgnoreCase(name)) {
-                result =  cookie.getValue();
+                result = cookie.getValue();
             }
         }
         return result;

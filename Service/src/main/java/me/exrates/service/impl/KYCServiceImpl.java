@@ -85,7 +85,7 @@ public class KYCServiceImpl implements KYCService {
     private final KycDao kycDao;
     private final UserVerificationInfoDao userVerificationInfoDao;
 
-    @Value("${front-host}")
+    @Value("${server-host}")
     private String host;
 
     @Autowired
@@ -314,7 +314,7 @@ public class KYCServiceImpl implements KYCService {
 
         RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
         userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-
+        log.info("Sending to create applicant {}", onBoardingDto);
         OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
         userService.updateKycStatusById(user.getEmail(), "Pending");
         return onBoarding;
@@ -322,8 +322,8 @@ public class KYCServiceImpl implements KYCService {
 
     @Override
     public boolean updateUserVerificationInfo(User user, KycStatusResponseDto kycStatusResponseDto) {
-        userService.updateKycStatusById(user.getEmail(), kycStatusResponseDto.getStatus());
-        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
+        return userService.updateKycStatusById(user.getEmail(), kycStatusResponseDto.getStatus());
+//        return kycDao.updateUserVerification(user.getId(), kycStatusResponseDto);
     }
 
     @Override
@@ -335,6 +335,7 @@ public class KYCServiceImpl implements KYCService {
     }
 
     private void sendStatusNotification(String userEmail, String eventStatus) {
+        log.info("SEND TO EMAIL {}, STATUS {}", userEmail, eventStatus);
         Email email = Email.builder()
                 .to(userEmail)
                 .subject(emailSubject)

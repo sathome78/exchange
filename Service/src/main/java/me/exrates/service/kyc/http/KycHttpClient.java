@@ -1,5 +1,7 @@
 package me.exrates.service.kyc.http;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountInfoDto;
@@ -10,8 +12,9 @@ import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
-import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
@@ -47,7 +50,7 @@ public class KycHttpClient {
     }
 
     public ResponseCreateApplicantDto createApplicant(CreateApplicantDto createApplicantDto) {
-
+        log.info("createApplicant(), {}", toJson(createApplicantDto));
         String finalUrl = uriApi + "/verification/cis/file";
 
         HttpHeaders headers = new HttpHeaders();
@@ -63,16 +66,19 @@ public class KycHttpClient {
         ResponseEntity<ResponseCreateApplicantDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, ResponseCreateApplicantDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        HttpStatus httpStatus = responseEntity.getStatusCode();
+
+        if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while creating applicant ";
-            throw new KycException(errorString.concat(responseEntity.getBody() != null
-                    && responseEntity.getBody().getError() != null ?
-                    responseEntity.getBody().getError() : null));
+            log.error(errorString + " {}", responseEntity);
+            throw new NgDashboardException("Error while response from service, create applicant",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
         }
         return responseEntity.getBody();
     }
 
     public OnboardingResponseDto createOnBoarding(RequestOnBoardingDto requestDto) {
+        log.info("createOnBoarding (), {}", toJson(requestDto));
         String finalUrl = uriApi + "/verification/onboarding/sendlink";
 
         HttpHeaders headers = new HttpHeaders();
@@ -84,17 +90,29 @@ public class KycHttpClient {
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
 
-        ResponseEntity<OnboardingResponseDto> responseEntity =
-                template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        ResponseEntity<OnboardingResponseDto> responseEntity = null;
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            throw new KycException("Error while creating onboarding");
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        } catch (Exception e) {
+            log.error("Error response {}", ExceptionUtils.getStackTrace(e));
+            log.error("Response error {}", toJson(responseEntity));
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
+        }
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("Error while creating onboarding {}", responseEntity);
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
 
         return responseEntity.getBody();
     }
 
     public AccountQuberaResponseDto createAccount(AccountQuberaRequestDto accountQuberaRequestDto) {
+        log.info("createAccount (), {}", toJson(accountQuberaRequestDto));
         String finalUrl = uriApi + "/account/create";
 
         HttpHeaders headers = new HttpHeaders();
@@ -109,7 +127,7 @@ public class KycHttpClient {
         ResponseEntity<AccountQuberaResponseDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, AccountQuberaResponseDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("Error create account {}", responseEntity.getBody());
             throw new NgDashboardException("Error while creating account",
                     Constants.ErrorApi.QUBERA_CREATE_ACCOUNT_RESPONSE_ERROR);
@@ -163,4 +181,14 @@ public class KycHttpClient {
         }
     }
 
+
+    private String toJson(Object input) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(input);
+        } catch (JsonProcessingException e) {
+            log.error("Error create json from object");
+            return StringUtils.EMPTY;
+        }
+    }
 }

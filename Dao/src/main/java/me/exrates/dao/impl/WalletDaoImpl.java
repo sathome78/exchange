@@ -62,10 +62,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OperationType.SELL;
 
 @Repository
@@ -1529,7 +1529,7 @@ public class WalletDaoImpl implements WalletDao {
                 .stream()
                 .map(MerchantProcessType::toCurrencyProcessType)
                 .map(CurrencyProcessType::toString)
-                .collect(toList());
+                .collect(Collectors.toList());
 
         final String sql =
                 " SELECT wallet_id, user_id, W.currency_id, currency_name, currency_description, active_balance, reserved_balance, " +

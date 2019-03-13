@@ -34,9 +34,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
 
 @PropertySource(value = {"classpath:/external-apis.properties", "classpath:/ethereum_contracts.properties"})
 @Slf4j
@@ -69,10 +69,9 @@ public class WalletsApi {
         this.ethereumContractsData = new HashMap<>();
         this.ethereumContractsData.putAll(properties.entrySet()
                 .stream()
-                .collect(
-                        toMap(
-                                e -> e.getKey().toString(),
-                                e -> e.getValue().toString())));
+                .collect(Collectors.toMap(
+                        e -> e.getKey().toString(),
+                        e -> e.getValue().toString())));
     }
 
     public Map<String, Pair<BigDecimal, LocalDateTime>> getBalances() {
@@ -89,7 +88,7 @@ public class WalletsApi {
         WalletsData[] body = responseEntity.getBody();
         return nonNull(body) && body.length != 0
                 ? Arrays.stream(body)
-                .collect(toMap(
+                .collect(Collectors.toMap(
                         wallet -> wallet.name,
                         wallet -> Pair.of(
                                 new BigDecimal(wallet.currentAmount.replace(" ", "")),

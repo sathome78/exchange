@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -14,6 +15,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +26,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
+@Conditional(MonolitConditional.class)
 public class PayeerServiceImpl implements PayeerService {
 
   private @Value("${payeer.url}") String url;

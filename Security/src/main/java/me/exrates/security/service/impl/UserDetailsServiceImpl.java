@@ -41,8 +41,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private Collection<GrantedAuthority> getAuthorities(String login)
 	{
 		logger.trace("Begin 'getAuthorities' method");
-        Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login).stream()
-                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login)
+				.stream()
+                .map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toList());
         logger.debug(authList);
 		return authList;
 	}

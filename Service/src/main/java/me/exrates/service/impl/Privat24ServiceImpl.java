@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.OkHttpClient;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
@@ -15,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import java.util.Map;
 
 @Service
 @PropertySource("classpath:/merchants/privat24.properties")
+@Conditional(MonolitConditional.class)
 public class Privat24ServiceImpl implements Privat24Service {
 
     private @Value("${privat24.url}") String url;

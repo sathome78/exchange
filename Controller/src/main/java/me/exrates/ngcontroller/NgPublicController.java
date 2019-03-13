@@ -20,15 +20,15 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngService.NgOrderService;
-import me.exrates.security.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -202,7 +202,7 @@ public class NgPublicController {
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
                 orderService.findAllOrderBookItems(OrderType.SELL, pairId, precision),
-                orderService.findAllOrderBookItems(OrderType.BUY ,pairId, precision));
+                orderService.findAllOrderBookItems(OrderType.BUY, pairId, precision));
     }
 
     @GetMapping("/info/{currencyPairId}")

@@ -49,8 +49,10 @@ public class OpenApiAuthServiceImpl implements OpenApiAuthService {
         OpenApiToken token = openApiTokenDao.getByPublicKey(publicKey).orElseThrow(() -> new TokenException("Public key not found: " + publicKey));
         validateSignature(token, method, endpoint, timestamp, signatureHex);
         UserDetails user = userDetailsService.loadUserByUsername(token.getUserEmail());
-        Collection<GrantedAuthority> tokenPermissions = token.getPermissions().stream()
-                .map(perm -> new SimpleGrantedAuthority(perm.name())).collect(Collectors.toList());
+        Collection<GrantedAuthority> tokenPermissions = token.getPermissions()
+                .stream()
+                .map(perm -> new SimpleGrantedAuthority(perm.name()))
+                .collect(Collectors.toList());
         tokenPermissions.addAll(user.getAuthorities());
         return new User(user.getUsername(), user.getPassword(), user.isEnabled(), user.isAccountNonExpired(), user.isCredentialsNonExpired(),
                 user.isAccountNonLocked(), tokenPermissions);

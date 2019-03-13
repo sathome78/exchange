@@ -68,7 +68,10 @@ public class ApiRateLimitService {
         if (list == null) {
             return false;
         } else {
-            long counter = list.stream().filter(p -> p.isAfter(beginTime)).count();
+            long counter = list
+                    .stream()
+                    .filter(p -> p.isAfter(beginTime))
+                    .count();
             return counter > limit;
         }
     }

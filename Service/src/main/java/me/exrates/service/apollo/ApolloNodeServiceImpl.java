@@ -2,8 +2,10 @@ package me.exrates.service.apollo;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +20,7 @@ import java.util.Collections;
 @Log4j2(topic = "apollo")
 @PropertySource("classpath:/merchants/apollo.properties")
 @Service
+@Conditional(MonolitConditional.class)
 public class ApolloNodeServiceImpl implements ApolloNodeService {
 
     private @Value("${apollo.url}")String SEVER_URL;

@@ -20,6 +20,7 @@ import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
@@ -34,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -55,6 +57,7 @@ import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
  */
 @Service("yandexMoneyService")
 @PropertySource("classpath:/merchants/yandexmoney.properties")
+@Conditional(MonolitConditional.class)
 public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     private @Value("${yandexmoney.clientId}") String clientId;

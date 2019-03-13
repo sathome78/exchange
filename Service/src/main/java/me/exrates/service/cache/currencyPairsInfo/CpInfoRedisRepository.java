@@ -40,7 +40,10 @@ public class CpInfoRedisRepository {
     }
 
     public List<ResponseInfoCurrencyPairDto> getAll() {
-        return ops.values(NEW_KEY).stream().map(o -> (ResponseInfoCurrencyPairDto) o).collect(Collectors.toList());
+        return ops.values(NEW_KEY)
+                .stream()
+                .map(o -> (ResponseInfoCurrencyPairDto) o)
+                .collect(Collectors.toList());
     }
 
     public List<ResponseInfoCurrencyPairDto> getByListId(List<Integer> ids) {

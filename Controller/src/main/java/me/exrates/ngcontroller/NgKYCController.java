@@ -89,6 +89,7 @@ public class NgKYCController {
     @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> callback(@PathVariable String referenceId,
                                          @RequestBody KycStatusResponseDto kycStatusResponseDto) {
+        log.info("CALLBACK_KYC ref {}, {}", referenceId, kycStatusResponseDto);
         kycService.processingCallBack(referenceId, kycStatusResponseDto);
         return ResponseEntity.ok().build();
     }

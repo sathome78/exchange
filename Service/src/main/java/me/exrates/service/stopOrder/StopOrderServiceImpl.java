@@ -222,7 +222,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Override
     @TransactionalEventListener
     public void onLimitOrderAccept(AcceptOrderEvent event) {
-        log.debug("orderAcceptedd");
+        log.debug("orderAccepted");
         ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
         checkExecutors.execute(() -> {

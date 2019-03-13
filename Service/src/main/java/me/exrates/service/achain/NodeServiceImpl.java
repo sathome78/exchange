@@ -1,10 +1,12 @@
 package me.exrates.service.achain;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 @PropertySource("classpath:/merchants/achain.properties")
 @Log4j2(topic = "achain")
 @Component
+@Conditional(MonolitConditional.class)
 public class NodeServiceImpl implements NodeService {
 
     private final SDKHttpClient httpClient;

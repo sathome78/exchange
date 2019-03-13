@@ -6,7 +6,23 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.BalancesDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.CurrencyRateDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.InOutReportDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
+import me.exrates.model.dto.InvoiceReportDto;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.RefillRequestFlatForReportDto;
+import me.exrates.model.dto.ReportDto;
+import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletBalancesDto;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -27,7 +43,17 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.job.report.ReportMailingJob;
-import me.exrates.service.util.*;
+import me.exrates.service.util.ReportEightExcelGeneratorUtil;
+import me.exrates.service.util.ReportFiveExcelGeneratorUtil;
+import me.exrates.service.util.ReportFourExcelGeneratorUtil;
+import me.exrates.service.util.ReportNineExcelGeneratorUtil;
+import me.exrates.service.util.ReportOrdersExcelGeneratorUtil;
+import me.exrates.service.util.ReportSevenExcelGeneratorUtil;
+import me.exrates.service.util.ReportSixExcelGeneratorUtil;
+import me.exrates.service.util.ReportStatsByCoinExcelGeneratorUtil;
+import me.exrates.service.util.ReportThreeExcelGeneratorUtil;
+import me.exrates.service.util.ReportTwoExcelGeneratorUtil;
+import me.exrates.service.util.ZipUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,9 +77,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
 import static java.util.Comparator.comparing;
@@ -236,15 +269,18 @@ public class ReportServiceImpl implements ReportService {
 
         List<Currency> currencies = currencyService.findAllCurrenciesWithHidden();
 
-        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
-                .collect(toMap(
+        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances()
+                .stream()
+                .collect(Collectors.toMap(
                         ExternalWalletBalancesDto::getCurrencyName,
                         Function.identity()));
-        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances()
+                .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
-        final Map<String, CurrencyRateDto> ratesMap = exchangeApi.getRates().entrySet().stream()
-                .collect(toMap(
+        final Map<String, CurrencyRateDto> ratesMap = exchangeApi.getRates().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> new CurrencyRateDto(entry.getValue().getLeft(), entry.getValue().getRight())
                 ));
@@ -283,11 +319,13 @@ public class ReportServiceImpl implements ReportService {
     public List<BalancesDto> getBalancesSliceStatistic() {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
-        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
-                .collect(toMap(
+        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances()
+                .stream()
+                .collect(Collectors.toMap(
                         ExternalWalletBalancesDto::getCurrencyName,
                         Function.identity()));
-        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances()
+                .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
@@ -448,7 +486,11 @@ public class ReportServiceImpl implements ReportService {
                     endTime.toString(),
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
-        final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
+        final Map<String, InOutReportDto> inOutMap = inOutSummary
+                .stream()
+                .collect(Collectors.toMap(
+                        InOutReportDto::getCurrencyName,
+                        Function.identity()));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
@@ -539,7 +581,11 @@ public class ReportServiceImpl implements ReportService {
                     endTime.toString(),
                     roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
-        final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
+        final Map<String, InOutReportDto> inOutMap = inOutSummary
+                .stream()
+                .collect(Collectors.toMap(
+                        InOutReportDto::getCurrencyName,
+                        Function.identity()));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
@@ -665,7 +711,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public ReportDto getOrders(AdminOrderFilterData adminOrderFilterData) throws Exception{
+    public ReportDto getOrders(AdminOrderFilterData adminOrderFilterData) throws Exception {
         List<OrderReportInfoDto> ordersForReport = orderService.getOrdersForReport(adminOrderFilterData);
 
         if (isEmpty(ordersForReport)) {
@@ -675,10 +721,10 @@ public class ReportServiceImpl implements ReportService {
         String dateFrom = Optional.ofNullable(adminOrderFilterData.getDateFrom()).get();
         String dateTo = Optional.ofNullable(adminOrderFilterData.getDateTo()).get();
 
-        if(StringUtils.isNotEmpty(dateFrom)){
+        if (StringUtils.isNotEmpty(dateFrom)) {
             dateFrom = formatDateForFileName(dateFrom);
         }
-        if(StringUtils.isNotEmpty(dateTo)){
+        if (StringUtils.isNotEmpty(dateTo)) {
             dateTo = formatDateForFileName(dateTo);
         }
 
@@ -703,8 +749,8 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    private String formatDateForFileName(String date){
-        LocalDateTime dateFromTemp = LocalDateTime.parse(date.substring(0, date.indexOf(":")+3), FORMATTER_FOR_FILE_NAME);
+    private String formatDateForFileName(String date) {
+        LocalDateTime dateFromTemp = LocalDateTime.parse(date.substring(0, date.indexOf(":") + 3), FORMATTER_FOR_FILE_NAME);
         return dateFromTemp.format(FORMATTER_FOR_NAME);
     }
 
@@ -714,7 +760,11 @@ public class ReportServiceImpl implements ReportService {
 
             List<WalletBalancesDto> balances = objectMapper.readValue(balancesBytes, new TypeReference<List<WalletBalancesDto>>() {
             });
-            return balances.stream().collect(toMap(WalletBalancesDto::getCurrencyName, Function.identity()));
+            return balances
+                    .stream()
+                    .collect(Collectors.toMap(
+                            WalletBalancesDto::getCurrencyName,
+                            Function.identity()));
         } catch (IOException | DataFormatException ex) {
             throw new Exception("Problem with read balances object from byte array", ex);
         }
@@ -726,7 +776,11 @@ public class ReportServiceImpl implements ReportService {
 
             List<InOutReportDto> inOut = objectMapper.readValue(inOutBytes, new TypeReference<List<InOutReportDto>>() {
             });
-            return inOut.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
+            return inOut
+                    .stream()
+                    .collect(Collectors.toMap(
+                            InOutReportDto::getCurrencyName,
+                            Function.identity()));
         } catch (IOException | DataFormatException ex) {
             throw new Exception("Problem with read in/out object from byte array", ex);
         }
