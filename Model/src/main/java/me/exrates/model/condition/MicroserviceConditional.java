@@ -14,7 +14,7 @@ public class MicroserviceConditional implements Condition {
         Properties properties = new Properties();
         try {
             properties.load(this.getClass().getClassLoader().getResourceAsStream("inout.properties"));
-        } catch (IOException e) {
+        } catch (Exception e) { //TODO test does not resolves property file, in case of exception return false
             e.printStackTrace();
             return false;
         }
