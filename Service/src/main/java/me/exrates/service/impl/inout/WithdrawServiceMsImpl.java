@@ -1,5 +1,7 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -10,8 +12,16 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.service.WithdrawService;
+import me.exrates.service.properties.InOutProperties;
+import me.exrates.service.util.RequestUtil;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,10 +32,24 @@ import java.util.Optional;
 
 @Service
 @Conditional(MicroserviceConditional.class)
+@RequiredArgsConstructor
 public class WithdrawServiceMsImpl implements WithdrawService {
+    private static final String API_WITHDRAW_REQUEST_CREATE = "/api/withdraw/request/create";
+    private final ObjectMapper objectMapper;
+    private final RestTemplate template;
+    private final InOutProperties properties;
+    private final RequestUtil requestUtil;
+
     @Override
     public Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale) {
-        return null;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_WITHDRAW_REQUEST_CREATE);
+        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(locale));
+        ResponseEntity<Map<String, String>> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.POST,
+                entity, new ParameterizedTypeReference<Map<String, String>>() {});
+
+        return response.getBody();
     }
 
     @Override
@@ -130,7 +154,15 @@ public class WithdrawServiceMsImpl implements WithdrawService {
 
     @Override
     public boolean checkOutputRequestsLimit(int merchantId, String email) {
-        return false;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + "/api/checkOutputRequestsLimit")
+                .queryParam("merchant_id", merchantId);
+        HttpEntity<?> entity = new HttpEntity<>(requestUtil.prepareHeaders(email));
+        ResponseEntity<Boolean> response = template.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity, Boolean.class);
+
+        return response.getBody();
     }
 
     @Override

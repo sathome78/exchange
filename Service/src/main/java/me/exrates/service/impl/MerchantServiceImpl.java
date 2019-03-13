@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.Currency;
@@ -16,6 +17,7 @@ import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -40,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -473,6 +476,14 @@ public class MerchantServiceImpl implements MerchantService {
         if (merchantService instanceof IWithdrawable && ((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed()) {
             ((IWithdrawable) merchantService).checkDestinationTag(destinationTag);
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonException = mapper.writeValueAsString(new CheckDestinationTagException("message", "adfil"));
+        CheckDestinationTagException x = mapper.readValue(jsonException, CheckDestinationTagException.class);
+        x.printStackTrace();
+        System.out.println(x);
     }
 
     @Override

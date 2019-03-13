@@ -53,8 +53,8 @@ public class RefillServiceMsImpl implements RefillService {
     private static final String CREATE_REFILL_REQUEST = "/api/createRefillRequest";
     private final InOutProperties properties;
     private final ObjectMapper objectMapper;
-    private final RequestUtil requestUtil;
     private final RestTemplate template;
+    private final RequestUtil requestUtil;
     private final WalletService walletService;
     private final CompanyWalletService companyWalletService;
 
