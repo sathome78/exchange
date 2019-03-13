@@ -6,6 +6,7 @@ import me.exrates.ngService.BalanceService;
 import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -24,6 +25,9 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Collections;
+
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -34,6 +38,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
+
+    private static final String BASE_URL = "/api/private/v2/balances";
+
     @Mock
     private BalanceService balanceService;
     @Mock
@@ -44,12 +51,11 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     private RefillService refillService;
     @Mock
     private WalletService walletService;
+
     @InjectMocks
     NgBalanceController ngBalanceController;
 
     private MockMvc mockMvc;
-
-    private final String BASE_URL = "/api/private/v2/balances";
 
     @Before
     public void setUp() {
@@ -64,22 +70,33 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getBalances_required_false() throws Exception {
+    public void getBalances_required_true() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL)
-                .queryParam("limit", "30")
-                .queryParam("offset", "5")
-                .queryParam("excludeZero", "false")
-                .queryParam("currencyName", "BTC")
-                .queryParam("currencyId", "111")
-                .queryParam("currencyType", CurrencyType.CRYPTO)
                 .build();
 
         Mockito.when(balanceService.getWalletsDetails(anyObject())).thenReturn(getPagedResult());
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items.[0].id", is(100)))
+                .andExpect(jsonPath("$.items.[0].userId", is(1)))
+                .andExpect(jsonPath("$.items.[0].currencyId", is(111)))
+                .andExpect(jsonPath("$.items.[0].currencyPrecision", is(222)))
+                .andExpect(jsonPath("$.items.[0].currencyName", is("TEST_CURRENCY_NAME")))
+                .andExpect(jsonPath("$.items.[0].currencyDescription", is("TEST_CURRENCY_DESCRIPTION")))
+                .andExpect(jsonPath("$.items.[0].activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.items.[0].onConfirmation", is("TEST_ON_CONFIRMATION")))
+                .andExpect(jsonPath("$.items.[0].onConfirmationStage", is("TEST_ON_CONFIRMATION_STAGE")))
+                .andExpect(jsonPath("$.items.[0].onConfirmationCount", is("TEST_ON_CONFIRMATION_COUNT")))
+                .andExpect(jsonPath("$.items.[0].reservedBalance", is("TEST_RESERVED_BALANCE")))
+                .andExpect(jsonPath("$.items.[0].reservedByOrders", is("TEST_RESERVED_BY_ORDERS")))
+                .andExpect(jsonPath("$.items.[0].reservedByMerchant", is("TEST_RESERVED_BY_MERCHANT")))
+                .andExpect(jsonPath("$.items.[0].btcAmount", is("TEST_BTC_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].usdAmount", is("TEST_USD_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].confirmations", is(Collections.EMPTY_LIST)));
 
         verify(balanceService, times(1)).getWalletsDetails(anyObject());
     }
@@ -90,14 +107,14 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL)
                 .build();
 
-        String error = "{\"url\":\"http://localhost/api/private/v2/balances\",\"cause\":\"NgDashboardException\",\"detail\":\"Failed to get user balances: null\",\"title\":null,\"uuid\":null,\"code\":null}";
-
         Mockito.when(balanceService.getWalletsDetails(anyObject())).thenThrow(Exception.class);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
+        String ngDashboardException = "Failed to get user balances: null";
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(content().string(error));
+                .andExpect(jsonPath("$.detail", is(ngDashboardException)));
 
         verify(balanceService, times(1)).getWalletsDetails(anyObject());
     }
