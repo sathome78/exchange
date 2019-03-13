@@ -11,7 +11,7 @@ import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -178,5 +178,5 @@ public interface RefillService {
 
     List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
 
-    void processRefillRequest(WalletOperationData walletOperationData);
+    void processRefillRequest(WalletOperationMsDto walletOperationMsDto);
 }
