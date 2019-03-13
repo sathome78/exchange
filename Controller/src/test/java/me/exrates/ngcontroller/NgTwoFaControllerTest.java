@@ -5,6 +5,7 @@ import me.exrates.model.dto.Generic2faResponseDto;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -34,12 +35,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class NgTwoFaControllerTest extends AngularApiCommonTest {
 
+    private static final String BASE_URL = "/api/private/v2/2FaOptions";
+
     @Mock
     UserService userService;
-
     @Mock
     NgUserService ngUserService;
-
     @Mock
     G2faService g2faService;
 
@@ -47,8 +48,6 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
     NgTwoFaController ngTwoFaController;
 
     private MockMvc mockMvc;
-
-    private final String BASE_URL = "/api/private/v2/2FaOptions";
 
     @Before
     public void setUp() {
@@ -73,7 +72,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.getIdByEmail(anyString())).thenReturn(1);
         when(g2faService.getGoogleAuthenticatorCodeNg(anyInt())).thenReturn(dto);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -94,7 +93,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         doNothing().when(g2faService).sendGoogleAuthPinConfirm(isA(User.class), isA(HttpServletRequest.class));
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -145,7 +144,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
-        verify(g2faService, times(1)).submitGoogleSecret(anyObject(), anyMap());
+        verify(g2faService, times(1)).submitGoogleSecret(anyObject(), anyMapOf(String.class, String.class));
         verify(ngUserService, times(1)).sendEmailEnable2Fa(anyString());
     }
 
@@ -192,7 +191,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
-        verify(g2faService, times(1)).disableGoogleAuth(anyObject(), anyMap());
+        verify(g2faService, times(1)).disableGoogleAuth(anyObject(), anyMapOf(String.class, String.class));
         verify(ngUserService, never()).sendEmailDisable2Fa(anyString());
     }
 
@@ -206,7 +205,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.getIdByEmail(anyString())).thenReturn(1);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(Boolean.TRUE);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk());
 
