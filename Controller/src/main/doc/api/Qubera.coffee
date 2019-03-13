@@ -146,11 +146,28 @@ HTTP/1.1 400 OK
 @apiParam {String} amount - for example: 10 or 10.0 or 10.00
 @apiParam {String} currencyCode - currency, min=3 chars, max=3 chars
 
-@apiSuccess {Boolean} data Data
+@apiSuccess {Object} data Data
+@apiSuccess {String} data.currencyFrom
+@apiSuccess {String} data.currencyTo
+@apiSuccess {Number} data.feeAmount
+@apiSuccess {String} data.feeCurrencyCode
+@apiSuccess {Number} data.paymentId
+@apiSuccess {Number} data.rate
+@apiSuccess {Number} data.transactionAmount
+@apiSuccess {String} data.transactionCurrencyCode
 
 @apiSuccessExample {json} Success-Response:
       {
-        "data": true
+        "data": {
+            "currencyFrom": "string",
+            "currencyTo": "string",
+            "feeAmount": 0,
+            "feeCurrencyCode": "string",
+            "paymentId": 0,
+            "rate": 0,
+            "transactionAmount": 0,
+            "transactionCurrencyCode": "string"
+            }
       }
 
 @apiErrorExample {json} Error-Response:
@@ -205,3 +222,64 @@ HTTP/1.1 400 OK
 }
 ###
 
+###
+@api {put} /merchants/qubera/confirm/{paymentId}/toMaster Confirm payment to master
+@apiName  Confirm payment to master
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X PUT \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/toMaster \
+  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
+
+@apiSuccess {String} data Data
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": "SUCCESS"
+      }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {put} /merchants/qubera/confirm/{paymentId}/fromMaster Confirm payment from master
+@apiName  Confirm payment from master
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X PUT \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/234235436467/fromMaster \
+  -H 'apiKey: e993670a-b7f7-4e0a-9742-68ff3b9ac09d'
+
+@apiSuccess {String} data Data
+
+@apiSuccessExample {json} Success-Response:
+      {
+        "data": "SUCCESS"
+      }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###

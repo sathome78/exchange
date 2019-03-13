@@ -5,6 +5,7 @@ import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.PaymentRequestDto;
 import me.exrates.model.dto.QuberaRequestDto;
+import me.exrates.model.dto.ResponsePaymentDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
@@ -53,7 +54,11 @@ public interface QuberaService extends IRefillable, IWithdrawable {
 
     AccountInfoDto getInfoAccount(String principalEmail);
 
-    boolean createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto);
+    ResponsePaymentDto createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto);
 
-    boolean createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto);
+    ResponsePaymentDto createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto);
+
+    String confirmPaymentToMaster(Integer paymentId);
+
+    String confirmPaymentFRomMaster(Integer paymentId);
 }

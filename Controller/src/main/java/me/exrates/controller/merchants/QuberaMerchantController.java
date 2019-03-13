@@ -6,6 +6,7 @@ import me.exrates.model.dto.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.PaymentRequestDto;
 import me.exrates.model.dto.QuberaRequestDto;
+import me.exrates.model.dto.ResponsePaymentDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.QuberaService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -100,15 +102,25 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = PRIVATE_KYC + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<Boolean> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-        boolean result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
+    public ResponseModel<ResponsePaymentDto> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        ResponsePaymentDto result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
         return new ResponseModel<>(result);
     }
 
     @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<Boolean> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-        boolean result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
+    public ResponseModel<ResponsePaymentDto> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        ResponsePaymentDto result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
         return new ResponseModel<>(result);
+    }
+
+    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/toMaster")
+    public ResponseModel<String> confirmPaymentToMaster(@PathVariable Integer paymentId) {
+        return new ResponseModel<>(quberaService.confirmPaymentToMaster(paymentId));
+    }
+
+    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/fromMaster")
+    public ResponseModel<String> confirmPaymentFromMaster(@PathVariable Integer paymentId) {
+        return new ResponseModel<>(quberaService.confirmPaymentFRomMaster(paymentId));
     }
 
     private String getPrincipalEmail() {

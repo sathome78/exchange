@@ -15,6 +15,7 @@ import me.exrates.model.dto.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.QuberaRequestDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.ResponsePaymentDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -45,9 +46,12 @@ public class QuberaServiceImpl implements QuberaService {
     private final KycHttpClient kycHttpClient;
     private final UserService userService;
 
-    private @Value("${qubera.threshold.length}") int thresholdLength;
-    private @Value("${qubera.poolId}") int poolId;
-    private @Value("${qubera.master.account}") String masterAccount;
+    private @Value("${qubera.threshold.length}")
+    int thresholdLength;
+    private @Value("${qubera.poolId}")
+    int poolId;
+    private @Value("${qubera.master.account}")
+    String masterAccount;
 
     @Autowired
     public QuberaServiceImpl(CurrencyService currencyService,
@@ -169,7 +173,7 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public boolean createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto) {
+    public ResponsePaymentDto createPaymentToMaster(String email, PaymentRequestDto paymentRequestDto) {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
@@ -188,7 +192,7 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public boolean createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto) {
+    public ResponsePaymentDto createPaymentFromMater(String email, PaymentRequestDto paymentRequestDto) {
         String account = quberaDao.getAccountByUserEmail(email);
 
         if (account == null) {
@@ -205,5 +209,15 @@ public class QuberaServiceImpl implements QuberaService {
         paymentToMasterDto.setNarrative("Inner transfer");
 
         return kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
+    }
+
+    @Override
+    public String confirmPaymentToMaster(Integer paymentId) {
+        return kycHttpClient.confirmPayment(paymentId, true);
+    }
+
+    @Override
+    public String confirmPaymentFRomMaster(Integer paymentId) {
+        return kycHttpClient.confirmPayment(paymentId, false);
     }
 }
