@@ -1,5 +1,6 @@
 package me.exrates.model.newOrders;
 
+import com.hazelcast.core.PartitionAware;
 import lombok.Data;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OrderBaseType;
@@ -10,9 +11,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class Order implements Serializable {
+public class Order implements PartitionAware, Serializable {
 
-    private Integer id;
+    private Long id;
     private Integer userId;
     private Integer currencyPairId;
     private Integer orderTypeId;
@@ -27,6 +28,7 @@ public class Order implements Serializable {
     private LocalDateTime dateOfCreation;
     private LocalDateTime dateOfLastUpdate;
     private OrderBaseType baseType;
+    private Integer creatorRoleId;
 
     public Order(OrderCreateDto orderCreateDto) {
         this.id = orderCreateDto.getOrderId();
@@ -42,5 +44,11 @@ public class Order implements Serializable {
         this.orderStatusId = orderCreateDto.getStatus().getStatus();
         this.currencyPairId = orderCreateDto.getCurrencyPair().getId();
         this.baseType = orderCreateDto.getOrderBaseType();
+        this.creatorRoleId = orderCreateDto.getCreatorRoleId();
+    }
+
+    @Override
+    public Object getPartitionKey() {
+        return currencyPairId;
     }
 }

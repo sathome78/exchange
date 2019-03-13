@@ -14,6 +14,7 @@ import java.util.Locale;
 @Getter
 public enum TransactionSourceType {
   ORDER(1),
+  ORDER_HZ(2),
   REFERRAL(3),
   ACCRUAL(4),
   MANUAL(5),

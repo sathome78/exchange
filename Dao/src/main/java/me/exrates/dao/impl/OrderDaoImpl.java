@@ -1035,7 +1035,7 @@ public class OrderDaoImpl implements OrderDao {
                 @Override
                 public OrderCreateDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     OrderCreateDto orderCreateDto = new OrderCreateDto();
-                    orderCreateDto.setOrderId(rs.getInt("order_id"));
+                    orderCreateDto.setOrderId(rs.getLong("order_id"));
                     orderCreateDto.setUserId(rs.getInt("user_id"));
                     orderCreateDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
                     orderCreateDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));

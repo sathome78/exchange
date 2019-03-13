@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -15,9 +17,10 @@ import static me.exrates.model.util.BigDecimalProcessing.normalize;
  * Created by Valk on 13.04.16.
  */
 
+@Getter@Setter
 public class OrderCreateDto {
     /*this field filled from existing order*/
-    private int orderId;
+    private Long orderId;
     private int userId;
     private OrderStatus status;
     /*these fields will be transferred to blank creation form */
@@ -56,6 +59,7 @@ To determine which of these forms to be filled, we must set field operationType
     private BigDecimal comission; //calculated comission amount depending on operationType and corresponding comission rate
     private BigDecimal totalWithComission; //total + comission
     private Integer sourceId;
+    private Integer creatorRoleId;
 
     /*constructors*/
 
@@ -112,196 +116,4 @@ To determine which of these forms to be filled, we must set field operationType
                 '}';
     }
 
-    /*getters setters*/
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
-
-    public int getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
-    }
-
-    public CurrencyPair getCurrencyPair() {
-        return currencyPair;
-    }
-
-    public void setCurrencyPair(CurrencyPair currencyPair) {
-        this.currencyPair = currencyPair;
-    }
-
-    public int getComissionForBuyId() {
-        return comissionForBuyId;
-    }
-
-    public void setComissionForBuyId(int comissionForBuyId) {
-        this.comissionForBuyId = comissionForBuyId;
-    }
-
-    public BigDecimal getComissionForBuyRate() {
-        return normalize(comissionForBuyRate);
-    }
-
-    public void setComissionForBuyRate(BigDecimal comissionForBuyRate) {
-        this.comissionForBuyRate = comissionForBuyRate;
-    }
-
-    public int getComissionForSellId() {
-        return comissionForSellId;
-    }
-
-    public void setComissionForSellId(int comissionForSellId) {
-        this.comissionForSellId = comissionForSellId;
-    }
-
-    public BigDecimal getComissionForSellRate() {
-        return normalize(comissionForSellRate);
-    }
-
-    public void setComissionForSellRate(BigDecimal comissionForSellRate) {
-        this.comissionForSellRate = comissionForSellRate;
-    }
-
-    public int getWalletIdCurrencyBase() {
-        return walletIdCurrencyBase;
-    }
-
-    public void setWalletIdCurrencyBase(int walletIdCurrencyBase) {
-        this.walletIdCurrencyBase = walletIdCurrencyBase;
-    }
-
-    public BigDecimal getCurrencyBaseBalance() {
-        return normalize(currencyBaseBalance);
-    }
-
-    public void setCurrencyBaseBalance(BigDecimal currencyBaseBalance) {
-        this.currencyBaseBalance = currencyBaseBalance;
-    }
-
-    public int getWalletIdCurrencyConvert() {
-        return walletIdCurrencyConvert;
-    }
-
-    public void setWalletIdCurrencyConvert(int walletIdCurrencyConvert) {
-        this.walletIdCurrencyConvert = walletIdCurrencyConvert;
-    }
-
-    public BigDecimal getCurrencyConvertBalance() {
-        return normalize(currencyConvertBalance);
-    }
-
-    public void setCurrencyConvertBalance(BigDecimal currencyConvertBalance) {
-        this.currencyConvertBalance = currencyConvertBalance;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public BigDecimal getExchangeRate() {
-        return normalize(exchangeRate);
-    }
-
-    public void setExchangeRate(BigDecimal exchangeRate) {
-        this.exchangeRate = exchangeRate;
-    }
-
-    public BigDecimal getSpentWalletBalance() {
-        return normalize(spentWalletBalance);
-    }
-
-    public void setSpentWalletBalance(BigDecimal balance) {
-        this.spentWalletBalance = balance;
-    }
-
-    public BigDecimal getSpentAmount() {
-        return spentAmount;
-    }
-
-    public void setSpentAmount(BigDecimal spentAmount) {
-        this.spentAmount = normalize(spentAmount);
-    }
-
-    public BigDecimal getAmount() {
-        return normalize(amount);
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getTotal() {
-        return normalize(total);
-    }
-
-    public void setTotal(BigDecimal total) {
-        this.total = total;
-    }
-
-    public int getComissionId() {
-        return comissionId;
-    }
-
-    public void setComissionId(int comissionId) {
-        this.comissionId = comissionId;
-    }
-
-    public BigDecimal getComission() {
-        return (comission);
-    }
-
-    public void setComission(BigDecimal comission) {
-        this.comission = comission;
-    }
-
-    public BigDecimal getTotalWithComission() {
-        return normalize(totalWithComission);
-    }
-
-    public void setTotalWithComission(BigDecimal totalWithComission) {
-        this.totalWithComission = totalWithComission;
-    }
-
-    public Integer getSourceId() {
-        return sourceId;
-    }
-
-    public void setSourceId(Integer sourceId) {
-        this.sourceId = sourceId;
-    }
-
-    public BigDecimal getStop() {
-        return stop;
-    }
-
-    public void setStop(BigDecimal stop) {
-        this.stop = stop;
-    }
-
-    public OrderBaseType getOrderBaseType() {
-        return orderBaseType;
-    }
-
-    public void setOrderBaseType(OrderBaseType orderBaseType) {
-        this.orderBaseType = orderBaseType;
-    }
 }
