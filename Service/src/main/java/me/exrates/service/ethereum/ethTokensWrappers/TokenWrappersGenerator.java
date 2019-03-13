@@ -10,8 +10,8 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/RVC.bin",
-                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/RVC.abi",
+                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/BEZ.bin",
+                "F:\\workspace\\exrates\\Controller\\src\\main\\resources/BEZ.abi",
                 "-o",
                 "F:\\workspace\\exrates\\Service\\src\\main\\java",
                 "-p",

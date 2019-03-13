@@ -834,7 +834,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bezServiceImpl")
     public EthTokenService bezService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x3839d8ba312751aa0248fed6a8bacb84308e20ed");
+        tokensList.add("0x8a1e3930fde1f151471c368fdbb39f3f63a65b55");
         return new EthTokenServiceImpl(
                 tokensList,
                 "BEZ",
