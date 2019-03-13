@@ -83,7 +83,7 @@ public class CurrencyServiceMsImpl implements CurrencyService {
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
-        return null;
+        return currencyDao.getAllCurrencyPairs(type);
     }
 
 
