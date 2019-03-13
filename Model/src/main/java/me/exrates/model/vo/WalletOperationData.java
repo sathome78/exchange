@@ -28,7 +28,6 @@ public class WalletOperationData implements Serializable {
     private Integer sourceId;
     private Transaction transaction;
     private String description;
-    private Integer currencyId;
 
     /**/
     public enum BalanceType {
