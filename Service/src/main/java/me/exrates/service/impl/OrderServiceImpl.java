@@ -340,7 +340,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
+        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates())
+                .stream()
+                .filter(statistic -> !statistic.isHidden())
+                .collect(Collectors.toList());
         switch (refreshObjectsEnum) {
             case ICO_CURRENCIES_STATISTIC: {
                 dto = dto

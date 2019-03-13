@@ -15,6 +15,7 @@ BEGIN
     DECLARE currency_pair_precision INT;
     DECLARE market VARCHAR(45);
     DECLARE currency_pair_type VARCHAR(45);
+    DECLARE hidden TINYINT(1);
 
     DECLARE coinmarketcap_statistics VARCHAR(40);
 
@@ -31,7 +32,8 @@ BEGIN
         (IF (AGR.low24hr IS NOT NULL, AGR.low24hr, 0)) AS low24hr,
 		CP2.scale AS currency_pair_precision,
 		CP2.market,
-    CP2.type AS currency_pair_type
+    CP2.type AS currency_pair_type,
+    CP2.hidden
 	FROM (SELECT
           CP.ticker_name,
           EO.currency_pair_id,
@@ -84,7 +86,8 @@ WHERE (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) IS NU
         quoteVolume,
         currency_pair_precision,
         market,
-        currency_pair_type;
+        currency_pair_type,
+        hidden;
 
     ELSEIF (coinmarketcap_statistics = "ON") THEN
 
@@ -97,7 +100,7 @@ WHERE (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) IS NU
         OPEN AGRIGATE;
 
         FETCH AGRIGATE
-        INTO currency_pair_name, currency_pair_id, baseVolume, quoteVolume, first, last, high24hr, low24hr, currency_pair_precision, market, currency_pair_type;
+        INTO currency_pair_name, currency_pair_id, baseVolume, quoteVolume, first, last, high24hr, low24hr, currency_pair_precision, market, currency_pair_type, hidden;
 
         DROP TEMPORARY TABLE IF EXISTS COINMARKETCAP_STATISTICS_TMP_TBL;
         CREATE TEMPORARY TABLE COINMARKETCAP_STATISTICS_TMP_TBL
@@ -112,7 +115,8 @@ WHERE (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) IS NU
               quoteVolume,
               currency_pair_precision,
               market,
-              currency_pair_type;
+              currency_pair_type,
+              hidden;
 
         DELETE FROM COINMARKETCAP_STATISTICS_TMP_TBL;
 
@@ -128,10 +132,11 @@ WHERE (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) IS NU
             quoteVolume,
             currency_pair_precision,
             market,
-            currency_pair_type);
+            currency_pair_type,
+            hidden);
 
           FETCH AGRIGATE
-          INTO currency_pair_name, currency_pair_id, baseVolume, quoteVolume, first, last, high24hr, low24hr, currency_pair_precision, market, currency_pair_type;
+          INTO currency_pair_name, currency_pair_id, baseVolume, quoteVolume, first, last, high24hr, low24hr, currency_pair_precision, market, currency_pair_type, hidden;
 
         END WHILE;
       END;
