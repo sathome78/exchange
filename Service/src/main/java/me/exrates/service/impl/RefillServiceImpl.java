@@ -21,8 +21,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
 import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
@@ -1200,12 +1198,13 @@ public class RefillServiceImpl implements RefillService {
 
     //[New]
     @Override
-    public void processRefillRequest(WalletOperationMsData walletOperationData) {
+    public void processRefillRequest(WalletOperationMsDto dto) {
+        WalletOperationData walletOperationData = dto.getWalletOperationData();
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if (walletTransferStatus != SUCCESS) {
             throw new RefillRequestRevokeException(walletTransferStatus.name());
         }
-        CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(walletOperationData.getCurrencyId()));
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(dto.getCurrencyId()));
         companyWalletService.deposit(
                 companyWallet,
                 walletOperationData.getAmount(),

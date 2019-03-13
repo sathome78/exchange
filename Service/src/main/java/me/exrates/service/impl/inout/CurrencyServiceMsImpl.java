@@ -5,7 +5,6 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
@@ -83,19 +82,10 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     }
 
     @Override
-    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
-        return null;
-    }
-
-    @Override
     public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
         return null;
     }
 
-    @Override
-    public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
-        return currencyDao.getAllCurrencyPairsWithHidden(type); //TODO remove
-    }
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
@@ -178,12 +168,7 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     }
 
     @Override
-    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType) {
-        return null;
-    }
-
-    @Override
-    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndTypeAndUser(Integer currencyPairId, OperationType operationType, User user) {
+    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType, UserRole userRole) {
         return null;
     }
 
@@ -290,20 +275,5 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     @Override
     public void updateWithdrawLimits() {
 
-    }
-
-    @Override
-    public List<Currency> getCurrencies(MerchantProcessType... processType) {
-        return null;
-    }
-
-    @Override
-    public List<CurrencyPair> getPairsByFirstPartName(String partName) {
-        return null;
-    }
-
-    @Override
-    public List<CurrencyPair> getPairsBySecondPartName(String partName) {
-        return null;
     }
 }

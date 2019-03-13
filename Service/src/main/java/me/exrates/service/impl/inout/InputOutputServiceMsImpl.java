@@ -9,7 +9,6 @@ import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -107,16 +106,6 @@ public class InputOutputServiceMsImpl implements InputOutputService {
 
     @Override
     public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        return null;
-    }
-
-    @Override
-    public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
-        return null;
-    }
-
-    @Override
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
         return null;
     }
 
