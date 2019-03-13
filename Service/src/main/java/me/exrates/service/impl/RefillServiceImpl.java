@@ -1200,7 +1200,7 @@ public class RefillServiceImpl implements RefillService {
 
     //[New]
     @Override
-    public void processRefillRequest(WalletOperationData walletOperationData) {
+    public void processRefillRequest(WalletOperationMsData walletOperationData) {
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if (walletTransferStatus != SUCCESS) {
             throw new RefillRequestRevokeException(walletTransferStatus.name());
