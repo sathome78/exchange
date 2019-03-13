@@ -83,11 +83,6 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     }
 
     @Override
-    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
-        return null;
-    }
-
-    @Override
     public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
         return null;
     }

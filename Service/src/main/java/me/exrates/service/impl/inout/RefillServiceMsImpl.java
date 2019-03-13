@@ -14,7 +14,6 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.model.vo.WalletOperationMsDto;
@@ -107,11 +106,6 @@ public class RefillServiceMsImpl implements RefillService {
 
     @Override
     public Integer createRefillRequestByFact(RefillRequestAcceptDto request) {
-        return null;
-    }
-
-    @Override
-    public Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
         return null;
     }
 
@@ -418,10 +412,6 @@ public class RefillServiceMsImpl implements RefillService {
         return null;
     }
 
-    @Override
-    public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId) {
-        return null;
-    }
 
     @Override
     public void processRefillRequest(WalletOperationMsDto dto) {

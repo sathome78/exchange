@@ -13,7 +13,6 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -70,11 +69,6 @@ public class RefillRequestDaoMsImpl implements RefillRequestDao {
 
     @Override
     public Optional<Integer> findUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Integer> autoCreate(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
         return Optional.empty();
     }
 
@@ -323,8 +317,4 @@ public class RefillRequestDaoMsImpl implements RefillRequestDao {
         return null;
     }
 
-    @Override
-    public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId) {
-        return null;
-    }
 }

@@ -82,11 +82,6 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
     }
 
     @Override
-    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
-        return null;
-    }
-
-    @Override
     public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest) {
 
     }

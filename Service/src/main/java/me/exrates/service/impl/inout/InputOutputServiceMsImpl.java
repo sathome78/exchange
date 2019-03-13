@@ -9,7 +9,6 @@ import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -111,12 +111,12 @@ public class InputOutputServiceMsImpl implements InputOutputService {
     }
 
     @Override
-    public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
+    public Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale) {
         return null;
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale) {
         return null;
     }
 
