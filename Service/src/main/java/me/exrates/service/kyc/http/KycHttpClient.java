@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
+import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
@@ -268,5 +269,25 @@ public class KycHttpClient {
             log.error("Error create json from object");
             return StringUtils.EMPTY;
         }
+    }
+
+    public KycResponseStatusDto getCurrentKycStatus(String referenceUid) {
+        String finalUrl = String.format("%s/verification/onboarding/%s/status", uriApi, referenceUid);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+        HttpEntity<?> request = new HttpEntity<>(headers);
+
+        ResponseEntity<KycResponseStatusDto> responseEntity =
+                template.exchange(uri, HttpMethod.GET, request, KycResponseStatusDto.class);
+
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            log.error("Error response get kyc status {}", toJson(responseEntity.getBody()));
+            throw new NgDashboardException("Error response kyc status",
+                    Constants.ErrorApi.QUBERA_KYC_RESPONSE_ERROR_GET_STATUS);
+        }
+        return responseEntity.getBody();
     }
 }

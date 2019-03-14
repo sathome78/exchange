@@ -10,7 +10,7 @@ curl -X GET \
   http://dev1.exrates.tech/api/private/v2/kyc/status \
   -H 'exrates-rest-token: $token'
 
-@apiSuccess {String} data Data
+@apiSuccess {String} data [CREATED, CLICKED, CAPTURE_ONGOING, SUCCESS, TECHNICAL_ERROR, TOO_MANY_ANALYSIS, EXPIRED]
 
 @apiSuccessExample {json} Success-Response:
 {

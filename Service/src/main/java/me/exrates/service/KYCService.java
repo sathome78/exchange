@@ -13,6 +13,8 @@ public interface KYCService {
 
     Pair<String, EventStatus> getVerificationStatus();
 
+    String getKycStatus(String email);
+
     Pair<String, EventStatus> checkResponseAndUpdateVerificationStep(String response, String s);
 
     OnboardingResponseDto startKyCProcessing(IdentityDataRequest identityDataRequest, String email);
