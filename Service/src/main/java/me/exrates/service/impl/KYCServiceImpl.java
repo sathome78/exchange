@@ -220,7 +220,7 @@ public class KYCServiceImpl implements KYCService {
     @Override
     public String getKycStatus(String email) {
         String status = userService.getUserKycStatusByEmail(email);
-        if (!status.equalsIgnoreCase("none") && !status.equalsIgnoreCase("SUCCESS")) {
+        if (status.equalsIgnoreCase("Pending")) {
             String referenceUid = userService.getKycReferenceByEmail(email);
             if (referenceUid == null) {
                 log.error("Reference uid is null, cannot get status, email {}", email);
@@ -229,7 +229,6 @@ public class KYCServiceImpl implements KYCService {
             KycResponseStatusDto response =
                     kycHttpClient.getCurrentKycStatus(referenceUid);
             status = response.getStatus();
-            userService.updateKycStatusByEmail(email, status);
         }
         return status;
     }
