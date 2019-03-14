@@ -1587,7 +1587,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return namedParameterJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
     @Override

@@ -53,6 +53,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.util.BiTuple;
+import me.exrates.service.events.OrderEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,7 +98,9 @@ public interface OrderService {
      * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
      * @return generated ID of the newly created order, or 0 if order was not be created
      */
-    int createOrder(OrderCreateDto order, OrderActionEnum action);
+    int createOrder(OrderCreateDto order, OrderActionEnum action, List<OrderEvent> eventsList, boolean sendEvent);
+
+    int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action);
 
     @Transactional
     void postBotOrderToDb(OrderCreateDto orderCreateDto);
@@ -169,7 +172,7 @@ public interface OrderService {
      * @param ordersList     is list the ID of order that must be accepted
      * @param locale         is current locale. Used to generate messages
      */
-    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale);
+    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<OrderEvent> eventsList, boolean partialAccept);
 
     /**
      * Accepts the order
@@ -206,7 +209,7 @@ public interface OrderService {
      * @param exOrder is the entity ExOrder of order that must be cancelled
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
-    boolean cancelOrder(ExOrder exOrder, Locale locale);
+    boolean cancelOrder(ExOrder exOrder, Locale locale, List<OrderEvent> acceptEventsList, boolean forPartialAccept);
 
     /**
      * Updates order's fields:
@@ -250,7 +253,7 @@ public interface OrderService {
 
     Object deleteOrderByAdmin(int orderId);
 
-    Object deleteOrderForPartialAccept(int orderId);
+    Object deleteOrderForPartialAccept(int orderId, List<OrderEvent> acceptEventsList);
 
     /**
      * Searches order by its params:

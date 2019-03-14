@@ -196,7 +196,7 @@ public class OrderControllerRest {
             List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
             try {
                 int userId = userService.getIdByEmail(principal.getName());
-                orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
+                orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request), null, false);
             } catch (AttemptToAcceptBotOrderException e) {
                 return "";
             } catch (Exception e) {
@@ -269,7 +269,7 @@ public class OrderControllerRest {
                     break;
                 }
                 default: {
-                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request), null, false);
                 }
             }
             if (!result) {

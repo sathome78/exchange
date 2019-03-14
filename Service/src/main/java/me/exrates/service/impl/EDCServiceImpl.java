@@ -102,7 +102,7 @@ public class EDCServiceImpl implements EDCService {
         String merchantTransactionId = params.get("id");
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName("EDR");
+        Currency currency = currencyService.findByName("EDC");
         Merchant merchant = merchantService.findByName("EDC");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
 

@@ -1,7 +1,6 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
-import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.enums.OrderType;
 import me.exrates.security.config.OpenApiSecurityConfig;
 import me.exrates.service.util.OpenApiUtils;
@@ -17,15 +16,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-
 import static me.exrates.controller.openAPI.TestUtils.getFakeOrderCreationResultDto;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
