@@ -2,6 +2,7 @@ package me.exrates.model.vo;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.exrates.model.Commission;
 import me.exrates.model.Transaction;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
  */
 @Getter @Setter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class WalletOperationData implements Serializable {
 
     private OperationType operationType;

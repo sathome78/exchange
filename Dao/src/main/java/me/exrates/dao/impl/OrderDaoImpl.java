@@ -2306,6 +2306,7 @@ public class OrderDaoImpl implements OrderDao {
                         .market(rs.getString("market"))
                         .high24hr(rs.getBigDecimal("high24hr").toPlainString())
                         .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                        .hidden(rs.getBoolean("hidden"))
                         .build();
                 list.add(statistic);
             }
