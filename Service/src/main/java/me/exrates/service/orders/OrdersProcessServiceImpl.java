@@ -6,8 +6,10 @@ import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.TransactionalMap;
 import com.hazelcast.map.AbstractEntryProcessor;
+import com.hazelcast.query.EntryObject;
 import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.Predicate;
+import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.query.Predicates;
 import com.hazelcast.transaction.TransactionContext;
 import lombok.extern.log4j.Log4j2;
@@ -115,22 +117,7 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
         return transaction;
     }
 
-    static class OrdersSearch
-            extends AbstractEntryProcessor<String, Order> {
-        BigDecimal accum = BigDecimal.ZERO;
-
-        @Override
-        public Object process(Map.Entry< String, Order> entry) {
-
-            BigDecimal acc = accum.add(entry.getValue().getAmountAvailable());
-
-            employee.incSalary(10);
-            entry.setValue(employee);
-            return null;
-        }
-    }
-
-    private Predicate getSearchSuitableOrdersPredicate(OrderCreateDto orderCreateDto, OrderType orderTypeToSearch, Integer userRole, boolean acceptSameRoleOnly) {
+    private Predicate<Long, Order> getSearchSuitableOrdersPredicate(OrderCreateDto orderCreateDto, OrderType orderTypeToSearch, Integer userRole, boolean acceptSameRoleOnly) {
         Predicate typeId = equal("orderTypeId", orderTypeToSearch.getType());
         Predicate exrate;
         if (orderTypeToSearch.equals(OrderType.BUY)) {
@@ -162,52 +149,19 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
         }
     }
 
-    private static Comparator<Map.Entry<Long,Order>> getComparatorForOrdersSort(OrderType orderType) {
-        new Comparator<Map.Entry<Long, Order>>() {
-            @Override
-            public int compare(Map.Entry<Long, Order> o1, Map.Entry<Long, Order> o2) {
-                return 0;
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return false;
-            }
-        }
-
-        return new Comparable<Map.Entry<Long, Order>>() {
-            @Override
-            public int compareTo(Map.Entry<Long, Order> o) {
-                return 0;
-            }
-        };
-
-        Comparator
-                .comparing(Map.Entry<Long,Order>  )
-                .reversed()
-                .thenComparing(Order::getDateOfCreation);
-
-
-        /*class ScoreComparator<K, V extends Comparable<V>>
-
-// Let your class implement Comparator<T>, binding Map.Entry<K, V> to T
-                implements Comparator<Map.Entry<K, V>> {
-            public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-
-                // Call compareTo() on V, which is known to be a Comparable<V>
-                return o1.getValue().compareTo(o2.getValue());
-            }
-        }
+    private static Comparator<Map.Entry<Long,Order>> getComparatorForOrdersSortWithPaging(OrderType orderType) {
         if (orderType == OrderType.BUY) {
-            return Comparator
-                    .comparing(Order)
-                    .reversed()
-                    .thenComparing(Order::getDateOfCreation);
+            return
+                    Map.Entry.comparingByValue(Comparator
+                            .comparing(Order::getExrate)
+                            .reversed()
+                            .thenComparing(Order::getDateOfCreation));
         } else {
-            return Comparator
-                    .comparing(Order::getExrate)
-                    .thenComparing(Order::getDateOfCreation);
-        }*/
+                return
+                        Map.Entry.comparingByValue(Comparator
+                                .comparing(Order::getExrate)
+                                .thenComparing(Order::getDateOfCreation));
+        }
     }
 
 
@@ -225,53 +179,56 @@ public class OrdersProcessServiceImpl implements OrdersProcessService {
                 userRole = userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole();
             }
             final OrderType orderTypeToSearch = OrderType.valueOf(OperationType.getOpposite(orderCreateDto.getOperationType()).name());
-            /*get list of orders ready to accept form hazelcast*/
-
+            /*get map of ordres and create paing predicate with sorting*/
             IMap<Long, Order> ordersMap = hz.getMap(HzCollectionNamesUtils.getNameForOrdersCollection(orderCreateDto.getCurrencyPair().getId()));
+            PagingPredicate<Long, Order> pagingPredicate = new PagingPredicate<>(getSearchSuitableOrdersPredicate(orderCreateDto, orderTypeToSearch, userRole, acceptSameRoleOnly),
+                    getComparatorForOrdersSortWithPaging(orderTypeToSearch), 10);
 
-            List<Order> acceptableOrders = orders.values(getSearchSuitableOrdersPredicate(orderCreateDto, orderTypeToSearch, userRole, acceptSameRoleOnly))
-                    .stream()
-                    .sorted(getComparatorForOrdersSort(orderTypeToSearch))
-                    .collect(Collectors.toList());
-
-            PagingPredicate pagingPredicate = new PagingPredicate(getSearchSuitableOrdersPredicate(orderCreateDto, orderTypeToSearch, userRole, acceptSameRoleOnly), 20);
-            // Retrieve the first page
-            Collection<Order> values = ordersMap.project()values( pagingPredicate );
-            /*List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-                       OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());*/
-            if (acceptableOrders.isEmpty()) {
+            /*check if there any suitable orders*/
+            if (pagingPredicate.getPageSize() <= 0) {
                 return Optional.empty();
             }
-            /*iterate suitable orders and select them to accept*/
+            /*prepare variables*/
             BigDecimal cumulativeSum = BigDecimal.ZERO;
             List<Order> ordersForAccept = new ArrayList<>();
             Order orderForPartialAccept = null;
             BigDecimal sumForPartialAccept = null;
+            /*open transaction context*/
             TransactionContext txCxt = hz.newTransactionContext();
             txCxt.beginTransaction();
             TransactionalMap<Long, Order> orders = txCxt.getMap(HzCollectionNamesUtils.getNameForOrdersCollection(orderCreateDto.getCurrencyPair().getId()));
-            for (Order order : acceptableOrders) {
-                Order blockedOrder;
-                try {
-                     blockedOrder = orders.getForUpdate(order.getId());
-                } catch (Exception e) {
-                    continue;
+            do {
+                boolean done = false;
+                // Retrieve the first page of suitable orders
+                Collection<Order> acceptableOrders = ordersMap.values(pagingPredicate);
+                /*iterate suitable orders and select them to accept*/
+                for (Order order : acceptableOrders) {
+                    Order blockedOrder;
+                    try {
+                        blockedOrder = orders.getForUpdate(order.getId());
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    cumulativeSum = cumulativeSum.add(blockedOrder.getAmountAvailable());
+                    if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+                        ordersForAccept.add(blockedOrder);
+                    } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
+                        ordersForAccept.add(blockedOrder);
+                        done = true;
+                        break;
+                    } else {
+                        sumForPartialAccept = blockedOrder.getAmountAvailable().subtract(cumulativeSum.subtract(orderCreateDto.getAmount()));/*check it!*/
+                        orderForPartialAccept = blockedOrder;
+                        done = true;
+                        break;
+                    }
                 }
-                cumulativeSum = cumulativeSum.add(blockedOrder.getAmountAvailable());
-                if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
-                    ordersForAccept.add(blockedOrder);
-                } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
-                    ordersForAccept.add(blockedOrder);
-                    break;
-                } else {
-                    sumForPartialAccept = blockedOrder.getAmountAvailable().subtract(cumulativeSum.subtract(orderCreateDto.getAmount()));/*check it!*/
-                    orderForPartialAccept = blockedOrder;
+                if (done) {
+                    /*stop cycle here, to not fetch next page*/
                     break;
                 }
-            }
-            acceptableOrders = null;
-
-
+                pagingPredicate.nextPage();
+            } while (pagingPredicate.getPageSize() > 0);
 
 
             OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
