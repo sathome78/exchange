@@ -1,6 +1,6 @@
 package me.exrates.dao;
 
-import me.exrates.model.dto.QuberaRequestDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
 
 import java.util.Map;
 

@@ -2,11 +2,11 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.AccountInfoDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.PaymentRequestDto;
-import me.exrates.model.dto.QuberaRequestDto;
-import me.exrates.model.dto.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.QuberaService;

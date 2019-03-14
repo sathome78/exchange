@@ -1,15 +1,18 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.qubera;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
-public class QuberaBalanceDto {
+public class TransferDetailsDto {
+    private BigDecimal amount;
     private String currencyCode;
-    private Integer amount;
+    private String narrative;
 }

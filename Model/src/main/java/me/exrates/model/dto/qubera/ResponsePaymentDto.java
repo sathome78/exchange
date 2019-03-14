@@ -1,4 +1,4 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.qubera;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

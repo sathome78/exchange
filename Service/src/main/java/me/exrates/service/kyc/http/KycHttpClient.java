@@ -4,11 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
-import me.exrates.model.dto.AccountInfoDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
@@ -182,7 +183,7 @@ public class KycHttpClient {
         }
     }
 
-    public String confirmPayment(Integer paymentId, boolean toMaster) {
+    public String confirmInternalPayment(Integer paymentId, boolean toMaster) {
         String finalUrl;
         if (toMaster) {
             finalUrl = String.format("%s/payment/master/%d/confirm", uriApi, paymentId);
@@ -203,6 +204,55 @@ public class KycHttpClient {
 
         if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("Error confirm payment to master {}", responseEntity.getBody());
+            throw new NgDashboardException("Error confirm payment to master",
+                    Constants.ErrorApi.QUBERA_CONFIRM_PAYMENT_TO_MASTER_ERROR);
+        } else {
+            return responseEntity.getBody();
+        }
+    }
+
+    public ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto) {
+        log.info("createExternalPayment(), {}", toJson(externalPaymentDto));
+        String finalUrl = uriApi + "payment/external";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+
+        HttpEntity<?> request = new HttpEntity<>(externalPaymentDto, headers);
+
+        ResponseEntity<ResponsePaymentDto> responseEntity =
+                template.exchange(uri, HttpMethod.POST, request, ResponsePaymentDto.class);
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("Error create external payment {}", responseEntity.getBody());
+            throw new NgDashboardException("Error while creating external payment",
+                    Constants.ErrorApi.QUBERA_ERROR_RESPONSE_CREATE_EXTERNAL_PAYMENT);
+        } else {
+            return responseEntity.getBody();
+        }
+    }
+
+    public String confirmExternalPayment(Integer paymentId) {
+
+        String finalUrl = String.format("%s/payment/external/%d/confirm", uriApi, paymentId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apiKey", apiKey);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(finalUrl);
+        URI uri = builder.build(true).toUri();
+
+        HttpEntity<?> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> responseEntity =
+                template.exchange(uri, HttpMethod.PUT, request, String.class);
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("Error confirm external payment to master {}", toJson(responseEntity.getBody()));
             throw new NgDashboardException("Error confirm payment to master",
                     Constants.ErrorApi.QUBERA_CONFIRM_PAYMENT_TO_MASTER_ERROR);
         } else {
