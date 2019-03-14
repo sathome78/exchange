@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngUtil.PagedResult;
@@ -27,7 +28,8 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Collections;
+import java.math.BigDecimal;
+import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -82,7 +84,9 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
+
                 .andExpect(jsonPath("$.items", hasSize(1)))
+
                 .andExpect(jsonPath("$.items.[0].id", is(100)))
                 .andExpect(jsonPath("$.items.[0].userId", is(1)))
                 .andExpect(jsonPath("$.items.[0].currencyId", is(111)))
@@ -105,13 +109,13 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getBalances_exception() throws Exception {
+        String ngDashboardException = "Failed to get user balances: null";
+
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL)
                 .build();
 
         Mockito.when(balanceService.getWalletsDetails(anyObject())).thenThrow(Exception.class);
-
-        String ngDashboardException = "Failed to get user balances: null";
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
@@ -135,7 +139,9 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
+
                 .andExpect(jsonPath("$.items", hasSize(1)))
+
                 .andExpect(jsonPath("$.items.[0].requestId", is(777)))
                 .andExpect(jsonPath("$.items.[0].date", is("TEST_DATE")))
                 .andExpect(jsonPath("$.items.[0].currency", is("TEST_CURRENCY")))
@@ -150,6 +156,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getPendingRequests_exception() throws Exception {
+        String ngDashboardException = "Failed to get pending requests: null";
+
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/pendingRequests")
                 .build();
@@ -158,8 +166,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         myWalletsDetailedDtoPagedResult.setItems(Collections.singletonList(getMockRefillPendingRequestDto()));
 
         Mockito.when(balanceService.getPendingRequests(anyInt(), anyInt(), anyString(), anyString())).thenThrow(Exception.class);
-
-        String ngDashboardException = "Failed to get pending requests: null";
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
@@ -185,7 +191,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void revokeWithdrawRequest_exception() throws Exception {
+    public void revokeWithdrawRequest_NgBalanceException() throws Exception {
         Integer requestId = 225;
         String errorOperation = "LLIFER";
         String ngBalanceException = "Failed to revoke such for operation LLIFER";
@@ -202,26 +208,347 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void getUserTotalBalance() {
+    public void revokeWithdrawRequest_exception() throws Exception {
+        Integer requestId = 225;
+        String errorOperation = "LLIFER";
+        String ngBalanceException = "Failed to revoke such for operation LLIFER";
+
+        doThrow(Exception.class).doNothing().when(refillService).revokeRefillRequest(anyInt());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
+
+        verify(refillService, never()).revokeRefillRequest(anyInt());
     }
 
     @Test
-    public void getSingleCurrency() {
+    public void getUserTotalBalance_resultWallet_size_equals_one() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/totalBalance")
+                .build();
+
+        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject()))
+                .thenReturn(Collections.singletonList(getMockMyWalletsStatisticsDto("USD")));
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.mapWallets", hasSize(1)))
+
+                .andExpect(jsonPath("$.mapWallets.[0].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.mapWallets.[0].page", is(0)))
+                .andExpect(jsonPath("$.mapWallets.[0].currencyName", is("USD")))
+                .andExpect(jsonPath("$.mapWallets.[0].description", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.mapWallets.[0].activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.mapWallets.[0].totalBalance", is("125")));
+
+        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject());
     }
 
     @Test
-    public void getMyInputOutputData() {
+    public void getUserTotalBalance_resultWallet_size_more_one() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/totalBalance")
+                .build();
+
+        Mockito.when(walletService.getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject()))
+                .thenReturn(Arrays.asList(
+                        getMockMyWalletsStatisticsDto("USD")
+                        , getMockMyWalletsStatisticsDto("BTC")
+                        , getMockMyWalletsStatisticsDto("ETH"))
+                );
+        Mockito.when(exchangeRatesHolder.getAllRates()).thenReturn(
+                Arrays.asList(
+                        getMockExOrderStatisticsShortByPairsDto("ETH/USD"),
+                        getMockExOrderStatisticsShortByPairsDto("BTC/USD"))
+        );
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.mapWallets", hasSize(3)))
+
+                .andExpect(jsonPath("$.mapWallets.[0].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.mapWallets.[0].page", is(0)))
+                .andExpect(jsonPath("$.mapWallets.[0].currencyName", is("USD")))
+                .andExpect(jsonPath("$.mapWallets.[0].description", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.mapWallets.[0].activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.mapWallets.[0].totalBalance", is("125")))
+
+                .andExpect(jsonPath("$.mapWallets.[1].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.mapWallets.[1].page", is(0)))
+                .andExpect(jsonPath("$.mapWallets.[1].currencyName", is("BTC")))
+                .andExpect(jsonPath("$.mapWallets.[1].description", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.mapWallets.[1].activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.mapWallets.[1].totalBalance", is("125")))
+
+                .andExpect(jsonPath("$.mapWallets.[2].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.mapWallets.[2].page", is(0)))
+                .andExpect(jsonPath("$.mapWallets.[2].currencyName", is("ETH")))
+                .andExpect(jsonPath("$.mapWallets.[2].description", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.mapWallets.[2].activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.mapWallets.[2].totalBalance", is("125")));
+
+        verify(walletService, times(1)).getAllWalletsForUserReduced(anyObject(), anyString(), anyObject(), anyObject());
+        verify(exchangeRatesHolder, times(1)).getAllRates();
     }
 
     @Test
-    public void getDefaultMyInputOutputData() {
+    public void getSingleCurrency_isOk() throws Exception {
+        Integer currencyId = 100;
+
+        Mockito.when(balanceService.findOne(anyString(), anyInt())).thenReturn(java.util.Optional.ofNullable(getMockMyWalletsDetailedDto()));
+        Mockito.when(refillService.getOnConfirmationRefills(anyString(), anyInt())).thenReturn(Collections.EMPTY_LIST);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.id", is(100)))
+                .andExpect(jsonPath("$.userId", is(1)))
+                .andExpect(jsonPath("$.currencyId", is(111)))
+                .andExpect(jsonPath("$.currencyPrecision", is(222)))
+                .andExpect(jsonPath("$.currencyName", is("TEST_CURRENCY_NAME")))
+                .andExpect(jsonPath("$.currencyDescription", is("TEST_CURRENCY_DESCRIPTION")))
+                .andExpect(jsonPath("$.activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.onConfirmation", is("TEST_ON_CONFIRMATION")))
+                .andExpect(jsonPath("$.onConfirmationStage", is("TEST_ON_CONFIRMATION_STAGE")))
+                .andExpect(jsonPath("$.onConfirmationCount", is("TEST_ON_CONFIRMATION_COUNT")))
+                .andExpect(jsonPath("$.reservedBalance", is("TEST_RESERVED_BALANCE")))
+                .andExpect(jsonPath("$.reservedByOrders", is("TEST_RESERVED_BY_ORDERS")))
+                .andExpect(jsonPath("$.reservedByMerchant", is("TEST_RESERVED_BY_MERCHANT")))
+                .andExpect(jsonPath("$.btcAmount", is("TEST_BTC_AMOUNT")))
+                .andExpect(jsonPath("$.usdAmount", is("TEST_USD_AMOUNT")))
+                .andExpect(jsonPath("$.confirmations", is(Collections.EMPTY_LIST)));
+
+        verify(balanceService, times(1)).findOne(anyString(), anyInt());
+        verify(refillService, times(1)).getOnConfirmationRefills(anyString(), anyInt());
     }
 
     @Test
-    public void getBtcAndUsdBalancesSum() {
+    public void getSingleCurrency_isOk_confirmationRefills_equals_null() throws Exception {
+        Integer currencyId = 100;
+
+        Mockito.when(balanceService.findOne(anyString(), anyInt())).thenReturn(java.util.Optional.ofNullable(getMockMyWalletsDetailedDto()));
+        Mockito.when(refillService.getOnConfirmationRefills(anyString(), anyInt())).thenReturn(null);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.id", is(100)))
+                .andExpect(jsonPath("$.userId", is(1)))
+                .andExpect(jsonPath("$.currencyId", is(111)))
+                .andExpect(jsonPath("$.currencyPrecision", is(222)))
+                .andExpect(jsonPath("$.currencyName", is("TEST_CURRENCY_NAME")))
+                .andExpect(jsonPath("$.currencyDescription", is("TEST_CURRENCY_DESCRIPTION")))
+                .andExpect(jsonPath("$.activeBalance", is("TEST_ACTIVE_BALANCE")))
+                .andExpect(jsonPath("$.onConfirmation", is("TEST_ON_CONFIRMATION")))
+                .andExpect(jsonPath("$.onConfirmationStage", is("TEST_ON_CONFIRMATION_STAGE")))
+                .andExpect(jsonPath("$.onConfirmationCount", is("TEST_ON_CONFIRMATION_COUNT")))
+                .andExpect(jsonPath("$.reservedBalance", is("TEST_RESERVED_BALANCE")))
+                .andExpect(jsonPath("$.reservedByOrders", is("TEST_RESERVED_BY_ORDERS")))
+                .andExpect(jsonPath("$.reservedByMerchant", is("TEST_RESERVED_BY_MERCHANT")))
+                .andExpect(jsonPath("$.btcAmount", is("TEST_BTC_AMOUNT")))
+                .andExpect(jsonPath("$.usdAmount", is("TEST_USD_AMOUNT")))
+                .andExpect(jsonPath("$.confirmations", is(Collections.EMPTY_LIST)));
+
+        verify(balanceService, times(1)).findOne(anyString(), anyInt());
+        verify(refillService, times(1)).getOnConfirmationRefills(anyString(), anyInt());
     }
 
     @Test
-    public void otherErrorsHandler() {
+    public void getSingleCurrency_notFound() throws Exception {
+        Integer currencyId = 100;
+
+        Mockito.when(balanceService.findOne(anyString(), anyInt())).thenReturn(Optional.empty());
+        Mockito.when(refillService.getOnConfirmationRefills(anyString(), anyInt())).thenReturn(null);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+
+        verify(balanceService, times(1)).findOne(anyString(), anyInt());
+    }
+
+    @Test
+    public void getSingleCurrency_exception() throws Exception {
+        Integer currencyId = -1;
+        String ngBalanceException = "Failed to get single currency balance details as null";
+
+        Mockito.when(balanceService.findOne(anyString(), anyInt())).thenThrow(Exception.class);
+        Mockito.when(refillService.getOnConfirmationRefills(anyString(), anyInt())).thenReturn(Collections.EMPTY_LIST);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
+
+        verify(balanceService, times(1)).findOne(anyString(), anyInt());
+        verify(refillService, never()).getOnConfirmationRefills(anyString(), anyInt());
+    }
+
+
+    @Test
+    public void getMyInputOutputData_isOk() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/inputOutputData")
+                .build();
+
+        PagedResult<MyInputOutputHistoryDto> myInputOutputHistoryDtoPagedResult = new PagedResult<>();
+        myInputOutputHistoryDtoPagedResult.setItems(Collections.singletonList(getMockMyInputOutputHistoryDto()));
+
+        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.items", hasSize(1)))
+
+                .andExpect(jsonPath("$.items.[0].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.items.[0].page", is(0)))
+                .andExpect(jsonPath("$.items.[0].datetime", is("2019-03-13 14:00:00")))
+                .andExpect(jsonPath("$.items.[0].currencyName", is("TEST_CURRENCY_NAME")))
+                .andExpect(jsonPath("$.items.[0].amount", is("TEST_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].commissionAmount", is("TEST_COMMISSION_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].merchantName", is("TEST_MERCHANT_NAME")))
+                .andExpect(jsonPath("$.items.[0].operationType", is("TEST_OPERATION_TYPE")))
+                .andExpect(jsonPath("$.items.[0].transactionId", is(100)))
+                .andExpect(jsonPath("$.items.[0].provided", is(200)))
+                .andExpect(jsonPath("$.items.[0].transactionProvided", is("TEST_TRANSACTION_PROVIDED")))
+                .andExpect(jsonPath("$.items.[0].id", is(300)))
+                .andExpect(jsonPath("$.items.[0].destination", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.items.[0].userId", is(400)))
+                .andExpect(jsonPath("$.items.[0].bankAccount", is("TEST_BANK_ACCOUNT")))
+                .andExpect(jsonPath("$.items.[0].statusUpdateDate", is("2019-03-14 15:00:00")))
+                .andExpect(jsonPath("$.items.[0].summaryStatus", is("TEST_SUMMARY_STATUS")))
+                .andExpect(jsonPath("$.items.[0].userFullName", is("TEST_USER_FULL_NAME")))
+                .andExpect(jsonPath("$.items.[0].remark", is("TEST_REMARK")))
+                .andExpect(jsonPath("$.items.[0].sourceType", is("REFILL")))
+                .andExpect(jsonPath("$.items.[0].sourceId", is(11)))
+                .andExpect(jsonPath("$.items.[0].confirmation", is(700)))
+                .andExpect(jsonPath("$.items.[0].neededConfirmations", is(800)))
+                .andExpect(jsonPath("$.items.[0].adminHolderId", is(900)))
+                .andExpect(jsonPath("$.items.[0].authorisedUserId", is(1000)))
+                .andExpect(jsonPath("$.items.[0].buttons", is(Collections.EMPTY_LIST)))
+                .andExpect(jsonPath("$.items.[0].transactionHash", is("TEST_TRANSACTIONAL_HASH")))
+                .andExpect(jsonPath("$.items.[0].market", is("TEST_MARKET")))
+                .andExpect(jsonPath("$.items.[0].accepted", is(Boolean.TRUE)));
+
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+    }
+
+    @Test
+    public void getMyInputOutputData_exception() throws Exception {
+        String ngBalanceException = "Failed to get user inputOutputData as null";
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/inputOutputData")
+                .build();
+
+        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
+
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+    }
+
+    @Test
+    public void getDefaultMyInputOutputData_isOk() throws Exception {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/inputOutputData/default")
+                .build();
+
+        PagedResult<MyInputOutputHistoryDto> myInputOutputHistoryDtoPagedResult = new PagedResult<>();
+        myInputOutputHistoryDtoPagedResult.setItems(Collections.singletonList(getMockMyInputOutputHistoryDto()));
+
+        Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+
+                .andExpect(jsonPath("$.items", hasSize(1)))
+
+                .andExpect(jsonPath("$.items.[0].needRefresh", is(Boolean.TRUE)))
+                .andExpect(jsonPath("$.items.[0].page", is(0)))
+                .andExpect(jsonPath("$.items.[0].datetime", is("2019-03-13 14:00:00")))
+                .andExpect(jsonPath("$.items.[0].currencyName", is("TEST_CURRENCY_NAME")))
+                .andExpect(jsonPath("$.items.[0].amount", is("TEST_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].commissionAmount", is("TEST_COMMISSION_AMOUNT")))
+                .andExpect(jsonPath("$.items.[0].merchantName", is("TEST_MERCHANT_NAME")))
+                .andExpect(jsonPath("$.items.[0].operationType", is("TEST_OPERATION_TYPE")))
+                .andExpect(jsonPath("$.items.[0].transactionId", is(100)))
+                .andExpect(jsonPath("$.items.[0].provided", is(200)))
+                .andExpect(jsonPath("$.items.[0].transactionProvided", is("TEST_TRANSACTION_PROVIDED")))
+                .andExpect(jsonPath("$.items.[0].id", is(300)))
+                .andExpect(jsonPath("$.items.[0].destination", is("TEST_DESCRIPTION")))
+                .andExpect(jsonPath("$.items.[0].userId", is(400)))
+                .andExpect(jsonPath("$.items.[0].bankAccount", is("TEST_BANK_ACCOUNT")))
+                .andExpect(jsonPath("$.items.[0].statusUpdateDate", is("2019-03-14 15:00:00")))
+                .andExpect(jsonPath("$.items.[0].summaryStatus", is("TEST_SUMMARY_STATUS")))
+                .andExpect(jsonPath("$.items.[0].userFullName", is("TEST_USER_FULL_NAME")))
+                .andExpect(jsonPath("$.items.[0].remark", is("TEST_REMARK")))
+                .andExpect(jsonPath("$.items.[0].sourceType", is("REFILL")))
+                .andExpect(jsonPath("$.items.[0].sourceId", is(11)))
+                .andExpect(jsonPath("$.items.[0].confirmation", is(700)))
+                .andExpect(jsonPath("$.items.[0].neededConfirmations", is(800)))
+                .andExpect(jsonPath("$.items.[0].adminHolderId", is(900)))
+                .andExpect(jsonPath("$.items.[0].authorisedUserId", is(1000)))
+                .andExpect(jsonPath("$.items.[0].buttons", is(Collections.EMPTY_LIST)))
+                .andExpect(jsonPath("$.items.[0].transactionHash", is("TEST_TRANSACTIONAL_HASH")))
+                .andExpect(jsonPath("$.items.[0].market", is("TEST_MARKET")))
+                .andExpect(jsonPath("$.items.[0].accepted", is(Boolean.TRUE)));
+
+        verify(balanceService, times(1)).getDefaultInputOutputHistory(anyObject(), anyObject());
+    }
+
+    @Test
+    public void getDefaultMyInputOutputData_exception() throws Exception {
+        String ngBalanceException = "Failed to get user inputOutputData as null";
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path(BASE_URL + "/inputOutputData/default")
+                .build();
+
+        Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
+
+        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
+
+        verify(balanceService, times(1)).getDefaultInputOutputHistory(anyObject(), anyObject());
+    }
+
+    @Test
+    public void getBtcAndUsdBalancesSum() throws Exception {
+        Map<String, BigDecimal> balance = new HashMap<>();
+        balance.put("BTC", BigDecimal.valueOf(0.00002343));
+        balance.put("USD", BigDecimal.valueOf(32.00));
+
+        Mockito.when(balanceService.getBalancesSumInBtcAndUsd()).thenReturn(balance);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/myBalances")
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.BTC", is(0.00002343)))
+                .andExpect(jsonPath("$.USD", is(32.0)));
+
+        verify(refillService, never()).revokeRefillRequest(anyInt());
     }
 }
