@@ -473,8 +473,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 currencyCondition +
                 dateFromClauseTransaction +
                 dateToClauseTransaction +
-                "    USER.email=:email " +
-                "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
+                "    USER.email = :email " +
+                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'USER_TRANSFER') " +
+                "    AND TRANSACTION.status_id IN (1, 2)" +
 
                 "  UNION " +
                 "  (SELECT " +
@@ -502,7 +503,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
                 "   WHERE USER.email=:email " +
                 " AND RR.status_id IN (8, 9, 10, 11, 12) " +
-                " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " + curId +
+                " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type = 'REFILL' " +
+                " AND TX.source_id = RR.id AND TX.operation_type_id = 1) " + curId +
                 dateFromClauseRefillRequest +
                 dateToClauseRefillRequest +
                 "  )  " +
@@ -529,8 +531,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN MERCHANT M ON M.id=WR.merchant_id " +
                 "   WHERE USER.email=:email " +
                 " AND WR.status_id IN (7, 8, 9, 10, 12) " +
-                " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
-                curId +
+                " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' " +
+                " AND TX.source_id = WR.id AND TX.operation_type_id = 2) " + curId +
                 dateFromClauseWithdrawRequest +
                 dateToClauseWithdrawRequest +
                 "  )  " +
