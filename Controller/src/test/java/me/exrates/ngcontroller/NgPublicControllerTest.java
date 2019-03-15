@@ -40,12 +40,10 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 //https://www.baeldung.com/integration-testing-in-spring
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -89,10 +87,12 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Before
     public void setUp() {
-        ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, userService, ngUserService,
-                messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder);
-        HandlerExceptionResolver resolver =
-                ((HandlerExceptionResolverComposite) webApplicationContext.getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
+        ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, userService,
+                ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder);
+
+        HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
+                .getBean("handlerExceptionResolver")).getExceptionResolvers().get(0);
+
         mockMvc = MockMvcBuilders.standaloneSetup(ngPublicController)
                 .setHandlerExceptionResolvers(resolver)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
@@ -103,10 +103,12 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void checkIfNewUserEmailExists_whenOk() throws Exception {
         User user = new User();
         user.setStatus(UserStatus.ACTIVE);
+
         when(userService.findByEmail(anyString())).thenReturn(user);
+
         mockMvc.perform(get(BASE_URL + "/if_email_exists")
                 .param("email", EMAIL)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -115,12 +117,13 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void checkIfNewUserEmailExists_whenUserNotFound() throws Exception {
+        String actualMessage = String.format("User with email %s not found", EMAIL);
+
         when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
 
-        String actualMessage = String.format("User with email %s not found", EMAIL);
         mockMvc.perform(get(BASE_URL + "/if_email_exists")
                 .param("email", EMAIL)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_EMAIL_NOT_FOUND"))
@@ -129,15 +132,16 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void checkIfNewUserEmailExists_whenRegistrationIncomplete() throws Exception {
+        String actualMessage = String.format("User with email %s registration is not complete", EMAIL);
         User user = new User();
         user.setStatus(UserStatus.REGISTERED);
+
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
 
-        String actualMessage = String.format("User with email %s registration is not complete", EMAIL);
         mockMvc.perform(get(BASE_URL + "/if_email_exists")
                 .param("email", EMAIL)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_REGISTRATION_NOT_COMPLETED"))
@@ -146,14 +150,16 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void checkIfNewUserEmailExists_whenUserDeleted() throws Exception {
+        String actualMessage = String.format("User with email %s is not active", EMAIL);
         User user = new User();
         user.setStatus(UserStatus.DELETED);
+
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
-        String actualMessage = String.format("User with email %s is not active", EMAIL);
+
         mockMvc.perform(get(BASE_URL + "/if_email_exists")
                 .param("email", EMAIL)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_NOT_ACTIVE"))
@@ -162,17 +168,17 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void isGoogleTwoFAEnabled_WhenTrue() throws Exception {
-        when(g2faService.isGoogleAuthenticatorEnable(EMAIL)).thenReturn(Boolean.TRUE);
+        when(g2faService.isGoogleAuthenticatorEnable(anyString())).thenReturn(Boolean.TRUE);
 
-        mockMvc.perform(get(BASE_URL + "/is_google_2fa_enabled?email={email}"
-                , EMAIL)
+        mockMvc.perform(get(BASE_URL + "/is_google_2fa_enabled")
+                .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string("true"));
     }
 
     @Test
     public void isGoogleTwoFAEnabled_WhenFalse() throws Exception {
-        when(g2faService.isGoogleAuthenticatorEnable(EMAIL)).thenReturn(Boolean.FALSE);
+        when(g2faService.isGoogleAuthenticatorEnable(anyString())).thenReturn(Boolean.FALSE);
 
         mockMvc.perform(get(BASE_URL + "/is_google_2fa_enabled")
                 .param("email", EMAIL)
@@ -182,22 +188,22 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void checkIfNewUserUsernameExists_WhenUsernameExists() throws Exception {
-        when(userService.ifNicknameIsUnique("username")).thenReturn(Boolean.TRUE);
+        when(userService.ifNicknameIsUnique(anyString())).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(get(BASE_URL + "/if_username_exists")
                 .param("username", "username")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"));
     }
 
     @Test
     public void checkIfNewUserUsernameExists_WhenUsernameNotExists() throws Exception {
-        when(userService.ifNicknameIsUnique("username")).thenReturn(Boolean.FALSE);
+        when(userService.ifNicknameIsUnique(anyString())).thenReturn(Boolean.FALSE);
 
         mockMvc.perform(get(BASE_URL + "/if_username_exists")
                 .param("username", "username")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
     }
@@ -205,13 +211,13 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     @Test
     public void getChatMessages_WhenOK() throws Exception {
         ChatHistoryDto historyDto = new ChatHistoryDto();
-        List<ChatHistoryDto> listHistoryDto = Arrays.asList(historyDto);
+        List<ChatHistoryDto> listHistoryDto = Collections.singletonList(historyDto);
 
         when(telegramChatDao.getChatHistoryQuick(anyObject())).thenReturn(listHistoryDto);
 
         mockMvc.perform(get(BASE_URL + "/chat/history")
                 .param("lang", ChatLang.EN.toString())
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$[0].messages").exists());
     }
 
@@ -221,7 +227,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/chat/history")
                 .param("lang", anyString())
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
@@ -230,7 +236,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getAllCurrencyPairs(anyObject())).thenReturn(Collections.singletonList(getMockCurrencyPair()));
 
         mockMvc.perform(get(BASE_URL + "/all-pairs")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(100)))
@@ -257,7 +263,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getAllCurrencyPairs(anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/all-pairs")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
@@ -272,7 +278,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         doNothing().when(messagingTemplate).convertAndSend(anyString(), anyString());
 
         mockMvc.perform(post(BASE_URL + "/chat")
-                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(body)))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -286,7 +292,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         Map<String, String> body = new HashMap<>();
 
         mockMvc.perform(post(BASE_URL + "/chat")
-                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(body)))
                 .andExpect(status().isBadRequest());
     }
@@ -298,7 +304,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenThrow(IllegalChatMessageException.class);
 
         mockMvc.perform(post(BASE_URL + "/chat")
-                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(body)))
                 .andExpect(status().isBadRequest());
     }
@@ -313,7 +319,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenThrow(IllegalChatMessageException.class);
 
         mockMvc.perform(post(BASE_URL + "/chat")
-                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(body)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -327,7 +333,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(orderService.findAllOrderBookItems(anyObject(), anyInt(), anyInt())).thenReturn(getMockOrderBookWrapperDto());
 
         mockMvc.perform(get(BASE_URL + "/open-orders/{pairId}/{precision}", 0, 5)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].orderType", is("SELL")))
@@ -345,7 +351,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(ngOrderService.getCurrencyPairInfo(anyInt())).thenReturn(getMockResponseInfoCurrencyPairDto());
 
         mockMvc.perform(get(BASE_URL + "/info/{currencyPairId}", 100)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currencyRate", is("TEST_CURRENCY_RATE")))
@@ -364,7 +370,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(ngOrderService.getCurrencyPairInfo(anyInt())).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/info/{currencyPairId}", 100)
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -376,7 +382,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto()));
 
         mockMvc.perform(get(BASE_URL + "/info/max/{name}", "TEST_CURRENCY_PAIR_NAME")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.needRefresh", is(Boolean.TRUE)))
@@ -408,7 +414,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto()));
 
         mockMvc.perform(get(BASE_URL + "/info/max/{name}", "TEST_WRONG_NAME")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngDashboardException)));
@@ -422,7 +428,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto()));
 
         mockMvc.perform(get(BASE_URL + "/currencies/fast")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0].needRefresh", is(Boolean.TRUE)))
@@ -454,7 +460,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/accepted-orders/fast")
                 .param("pairId", "1")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0].needRefresh", is(Boolean.TRUE)))
@@ -476,7 +482,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/pair/{part}/{name}", "first", "TEST_NAME")
                 .param("pairId", "1")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(100)))
@@ -504,7 +510,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/pair/{part}/{name}", "tsrif", "TEST_NAME")
                 .param("pairId", "1")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(100)))
@@ -531,7 +537,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getCurrencies(anyObject())).thenReturn(Collections.singletonList(getMockCurrency("RUB")));
 
         mockMvc.perform(get(BASE_URL + "/crypto-currencies")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(100)))
@@ -547,7 +553,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getCurrencies(anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/crypto-currencies")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", is(Collections.EMPTY_LIST)));
@@ -560,7 +566,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getCurrencies(anyObject(), anyObject())).thenReturn(Collections.singletonList(getMockCurrency("TEST_NAME")));
 
         mockMvc.perform(get(BASE_URL + "/fiat-currencies")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(100)))
@@ -576,7 +582,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         when(currencyService.getCurrencies(anyObject(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/fiat-currencies")
-                .contentType(APPLICATION_JSON_UTF8_VALUE))
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", is(Collections.EMPTY_LIST)));
