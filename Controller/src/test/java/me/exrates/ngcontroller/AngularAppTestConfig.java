@@ -6,9 +6,10 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
-import me.exrates.ngcontroller.service.NgUserService;
+import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CommissionService;
@@ -273,6 +274,11 @@ public class AngularAppTestConfig {
     @Bean
     public SessionParamsService sessionParamsService() {
         return Mockito.mock(SessionParamsService.class);
+    }
+
+    @Bean
+    public NgOrderService ngOrderService() {
+        return Mockito.mock(NgOrderService.class);
     }
 
     @Bean
