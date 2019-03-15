@@ -6,31 +6,14 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
+import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
 import me.exrates.security.service.SecureService;
-import me.exrates.service.ChatService;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.DashboardService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.KYCService;
-import me.exrates.service.KYCSettingsService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
-import me.exrates.service.PageLayoutSettingsService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.RefillService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.SessionParamsService;
-import me.exrates.service.TemporalTokenService;
-import me.exrates.service.TransferService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -38,7 +21,6 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -279,6 +261,21 @@ public class AngularAppTestConfig {
     @Bean
     public NgOrderService ngOrderService() {
         return Mockito.mock(NgOrderService.class);
+    }
+
+    @Bean
+    public BalanceService balanceService() {
+        return Mockito.mock(BalanceService.class);
+    }
+
+    @Bean
+    public GtagRefillService gtagRefillService() {
+        return Mockito.mock(GtagRefillService.class);
+    }
+
+    @Bean
+    public UserVerificationService userVerificationService() {
+        return Mockito.mock(UserVerificationService.class);
     }
 
     @Bean
