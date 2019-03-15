@@ -16,9 +16,9 @@ public class OpenApiUtilsTest {
     private String HT_BTC_LOWER = "ht_btc";
     private String HT_BTC_HIGHER = "HT_BTC";
 
-    private String EDR_BTC = "EDR/BTC";
-    private String EDR_BTC_LOWER = "edr_btc";
-    private String EDR_BTC_HIGHER = "EDR_BTC";
+    private String EDC_BTC = "EDC/BTC";
+    private String EDC_BTC_LOWER = "edc_btc";
+    private String EDC_BTC_HIGHER = "EDC_BTC";
 
     private String DIM_USD_BTC = "DIM.USD/BTC";
     private String DIM_USD_BTC_LOWER = "dim.usd_btc";
@@ -45,13 +45,13 @@ public class OpenApiUtilsTest {
 
         assertEquals(HT_BTC, pair);
 
-        pair = OpenApiUtils.transformCurrencyPair(EDR_BTC_LOWER);
+        pair = OpenApiUtils.transformCurrencyPair(EDC_BTC_LOWER);
 
-        assertEquals(EDR_BTC, pair);
+        assertEquals(EDC_BTC, pair);
 
-        pair = OpenApiUtils.transformCurrencyPair(EDR_BTC_HIGHER);
+        pair = OpenApiUtils.transformCurrencyPair(EDC_BTC_HIGHER);
 
-        assertEquals(EDR_BTC, pair);
+        assertEquals(EDC_BTC, pair);
 
         pair = OpenApiUtils.transformCurrencyPair(DIM_USD_BTC_LOWER);
 

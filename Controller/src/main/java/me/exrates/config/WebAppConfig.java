@@ -874,7 +874,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bezServiceImpl")
     public EthTokenService bezService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x3839d8ba312751aa0248fed6a8bacb84308e20ed");
+        tokensList.add("0x8a1e3930fde1f151471c368fdbb39f3f63a65b55");
         return new EthTokenServiceImpl(
                 tokensList,
                 "BEZ",
@@ -1803,6 +1803,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x61383ac89988b498df5363050ff07fe5c52ecdda");
         return new EthTokenServiceImpl(tokensList, "REB","REB", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "rvcServiceImpl")
+    public EthTokenService rvcServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
+        return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

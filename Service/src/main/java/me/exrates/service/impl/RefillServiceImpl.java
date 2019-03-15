@@ -510,15 +510,15 @@ public class RefillServiceImpl implements RefillService {
         BigDecimal amount = onBchExamDto.getAmount();
         String blockhash = onBchExamDto.getBlockhash();
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-            .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
         RefillStatusEnum currentStatus = refillRequest.getStatus();
         InvoiceActionTypeEnum action = START_BCH_EXAMINE;
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
         refillRequestDao.setStatusById(requestId, newStatus);
         try {
-          refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+            refillRequestDao.setMerchantTransactionIdById(requestId, hash);
         } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
+            throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
         }
         refillRequest.setStatus(newStatus);
         refillRequest.setMerchantTransactionId(hash);
@@ -593,18 +593,30 @@ public class RefillServiceImpl implements RefillService {
     @Transactional
     public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         Integer requestId = requestAcceptDto.getRequestId();
-
-        requestAcceptDto.setRequestId(requestId);
-        RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
-        /**/
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
-        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
-        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
-                new Integer[]{requestId},
-                locale);
-        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
-        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        if (requestId == null) {
+            Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+                    requestAcceptDto.getAddress(),
+                    requestAcceptDto.getMerchantId(),
+                    requestAcceptDto.getCurrencyId());
+            if (requestIdOptional.isPresent()) {
+                requestId = requestIdOptional.get();
+            }
+        }
+        if (requestId != null) {
+            requestAcceptDto.setRequestId(requestId);
+            RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+            /**/
+            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+            String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+                    new Integer[]{requestId},
+                    locale);
+            String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+            userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        } else {
+            throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
+        }
     }
 
     @Override
@@ -1026,7 +1038,7 @@ public class RefillServiceImpl implements RefillService {
         Merchant merchant = merchantService.findById(request.getMerchantId());
         if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
             return !getUserIdByAddressAndMerchantIdAndCurrencyId(request.getAddress(), request.getMerchantId(), request.getCurrencyId()).isPresent();
-         }
+        }
         return true;
     }
 

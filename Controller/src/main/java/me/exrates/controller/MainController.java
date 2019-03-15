@@ -280,7 +280,7 @@ public class MainController {
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
             WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
-                return new ModelAndView("redirect:/ico_dashboard?login");
+                return new ModelAndView("redirect:/ieo_dashboard?login");
             }
             return new ModelAndView("redirect:/dashboard?login");
         }

@@ -38,7 +38,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
+                    <a class="nav__link ieo-text" href="<c:url value='/ieo_dashboard'/>">
                         IEO
                     </a>
                 </li>
@@ -429,6 +429,27 @@
         top: 8px;
         right: 0;
         content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+    .ieo-text{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .ieo-text:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'Soon';
         display: inline-block;
         background-color: #34b646;
         padding: 0px 8px;

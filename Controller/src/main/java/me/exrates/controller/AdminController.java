@@ -1,6 +1,8 @@
 package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
@@ -1204,6 +1206,24 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams)  throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(tableParams);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/pageableTransactions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)

@@ -108,7 +108,8 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%@include file="../fragments/ico_trading_center.jsp" %>
+            <%-- <%@include file="../fragments/ico_trading_center.jsp" %> --%>
+            <%@include file="../fragments/IEO_main_block.jsp"%>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>

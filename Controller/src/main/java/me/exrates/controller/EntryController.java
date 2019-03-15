@@ -211,7 +211,7 @@ public class EntryController {
         return model;
     }
 
-    @RequestMapping(value = {"/ico_dashboard"})
+    @RequestMapping(value = {"/ieo_dashboard"})
     public ModelAndView icoDashboard(
             @RequestParam(required = false) String errorNoty,
             @RequestParam(required = false) String successNoty,
@@ -248,7 +248,7 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         model.addObject("notify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
-        model.setViewName("globalPages/ico_dashboard");
+        model.setViewName("globalPages/ieo_dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {

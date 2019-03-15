@@ -1,11 +1,13 @@
 package me.exrates.service.btcCore;
 
+import com.google.common.collect.ImmutableList;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.*;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -19,6 +21,7 @@ import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -52,6 +55,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   private static final int TRANSACTION_LIMIT = 1000;
+  private static final int TRANSACTION_PER_PAGE_COUNT = 30;
+  private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
 
   @Autowired
   private ZMQ.Context zmqContext;
@@ -643,6 +648,90 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public Long getLastBlockTime() throws BitcoindException, CommunicationException {
         return btcdClient.getBlock(btcdClient.getBestBlockHash()).getTime();
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> listTransaction(int page) {
+        try {
+            return getTransactionsByPage(page, TRANSACTION_PER_PAGE_COUNT);
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
+    }
+
+    @Override
+    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue){
+        try {
+            PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
+
+            int recordsTotal = getWalletInfo().getTransactionCount();
+            List<BtcTransactionHistoryDto> data = getTransactionsForPagination(start, length);
+
+            if(!(StringUtils.isEmpty(searchValue))){
+                recordsTotal = findTransactions(searchValue).size();
+                data = findTransactions(searchValue);
+            }
+            result.setData(data);
+            result.setTotal(recordsTotal);
+            result.setFiltered(recordsTotal);
+
+            return result;
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
+    };
+
+
+    @Override
+    public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
+        return btcdClient.listTransactions("", transactionsPerPage, page * transactionsPerPage).stream()
+                .map(payment -> {
+                    BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                    dto.setTxId(payment.getTxId());
+                    dto.setAddress(payment.getAddress());
+                    dto.setBlockhash(payment.getBlockHash());
+                    dto.setCategory(payment.getCategory().getName());
+                    dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                    dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                    dto.setConfirmations(payment.getConfirmations());
+                    dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                    return dto;
+                }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException {
+        return ImmutableList.copyOf(btcdClient.listTransactions("", length, start).stream()
+                .map(payment -> {
+                    BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                    dto.setTxId(payment.getTxId());
+                    dto.setAddress(payment.getAddress());
+                    dto.setBlockhash(payment.getBlockHash());
+                    dto.setCategory(payment.getCategory().getName());
+                    dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                    dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                    dto.setConfirmations(payment.getConfirmations());
+                    dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                    return dto;
+                }).collect(Collectors.toList())).reverse();
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException {
+
+        List<BtcTransactionHistoryDto> result = new ArrayList<>();
+        List<BtcTransactionHistoryDto> transactions;
+
+        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
+            List<BtcTransactionHistoryDto> matches = transactions.stream().filter(e ->
+                    (StringUtils.equals(e.getAddress(), value)) || StringUtils.equals(e.getBlockhash(), value) || StringUtils.equals(e.getTxId(), value))
+                    .collect(Collectors.toList());
+            result.addAll(matches);
+        }
+
+        return result;
     }
 
     @PreDestroy
