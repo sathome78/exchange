@@ -40,6 +40,8 @@ import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -83,6 +85,8 @@ public class NgPublicController {
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final NgUserService ngUserService;
+
+
     private final SimpMessagingTemplate messagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
@@ -94,7 +98,9 @@ public class NgPublicController {
     public NgPublicController(ChatService chatService,
                               CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
-                              NgUserService ngUserService, SimpMessagingTemplate messagingTemplate,
+                              NgUserService ngUserService,
+                              @Qualifier("simpMessagingTemplate")
+                              SimpMessagingTemplate messagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
@@ -182,6 +188,7 @@ public class NgPublicController {
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
+            // todo to handle with error handler
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         final ChatMessage message;
