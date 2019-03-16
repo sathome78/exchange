@@ -937,11 +937,11 @@ public class OrderServiceImpl implements OrderService {
         OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
                 userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
-        logTransaction("acceptPartially" ,"middle", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
-        createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
+        logTransaction("acceptPartially" ,"middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
+        int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
-        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
+        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), remainderId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
    /* TODO temporary disable
@@ -958,8 +958,8 @@ public class OrderServiceImpl implements OrderService {
             pairId = 0;
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String partOfLogging = String.format("time %s ; timestamp %s ; method %s ; part %s ; user %s ; pairId %d ; partialyAccepted or created Id %d ;",
-                LocalDateTime.now(), System.currentTimeMillis(), method, part, auth == null ? "no user" : auth.getName(), pairId, partiallyAcceptedOrderId);
+        String partOfLogging = String.format(" method %s ; part %s ; user %s ; pairId %d ; partialyAccepted or created Id %d ;",
+                 method, part, auth == null ? "no user" : auth.getName(), pairId, partiallyAcceptedOrderId);
         String logMessage;
         try {
             if (TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -1030,8 +1030,9 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     public boolean setStatus(int orderId, OrderStatus status) {
+        logTransaction("setStatus" ,"begin", 0, orderId, null);
         return orderDao.setStatus(orderId, status);
     }
 
@@ -1079,6 +1080,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<OrderEvent> eventsList, boolean partialAccept) {
         try {
+            logTransaction("acceptOrder" ,"begin", 0, orderId, null);
             ExOrder exOrder = this.getOrderById(orderId);
 
             checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
@@ -1451,9 +1453,10 @@ public class OrderServiceImpl implements OrderService {
         return statusString;
     }
 
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional
     @Override
     public boolean updateOrder(ExOrder exOrder) {
+        logTransaction("updateOrder" ,"begin", exOrder.getCurrencyPairId(), exOrder.getId(), null);
         return orderDao.updateOrder(exOrder);
     }
 
