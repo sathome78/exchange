@@ -75,8 +75,8 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
+//                .cors()
+//                .and()
                 .antMatcher("/api/private/**")
                 .authorizeRequests()
                 .antMatchers("/api/private/**").authenticated()
