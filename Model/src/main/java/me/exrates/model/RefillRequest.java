@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
  * Created by ValkSam
  */
 @Getter @Setter
-public class RefillRequest {
+public class RefillRequest implements Serializable {
   private int id;
   private String address;
   private Integer userId;

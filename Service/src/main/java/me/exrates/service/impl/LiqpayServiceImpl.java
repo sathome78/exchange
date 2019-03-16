@@ -4,6 +4,7 @@ package me.exrates.service.impl;
 
 import com.google.gson.Gson;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
@@ -16,6 +17,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/liqpay.properties")
+@Conditional(MonolitConditional.class)
 public class LiqpayServiceImpl implements LiqpayService {
 
   private @Value("${liqpay.url}") String url;

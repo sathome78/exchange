@@ -1,12 +1,9 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.InputOutputDao;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
@@ -15,42 +12,28 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
-import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.valueOf;
@@ -63,6 +46,7 @@ import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
  */
 
 @Service
+@Conditional(MonolitConditional.class)
 public class InputOutputServiceImpl implements InputOutputService {
 
     private static final Logger log = LogManager.getLogger("inputoutput");
@@ -208,7 +192,7 @@ public class InputOutputServiceImpl implements InputOutputService {
         Currency currency = currencyService.findById(payment.getCurrency());
         String destination = payment.getDestination();
         String destinationTag = payment.getDestinationTag();
-        if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO && operationType == OperationType.INPUT)) {
+        if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO && operationType == INPUT)) {
             try {
                 merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
             } catch (EmptyResultDataAccessException e) {

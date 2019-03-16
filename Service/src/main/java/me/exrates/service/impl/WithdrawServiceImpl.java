@@ -2,9 +2,24 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
-import me.exrates.model.*;
+import me.exrates.model.ClientBank;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.PagingData;
+import me.exrates.model.WithdrawRequest;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.CommissionDataDto;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.WithdrawRequestInfoDto;
+import me.exrates.model.dto.WithdrawRequestPostDto;
+import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
@@ -20,8 +35,20 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.WithdrawRequestAlreadyPostedException;
+import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.merchantStrategy.IMerchantService;
@@ -32,6 +59,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -39,14 +67,30 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_DECLINE;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_POSTED;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_ADMIN;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE_HOLDED;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.FINALIZE_POST;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.HOLD_TO_POST;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_HOLDED;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REJECT_ERROR;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REJECT_TO_REVIEW;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.RETURN_FROM_WORK;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
@@ -55,6 +99,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
  */
 
 @Service
+@Conditional(MonolitConditional.class)
 public class WithdrawServiceImpl implements WithdrawService {
 
   private static final Logger log = LogManager.getLogger("withdraw");
@@ -433,17 +478,17 @@ public class WithdrawServiceImpl implements WithdrawService {
     log.debug("Posting withdrawal: " + withdrawRequest);
     IWithdrawable merchantService = (IWithdrawable) merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     CommissionDataDto dto = commissionService
-        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), withdrawRequest.getAmount(), OperationType.OUTPUT,
-                withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId(), withdrawRequest.getDestinationTag());
+            .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), withdrawRequest.getAmount(), OperationType.OUTPUT,
+                    withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId(), withdrawRequest.getDestinationTag());
     log.debug("Commission data: " + dto);
     BigDecimal finalAmount = dto.getResultAmount();
     log.debug("Final amount: " + BigDecimalProcessing.formatNoneComma(finalAmount, false));
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
-        .currency(withdrawRequest.getCurrencyName())
-        .amount(finalAmount.toString())
-        .accountTo(withdrawRequest.getWallet())
-        .destinationTag(withdrawRequest.getDestinationTag())
-        .build();
+            .currency(withdrawRequest.getCurrencyName())
+            .amount(finalAmount.toString())
+            .accountTo(withdrawRequest.getWallet())
+            .destinationTag(withdrawRequest.getDestinationTag())
+            .build();
     log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
     try {
       log.debug("before post");
@@ -452,17 +497,17 @@ public class WithdrawServiceImpl implements WithdrawService {
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       log.debug("withdrawed");
       if (transactionParams != null) {
-            withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
-        }
+        withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+      }
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
-       try {
-         Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
-         String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
-         String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
-         String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
-         userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-         notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        try {
+          Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
+          String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+          String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
+          String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
+          userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+          notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
         } catch (Exception e) {
           log.error("cant send notification on withdraw {}", e);
         }

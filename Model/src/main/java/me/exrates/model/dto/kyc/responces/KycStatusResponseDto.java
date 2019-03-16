@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -12,10 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString
 public class KycStatusResponseDto {
 
     private String status;
     private String errorMsg;
-    private List<?> missingOptionalDocs;
-    private KycAnalysisResultsDto analysisResults;
+    private String[] missingOptionalDocs;
+    private List<KycAnalysisResultsDto> analysisResults;
 }

@@ -33,8 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
@@ -77,7 +75,7 @@ public class RefillRequestController {
   public Map<String, Object> createRefillRequest(
           @RequestBody RefillRequestParamsDto requestParamsDto,
           Principal principal,
-          Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+          Locale locale, HttpServletRequest servletRequest) {
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
@@ -109,11 +107,14 @@ public class RefillRequestController {
     payment.setCurrency(requestParamsDto.getCurrency());
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+
+      CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return refillService.createRefillRequest(request);
   }
+
+
 
 
     @RequestMapping(value = "/refill/request/revoke", method = POST)

@@ -34,15 +34,16 @@ public class UserPersonalOrdersHandler {
         this.pairName = pairName;
     }
 
-    void addToQueueForSend(OrderWsDetailDto dto, Integer userId) {
+    void addToQueueForSend(List<OrderWsDetailDto> dto, Integer userId) {
         if (!synchronizersMap.containsKey(userId)) {
             checkAndCreateSynchronizersAndList(userId);
         }
         synchronized(synchronizersMap.get(userId).getObjectSync()) {
-            orders.get(userId).add(dto);
+            orders.get(userId).addAll(dto);
         }
         send(userId);
     }
+
 
     private void send(Integer userId) {
         //достаю синхронизатор

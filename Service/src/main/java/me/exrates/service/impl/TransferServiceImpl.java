@@ -5,6 +5,7 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.TransferRequest;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -34,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,7 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_
  */
 
 @Service
+@Conditional(MonolitConditional.class)
 public class TransferServiceImpl implements TransferService {
 
   private static final Logger log = LogManager.getLogger("transfer");

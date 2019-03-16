@@ -1,11 +1,13 @@
 package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.BitcoinService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
 @Log4j2(topic = "job")
+@Conditional(MonolitConditional.class)
 public class btcInvoiceRequestJob {
 
   @Value("${btcInvoice.invoiceTimeOutIntervalMinutes}")

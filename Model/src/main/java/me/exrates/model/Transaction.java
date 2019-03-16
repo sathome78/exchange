@@ -10,6 +10,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class Transaction {
+public class Transaction implements Serializable {
     private int id;
     private Wallet userWallet;
     private CompanyWallet companyWallet;

@@ -29,9 +29,19 @@ import java.util.Map;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyMapOf;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class NgTwoFaControllerTest extends AngularApiCommonTest {
 
@@ -57,8 +67,8 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
                 .build();
 
         SecurityContextHolder.getContext()
-                .setAuthentication(new AnonymousAuthenticationToken("GUEST", "USERNAME",
-                        AuthorityUtils.createAuthorityList("ROLE_ONE", "ROLE_TWO")));
+                .setAuthentication(new AnonymousAuthenticationToken("guest", "test@test.ru",
+                        AuthorityUtils.createAuthorityList("ADMIN")));
     }
 
     @Test

@@ -1,11 +1,8 @@
-//package me.exrates.service;
-//
-//import me.exrates.model.dto.InputCreateOrderDto;
-//
-//public interface RabbitMqService {
-//
-//    String ANGULAR_QUEUE = "angular-queue";
-//    String JSP_QUEUE = "jsp-queue";
-//
-////    void sendOrderInfo(InputCreateOrderDto inputOrder, String queueName);
-//}
+package me.exrates.service;
+
+
+public interface RabbitMqService {
+
+    String REFILL_QUEUE = "refill";
+
+}

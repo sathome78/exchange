@@ -35,6 +35,7 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -93,7 +94,7 @@ public class WsController {
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
-    public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
+    public  List<OrdersListWrapper> subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
         return initOrders(currencyId, role);
     }
@@ -114,12 +115,12 @@ public class WsController {
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")
-    public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
+    public  List<OrdersListWrapper> subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
     }
 
     @SubscribeMapping("/orders/sfwfrf442fewdf/{currencyPairId}")
-    public String subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
+    public  List<OrdersListWrapper> subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
     }
 
@@ -143,17 +144,17 @@ public class WsController {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
     }
 
-    private String initOrders(Integer currencyPair, UserRole userRole) throws IOException {
+    private List<OrdersListWrapper> initOrders(Integer currencyPair, UserRole userRole) throws IOException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
             return null;
         }
-        JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
-                (cp, Locale.ENGLISH, userRole), OperationType.SELL.name(), currencyPair)));
-        objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
-                (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
-        return objectsArray.toString();
+        List<OrdersListWrapper> list = new ArrayList<>();
+        list.add(new OrdersListWrapper(orderService.getAllSellOrdersEx
+                (cp, Locale.ENGLISH, userRole), OperationType.SELL.name(), currencyPair));
+        list.add(new OrdersListWrapper(orderService.getAllBuyOrdersEx
+                (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair));
+        return list;
     }
 
 

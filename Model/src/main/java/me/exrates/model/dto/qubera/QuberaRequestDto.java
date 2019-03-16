@@ -1,4 +1,4 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.qubera;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;

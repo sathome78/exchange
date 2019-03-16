@@ -3,6 +3,7 @@ package me.exrates.service.achain;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -14,6 +15,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,6 +29,7 @@ import java.util.Map;
  */
 @Log4j2(topic = "achain")
 @Service
+@Conditional(MonolitConditional.class)
 public class AchainServiceImpl implements AchainService {
 
     private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);

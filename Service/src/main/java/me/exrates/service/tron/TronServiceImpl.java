@@ -11,6 +11,8 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
@@ -19,6 +21,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 
 @Log4j2(topic = "tron")
 @Service
+@Conditional(MonolitConditional.class)
 public class TronServiceImpl implements TronService {
 
     private final static String CURRENCY_NAME = "TRX";

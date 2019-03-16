@@ -1,11 +1,12 @@
 package me.exrates.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public class CompanyWallet {
+public class CompanyWallet implements Serializable {
 
     private int id;
     private Currency currency;
