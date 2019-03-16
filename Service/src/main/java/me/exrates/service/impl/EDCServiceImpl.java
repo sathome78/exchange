@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edcmerchant.properties"})
+@Conditional(MonolitConditional.class)
 public class EDCServiceImpl implements EDCService {
 
     private @Value("${edcmerchant.token}")
@@ -99,7 +102,7 @@ public class EDCServiceImpl implements EDCService {
         String merchantTransactionId = params.get("id");
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName("EDR");
+        Currency currency = currencyService.findByName("EDC");
         Merchant merchant = merchantService.findByName("EDC");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
 

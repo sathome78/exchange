@@ -2,7 +2,11 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.QuberaRequestDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
+import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.QuberaService;
@@ -16,7 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,9 +41,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class QuberaMerchantController {
 
     private static final Logger logger = LogManager.getLogger(QuberaMerchantController.class);
-    private final QuberaService quberaService;
-
     private final static String PRIVATE_KYC = "/api/private/v2";
+    private final QuberaService quberaService;
 
     @Autowired
     public QuberaMerchantController(QuberaService quberaService) {
@@ -68,21 +73,22 @@ public class QuberaMerchantController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = PRIVATE_KYC +  "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
+    @PostMapping(value = PRIVATE_KYC + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseModel<AccountQuberaResponseDto> createAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
         accountCreateDto.setEmail(getPrincipalEmail());
-        quberaService.createAccount(accountCreateDto);
-        return null;
+        AccountQuberaResponseDto result = quberaService.createAccount(accountCreateDto);
+        return new ResponseModel<>(result);
     }
 
-    @GetMapping(value = "/merchants/qubera/account/check")
-    public ResponseModel<?> checkUserAccountExist() {
-        return null;
+    @GetMapping(value = PRIVATE_KYC + "/merchants/qubera/account/check/{currency}")
+    public ResponseModel<Boolean> checkUserAccountExist(@PathVariable("currency") String currency) {
+        return new ResponseModel<>(quberaService.checkAccountExist(getPrincipalEmail(), currency));
     }
 
-    @GetMapping(value = "/merchants/qubera/account/info")
-    public ResponseModel<?> getUserAccountInfo() {
-        return null;
+    @GetMapping(value = PRIVATE_KYC + "/merchants/qubera/account/info")
+    public ResponseModel<AccountInfoDto> getUserAccountInfo() {
+        AccountInfoDto result = quberaService.getInfoAccount(getPrincipalEmail());
+        return new ResponseModel<>(result);
     }
 
     @PostMapping(value = "/merchants/qubera/payment/internal", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -95,14 +101,26 @@ public class QuberaMerchantController {
         return null;
     }
 
-    @PostMapping(value = "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentToMaster() {
-        return null;
+    @PostMapping(value = PRIVATE_KYC + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseModel<ResponsePaymentDto> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        ResponsePaymentDto result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
+        return new ResponseModel<>(result);
     }
 
     @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentFromMaster() {
-        return null;
+    public ResponseModel<ResponsePaymentDto> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+        ResponsePaymentDto result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
+        return new ResponseModel<>(result);
+    }
+
+    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/toMaster")
+    public ResponseModel<String> confirmPaymentToMaster(@PathVariable Integer paymentId) {
+        return new ResponseModel<>(quberaService.confirmPaymentToMaster(paymentId));
+    }
+
+    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/fromMaster")
+    public ResponseModel<String> confirmPaymentFromMaster(@PathVariable Integer paymentId) {
+        return new ResponseModel<>(quberaService.confirmPaymentFRomMaster(paymentId));
     }
 
     private String getPrincipalEmail() {

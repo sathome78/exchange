@@ -77,7 +77,6 @@ public class StompMessengerImpl implements StompMessenger {
        List<PrecissionsEnum> finalSubscribed = new ArrayList<>();
        Arrays.stream(PrecissionsEnum.values()).forEach(p -> {
            String path = String.format(basePath2, pairName, p.getValue());
-           System.out.println("select " + path);
            Set<SimpSubscription> subscribers = findSubscribersByDestination(path);
            if (subscribers.size() > 0) {
                System.out.println("added " + path);
@@ -89,7 +88,6 @@ public class StompMessengerImpl implements StompMessenger {
        Map<PrecissionsEnum, String> result = orderService.findAllOrderBookItemsForAllPrecissions(OrderType.fromOperationType(operationType), currencyPair.getId(), subscribed);
        result.forEach((k,v) -> {
            String path = String.format(basePath, pairName, k.getValue());
-           System.out.println("send " + path);
            sendMessageToDestination(path, v);
        });
 

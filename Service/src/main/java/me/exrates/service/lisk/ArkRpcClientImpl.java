@@ -3,10 +3,12 @@ package me.exrates.service.lisk;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.lisk.ArkOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.ArkSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -24,6 +26,7 @@ import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskRes
 @Log4j2(topic = "lisk_log")
 @Service
 @Scope("prototype")
+@Conditional(MonolitConditional.class)
 public class ArkRpcClientImpl implements ArkRpcClient {
     @Autowired
     private RestTemplate restTemplate;

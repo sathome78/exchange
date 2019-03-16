@@ -37,6 +37,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private String high24hr;
     private String low24hr;
 
+    private boolean hidden;
     private String lastUpdateCache;
 
     public ExOrderStatisticsShortByPairsDto() {

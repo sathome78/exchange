@@ -2,5 +2,5 @@ package me.exrates.model.enums;
 
 public enum OrderEventEnum {
 
-    CREATE, ACCEPT, CANCEL, DELETE
+    CREATE, ACCEPT, AUTO_ACCEPT, CANCEL, DELETE
 }

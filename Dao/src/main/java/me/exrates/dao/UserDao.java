@@ -229,4 +229,6 @@ public interface UserDao {
     boolean updateKycReferenceIdByEmail(String email, String refernceUID);
 
     Optional<User> findByKycReferenceId(String referenceId);
+
+    String findKycReferenceByUserEmail(String email);
 }

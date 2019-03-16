@@ -2,60 +2,24 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
-import me.exrates.model.dto.ExternalReservedWalletAddressDto;
-import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.InternalWalletBalancesDto;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.TransferDto;
-import me.exrates.model.dto.UserGroupBalanceDto;
-import me.exrates.model.dto.UserRoleBalanceDto;
-import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.dto.WalletFormattedDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.*;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.ReportGroupUserRole;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CryptoCurrencyBalances;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
-import me.exrates.service.exception.BalanceChangeException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.exception.WalletNotFoundException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -70,12 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -84,7 +43,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.*;
 
 @Log4j2
 @Service
@@ -111,8 +70,6 @@ public class WalletServiceImpl implements WalletService {
     private MessageSource messageSource;
     @Autowired
     private UserTransferService userTransferService;
-    @Autowired
-    private CryptoCurrencyBalances cryptoCurrencyBalances;
     @Autowired
     private OrderService orderService;
     @Autowired
@@ -770,5 +727,10 @@ public class WalletServiceImpl implements WalletService {
             return null;
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
+    }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, int currencyId) {
+        return walletDao.findByUserAndCurrency(userId, currencyId);
     }
 }

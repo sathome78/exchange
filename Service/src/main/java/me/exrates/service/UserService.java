@@ -251,5 +251,7 @@ public interface UserService {
 
     User findByKycReferenceId(String referenceId);
 
-    boolean updateKycStatusById(String email, String status);
+    boolean updateKycStatusByEmail(String email, String status);
+
+    String getKycReferenceByEmail(String email);
 }

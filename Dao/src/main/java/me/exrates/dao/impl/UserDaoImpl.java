@@ -1354,4 +1354,10 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public String findKycReferenceByUserEmail(String email) {
+        String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+    }
+
 }

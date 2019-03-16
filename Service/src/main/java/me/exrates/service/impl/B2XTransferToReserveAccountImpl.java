@@ -1,10 +1,12 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,7 +15,8 @@ import java.util.Map;
 
 @Log4j2
 @Service
-public class B2XTransferToReserveAccount {
+@Conditional(MonolitConditional.class)
+public class B2XTransferToReserveAccountImpl implements B2XTransferToReserveAccount {
 
     private final static String RESERVE_ADDRESS = "1P6fgfBhPtcuLPrG2tScVY4QG5owiHnzst";
 
@@ -21,6 +24,7 @@ public class B2XTransferToReserveAccount {
     @Qualifier("b2xServiceImpl")
     private BitcoinService bitcoinService;
 
+    @Override
     public void transferToReserveAccountFromNode(int countTransactions, String amount){
         try {
             List<String> allTx = new ArrayList<>();

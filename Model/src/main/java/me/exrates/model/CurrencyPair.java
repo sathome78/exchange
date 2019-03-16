@@ -9,6 +9,8 @@ import lombok.ToString;
 import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
+
 @Component
 @Getter
 @Setter
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CurrencyPair {
+public class CurrencyPair implements Serializable {
     private int id;
     private String name;
     private Currency currency1;

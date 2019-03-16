@@ -3,11 +3,12 @@ package me.exrates.model;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class User  {
+public class User implements Serializable {
 
 	private int id;
 	private String nickname;

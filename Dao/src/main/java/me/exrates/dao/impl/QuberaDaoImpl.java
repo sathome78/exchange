@@ -4,19 +4,14 @@ import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.dao.exception.UserNotFoundException;
-import me.exrates.model.dto.QuberaRequestDto;
-import org.glassfish.grizzly.http.util.TimeStamp;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Map;
@@ -66,6 +61,32 @@ public class QuberaDaoImpl implements QuberaDao {
            log.info("Neither iban nor accountNumber for userId: {} and currencyId: {}", userId, currencyId);
            return Collections.emptyMap();
         }
+    }
+
+    @Override
+    public boolean existAccountByUserEmailAndCurrencyName(String email, String currency) {
+        String sql = "SELECT CASE WHEN count(*) > 0" +
+                " THEN TRUE ELSE FALSE END" +
+                " FROM QUBERA_USER_DETAILS qud" +
+                " INNER JOIN USER u on qud.user_id = u.id" +
+                " INNER JOIN CURRENCY c on qud.currency_id = c.id" +
+                " WHERE u.email = :email AND c.name = :currency";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        params.addValue("currency", currency);
+
+        return slaveJdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
+    public String getAccountByUserEmail(String email) {
+        String sql = "SELECT account_number" +
+                " FROM QUBERA_USER_DETAILS" +
+                " INNER JOIN USER u on QUBERA_USER_DETAILS.user_id = u.id" +
+                " WHERE u.email = :email";
+
+        return slaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
     }
 
     @Override

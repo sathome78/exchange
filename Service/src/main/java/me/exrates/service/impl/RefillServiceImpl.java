@@ -4,43 +4,16 @@ import com.google.common.base.Preconditions;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.PagingData;
-import me.exrates.model.Payment;
-import me.exrates.model.RefillRequestAddressShortDto;
-import me.exrates.model.User;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.OperationUserDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.RefillRequestBtcInfoDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestFlatForReportDto;
-import me.exrates.model.dto.RefillRequestManualDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
-import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
-import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.*;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -49,31 +22,9 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.RefillService;
-import me.exrates.service.RequestLimitExceededException;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
-import me.exrates.service.exception.CreatorForTheRefillRequestNotDefinedException;
-import me.exrates.service.exception.FileLoadingException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestConditionsForAcceptAreCorruptedException;
-import me.exrates.service.exception.RefillRequestCreationByFactException;
-import me.exrates.service.exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException;
-import me.exrates.service.exception.RefillRequestExpectedAddressNotDetermineException;
-import me.exrates.service.exception.RefillRequestGeneratingAdditionalAddressNotAvailableException;
-import me.exrates.service.exception.RefillRequestIllegalStatusException;
-import me.exrates.service.exception.RefillRequestNotFoundException;
-import me.exrates.service.exception.RefillRequestRevokeException;
-import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.model.vo.WalletOperationMsDto;
+import me.exrates.service.*;
+import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -85,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -94,13 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -109,19 +55,7 @@ import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_HOLDED;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_FACT;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE_HOLDED;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE_MERCHANT;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.EXPIRE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REQUEST_INNER_TRANSFER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.RETURN_FROM_WORK;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.START_BCH_EXAMINE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.TAKE_TO_WORK;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.RefillStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
@@ -132,6 +66,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
+@Conditional(MonolitConditional.class)
 public class RefillServiceImpl implements RefillService {
 
     @Value("${invoice.blockNotifyUsers}")
@@ -515,15 +450,15 @@ public class RefillServiceImpl implements RefillService {
         BigDecimal amount = onBchExamDto.getAmount();
         String blockhash = onBchExamDto.getBlockhash();
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-            .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
         RefillStatusEnum currentStatus = refillRequest.getStatus();
         InvoiceActionTypeEnum action = START_BCH_EXAMINE;
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
         refillRequestDao.setStatusById(requestId, newStatus);
         try {
-          refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+            refillRequestDao.setMerchantTransactionIdById(requestId, hash);
         } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
+            throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
         }
         refillRequest.setStatus(newStatus);
         refillRequest.setMerchantTransactionId(hash);
@@ -598,18 +533,30 @@ public class RefillServiceImpl implements RefillService {
     @Transactional
     public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         Integer requestId = requestAcceptDto.getRequestId();
-
-        requestAcceptDto.setRequestId(requestId);
-        RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
-        /**/
-        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
-        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
-        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
-                new Integer[]{requestId},
-                locale);
-        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
-        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        if (requestId == null) {
+            Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+                    requestAcceptDto.getAddress(),
+                    requestAcceptDto.getMerchantId(),
+                    requestAcceptDto.getCurrencyId());
+            if (requestIdOptional.isPresent()) {
+                requestId = requestIdOptional.get();
+            }
+        }
+        if (requestId != null) {
+            requestAcceptDto.setRequestId(requestId);
+            RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+            /**/
+            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+            String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+            String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+                    new Integer[]{requestId},
+                    locale);
+            String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+            userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        } else {
+            throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
+        }
     }
 
     @Override
@@ -1033,7 +980,7 @@ public class RefillServiceImpl implements RefillService {
         Merchant merchant = merchantService.findById(request.getMerchantId());
         if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
             return !getUserIdByAddressAndMerchantIdAndCurrencyId(request.getAddress(), request.getMerchantId(), request.getCurrencyId()).isPresent();
-         }
+        }
         return true;
     }
 
@@ -1326,6 +1273,11 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId) {
         return refillRequestDao.findFlatByUserIdAndMerchantIdAndCurrencyId(userId, merchantId, currencyId);
+    }
+
+    @Override
+    public void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
+        throw new NotImplimentedMethod("");
     }
 
 }
