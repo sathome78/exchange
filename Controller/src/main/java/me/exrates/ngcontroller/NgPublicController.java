@@ -65,7 +65,7 @@ public class NgPublicController {
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final NgUserService ngUserService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
@@ -77,7 +77,7 @@ public class NgPublicController {
                               CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
                               NgUserService ngUserService,
-                              SimpMessagingTemplate messagingTemplate,
+                              SimpMessagingTemplate simpMessagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
@@ -88,7 +88,7 @@ public class NgPublicController {
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.ngUserService = ngUserService;
-        this.messagingTemplate = messagingTemplate;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
@@ -175,7 +175,7 @@ public class NgPublicController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         String destination = "/topic/chat/".concat(language.toLowerCase());
-        messagingTemplate.convertAndSend(destination, fromChatMessage(message));
+        simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

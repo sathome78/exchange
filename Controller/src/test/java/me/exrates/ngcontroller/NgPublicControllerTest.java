@@ -34,7 +34,10 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.handler.HandlerExceptionResolverComposite;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.anyObject;
@@ -113,6 +116,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         verify(userService, times(1)).findByEmail(anyString());
         verifyNoMoreInteractions(userService);
+
+        reset(userService);
     }
 
     @Test
@@ -256,6 +261,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].permittedLink", is(Boolean.TRUE)));
 
         verify(currencyService, times(1)).getAllCurrencyPairs(anyObject());
+        reset(currencyService);
     }
 
     @Test
@@ -285,28 +291,31 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         verify(chatService, times(1)).persistPublicMessage(anyString(), anyString(), anyObject());
         verify(messagingTemplate, times(1)).convertAndSend(anyString(), anyString());
+
+        reset(chatService);
+        reset(messagingTemplate);
     }
 
     @Test
     public void sendChatMessage_WhenEmptySimpleMessage() throws Exception {
-        Map<String, String> body = new HashMap<>();
 
         mockMvc.perform(post(BASE_URL + "/chat")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsBytes(body)))
+                .content(objectMapper.writeValueAsBytes(Collections.emptyMap())))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void sendChatMessage_WhenIllegalChatMessageException() throws Exception {
-        Map<String, String> body = new HashMap<>();
-
         when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenThrow(IllegalChatMessageException.class);
 
         mockMvc.perform(post(BASE_URL + "/chat")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsBytes(body)))
+                .content(objectMapper.writeValueAsBytes(Collections.emptyMap())))
                 .andExpect(status().isBadRequest());
+
+        reset(chatService);
+        reset(messagingTemplate);
     }
 
     @Test
@@ -326,6 +335,9 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         verify(chatService, times(1)).persistPublicMessage(anyString(), anyString(), anyObject());
         verify(messagingTemplate, never()).convertAndSend(anyString(), anyString());
+
+        reset(chatService);
+        reset(messagingTemplate);
     }
 
     @Test
@@ -344,6 +356,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].orderBookItems", is(Collections.EMPTY_LIST)));
 
         verify(orderService, times(2)).findAllOrderBookItems(anyObject(), anyInt(), anyInt());
+        reset(orderService);
     }
 
     @Test
@@ -363,6 +376,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.rateLow", is("TEST_RATE_LOW")));
 
         verify(ngOrderService, times(1)).getCurrencyPairInfo(anyInt());
+        reset(ngOrderService);
     }
 
     @Test
@@ -375,6 +389,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isBadRequest());
 
         verify(ngOrderService, times(1)).getCurrencyPairInfo(anyInt());
+        reset(ngOrderService);
     }
 
     @Test
@@ -405,6 +420,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.error", is(nullValue())));
 
         verify(exchangeRatesHolder, times(1)).getAllRates();
+        reset(exchangeRatesHolder);
     }
 
     @Test
@@ -420,6 +436,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.detail", is(ngDashboardException)));
 
         verify(exchangeRatesHolder, times(1)).getAllRates();
+        reset(exchangeRatesHolder);
     }
 
     @Test
@@ -450,6 +467,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.[0].lastUpdateCache", is("TEST_LAST_UPDATE_CACHE")));
 
         verify(orderService, times(1)).getAllCurrenciesMarkersForAllPairsModel();
+        reset(orderService);
     }
 
     @Test
@@ -474,6 +492,9 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         verify(currencyService, times(1)).findCurrencyPairById(anyInt());
         verify(orderService, times(1)).getOrderAcceptedForPeriodEx(anyObject(), anyObject(), anyInt(), anyObject(), anyObject());
+
+        reset(currencyService);
+        reset(orderService);
     }
 
     @Test
@@ -502,6 +523,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].permittedLink", is(Boolean.TRUE)));
 
         verify(ngOrderService, times(1)).getAllPairsByFirstPartName(anyString());
+        reset(ngOrderService);
     }
 
     @Test
@@ -530,6 +552,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].permittedLink", is(Boolean.TRUE)));
 
         verify(ngOrderService, times(1)).getAllPairsBySecondPartName(anyString());
+        reset(ngOrderService);
     }
 
     @Test
@@ -546,6 +569,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].hidden", is(Boolean.TRUE)));
 
         verify(currencyService, times(1)).getCurrencies(anyObject());
+        reset(currencyService);
     }
 
     @Test
@@ -559,6 +583,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", is(Collections.EMPTY_LIST)));
 
         verify(currencyService, times(1)).getCurrencies(anyObject());
+        reset(currencyService);
     }
 
     @Test
@@ -575,6 +600,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$[0].hidden", is(Boolean.TRUE)));
 
         verify(currencyService, times(1)).getCurrencies(anyObject(), anyObject());
+        reset(currencyService);
     }
 
     @Test
@@ -588,5 +614,6 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.*", is(Collections.EMPTY_LIST)));
 
         verify(currencyService, times(1)).getCurrencies(anyObject(), anyObject());
+        reset(currencyService);
     }
 }
