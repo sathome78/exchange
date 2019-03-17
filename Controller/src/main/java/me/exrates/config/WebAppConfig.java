@@ -1772,9 +1772,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "rvcServiceImpl")
     public EthTokenService rvcServiceImpl(){
         List<String> tokensList = new ArrayList<>();
-
         tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
         return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "bioServiceImpl")
+    public EthTokenService bioServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
+        return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
     }
 
 	//    Qtum tokens:
