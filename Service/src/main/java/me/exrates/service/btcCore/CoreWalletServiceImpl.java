@@ -29,7 +29,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.datatypes.Int;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Flux;
 
