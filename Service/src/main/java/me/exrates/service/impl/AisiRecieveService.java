@@ -48,7 +48,6 @@ public class AisiRecieveService {
     void checkIncomePayment() {
         log.info("*** Aisi *** Scheduler start");
         List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
-
     try {
         aisiCurrencyService.getAccountTransactions().stream()
                 .forEach(transaction ->
