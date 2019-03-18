@@ -20,6 +20,7 @@ import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
@@ -71,18 +72,20 @@ public class NgBalanceController {
     private final LocaleResolver localeResolver;
     private final RefillService refillService;
     private final WalletService walletService;
+    private final WithdrawService withdrawService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
                                RefillService refillService,
-                               WalletService walletService) {
+                               WalletService walletService, WithdrawService withdrawService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
         this.refillService = refillService;
         this.walletService = walletService;
+        this.withdrawService = withdrawService;
     }
 
     // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false&currencyName=BTC&currencyType=CRYPTO
@@ -133,13 +136,21 @@ public class NgBalanceController {
 
     // apiUrl/info/private/v2/balances/pending/revoke/{requestId}/{operation}
     // requestId - pending request id
-    // operation - may be only REFILL or WITHDRAW, but only REFILL is processed
+    // operation - may be only REFILL or WITHDRAW
     @DeleteMapping(value = "/pending/revoke/{requestId}/{operation}")
     public ResponseEntity<Void> revokeWithdrawRequest(@PathVariable Integer requestId,
                                                       @PathVariable String operation) {
         if (operation.equalsIgnoreCase("REFILL")) {
             try {
                 refillService.revokeRefillRequest(requestId);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                logger.error("Failed to revoke request with id: " + requestId, e);
+                e.printStackTrace();
+            }
+        } else if (operation.equalsIgnoreCase("WITHDRAW")) {
+            try {
+                withdrawService.revokeWithdrawalRequest(requestId);
                 return ResponseEntity.ok().build();
             } catch (Exception e) {
                 logger.error("Failed to revoke request with id: " + requestId, e);

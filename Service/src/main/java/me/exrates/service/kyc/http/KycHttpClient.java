@@ -4,17 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
-import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
-import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
+import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
+import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -280,10 +280,17 @@ public class KycHttpClient {
         URI uri = builder.build(true).toUri();
         HttpEntity<?> request = new HttpEntity<>(headers);
 
-        ResponseEntity<KycResponseStatusDto> responseEntity =
-                template.exchange(uri, HttpMethod.GET, request, KycResponseStatusDto.class);
+        ResponseEntity<KycResponseStatusDto> responseEntity;
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.GET, request, KycResponseStatusDto.class);
+        } catch (Exception e) {
+            log.error("Error getting status {}", referenceUid);
+            return new KycResponseStatusDto("none", referenceUid);
+        }
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("Error response get kyc status {}", toJson(responseEntity.getBody()));
             throw new NgDashboardException("Error response kyc status",
                     Constants.ErrorApi.QUBERA_KYC_RESPONSE_ERROR_GET_STATUS);

@@ -1942,6 +1942,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "bioServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService bioServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
+        return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
