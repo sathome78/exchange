@@ -133,6 +133,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_EMAIL_NOT_FOUND"))
                 .andExpect(jsonPath("$.detail").value(actualMessage));
+
+        reset(userService);
     }
 
     @Test
@@ -151,6 +153,9 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_REGISTRATION_NOT_COMPLETED"))
                 .andExpect(jsonPath("$.detail").value(actualMessage));
+
+        reset(userService);
+        reset(ngUserService);
     }
 
     @Test
@@ -169,6 +174,9 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("USER_NOT_ACTIVE"))
                 .andExpect(jsonPath("$.detail").value(actualMessage));
+
+        reset(userService);
+        reset(ngUserService);
     }
 
     @Test
@@ -179,6 +187,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string("true"));
+
+        reset(g2faService);
     }
 
     @Test
@@ -189,28 +199,44 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .param("email", EMAIL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string("false"));
+
+        reset(g2faService);
     }
 
     @Test
     public void checkIfNewUserUsernameExists_WhenUsernameExists() throws Exception {
         when(userService.ifNicknameIsUnique(anyString())).thenReturn(Boolean.TRUE);
+        doNothing().when(ipBlockingService).checkIp(anyString(), anyObject());
+        doNothing().when(ipBlockingService).successfulProcessing(anyString(), anyObject());
 
         mockMvc.perform(get(BASE_URL + "/if_username_exists")
                 .param("username", "username")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"));
+
+        verify(userService, times(1)).ifNicknameIsUnique(anyString());
+        reset(userService);
+        verify(ipBlockingService, times(1)).checkIp(anyString(), anyObject());
+        reset(ipBlockingService);
     }
 
     @Test
     public void checkIfNewUserUsernameExists_WhenUsernameNotExists() throws Exception {
         when(userService.ifNicknameIsUnique(anyString())).thenReturn(Boolean.FALSE);
+        doNothing().when(ipBlockingService).checkIp(anyString(), anyObject());
+        doNothing().when(ipBlockingService).successfulProcessing(anyString(), anyObject());
 
         mockMvc.perform(get(BASE_URL + "/if_username_exists")
                 .param("username", "username")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
+
+        verify(userService, times(1)).ifNicknameIsUnique(anyString());
+        reset(userService);
+        verify(ipBlockingService, times(1)).checkIp(anyString(), anyObject());
+        reset(ipBlockingService);
     }
 
     @Test
@@ -224,6 +250,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .param("lang", ChatLang.EN.toString())
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$[0].messages").exists());
+
+        reset(telegramChatDao);
     }
 
     @Test
@@ -234,6 +262,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .param("lang", anyString())
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$", hasSize(0)));
+
+        reset(telegramChatDao);
     }
 
     @Test
@@ -271,6 +301,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         mockMvc.perform(get(BASE_URL + "/all-pairs")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$", hasSize(0)));
+
+        reset(currencyService);
     }
 
     @Test
