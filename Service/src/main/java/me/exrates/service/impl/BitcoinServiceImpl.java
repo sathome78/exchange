@@ -7,7 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
@@ -27,6 +29,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -433,7 +436,28 @@ public class BitcoinServiceImpl implements BitcoinService {
   public List<BtcTransactionHistoryDto> listAllTransactions() {
     return bitcoinWalletService.listAllTransactions();
   }
-  
+
+  @Override
+  public List<BtcTransactionHistoryDto> listTransactions(int page) {
+    return bitcoinWalletService.listTransaction(page);
+  }
+
+  @Override
+  public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams) throws BitcoindException, CommunicationException{
+      Integer start = Integer.parseInt(tableParams.getOrDefault("start", "0"));
+      Integer length = Integer.parseInt(tableParams.getOrDefault("length", "10"));
+      String searchValue = tableParams.get("search[value]");
+
+      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(start, length, searchValue);
+
+      DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
+      output.setData(searchResult.getData());
+      output.setRecordsTotal(searchResult.getTotal());
+      output.setRecordsFiltered(searchResult.getFiltered());
+
+    return output;
+  }
+
   @Override
   public BigDecimal estimateFee() {
     return bitcoinWalletService.estimateFee(40);
