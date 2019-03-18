@@ -133,7 +133,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendMail(email.toBuilder()
                                 .from(infoEmail)
                                 .build(),
-                        infoMailSender);
+                        mandrillMailSender);
             } catch (MailException ex) {
                 log.error(ex);
                 sendMail(email.toBuilder()
