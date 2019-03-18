@@ -3,9 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
 import me.exrates.model.enums.EmailSenderType;
-import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
-import me.exrates.service.util.MessageFormatterUtil;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,13 +72,13 @@ public class SendMailServiceImpl implements SendMailService {
     public void sendMail(Email email) {
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(supportEmail)
                                 .build(),
                         supportMailSender);
             } catch (Exception ex) {
                 log.error(ex);
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(infoEmail)
                                 .build(),
                         infoMailSender);
@@ -95,7 +93,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendByType(email, EmailSenderType.valueOf(mailType));
             } catch (Exception e) {
                 log.error(e);
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(supportEmail)
                                 .build(),
                         supportMailSender);
@@ -110,7 +108,7 @@ public class SendMailServiceImpl implements SendMailService {
                 break;
             }
             case mandrill: {
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(mandrillEmail)
                                 .build(),
                         mandrillMailSender);
@@ -130,13 +128,13 @@ public class SendMailServiceImpl implements SendMailService {
         }
         EXECUTORS.execute(() -> {
             try {
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(infoEmail)
                                 .build(),
                         mandrillMailSender);
             } catch (MailException ex) {
                 log.error(ex);
-                sendMail(email.toBuilder()
+                sendMail(Email.builder()
                                 .from(supportEmail)
                                 .build(),
                         supportMailSender);
@@ -173,19 +171,6 @@ public class SendMailServiceImpl implements SendMailService {
                 .to(mailTo)
                 .message(messageBody)
                 .subject(String.format("Feedback from %s -- %s", senderName, senderMail))
-                .build());
-    }
-
-    public void sendListingRequestEmail(ListingRequest request) {
-        final String name = request.getName();
-        final String email = request.getEmail();
-        final String telegram = request.getTelegram();
-        final String text = request.getText();
-
-        sendInfoMail(Email.builder()
-                .to(listingEmail)
-                .subject(listingSubject)
-                .message(MessageFormatterUtil.format(name, email, telegram, text))
                 .build());
     }
 

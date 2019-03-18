@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import lombok.Builder;
 import lombok.ToString;
 import org.springframework.core.io.Resource;
 
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ToString
+@Builder
 public class Email {
 
 	private String to;
