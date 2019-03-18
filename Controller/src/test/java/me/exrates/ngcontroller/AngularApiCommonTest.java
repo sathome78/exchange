@@ -2,6 +2,9 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import me.exrates.model.ChatMessage;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
