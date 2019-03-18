@@ -118,6 +118,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.web3j.abi.datatypes.Int;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -761,6 +762,10 @@ public class OrderServiceImpl implements OrderService {
         return orderCreationResultDto;
     }
 
+    private long getTradeId(Integer userTakerId, Integer orderId) {
+
+    }
+
 
     @Override
     @Transactional
@@ -837,13 +842,16 @@ public class OrderServiceImpl implements OrderService {
                 OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
                 if (ordersForAccept.size() > 0) {
-                    acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale, acceptEventsList, true);
+                    List<Integer> idsToAccept = ordersForAccept.stream().map(ExOrder::getId).collect(toList());
+                    acceptOrdersList(orderCreateDto.getUserId(), idsToAccept, locale, acceptEventsList, true);
                     orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
+                    orderCreationResultDto.setFullyAcceptedOrdersIds(idsToAccept);
                 }
                 if (orderForPartialAccept != null) {
-                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale, acceptEventsList);
-                    orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
+                    orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale, acceptEventsList, orderCreationResultDto);
+                    orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                 } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
                     User user = userService.getUserById(orderCreateDto.getUserId());
                     profileData.setTime2();
@@ -927,7 +935,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<OrderEvent> acceptEventsList) {
+    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<OrderEvent> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
         logTransaction("acceptPartially" ,"begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
@@ -941,7 +949,9 @@ public class OrderServiceImpl implements OrderService {
         logTransaction("acceptPartially" ,"middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
         int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
-        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), remainderId, null);
+        orderCreationResultDto.setOrderIdToOpen(remainderId);
+        orderCreationResultDto.setOrderIdToAccept(acceptedId);
+        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
    /* TODO temporary disable
