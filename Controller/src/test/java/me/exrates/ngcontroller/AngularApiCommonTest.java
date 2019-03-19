@@ -2,21 +2,17 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import me.exrates.model.ChatMessage;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
+import me.exrates.model.*;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import org.springframework.http.HttpHeaders;
@@ -155,6 +151,7 @@ public abstract class AngularApiCommonTest {
         currency.setHidden(Boolean.TRUE);
         return currency;
     }
+
     protected MyWalletsDetailedDto getMockMyWalletsDetailedDto() {
         MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
         myWalletsDetailedDto.setId(100);
@@ -247,5 +244,79 @@ public abstract class AngularApiCommonTest {
         myInputOutputHistoryDto.setAccepted(Boolean.TRUE);
 
         return myInputOutputHistoryDto;
+    }
+
+    protected OrderCreateDto getMockOrderCreateDto() {
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOrderId(111);
+        orderCreateDto.setUserId(222);
+        orderCreateDto.setStatus(OrderStatus.OPENED);
+        orderCreateDto.setCurrencyPair(getMockCurrencyPair());
+        orderCreateDto.setComissionForBuyId(10);
+        orderCreateDto.setComissionForBuyRate(BigDecimal.valueOf(15));
+        orderCreateDto.setComissionForSellId(333);
+        orderCreateDto.setComissionForSellRate(BigDecimal.valueOf(20));
+        orderCreateDto.setWalletIdCurrencyBase(444);
+        orderCreateDto.setUserId(400);
+        orderCreateDto.setCurrencyBaseBalance(BigDecimal.valueOf(200));
+        orderCreateDto.setWalletIdCurrencyConvert(555);
+        orderCreateDto.setCurrencyConvertBalance(BigDecimal.valueOf(25));
+
+        return orderCreateDto;
+    }
+
+    protected InputCreateOrderDto getMockInputCreateOrderDto() {
+        InputCreateOrderDto inputCreateOrderDto = new InputCreateOrderDto();
+        inputCreateOrderDto.setOrderType("TEST_ORDER_type");
+        inputCreateOrderDto.setOrderId(111);
+        inputCreateOrderDto.setCurrencyPairId(999);
+        inputCreateOrderDto.setAmount(BigDecimal.valueOf(15));
+        inputCreateOrderDto.setRate(BigDecimal.valueOf(35));
+        inputCreateOrderDto.setCommission(BigDecimal.valueOf(5));
+        inputCreateOrderDto.setBaseType(getMockExOrder().getOrderBaseType().toString());
+        inputCreateOrderDto.setTotal(BigDecimal.valueOf(100));
+        inputCreateOrderDto.setStop(BigDecimal.valueOf(75));
+        inputCreateOrderDto.setStatus("TEST_STATUS");
+        inputCreateOrderDto.setUserId(400);
+        inputCreateOrderDto.setUserId(666);
+        inputCreateOrderDto.setCurrencyPair(getMockCurrencyPair());
+
+        return inputCreateOrderDto;
+    }
+
+    protected WalletsAndCommissionsForOrderCreationDto getMockWalletsAndCommissionsForOrderCreationDto() {
+        WalletsAndCommissionsForOrderCreationDto commissions = new WalletsAndCommissionsForOrderCreationDto();
+        commissions.setSpendWalletId(777);
+        commissions.setSpendWalletActiveBalance(BigDecimal.valueOf(258));
+        commissions.setCommissionId(888);
+        commissions.setCommissionValue(BigDecimal.valueOf(7));
+
+        return commissions;
+    }
+
+
+    protected ExOrder getMockExOrder() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setId(1515);
+        exOrder.setUserId(1000);
+        exOrder.setCurrencyPairId(2222);
+        exOrder.setOperationType(OperationType.BUY);
+        exOrder.setExRate(BigDecimal.TEN);
+        exOrder.setAmountBase(BigDecimal.TEN);
+        exOrder.setAmountConvert(BigDecimal.TEN);
+        exOrder.setComissionId(3232);
+        exOrder.setCommissionFixedAmount(BigDecimal.TEN);
+        exOrder.setUserAcceptorId(3333);
+        exOrder.setDateCreation(LocalDateTime.of(2019, 3, 18, 15, 15, 15));
+        exOrder.setDateAcception(LocalDateTime.of(2019, 3, 18, 15, 15, 15));
+        exOrder.setStatus(OrderStatus.OPENED);
+        exOrder.setCurrencyPair(getMockCurrencyPair());
+        exOrder.setSourceId(3598);
+        exOrder.setStop(BigDecimal.ONE);
+        exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+        exOrder.setPartiallyAcceptedAmount(BigDecimal.TEN);
+        exOrder.setEventTimestamp(1111L);
+
+        return exOrder;
     }
 }
