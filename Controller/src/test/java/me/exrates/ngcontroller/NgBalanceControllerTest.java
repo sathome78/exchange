@@ -47,6 +47,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     @Mock
     private ExchangeRatesHolder exchangeRatesHolder;
     @Mock
+    private LocaleResolver localeResolver;
+    @Mock
     private RefillService refillService;
     @Mock
     private WalletService walletService;
