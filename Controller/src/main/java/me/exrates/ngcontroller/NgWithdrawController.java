@@ -27,7 +27,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;

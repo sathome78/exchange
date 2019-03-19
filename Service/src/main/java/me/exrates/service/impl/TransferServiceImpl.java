@@ -27,6 +27,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.invoice.TransferRequestAcceptExeption;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;

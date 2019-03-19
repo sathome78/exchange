@@ -1,45 +1,21 @@
 package me.exrates.controller.mobile;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.StockExchangeStats;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
-import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
-import me.exrates.model.dto.mobileApiDto.dashboard.*;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.IntervalType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.vo.BackDealInterval;
-import me.exrates.service.*;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.api.ApiError;
-import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.OrderService;
+import me.exrates.service.StockExchangeService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static me.exrates.controller.OnlineRestController.ORDER_HISTORY_INTERVAL;
-import static me.exrates.controller.OnlineRestController.ORDER_HISTORY_LIMIT;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * Created by OLEG on 23.08.2016.
@@ -47,7 +23,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * ALL controleers oommented for security reasons
- * */
+ */
 @RestController
 @RequestMapping(value = "/api/dashboard")
 public class MobileDashboardController {

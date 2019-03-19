@@ -78,6 +78,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
         log.debug(sql);
         log.debug(order);
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", order.getUserId())
                 .addValue("currency_pair_id", order.getCurrencyPairId())
@@ -89,6 +90,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
                 .addValue("commission_id", order.getComissionId())
                 .addValue("commission_fixed_amount", order.getCommissionFixedAmount())
                 .addValue("status_id", OrderStatus.INPROCESS.getStatus());
+
         int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {

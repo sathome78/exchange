@@ -676,10 +676,12 @@ public final class TransactionDaoImpl implements TransactionDao {
         String sql = "UPDATE TRANSACTION " +
                 " SET status_id = :status_id" +
                 " WHERE id = :transaction_id ";
+
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("transaction_id", trasactionId);
             put("status_id", statusId);
         }};
+
         return jdbcTemplate.update(sql, params) > 0;
     }
 
@@ -692,9 +694,11 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " WHERE RTX.order_id = :orderId AND RTX.status = 'PAYED' ";
+
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("orderId", orderId);
         }};
+
         return jdbcTemplate.query(sql, namedParameters, transactionRowMapper);
     }
 

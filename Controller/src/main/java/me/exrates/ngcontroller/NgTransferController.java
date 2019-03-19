@@ -32,7 +32,7 @@ import me.exrates.service.TransferService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;

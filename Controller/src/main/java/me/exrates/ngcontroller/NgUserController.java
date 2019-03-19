@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;

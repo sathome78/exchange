@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.CommissionDao;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -45,10 +46,16 @@ public class CommissionDaoImpl implements CommissionDao {
         final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
                 "FROM COMMISSION " +
                 "WHERE operation_type = :operation_type AND user_role = :role_id";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
         params.put("role_id", userRole.getRole());
-        return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+        } catch (Exception ex) {
+            throw new CommissionsNotFoundException("Commission not found");
+        }
     }
 
     @Override
@@ -57,9 +64,11 @@ public class CommissionDaoImpl implements CommissionDao {
                 "FROM COMMISSION " +
                 "JOIN USER ON USER.id = :user_id " +
                 "WHERE operation_type = :operation_type AND user_role = USER.roleid";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
         params.put("user_id", userId);
+
         return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
     }
 
@@ -67,12 +76,17 @@ public class CommissionDaoImpl implements CommissionDao {
     public Commission getDefaultCommission(OperationType operationType) {
         final String sql = "SELECT id, operation_type, date, value " +
                 "FROM COMMISSION " +
-                "WHERE operation_type = :operation_type AND user_role = 4;";
+                "WHERE operation_type = :operation_type AND user_role = 4";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
-        return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
-    }
 
+        try {
+            return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+        } catch (Exception ex) {
+            throw new CommissionsNotFoundException("Commission not found");
+        }
+    }
 
     @Override
     public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
@@ -197,7 +211,7 @@ public class CommissionDaoImpl implements CommissionDao {
             put("fixed_commission", editMerchantCommissionDto.getMinFixedAmount());
             put("fixed_commission_usd", editMerchantCommissionDto.getMinFixedAmountUSD());
         }};
-        
+
         jdbcTemplate.update(sql, params);
     }
 
@@ -221,5 +235,4 @@ public class CommissionDaoImpl implements CommissionDao {
         params.put("id", commissionId);
         return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
     }
-
 }

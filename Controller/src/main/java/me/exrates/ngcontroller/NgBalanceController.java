@@ -22,7 +22,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -54,9 +54,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",

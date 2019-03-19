@@ -25,7 +25,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;

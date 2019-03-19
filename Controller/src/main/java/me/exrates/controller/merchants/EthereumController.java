@@ -79,7 +79,7 @@ public class EthereumController {
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.error(e);
-            return new ResponseEntity<>(error, NOT_FOUND);
+            return new ResponseEntity<>(error, NOT_FOUND_ERROR);
         }*/
         return new ResponseEntity<>(HttpStatus.OK);
     }

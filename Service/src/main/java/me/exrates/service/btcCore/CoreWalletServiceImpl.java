@@ -665,7 +665,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         try {
             PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
 
-            int recordsTotal = getWalletInfo().getTransactionCount();
+            int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
             List<BtcTransactionHistoryDto> data = getTransactionsForPagination(start, length);
 
             if(!(StringUtils.isEmpty(searchValue))){
@@ -732,6 +732,18 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         }
 
         return result;
+    }
+
+    private int calculateTransactionCount() throws BitcoindException, CommunicationException {
+
+        List<BtcTransactionHistoryDto> transactions;
+        int transactionCount = 0;
+
+        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
+            transactionCount += transactions.size();
+        }
+
+        return transactionCount;
     }
 
     @PreDestroy

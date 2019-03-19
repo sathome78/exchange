@@ -36,7 +36,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;

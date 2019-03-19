@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;

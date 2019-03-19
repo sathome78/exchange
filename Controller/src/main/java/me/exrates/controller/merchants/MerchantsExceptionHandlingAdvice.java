@@ -3,7 +3,7 @@ package me.exrates.controller.merchants;
 import me.exrates.service.exception.InvalidPayeeWalletException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughCompanyWalletMoneyException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.ControllerAdvice;

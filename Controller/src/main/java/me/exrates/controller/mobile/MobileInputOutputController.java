@@ -1,55 +1,21 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.*;
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
-import me.exrates.model.dto.mobileApiDto.*;
-import me.exrates.model.enums.MerchantApiResponseType;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.*;
-import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.ApiError;
-import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
-import me.exrates.service.exception.invoice.VoucherNotFoundException;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.util.RateLimitService;
-import me.exrates.service.util.RestApiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.USER_TRANSFER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
-import static me.exrates.service.exception.api.ErrorCode.*;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Created by OLEG on 02.09.2016.
@@ -57,7 +23,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * ALL controleers oommented for security reasons
- * */
+ */
 @RestController
 @RequestMapping("/api/payments")
 public class MobileInputOutputController {

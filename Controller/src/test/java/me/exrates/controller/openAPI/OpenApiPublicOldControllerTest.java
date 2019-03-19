@@ -102,7 +102,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
         String cpName = "btc/usd";
         OrderType orderType = OrderType.SELL;
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path("/openapi/v1/public/orderbook/{currency_pair")
+                .path("/openapi/v1/public/orderbook/{currency_pair}")
                 .queryParam("order_type", orderType.toString())
                 .build()
                 .expand(cpName);

@@ -50,9 +50,10 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     @Override
     public Integer getParent(final Integer child) {
         final String sql = "SELECT parent FROM REFERRAL_USER_GRAPH WHERE child = :child";
+
         try {
             return jdbcTemplate.queryForObject(sql, singletonMap("child", child), Integer.class);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
