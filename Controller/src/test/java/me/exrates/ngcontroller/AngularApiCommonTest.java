@@ -7,6 +7,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -155,6 +156,7 @@ public abstract class AngularApiCommonTest {
         currency.setHidden(Boolean.TRUE);
         return currency;
     }
+
     protected MyWalletsDetailedDto getMockMyWalletsDetailedDto() {
         MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
         myWalletsDetailedDto.setId(100);
@@ -247,5 +249,17 @@ public abstract class AngularApiCommonTest {
         myInputOutputHistoryDto.setAccepted(Boolean.TRUE);
 
         return myInputOutputHistoryDto;
+    }
+
+    protected KycStatusResponseDto getMockKycStatusResponseDto() {
+        String[] missingOptionalDocs = new String[5];
+
+        KycStatusResponseDto dto = new KycStatusResponseDto();
+        dto.setStatus("TEST_STATUS");
+        dto.setErrorMsg("TEST_ERROR_MSG");
+        dto.setMissingOptionalDocs(missingOptionalDocs);
+        dto.setAnalysisResults(Collections.EMPTY_LIST);
+
+        return dto;
     }
 }
