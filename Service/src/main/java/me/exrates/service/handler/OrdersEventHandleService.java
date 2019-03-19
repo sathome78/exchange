@@ -47,6 +47,7 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,8 @@ public class OrdersEventHandleService {
     private DefaultSimpUserRegistry registry;
     @Autowired
     private CurrencyService currencyService;
+
+    private final Object handlerSync = new Object();
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -143,7 +146,7 @@ public class OrdersEventHandleService {
             if (event.getOrderEventEnum() == OrderEventEnum.AUTO_ACCEPT) {
                 orderList = (List<ExOrder>) event.getSource();
             } else {
-                orderList = Arrays.asList(((ExOrder)event.getSource()));
+                orderList = Collections.singletonList(((ExOrder)event.getSource()));
             }
             handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
@@ -304,16 +307,22 @@ public class OrdersEventHandleService {
                 }
             });
             String pairName = currencyService.findCurrencyPairById(pairId).getName().replace("/", "_").toLowerCase();
-            UserPersonalOrdersHandler handler = personalOrdersHandlerMap
-                    .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
+            UserPersonalOrdersHandler handler = getHandlerSafe(pairId, pairName, stompMessenger);
             byUserMap.forEach((k,v)-> handler.sendInstant(v, k));
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
     }
 
-    private void getSafeHandler() {
-
+    private UserPersonalOrdersHandler getHandlerSafe(int pairId, String pairName, StompMessenger stompMessenger) {
+        if (!personalOrdersHandlerMap.containsKey(pairId)) {
+            synchronized (handlerSync) {
+                return personalOrdersHandlerMap
+                        .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
+            }
+        } else {
+            return personalOrdersHandlerMap.get(pairId);
+        }
     }
 
     @Async
