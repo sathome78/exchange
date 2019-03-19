@@ -46,6 +46,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderDeleteStatus;
+import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
@@ -640,7 +641,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
-    public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<OrderEvent> eventsList, boolean partialAccept) {
+    public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<ExOrder> eventsList, boolean partialAccept) {
         logTransaction("createOrder" ,"begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         ProfileData profileData = new ProfileData(200);
         try {
@@ -699,11 +700,12 @@ public class OrderServiceImpl implements OrderService {
                     profileData.setTime4();
                 }
                 logTransaction("createOrder" ,"end", orderCreateDto.getCurrencyPair().getId(), createdOrderId, null);
+                exOrder.setEvent(OrderEventEnum.CREATE);
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
                 if(!partialAccept) {
                     eventPublisher.publishEvent(new CreateDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
                 } else {
-                    eventsList.add(new CreateOrderEvent(exOrder));
+                    eventsList.add(exOrder);
                 }
                 return createdOrderId;
 
@@ -762,9 +764,7 @@ public class OrderServiceImpl implements OrderService {
         return orderCreationResultDto;
     }
 
-    private long getTradeId(Integer userTakerId, Integer orderId) {
 
-    }
 
 
     @Override
@@ -813,7 +813,7 @@ public class OrderServiceImpl implements OrderService {
     public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
         logTransaction("autoAcceptOrders" ,"begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         synchronized (autoAcceptLock) {
-            List<OrderEvent> acceptEventsList = new ArrayList<>();
+            List<ExOrder> acceptEventsList = new ArrayList<>();
             ProfileData profileData = new ProfileData(200);
             try {
                 boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
@@ -840,7 +840,6 @@ public class OrderServiceImpl implements OrderService {
                     }
                 }
                 OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-
                 if (ordersForAccept.size() > 0) {
                     List<Integer> idsToAccept = ordersForAccept.stream().map(ExOrder::getId).collect(toList());
                     acceptOrdersList(orderCreateDto.getUserId(), idsToAccept, locale, acceptEventsList, true);
@@ -935,7 +934,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<OrderEvent> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
+    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
         logTransaction("acceptPartially" ,"begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
@@ -1056,7 +1055,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(rollbackFor = {Exception.class})
-    public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<OrderEvent> eventsList, boolean partialAccept) {
+    public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<ExOrder> eventsList, boolean partialAccept) {
         if (orderDao.lockOrdersListForAcception(ordersList)) {
             for (Integer orderId : ordersList) {
                 acceptOrder(userAcceptorId, orderId, locale, eventsList, partialAccept);
@@ -1067,7 +1066,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(rollbackFor = {Exception.class})
-    void acceptOrder(int userAcceptorId, int orderId, Locale locale, List<OrderEvent> eventsList, boolean partialAccept) {
+    void acceptOrder(int userAcceptorId, int orderId, Locale locale, List<ExOrder> eventsList, boolean partialAccept) {
         acceptOrder(userAcceptorId, orderId, locale, true, eventsList, partialAccept);
 
     }
@@ -1088,7 +1087,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<OrderEvent> eventsList, boolean partialAccept) {
+    private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<ExOrder> eventsList, boolean partialAccept) {
         try {
             logTransaction("acceptOrder" ,"begin", 0, orderId, null);
             ExOrder exOrder = this.getOrderById(orderId);
@@ -1305,10 +1304,11 @@ public class OrderServiceImpl implements OrderService {
             /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
             /*action for refresh orders*/
             eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
+            exOrder.setEvent(OrderEventEnum.ACCEPT);
             if(!partialAccept) {
                 eventPublisher.publishEvent(new AcceptDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
             } else {
-                eventsList.add(new AcceptOrderEvent(exOrder));
+                eventsList.add(exOrder);
             }
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
@@ -1403,7 +1403,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
-    public boolean cancelOrder(ExOrder exOrder, Locale locale, List<OrderEvent> acceptEventsList, boolean forPartialAccept) {
+    public boolean cancelOrder(ExOrder exOrder, Locale locale, List<ExOrder> acceptEventsList, boolean forPartialAccept) {
         if (isNull(locale)) {
             final String currentUserEmail = getUserEmailFromSecurityContext();
 
@@ -1436,11 +1436,12 @@ public class OrderServiceImpl implements OrderService {
         boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
         if (result) {
             exOrder.setStatus(OrderStatus.CANCELLED);
+            exOrder.setEvent(OrderEventEnum.CANCEL);
             eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
             if(!forPartialAccept) {
                 eventPublisher.publishEvent(new CancelDetailorderEvent(exOrder, false, true, exOrder.getCurrencyPairId()));
             } else {
-                acceptEventsList.add(new CancelOrderEvent(exOrder, false));
+                acceptEventsList.add(exOrder);
             }
         }
         return result;
@@ -1559,7 +1560,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
-    public Integer deleteOrderForPartialAccept(int orderId, List<OrderEvent> acceptEventsList) {
+    public Integer deleteOrderForPartialAccept(int orderId, List<ExOrder> acceptEventsList) {
         Object result = deleteOrder(orderId, OrderStatus.SPLIT_CLOSED, DELETE_SPLIT, acceptEventsList, true);
         if (result instanceof OrderDeleteStatus) {
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
@@ -1846,7 +1847,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Transactional
-    Object deleteOrder(int orderId, OrderStatus newOrderStatus, OrderActionEnum action, List<OrderEvent> acceptEventsList, boolean forPartialAccept) {
+    Object deleteOrder(int orderId, OrderStatus newOrderStatus, OrderActionEnum action, List<ExOrder> acceptEventsList, boolean forPartialAccept) {
         List<OrderDetailDto> list = walletService.getOrderRelatedDataAndBlock(orderId);
         if (list.isEmpty()) {
             return OrderDeleteStatus.NOT_FOUND;
@@ -1923,13 +1924,14 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         ExOrder exOrder = getOrderById(orderId);
+        exOrder.setEvent(OrderEventEnum.CANCEL);
         if (currentOrderStatus.equals(OrderStatus.OPENED)) {
             eventPublisher.publishEvent(new CancelOrderEvent(exOrder, true, true));
         }
         if(!forPartialAccept) {
             eventPublisher.publishEvent(new CancelDetailorderEvent(exOrder, false, true, exOrder.getCurrencyPairId()));
         } else {
-            acceptEventsList.add(new CancelOrderEvent(exOrder, false, false));
+            acceptEventsList.add(exOrder);
         }
         return processedRows;
     }

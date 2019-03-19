@@ -24,7 +24,7 @@ public class DetailOrderEvent extends ApplicationEvent {
         this.pairId = pairId;
     }
 
-    public DetailOrderEvent(List<OrderEvent> events, int pairId) {
+    public DetailOrderEvent(List<ExOrder> events, int pairId) {
         super(events);
         this.pairId = pairId;
     }

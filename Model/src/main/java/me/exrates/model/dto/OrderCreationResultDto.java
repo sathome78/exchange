@@ -31,6 +31,4 @@ public class OrderCreationResultDto {
     @JsonIgnore
     private Integer orderIdToOpen; /*order that was opened and placed in common stack*/
 
-    private Long tradeId;
-
 }

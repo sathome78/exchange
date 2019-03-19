@@ -38,6 +38,19 @@ public class OrderWsDetailDto {
         this.orderStatus = exOrder.getStatus() == null ? null : exOrder.getStatus().name();
     }
 
+    public OrderWsDetailDto(ExOrder exOrder) {
+        this.id = exOrder.getId();
+        this.orderType = exOrder.getOperationType();
+        this.price = exOrder.getExRate().toPlainString();
+        this.amount = exOrder.getAmountBase().toPlainString();
+        this.amountConvert = exOrder.getAmountConvert().toPlainString();
+        this.orderEvent = exOrder.getEvent().name();
+        this.dateAcception = exOrder.getDateAcception();
+        this.timestamp = exOrder.getEventTimestamp();
+        this.orderParentId = exOrder.getSourceId();
+        this.orderStatus = exOrder.getStatus() == null ? null : exOrder.getStatus().name();
+    }
+
     public OrderWsDetailDto(OrderListDto dto) {
         this.id = dto.getId();
         this.orderType = dto.getOrderType();
