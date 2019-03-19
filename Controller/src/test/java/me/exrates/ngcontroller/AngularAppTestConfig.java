@@ -283,4 +283,8 @@ public class AngularAppTestConfig {
         return Mockito.mock(PageLayoutSettingsService.class);
     }
 
+    @Bean
+    public NgOptionsController ngOptionsController() {
+        return new NgOptionsController();
+    }
 }

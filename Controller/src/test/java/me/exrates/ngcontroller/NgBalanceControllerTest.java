@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -82,7 +81,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getWalletsDetails(anyObject())).thenReturn(myWalletsDetailedDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.items", hasSize(1)))
@@ -118,7 +116,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getWalletsDetails(anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngDashboardException)));
 
@@ -137,7 +134,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getPendingRequests(anyInt(), anyInt(), anyString(), anyString())).thenReturn(myWalletsDetailedDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.items", hasSize(1)))
@@ -168,7 +164,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getPendingRequests(anyInt(), anyInt(), anyString(), anyString())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngDashboardException)));
 
@@ -184,7 +179,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(refillService, times(1)).revokeRefillRequest(anyInt());
@@ -200,7 +194,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
@@ -217,7 +210,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
@@ -234,7 +226,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .thenReturn(Collections.singletonList(getMockMyWalletsStatisticsDto("USD")));
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.mapWallets", hasSize(1)))
@@ -268,7 +259,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         );
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.mapWallets", hasSize(3)))
@@ -307,7 +297,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.id", is(100)))
@@ -340,7 +329,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.id", is(100)))
@@ -373,7 +361,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
 
         verify(balanceService, times(1)).findOne(anyString(), anyInt());
@@ -389,7 +376,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/currencies/{currencyId}", currencyId)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
@@ -410,7 +396,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.items", hasSize(1)))
@@ -459,7 +444,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
@@ -478,7 +462,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
 
                 .andExpect(jsonPath("$.items", hasSize(1)))
@@ -527,7 +510,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
@@ -544,7 +526,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/myBalances")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.BTC", is(0.00002343)))
                 .andExpect(jsonPath("$.USD", is(32.0)));
