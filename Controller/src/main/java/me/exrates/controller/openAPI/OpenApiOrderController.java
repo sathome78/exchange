@@ -232,9 +232,9 @@ public class OpenApiOrderController {
      * {
      *      "id": 402298,
      *      "currencyPairId": 1,
-     *      "operationType": "BUY",
-     *      "exRate": 2000.009900479,
-     *      "amountBase": 1,
+     *      "order_type": "BUY",
+     *      "price": 2000.009900479,
+     *      "amount": 1,
      *      "amountConvert": 2000.009900479,
      *      "commission": 4.000019801,
      *      "userAcceptorId": 0,

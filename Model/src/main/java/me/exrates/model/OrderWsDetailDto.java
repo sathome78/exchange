@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class OrderWsDetailDto {
 
     private int id;
+    @JsonProperty("order_type")
     private OperationType orderType;
     private String price;
     private String amount;
