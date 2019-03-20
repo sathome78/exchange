@@ -38,7 +38,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.anyMapOf;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.any;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class NgTwoFaControllerTest extends AngularApiCommonTest {
 
