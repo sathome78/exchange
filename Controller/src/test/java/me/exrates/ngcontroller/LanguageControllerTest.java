@@ -16,10 +16,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.security.Principal;
 
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyObject;
-import static org.mockito.Mockito.times;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 public class LanguageControllerTest extends AngularApiCommonTest {
 
@@ -53,7 +53,7 @@ public class LanguageControllerTest extends AngularApiCommonTest {
         mockMvc.perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(userService, times(1)).getPreferedLangByEmail(anyString());
+        Mockito.verify(userService, times(1)).getPreferedLangByEmail(anyString());
     }
 
     @Test

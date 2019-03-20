@@ -45,15 +45,14 @@ public class CheckIpAspect {
             fail();
         }
 
-//        log.error("REQUEST HEADERS NAMES : " + stringBuilder.toString());
-//        String ipAddress = Optional.ofNullable(request.getHeader("client_ip"))
-//                .orElseThrow(() -> {
-//                    String message = "Missing header client_ip in request";
-//                    log.error(message);
-//                    return new MissingHeaderException(message);
-//                });
-//
-//        ipBlockingService.checkIp(ipAddress, myAnnotation.value());
+        String ipAddress = Optional.ofNullable(request.getHeader("X-Forwarded-For"))
+                .orElseThrow(() -> {
+                    String message = "Missing header client_ip in request";
+                    log.error(message);
+                    return new MissingHeaderException(message);
+                });
+
+        ipBlockingService.checkIp(ipAddress, myAnnotation.value());
     }
 
 
@@ -67,7 +66,7 @@ public class CheckIpAspect {
     }
 
     private void fail() {
-        String errorMessage = "Failed to find client_ip header among request headers";
+        String errorMessage = "Failed to find X-Forwarded-For header among request headers";
         log.warn(errorMessage);
         throw new RuntimeException(errorMessage);
     }

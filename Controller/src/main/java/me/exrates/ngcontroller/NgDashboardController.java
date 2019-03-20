@@ -80,7 +80,7 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
     private final StopOrderService stopOrderService;
     private final StopOrderService stopOrderServiceImpl;
 
@@ -93,7 +93,7 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 SimpMessagingTemplate messagingTemplate,
+                                 SimpMessagingTemplate simpMessagingTemplate,
                                  StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
@@ -101,7 +101,7 @@ public class NgDashboardController {
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.messagingTemplate = messagingTemplate;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
         this.stopOrderServiceImpl = stopOrderServiceImpl;
@@ -163,7 +163,7 @@ public class NgDashboardController {
 //
 //        if (result) {
 //            String destination = "/topic/myorders/".concat(userName);
-//            messagingTemplate.convertAndSend(destination, fromResult(result));
+//            simpMessagingTemplate.convertAndSend(destination, fromResult(result));
 //            return ResponseEntity.ok().build();
 //        }
 //        return ResponseEntity.badRequest().build();

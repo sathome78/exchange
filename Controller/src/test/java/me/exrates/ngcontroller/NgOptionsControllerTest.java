@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = OptionsControllerConfig.class)
+@ContextConfiguration(classes = AngularAppTestConfig.class)
 public class NgOptionsControllerTest {
     @Autowired
     private WebApplicationContext wac;
@@ -41,8 +41,8 @@ public class NgOptionsControllerTest {
         mockMvc.perform(options("/api/**"))
                 .andExpect(status().isOk())
                 .andExpect(accessHeader)
-                .andExpect(header().string("Access-Control-Allow-Methods", "${angular.allowed.methods}"))
-                .andExpect(header().string("Access-Control-Allow-Headers", "${angular.allowed.headers}"))
+                .andExpect(header().string("Access-Control-Allow-Methods", "HEAD, GET, POST, PUT, DELETE, PATCH, OPTION"))
+                .andExpect(header().string("Access-Control-Allow-Headers", "authorization, content-type, X-Forwarded-For, x-auth-token, Exrates-Rest-Token, GACookies, access-control-request-headers, access-control-request-method, accept, origin, authorization, x-requested-with"))
                 .andExpect(header().string("Access-Control-Max-Age", "3600"));
     }
 }

@@ -2,31 +2,28 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import me.exrates.model.ExOrder;
 import me.exrates.model.ChatMessage;
-import me.exrates.model.Commission;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
 import me.exrates.model.User;
-import me.exrates.model.Wallet;
-import me.exrates.model.dto.CommissionDataDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
-import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +36,6 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Optional;
 
 public abstract class AngularApiCommonTest {
 
@@ -260,139 +256,89 @@ public abstract class AngularApiCommonTest {
 
         return myInputOutputHistoryDto;
     }
+  
+    protected OrderCreateDto getMockOrderCreateDto() {
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOrderId(111);
+        orderCreateDto.setUserId(222);
+        orderCreateDto.setStatus(OrderStatus.OPENED);
+        orderCreateDto.setCurrencyPair(getMockCurrencyPair());
+        orderCreateDto.setComissionForBuyId(10);
+        orderCreateDto.setComissionForBuyRate(BigDecimal.valueOf(15));
+        orderCreateDto.setComissionForSellId(333);
+        orderCreateDto.setComissionForSellRate(BigDecimal.valueOf(20));
+        orderCreateDto.setWalletIdCurrencyBase(444);
+        orderCreateDto.setUserId(400);
+        orderCreateDto.setCurrencyBaseBalance(BigDecimal.valueOf(200));
+        orderCreateDto.setWalletIdCurrencyConvert(555);
+        orderCreateDto.setCurrencyConvertBalance(BigDecimal.valueOf(25));
 
-    protected RefillOnConfirmationDto getMockRefillOnConfirmationDto() {
-        RefillOnConfirmationDto dto = new RefillOnConfirmationDto();
-        dto.setHash("TEST_HASH");
-        dto.setAmount(BigDecimal.valueOf(100));
-        dto.setAddress("TEST_ADDRESS");
-        dto.setCollectedConfirmations(200);
-        dto.setNeededConfirmations(300);
+        return orderCreateDto;
+    }
+
+    protected InputCreateOrderDto getMockInputCreateOrderDto() {
+        InputCreateOrderDto inputCreateOrderDto = new InputCreateOrderDto();
+        inputCreateOrderDto.setOrderType("TEST_ORDER_type");
+        inputCreateOrderDto.setOrderId(111);
+        inputCreateOrderDto.setCurrencyPairId(999);
+        inputCreateOrderDto.setAmount(BigDecimal.valueOf(15));
+        inputCreateOrderDto.setRate(BigDecimal.valueOf(35));
+        inputCreateOrderDto.setCommission(BigDecimal.valueOf(5));
+        inputCreateOrderDto.setBaseType(getMockExOrder().getOrderBaseType().toString());
+        inputCreateOrderDto.setTotal(BigDecimal.valueOf(100));
+        inputCreateOrderDto.setStop(BigDecimal.valueOf(75));
+        inputCreateOrderDto.setStatus("TEST_STATUS");
+        inputCreateOrderDto.setUserId(400);
+        inputCreateOrderDto.setUserId(666);
+        inputCreateOrderDto.setCurrencyPair(getMockCurrencyPair());
+
+        return inputCreateOrderDto;
+    }
+
+    protected WalletsAndCommissionsForOrderCreationDto getMockWalletsAndCommissionsForOrderCreationDto() {
+        WalletsAndCommissionsForOrderCreationDto commissions = new WalletsAndCommissionsForOrderCreationDto();
+        commissions.setSpendWalletId(777);
+        commissions.setSpendWalletActiveBalance(BigDecimal.valueOf(258));
+        commissions.setCommissionId(888);
+        commissions.setCommissionValue(BigDecimal.valueOf(7));
+
+        return commissions;
+    }
+
+    protected ExOrder getMockExOrder() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setId(1515);
+        exOrder.setUserId(1000);
+        exOrder.setCurrencyPairId(2222);
+        exOrder.setOperationType(OperationType.BUY);
+        exOrder.setExRate(BigDecimal.TEN);
+        exOrder.setAmountBase(BigDecimal.TEN);
+        exOrder.setAmountConvert(BigDecimal.TEN);
+        exOrder.setComissionId(3232);
+        exOrder.setCommissionFixedAmount(BigDecimal.TEN);
+        exOrder.setUserAcceptorId(3333);
+        exOrder.setDateCreation(LocalDateTime.of(2019, 3, 18, 15, 15, 15));
+        exOrder.setDateAcception(LocalDateTime.of(2019, 3, 18, 15, 15, 15));
+        exOrder.setStatus(OrderStatus.OPENED);
+        exOrder.setCurrencyPair(getMockCurrencyPair());
+        exOrder.setSourceId(3598);
+        exOrder.setStop(BigDecimal.ONE);
+        exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+        exOrder.setPartiallyAcceptedAmount(BigDecimal.TEN);
+        exOrder.setEventTimestamp(1111L);
+
+        return exOrder;
+    }
+  
+    protected KycStatusResponseDto getMockKycStatusResponseDto() {
+        String[] missingOptionalDocs = new String[5];
+
+        KycStatusResponseDto dto = new KycStatusResponseDto();
+        dto.setStatus("TEST_STATUS");
+        dto.setErrorMsg("TEST_ERROR_MSG");
+        dto.setMissingOptionalDocs(missingOptionalDocs);
+        dto.setAnalysisResults(Collections.EMPTY_LIST);
 
         return dto;
-    }
-
-    protected MerchantCurrencyScaleDto getMockMerchantCurrencyScaleDto() {
-        MerchantCurrencyScaleDto dto = new MerchantCurrencyScaleDto();
-        dto.setMerchantId(100);
-        dto.setCurrencyId(200);
-        dto.setScaleForRefill(300);
-        dto.setScaleForWithdraw(400);
-        dto.setScaleForTransfer(500);
-
-        return dto;
-    }
-
-    protected MerchantCurrency getMockMerchantCurrency() {
-        MerchantCurrency dto = new MerchantCurrency();
-        dto.setMerchantId(100);
-        dto.setCurrencyId(200);
-        dto.setName("TEST_NAME");
-        dto.setDescription("TEST_DESCRIPTION");
-        dto.setMinSum(BigDecimal.valueOf(50));
-        dto.setInputCommission(BigDecimal.valueOf(7));
-        dto.setOutputCommission(BigDecimal.valueOf(10));
-        dto.setFixedMinCommission(BigDecimal.valueOf(5));
-        dto.setListMerchantImage(Collections.emptyList());
-        dto.setProcessType("TEST_PROCESS_TYPE");
-        dto.setMainAddress("TEST_MAIN_ADDRESS");
-        dto.setAddress("TEST_ADDRESS");
-        dto.setAdditionalTagForWithdrawAddressIsUsed(Boolean.TRUE);
-        dto.setAdditionalTagForRefillIsUsed(Boolean.TRUE);
-        dto.setAdditionalFieldName("TEST_ADDITIONAL_FIELD_NAME");
-        dto.setGenerateAdditionalRefillAddressAvailable(Boolean.TRUE);
-        dto.setRecipientUserIsNeeded(Boolean.TRUE);
-        dto.setComissionDependsOnDestinationTag(Boolean.TRUE);
-        dto.setSpecMerchantComission(Boolean.TRUE);
-        dto.setAvailableForRefill(Boolean.TRUE);
-        dto.setNeedVerification(Boolean.TRUE);
-
-        return dto;
-    }
-
-    protected RefillRequestParamsDto getMockRefillRequestParamsDto(OperationType operationType, boolean generateNewAddress) {
-        RefillRequestParamsDto dto = new RefillRequestParamsDto();
-        dto.setOperationType(operationType);
-        dto.setCurrency(100);
-        dto.setSum(BigDecimal.TEN);
-        dto.setMerchant(200);
-        dto.setRecipientBankId(300);
-        dto.setRecipientBankCode("TEST_RECIPIENT_BANK_CODE");
-        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
-        dto.setRecipient("TEST_RECIPIENT");
-        dto.setUserFullName("TEST_USER_FULL_NAME");
-        dto.setRemark("TEST_REMARK");
-        dto.setMerchantRequestSign("TEST_MERCHANT_REQUEST_SING");
-        dto.setAddress("TEST_ADDRESS");
-        dto.setGenerateNewAddress(generateNewAddress);
-        dto.setChildMerchant("TEST_CHILD_MERCHANT");
-
-        return dto;
-    }
-
-    protected Optional<CreditsOperation> getMockCreditsOperation() {
-        CreditsOperation creditsOperation = new CreditsOperation.Builder()
-                .initialAmount(getMockCommissionDataDto().getAmount())
-                .amount(getMockCommissionDataDto().getResultAmount())
-                .commissionAmount(getMockCommissionDataDto().getCompanyCommissionAmount())
-                .commission(getMockCommissionDataDto().getCompanyCommission())
-                .operationType(OperationType.BUY)
-                .user(getMockUser())
-                .currency(getMockCurrency("TEST_CURRENCY"))
-                .wallet(getMockWallet())
-                .merchant(getMockMerchant())
-                .merchantCommissionAmount(getMockCommissionDataDto().getMerchantCommissionAmount())
-                .destination("TEST_DESTINATION")
-                .destinationTag("TEST_DESTINATION_TAG")
-                .transactionSourceType(TransactionSourceType.ORDER)
-                .recipient(getMockUser())
-                .recipientWallet(getMockWallet())
-                .build();
-
-        return Optional.of(creditsOperation);
-    }
-
-    protected Wallet getMockWallet() {
-        Wallet wallet = new Wallet();
-        wallet.setId(100);
-        wallet.setCurrencyId(200);
-        wallet.setUser(getMockUser());
-        wallet.setActiveBalance(BigDecimal.TEN);
-        wallet.setReservedBalance(BigDecimal.ONE);
-        wallet.setName("TEST_NAME");
-
-        return wallet;
-    }
-
-    protected Merchant getMockMerchant() {
-        Merchant merchant = new Merchant();
-        merchant.setId(100);
-        merchant.setName("TEST_NAME");
-        merchant.setDescription("TEST_DESCRIPTION");
-        merchant.setServiceBeanName("TEST_SERVER_BEAN_NAME");
-        merchant.setProcessType(MerchantProcessType.CRYPTO);
-        merchant.setRefillOperationCountLimitForUserPerDay(10);
-        merchant.setAdditionalTagForWithdrawAddressIsUsed(Boolean.TRUE);
-        merchant.setTokensParrentId(200);
-        merchant.setNeedVerification(Boolean.TRUE);
-
-        return merchant;
-    }
-
-    protected CommissionDataDto getMockCommissionDataDto() {
-        return new CommissionDataDto(
-                BigDecimal.valueOf(50),
-                BigDecimal.valueOf(60),
-                BigDecimal.valueOf(70),
-                "TEST_MERCHant_COMMISSION_UNIT",
-                BigDecimal.valueOf(80),
-                Commission.zeroComission(),
-                BigDecimal.valueOf(90),
-                "TEST_COMPANY_COMMISSION_AMOUNT",
-                BigDecimal.valueOf(95),
-                BigDecimal.valueOf(100),
-                BigDecimal.valueOf(110),
-                Boolean.TRUE
-        );
     }
 }
