@@ -2,10 +2,10 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import me.exrates.model.ExOrder;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
@@ -13,17 +13,17 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import org.springframework.http.HttpHeaders;
@@ -256,7 +256,7 @@ public abstract class AngularApiCommonTest {
 
         return myInputOutputHistoryDto;
     }
-  
+
     protected OrderCreateDto getMockOrderCreateDto() {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOrderId(111);
@@ -329,7 +329,7 @@ public abstract class AngularApiCommonTest {
 
         return exOrder;
     }
-  
+
     protected KycStatusResponseDto getMockKycStatusResponseDto() {
         String[] missingOptionalDocs = new String[5];
 

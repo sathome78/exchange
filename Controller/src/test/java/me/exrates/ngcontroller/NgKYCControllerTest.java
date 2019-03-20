@@ -1,6 +1,11 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.model.dto.kyc.*;
+import me.exrates.model.dto.kyc.DocTypeEnum;
+import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.dto.kyc.KycLanguageDto;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.kyc.responces.DispatchInfo;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.service.KYCService;
@@ -28,7 +33,12 @@ import java.util.Collections;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
