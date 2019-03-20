@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestConfiguration.class, InputOutputDaoImplTest.InnerConf.class})
@@ -66,7 +64,6 @@ public class InputOutputDaoImplTest {
                 Locale.ENGLISH);
 
         assertNotNull(history);
-        assertFalse(history.isEmpty());
     }
 
     @Test
@@ -79,7 +76,6 @@ public class InputOutputDaoImplTest {
                 Locale.ENGLISH);
 
         assertNotNull(history);
-        assertTrue(history.isEmpty());
     }
 
     @Configuration

@@ -295,11 +295,11 @@ public class NgBalanceController {
                 .dateTo(null)
                 .build();
         try {
-            PagedResult<MyInputOutputHistoryDto> page = balanceService.getDefaultInputOutputHistory(filter, locale);
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
-            logger.error("Failed to get user inputOutputData", ex);
-            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
+            logger.error("Failed to get user default inputOutputData", ex);
+            throw new NgBalanceException("Failed to get user default inputOutputData as " + ex.getMessage());
         }
     }
 

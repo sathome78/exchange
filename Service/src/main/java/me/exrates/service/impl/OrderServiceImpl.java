@@ -1332,10 +1332,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-        if (isNull(exOrder)) {
-            return false;
+        if (nonNull(exOrder)) {
+            return cancelOrder(exOrder);
+        } else {
+            return stopOrderService.cancelOrder(orderId, null);
         }
-        return cancelOrder(exOrder);
     }
 
     @Transactional
@@ -1344,13 +1345,20 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
-        if (isEmpty(openedOrders)) {
+        List<Integer> openedStopOrders = stopOrderService.getOpenedStopOrdersByCurrencyPair(userId, currencyPair);
+
+        if (isEmpty(openedOrders) && isEmpty(openedStopOrders)) {
             return false;
         }
 
-        return openedOrders
+        boolean canceledOrders = openedOrders
                 .stream()
                 .allMatch(this::cancelOrder);
+        boolean canceledStopOrders = openedStopOrders
+                .stream()
+                .allMatch(stopOrderId -> stopOrderService.cancelOrder(stopOrderId, null));
+
+        return canceledOrders && canceledStopOrders;
     }
 
     @Transactional
@@ -1359,13 +1367,20 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
-        if (isEmpty(openedOrders)) {
+        List<Integer> openedStopOrders = stopOrderService.getAllOpenedStopOrdersByUserId(userId);
+
+        if (isEmpty(openedOrders) && isEmpty(openedStopOrders)) {
             return false;
         }
 
-        return openedOrders
+        boolean canceledOrders = openedOrders
                 .stream()
                 .allMatch(this::cancelOrder);
+        boolean canceledStopOrders = openedStopOrders
+                .stream()
+                .allMatch(stopOrderId -> stopOrderService.cancelOrder(stopOrderId, null));
+
+        return canceledOrders && canceledStopOrders;
     }
 
     private boolean cancelOrder(ExOrder exOrder) {

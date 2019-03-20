@@ -459,7 +459,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         PagedResult<MyInputOutputHistoryDto> myInputOutputHistoryDtoPagedResult = new PagedResult<>();
         myInputOutputHistoryDtoPagedResult.setItems(Collections.singletonList(getMockMyInputOutputHistoryDto()));
 
-        Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -496,24 +496,24 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.items.[0].market", is("TEST_MARKET")))
                 .andExpect(jsonPath("$.items.[0].accepted", is(Boolean.TRUE)));
 
-        verify(balanceService, times(1)).getDefaultInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
     }
 
     @Test
     public void getDefaultMyInputOutputData_exception() throws Exception {
-        String ngBalanceException = "Failed to get user inputOutputData as null";
+        String ngBalanceException = "Failed to get user default inputOutputData as null";
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/inputOutputData/default")
                 .build();
 
-        Mockito.when(balanceService.getDefaultInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
-        verify(balanceService, times(1)).getDefaultInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
     }
 
     @Test

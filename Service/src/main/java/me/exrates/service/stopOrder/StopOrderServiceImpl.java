@@ -373,6 +373,18 @@ public class StopOrderServiceImpl implements StopOrderService {
         return this.cancelOrder(id, locale);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<Integer> getAllOpenedStopOrdersByUserId(Integer userId) {
+        return stopOrderDao.getAllOpenedStopOrdersByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair) {
+        return stopOrderDao.getOpenedStopOrdersByCurrencyPair(userId, currencyPair);
+    }
+
     @PreDestroy
     private void shutdown() {
         checkExecutors.shutdown();

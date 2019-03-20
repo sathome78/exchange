@@ -827,16 +827,13 @@ public class WalletDaoImpl implements WalletDao {
 
         Wallet wallet;
         try {
-            wallet = jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Wallet>() {
-                @Override
-                public Wallet mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Wallet result = new Wallet();
-                    result.setId(rs.getInt("wallet_id"));
-                    result.setCurrencyId(rs.getInt("currency_id"));
-                    result.setActiveBalance(rs.getBigDecimal("active_balance"));
-                    result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-                    return result;
-                }
+            wallet = jdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+                Wallet result = new Wallet();
+                result.setId(rs.getInt("wallet_id"));
+                result.setCurrencyId(rs.getInt("currency_id"));
+                result.setActiveBalance(rs.getBigDecimal("active_balance"));
+                result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                return result;
             });
         } catch (EmptyResultDataAccessException e) {
             return WalletTransferStatus.WALLET_NOT_FOUND;

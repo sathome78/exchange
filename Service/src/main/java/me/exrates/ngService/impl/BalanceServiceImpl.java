@@ -195,21 +195,6 @@ public class BalanceServiceImpl implements BalanceService {
         return pagedResult;
     }
 
-    public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
-        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(filter, locale);
-
-        List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();
-        if (recordsCount > 0) {
-            historyDtoList = getMyInputOutputHistoryDtos(filter, locale);
-
-            setAcceptedToDefineUserTransferOperation(historyDtoList, filter.getEmail());
-        }
-        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(recordsCount);
-        pagedResult.setItems(historyDtoList);
-        return pagedResult;
-    }
-
     private void setAcceptedToDefineUserTransferOperation(List<MyInputOutputHistoryDto> historyDtoList, String email) {
         final int principalUserId = userService.getIdByEmail(email);
 

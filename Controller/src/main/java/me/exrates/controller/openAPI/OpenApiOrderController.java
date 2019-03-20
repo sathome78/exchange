@@ -278,7 +278,7 @@ public class OpenApiOrderController {
         int userId = userService.getIdByEmail(userEmail);
         if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
             responseBody.put("status", "false");
-            responseBody.put("error", " Callback url is null or empty");
+            responseBody.put("error", "Callback url is null or empty");
             return responseBody;
         }
         int affectedRowCount = userService.setCallbackURL(userId, callbackUrl);
@@ -311,7 +311,7 @@ public class OpenApiOrderController {
      * @apiErrorExample {json} Error-Response:
      * HTTP/1.1 200 OK
      * {
-     *      "status": "false",
+     *      "status": false,
      *      "error" : " Callback url is null or empty"
      * }
      *
@@ -361,6 +361,7 @@ public class OpenApiOrderController {
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
                                          @RequestParam("currency_pair") String currencyPair) {
         String currencyPairName = transformCurrencyPair(currencyPair);
+
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
 }
