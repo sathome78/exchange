@@ -11,6 +11,7 @@ import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -255,7 +256,7 @@ public abstract class AngularApiCommonTest {
 
         return myInputOutputHistoryDto;
     }
-
+  
     protected OrderCreateDto getMockOrderCreateDto() {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOrderId(111);
@@ -304,7 +305,6 @@ public abstract class AngularApiCommonTest {
         return commissions;
     }
 
-
     protected ExOrder getMockExOrder() {
         ExOrder exOrder = new ExOrder();
         exOrder.setId(1515);
@@ -328,5 +328,17 @@ public abstract class AngularApiCommonTest {
         exOrder.setEventTimestamp(1111L);
 
         return exOrder;
+    }
+  
+    protected KycStatusResponseDto getMockKycStatusResponseDto() {
+        String[] missingOptionalDocs = new String[5];
+
+        KycStatusResponseDto dto = new KycStatusResponseDto();
+        dto.setStatus("TEST_STATUS");
+        dto.setErrorMsg("TEST_ERROR_MSG");
+        dto.setMissingOptionalDocs(missingOptionalDocs);
+        dto.setAnalysisResults(Collections.EMPTY_LIST);
+
+        return dto;
     }
 }
