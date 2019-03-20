@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +39,6 @@ public class NgOptionsControllerTest {
                 .string("Allow", "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH");
 
         mockMvc.perform(options("/api/**"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(accessHeader)
                 .andExpect(header().string("Access-Control-Allow-Methods", "${angular.allowed.methods}"))
