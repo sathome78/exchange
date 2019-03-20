@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "nem_log")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class NemJobs {
 
     @Autowired

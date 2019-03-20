@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class PayeerServiceMsImpl implements PayeerService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {

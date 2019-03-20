@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class LiqpayServiceMsImpl implements LiqpayService {
 
     @Override

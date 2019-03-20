@@ -22,7 +22,7 @@ import java.net.URI;
 @ClientEndpoint
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class CasinoCoinWsService {
 
     private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";

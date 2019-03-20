@@ -29,7 +29,7 @@ import java.util.Optional;
 @ClientEndpoint
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class RippleWsServiceImpl {
 
     private @Value("${ripple.rippled.ws}") String wsUrl;

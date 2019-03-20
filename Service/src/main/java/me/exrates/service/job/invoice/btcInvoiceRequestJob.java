@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
 @Log4j2(topic = "job")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class btcInvoiceRequestJob {
 
   @Value("${btcInvoice.invoiceTimeOutIntervalMinutes}")

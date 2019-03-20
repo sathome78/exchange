@@ -57,7 +57,7 @@ import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
  */
 @Service("yandexMoneyService")
 @PropertySource("classpath:/merchants/yandexmoney.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     private @Value("${yandexmoney.clientId}") String clientId;

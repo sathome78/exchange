@@ -66,7 +66,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class RefillServiceImpl implements RefillService {
 
     @Value("${invoice.blockNotifyUsers}")

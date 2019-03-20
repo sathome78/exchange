@@ -50,7 +50,7 @@ import static java.util.Objects.isNull;
 
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class InterkassaServiceImpl implements InterkassaService {
 
     private static final Logger logger = LogManager.getLogger(InterkassaServiceImpl.class);

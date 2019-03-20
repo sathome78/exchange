@@ -32,7 +32,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/liqpay.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class LiqpayServiceImpl implements LiqpayService {
 
   private @Value("${liqpay.url}") String url;

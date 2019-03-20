@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class IcoServiceImpl implements IcoService {
 
     @Autowired

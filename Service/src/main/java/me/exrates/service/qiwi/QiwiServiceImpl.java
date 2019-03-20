@@ -31,7 +31,7 @@ import java.util.Map;
 @Log4j2(topic = "Qiwi")
 @Service
 @PropertySource("classpath:/merchants/qiwi.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class QiwiServiceImpl implements QiwiService {
 
     private final static String MERCHANT_NAME = "QIWI";

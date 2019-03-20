@@ -22,7 +22,7 @@ import org.springframework.web.client.RestTemplate;
 @Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class RippledNodeServiceImpl implements RippledNodeService {
 
     @Autowired

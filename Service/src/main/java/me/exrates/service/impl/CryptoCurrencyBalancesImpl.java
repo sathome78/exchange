@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Log4j2
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class CryptoCurrencyBalancesImpl implements CryptoCurrencyBalances {
 
     @Autowired

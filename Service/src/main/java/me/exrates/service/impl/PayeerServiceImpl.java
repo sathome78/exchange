@@ -26,7 +26,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class PayeerServiceImpl implements PayeerService {
 
   private @Value("${payeer.url}") String url;

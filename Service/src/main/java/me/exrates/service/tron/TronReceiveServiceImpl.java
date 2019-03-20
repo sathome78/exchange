@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "tron")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TronReceiveServiceImpl {
 
     private final TronNodeService nodeService;

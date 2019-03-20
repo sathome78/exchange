@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class NemRecieveTransactionsService {
 
     @Autowired

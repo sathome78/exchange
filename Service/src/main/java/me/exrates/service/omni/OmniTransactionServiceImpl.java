@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @PropertySource("classpath:/merchants/omni.properties")
 @Log4j2(topic = "omni_log")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class OmniTransactionServiceImpl implements OmniTransactionService {
 
     private final MerchantSpecParamsDao specParamsDao;

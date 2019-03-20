@@ -46,7 +46,7 @@ import java.util.Optional;
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class StellarServiceImpl implements StellarService {
 
     private @Value("${stellar.horizon.url}")

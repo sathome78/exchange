@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "stellar_log")
 @Component
 @PropertySource("classpath:/merchants/stellar.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class StellarReceivePaymentsService {
 
     @Autowired

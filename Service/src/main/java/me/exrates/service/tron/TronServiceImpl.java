@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 @Log4j2(topic = "tron")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TronServiceImpl implements TronService {
 
     private final static String CURRENCY_NAME = "TRX";

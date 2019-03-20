@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "achain")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TxsScanerImpl implements BlocksScaner {
 
     private final NodeService nodeService;

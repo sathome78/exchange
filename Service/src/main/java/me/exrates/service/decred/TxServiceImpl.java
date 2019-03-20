@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "decred")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TxServiceImpl implements TxService {
 
     @Autowired

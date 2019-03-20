@@ -22,7 +22,7 @@ import java.util.*;
 import static me.exrates.service.lisk.LiskRestUtils.*;
 
 @Log4j2(topic = "lisk_log")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class LiskRestClientImpl implements LiskRestClient {
 
     @Autowired

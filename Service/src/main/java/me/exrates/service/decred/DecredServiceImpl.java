@@ -33,7 +33,7 @@ import java.util.*;
 
 @Log4j2(topic = "decred")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class DecredServiceImpl implements DecredService {
 
     @Autowired

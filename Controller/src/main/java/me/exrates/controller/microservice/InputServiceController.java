@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/inout")
 @RequiredArgsConstructor
-@Conditional(MicroserviceConditional.class)
+//@Conditional(MicroserviceConditional.class)
 public class InputServiceController {
 
     private final WalletService walletService;

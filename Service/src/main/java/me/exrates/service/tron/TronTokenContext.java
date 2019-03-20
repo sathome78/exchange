@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TronTokenContext {
 
     @Autowired

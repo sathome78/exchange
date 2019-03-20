@@ -37,7 +37,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/okpay.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class OkPayServiceImpl implements OkPayService {
 
     private @Value("${okpay.ok_receiver}")

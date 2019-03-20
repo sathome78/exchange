@@ -17,8 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class MerchantDaoMsImpl implements MerchantDao {
     @Override
     public Merchant create(Merchant merchant) {

@@ -13,7 +13,7 @@ import java.util.Map;
  * Created by Maks on 15.06.2018.
  */
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class AchainTokenContext {
 
 

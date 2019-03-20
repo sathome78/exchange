@@ -43,7 +43,7 @@ import static java.util.stream.Collectors.toList;
 @Log4j2(topic = "adk_log")
 @PropertySource("classpath:/merchants/adk.properties")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class AdkServiceImpl implements AdkService {
 
     private final AidosNodeService aidosNodeService;

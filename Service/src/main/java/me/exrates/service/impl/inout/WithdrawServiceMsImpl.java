@@ -20,8 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class WithdrawServiceMsImpl implements WithdrawService {
     @Override
     public Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale) {

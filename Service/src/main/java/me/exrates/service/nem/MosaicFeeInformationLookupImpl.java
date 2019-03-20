@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Created by Maks on 02.03.2018.
  */
 @Component
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class MosaicFeeInformationLookupImpl implements MosaicFeeInformationLookup {
 
     @Autowired

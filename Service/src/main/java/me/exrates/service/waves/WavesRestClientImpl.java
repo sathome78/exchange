@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "waves_log")
 @Service
 @Scope("prototype")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class WavesRestClientImpl implements WavesRestClient {
 
     @Autowired

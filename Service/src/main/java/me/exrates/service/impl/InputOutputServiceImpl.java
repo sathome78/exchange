@@ -46,7 +46,7 @@ import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
  */
 
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class InputOutputServiceImpl implements InputOutputService {
 
     private static final Logger log = LogManager.getLogger("inputoutput");

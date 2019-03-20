@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 @Log4j2(topic = "Qiwi")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class QiwiRecieveService {
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

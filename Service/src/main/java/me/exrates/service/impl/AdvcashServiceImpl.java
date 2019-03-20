@@ -34,7 +34,7 @@ import java.util.Properties;
 @Service
 @PropertySource("classpath:/merchants/advcashmoney.properties")
 @Log4j2
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class AdvcashServiceImpl implements AdvcashService {
 
     private @Value("${advcash.url}")

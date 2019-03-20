@@ -32,7 +32,7 @@ import java.util.Map;
 @Log4j2(topic = "stellar_log")
 @Service
 @PropertySource("classpath:/merchants/stellar.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class StellarTransactionServiceImpl implements StellarTransactionService {
 
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);

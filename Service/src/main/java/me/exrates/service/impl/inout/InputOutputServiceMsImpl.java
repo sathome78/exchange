@@ -37,8 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class InputOutputServiceMsImpl implements InputOutputService {
 

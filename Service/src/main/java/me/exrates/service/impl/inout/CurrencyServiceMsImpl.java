@@ -24,8 +24,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class CurrencyServiceMsImpl implements CurrencyService {
 

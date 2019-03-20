@@ -21,8 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class TransferServiceMsImpl implements TransferService {
     @Override
     public Map<String, Object> createTransferRequest(TransferRequestCreateDto request) {

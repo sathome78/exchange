@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by Maks on 04.04.2018.
  */
 @Component
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class StellarAsssetsContext {
 
     @Autowired

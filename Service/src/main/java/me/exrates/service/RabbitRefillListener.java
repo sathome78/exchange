@@ -15,9 +15,8 @@ import java.io.IOException;
 
 @Log4j2
 @EnableRabbit
-@Component
 @RequiredArgsConstructor
-@Conditional(MicroserviceConditional.class)
+//@Component @Conditional(MicroserviceConditional.class)
 public class RabbitRefillListener {
 
     private final RefillService refillService;

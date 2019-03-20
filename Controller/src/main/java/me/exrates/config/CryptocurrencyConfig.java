@@ -28,7 +28,7 @@ import java.util.Map;
 
 @Log4j2(topic = "config")
 @Configuration
-@Conditional(MonolitConditional.class)
+////@Conditional(MonolitConditional.class)
 public class CryptocurrencyConfig {
 
     @Autowired

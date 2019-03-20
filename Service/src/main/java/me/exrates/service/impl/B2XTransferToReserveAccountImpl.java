@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Log4j2
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class B2XTransferToReserveAccountImpl implements B2XTransferToReserveAccount {
 
     private final static String RESERVE_ADDRESS = "1P6fgfBhPtcuLPrG2tScVY4QG5owiHnzst";

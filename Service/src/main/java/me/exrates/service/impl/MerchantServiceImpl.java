@@ -59,7 +59,7 @@ import static me.exrates.model.enums.OperationType.USER_TRANSFER;
  */
 @Service
 @PropertySource("classpath:/merchants.properties")
-@Conditional(MonolitConditional.class)
+////@Conditional(MonolitConditional.class)
 public class MerchantServiceImpl implements MerchantService {
 
     private static final Logger LOG = LogManager.getLogger("merchant");

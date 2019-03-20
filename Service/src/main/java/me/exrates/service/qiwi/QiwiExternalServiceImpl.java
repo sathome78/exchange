@@ -23,7 +23,7 @@ import java.util.List;
 @Service
 @Log4j2(topic = "Qiwi")
 @PropertySource("classpath:/merchants/qiwi.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class QiwiExternalServiceImpl implements QiwiExternalService{
 
     private final static String URL_GET_TRANSACTIONS = "/transfer/get-merchant-tx";

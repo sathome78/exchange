@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class RefillRequestDaoMsImpl implements RefillRequestDao {
 
     @Override

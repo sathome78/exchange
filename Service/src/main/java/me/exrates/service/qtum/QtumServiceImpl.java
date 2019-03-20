@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "qtum_log")
 @Service("qtumServiceImpl")
 @PropertySource("classpath:/merchants/qtum.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class QtumServiceImpl implements QtumService {
 
     private @Value("${qtum.min.confirmations}")

@@ -80,7 +80,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope("prototype")
 @Log4j2(topic = "bitcoin_core")
-@Conditional(MonolitConditional.class)
+////@Conditional(MonolitConditional.class)
 public class CoreWalletServiceImpl implements CoreWalletService {
 
     private static final int KEY_POOL_LOW_THRESHOLD = 10;

@@ -20,7 +20,7 @@ import java.util.Collections;
 @Log4j2(topic = "apollo")
 @PropertySource("classpath:/merchants/apollo.properties")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class ApolloNodeServiceImpl implements ApolloNodeService {
 
     private @Value("${apollo.url}")String SEVER_URL;

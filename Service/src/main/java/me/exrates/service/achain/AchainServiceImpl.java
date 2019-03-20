@@ -29,7 +29,7 @@ import java.util.Map;
  */
 @Log4j2(topic = "achain")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class AchainServiceImpl implements AchainService {
 
     private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);

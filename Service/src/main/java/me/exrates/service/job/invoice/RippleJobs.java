@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 @Service
 @Log4j2
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class RippleJobs {
 
     @Autowired

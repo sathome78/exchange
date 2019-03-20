@@ -43,8 +43,7 @@ import java.util.Optional;
 
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 @RequiredArgsConstructor
 public class RefillServiceMsImpl implements RefillService {
 

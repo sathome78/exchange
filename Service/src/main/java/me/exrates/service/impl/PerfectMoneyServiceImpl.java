@@ -34,7 +34,7 @@ import java.util.Properties;
  */
 @Service
 @PropertySource("classpath:/merchants/perfectmoney.properties")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     private @Value("${perfectmoney.url}")

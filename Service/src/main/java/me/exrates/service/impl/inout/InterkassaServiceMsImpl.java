@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service @Conditional(MicroserviceConditional.class)
 public class InterkassaServiceMsImpl implements InterkassaService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {

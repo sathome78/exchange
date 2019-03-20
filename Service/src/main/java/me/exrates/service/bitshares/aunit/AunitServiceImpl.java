@@ -9,7 +9,7 @@ import javax.websocket.ClientEndpoint;
 
 @Service("aunitServiceImpl")
 @ClientEndpoint
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class AunitServiceImpl extends BitsharesServiceImpl {
 
     private final static String name = "AUNIT";

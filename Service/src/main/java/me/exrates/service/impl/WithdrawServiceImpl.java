@@ -99,7 +99,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
  */
 
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class WithdrawServiceImpl implements WithdrawService {
 
     private static final Logger log = LogManager.getLogger("withdraw");

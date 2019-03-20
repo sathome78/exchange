@@ -19,8 +19,7 @@ import java.util.Map;
  */
 
 @Log4j2
-@Repository
-@Conditional(MonolitConditional.class)
+//@Repository @Conditional(MonolitConditional.class)
 public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
 
     @Autowired

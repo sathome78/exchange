@@ -12,7 +12,7 @@ import java.io.IOException;
 
 @ClientEndpoint
 @Service("ppyServiceImpl")
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class PPYServiceImpl extends BitsharesServiceImpl {
 
     private static final String name = "PPY";

@@ -51,7 +51,7 @@ import static java.util.Objects.isNull;
  */
 @Log4j2
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired

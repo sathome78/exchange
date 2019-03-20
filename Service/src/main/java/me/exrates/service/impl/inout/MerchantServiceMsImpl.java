@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Service
-@Conditional(MicroserviceConditional.class)
+//@Service  @Conditional(MicroserviceConditional.class)
 public class MerchantServiceMsImpl implements MerchantService {
     @Override
     public List<Merchant> findAllByCurrency(Currency currency) {

@@ -56,7 +56,7 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_
  */
 
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TransferServiceImpl implements TransferService {
 
   private static final Logger log = LogManager.getLogger("transfer");

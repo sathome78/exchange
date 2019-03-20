@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
 @Log4j2(topic = "tron")
 @PropertySource("classpath:/merchants/tron.properties")
 @Service
-@Conditional(MonolitConditional.class)
+//@Conditional(MonolitConditional.class)
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @Autowired
