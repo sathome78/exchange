@@ -41,7 +41,8 @@ import java.util.*;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Log4j
-//@Repository @Conditional(MonolitConditional.class)
+@Repository
+// @Conditional(MonolitConditional.class)
 public class MerchantDaoImpl implements MerchantDao {
 
     @Autowired
