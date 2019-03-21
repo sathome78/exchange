@@ -5,12 +5,15 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.RefreshStatDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -30,6 +33,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 /**
  * Created by Maks on 24.08.2017.
  */
@@ -48,13 +53,6 @@ public class StompMessengerImpl implements StompMessenger {
 
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-    @PostConstruct
-    public void init() {
-        scheduler.scheduleAtFixedRate(() ->  registry.findSubscriptions(sub -> true)
-                        .forEach(sub -> System.out.printf("sub: dest %s, user %s")),
-                1, 2, TimeUnit.MINUTES);
-    }
 
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
@@ -183,16 +181,25 @@ public class StompMessengerImpl implements StompMessenger {
     @Synchronized
     @Override
     public void sendStatisticMessage(List<Integer> currenciesIds) {
-        Map<RefreshObjectsEnum, String> result =  orderService.getSomeCurrencyStatForRefresh(currenciesIds);
-        result.forEach((k,v) -> {
-            sendMessageToDestination("/app/statisticsNew", v);
-            sendMessageToDestination("/app/statistics/".concat(k.getSubscribeChannel()), v);
-        });
+        RefreshStatDto dto =  orderService.getSomeCurrencyStatForRefresh(currenciesIds);
+        if (!isNull(dto.getIcoData())) {
+            sendMessageToDestination("/app/statistics/".concat(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC.name()), dto.getIcoData());
+        }
+        if (!isNull(dto.getMaincurrenciesData())) {
+            sendMessageToDestination("/app/statisticsNew", dto.getMaincurrenciesData());
+            sendMessageToDestination("/app/statistics/".concat(RefreshObjectsEnum.MAIN_CURRENCIES_STATISTIC.name()), dto.getMaincurrenciesData());
+        }
+        sendCpInfoMessage(dto.getStatInfoDtos());
+
     }
 
     @Override
-    public void sendCpInfoMessage(String pairName, String message) {
-        sendMessageToDestination("/app/statistics/pairInfo/".concat(OpenApiUtils.transformCurrencyPairBack(pairName)), message);
+    public void sendCpInfoMessage(Map<String, String> currenciesStatisticMap) {
+        if (!isNull(currenciesStatisticMap)) {
+            currenciesStatisticMap.forEach((k,v) -> {
+                sendMessageToDestination("/app/statistics/pairInfo/".concat(OpenApiUtils.transformCurrencyPairBack(k)), v);
+            });
+        }
     }
 
     @Override
