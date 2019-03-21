@@ -54,8 +54,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Log4j2
 @Repository
@@ -488,8 +490,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      null AS source_type, null AS source_id, " +
                 "      null AS status_id, null AS merchant_name, null AS user_id" +
                 "    FROM WALLET  " +
-                "    JOIN CURRENCY ON CURRENCY.id=WALLET.currency_id  " +
-                "    WHERE WALLET.id=:wallet_id " +
+                "    JOIN CURRENCY ON CURRENCY.id = WALLET.currency_id  " +
+                "    WHERE WALLET.id = :wallet_id " +
                 "  UNION ALL " +
                 "    (" +
                 "    SELECT TRANSACTION.datetime, TRANSACTION.id, " +
@@ -501,82 +503,81 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "    FROM TRANSACTION " +
                 "    JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
                 "    LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
-                "    WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id " +
+                "    WHERE TRANSACTION.provided = 1 AND TRANSACTION.user_wallet_id = :wallet_id " +
                 "    ORDER BY -TRANSACTION.datetime ASC, -TRANSACTION.id ASC " +
-                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset) +
+                (limit == -1 ? EMPTY : "  LIMIT " + limit + " OFFSET " + offset) +
                 "    )" +
                 "  ) T " +
                 "  ORDER BY -date_time ASC, -transaction_id ASC";
+
         final Map<String, Object> params = new HashMap<>();
         params.put("wallet_id", walletId);
-        return slaveJdbcTemplate.query(sql, params, new RowMapper<AccountStatementDto>() {
-            @Override
-            public AccountStatementDto mapRow(ResultSet rs, int i) throws SQLException {
-                AccountStatementDto accountStatementDto = new AccountStatementDto();
-                accountStatementDto.setDatetime(rs.getTimestamp("date_time") == null ? null : rs.getTimestamp("date_time").toLocalDateTime());
-                accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
-                accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
-                accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
-                accountStatementDto.setOperationType(rs.getObject("date_time") == null ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
-                accountStatementDto.setAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
-                accountStatementDto.setCommissionAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
-                TransactionSourceType transactionSourceType = rs.getObject("source_type") == null ? null : TransactionSourceType.convert(rs.getString("source_type"));
-                accountStatementDto.setSourceType(transactionSourceType == null ? "" : transactionSourceType.toString(messageSource, locale));
-                accountStatementDto.setSourceTypeId(rs.getString("source_type"));
-                accountStatementDto.setSourceId(rs.getInt("source_id"));
-                accountStatementDto.setTransactionStatus(rs.getObject("status_id") == null ? null : TransactionStatus.convert(rs.getInt("status_id")));
-                /**/
-                int otid = rs.getObject("date_time") == null ? 0 : rs.getInt("operation_type_id");
-                if (otid != 0) {
-                    OperationType ot = OperationType.convert(otid);
-                    switch (ot) {
-                        case INPUT: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
-                        case OUTPUT: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
-                        case WALLET_INNER_TRANSFER: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
-                                            , locale, true));
-                            break;
-                        }
-                        case MANUAL: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
+
+        return slaveJdbcTemplate.query(sql, params, (rs, i) -> {
+            AccountStatementDto accountStatementDto = new AccountStatementDto();
+            accountStatementDto.setDatetime(isNull(rs.getTimestamp("date_time")) ? null : rs.getTimestamp("date_time").toLocalDateTime());
+            accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
+            accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
+            accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
+            accountStatementDto.setOperationType(isNull(rs.getObject("date_time")) ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
+            accountStatementDto.setAmount(isNull(rs.getTimestamp("date_time")) ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
+            accountStatementDto.setCommissionAmount(isNull(rs.getTimestamp("date_time")) ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
+            TransactionSourceType transactionSourceType = isNull(rs.getObject("source_type")) ? null : TransactionSourceType.convert(rs.getString("source_type"));
+            accountStatementDto.setSourceType(isNull(transactionSourceType) ? EMPTY : transactionSourceType.toString(messageSource, locale));
+            accountStatementDto.setSourceTypeId(rs.getString("source_type"));
+            accountStatementDto.setSourceId(rs.getInt("source_id"));
+            accountStatementDto.setTransactionStatus(isNull(rs.getObject("status_id")) ? null : TransactionStatus.convert(rs.getInt("status_id")));
+            /**/
+            int otid = rs.getObject("date_time") == null ? 0 : rs.getInt("operation_type_id");
+            if (otid != 0) {
+                OperationType ot = OperationType.convert(otid);
+                switch (ot) {
+                    case INPUT: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
+                    }
+                    case OUTPUT: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
+                    }
+                    case WALLET_INNER_TRANSFER: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                        , locale, true));
+                        break;
+                    }
+                    case MANUAL: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
                     }
                 }
-                String merchantName = rs.getString("merchant_name");
-                if (StringUtils.isEmpty(merchantName)) {
-                    merchantName = accountStatementDto.getSourceType();
-                }
-                accountStatementDto.setMerchantName(merchantName);
-                accountStatementDto.setWalletId(walletId);
-                accountStatementDto.setUserId(rs.getInt("user_id"));
-                /**/
-                return accountStatementDto;
             }
+            String merchantName = rs.getString("merchant_name");
+            if (StringUtils.isEmpty(merchantName)) {
+                merchantName = accountStatementDto.getSourceType();
+            }
+            accountStatementDto.setMerchantName(merchantName);
+            accountStatementDto.setWalletId(walletId);
+            accountStatementDto.setUserId(rs.getInt("user_id"));
+            /**/
+            return accountStatementDto;
         });
     }
 

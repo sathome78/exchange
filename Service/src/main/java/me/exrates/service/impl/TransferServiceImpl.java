@@ -388,4 +388,14 @@ public class TransferServiceImpl implements TransferService {
     }
     return transferRequestDao.getHashById(id);
   }
+
+  @Override
+  public void revokeTransferRequest(Integer requestId) {
+    TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new TransferRequestNotFoundException(String.format("transfer request id: %s", requestId)));
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
+    InvoiceActionTypeEnum action = REVOKE;
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
+    transferRequestDao.setStatusById(requestId, newStatus);
+  }
 }

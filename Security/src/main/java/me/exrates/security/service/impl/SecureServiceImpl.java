@@ -143,7 +143,7 @@ public class SecureServiceImpl implements SecureService {
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
                 new String[] {pin}, Locale.ENGLISH);
-        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
+        return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class SecureServiceImpl implements SecureService {
         System.out.println("LOGIN pin code: " + pin);
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
                 new String[] {pin, ipAddress}, locale);
-        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
+        return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
     @Override
@@ -164,6 +164,17 @@ public class SecureServiceImpl implements SecureService {
         if (result != null) {
             throw new PinCodeCheckNeedException(result);
         }
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public NotificationResultDto sendWithdrawPinCode(User user, String amount, String currencyName) {
+        NotificationsUserSetting setting = getWithdrawSettings(user);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[] {pin, amount}, Locale.ENGLISH);
+        return sendMessage(user.getEmail(), messageText, subject, setting);
     }
 
     @Override
@@ -211,6 +222,13 @@ public class SecureServiceImpl implements SecureService {
                 .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
                 .userId(user.getId())
                 .build();
+    }
+
+    private NotificationResultDto sendMessage(String userEmail,
+                                              String message,
+                                              String subject,
+                                              NotificationsUserSetting setting) {
+        return notificationService.notifyUser(userEmail, message, subject, setting);
     }
 
 }

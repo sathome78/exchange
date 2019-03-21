@@ -7,6 +7,7 @@ import me.exrates.model.dto.ExOrderDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
+import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDtoExtended;
 import me.exrates.model.dto.openAPI.OrderParamsDto;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
@@ -115,6 +116,51 @@ public class OpenApiOrderController {
         return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
     }
 
+
+    /**
+     * @api {post} /openapi/v1/orders/create/extended Create order
+     * @apiName Creates order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Creates Order
+     * @apiParam {String} currency_pair Name of currency pair (e.g. btc_usd)
+     * @apiParam {String} order_type Type of order (BUY or SELL)
+     * @apiParam {Number} amount Amount in base currency
+     * @apiParam {Number} price Exchange rate
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/create
+     *       {
+     *         "currencyPair": "btc_usd",
+     *         "orderType": "BUY",
+     *         "amount": 2.3,
+     *         "price": 1.0
+     *       }
+     * @apiSuccess {Object} orderCreationResult Order creation result information
+     * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
+     * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
+     * @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
+     * @apiSuccess {Array} orderCreationResult.fully_accepted_orders_ids ids of orders that has been fully accepted
+     * @apiSuccess {Integer} orderCreationResult.partially_accepted_order_id id of order that partially accepted and splitted as a result)
+     * @apiSuccess {Integer} orderCreationResult.order_id_to_accept id of order that opened and accepted as a result of partially accept)
+     * @apiSuccess {Integer} orderCreationResult.order_id_to_open id of order that opened and placed in common stack as a results of partially accept)
+     */
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PostMapping(value = "/create/extended", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<OrderCreationResultOpenApiDtoExtended> createOrderExtended(@RequestBody @Valid OrderParamsDto orderParamsDto) {
+        String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
+        if (!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
+        }
+        OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
+                orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
+        return new ResponseEntity<>(new OrderCreationResultOpenApiDtoExtended(resultDto), HttpStatus.CREATED);
+    }
+
     /**
      * @api {get} /openapi/v1/orders/accept/{orderId} Accept order by id
      * @apiName Accept order
@@ -186,9 +232,9 @@ public class OpenApiOrderController {
      * {
      *      "id": 402298,
      *      "currencyPairId": 1,
-     *      "operationType": "BUY",
-     *      "exRate": 2000.009900479,
-     *      "amountBase": 1,
+     *      "order_type": "BUY",
+     *      "price": 2000.009900479,
+     *      "amount": 1,
      *      "amountConvert": 2000.009900479,
      *      "commission": 4.000019801,
      *      "userAcceptorId": 0,
@@ -278,7 +324,7 @@ public class OpenApiOrderController {
         int userId = userService.getIdByEmail(userEmail);
         if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
             responseBody.put("status", "false");
-            responseBody.put("error", "Callback url is null or empty");
+            responseBody.put("error", " Callback url is null or empty");
             return responseBody;
         }
         int affectedRowCount = userService.setCallbackURL(userId, callbackUrl);
@@ -311,7 +357,7 @@ public class OpenApiOrderController {
      * @apiErrorExample {json} Error-Response:
      * HTTP/1.1 200 OK
      * {
-     *      "status": false,
+     *      "status": "false",
      *      "error" : " Callback url is null or empty"
      * }
      *
@@ -361,7 +407,6 @@ public class OpenApiOrderController {
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,
                                          @RequestParam("currency_pair") String currencyPair) {
         String currencyPairName = transformCurrencyPair(currencyPair);
-
         return orderService.getOpenOrders(currencyPairName, orderType);
     }
 }

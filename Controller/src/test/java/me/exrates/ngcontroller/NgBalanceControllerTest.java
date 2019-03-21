@@ -45,6 +45,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -59,6 +61,10 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     private LocaleResolver localeResolver;
     @Mock
     private RefillService refillService;
+    @Mock
+    private WithdrawService withdrawService;
+    @Mock
+    private TransferService transferService;
     @Mock
     private WalletService walletService;
 
@@ -181,7 +187,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void revokeWithdrawRequest_isOk() throws Exception {
+    public void revokeRefillRequest_isOk() throws Exception {
         Integer requestId = 225;
         String operation = "REFILL";
 
@@ -192,6 +198,34 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(refillService, times(1)).revokeRefillRequest(anyInt());
+    }
+
+    @Test
+    public void revokeWithdrawRequest_isOk() throws Exception {
+        Integer requestId = 225;
+        String operation = "WITHDRAW";
+
+        doNothing().when(withdrawService).revokeWithdrawalRequest(anyInt());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(withdrawService, times(1)).revokeWithdrawalRequest(anyInt());
+    }
+
+    @Test
+    public void revokeTransferRequest_isOk() throws Exception {
+        Integer requestId = 225;
+        String operation = "TRANSFER";
+
+        doNothing().when(transferService).revokeTransferRequest(anyInt());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(transferService, times(1)).revokeTransferRequest(anyInt());
     }
 
     @Test

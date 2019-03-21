@@ -82,6 +82,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -2291,15 +2292,15 @@ public class OrderDaoImpl implements OrderDao {
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
-                        .lastOrderRate(rs.getBigDecimal("last").toPlainString())
-                        .predLastOrderRate(rs.getBigDecimal("first").toPlainString())
-                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? "0" : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH).toPlainString())
-                        .volume(rs.getBigDecimal("baseVolume").toPlainString())
-                        .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
+                        .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
+                        .lastOrderRate(convertToPlainString(rs,"last"))
+                        .predLastOrderRate(convertToPlainString(rs, "first"))
+                        .percentChange(calculatePercentChange(rs))
+                        .volume(convertToPlainString(rs,"baseVolume"))
+                        .currencyVolume(convertToPlainString(rs, "quoteVolume"))
                         .market(rs.getString("market"))
-                        .high24hr(rs.getBigDecimal("high24hr").toPlainString())
-                        .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                        .high24hr(convertToPlainString(rs,"high24hr"))
+                        .low24hr(convertToPlainString(rs,"low24hr"))
                         .hidden(rs.getBoolean("hidden"))
                         .build();
                 list.add(statistic);
@@ -2307,6 +2308,19 @@ public class OrderDaoImpl implements OrderDao {
             rs.close();
             return list;
         });
+    }
+
+    private String calculatePercentChange(ResultSet rs) throws SQLException {
+        BigDecimal first = rs.getBigDecimal("first") == null
+                ? BigDecimal.ZERO
+                : rs.getBigDecimal("first");
+        BigDecimal last = rs.getBigDecimal("last") == null
+                ? BigDecimal.ZERO
+                : rs.getBigDecimal("last");
+
+        return first.compareTo(BigDecimal.ZERO) == 0
+                ? "0"
+                : BigDecimalProcessing.doAction(first, last, ActionType.PERCENT_GROWTH).toPlainString();
     }
 
     private RowMapper<ExOrder> getExOrderRowMapper() {
@@ -2351,4 +2365,13 @@ public class OrderDaoImpl implements OrderDao {
         }
         return timestamp.toLocalDateTime();
     }
+
+    private String convertToPlainString(ResultSet rs, String columnName) throws SQLException {
+        BigDecimal value = rs.getBigDecimal(columnName);
+        if (Objects.isNull(value)) {
+            return BigDecimal.ZERO.toPlainString();
+        }
+        return value.toPlainString();
+    }
+
 }
