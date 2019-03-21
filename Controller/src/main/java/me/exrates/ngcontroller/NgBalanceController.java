@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
@@ -19,10 +20,11 @@ import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.RefillService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -54,9 +56,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
@@ -73,19 +72,25 @@ public class NgBalanceController {
     private final RefillService refillService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
+    private final UserService userService;
+    private final TransferService transferService;
 
     @Autowired
     public NgBalanceController(BalanceService balanceService,
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
                                RefillService refillService,
-                               WalletService walletService, WithdrawService withdrawService) {
+                               WalletService walletService, WithdrawService withdrawService,
+                               UserService userService,
+                               TransferService transferService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.localeResolver = localeResolver;
         this.refillService = refillService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
+        this.userService = userService;
+        this.transferService = transferService;
     }
 
     // apiUrl/info/private/v2/balances?limit=20&offset=0&excludeZero=false&currencyName=BTC&currencyType=CRYPTO
@@ -140,22 +145,28 @@ public class NgBalanceController {
     @DeleteMapping(value = "/pending/revoke/{requestId}/{operation}")
     public ResponseEntity<Void> revokeWithdrawRequest(@PathVariable Integer requestId,
                                                       @PathVariable String operation) {
-        if (operation.equalsIgnoreCase("REFILL")) {
-            try {
+        int userId = userService.getIdByEmail(getPrincipalEmail());
+
+        try{
+            if (operation.equalsIgnoreCase("REFILL")) {
+                if (!refillService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
                 refillService.revokeRefillRequest(requestId);
-                return ResponseEntity.ok().build();
-            } catch (Exception e) {
-                logger.error("Failed to revoke request with id: " + requestId, e);
-                e.printStackTrace();
-            }
-        } else if (operation.equalsIgnoreCase("WITHDRAW")) {
-            try {
+            } else if (operation.equalsIgnoreCase("WITHDRAW")) {
+                if (!withdrawService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
                 withdrawService.revokeWithdrawalRequest(requestId);
-                return ResponseEntity.ok().build();
-            } catch (Exception e) {
-                logger.error("Failed to revoke request with id: " + requestId, e);
-                e.printStackTrace();
+            } else if (operation.equalsIgnoreCase("TRANSFER")) {
+                if (!transferService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                transferService.revokeTransferRequest(requestId);
             }
+            return ResponseEntity.ok().build();
+        }catch (Exception ex) {
+            logger.error(String.format("Failed to revoke request with id: %d and operation type: %s", requestId, operation), ex);
         }
         logger.error("Failed to revoke such request ({}) is not supported", operation);
         throw new NgBalanceException("Failed to revoke such for operation " + operation);
