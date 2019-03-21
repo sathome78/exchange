@@ -139,6 +139,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -674,7 +675,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
-    public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<OrderEvent> eventsList, boolean partialAccept) {
+    public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<ExOrder> eventsList, boolean partialAccept) {
         logTransaction("createOrder", "begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         ProfileData profileData = new ProfileData(200);
         try {
@@ -960,7 +961,7 @@ public class OrderServiceImpl implements OrderService {
                     logMessage = logMessage.concat(ids);
                 }
             }
-        } catch (NoTransactionExcepntion e) {
+        } catch (NoTransactionException e) {
             logMessage = String.format("%s error when complition log ", partOfLogging);
         }
         txLogger.info(logMessage);
