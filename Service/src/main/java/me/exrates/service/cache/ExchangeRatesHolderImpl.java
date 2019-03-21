@@ -7,6 +7,8 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.Market;
 import me.exrates.model.enums.TradeMarket;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

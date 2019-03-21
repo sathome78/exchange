@@ -127,7 +127,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
-        setBtcUsdAmoun(detailsPage.getItems());
+        setBtcUsdAmount(detailsPage.getItems());
 
         return detailsPage;
     }
