@@ -205,7 +205,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -225,7 +224,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -245,7 +243,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -265,7 +262,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -285,7 +281,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -305,7 +300,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -326,7 +320,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
