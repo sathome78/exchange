@@ -2381,7 +2381,7 @@ public class OrderServiceImpl implements OrderService {
             Row row = sheet.createRow(index++);
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateCreation()) ? order.getDateCreation() : order.getDateStatusModification()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(4, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
@@ -2390,7 +2390,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(order.getDateAcception()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateAcception()) ? order.getDateAcception() : order.getDateStatusModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
