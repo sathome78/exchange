@@ -155,7 +155,6 @@ public class NgBalanceController {
             }
         } catch (Exception ex) {
             logger.error(String.format("Failed to revoke request with id: %d and operation type: %s", requestId, operation), ex);
-            ex.printStackTrace();
         }
         logger.error("Failed to revoke such request ({}) is not supported", operation);
         throw new NgBalanceException("Failed to revoke such for operation " + operation);
