@@ -1,7 +1,9 @@
 package me.exrates.service.qiwi;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 @Log4j2(topic = "Qiwi")
+@Conditional(MonolitConditional.class)
 public class QiwiRecieveService {
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -29,9 +32,11 @@ public class QiwiRecieveService {
     private void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
 
-        qiwiExternalService.getLastTransactions().stream()
+        qiwiExternalService.getLastTransactions()
+                .stream()
                 .filter(trans -> trans.getTx_type().equals(TRANSACTION_TYPE)
-                        && trans.getTx_status().equals(TRANSACTION_STATUS)).forEach(transaction -> {
+                        && trans.getTx_status().equals(TRANSACTION_STATUS))
+                .forEach(transaction -> {
             try {
                 log.info("*** Qiwi *** Process transaction");
                 qiwiService.onTransactionReceive(transaction, transaction.getAmount(), transaction.getCurrency(), transaction.getProvider());

@@ -2,12 +2,14 @@ package me.exrates.model.vo;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.exrates.model.Commission;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -15,7 +17,8 @@ import java.math.BigDecimal;
  */
 @Getter @Setter
 @EqualsAndHashCode
-public class WalletOperationData {
+@NoArgsConstructor
+public class WalletOperationData implements Serializable {
 
     private OperationType operationType;
     private int walletId;
@@ -27,6 +30,7 @@ public class WalletOperationData {
     private Integer sourceId;
     private Transaction transaction;
     private String description;
+    private int currencyId;
 
     /**/
     public enum BalanceType {

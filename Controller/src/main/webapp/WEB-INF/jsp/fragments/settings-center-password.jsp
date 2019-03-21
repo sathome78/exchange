@@ -16,7 +16,7 @@
                                    modelAttribute="user">
                             <form:input path="id" type="hidden" class="form-control" id="user-id"/>
                             <form:input path="role" type="hidden" class="form-control" id="user-role"/>
-                            <form:input path="userStatus" type="hidden" class="form-control"
+                            <form:input path="status" type="hidden" class="form-control"
                                         id="user-status"/>
                             <div class="input-block-wrapper clearfix">
                                 <div class="col-md-4 input-block-wrapper__label-wrapper">

@@ -3,6 +3,7 @@ package me.exrates.service.job.invoice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -13,6 +14,7 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.nem.NemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "nem_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class NemJobs {
 
     @Autowired

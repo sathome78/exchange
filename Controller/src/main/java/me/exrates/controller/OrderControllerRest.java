@@ -6,23 +6,32 @@ import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.dao.exception.notfound.OrderNotFoundException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.qiwi.request.QiwiRequest;
-import me.exrates.model.dto.qiwi.request.QiwiRequestGetTransactions;
-import me.exrates.model.dto.qiwi.request.QiwiRequestHeader;
-import me.exrates.model.dto.qiwi.response.QiwiResponse;
-import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.AttemptToAcceptBotOrderException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
+import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.vo.ProfileData;
@@ -30,12 +39,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -145,7 +159,7 @@ public class OrderControllerRest {
         ProfileData profileData = new ProfileData(200);
         long before = System.currentTimeMillis();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(request.getUserPrincipal().getName()), UserOperationAuthority.TRADING);
-        if(!accessToOperationForUser) {
+        if (!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
         }
         /*restore protected orderCreateDto*/
@@ -168,8 +182,6 @@ public class OrderControllerRest {
                 throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
             } catch (OrderCreationException e) {
                 throw new OrderCreationException(messageSource.getMessage("order.createerror", new Object[]{e.getLocalizedMessage()}, localeResolver.resolveLocale(request)));
-            } catch (NotCreatableOrderException e) {
-                throw e;
             }
         } catch (Exception e) {
             long after = System.currentTimeMillis();
@@ -189,18 +201,16 @@ public class OrderControllerRest {
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
-        if(!accessToOperationForUser) {
+        if (!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
         }
         try {
-            List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
+            List<Integer> ordersList = Arrays.stream(ordersListString.split(" ")).map(Integer::valueOf).collect(Collectors.toList());
             try {
                 int userId = userService.getIdByEmail(principal.getName());
-                orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
+                orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request), null, false);
             } catch (AttemptToAcceptBotOrderException e) {
                 return "";
-            } catch (Exception e) {
-                throw e;
             }
             return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";
         } catch (Exception e) {
@@ -269,7 +279,7 @@ public class OrderControllerRest {
                     break;
                 }
                 default: {
-                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    result = orderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request), null, false);
                 }
             }
             if (!result) {

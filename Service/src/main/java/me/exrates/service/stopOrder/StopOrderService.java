@@ -74,4 +74,8 @@ public interface StopOrderService {
     OrderInfoDto getStopOrderInfo(int orderId, Locale locale);
 
     Object deleteOrderByAdmin(int id, Locale locale);
+
+    List<Integer> getAllOpenedStopOrdersByUserId(Integer userId);
+
+    List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair);
 }

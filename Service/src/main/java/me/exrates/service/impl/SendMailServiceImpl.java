@@ -26,49 +26,40 @@ import java.util.stream.Stream;
 
 @Log4j2(topic = "email_log")
 @Service
-@PropertySource(value = {"classpath:/mail.properties"})
+@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties"})
 public class SendMailServiceImpl implements SendMailService {
 
+    private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
+    private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newCachedThreadPool();
+    private static final String UTF8 = "UTF-8";
     @Autowired
     @Qualifier("SupportMailSender")
     private JavaMailSender supportMailSender;
-
     @Autowired
     @Qualifier("MandrillMailSender")
     private JavaMailSender mandrillMailSender;
-
     @Autowired
     @Qualifier("InfoMailSender")
     private JavaMailSender infoMailSender;
-
     @Value("${mail_info.allowedOnly}")
     private Boolean allowedOnly;
-
     @Value("${mail_info.allowedEmails}")
     private String allowedEmailsList;
-
     @Value("${default_mail_type}")
     private String mailType;
-
     @Value("${support.email}")
     private String supportEmail;
-
     @Value("${mandrill.email}")
     private String mandrillEmail;
-
     @Value("${info.email}")
     private String infoEmail;
-
     @Value("${listing.email}")
     private String listingEmail;
-
     @Value("${listing.subject}")
     private String listingSubject;
 
-    private final static ExecutorService EXECUTORS = Executors.newFixedThreadPool(8);
-    private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newFixedThreadPool(3);
-
-    private static final String UTF8 = "UTF-8";
+    @Value("${spring.profile}")
+    private String springProfile;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
@@ -133,7 +124,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendMail(email.toBuilder()
                                 .from(infoEmail)
                                 .build(),
-                        infoMailSender);
+                        springProfile.equalsIgnoreCase("prod") ? mandrillMailSender : infoMailSender);
             } catch (MailException ex) {
                 log.error(ex);
                 sendMail(email.toBuilder()

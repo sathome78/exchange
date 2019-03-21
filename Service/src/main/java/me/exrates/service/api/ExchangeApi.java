@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
@@ -56,7 +57,7 @@ public class ExchangeApi {
         ExchangeData body = responseEntity.getBody();
         return nonNull(body) && nonNull(body.rates) && !body.rates.isEmpty()
                 ? body.rates.entrySet().stream()
-                .collect(toMap(
+                .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> Pair.of(BigDecimal.valueOf(entry.getValue().usdRate), BigDecimal.valueOf(entry.getValue().btcRate))))
                 : Collections.emptyMap();
@@ -76,7 +77,7 @@ public class ExchangeApi {
         ExchangeData body = responseEntity.getBody();
         return nonNull(body) && nonNull(body.rates) && !body.rates.isEmpty()
                 ? body.rates.entrySet().stream()
-                .collect(toMap(
+                .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> Pair.of(BigDecimal.valueOf(entry.getValue().usdRate), BigDecimal.valueOf(entry.getValue().btcRate))))
                 : Collections.emptyMap();

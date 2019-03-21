@@ -2,6 +2,7 @@ package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawRequestPostDto;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
 @Service
 @Log4j2(topic = "job")
 @PropertySource(value = {"classpath:/job.properties"})
+@Conditional(MonolitConditional.class)
 public class withdrawRequestJob {
   
   

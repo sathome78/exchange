@@ -12,7 +12,7 @@ public interface ExchangeRatesHolder {
 
     void onRatesChange(ExOrder exOrder);
 
-    ExOrderStatisticsShortByPairsDto getOne(Integer id);
+    ExOrderStatisticsShortByPairsDto getOne(Integer currencyPairId);
 
     List<ExOrderStatisticsShortByPairsDto> getAllRates();
 

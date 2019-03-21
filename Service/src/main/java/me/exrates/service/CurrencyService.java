@@ -134,10 +134,9 @@ public interface CurrencyService {
 
     void updateWithdrawLimits();
 
-    List<Currency> getCurrencies(MerchantProcessType ... processType);
+    List<Currency> getCurrencies(MerchantProcessType... processType);
 
     List<CurrencyPair> getPairsByFirstPartName(String partName);
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
-
 }

@@ -31,8 +31,11 @@ public class StockChartServiceImpl implements StockChartService {
     @PostConstruct
     private void initTimeFramesMap() {
         List<ChartTimeFrame> availableTimeFrames = orderService.getChartTimeFrames();
-        Map<ChartResolution, ChartTimeFrame> result = availableTimeFrames.stream()
-                .collect(Collectors.toMap(ChartTimeFrame::getResolution, timeFrame -> timeFrame));
+        Map<ChartResolution, ChartTimeFrame> result = availableTimeFrames
+                .stream()
+                .collect(Collectors.toMap(
+                        ChartTimeFrame::getResolution,
+                        timeFrame -> timeFrame));
 
         timeFrames.putAll(result);
     }
@@ -50,8 +53,11 @@ public class StockChartServiceImpl implements StockChartService {
 
     @Override
     public Map<String, ChartTimeFrameDto> getTimeFramesByResolutions() {
-        return timeFrames.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().toString(),
-                entry -> new ChartTimeFrameDto(entry.getValue())));
+        return timeFrames.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().toString(),
+                        entry -> new ChartTimeFrameDto(entry.getValue())));
     }
 
     @Override

@@ -4,17 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
+import lombok.ToString;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString(exclude = "listCapturedDocs")
 public class KycAnalysisResultsDto {
 
     private String code;
-    private List<String> expectedDocTypes;
-    private List<String> listCapturedDocs;
+    private String[] expectedDocTypes;
+    private String[] listCapturedDocs;
     private KycAnalysisDataDto analysisData;
 }

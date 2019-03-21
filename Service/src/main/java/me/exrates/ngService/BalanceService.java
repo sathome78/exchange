@@ -29,8 +29,6 @@ public interface BalanceService {
 
     PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
 
-    PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
-
     List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(TransactionFilterDataDto filter, Locale locale);
 
     Map<String, BigDecimal> getBalancesSumInBtcAndUsd();

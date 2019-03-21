@@ -15,7 +15,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -61,18 +61,22 @@ public class WithdrawRequestAdminController {
     public ModelAndView withdrawalRequests(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
         List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-                .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+                .stream()
+                .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                 .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
                 .collect(Collectors.toList());
         params.put("currencies", permittedCurrencies);
         if (!permittedCurrencies.isEmpty()) {
-            List<Integer> currencyList = permittedCurrencies.stream()
+            List<Integer> currencyList = permittedCurrencies
+                    .stream()
                     .map(UserCurrencyOperationPermissionDto::getCurrencyId)
                     .collect(Collectors.toList());
             List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.OUTPUT)
                     .stream()
                     .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-                    .distinct().sorted(Comparator.comparing(Merchant::getName)).collect(Collectors.toList());
+                    .distinct()
+                    .sorted(Comparator.comparing(Merchant::getName))
+                    .collect(Collectors.toList());
             params.put("merchants", merchants);
         }
         return new ModelAndView("withdrawalRequests", params);
@@ -87,7 +91,10 @@ public class WithdrawRequestAdminController {
             Principal principal,
             Locale locale) {
         WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
+        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList()
+                .stream()
+                .map(WithdrawStatusEnum::getCode)
+                .collect(Collectors.toList());
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         withdrawFilterData.initFilterItems();
         return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
@@ -101,11 +108,16 @@ public class WithdrawRequestAdminController {
             Principal principal,
             Locale locale) {
         WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
+        List<Integer> statusList = viewTypeEnum.getWithdrawStatusList()
+                .stream()
+                .map(WithdrawStatusEnum::getCode)
+                .collect(Collectors.toList());
         DataTableParams dataTableParams = DataTableParams.defaultParams();
         withdrawFilterData.initFilterItems();
         return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale)
-                .getData().stream().map(dto -> new WithdrawRequestTableReportDto(dto).toString())
+                .getData()
+                .stream()
+                .map(dto -> new WithdrawRequestTableReportDto(dto).toString())
                 .collect(Collectors.joining("", WithdrawRequestTableReportDto.getTitle(), ""));
     }
 

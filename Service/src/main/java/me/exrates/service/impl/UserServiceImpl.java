@@ -12,7 +12,14 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.NotificationsUserSetting;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
@@ -25,11 +32,27 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.service.*;
+import me.exrates.service.NotificationService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
+import me.exrates.service.UserSettingService;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.AuthenticationNotAvailableException;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
+import me.exrates.service.exception.CommentNonEditableException;
+import me.exrates.service.exception.ForbiddenOperationException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.ResetPasswordExpirationException;
+import me.exrates.service.exception.TokenNotFoundException;
+import me.exrates.service.exception.UnRegisteredUserDeleteException;
+import me.exrates.service.exception.UserCommentNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.dao.exception.notfound.UserRoleNotFoundException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
@@ -40,7 +63,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,10 +75,17 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -115,7 +144,9 @@ public class UserServiceImpl implements UserService {
 
     private final int USER_2FA_NOTIFY_DAYS = 6;
 
-    private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values())
+            .map(UserRole::name)
+            .collect(Collectors.toSet());
     private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
 
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
@@ -605,7 +636,6 @@ public class UserServiceImpl implements UserService {
         if (!("ru".equalsIgnoreCase(lang) || "en".equalsIgnoreCase(lang))) {
             lang = "en";
         }
-
         return new Locale(lang);
     }
 
@@ -674,7 +704,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale) {
-        return userDao.getAuthorityOptionsForUser(userId).stream()
+        return userDao.getAuthorityOptionsForUser(userId)
+                .stream()
                 .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
                 .peek(option -> option.localize(messageSource, locale))
                 .collect(Collectors.toList());
@@ -683,7 +714,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId) {
-        return userDao.getAuthorityOptionsForUser(userId).stream()
+        return userDao.getAuthorityOptionsForUser(userId)
+                .stream()
                 .filter(AdminAuthorityOption::getEnabled)
                 .collect(Collectors.toList());
     }
@@ -709,10 +741,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserRole getUserRoleFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (Objects.isNull(authentication)) {
+            throw new AuthenticationNotAvailableException();
+        }
         String grantedAuthority = authentication.getAuthorities().
-                stream().map(GrantedAuthority::getAuthority)
+                stream()
+                .map(GrantedAuthority::getAuthority)
                 .filter(USER_ROLES::contains)
-                .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
+                .findFirst()
+                .orElse(ROLE_DEFAULT_COMMISSION.name());
         LOGGER.debug("Granted authority: " + grantedAuthority);
         return UserRole.valueOf(grantedAuthority);
     }
@@ -723,7 +761,8 @@ public class UserServiceImpl implements UserService {
         Integer userId = userCurrencyOperationPermissionDtoList.get(0).getUserId();
         userDao.setCurrencyPermissionsByUserId(
                 userId,
-                userCurrencyOperationPermissionDtoList.stream()
+                userCurrencyOperationPermissionDtoList
+                        .stream()
                         .filter(e -> e.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                         .collect(Collectors.toList()));
     }
@@ -740,7 +779,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public String getEmailById(Integer id) {
-
         return userDao.getEmailById(id);
     }
 
@@ -819,7 +857,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getUserEmailFromSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
+        if (Objects.isNull(auth)) {
             throw new AuthenticationNotAvailableException();
         }
         return auth.getName();
@@ -923,7 +961,10 @@ public class UserServiceImpl implements UserService {
     public UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         String startTimeString = startTime.toString();
         String endTimeString = endTime.toString();
-        final String rolesString = userRoles.stream().map(UserRole::getName).collect(joining("-"));
+        final String rolesString = userRoles
+                .stream()
+                .map(UserRole::getName)
+                .collect(joining("-"));
 
         String key = String.join("/", startTimeString, endTimeString, rolesString);
 
@@ -947,27 +988,32 @@ public class UserServiceImpl implements UserService {
     public UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         UsersInfoDto usersInfo = userDao.getUsersInfo(startTime, endTime, userRoles);
 
-        Map<Integer, List<UserBalancesDto>> usersBalances = userDao.getUserBalances(userRoles).stream()
+        Map<Integer, List<UserBalancesDto>> usersBalances = userDao.getUserBalances(userRoles)
+                .stream()
                 .collect(Collectors.groupingBy(UserBalancesDto::getUserId));
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return usersInfo.toBuilder()
-                .notZeroBalanceUsers((int) usersBalances.entrySet().stream()
+                .notZeroBalanceUsers((int) usersBalances.entrySet()
+                        .stream()
                         .filter(entry -> {
-                            double sum = entry.getValue().stream().mapToDouble(balance -> {
-                                final String currencyName = balance.getCurrencyName();
-                                double activeBalance = balance.getActiveBalance().doubleValue();
-                                double reservedBalance = balance.getReservedBalance().doubleValue();
+                            double sum = entry.getValue()
+                                    .stream()
+                                    .mapToDouble(balance -> {
+                                        final String currencyName = balance.getCurrencyName();
+                                        double activeBalance = balance.getActiveBalance().doubleValue();
+                                        double reservedBalance = balance.getReservedBalance().doubleValue();
 
-                                Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-                                if (isNull(ratePair)) {
-                                    ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-                                }
-                                final double usdRate = ratePair.getLeft().doubleValue();
+                                        Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
+                                        if (isNull(ratePair)) {
+                                            ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
+                                        }
+                                        final double usdRate = ratePair.getLeft().doubleValue();
 
-                                return (activeBalance + reservedBalance) * usdRate;
-                            }).sum();
+                                        return (activeBalance + reservedBalance) * usdRate;
+                                    })
+                                    .sum();
 
                             return sum >= 1;
                         })
@@ -1024,8 +1070,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycStatusById(String email, String status) {
+    public boolean updateKycStatusByEmail(String email, String status) {
         return userDao.updateKycStatusByEmail(email, status);
+    }
+
+    @Override
+    public String getKycReferenceByEmail(String email) {
+        return userDao.findKycReferenceByUserEmail(email);
     }
 
 }

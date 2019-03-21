@@ -21,7 +21,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.RequestLimitExceededException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -69,23 +69,27 @@ public class RefillRequestAdminController {
     public ModelAndView refillRequests(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
         List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
-                .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+                .stream()
+                .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                 .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))
                 .collect(Collectors.toList());
         params.put("currencies", permittedCurrencies);
         if (!permittedCurrencies.isEmpty()) {
-            List<Integer> currencyList = permittedCurrencies.stream()
+            List<Integer> currencyList = permittedCurrencies
+                    .stream()
                     .map(UserCurrencyOperationPermissionDto::getCurrencyId)
                     .collect(Collectors.toList());
             List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.INPUT)
                     .stream()
                     .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-                    .distinct().sorted(Comparator.comparing(Merchant::getName))
+                    .distinct()
+                    .sorted(Comparator.comparing(Merchant::getName))
                     .collect(Collectors.toList());
             params.put("merchants", merchants);
         }
         List<Integer> ids = merchantService.getIdsByProcessType(Collections.singletonList("CRYPTO"));
-        params.put("cryptoCurrencies", permittedCurrencies.stream()
+        params.put("cryptoCurrencies", permittedCurrencies
+                .stream()
                 .filter(p -> ids.contains(p.getCurrencyId()) && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE))
                 .collect(Collectors.toList()));
         return new ModelAndView("refillRequests", params);
@@ -100,7 +104,10 @@ public class RefillRequestAdminController {
             Principal principal,
             Locale locale) {
         RefillRequestTableViewTypeEnum viewTypeEnum = RefillRequestTableViewTypeEnum.convert(viewTypeName);
-        List<Integer> statusList = viewTypeEnum.getRefillStatusList().stream().map(RefillStatusEnum::getCode).collect(Collectors.toList());
+        List<Integer> statusList = viewTypeEnum.getRefillStatusList()
+                .stream()
+                .map(RefillStatusEnum::getCode)
+                .collect(Collectors.toList());
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         refillFilterData.initFilterItems();
         return refillService.getRefillRequestByStatusList(statusList, dataTableParams, refillFilterData, principal.getName(), locale);
@@ -127,7 +134,9 @@ public class RefillRequestAdminController {
                 .filter(dto -> dto.getInvoiceOperationPermission() == InvoiceOperationPermission.ACCEPT_DECLINE)
                 .collect(Collectors.toList());
         Preconditions.checkArgument(
-                permittedCurrencies.stream().anyMatch(p -> p.getCurrencyId().equals(refillDto.getCurrency())),
+                permittedCurrencies
+                        .stream()
+                        .anyMatch(p -> p.getCurrencyId().equals(refillDto.getCurrency())),
                 "Access decline");
         Integer id = refillService.manualCreateRefillRequestCrypto(refillDto, locale);
         return new JSONObject().put("message", messageSource.getMessage("message.refill.manual.created",

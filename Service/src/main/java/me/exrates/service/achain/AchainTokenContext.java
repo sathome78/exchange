@@ -1,6 +1,8 @@
 package me.exrates.service.achain;
 
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +13,7 @@ import java.util.Map;
  * Created by Maks on 15.06.2018.
  */
 @Service
+@Conditional(MonolitConditional.class)
 public class AchainTokenContext {
 
 

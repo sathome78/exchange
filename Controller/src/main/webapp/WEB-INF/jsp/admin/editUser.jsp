@@ -235,7 +235,7 @@
                                 code="admin.status"/></label>
                       </div>
                       <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:select path="userStatus" id="user-status"
+                        <form:select path="status" id="user-status"
                                      class="input-block-wrapper__input admin-form-input"
                                      name="user-status">
                           <c:forEach items="${statusList}" var="status">

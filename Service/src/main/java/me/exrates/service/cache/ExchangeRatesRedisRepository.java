@@ -23,7 +23,7 @@ public class ExchangeRatesRedisRepository {
     @Autowired
     public ExchangeRatesRedisRepository(RedisTemplate<String, Object> redisTemplate) {
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
-        redisTemplate.delete(key);
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(ExOrderStatisticsShortByPairsDto.class));
         ops = redisTemplate.opsForHash();
     }
 
@@ -65,8 +65,4 @@ public class ExchangeRatesRedisRepository {
         pairsDtoList.forEach(this::update);
     }
 
-
-    public boolean isEmpty() {
-        return ops.size(key) == 0;
-    }
 }

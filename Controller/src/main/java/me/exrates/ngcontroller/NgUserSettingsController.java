@@ -9,7 +9,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.ngcontroller.constant.Constants;
+import me.exrates.model.constants.Constants;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.WrongPasswordException;
 import me.exrates.model.ngModel.ExceptionDto;
@@ -25,7 +25,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -194,7 +194,9 @@ public class NgUserSettingsController {
             return notificationService
                     .getNotificationOptionsByUser(userId)
                     .stream()
-                    .collect(Collectors.toMap(NotificationOption::getEvent, NotificationOption::isSendEmail));
+                    .collect(Collectors.toMap(
+                            NotificationOption::getEvent,
+                            NotificationOption::isSendEmail));
         } catch (Exception e) {
             return Collections.emptyMap();
         }

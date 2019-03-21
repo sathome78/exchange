@@ -4,10 +4,12 @@ package me.exrates.service.qtum;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.qtum.*;
 import me.exrates.service.exception.QtumApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.*;
 @Service
 @Log4j2(topic = "qtum_log")
 @PropertySource("classpath:/merchants/qtum.properties")
+@Conditional(MonolitConditional.class)
 public class QtumNodeServiceImpl implements QtumNodeService {
 
     @Autowired

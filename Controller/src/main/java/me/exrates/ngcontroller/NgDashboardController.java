@@ -23,9 +23,9 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.OrderAcceptionException;
-import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -80,9 +80,7 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
-    private final SimpMessagingTemplate messagingTemplate;
     private final StopOrderService stopOrderService;
-    private final StopOrderService stopOrderServiceImpl;
 
 
     @Autowired
@@ -93,18 +91,15 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 SimpMessagingTemplate messagingTemplate,
-                                 StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
+                                 StopOrderService stopOrderService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
-        this.stopOrderServiceImpl = stopOrderServiceImpl;
     }
 
     // /info/private/v2/dashboard/order
@@ -163,7 +158,7 @@ public class NgDashboardController {
 //
 //        if (result) {
 //            String destination = "/topic/myorders/".concat(userName);
-//            messagingTemplate.convertAndSend(destination, fromResult(result));
+//            simpMessagingTemplate.convertAndSend(destination, fromResult(result));
 //            return ResponseEntity.ok().build();
 //        }
 //        return ResponseEntity.badRequest().build();
@@ -337,7 +332,7 @@ public class NgDashboardController {
         if (orderById != null) {
             return new ResponseModel<>(orderService.cancelOrder(orderId));
         } else {
-            return new ResponseModel<>(stopOrderServiceImpl.cancelOrder(orderId, null));
+            return new ResponseModel<>(stopOrderService.cancelOrder(orderId, null));
         }
     }
 
@@ -360,7 +355,6 @@ public class NgDashboardController {
      */
     @PostMapping("/cancel/all")
     public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
-
         boolean canceled;
         if (nonNull(pairName)) {
             pairName = pairName.toUpperCase();

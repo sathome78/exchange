@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
@@ -108,10 +108,11 @@ public class NgUserController {
 
         User user = authenticateUser(authenticationDto, request);
 
+        String ipAddress = request.getHeader("X-Forwarded-For");
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
             if (!shouldLoginWithGoogle) {
-                secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                secureService.sendLoginPincode(user, request, ipAddress);
             }
             String mode = shouldLoginWithGoogle ? "GOOGLE" : "EMAIL";
             String message = String.format("User with email: %s must login with %s authorization code", authenticationDto.getEmail(), mode);
@@ -128,7 +129,7 @@ public class NgUserController {
         } else {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
                 if (authenticationDto.getTries() % 3 == 0 && authenticationDto.getTries() > 1) {
-                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                    secureService.sendLoginPincode(user, request, ipAddress);
                 }
                 String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
                 throw new NgResponseException("EMAIL_AUTHORIZATION_FAILED", message);

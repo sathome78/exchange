@@ -23,8 +23,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.SimpleOrderBookItem;
-import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -54,13 +53,14 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import me.exrates.service.events.OrderEvent;
+import me.exrates.service.events.OrderEvent;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.Null;
-import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -99,7 +99,9 @@ public interface OrderService {
      * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
      * @return generated ID of the newly created order, or 0 if order was not be created
      */
-    int createOrder(OrderCreateDto order, OrderActionEnum action);
+    int createOrder(OrderCreateDto order, OrderActionEnum action, List<ExOrder> eventsList, boolean sendEvent);
+
+    int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action);
 
     @Transactional
     void postBotOrderToDb(OrderCreateDto orderCreateDto);
@@ -171,7 +173,7 @@ public interface OrderService {
      * @param ordersList     is list the ID of order that must be accepted
      * @param locale         is current locale. Used to generate messages
      */
-    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale);
+    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<ExOrder> eventsList, boolean partialAccept);
 
     /**
      * Accepts the order
@@ -208,7 +210,7 @@ public interface OrderService {
      * @param exOrder is the entity ExOrder of order that must be cancelled
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
-    boolean cancelOrder(ExOrder exOrder, Locale locale);
+    boolean cancelOrder(ExOrder exOrder, Locale locale, List<ExOrder> acceptEventsList, boolean forPartialAccept);
 
     /**
      * Updates order's fields:
@@ -252,7 +254,7 @@ public interface OrderService {
 
     Object deleteOrderByAdmin(int orderId);
 
-    Object deleteOrderForPartialAccept(int orderId);
+    Object deleteOrderForPartialAccept(int orderId, List<ExOrder> acceptEventsList);
 
     /**
      * Searches order by its params:
@@ -472,9 +474,9 @@ public interface OrderService {
                                              String scope, boolean hideCanceled,
                                              Locale locale, LocalDate dateFrom, LocalDate dateTo);
 
-    void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response);
+    ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 
-    void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response);
+    ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception;
 
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
@@ -483,6 +485,8 @@ public interface OrderService {
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
+
+    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
 
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
 }

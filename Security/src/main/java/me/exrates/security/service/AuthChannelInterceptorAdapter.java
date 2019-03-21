@@ -30,7 +30,6 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        System.out.println(message);
         if (StompCommand.CONNECT.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             final String ip = accessor.getFirstNativeHeader(IP_HEADER);
             if (!StringUtils.isEmpty(accessor.getFirstNativeHeader(HEADER_SIGNATURE))) {

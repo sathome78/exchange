@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -126,7 +127,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
-        setBtcUsdAmount(detailsPage.getItems());
+        setBtcUsdAmoun(detailsPage.getItems());
 
         return detailsPage;
     }
@@ -140,7 +141,7 @@ public class BalanceServiceImpl implements BalanceService {
                 .findFirst();
     }
 
-    private void setBtcUsdAmount(List<MyWalletsDetailedDto> walletsDetails) {
+    private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
         Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
         Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
 
@@ -167,7 +168,7 @@ public class BalanceServiceImpl implements BalanceService {
                             Date dateTwo = getDateFromString(o2.getDate());
                             return dateTwo.compareTo(dateOne);
                         }))
-                        .collect(toList());
+                        .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
     }
 
@@ -180,21 +181,6 @@ public class BalanceServiceImpl implements BalanceService {
 
     @Override
     public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
-        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(filter, locale);
-
-        List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();
-        if (recordsCount > 0) {
-            historyDtoList = getMyInputOutputHistoryDtos(filter, locale);
-
-            setAcceptedToDefineUserTransferOperation(historyDtoList, filter.getEmail());
-        }
-        PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
-        pagedResult.setCount(recordsCount);
-        pagedResult.setItems(historyDtoList);
-        return pagedResult;
-    }
-
-    public PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(filter, locale);
 
         List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();

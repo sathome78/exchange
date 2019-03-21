@@ -1,6 +1,6 @@
 package me.exrates.security.service.impl;
 
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.security.service.UserSecureService;
 import org.apache.logging.log4j.LogManager;
@@ -41,8 +41,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private Collection<GrantedAuthority> getAuthorities(String login)
 	{
 		logger.trace("Begin 'getAuthorities' method");
-        Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login).stream()
-                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login)
+				.stream()
+                .map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toList());
         logger.debug(authList);
 		return authList;
 	}

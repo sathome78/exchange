@@ -1,5 +1,6 @@
 package me.exrates.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,9 +19,10 @@ public class ExOrderDto {
 
     private int id;
     private int currencyPairId;
+    @JsonProperty("order_type")
     private OperationType operationType;
-    private BigDecimal exRate;
-    private BigDecimal amountBase;
+    private BigDecimal price;
+    private BigDecimal amount;
     private BigDecimal amountConvert;
     private BigDecimal commission;
     private int userAcceptorId;
@@ -38,8 +40,8 @@ public class ExOrderDto {
         exOrderDto.setId(exOrder.getId());
         exOrderDto.setCurrencyPairId(exOrder.getCurrencyPairId());
         exOrderDto.setOperationType(exOrder.getOperationType());
-        exOrderDto.setExRate(exOrder.getExRate());
-        exOrderDto.setAmountBase(exOrder.getAmountBase());
+        exOrderDto.setPrice(exOrder.getExRate());
+        exOrderDto.setAmount(exOrder.getAmountBase());
         exOrderDto.setAmountConvert(exOrder.getAmountConvert());
         exOrderDto.setCommission(exOrder.getCommissionFixedAmount());
         exOrderDto.setUserAcceptorId(exOrder.getUserAcceptorId());

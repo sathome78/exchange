@@ -25,14 +25,20 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private String predLastOrderRate;
     private String percentChange;
     private String market;
-    private String volume;
     private String priceInUSD;
     private CurrencyPairType type;
     @JsonIgnore
     private Integer pairOrder;
     @JsonIgnore
     private Integer currency1Id;
+    private String volume;
     private String currencyVolume;
+
+    private String high24hr;
+    private String low24hr;
+
+    private boolean hidden;
+    private String lastUpdateCache;
 
     public ExOrderStatisticsShortByPairsDto() {
         this.needRefresh = true;
@@ -42,17 +48,24 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
         this.needRefresh = needRefresh;
     }
 
-    public ExOrderStatisticsShortByPairsDto(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
-        this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
-        this.page = exOrderStatisticsShortByPairsDto.page;
-        this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
-        this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.currencyPairPrecision;
-        this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
-        this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
-        this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
-        this.type = exOrderStatisticsShortByPairsDto.type;
-        this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
-        this.pairOrder = exOrderStatisticsShortByPairsDto.pairOrder;
+    public ExOrderStatisticsShortByPairsDto(ExOrderStatisticsShortByPairsDto statistic) {
+        this.needRefresh = statistic.needRefresh;
+        this.page = statistic.page;
+        this.currencyPairId = statistic.currencyPairId;
+        this.currencyPairName = statistic.currencyPairName;
+        this.currencyPairPrecision = statistic.currencyPairPrecision;
+        this.lastOrderRate = statistic.lastOrderRate;
+        this.predLastOrderRate = statistic.predLastOrderRate;
+        this.percentChange = statistic.percentChange;
+        this.market = statistic.market;
+        this.priceInUSD = statistic.priceInUSD;
+        this.type = statistic.type;
+        this.pairOrder = statistic.pairOrder;
+        this.currency1Id = statistic.currency1Id;
+        this.volume = statistic.volume;
+        this.currencyVolume = statistic.currencyVolume;
+        this.high24hr = statistic.high24hr;
+        this.low24hr = statistic.low24hr;
     }
 
     @Override

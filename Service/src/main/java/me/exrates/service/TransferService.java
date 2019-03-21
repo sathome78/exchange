@@ -52,4 +52,6 @@ public interface TransferService {
           Locale locale);
 
     String getHash(Integer id, Principal principal);
+
+    void revokeTransferRequest(Integer requestId);
 }

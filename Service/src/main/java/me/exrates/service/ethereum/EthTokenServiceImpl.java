@@ -9,6 +9,8 @@ import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
@@ -21,6 +23,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -59,6 +62,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2(topic = "eth_tokens_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class EthTokenServiceImpl implements EthTokenService {
 
     private Merchant merchant;
@@ -274,7 +278,7 @@ public class EthTokenServiceImpl implements EthTokenService {
         }
     }
 
-    private void transferFundsToMainAccount() {
+    private void transferFundsToMainAccount(){
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto) {
             try {

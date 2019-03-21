@@ -7,7 +7,6 @@ import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -104,7 +103,9 @@ public class CommonMerchantsController {
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
             modelAndView.addObject("warningCodeList", warningCodeList);
             modelAndView.addObject("isAmountInputNeeded", merchantCurrencyData.size() > 0
-                    && merchantCurrencyData.stream().anyMatch(cd -> cd.getProcessType().equalsIgnoreCase(MERCHANT)));
+                    && merchantCurrencyData
+                    .stream()
+                    .anyMatch(cd -> cd.getProcessType().equalsIgnoreCase(MERCHANT)));
             return modelAndView;
         } catch (Exception e) {
             ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");

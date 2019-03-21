@@ -105,7 +105,9 @@ public class ChatController {
     public String downloadChatMessages(@RequestParam("lang") String lang) {
         chatService.flushCache();
         List<ChatHistoryDto> result = chatService.getChatHistory(ChatLang.toInstance(lang));
-        return result.stream().map(ChatHistoryDto::toString)
+        return result
+                .stream()
+                .map(ChatHistoryDto::toString)
                 .collect(Collectors.joining("", ChatHistoryDto.getTitle(), ""));
     }
 

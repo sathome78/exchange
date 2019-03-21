@@ -189,7 +189,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-            .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ico_dashboard/**", "/registrationConfirm/**",
+            .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ieo_dashboard/**", "/registrationConfirm/**",
                     "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
             .antMatchers(POST, "/merchants/withdrawal/request/accept",
                     "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
@@ -261,6 +261,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**", "/adsffefe/csrf", "/trade_pairs").permitAll()
             .antMatchers("/resetPasswordConfirm/**").permitAll()
             .antMatchers("/forgotPassword/**").permitAll()
+            .antMatchers(GET, "/inout/**").permitAll()
+            .antMatchers(POST,"/inout/**").permitAll()
             .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
             .antMatchers(GET, "/stockChart/timeFrames").permitAll()
             .antMatchers(GET, "/nodes/**").permitAll()
@@ -269,6 +271,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
             .antMatchers("/updatePassword", "/createPassword").permitAll()
+            .antMatchers(POST, "/ieo/subscribe").permitAll()
             .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
@@ -312,7 +315,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .invalidateHttpSession(true)
             .and()
             .csrf().ignoringAntMatchers("/login")
-            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**", "/chat-ko/**",
+            .ignoringAntMatchers("/inout/**", "/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**", "/chat-ko/**",
                     "/public_socket/", "/public_socket/**",
                     "/merchants/perfectmoney/payment/status",
                     "/merchants/perfectmoney/payment/failure",

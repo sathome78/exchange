@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequestAddressShortDto;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
@@ -23,6 +24,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -35,6 +37,7 @@ import java.util.Map;
 
 @Log4j2(topic = "omni_log")
 @Service
+@Conditional(MonolitConditional.class)
 public class OmniServiceImpl implements OmniService {
 
     private final WithdrawUtils withdrawUtils;
@@ -181,7 +184,11 @@ public class OmniServiceImpl implements OmniService {
     public OmniBalanceDto getUsdtBalances() {
         try {
             List<OmniBalanceDto> dtos = objectMapper.readValue(omniNodeService.getOmniBalances(), new TypeReference<List<OmniBalanceDto>>(){});
-            return dtos.stream().filter(p -> USDT_PROPERTY_ID.equals(p.getPropertyid())).findFirst().orElse(OmniBalanceDto.getZeroBalancesDto(USDT_PROPERTY_ID, USDT_TOKEN_NAME));
+            return dtos
+                    .stream()
+                    .filter(p -> USDT_PROPERTY_ID.equals(p.getPropertyid()))
+                    .findFirst()
+                    .orElse(OmniBalanceDto.getZeroBalancesDto(USDT_PROPERTY_ID, USDT_TOKEN_NAME));
         } catch (IOException e) {
            log.error(e);
             return null;
