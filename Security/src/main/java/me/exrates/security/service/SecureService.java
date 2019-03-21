@@ -32,4 +32,7 @@ public interface SecureService {
     NotificationResultDto sendLoginPincode(User user, HttpServletRequest request, String ipAddress);
 
     void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale);
+
+    NotificationResultDto sendWithdrawPinCode(User user, String amount, String currencyName);
+
 }

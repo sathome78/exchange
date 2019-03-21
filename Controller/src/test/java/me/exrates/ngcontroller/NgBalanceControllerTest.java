@@ -512,7 +512,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getDefaultMyInputOutputData_exception() throws Exception {
-        String ngBalanceException = "Failed to get user inputOutputData as null";
+        String ngBalanceException = "Failed to get user default inputOutputData as null";
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/inputOutputData/default")
