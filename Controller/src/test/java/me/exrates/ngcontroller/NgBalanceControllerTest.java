@@ -1,6 +1,8 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
@@ -13,9 +15,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,25 +35,22 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.Map;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -201,15 +198,16 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         RefillRequestFlatDto dto = new RefillRequestFlatDto();
         dto.setUserId(100);
 
-        doNothing().when(refillService).revokeRefillRequest(anyInt());
-
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(refillService.getFlatById(anyInt())).thenReturn(dto);
+        doNothing().when(refillService).revokeRefillRequest(anyInt());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(refillService, times(1)).getFlatById(anyInt());
         verify(refillService, times(1)).revokeRefillRequest(anyInt());
     }
 
@@ -220,8 +218,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         RefillRequestFlatDto dto = new RefillRequestFlatDto();
         dto.setUserId(10);
 
-        doNothing().when(refillService).revokeRefillRequest(anyInt());
-
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(refillService.getFlatById(anyInt())).thenReturn(dto);
 
@@ -229,95 +225,108 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
 
-        reset(refillService, userService, refillService);
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(refillService, times(1)).getFlatById(anyInt());
     }
 
     @Test
-    @Ignore
     public void revokeWithdrawRequest_isOwnerWithdraw() throws Exception {
         Integer requestId = 225;
         String operation = "WITHDRAW";
-        RefillRequestFlatDto dto = new RefillRequestFlatDto();
+        WithdrawRequestFlatDto dto = new WithdrawRequestFlatDto();
         dto.setUserId(100);
 
-        doNothing().when(withdrawService).revokeWithdrawalRequest(anyInt());
         when(userService.getIdByEmail(anyString())).thenReturn(100);
-        when(refillService.getFlatById(anyInt())).thenReturn(dto);
+        when(withdrawService.getFlatById(anyInt())).thenReturn(dto);
+        doNothing().when(withdrawService).revokeWithdrawalRequest(anyInt());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(withdrawService, times(1)).getFlatById(anyInt());
+        verify(withdrawService, times(1)).revokeWithdrawalRequest(anyInt());
     }
 
     @Test
-    @Ignore
     public void revokeWithdrawRequest_isNotOwnerWithdraw() throws Exception {
         Integer requestId = 225;
         String operation = "WITHDRAW";
-        RefillRequestFlatDto dto = new RefillRequestFlatDto();
+        WithdrawRequestFlatDto dto = new WithdrawRequestFlatDto();
         dto.setUserId(100);
 
-        doNothing().when(withdrawService).revokeWithdrawalRequest(anyInt());
-        when(userService.getIdByEmail(anyString())).thenReturn(100);
-        when(refillService.getFlatById(anyInt())).thenReturn(dto);
+        when(userService.getIdByEmail(anyString())).thenReturn(225);
+        when(withdrawService.getFlatById(anyInt())).thenReturn(dto);
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
+
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(withdrawService, times(1)).getFlatById(anyInt());
     }
 
     @Test
-    @Ignore
     public void revokeTransferRequest_isOk() throws Exception {
         Integer requestId = 225;
         String operation = "TRANSFER";
+        TransferRequestFlatDto dto = new TransferRequestFlatDto();
+        dto.setUserId(100);
 
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(transferService.getFlatById(anyInt())).thenReturn(dto);
         doNothing().when(transferService).revokeTransferRequest(anyInt());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(transferService, times(1)).getFlatById(anyInt());
         verify(transferService, times(1)).revokeTransferRequest(anyInt());
     }
 
     @Test
-    @Ignore
+    public void revokeTransferRequest_forbidden() throws Exception {
+        Integer requestId = 225;
+        String operation = "TRANSFER";
+        TransferRequestFlatDto dto = new TransferRequestFlatDto();
+        dto.setUserId(225);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(transferService.getFlatById(anyInt())).thenReturn(dto);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(transferService, times(1)).getFlatById(anyInt());
+    }
+
+    @Test
     public void revokeWithdrawRequest_NgBalanceException() throws Exception {
         Integer requestId = 225;
-        String errorOperation = "LLIFER";
-        String ngBalanceException = "Failed to revoke such for operation LLIFER";
+        String operation = "REFILL";
+        RefillRequestFlatDto dto = new RefillRequestFlatDto();
+        dto.setUserId(100);
 
-        doNothing().when(refillService).revokeRefillRequest(anyInt());
+        String ngBalanceException = "Failed to revoke such for operation REFILL";
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(refillService.getFlatById(anyInt())).thenThrow(Exception.class);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, operation)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
-        verify(refillService, never()).revokeRefillRequest(anyInt());
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(refillService, times(1)).getFlatById(anyInt());
     }
 
     @Test
-    @Ignore
-    public void revokeWithdrawRequest_exception() throws Exception {
-        Integer requestId = 225;
-        String errorOperation = "LLIFER";
-        String ngBalanceException = "Failed to revoke such for operation LLIFER";
-
-        doThrow(Exception.class).doNothing().when(refillService).revokeRefillRequest(anyInt());
-
-        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URL + "/pending/revoke/{requestId}/{operation}", requestId, errorOperation)
-                .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(jsonPath("$.detail", is(ngBalanceException)));
-
-        verify(refillService, never()).revokeRefillRequest(anyInt());
-    }
-
-    @Test
-    @Ignore
     public void getUserTotalBalance_resultWallet_size_equals_one() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/totalBalance")
