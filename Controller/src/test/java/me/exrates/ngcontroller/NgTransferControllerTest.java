@@ -42,7 +42,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,7 +100,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/accept")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(rateLimitService, times(1)).checkLimitsExceed(anyString());
@@ -120,7 +118,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/accept")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isNotFound());
 
         verify(rateLimitService, times(1)).checkLimitsExceed(anyString());
@@ -142,7 +139,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/accept")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userToNickName").value("TEST_USER_TO_NICK_NAME"))
                 .andExpect(jsonPath("$.currencyId").value(100))
@@ -174,7 +170,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
                 .param("amount", "0.00165000")
                 .param("currency", "20")
                 .param("type", "TRANSFER"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasKey("TEST_KEY")))
                 .andExpect(jsonPath("$", Matchers.hasValue("TEST_VALUE")));
@@ -194,8 +189,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.INPUT, "TEST_RECIPIENT"))))
-                .andDo(print());
+                .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.INPUT, "TEST_RECIPIENT"))));
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -212,8 +206,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -231,8 +224,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "КИРИЛЛИЦА"))))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -252,8 +244,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -273,7 +264,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
         when(merchantService.findMerchantForTransferByCurrencyId(anyInt(), anyObject())).thenReturn(getMockMerchantCurrency());
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
-                .thenReturn(java.util.Optional.ofNullable(getMockCreditsOperation()));
+                .thenReturn(getMockCreditsOperation());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.TRUE);
@@ -282,7 +273,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasKey("TEST_KEY")))
                 .andExpect(jsonPath("$", Matchers.hasValue("TEST_OBJECT")));
@@ -308,7 +298,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
         when(merchantService.findMerchantForTransferByCurrencyId(anyInt(), anyObject())).thenReturn(getMockMerchantCurrency());
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
-                .thenReturn(java.util.Optional.ofNullable(getMockCreditsOperation()));
+                .thenReturn(getMockCreditsOperation());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyObject())).thenReturn(Boolean.FALSE);
@@ -316,7 +306,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is("Incorrect Google 2FA oauth code: TEST_PIN")));
 
@@ -341,7 +330,7 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
         when(merchantService.findMerchantForTransferByCurrencyId(anyInt(), anyObject())).thenReturn(getMockMerchantCurrency());
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
-                .thenReturn(java.util.Optional.ofNullable(getMockCreditsOperation()));
+                .thenReturn(getMockCreditsOperation());
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.FALSE);
@@ -350,7 +339,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/voucher/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is("Incorrect pin: TEST_PIN")));
 
@@ -372,7 +360,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(get(BASE_URL + "/check_email")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .param("email", "testemail@gmail.com"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(Boolean.FALSE)))
                 .andExpect(jsonPath("$.error.code", is(0)))
@@ -391,7 +378,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(get(BASE_URL + "/check_email")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .param("email", wrongEmail))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(Boolean.FALSE)))
                 .andExpect(jsonPath("$.error.code", is(0)))
@@ -410,7 +396,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         mockMvc.perform(get(BASE_URL + "/check_email")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .param("email", wrongEmail))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(Boolean.TRUE)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -427,7 +412,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .param("currency_id", "100")
                 .param("type", "TRANSFER"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(50)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -443,7 +427,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .param("currency_id", "100")
                 .param("type", "TRANSFER"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(minSum)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -456,7 +439,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/currencies")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.[0].id", is(100)))
                 .andExpect(jsonPath("$.data.[0].name", is("TEST_CURRENCY_NAME")))
