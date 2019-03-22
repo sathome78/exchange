@@ -424,6 +424,16 @@ public class CryptocurrencyConfig {
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
     }
 
+    @Bean(name = "cronServiceImpl")
+    public NeoService cronService() {
+        Merchant mainMerchant = merchantService.findByName(NeoAsset.CRON.name());
+        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.CRON.name());
+        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+            put(NeoAsset.CRON.getId(), new AssetMerchantCurrencyDto(NeoAsset.CRON, merchantService.findByName(NeoAsset.CRON.name()), currencyService.findByName(NeoAsset.CRON.name())));
+        }};
+        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/cron.properties");
+    }
+
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");

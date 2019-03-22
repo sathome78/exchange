@@ -2,11 +2,10 @@ package me.exrates.service.cache;
 
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,65 +13,56 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@PropertySource("classpath:redis.properties")
 @Repository
 public class ExchangeRatesRedisRepository {
 
-    private final String key;
+    private static final String key = "exchange_rate_holder";
 
     private final HashOperations<String, Object, Object> ops;
 
     @Autowired
-    public ExchangeRatesRedisRepository(@Value("${redis.key}") String key,
-                                        RedisTemplate<String, Object> redisTemplate) {
-        this.key = key;
+    public ExchangeRatesRedisRepository(RedisTemplate<String, Object> redisTemplate) {
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
-        redisTemplate.delete(key);
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(ExOrderStatisticsShortByPairsDto.class));
         ops = redisTemplate.opsForHash();
     }
 
-    public void put(ExOrderStatisticsShortByPairsDto statistic) {
-        ops.put(key, statistic.getCurrencyPairName(), statistic);
+    public void put(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
+        ops.put(key, exOrderStatisticsShortByPairsDto.getCurrencyPairId(), exOrderStatisticsShortByPairsDto);
     }
 
-    public ExOrderStatisticsShortByPairsDto get(String currencyPairName) {
-        return (ExOrderStatisticsShortByPairsDto) ops.get(key, currencyPairName);
+    public ExOrderStatisticsShortByPairsDto get(Integer currencyPairId) {
+        return (ExOrderStatisticsShortByPairsDto) ops.get(key, currencyPairId);
     }
 
-    public boolean exist(String currencyPairName) {
-        return ops.hasKey(key, currencyPairName);
+    public boolean exist(Integer currencyPairId) {
+        return ops.hasKey(key, currencyPairId);
     }
 
     public List<ExOrderStatisticsShortByPairsDto> getAll() {
-        return ops.values(key)
+        return ops.values(key).stream().map(o -> (ExOrderStatisticsShortByPairsDto) o).collect(Collectors.toList());
+    }
+
+    public List<ExOrderStatisticsShortByPairsDto> getByListId(List<Integer> ids) {
+        return ops.multiGet(key, Collections.unmodifiableCollection(ids))
                 .stream()
                 .map(o -> (ExOrderStatisticsShortByPairsDto) o)
                 .collect(Collectors.toList());
     }
 
-    public List<ExOrderStatisticsShortByPairsDto> getByNames(List<String> names) {
-        return ops.multiGet(key, Collections.unmodifiableCollection(names))
-                .stream()
-                .map(o -> (ExOrderStatisticsShortByPairsDto) o)
-                .collect(Collectors.toList());
-    }
-
-    public void delete(String currencyPairName) {
-        ops.delete(key, currencyPairName);
+    public void delete(Integer pairId) {
+        ops.delete(key, pairId);
     }
 
     @Transactional
-    public void batchUpdate(List<ExOrderStatisticsShortByPairsDto> statisticList) {
-        statisticList.forEach(this::update);
+    public void update(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
+        delete(exOrderStatisticsShortByPairsDto.getCurrencyPairId());
+        put(exOrderStatisticsShortByPairsDto);
     }
 
     @Transactional
-    public void update(ExOrderStatisticsShortByPairsDto statistic) {
-        delete(statistic.getCurrencyPairName());
-        put(statistic);
+    public void batchUpdate(List<ExOrderStatisticsShortByPairsDto> pairsDtoList) {
+        pairsDtoList.forEach(this::update);
     }
 
-    public boolean isEmpty() {
-        return ops.size(key) == 0;
-    }
 }

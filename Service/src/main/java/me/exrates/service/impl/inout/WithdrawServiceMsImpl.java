@@ -89,6 +89,11 @@ public class WithdrawServiceMsImpl implements WithdrawService {
     }
 
     @Override
+    public WithdrawRequestFlatDto getFlatById(Integer id) {
+        return null;
+    }
+
+    @Override
     public void revokeWithdrawalRequest(int requestId) {
 
     }

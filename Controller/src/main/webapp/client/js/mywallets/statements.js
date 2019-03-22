@@ -99,7 +99,10 @@ function MyStatementsClass(currentCurrencyPair, cpData) {
         /**/
         $('#balance-page').on('click', '.wallet-mystatement-button', function (e) {
             e.preventDefault();
-            that.walletId = $(this).data('walletid');
+
+            var row_index = $(this).closest("tr").index() - 2;
+
+            that.walletId = $('.mywallet-item-id')[row_index].innerText;
             if (!e.ctrlKey) {
                 showPage('mystatement');
                 that.updateAndShowAll();

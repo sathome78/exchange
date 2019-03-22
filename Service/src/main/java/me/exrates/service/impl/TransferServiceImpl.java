@@ -178,7 +178,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getRecipientId(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getCommission(),
-              transferRequestCreateDto.getLocale(),
+              Locale.ENGLISH,
               createdTransferRequestId);
         }
       }
@@ -278,7 +278,7 @@ public class TransferServiceImpl implements TransferService {
     String notificationMessageCode;
     notificationMessageCode = "merchants.transferNotification.".concat(transferRequest.getStatus().name());
     notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
+        .getMessage(notificationMessageCode, messageParams, Locale.ENGLISH);
     notificationService.notifyUser(transferRequest.getUserEmail(), NotificationEvent.IN_OUT,
         "merchants.transferNotification.header", notificationMessageCode, messageParams);
     return notification;
@@ -387,5 +387,15 @@ public class TransferServiceImpl implements TransferService {
       throw new InvoiceNotFoundException("");
     }
     return transferRequestDao.getHashById(id);
+  }
+
+  @Override
+  public void revokeTransferRequest(Integer requestId) {
+    TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new TransferRequestNotFoundException(String.format("transfer request id: %s", requestId)));
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
+    InvoiceActionTypeEnum action = REVOKE;
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
+    transferRequestDao.setStatusById(requestId, newStatus);
   }
 }

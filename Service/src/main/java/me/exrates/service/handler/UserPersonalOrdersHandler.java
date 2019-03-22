@@ -77,8 +77,8 @@ public class UserPersonalOrdersHandler {
     }
 
     /*to instant send without timings and groupings*/
-    void sendInstant(OrderWsDetailDto dto, Integer userId) {
-        sendMessage(new ArrayList<OrderWsDetailDto>(){{add(dto);}}, userId);
+    void sendInstant(List<OrderWsDetailDto> dtos, Integer userId) {
+        sendMessage(dtos, userId);
     }
 
     private void sendMessage(List<OrderWsDetailDto> dtos, Integer userId) {

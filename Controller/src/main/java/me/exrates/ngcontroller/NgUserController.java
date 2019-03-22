@@ -159,10 +159,10 @@ public class NgUserController {
         boolean registered = ngUserService.registerUser(userEmailDto, request);
 
         if (registered) {
-            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
+            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
-        String ipAddress = request.getHeader("client_ip");
+        String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         return ResponseEntity.badRequest().build();
@@ -186,9 +186,9 @@ public class NgUserController {
                                                      HttpServletRequest request) {
         boolean result = ngUserService.recoveryPassword(userEmailDto, request);
         if (!result) {
-            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
+            ipBlockingService.failureProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
         }
-        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
+        ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
@@ -198,9 +198,9 @@ public class NgUserController {
                                                  HttpServletRequest request) {
         boolean result = ngUserService.createPasswordRecovery(passwordCreateDto, request);
         if (!result) {
-            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
+            ipBlockingService.failureProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         }
-        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
+        ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 

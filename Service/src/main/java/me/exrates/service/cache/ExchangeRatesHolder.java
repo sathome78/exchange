@@ -18,7 +18,7 @@ public interface ExchangeRatesHolder {
 
     List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id);
 
-    Map<String, BigDecimal> getRatesForMarket(TradeMarket market);
+    Map<Integer, String> getRatesForMarket(TradeMarket market);
 
     BigDecimal getBtcUsdRate();
 }
