@@ -49,12 +49,15 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -278,8 +281,8 @@ public class NgBalanceController {
                 .email(getPrincipalEmail())
                 .currencyId(currencyId)
                 .currencyName(currencyName)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo)
+                .dateFrom(Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null)
+                .dateTo(Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null)
                 .limit(limit)
                 .offset(offset)
                 .build();

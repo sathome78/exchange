@@ -30,6 +30,8 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -110,8 +112,8 @@ public class NgDownloadController {
                 .email(getPrincipalEmail())
                 .currencyId(currencyId)
                 .currencyName(currencyName)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo)
+                .dateFrom(LocalDateTime.of(dateFrom, LocalTime.MIN))
+                .dateTo(LocalDateTime.of(dateTo, LocalTime.MAX))
                 .build();
 
         ReportDto reportDto;
