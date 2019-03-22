@@ -21,6 +21,7 @@ import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.RefillService;
 import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -55,9 +56,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
@@ -74,6 +72,7 @@ public class NgBalanceController {
     private final RefillService refillService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
+    private final UserService userService;
     private final TransferService transferService;
 
     @Autowired
@@ -81,8 +80,8 @@ public class NgBalanceController {
                                ExchangeRatesHolder exchangeRatesHolder,
                                LocaleResolver localeResolver,
                                RefillService refillService,
-                               WalletService walletService,
-                               WithdrawService withdrawService,
+                               WalletService walletService, WithdrawService withdrawService,
+                               UserService userService,
                                TransferService transferService) {
         this.balanceService = balanceService;
         this.exchangeRatesHolder = exchangeRatesHolder;
@@ -90,6 +89,7 @@ public class NgBalanceController {
         this.refillService = refillService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
+        this.userService = userService;
         this.transferService = transferService;
     }
 
@@ -145,18 +145,27 @@ public class NgBalanceController {
     @DeleteMapping(value = "/pending/revoke/{requestId}/{operation}")
     public ResponseEntity<Void> revokeWithdrawRequest(@PathVariable Integer requestId,
                                                       @PathVariable String operation) {
-        try {
+        int userId = userService.getIdByEmail(getPrincipalEmail());
+
+        try{
             if (operation.equalsIgnoreCase("REFILL")) {
+                if (!refillService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
                 refillService.revokeRefillRequest(requestId);
-                return ResponseEntity.ok().build();
             } else if (operation.equalsIgnoreCase("WITHDRAW")) {
+                if (!withdrawService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
                 withdrawService.revokeWithdrawalRequest(requestId);
-                return ResponseEntity.ok().build();
             } else if (operation.equalsIgnoreCase("TRANSFER")) {
+                if (!transferService.getFlatById(requestId).getUserId().equals(userId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
                 transferService.revokeTransferRequest(requestId);
-                return ResponseEntity.ok().build();
             }
-        } catch (Exception ex) {
+            return ResponseEntity.ok().build();
+        }catch (Exception ex) {
             logger.error(String.format("Failed to revoke request with id: %d and operation type: %s", requestId, operation), ex);
         }
         logger.error("Failed to revoke such request ({}) is not supported", operation);

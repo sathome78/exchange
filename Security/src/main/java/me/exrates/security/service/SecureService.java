@@ -35,4 +35,6 @@ public interface SecureService {
 
     NotificationResultDto sendWithdrawPinCode(User user, String amount, String currencyName);
 
+    NotificationResultDto sendTransferPinCode(User user, String amount, String currencyName);
+
 }
