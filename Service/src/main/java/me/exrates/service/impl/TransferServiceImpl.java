@@ -178,7 +178,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getRecipientId(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getCommission(),
-              transferRequestCreateDto.getLocale(),
+              Locale.ENGLISH,
               createdTransferRequestId);
         }
       }
@@ -278,7 +278,7 @@ public class TransferServiceImpl implements TransferService {
     String notificationMessageCode;
     notificationMessageCode = "merchants.transferNotification.".concat(transferRequest.getStatus().name());
     notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
+        .getMessage(notificationMessageCode, messageParams, Locale.ENGLISH);
     notificationService.notifyUser(transferRequest.getUserEmail(), NotificationEvent.IN_OUT,
         "merchants.transferNotification.header", notificationMessageCode, messageParams);
     return notification;
