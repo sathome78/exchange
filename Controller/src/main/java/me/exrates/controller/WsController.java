@@ -30,7 +30,6 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;

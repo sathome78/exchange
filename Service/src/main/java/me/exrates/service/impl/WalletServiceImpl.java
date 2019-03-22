@@ -427,7 +427,7 @@ public class WalletServiceImpl implements WalletService {
     public String transferCostsToUser(Integer userId, Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
                                       BigDecimal comission, Locale locale, int sourceId) {
         User toUser = userService.getUserById(toUserId);
-        String toUserNickname = toUser.getNickname() != null ? toUser.getNickname() : toUser.getEmail();
+        String toUserNickname = toUser.getEmail();
         if (toUserId == 0) {
             throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
         }

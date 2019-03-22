@@ -47,7 +47,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -71,7 +79,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -88,7 +101,12 @@ import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Log4j2(topic = "config")
@@ -218,7 +236,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${qiwi.client.secret}")
     private String qiwiClientSecret;
 
-
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -295,6 +312,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         Flyway flyway = new Flyway();
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
+        flyway.setOutOfOrder(true);
         flyway.repair();
         flyway.migrate();
         return dataSource;
@@ -1972,6 +1990,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x9195e00402abe385f2d00a32af40b271f2e87925");
         return new EthTokenServiceImpl(tokensList, "ETA","ETA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "brcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService brcServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x21ab6c9fac80c59d401b37cb43f81ea9dde7fe34");
+        return new EthTokenServiceImpl(tokensList, "BRC","BRC", true, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:

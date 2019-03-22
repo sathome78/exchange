@@ -7,6 +7,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -24,6 +25,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -451,7 +453,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM EXORDERS " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 " WHERE EXORDERS.id = :order_id";
-
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("order_id", String.valueOf(orderId));
 
@@ -469,7 +470,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM CURRENCY_PAIR_LIMIT lim " +
                 " JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id AND CURRENCY_PAIR.hidden != 1 " +
                 " WHERE lim.currency_pair_id = :currency_pair_id AND lim.user_role_id = :user_role_id AND lim.order_type_id = :order_type_id";
-
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("user_role_id", roleId);
@@ -627,7 +627,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         String sql = "SELECT name FROM CURRENCY_PAIR WHERE hidden != 1 ORDER BY name ASC";
-
         return npJdbcTemplate.query(sql, Collections.emptyMap(),
                 (rs, row) -> new CurrencyPairInfoItem(rs.getString("name")));
     }

@@ -7,6 +7,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
+import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -38,6 +39,8 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -58,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +79,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Log4j
 @PropertySource(value = {"classpath:/angular.properties"})
 public class NgTransferController {
+
+    private static final Logger logger = LoggerFactory.getLogger(NgTransferController.class);
 
     private final RateLimitService rateLimitService;
     private final TransferService transferService;
@@ -266,6 +272,23 @@ public class NgTransferController {
     @GetMapping("/currencies")
     public ResponseModel getAllCurrenciesForTransfer() {
         return new ResponseModel<>(currencyService.getCurrencies(MerchantProcessType.TRANSFER));
+    }
+
+    @CheckActiveUserStatus
+    @PostMapping(value = "/request/pin")
+    public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
+        try {
+            User user = userService.findByEmail(getPrincipalEmail());
+            if (!g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+                secureService.sendTransferPinCode(user, pinOrderInfoDto.getAmount().toPlainString(),
+                        pinOrderInfoDto.getCurrencyName());
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            }
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Failed to send user email", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     private String getPrincipalEmail() {

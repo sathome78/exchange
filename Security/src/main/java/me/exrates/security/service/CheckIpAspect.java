@@ -47,7 +47,7 @@ public class CheckIpAspect {
 
         String ipAddress = Optional.ofNullable(request.getHeader("X-Forwarded-For"))
                 .orElseThrow(() -> {
-                    String message = "Missing header client_ip in request";
+                    String message = "Missing header X-Forwarded-For in request";
                     log.error(message);
                     return new MissingHeaderException(message);
                 });

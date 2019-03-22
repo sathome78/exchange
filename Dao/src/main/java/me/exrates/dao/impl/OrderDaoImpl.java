@@ -82,6 +82,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -945,23 +946,23 @@ public class OrderDaoImpl implements OrderDao {
         String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfter = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation <= :dateBefore";
 
+        String createdClause = StringUtils.EMPTY;
+        String createdStopLimitClause = StringUtils.EMPTY;
+        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+            createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
+        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
+        }
 
         String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation >= :dateFrom";
-        String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation <= :dateBefore";
 
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
@@ -1020,8 +1021,7 @@ public class OrderDaoImpl implements OrderDao {
                 "             JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "             INNER JOIN COMMISSION com ON commission_id = com.id " +
                 "      WHERE (status_id in (:statusId)) "
-                + createdAfter
-                + createdBefore
+                + createdClause
                 + currencyPairClauseWhere
                 + userFilterClause
                 + currencyNameClause
@@ -1055,8 +1055,7 @@ public class OrderDaoImpl implements OrderDao {
                 "      WHERE (status_id in (:statusId)) " +
                 "        AND STOP_ORDERS.user_id = :user_id "
                 + currencyPairClauseWhereStopLimit
-                + createdBeforeStopLimit
-                + createdAfterStopLimit
+                + createdStopLimitClause
                 + currencyNameClause
                 + ") x " +
                 orderClause + pageClause;
@@ -1966,19 +1965,19 @@ public class OrderDaoImpl implements OrderDao {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
             currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
         }
-        String createdAfter = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation <= :dateBefore";
 
-        String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation >= :dateFrom";
-        String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation <= :dateBefore";
+        String createdClause = StringUtils.EMPTY;
+        String createdStopLimitClause = StringUtils.EMPTY;
+        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+            createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
+        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
+        }
 
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
@@ -2009,8 +2008,7 @@ public class OrderDaoImpl implements OrderDao {
                 currencyNameJoinClause +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
-                + createdAfter
-                + createdBefore
+                + createdClause
                 + currencyPairClauseWhere
                 + currencyNameClause
                 + userFilterClause + ") +" +
@@ -2019,8 +2017,7 @@ public class OrderDaoImpl implements OrderDao {
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) " +
                 " AND STOP_ORDERS.user_id = :user_id " +
-                createdAfterStopLimit +
-                createdBeforeStopLimit +
+                createdStopLimitClause +
                 currencyPairClauseWhereForStopLimit +
                 currencyNameClause + ") " +
                 "    AS SumCount";
@@ -2291,15 +2288,15 @@ public class OrderDaoImpl implements OrderDao {
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
-                        .lastOrderRate(rs.getBigDecimal("last").toPlainString())
-                        .predLastOrderRate(rs.getBigDecimal("first").toPlainString())
-                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? "0" : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH).toPlainString())
-                        .volume(rs.getBigDecimal("baseVolume").toPlainString())
-                        .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
+                        .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
+                        .lastOrderRate(convertToPlainString(rs,"last"))
+                        .predLastOrderRate(convertToPlainString(rs, "first"))
+                        .percentChange(calculatePercentChange(rs))
+                        .volume(convertToPlainString(rs,"baseVolume"))
+                        .currencyVolume(convertToPlainString(rs, "quoteVolume"))
                         .market(rs.getString("market"))
-                        .high24hr(rs.getBigDecimal("high24hr").toPlainString())
-                        .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                        .high24hr(convertToPlainString(rs,"high24hr"))
+                        .low24hr(convertToPlainString(rs,"low24hr"))
                         .hidden(rs.getBoolean("hidden"))
                         .build();
                 list.add(statistic);
@@ -2307,6 +2304,19 @@ public class OrderDaoImpl implements OrderDao {
             rs.close();
             return list;
         });
+    }
+
+    private String calculatePercentChange(ResultSet rs) throws SQLException {
+        BigDecimal first = rs.getBigDecimal("first") == null
+                ? BigDecimal.ZERO
+                : rs.getBigDecimal("first");
+        BigDecimal last = rs.getBigDecimal("last") == null
+                ? BigDecimal.ZERO
+                : rs.getBigDecimal("last");
+
+        return first.compareTo(BigDecimal.ZERO) == 0
+                ? "0"
+                : BigDecimalProcessing.doAction(first, last, ActionType.PERCENT_GROWTH).toPlainString();
     }
 
     private RowMapper<ExOrder> getExOrderRowMapper() {
@@ -2351,4 +2361,13 @@ public class OrderDaoImpl implements OrderDao {
         }
         return timestamp.toLocalDateTime();
     }
+
+    private String convertToPlainString(ResultSet rs, String columnName) throws SQLException {
+        BigDecimal value = rs.getBigDecimal(columnName);
+        if (Objects.isNull(value)) {
+            return BigDecimal.ZERO.toPlainString();
+        }
+        return value.toPlainString();
+    }
+
 }

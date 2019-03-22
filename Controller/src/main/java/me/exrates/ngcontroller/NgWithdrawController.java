@@ -8,6 +8,7 @@ import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -211,12 +213,13 @@ public class NgWithdrawController {
     // 201 - pincode is sent to user email
     // 200 - no pincode use google oauth
     @CheckActiveUserStatus
-    @GetMapping(value = "/request/pin")
-    public ResponseEntity<Void> sendUserPincode() {
+    @PostMapping(value = "/request/pin")
+    public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
         try {
             User user = userService.findByEmail(getPrincipalEmail());
             if (!g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-                secureService.sendWithdrawPincode(user);
+                secureService.sendWithdrawPinCode(user, pinOrderInfoDto.getAmount().toPlainString(),
+                        pinOrderInfoDto.getCurrencyName());
                 return ResponseEntity.status(HttpStatus.CREATED).build();
             }
             return ResponseEntity.ok().build();

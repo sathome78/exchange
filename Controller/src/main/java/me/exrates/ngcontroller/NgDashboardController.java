@@ -57,11 +57,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Objects.nonNull;
 
@@ -80,9 +83,7 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
-    private final SimpMessagingTemplate simpMessagingTemplate;
     private final StopOrderService stopOrderService;
-    private final StopOrderService stopOrderServiceImpl;
 
 
     @Autowired
@@ -93,18 +94,15 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 SimpMessagingTemplate simpMessagingTemplate,
-                                 StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
+                                 StopOrderService stopOrderService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.simpMessagingTemplate = simpMessagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
-        this.stopOrderServiceImpl = stopOrderServiceImpl;
     }
 
     // /info/private/v2/dashboard/order
@@ -251,8 +249,8 @@ public class NgDashboardController {
                 .limit(limit)
                 .hideCanceled(hideCanceled)
                 .sortedColumns(sortedColumns)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo);
+                .dateFrom(Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null)
+                .dateTo(Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null);
 
         if (currencyPairId > 0) {
             builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));
@@ -337,7 +335,7 @@ public class NgDashboardController {
         if (orderById != null) {
             return new ResponseModel<>(orderService.cancelOrder(orderId));
         } else {
-            return new ResponseModel<>(stopOrderServiceImpl.cancelOrder(orderId, null));
+            return new ResponseModel<>(stopOrderService.cancelOrder(orderId, null));
         }
     }
 
