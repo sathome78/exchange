@@ -17,7 +17,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.apache.commons.lang3.StringUtils;

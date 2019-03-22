@@ -1,11 +1,12 @@
-package me.exrates.service.exception;
+package me.exrates.dao.exception.notfound;
 
 /**
  * Created by OLEG on 18.01.2017.
  */
-public class WalletNotFoundException extends RuntimeException {
+public class WalletNotFoundException extends NotFoundException {
 
     public WalletNotFoundException() {
+        super();
     }
 
     public WalletNotFoundException(String message) {

@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -83,7 +83,7 @@ public class NgPublicController {
     private final IpBlockingService ipBlockingService;
     private final UserService userService;
     private final NgUserService ngUserService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
@@ -94,7 +94,8 @@ public class NgPublicController {
     public NgPublicController(ChatService chatService,
                               CurrencyService currencyService, IpBlockingService ipBlockingService,
                               UserService userService,
-                              NgUserService ngUserService, SimpMessagingTemplate messagingTemplate,
+                              NgUserService ngUserService,
+                              SimpMessagingTemplate simpMessagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
@@ -105,7 +106,7 @@ public class NgPublicController {
         this.ipBlockingService = ipBlockingService;
         this.userService = userService;
         this.ngUserService = ngUserService;
-        this.messagingTemplate = messagingTemplate;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
@@ -182,6 +183,7 @@ public class NgPublicController {
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
+            // todo to handle with error handler
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         final ChatMessage message;
@@ -191,7 +193,7 @@ public class NgPublicController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         String destination = "/topic/chat/".concat(language.toLowerCase());
-        messagingTemplate.convertAndSend(destination, fromChatMessage(message));
+        simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

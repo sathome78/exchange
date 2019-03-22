@@ -17,7 +17,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;

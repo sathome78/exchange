@@ -15,7 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +47,7 @@ public class OrderServiceImplTest {
     public void setUp() {
         locale = Locale.ENGLISH;
 
-        LocalDate now = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
         filter = OrderFilterDataDto.builder()
                 .userId(1)
                 .currencyPair(null)

@@ -49,6 +49,8 @@ public interface WithdrawService {
 
   WithdrawRequestsAdminTableDto getWithdrawRequestById(Integer id, String authorizedUserEmail);
 
+  WithdrawRequestFlatDto getFlatById(Integer id);
+
   void revokeWithdrawalRequest(int requestId);
 
   void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId);

@@ -9,21 +9,21 @@ import java.util.List;
 
 public interface UserRoleService {
 
-  List<UserRole> getRealUserRoleByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum);
+    List<UserRole> getRealUserRoleByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum);
 
-  List<Integer> getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum);
+    List<Integer> getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum);
 
-  String[] getRealUserRoleNameByBusinessRoleArray(BusinessUserRoleEnum businessUserRoleEnum);
+    String[] getRealUserRoleNameByBusinessRoleArray(BusinessUserRoleEnum businessUserRoleEnum);
 
-  List<Integer> getRealUserRoleIdByBusinessRoleList(String businessUserRoleName);
+    List<Integer> getRealUserRoleIdByBusinessRoleList(String businessUserRoleName);
 
-  List<UserRole> getRealUserRoleByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);
+    List<UserRole> getRealUserRoleByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);
 
-  List<Integer> getRealUserRoleIdByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);
+    List<Integer> getRealUserRoleIdByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);
 
-  List<Integer> getRealUserRoleIdByGroupRoleList(String groupUserRoleName);
+    List<Integer> getRealUserRoleIdByGroupRoleList(String groupUserRoleName);
 
-  boolean isOrderAcceptionAllowedForUser(Integer userId);
+    boolean isOrderAcceptionAllowedForUser(Integer userId);
 
     UserRoleSettings retrieveSettingsForRole(Integer roleId);
 
@@ -35,5 +35,5 @@ public interface UserRoleService {
 
     List<UserRole> getRolesConsideredForPriceRangeComputation();
 
-  List<UserRole> getRolesUsingRealMoney();
+    List<UserRole> getRolesUsingRealMoney();
 }

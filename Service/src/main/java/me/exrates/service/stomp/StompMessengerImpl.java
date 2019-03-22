@@ -128,6 +128,7 @@ public class StompMessengerImpl implements StompMessenger {
     public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, String pairName, String message) {
         String destination = "/queue/my_orders/".concat(pairName);
         String userEmail = userService.getEmailById(userId);
+        log.debug("dest {} message {}", destination, message);
         messagingTemplate.convertAndSendToUser(userEmail, destination, message);
     }
 

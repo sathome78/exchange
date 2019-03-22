@@ -15,9 +15,9 @@
 //import me.exrates.service.OrderServiceDemoListener;
 //import me.exrates.service.UserService;
 //import me.exrates.service.WalletService;
-//import me.exrates.service.exception.NotCreatableOrderException;
-//import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-//import me.exrates.service.exception.OrderCreationException;
+//import me.exrates.service.exception.process.NotCreatableOrderException;
+//import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+//import me.exrates.service.exception.process.OrderCreationException;
 //import me.exrates.service.exception.UserOperationAccessException;
 //import me.exrates.service.exception.api.OrderParamsWrongException;
 //import me.exrates.service.stopOrder.StopOrderService;

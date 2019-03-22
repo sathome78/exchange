@@ -1,7 +1,10 @@
-package me.exrates.service.exception.api;
+package me.exrates.service.exception.process;
 
-public class CancelOrderException extends RuntimeException {
+public class CancelOrderException extends ProcessingException {
 
+    public CancelOrderException() {
+        super();
+    }
 
     public CancelOrderException(String message) {
         super(message);

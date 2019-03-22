@@ -25,7 +25,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -122,7 +122,7 @@ public class NgUserSettingsController {
         }
         currentPassword = RestApiUtils.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
-            String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
+            String clientIp = Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
             logger.warn(message);
             ipBlockingService.failureProcessing(clientIp, IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
@@ -133,7 +133,7 @@ public class NgUserSettingsController {
         user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)) {
-            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
+            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);

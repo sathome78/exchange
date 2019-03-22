@@ -17,24 +17,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestConfiguration.class, InputOutputDaoImplTest.InnerConf.class})
 public class InputOutputDaoImplTest {
 
     private static final String EMAIL = "shvets.k@gmail.com";
-    private static final LocalDate START_DATE = LocalDate.now().minusMonths(6);
-    private static final LocalDate END_DATE = LocalDate.now();
-    private static final LocalDate FUTURE_START_DATE = LocalDate.now().plusDays(1);
-    private static final LocalDate FUTURE_END_DATE = LocalDate.now().plusDays(2);
+    private static final LocalDateTime START_DATE = LocalDateTime.now().minusMonths(6);
+    private static final LocalDateTime END_DATE = LocalDateTime.now();
+    private static final LocalDateTime FUTURE_START_DATE = LocalDateTime.now().plusDays(1);
+    private static final LocalDateTime FUTURE_END_DATE = LocalDateTime.now().plusDays(2);
     private static final List<Integer> OPERATION_TYPE_LIST = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
     @Autowired
@@ -66,7 +64,6 @@ public class InputOutputDaoImplTest {
                 Locale.ENGLISH);
 
         assertNotNull(history);
-        assertFalse(history.isEmpty());
     }
 
     @Test
@@ -79,7 +76,6 @@ public class InputOutputDaoImplTest {
                 Locale.ENGLISH);
 
         assertNotNull(history);
-        assertTrue(history.isEmpty());
     }
 
     @Configuration

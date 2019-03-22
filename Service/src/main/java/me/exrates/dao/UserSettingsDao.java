@@ -8,5 +8,4 @@ public interface UserSettingsDao {
     String getCallBackURLByUserId(int userId,final Integer currencyPairId);
 
     int updateCallbackURL(final int userId, final CallbackURL callbackURL);
-
 }

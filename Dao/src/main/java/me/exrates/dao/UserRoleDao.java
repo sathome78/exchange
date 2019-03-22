@@ -6,9 +6,9 @@ import me.exrates.model.enums.UserRole;
 import java.util.List;
 
 public interface UserRoleDao {
-  List<UserRole> findRealUserRoleIdByBusinessRoleList(String businessRoleName);
+    List<UserRole> findRealUserRoleIdByBusinessRoleList(String businessRoleName);
 
-  List<UserRole> findRealUserRoleIdByGroupRoleList(String businessRoleName);
+    List<UserRole> findRealUserRoleIdByGroupRoleList(String businessRoleName);
 
     boolean isOrderAcceptionAllowedForUser(Integer userId);
 
@@ -21,7 +21,7 @@ public interface UserRoleDao {
     List<UserRole> getRolesAvailableForChangeByAdmin();
 
 
-  List<UserRole> getRolesConsideredForPriceRangeComputation();
+    List<UserRole> getRolesConsideredForPriceRangeComputation();
 
     List<UserRole> getRolesUsingRealMoney();
 }

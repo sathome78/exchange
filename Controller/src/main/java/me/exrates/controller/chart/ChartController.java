@@ -129,7 +129,7 @@ public class ChartController {
             errors.putAll(filterDataPeriod(result, from, to, resolution));
             errors.put("s", "error");
             errors.put("errmsg", "can not find currencyPair");
-            return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
+            return new ResponseEntity(errors, HttpStatus.NOT_FOUND_ERROR);
         }
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,

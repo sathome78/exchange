@@ -52,7 +52,6 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.RefillRequestMerchantException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
@@ -63,7 +62,6 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -218,10 +216,6 @@ public class OnlineRestController {
         return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
     }
 
-    @GetMapping("/adsffefe/csrf")
-    public CsrfToken csrf(CsrfToken token) {
-        return token;
-    }
 
     @GetMapping("/trade_pairs")
     public Map<String, Integer> getAllAvailableMainPairs() {
@@ -356,14 +350,14 @@ public class OnlineRestController {
      * @throws IOException
      * @author ValkSam
      */
-    @OnlineMethod
+    /*@OnlineMethod
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
     public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
             @RequestParam(required = false) Boolean refreshIfNeeded,
             HttpServletRequest request, Principal principal) throws IOException {
         try {
             HttpSession session = request.getSession(true);
-     /* if (session.getAttribute("sessionEndTime") == null) {
+     *//* if (session.getAttribute("sessionEndTime") == null) {
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
       }
       String s = "";
@@ -384,8 +378,8 @@ public class OnlineRestController {
         }
         session = request.getSession(true);
         LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
-      }*/
-     /* if (session.isNew() || session.getAttribute("firstEntry") == null) {
+      }*//*
+     *//* if (session.isNew() || session.getAttribute("firstEntry") == null) {
 
             "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
             session has expired, and opened new session (by calling request.getSession(true))
@@ -399,9 +393,9 @@ public class OnlineRestController {
             put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
           }});
         }};
-      }*/
-            /*if (session.getAttribute("QR_LOGGED_IN") != null) {
-             *//*after authentication via QR main page must be reloaded*//*
+      }*//*
+            *//*if (session.getAttribute("QR_LOGGED_IN") != null) {
+             *//**//*after authentication via QR main page must be reloaded*//**//*
         session.removeAttribute("QR_LOGGED_IN");
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -410,7 +404,7 @@ public class OnlineRestController {
             put("successQR", messageSource.getMessage("dashboard.qrLogin.successful", null, localeResolver.resolveLocale(request)));
           }});
         }};
-      }*/
+      }*//*
             String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
             refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
             CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -421,7 +415,7 @@ public class OnlineRestController {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             throw e;
         }
-    }
+    }*/
 
     /**
      * when session has expired, any of online methods can start new session (through calling the request.getSession())
