@@ -2510,11 +2510,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
-        return orderDao.getDailyCoinmarketDataForCache(currencyPairName);
-    }
-
-    @Override
     public Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList) {
         final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
@@ -2546,6 +2541,18 @@ public class OrderServiceImpl implements OrderService {
             }
         });
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId) {
+        return orderDao.getRatesDataForCache(currencyPairId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
+        return orderDao.getAllDataForCache(currencyPairId);
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {

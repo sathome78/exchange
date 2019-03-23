@@ -468,7 +468,9 @@ public interface OrderService {
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 
-    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
-
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
+
+    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

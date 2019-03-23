@@ -2,6 +2,8 @@ package me.exrates.service.cache;
 
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -14,18 +16,21 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+@PropertySource("classpath:redis.properties")
 @Repository
 public class ExchangeRatesRedisRepository {
 
-    private static final String key = "exchange_rates_holder";
+    private final String key;
 
     private final HashOperations<String, Object, Object> ops;
 
     @Autowired
-    public ExchangeRatesRedisRepository(RedisTemplate<String, Object> redisTemplate) {
+    public ExchangeRatesRedisRepository(@Value("${redis.key}") String key,
+                                        RedisTemplate<String, Object> redisTemplate) {
+        this.key = key;
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
         redisTemplate.delete(key);
-        ops = redisTemplate.opsForHash();
+        this.ops = redisTemplate.opsForHash();
     }
 
     public void put(ExOrderStatisticsShortByPairsDto statistic) {
