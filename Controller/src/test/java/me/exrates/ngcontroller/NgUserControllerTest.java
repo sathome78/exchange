@@ -109,8 +109,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print());
+                .content(objectMapper.writeValueAsString(requestBody)));
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
@@ -148,8 +147,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andDo(print());
+                .content(objectMapper.writeValueAsString(dto)));
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
@@ -196,8 +194,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andDo(print());
+                .content(objectMapper.writeValueAsString(dto)));
     }
 
     @Test
@@ -244,7 +241,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
                 .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
@@ -277,7 +273,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -294,7 +289,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -323,7 +317,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -353,7 +346,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -387,7 +379,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -436,7 +427,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/authenticate")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
                 .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
@@ -466,7 +456,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(post(BASE_URL + "/register")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(userEmailDto))).andDo(print())
+                .content(objectMapper.writeValueAsString(userEmailDto)))
                 .andExpect(status().isOk());
 
         verify(ngUserService, times(1)).registerUser(anyObject(), anyObject());
@@ -484,7 +474,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/register")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(userEmailDto)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(ngUserService, times(1)).registerUser(anyObject(), anyObject());
@@ -509,7 +498,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/password/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(passwordCreateDto)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
                 .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
@@ -534,7 +522,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/password/recovery/reset")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(userEmailDto)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(ngUserService, times(1)).recoveryPassword(anyObject(), anyObject());
@@ -552,7 +539,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/password/recovery/reset")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(userEmailDto)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(ngUserService, times(1)).recoveryPassword(anyObject(), anyObject());
@@ -571,7 +557,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/password/recovery/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(passwordCreateDto)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(ngUserService, times(1)).createPasswordRecovery(anyObject(), anyObject());
@@ -589,7 +574,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/password/recovery/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(passwordCreateDto)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(ngUserService, times(1)).createPasswordRecovery(anyObject(), anyObject());
@@ -601,7 +585,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/validateTempToken/{token}", "TEST_TOKEN")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(Boolean.TRUE)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -615,7 +598,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/validateTempToken/{token}", "TEST_TOKEN")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(Boolean.FALSE)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
