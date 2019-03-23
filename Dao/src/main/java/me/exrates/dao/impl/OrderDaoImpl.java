@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -9,11 +8,6 @@ import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.jdbc.OrderRowMapper;
-import me.exrates.model.*;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
-import me.exrates.model.PagingData;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;

@@ -287,12 +287,14 @@ public class BalanceServiceImpl implements BalanceService {
         BalancesShortDto result = BalancesShortDto.zeroBalances();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalBtc =
-                exchangeRatesHolder.getAllRates().stream()
+                exchangeRatesHolder.getAllRates()
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
                         .findFirst();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalUsd =
-                exchangeRatesHolder.getAllRates().stream()
+                exchangeRatesHolder.getAllRates()
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/USD"))
                         .findFirst();
 

@@ -7,10 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class RefreshStatDto {
+public class RefreshStatisticDto {
 
     private String icoData;
-    private String maincurrenciesData;
-    private Map<String, String> statInfoDtos;
-
+    private String mainCurrenciesData;
+    private Map<String, String> statisticInfoDtos;
 }

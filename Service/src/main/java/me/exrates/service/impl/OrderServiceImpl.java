@@ -38,7 +38,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.RefreshStatDto;
+import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.SimpleOrderBookItem;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
@@ -2085,8 +2085,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public RefreshStatDto getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
-        RefreshStatDto res = new RefreshStatDto();
+    public RefreshStatisticDto getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+        RefreshStatisticDto res = new RefreshStatisticDto();
         logger.debug("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
@@ -2109,7 +2109,7 @@ public class OrderServiceImpl implements OrderService {
         }
         if (!mains.isEmpty()) {
             OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
-            res.setMaincurrenciesData(new JSONArray() {{
+            res.setMainCurrenciesData(new JSONArray() {{
                 try {
                     put(objectMapper.writeValueAsString(wrapper));
                 } catch (JsonProcessingException e) {
@@ -2129,7 +2129,7 @@ public class OrderServiceImpl implements OrderService {
                             throw new RuntimeException(e);
                         }
                     }));
-            res.setStatInfoDtos(resultsMap);
+            res.setStatisticInfoDtos(resultsMap);
         }
         return res;
     }
