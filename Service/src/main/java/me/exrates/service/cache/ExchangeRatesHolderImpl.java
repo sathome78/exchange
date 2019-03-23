@@ -43,11 +43,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private static final String DELIMITER = "/";
 
     private static final String BTC_USD = "BTC/USD";
-    private static final Integer BTC_USD_ID = 1;
-    private static final Integer ETH_USD_ID = 40;
+    private static final String ETH_USD = "ETH/USD";
 
     private static final String FIAT = "fiat";
     private static final String USD = "USD";
+
+    private Integer BTC_USD_ID;
+    private Integer ETH_USD_ID;
 
     private final ExchangeApi exchangeApi;
     private final OrderService orderService;
@@ -82,6 +84,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             Map<String, BigDecimal> newData = getFiatCache();
             fiatCache = new ConcurrentHashMap<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
+
+        BTC_USD_ID = currencyService.findCurrencyPairIdByName(BTC_USD);
+        ETH_USD_ID = currencyService.findCurrencyPairIdByName(ETH_USD);
 
         log.info("Start init ExchangeRatesHolder");
 
