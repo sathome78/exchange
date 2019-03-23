@@ -57,11 +57,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Objects.nonNull;
 
@@ -246,8 +249,8 @@ public class NgDashboardController {
                 .limit(limit)
                 .hideCanceled(hideCanceled)
                 .sortedColumns(sortedColumns)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo);
+                .dateFrom(Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null)
+                .dateTo(Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null);
 
         if (currencyPairId > 0) {
             builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));

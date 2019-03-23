@@ -951,23 +951,23 @@ public class OrderDaoImpl implements OrderDao {
         String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfter = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation <= :dateBefore";
 
+        String createdClause = StringUtils.EMPTY;
+        String createdStopLimitClause = StringUtils.EMPTY;
+        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+            createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
+        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
+        }
 
         String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
-        String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation >= :dateFrom";
-        String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation <= :dateBefore";
 
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
@@ -1026,8 +1026,7 @@ public class OrderDaoImpl implements OrderDao {
                 "             JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "             INNER JOIN COMMISSION com ON commission_id = com.id " +
                 "      WHERE (status_id in (:statusId)) "
-                + createdAfter
-                + createdBefore
+                + createdClause
                 + currencyPairClauseWhere
                 + userFilterClause
                 + currencyNameClause
@@ -1061,8 +1060,7 @@ public class OrderDaoImpl implements OrderDao {
                 "      WHERE (status_id in (:statusId)) " +
                 "        AND STOP_ORDERS.user_id = :user_id "
                 + currencyPairClauseWhereStopLimit
-                + createdBeforeStopLimit
-                + createdAfterStopLimit
+                + createdStopLimitClause
                 + currencyNameClause
                 + ") x " +
                 orderClause + pageClause;
@@ -1354,9 +1352,11 @@ public class OrderDaoImpl implements OrderDao {
             sortDirection = "ASC";
             exrateClause = "AND EO.exrate <= :exrate ";
         }
-        String roleJoinClause = sameRoleOnly ? " JOIN USER U ON EO.user_id = U.id AND U.roleid = :acceptor_role_id " :
-                "JOIN USER U ON EO.user_id = U.id AND U.roleid IN (SELECT user_role_id FROM USER_ROLE_SETTINGS " +
-                        "WHERE user_role_id = :acceptor_role_id OR order_acception_same_role_only = 0)";
+
+        String roleJoinClause = String.format(
+                " JOIN USER U ON EO.user_id = U.id AND U.roleid IN (SELECT user_role_id FROM USER_ROLE_SETTINGS " +
+                        "WHERE user_role_id = :acceptor_role_id OR order_acception_same_role_only = %d) ", sameRoleOnly ? -1 : 0);
+
         String sqlSetVar = "SET @cumsum := 0";
 
         /*needs to return several orders with best exrate if their total sum is less than amount in param,
@@ -1972,19 +1972,19 @@ public class OrderDaoImpl implements OrderDao {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
             currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
         }
-        String createdAfter = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation >= :dateFrom";
-        String createdBefore = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.date_creation <= :dateBefore";
 
-        String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation >= :dateFrom";
-        String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.date_creation <= :dateBefore";
+        String createdClause = StringUtils.EMPTY;
+        String createdStopLimitClause = StringUtils.EMPTY;
+        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+            createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
+        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
+        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+            createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
+            createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
+        }
 
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
@@ -2015,8 +2015,7 @@ public class OrderDaoImpl implements OrderDao {
                 currencyNameJoinClause +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
-                + createdAfter
-                + createdBefore
+                + createdClause
                 + currencyPairClauseWhere
                 + currencyNameClause
                 + userFilterClause + ") +" +
@@ -2025,8 +2024,7 @@ public class OrderDaoImpl implements OrderDao {
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) " +
                 " AND STOP_ORDERS.user_id = :user_id " +
-                createdAfterStopLimit +
-                createdBeforeStopLimit +
+                createdStopLimitClause +
                 currencyPairClauseWhereForStopLimit +
                 currencyNameClause + ") " +
                 "    AS SumCount";

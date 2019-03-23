@@ -44,10 +44,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.exception.WithdrawRequestAlreadyPostedException;
-import me.exrates.service.exception.WithdrawRequestCreationException;
-import me.exrates.service.exception.WithdrawRequestPostException;
-import me.exrates.service.exception.WithdrawRequestRevokeException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -321,6 +318,13 @@ public class WithdrawServiceImpl implements WithdrawService {
                 authorizedUserId);
         DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
         return new WithdrawRequestsAdminTableDto(withdraw, withdrawRequestDao.getAdditionalDataForId(withdraw.getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public WithdrawRequestFlatDto getFlatById(Integer id) {
+        return withdrawRequestDao.getFlatById(id)
+                .orElseThrow(() -> new WithdrawRequestNotFoundException(id.toString()));
     }
 
     @Override

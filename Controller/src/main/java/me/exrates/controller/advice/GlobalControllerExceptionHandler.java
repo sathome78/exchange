@@ -108,7 +108,7 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(BannedIpException.class)
     @ResponseBody
     public ErrorInfo ipBannedExceptionHandler(HttpServletRequest request, BannedIpException exception) {
-        String clientIp = request.getHeader("client_ip");
+        String clientIp = request.getHeader("X-Forwarded-For");
         String message = "Banned ip exception . Banned ip address " + clientIp + " for " + exception.getBanDurationSeconds() + " seconds";
         return new ErrorInfo(message, exception);
     }

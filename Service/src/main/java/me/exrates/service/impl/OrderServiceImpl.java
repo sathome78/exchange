@@ -75,10 +75,10 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AutoAcceptEventsList;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
+import me.exrates.service.events.EventsForDetailed.AutoAcceptEventsList;
 import me.exrates.service.events.EventsForDetailed.CancelDetailorderEvent;
 import me.exrates.service.events.EventsForDetailed.CreateDetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
@@ -178,7 +178,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
             .map(ChartPeriodsEnum::getBackDealInterval)
-            .collect(toList());
+            .collect(Collectors.toList());
 
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
@@ -302,6 +302,24 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getDataForCandleChart(currencyPair, interval, endTime);
     }
 
+
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
+        List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+        result = result
+                .stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(Collectors.toList());
+        result.forEach(e -> {
+            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+            BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+        });
+        return result;
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -636,7 +654,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<ExOrder> eventsList, boolean partialAccept) {
-        logTransaction("createOrder" ,"begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
+        logTransaction("createOrder", "begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         ProfileData profileData = new ProfileData(200);
         try {
             String description = transactionDescription.get(null, action);
@@ -693,7 +711,7 @@ public class OrderServiceImpl implements OrderService {
                     exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
-                logTransaction("createOrder" ,"end", orderCreateDto.getCurrencyPair().getId(), createdOrderId, null);
+                logTransaction("createOrder", "end", orderCreateDto.getCurrencyPair().getId(), createdOrderId, null);
                 exOrder.setEvent(OrderEventEnum.CREATE);
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
                 if (!partialAccept) {
@@ -756,8 +774,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order creation result result: " + autoAcceptResult);
         return orderCreationResultDto;
     }
-
-
 
 
     @Override
@@ -870,7 +886,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
-        logTransaction("acceptPartially" ,"begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
+        logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
         User userById = userService.getUserById(orderForPartialAccept.getUserId());
@@ -886,7 +902,7 @@ public class OrderServiceImpl implements OrderService {
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
         orderCreationResultDto.setOrderIdToOpen(remainderId);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
-        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
+        logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
    /* TODO temporary disable
@@ -1241,7 +1257,7 @@ public class OrderServiceImpl implements OrderService {
             /*action for refresh orders*/
             eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
             exOrder.setEvent(OrderEventEnum.ACCEPT);
-            if(!partialAccept) {
+            if (!partialAccept) {
                 eventPublisher.publishEvent(new AcceptDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
             } else {
                 eventsList.add(exOrder);
@@ -1309,10 +1325,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-        if (isNull(exOrder)) {
-            return false;
+        if (nonNull(exOrder)) {
+            return cancelOrder(exOrder);
+        } else {
+            return stopOrderService.cancelOrder(orderId, null);
         }
-        return cancelOrder(exOrder);
     }
 
     @Transactional
@@ -1321,13 +1338,20 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
-        if (isEmpty(openedOrders)) {
+        List<Integer> openedStopOrders = stopOrderService.getOpenedStopOrdersByCurrencyPair(userId, currencyPair);
+
+        if (isEmpty(openedOrders) && isEmpty(openedStopOrders)) {
             return false;
         }
 
-        return openedOrders
+        boolean canceledOrders = openedOrders
                 .stream()
                 .allMatch(this::cancelOrder);
+        boolean canceledStopOrders = openedStopOrders
+                .stream()
+                .allMatch(stopOrderId -> stopOrderService.cancelOrder(stopOrderId, null));
+
+        return canceledOrders && canceledStopOrders;
     }
 
     @Transactional
@@ -1336,13 +1360,20 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
-        if (isEmpty(openedOrders)) {
+        List<Integer> openedStopOrders = stopOrderService.getAllOpenedStopOrdersByUserId(userId);
+
+        if (isEmpty(openedOrders) && isEmpty(openedStopOrders)) {
             return false;
         }
 
-        return openedOrders
+        boolean canceledOrders = openedOrders
                 .stream()
                 .allMatch(this::cancelOrder);
+        boolean canceledStopOrders = openedStopOrders
+                .stream()
+                .allMatch(stopOrderId -> stopOrderService.cancelOrder(stopOrderId, null));
+
+        return canceledOrders && canceledStopOrders;
     }
 
     private boolean cancelOrder(ExOrder exOrder) {
@@ -2080,7 +2111,7 @@ public class OrderServiceImpl implements OrderService {
                 }
             }}.toString());
         }
-        if(!dtos.isEmpty()) {
+        if (!dtos.isEmpty()) {
             Map<String, String> resultsMap = dtos
                     .stream()
                     .map(ResponseInfoCurrencyPairDto::new)
@@ -2358,7 +2389,7 @@ public class OrderServiceImpl implements OrderService {
             Row row = sheet.createRow(index++);
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateCreation()) ? order.getDateCreation() : order.getDateStatusModification()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(4, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
@@ -2367,7 +2398,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(order.getDateAcception()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateAcception()) ? order.getDateAcception() : order.getDateStatusModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
@@ -2489,7 +2520,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
-                .collect(toList());
+                .collect(Collectors.toList());
         List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
         OrderBookWrapperDto dto = OrderBookWrapperDto
                 .builder()
@@ -2581,7 +2612,7 @@ public class OrderServiceImpl implements OrderService {
         MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
                 .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), toList()));
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
         List<SimpleOrderBookItem> items = Lists.newArrayList();
         groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
                 .builder()
@@ -2598,7 +2629,7 @@ public class OrderServiceImpl implements OrderService {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
             }
         }
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(toList());
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
         setSumAmount(preparedItems);
         setTotal(preparedItems);
         return preparedItems;

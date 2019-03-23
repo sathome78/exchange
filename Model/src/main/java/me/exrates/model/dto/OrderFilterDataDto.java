@@ -8,7 +8,7 @@ import lombok.ToString;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OrderStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Getter
@@ -27,6 +27,6 @@ public class OrderFilterDataDto {
     private Map<String, String> sortedColumns;
     private String scope;
     private Boolean hideCanceled;
-    private LocalDate dateFrom;
-    private LocalDate dateTo;
+    private LocalDateTime dateFrom;
+    private LocalDateTime dateTo;
 }
