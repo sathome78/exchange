@@ -1349,9 +1349,11 @@ public class OrderDaoImpl implements OrderDao {
             sortDirection = "ASC";
             exrateClause = "AND EO.exrate <= :exrate ";
         }
-        String roleJoinClause = sameRoleOnly ? " JOIN USER U ON EO.user_id = U.id AND U.roleid = :acceptor_role_id " :
-                "JOIN USER U ON EO.user_id = U.id AND U.roleid IN (SELECT user_role_id FROM USER_ROLE_SETTINGS " +
-                        "WHERE user_role_id = :acceptor_role_id OR order_acception_same_role_only = 0)";
+
+        String roleJoinClause = String.format(
+                " JOIN USER U ON EO.user_id = U.id AND U.roleid IN (SELECT user_role_id FROM USER_ROLE_SETTINGS " +
+                        "WHERE user_role_id = :acceptor_role_id OR order_acception_same_role_only = %d) ", sameRoleOnly ? -1 : 0);
+
         String sqlSetVar = "SET @cumsum := 0";
 
         /*needs to return several orders with best exrate if their total sum is less than amount in param,
