@@ -5,6 +5,7 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.OperationType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Maks on 24.08.2017.
@@ -25,7 +26,7 @@ public interface StompMessenger {
 
     void sendStatisticMessage(List<Integer> currenciesIds);
 
-    void sendCpInfoMessage(String pairName, String message);
+    void sendCpInfoMessage(Map<String, String> currenciesStatisticMap);
 
     void sendEventMessage(String sessionId, String message);
 

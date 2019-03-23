@@ -23,6 +23,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
@@ -51,10 +52,9 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
-import me.exrates.service.events.OrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
@@ -430,7 +430,9 @@ public interface OrderService {
 
     String getAllCurrenciesStatForRefreshForAllPairs();
 
-    Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+    RefreshStatisticDto getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+
+    ResponseInfoCurrencyPairDto getStatForPair(String pairName);
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
@@ -486,7 +488,9 @@ public interface OrderService {
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 
-    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
-
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
+
+    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

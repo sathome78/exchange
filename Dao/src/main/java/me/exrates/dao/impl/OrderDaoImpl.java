@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -2276,36 +2275,99 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
-        String sql = "{call GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(:currency_pair_name)}";
+    public List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId) {
+        String whereClause = StringUtils.EMPTY;
+        if (Objects.nonNull(currencyPairId)) {
+            whereClause = " AND EO.currency_pair_id = :currency_pair_id ";
+        }
+
+        String sql = "SELECT " +
+                "EO.currency_pair_id, " +
+                "(IFNULL ((" +
+                "   SELECT PREDLASTORDER.exrate" +
+                "   FROM EXORDERS PREDLASTORDER" +
+                "   WHERE" +
+                "       PREDLASTORDER.currency_pair_id = EO.currency_pair_id AND" +
+                "       PREDLASTORDER.status_id = EO.status_id" +
+                "   ORDER BY PREDLASTORDER.date_acception DESC" +
+                "   LIMIT 1" +
+                "   OFFSET 1" +
+                "), 0)) AS pred_last, " +
+                "(IFNULL ((" +
+                "   SELECT LASTORDER.exrate" +
+                "   FROM EXORDERS LASTORDER" +
+                "   WHERE" +
+                "       LASTORDER.currency_pair_id = EO.currency_pair_id AND" +
+                "       LASTORDER.status_id = EO.status_id" +
+                "   ORDER BY LASTORDER.date_acception DESC" +
+                "   LIMIT 1" +
+                "), 0)) AS last " +
+                " FROM EXORDERS EO " +
+                "WHERE EO.status_id = 3 " +
+                whereClause +
+                "GROUP BY EO.currency_pair_id";
 
         Map<String, Object> params = new HashMap<>();
-        params.put("currency_pair_name", currencyPairName);
+        if (Objects.nonNull(currencyPairId)) {
+            params.put("currency_pair_id", currencyPairId);
+        }
 
-        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
-            ResultSet rs = ps.executeQuery();
-            List<ExOrderStatisticsShortByPairsDto> list = Lists.newArrayList();
-            while (rs.next()) {
-                ExOrderStatisticsShortByPairsDto statistic = ExOrderStatisticsShortByPairsDto.builder()
-                        .currencyPairId(rs.getInt("currency_pair_id"))
-                        .currencyPairName(rs.getString("currency_pair_name"))
-                        .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
-                        .lastOrderRate(convertToPlainString(rs,"last"))
-                        .predLastOrderRate(convertToPlainString(rs, "first"))
-                        .percentChange(calculatePercentChange(rs))
-                        .volume(convertToPlainString(rs,"baseVolume"))
-                        .currencyVolume(convertToPlainString(rs, "quoteVolume"))
-                        .market(rs.getString("market"))
-                        .high24hr(convertToPlainString(rs,"high24hr"))
-                        .low24hr(convertToPlainString(rs,"low24hr"))
-                        .hidden(rs.getBoolean("hidden"))
-                        .build();
-                list.add(statistic);
-            }
-            rs.close();
-            return list;
-        });
+        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
+                .currencyPairId(rs.getInt("currency_pair_id"))
+                .lastOrderRate(rs.getBigDecimal("last").toPlainString())
+                .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString()).build());
+    }
+
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId) {
+        String whereClause = StringUtils.EMPTY;
+        if (Objects.nonNull(currencyPairId)) {
+            whereClause = " WHERE CP2.id = :currency_pair_id ";
+        }
+
+        String sql = "SELECT " +
+                "CP2.id AS currency_pair_id, " +
+                "CP2.ticker_name AS currency_pair_name, " +
+                "CP2.scale AS currency_pair_precision, " +
+                "CP2.market, " +
+                "CP2.type AS currency_pair_type, " +
+                "CP2.hidden, " +
+                "(IF (AGR.baseVolume IS NOT NULL, AGR.baseVolume, 0)) AS baseVolume, " +
+                "(IF (AGR.quoteVolume IS NOT NULL, AGR.quoteVolume, 0)) AS quoteVolume, " +
+                "(IF (AGR.high24hr IS NOT NULL, AGR.high24hr, 0)) AS high24hr, " +
+                "(IF (AGR.low24hr IS NOT NULL, AGR.low24hr, 0)) AS low24hr " +
+                "FROM " +
+                "   (SELECT" +
+                "       CP.ticker_name, " +
+                "       EO.currency_pair_id, " +
+                "       SUM(EO.amount_base) AS baseVolume, " +
+                "       SUM(EO.amount_convert) AS quoteVolume, " +
+                "       MAX(EO.exrate) AS high24hr, " +
+                "       MIN(EO.exrate) AS low24hr " +
+                "        FROM EXORDERS EO " +
+                "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
+                "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
+                "        GROUP BY EO.currency_pair_id) AGR " +
+                "RIGHT JOIN CURRENCY_PAIR CP2 ON (CP2.id = AGR.currency_pair_id) " +
+                whereClause;
+
+        Map<String, Object> params = new HashMap<>();
+        if (Objects.nonNull(currencyPairId)) {
+            params.put("currency_pair_id", currencyPairId);
+        }
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
+                .currencyPairId(rs.getInt("currency_pair_id"))
+                .currencyPairName(rs.getString("currency_pair_name"))
+                .currencyPairPrecision(rs.getInt("currency_pair_precision"))
+                .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                .market(rs.getString("market"))
+                .hidden(rs.getBoolean("hidden"))
+                .volume(rs.getBigDecimal("baseVolume").toPlainString())
+                .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
+                .high24hr(rs.getBigDecimal("high24hr").toPlainString())
+                .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                .build());
     }
 
     private String calculatePercentChange(ResultSet rs) throws SQLException {

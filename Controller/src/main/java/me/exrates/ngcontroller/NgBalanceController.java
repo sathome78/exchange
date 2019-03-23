@@ -150,7 +150,7 @@ public class NgBalanceController {
                                                       @PathVariable String operation) {
         int userId = userService.getIdByEmail(getPrincipalEmail());
 
-        try{
+        try {
             if (operation.equalsIgnoreCase("REFILL")) {
                 if (!refillService.getFlatById(requestId).getUserId().equals(userId)) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -168,7 +168,7 @@ public class NgBalanceController {
                 transferService.revokeTransferRequest(requestId);
             }
             return ResponseEntity.ok().build();
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error(String.format("Failed to revoke request with id: %d and operation type: %s", requestId, operation), ex);
         }
         logger.error("Failed to revoke such request ({}) is not supported", operation);
