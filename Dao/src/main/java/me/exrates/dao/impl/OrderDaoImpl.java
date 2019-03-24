@@ -2079,7 +2079,6 @@ public class OrderDaoImpl implements OrderDao {
 
         List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
-
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
                 "  FROM EXORDERS " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id)" +

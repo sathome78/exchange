@@ -209,10 +209,6 @@ public class BalanceServiceImpl implements BalanceService {
 
     @Override
     public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(TransactionFilterDataDto filter, Locale locale) {
-        filter = filter.toBuilder()
-                .limit(-1)
-                .offset(-1)
-                .build();
         return getMyInputOutputHistoryDtos(filter, locale);
     }
 

@@ -2355,8 +2355,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status, String scope, boolean hideCanceled, Locale locale, LocalDate dateFrom, LocalDate dateTo) {
-        return orderDao.getAllOrders(userId, status, currencyPair, locale, scope, dateFrom, dateTo, hideCanceled);
+    public List<OrderWideListDto> getOrdersForExcel(OrderFilterDataDto filterDataDto, Locale locale) {
+        return orderDao.getMyOrdersWithState(filterDataDto, locale);
     }
 
     @Override
