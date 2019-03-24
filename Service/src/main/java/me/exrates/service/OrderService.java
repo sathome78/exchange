@@ -470,9 +470,7 @@ public interface OrderService {
     @Transactional
     boolean cancelOrders(Collection<Integer> orderIds);
 
-    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                             String scope, boolean hideCanceled,
-                                             Locale locale, LocalDate dateFrom, LocalDate dateTo);
+    List<OrderWideListDto> getOrdersForExcel(OrderFilterDataDto filterDataDto, Locale locale);
 
     ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 

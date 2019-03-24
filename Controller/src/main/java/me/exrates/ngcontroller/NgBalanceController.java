@@ -304,12 +304,12 @@ public class NgBalanceController {
 
         TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
                 .email(getPrincipalEmail())
-                .limit(limit)
-                .offset(offset)
                 .currencyId(0)
                 .currencyName(StringUtils.EMPTY)
                 .dateFrom(null)
                 .dateTo(null)
+                .limit(limit)
+                .offset(offset)
                 .build();
         try {
             PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
