@@ -18,7 +18,6 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
@@ -53,8 +52,6 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
-import me.exrates.service.events.OrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
@@ -465,12 +462,18 @@ public interface OrderService {
 
 
     @Transactional(readOnly = true)
-    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                                  OrderStatus orderStatus, String scope, Integer limit,
+                                                                  Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     @Transactional
     boolean cancelOrders(Collection<Integer> orderIds);
 
-    List<OrderWideListDto> getOrdersForExcel(OrderFilterDataDto filterDataDto, Locale locale);
+    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                             OrderStatus orderStatus, String scope, Integer limit,
+                                             Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                             LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 

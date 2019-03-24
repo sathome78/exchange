@@ -33,7 +33,6 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
@@ -2329,13 +2328,41 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale) {
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair,
+                                                                         String currencyName, OrderStatus orderStatus,
+                                                                         String scope, Integer limit, Integer offset,
+                                                                         Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                         LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                         Locale locale) {
 
-        int recordsCount = orderDao.getMyOrdersWithStateCount(filterDataDto);
+        int recordsCount = orderDao.getMyOrdersWithStateCount(
+                userId,
+                currencyPair,
+                currencyName,
+                orderStatus,
+                scope,
+                limit,
+                offset,
+                hideCanceled,
+                sortedColumns,
+                dateTimeFrom,
+                dateTimeTo);
 
         List<OrderWideListDto> orders = Collections.emptyList();
         if (recordsCount > 0) {
-            orders = orderDao.getMyOrdersWithState(filterDataDto, locale);
+            orders = orderDao.getMyOrdersWithState(
+                    userId,
+                    currencyPair,
+                    currencyName,
+                    orderStatus,
+                    scope,
+                    limit,
+                    offset,
+                    hideCanceled,
+                    sortedColumns,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    locale);
         }
         return Pair.of(recordsCount, orders);
     }
@@ -2349,8 +2376,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderWideListDto> getOrdersForExcel(OrderFilterDataDto filterDataDto, Locale locale) {
-        return orderDao.getMyOrdersWithState(filterDataDto, locale);
+    public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                    OrderStatus orderStatus, String scope, Integer limit,
+                                                    Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                    LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
+        return orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                currencyName,
+                orderStatus,
+                scope,
+                limit,
+                offset,
+                hideCanceled,
+                sortedColumns,
+                dateTimeFrom,
+                dateTimeTo,
+                locale);
     }
 
     @Override

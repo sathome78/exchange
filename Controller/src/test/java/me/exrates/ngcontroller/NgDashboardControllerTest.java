@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
@@ -30,13 +31,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.LocaleResolver;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
@@ -193,7 +199,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
 
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
         Mockito.when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair());
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenReturn(dto);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}", OrderStatus.OPENED)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -204,7 +212,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(currencyService, times(1)).findCurrencyPairById(anyInt());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
@@ -212,7 +222,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Pair<Integer, List<OrderWideListDto>> dto = new ImmutablePair<>(100, Collections.emptyList());
 
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenReturn(dto);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}", OrderStatus.OPENED)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -224,21 +236,27 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
     public void getFilteredOrders_bad_request() throws Exception {
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
         Mockito.when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair());
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenThrow(Exception.class);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}", OrderStatus.DRAFT)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
@@ -246,7 +264,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Pair<Integer, List<OrderWideListDto>> dto = new ImmutablePair<>(100, Collections.emptyList());
 
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenReturn(dto);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.OPENED)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -255,7 +275,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
@@ -264,7 +286,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
 
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
         Mockito.when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair());
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenReturn(dto);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.OPENED)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -275,7 +299,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(currencyService, times(1)).findCurrencyPairById(anyInt());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
@@ -283,7 +309,9 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Pair<Integer, List<OrderWideListDto>> dto = new ImmutablePair<>(100, Collections.emptyList());
 
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenReturn(dto);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.OPENED)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -294,20 +322,26 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test
     public void getLastOrders_bad_request() throws Exception {
         Mockito.when(userService.getIdByEmail(anyString())).thenReturn(12);
-        Mockito.when(orderService.getMyOrdersWithStateMap(anyObject(), anyObject())).thenThrow(Exception.class);
+        Mockito.when(orderService.getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class))).thenThrow(Exception.class);
 
         mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.DRAFT)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
-        verify(orderService, times(1)).getMyOrdersWithStateMap(anyObject(), anyObject());
+        verify(orderService, times(1)).getMyOrdersWithStateMap(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
     }
 
     @Test

@@ -20,7 +20,6 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.StatisticForMarket;
@@ -942,34 +941,37 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale) {
-        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                       OrderStatus orderStatus, String scope, Integer limit, Integer offset,
+                                                       Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                       LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
+        String currencyPairClauseWhere = isNull(currencyPair)
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.currency_pair_id = :currencyPairId ";
 
         String createdClause = StringUtils.EMPTY;
         String createdStopLimitClause = StringUtils.EMPTY;
-        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+        if (Objects.nonNull(dateTimeFrom) && Objects.nonNull(dateTimeTo)) {
             createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
             createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
-        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeFrom)) {
             createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
             createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
-        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeTo)) {
             createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
             createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
         }
 
-        String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
+        String currencyPairClauseWhereStopLimit = isNull(currencyPair)
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
 
-        String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
+        String currencyNameClause = isBlank(currencyName)
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String userFilterClause;
-        switch (filterDataDto.getScope()) {
+        switch (scope) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
                 break;
@@ -982,17 +984,17 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         String orderClause;
-        if (filterDataDto.getStatus() == OrderStatus.CLOSED) {
+        if (orderStatus == OrderStatus.CLOSED) {
             orderClause = " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
         } else {
-            orderClause = filterDataDto.getSortedColumns().isEmpty()
+            orderClause = sortedColumns.isEmpty()
                     ? " ORDER BY x.exorder_date_creation , x.stop_order_date_creation DESC "
                     : " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
         }
 
         String pageClause = " LIMIT ";
-        pageClause += filterDataDto.getLimit() != 14 ? String.valueOf(filterDataDto.getLimit()) : "14";
-        pageClause += filterDataDto.getOffset() > 0 ? " OFFSET " + String.valueOf(filterDataDto.getOffset()) : StringUtils.EMPTY;
+        pageClause += limit != 14 ? String.valueOf(limit) : "14";
+        pageClause += offset > 0 ? " OFFSET " + String.valueOf(offset) : StringUtils.EMPTY;
 
         String sqlWithBothOrders = "SELECT * " +
                 "FROM (SELECT EXORDERS.id, " +
@@ -1061,20 +1063,20 @@ public class OrderDaoImpl implements OrderDao {
                 orderClause + pageClause;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("user_id", filterDataDto.getUserId());
-        params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
+        params.put("user_id", userId);
+        params.put("statusId", getListOrderStatus(orderStatus, hideCanceled));
         params.put("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(filterDataDto.getCurrencyPair())) {
-            params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
+        if (nonNull(currencyPair)) {
+            params.put("currencyPairId", currencyPair.getId());
         }
-        if (nonNull(filterDataDto.getDateFrom())) {
-            params.put("dateFrom", filterDataDto.getDateFrom());
+        if (nonNull(dateTimeFrom)) {
+            params.put("dateFrom", dateTimeFrom);
         }
-        if (nonNull(filterDataDto.getDateTo())) {
-            params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
+        if (nonNull(dateTimeTo)) {
+            params.put("dateBefore", dateTimeTo.plusDays(1));
         }
-        if (isNotBlank(filterDataDto.getCurrencyName())) {
-            params.put("currency_name", filterDataDto.getCurrencyName());
+        if (isNotBlank(currencyName)) {
+            params.put("currency_name", currencyName);
         }
 
         return slaveJdbcTemplate.query(sqlWithBothOrders, params, (rs, rowNum) -> {
@@ -1954,46 +1956,48 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto) {
+    public Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
+                                             String scope, Integer limit, Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                             LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo) {
         String currencyPairClauseWhere = StringUtils.EMPTY;
         String currencyPairClauseWhereForStopLimit = StringUtils.EMPTY;
-        if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 0) {
+        if (nonNull(currencyPair)
+                && currencyPair.getId() > 0) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
             currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
-        } else if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() == 0
-                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+        } else if (nonNull(currencyPair)
+                && currencyPair.getId() == 0
+                && StringUtils.isNotBlank(currencyPair.getName())) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
             currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
         }
 
         String createdClause = StringUtils.EMPTY;
         String createdStopLimitClause = StringUtils.EMPTY;
-        if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+        if (Objects.nonNull(dateTimeFrom) && Objects.nonNull(dateTimeTo)) {
             createdClause = " AND (EXORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
             createdStopLimitClause = " AND (STOP_ORDERS.date_creation BETWEEN :dateFrom AND :dateBefore) ";
-        } else if (Objects.nonNull(filterDataDto.getDateFrom()) && Objects.isNull(filterDataDto.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeFrom)) {
             createdClause = " AND EXORDERS.date_creation >= :dateFrom ";
             createdStopLimitClause = " AND STOP_ORDERS.date_creation >= :dateFrom ";
-        } else if (Objects.isNull(filterDataDto.getDateFrom()) && Objects.nonNull(filterDataDto.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeTo)) {
             createdClause = " AND EXORDERS.date_creation <= :dateBefore ";
             createdStopLimitClause = " AND STOP_ORDERS.date_creation <= :dateBefore ";
         }
 
-        String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
+        String currencyNameClause = isBlank(currencyName)
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String currencyNameJoinClause = StringUtils.EMPTY;
         String currencyNameJoinClauseForStopLimits = StringUtils.EMPTY;
-        if (isNoneBlank(filterDataDto.getCurrencyName())) {
+        if (isNoneBlank(currencyName)) {
             currencyNameJoinClause = " JOIN CURRENCY_PAIR ON EXORDERS.currency_pair_id = CURRENCY_PAIR.id ";
             currencyNameJoinClauseForStopLimits = " JOIN CURRENCY_PAIR ON STOP_ORDERS.currency_pair_id = CURRENCY_PAIR.id ";
         }
 
         String userFilterClause;
-        switch (filterDataDto.getScope()) {
+        switch (scope) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
                 break;
@@ -2025,25 +2029,25 @@ public class OrderDaoImpl implements OrderDao {
                 "    AS SumCount";
 
         Map<String, Object> params = new HashMap<>();
-        params.put("user_id", filterDataDto.getUserId());
-        params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
+        params.put("user_id", userId);
+        params.put("statusId", getListOrderStatus(orderStatus, hideCanceled));
         params.put("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 0) {
-            params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
-        } else if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() == 0
-                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
-            params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyPair().getName(), "%"));
+        if (nonNull(currencyPair)
+                && currencyPair.getId() > 0) {
+            params.put("currencyPairId", currencyPair.getId());
+        } else if (nonNull(currencyPair)
+                && currencyPair.getId() == 0
+                && StringUtils.isNotBlank(currencyPair.getName())) {
+            params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", currencyPair.getName(), "%"));
         }
-        if (nonNull(filterDataDto.getDateFrom())) {
-            params.put("dateFrom", filterDataDto.getDateFrom());
+        if (nonNull(dateTimeFrom)) {
+            params.put("dateFrom", dateTimeFrom);
         }
-        if (nonNull(filterDataDto.getDateTo())) {
-            params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
+        if (nonNull(dateTimeTo)) {
+            params.put("dateBefore", dateTimeTo.plusDays(1));
         }
-        if (isNotBlank(filterDataDto.getCurrencyName())) {
-            params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyName(), "%"));
+        if (isNotBlank(currencyName)) {
+            params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", currencyName, "%"));
         }
         try {
             return slaveJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
@@ -2290,14 +2294,14 @@ public class OrderDaoImpl implements OrderDao {
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
                         .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
-                        .lastOrderRate(convertToPlainString(rs,"last"))
+                        .lastOrderRate(convertToPlainString(rs, "last"))
                         .predLastOrderRate(convertToPlainString(rs, "first"))
                         .percentChange(calculatePercentChange(rs))
-                        .volume(convertToPlainString(rs,"baseVolume"))
+                        .volume(convertToPlainString(rs, "baseVolume"))
                         .currencyVolume(convertToPlainString(rs, "quoteVolume"))
                         .market(rs.getString("market"))
-                        .high24hr(convertToPlainString(rs,"high24hr"))
-                        .low24hr(convertToPlainString(rs,"low24hr"))
+                        .high24hr(convertToPlainString(rs, "high24hr"))
+                        .low24hr(convertToPlainString(rs, "low24hr"))
                         .hidden(rs.getBoolean("hidden"))
                         .build();
                 list.add(statistic);

@@ -503,7 +503,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         PagedResult<MyInputOutputHistoryDto> myInputOutputHistoryDtoPagedResult = new PagedResult<>();
         myInputOutputHistoryDtoPagedResult.setItems(Collections.singletonList(getMockMyInputOutputHistoryDto()));
 
-        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -540,7 +541,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.items.[0].market", is("TEST_MARKET")))
                 .andExpect(jsonPath("$.items.[0].accepted", is(Boolean.TRUE)));
 
-        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject());
     }
 
     @Test
@@ -551,13 +553,15 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL + "/inputOutputData")
                 .build();
 
-        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
-        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject());
     }
 
     @Test
@@ -569,7 +573,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
         PagedResult<MyInputOutputHistoryDto> myInputOutputHistoryDtoPagedResult = new PagedResult<>();
         myInputOutputHistoryDtoPagedResult.setItems(Collections.singletonList(getMockMyInputOutputHistoryDto()));
 
-        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject())).thenReturn(myInputOutputHistoryDtoPagedResult);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -606,7 +611,8 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.items.[0].market", is("TEST_MARKET")))
                 .andExpect(jsonPath("$.items.[0].accepted", is(Boolean.TRUE)));
 
-        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject());
     }
 
     @Test
@@ -617,13 +623,15 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
                 .path(BASE_URL + "/inputOutputData/default")
                 .build();
 
-        Mockito.when(balanceService.getUserInputOutputHistory(anyObject(), anyObject())).thenThrow(Exception.class);
+        Mockito.when(balanceService.getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject())).thenThrow(Exception.class);
 
         mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is(ngBalanceException)));
 
-        verify(balanceService, times(1)).getUserInputOutputHistory(anyObject(), anyObject());
+        verify(balanceService, times(1)).getUserInputOutputHistory(anyString(), anyInt(), anyString(), anyObject(),
+                anyObject(), anyInt(), anyInt(), anyObject());
     }
 
     @Test

@@ -2,7 +2,6 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
 import me.exrates.dao.configuration.TestConfiguration;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -38,29 +37,22 @@ public class InputOutputDaoImplTest {
     @Autowired
     private InputOutputDao inputOutputDao;
 
-    private TransactionFilterDataDto filter;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-
-        filter = TransactionFilterDataDto.builder()
-                .email(EMAIL)
-                .limit(0)
-                .offset(0)
-                .operationTypes(OPERATION_TYPE_LIST)
-                .currencyId(0)
-                .currencyName(StringUtils.EMPTY)
-                .build();
     }
 
     @Test
     public void findMyInputOutputHistoryByOperationTypeTest_WithResult() {
         List<MyInputOutputHistoryDto> history = inputOutputDao.findMyInputOutputHistoryByOperationType(
-                filter.toBuilder()
-                        .dateFrom(START_DATE)
-                        .dateTo(END_DATE)
-                        .build(),
+                EMAIL,
+                0,
+                StringUtils.EMPTY,
+                START_DATE,
+                END_DATE,
+                0,
+                0,
+                OPERATION_TYPE_LIST,
                 Locale.ENGLISH);
 
         assertNotNull(history);
@@ -69,10 +61,14 @@ public class InputOutputDaoImplTest {
     @Test
     public void findMyInputOutputHistoryByOperationTypeTest_WithoutResult() {
         List<MyInputOutputHistoryDto> history = inputOutputDao.findMyInputOutputHistoryByOperationType(
-                filter.toBuilder()
-                        .dateFrom(FUTURE_START_DATE)
-                        .dateTo(FUTURE_END_DATE)
-                        .build(),
+                EMAIL,
+                0,
+                StringUtils.EMPTY,
+                FUTURE_START_DATE,
+                FUTURE_END_DATE,
+                0,
+                0,
+                OPERATION_TYPE_LIST,
                 Locale.ENGLISH);
 
         assertNotNull(history);

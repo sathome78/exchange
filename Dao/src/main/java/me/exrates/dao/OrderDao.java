@@ -11,7 +11,6 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.StatisticForMarket;
@@ -107,7 +106,10 @@ public interface OrderDao {
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale);
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                OrderStatus orderStatus, String scope, Integer limit, Integer offset,
+                                                Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 
@@ -154,7 +156,9 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
 
-    Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto);
+    Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
+                                      String scope, Integer limit, Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                      LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo);
 
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                         String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
