@@ -69,13 +69,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface OrderService {
 
 
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
-    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
+    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds);
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
 
@@ -429,7 +430,7 @@ public interface OrderService {
 
     String getAllCurrenciesStatForRefreshForAllPairs();
 
-    RefreshStatisticDto getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+    RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyId);
 
     ResponseInfoCurrencyPairDto getStatForPair(String pairName);
 

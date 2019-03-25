@@ -168,6 +168,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -366,7 +367,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
+    public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds) {
         List<ExOrderStatisticsShortByPairsDto> dto = null;
         dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
         Locale locale = Locale.ENGLISH;
@@ -2084,9 +2085,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public RefreshStatisticDto getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+    public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
-        logger.debug("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
@@ -2137,7 +2137,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseInfoCurrencyPairDto getStatForPair(String pairName) {
         System.out.println("pair name " + pairName);
         int cpId = currencyService.getCurrencyPairByName(pairName).getId();
-        List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(Collections.singletonList(cpId));
+        List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(Collections.singleton(cpId));
         dtos.forEach(System.out::println);
         if (dtos.isEmpty()) {
             return null;

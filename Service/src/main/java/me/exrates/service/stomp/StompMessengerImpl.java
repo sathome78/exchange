@@ -182,17 +182,17 @@ public class StompMessengerImpl implements StompMessenger {
 
     @Synchronized
     @Override
-    public void sendStatisticMessage(List<Integer> currenciesIds) {
+    public void sendStatisticMessage(Set<Integer> currenciesIds) {
         RefreshStatisticDto dto = orderService.getSomeCurrencyStatForRefresh(currenciesIds);
         if (!isNull(dto.getIcoData())) {
             sendMessageToDestination("/app/statistics/".concat(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC.name()), dto.getIcoData());
+            sendMessageToDestination("/app/statisticsNew", dto.getIcoData());
         }
         if (!isNull(dto.getMainCurrenciesData())) {
             sendMessageToDestination("/app/statisticsNew", dto.getMainCurrenciesData());
             sendMessageToDestination("/app/statistics/".concat(RefreshObjectsEnum.MAIN_CURRENCIES_STATISTIC.name()), dto.getMainCurrenciesData());
         }
         sendCpInfoMessage(dto.getStatisticInfoDtos());
-
     }
 
     @Override

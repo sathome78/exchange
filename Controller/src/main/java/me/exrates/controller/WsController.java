@@ -81,7 +81,6 @@ public class WsController {
 
     @SubscribeMapping("/statistics/{type}")
     public String subscribeStatistic(@DestinationVariable String type) {
-        System.out.println("type stat " + type);
         RefreshObjectsEnum refreshObjectsEnum = RefreshObjectsEnum.valueOf(type);
         return orderService.getAllCurrenciesStatForRefresh(refreshObjectsEnum);
     }

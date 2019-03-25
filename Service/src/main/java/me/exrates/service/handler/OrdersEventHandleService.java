@@ -98,13 +98,13 @@ public class OrdersEventHandleService {
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
     public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
-        ExOrder order = orderDto.toExorder();
-        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-        handleAllTrades(order);
+//        ExOrder order = orderDto.toExorder();
+//        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+//        handleAllTrades(order);
 //        handleMyTrades(order);
-        handleChart(order);
-        ratesHolder.onRatesChange(order);
-        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+//        handleChart(order);
+//        ratesHolder.onRatesChange(order);
+//        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
 
@@ -154,6 +154,8 @@ public class OrdersEventHandleService {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
     }
+
+
 
     private void handleAcceptorUserId(ExOrder exOrder) {
         String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
