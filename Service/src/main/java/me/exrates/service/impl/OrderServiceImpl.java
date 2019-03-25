@@ -145,6 +145,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -170,6 +171,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -218,6 +223,8 @@ public class OrderServiceImpl implements OrderService {
     TransactionDescription transactionDescription;
     @Autowired
     StopOrderService stopOrderService;
+    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
+    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
     @Autowired
     private OrderDao orderDao;
     @Autowired
@@ -248,6 +255,15 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+
+    @PostConstruct
+    public void init() {
+        coinmarketScheduler.scheduleAtFixedRate(() -> {
+            List<CoinmarketApiDto> newData = getCoinmarketDataForActivePairs(null, new BackDealInterval("24 HOUR"));
+            coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
+        }, 0, 15, TimeUnit.MINUTES);
+    }
+
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -1477,7 +1493,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<CoinmarketApiDto> getDailyCoinmarketData(String currencyPairName) {
-        return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("24 HOUR"));
+        if (StringUtils.isEmpty(currencyPairName) && coinmarketCachedData != null && !coinmarketCachedData.isEmpty()) {
+            return coinmarketCachedData;
+        } else {
+            return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("24 HOUR"));
+        }
     }
 
     @Override
