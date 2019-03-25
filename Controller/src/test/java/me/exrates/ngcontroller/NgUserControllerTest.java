@@ -16,6 +16,7 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -33,6 +34,7 @@ import java.util.Locale;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -42,7 +44,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,8 +82,8 @@ public class NgUserControllerTest extends AngularApiCommonTest {
                 .build();
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_pin_is_empty_NgResponseException() throws Exception {
+    @Test
+    public void authenticate_pin_is_empty_NgResponseException() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -107,9 +108,15 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)));
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "User with email: test@test.ru must login with GOOGLE authorization code";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
@@ -117,8 +124,8 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_shouldLoginWithGoogle_is_true_NgResponseException() throws Exception {
+    @Test
+    public void authenticate_shouldLoginWithGoogle_is_true_NgResponseException() {
         UserAuthenticationDto dto = new UserAuthenticationDto();
         dto.setEmail("test@test.ru");
         dto.setPassword("pass");
@@ -145,9 +152,15 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.TRUE);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(dto)));
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(dto)));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "Invalid google auth code from user test@test.ru";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
@@ -157,8 +170,8 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(g2faService, times(1)).checkGoogle2faVerifyCode(anyString(), anyInt());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_shouldLoginWithGoogle_is_false_NgResponseException() throws Exception {
+    @Test
+    public void authenticate_shouldLoginWithGoogle_is_false_NgResponseException() {
         UserAuthenticationDto dto = new UserAuthenticationDto();
         dto.setEmail("test@test.ru");
         dto.setPassword("pass");
@@ -184,7 +197,6 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.TRUE);
         //********** End authenticateUser() *****************************************************
 
-
         String[] arguments = new String[]{"A", "B", "C"};
 
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
@@ -192,9 +204,22 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(secureService.sendLoginPincode(anyObject(), anyObject(), anyString()))
                 .thenReturn(new NotificationResultDto("TEST_MSG_SOURCE", arguments));
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(dto)));
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(dto)));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "Invalid email auth code from user test@test.ru";
+            assertEquals(expected, e.getCause().getMessage());
+        }
+
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(userService, times(1)).updateGaTag(anyString(), anyString());
+        verify(userDetailsService, times(1)).loadUserByUsername(anyString());
+        verify(passwordEncoder, times(1)).matches(anyString(), anyString());
+        verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
+        verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());
     }
 
     @Test
@@ -262,7 +287,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(referralService, times(1)).generateReferral(anyString());
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void authenticate_authenticateUser_NgResponseException_authenticationDto_email_isBlank() throws Exception {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("");
@@ -270,14 +295,20 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         requestBody.setPin("TEST_PIN");
         requestBody.setTries(9);
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "User with email: [] and/or password: [pass] not found";
+            assertEquals(expected, e.getCause().getMessage());
+        }
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_authenticateUser_userService_throw_NgResponseException() throws Exception {
+    @Test
+    public void authenticate_authenticateUser_userService_throw_NgResponseException() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -286,16 +317,22 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
         when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "User with email test@test.ru not found";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_authenticateUser_UserStatus_equals_REGISTERED() throws Exception {
+    @Test
+    public void authenticate_authenticateUser_UserStatus_equals_REGISTERED() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -314,18 +351,24 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         doNothing().when(userService).updateGaTag(anyString(), anyString());
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "User with email test@test.ru registration is not complete";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
         verify(ngUserService, times(1)).resendEmailForFinishRegistration(anyObject());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_authenticateUser_UserStatus_equals_DELETED() throws Exception {
+    @Test
+    public void authenticate_authenticateUser_UserStatus_equals_DELETED() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -343,17 +386,23 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(userService).updateGaTag(anyString(), anyString());
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "User with email test@test.ru is not active";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_authenticateUser_passwordEncoder_return_false() throws Exception {
+    @Test
+    public void authenticate_authenticateUser_passwordEncoder_return_false() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -376,10 +425,16 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(userDetails.getPassword()).thenReturn("TEST_PASSWORD");
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "Invalid password and/or email [test@test.ru]";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).updateGaTag(anyString(), anyString());
@@ -387,8 +442,8 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
     }
 
-    @Test(expected = Exception.class)
-    public void authenticate_createToken_throw_NgResponseException() throws Exception {
+    @Test
+    public void authenticate_createToken_throw_NgResponseException() {
         UserAuthenticationDto requestBody = new UserAuthenticationDto();
         requestBody.setEmail("test@test.ru");
         requestBody.setPassword("pass");
@@ -424,17 +479,23 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         when(authTokenService.retrieveTokenNg((UserAuthenticationDto) anyObject())).thenThrow(NgResponseException.class);
         //********* End createToken() ************************************************************
 
-        mockMvc.perform(post(BASE_URL + "/authenticate")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
-                .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
-                .andExpect(jsonPath("$.avatarPath", is("http://localhost:80/restTEST_AVATAR_LOGICAL_PATH")))
-                .andExpect(jsonPath("$.finPasswordSet", is(Boolean.FALSE)))
-                .andExpect(jsonPath("$.referralReference", is("TEST_REFERRAL_REFERENCE")))
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.language", is("usa")));
+        try {
+            mockMvc.perform(post(BASE_URL + "/authenticate")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.token", is("TEST_TOKEN")))
+                    .andExpect(jsonPath("$.nickname", is("TEST_NICKNAME")))
+                    .andExpect(jsonPath("$.avatarPath", is("http://localhost:80/restTEST_AVATAR_LOGICAL_PATH")))
+                    .andExpect(jsonPath("$.finPasswordSet", is(Boolean.FALSE)))
+                    .andExpect(jsonPath("$.referralReference", is("TEST_REFERRAL_REFERENCE")))
+                    .andExpect(jsonPath("$.id", is(1)))
+                    .andExpect(jsonPath("$.language", is("usa")));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = null;
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(userService, times(1)).findByEmail(anyString());
