@@ -991,9 +991,8 @@ public class OrderDaoImpl implements OrderDao {
                     : " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
         }
 
-        String pageClause = " LIMIT ";
-        pageClause += limit != 14 ? String.valueOf(limit) : "14";
-        pageClause += offset > 0 ? " OFFSET " + String.valueOf(offset) : StringUtils.EMPTY;
+        String limitStr = limit < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", limit);
+        String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", offset);
 
         String sqlWithBothOrders = "SELECT * " +
                 "FROM (SELECT EXORDERS.id, " +
@@ -1059,7 +1058,7 @@ public class OrderDaoImpl implements OrderDao {
                 + createdStopLimitClause
                 + currencyNameClause
                 + ") x " +
-                orderClause + pageClause;
+                orderClause + limitStr + offsetStr;
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
