@@ -1071,7 +1071,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("dateFrom", dateTimeFrom);
         }
         if (nonNull(dateTimeTo)) {
-            params.put("dateBefore", dateTimeTo.plusDays(1));
+            params.put("dateBefore", dateTimeTo);
         }
         if (isNotBlank(currencyName)) {
             params.put("currency_name", currencyName);
