@@ -83,8 +83,6 @@ public class OrdersEventHandleService {
     @Autowired
     private DefaultSimpUserRegistry registry;
     @Autowired
-    private CpStatisticsHolder cpStatisticsHolder;
-    @Autowired
     private CurrencyService currencyService;
 
     private final Object handlerSync = new Object();
@@ -177,7 +175,6 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-        cpStatisticsHolder.onOrderAccept(order.getCurrencyPairId());
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {

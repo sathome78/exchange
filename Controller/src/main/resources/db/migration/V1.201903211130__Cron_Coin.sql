@@ -1,7 +1,7 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('CRONFoundation', 'CRON', 2, 'cronServiceImpl', 'CRYPTO');
+VALUES ('CRON-CRON', 'CRON', 2, 'cronServiceImpl', 'CRYPTO');
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('CRON', 'CRONFoundation', 0, 8, 8, 8);
+VALUES ('CRON', 'CRON-CRON', 0, 8, 8, 8);
 
 INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='CRON'));
 
