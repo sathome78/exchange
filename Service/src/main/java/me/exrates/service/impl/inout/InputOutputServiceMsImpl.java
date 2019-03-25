@@ -3,13 +3,13 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.condition.MicroserviceConditional;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -17,7 +17,6 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -80,11 +79,11 @@ public class InputOutputServiceMsImpl implements InputOutputService {
         ResponseEntity<Optional<CreditsOperation>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
-                entity, new ParameterizedTypeReference<Optional<CreditsOperation>>() {});
+                entity, new ParameterizedTypeReference<Optional<CreditsOperation>>() {
+                });
 
         return response.getBody();
     }
-
 
 
     private void setUserRecipient(Locale locale, Payment payment) {
@@ -111,12 +110,14 @@ public class InputOutputServiceMsImpl implements InputOutputService {
     }
 
     @Override
-    public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
+    public Integer getUserInputOutputHistoryCount(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
+                                                  LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale) {
         return null;
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
+                                                                   LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale) {
         return null;
     }
 

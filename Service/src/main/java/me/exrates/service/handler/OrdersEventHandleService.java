@@ -83,8 +83,6 @@ public class OrdersEventHandleService {
     @Autowired
     private DefaultSimpUserRegistry registry;
     @Autowired
-    private CpStatisticsHolder cpStatisticsHolder;
-    @Autowired
     private CurrencyService currencyService;
 
     private final Object handlerSync = new Object();
@@ -100,13 +98,13 @@ public class OrdersEventHandleService {
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
     public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
-        ExOrder order = orderDto.toExorder();
-        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-        handleAllTrades(order);
+//        ExOrder order = orderDto.toExorder();
+//        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
+//        handleAllTrades(order);
 //        handleMyTrades(order);
-        handleChart(order);
-        ratesHolder.onRatesChange(order);
-        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+//        handleChart(order);
+//        ratesHolder.onRatesChange(order);
+//        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
 
@@ -157,6 +155,8 @@ public class OrdersEventHandleService {
         }
     }
 
+
+
     private void handleAcceptorUserId(ExOrder exOrder) {
         String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
         try {
@@ -177,7 +177,6 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-        cpStatisticsHolder.onOrderAccept(order.getCurrencyPairId());
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {

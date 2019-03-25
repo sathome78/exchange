@@ -18,11 +18,11 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
@@ -51,10 +51,9 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
-import me.exrates.service.events.OrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,13 +69,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface OrderService {
 
 
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
-    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
+    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds);
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
 
@@ -430,7 +430,9 @@ public interface OrderService {
 
     String getAllCurrenciesStatForRefreshForAllPairs();
 
-    Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+    RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyId);
+
+    ResponseInfoCurrencyPairDto getStatForPair(String pairName);
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
@@ -465,14 +467,18 @@ public interface OrderService {
 
 
     @Transactional(readOnly = true)
-    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                                  OrderStatus orderStatus, String scope, Integer limit,
+                                                                  Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     @Transactional
     boolean cancelOrders(Collection<Integer> orderIds);
 
-    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                             String scope, boolean hideCanceled,
-                                             Locale locale, LocalDate dateFrom, LocalDate dateTo);
+    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                             OrderStatus orderStatus, String scope, Integer limit,
+                                             Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                             LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 
@@ -486,7 +492,9 @@ public interface OrderService {
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 
-    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
-
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
+
+    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

@@ -2,7 +2,6 @@ package me.exrates.ngService.impl;
 
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.BalancesShortDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -37,6 +36,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -127,7 +127,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
-        setBtcUsdAmoun(detailsPage.getItems());
+        setBtcUsdAmount(detailsPage.getItems());
 
         return detailsPage;
     }
@@ -141,15 +141,15 @@ public class BalanceServiceImpl implements BalanceService {
                 .findFirst();
     }
 
-    private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
-        Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
-        Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
+    private void setBtcUsdAmount(List<MyWalletsDetailedDto> walletsDetails) {
+        Map<String, BigDecimal> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
+        Map<String, BigDecimal> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
 
         BigDecimal btcUsdRate = exchangeRatesHolder.getBtcUsdRate();
         walletsDetails.forEach(p -> {
             BigDecimal sumBalances = new BigDecimal(p.getActiveBalance()).add(new BigDecimal(p.getReservedBalance())).setScale(8, RoundingMode.HALF_DOWN);
-            BigDecimal usdRate = new BigDecimal(usdRateMapped.getOrDefault(p.getCurrencyId(), "0"));
-            BigDecimal btcRate = new BigDecimal(btcRateMapped.getOrDefault(p.getCurrencyId(), "0"));
+            BigDecimal usdRate = usdRateMapped.getOrDefault(p.getCurrencyName(), BigDecimal.ZERO);
+            BigDecimal btcRate = btcRateMapped.getOrDefault(p.getCurrencyName(), BigDecimal.ZERO);
             BalancesShortDto dto = count(sumBalances, p.getCurrencyName(), btcRate, usdRate, btcUsdRate);
 
             p.setBtcAmount(dto.getBalanceBtc().setScale(8, RoundingMode.HALF_DOWN).toPlainString());
@@ -180,14 +180,32 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
-        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(filter, locale);
+    public PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName,
+                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                          Integer limit, Integer offset, Locale locale) {
+        Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(
+                userEmail,
+                currencyId,
+                currencyName,
+                dateTimeFrom,
+                dateTimeTo,
+                limit,
+                offset,
+                locale);
 
         List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();
         if (recordsCount > 0) {
-            historyDtoList = getMyInputOutputHistoryDtos(filter, locale);
+            historyDtoList = getMyInputOutputHistoryDtos(
+                    userEmail,
+                    currencyId,
+                    currencyName,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    limit,
+                    offset,
+                    locale);
 
-            setAcceptedToDefineUserTransferOperation(historyDtoList, filter.getEmail());
+            setAcceptedToDefineUserTransferOperation(historyDtoList, userEmail);
         }
         PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
         pagedResult.setCount(recordsCount);
@@ -208,16 +226,33 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(TransactionFilterDataDto filter, Locale locale) {
-        filter = filter.toBuilder()
-                .limit(-1)
-                .offset(-1)
-                .build();
-        return getMyInputOutputHistoryDtos(filter, locale);
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String userEmail, Integer currencyId, String currencyName,
+                                                                        LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                        Integer limit, Integer offset, Locale locale) {
+        return getMyInputOutputHistoryDtos(
+                userEmail,
+                currencyId,
+                currencyName,
+                dateTimeFrom,
+                dateTimeTo,
+                limit,
+                offset,
+                locale);
     }
 
-    private List<MyInputOutputHistoryDto> getMyInputOutputHistoryDtos(TransactionFilterDataDto filter, Locale locale) {
-        List<MyInputOutputHistoryDto> history = inputOutputService.getUserInputOutputHistory(filter, locale);
+    private List<MyInputOutputHistoryDto> getMyInputOutputHistoryDtos(String userEmail, Integer currencyId, String currencyName,
+                                                                      LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                      Integer limit, Integer offset, Locale locale) {
+        List<MyInputOutputHistoryDto> history = inputOutputService.getUserInputOutputHistory(
+                userEmail,
+                currencyId,
+                currencyName,
+                dateTimeFrom,
+                dateTimeTo,
+                limit,
+                offset,
+                locale);
+
         history.forEach(dto -> {
             IRefillable merchant;
             int minConfirmations = 0;

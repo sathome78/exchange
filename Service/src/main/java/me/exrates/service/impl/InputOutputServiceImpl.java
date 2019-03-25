@@ -1,23 +1,36 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.InputOutputDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.*;
+import me.exrates.model.Merchant;
+import me.exrates.model.Payment;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.UnsupportedMerchantException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
@@ -33,7 +46,12 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.valueOf;
@@ -254,21 +272,39 @@ public class InputOutputServiceImpl implements InputOutputService {
     }
 
     @Override
-    public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
-        filter = filter.toBuilder()
-                .operationTypes(getOperationTypesList())
-                .build();
-        List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(filter, locale);
+    public Integer getUserInputOutputHistoryCount(String userEmail, Integer currencyId, String currencyName,
+                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                  Integer limit, Integer offset, Locale locale) {
+        List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(
+                userEmail,
+                currencyId,
+                currencyName,
+                dateTimeFrom,
+                dateTimeTo,
+                limit,
+                offset,
+                getOperationTypesList(),
+                locale
+        );
         return items.size();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
-        filter = filter.toBuilder()
-                .operationTypes(getOperationTypesList())
-                .build();
-        List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(filter, locale);
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName,
+                                                                   LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                   Integer limit, Integer offset, Locale locale) {
+        List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(
+                userEmail,
+                currencyId,
+                currencyName,
+                dateTimeFrom,
+                dateTimeTo,
+                limit,
+                offset,
+                getOperationTypesList(),
+                locale
+        );
         setAdditionalFields(result, locale);
         return result;
     }

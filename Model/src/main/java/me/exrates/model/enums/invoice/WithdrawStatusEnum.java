@@ -18,10 +18,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_FACT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_AUTO;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_CONFIRM;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PUT_FOR_MANUAL;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
 
 /**
  * Created by ValkSam
