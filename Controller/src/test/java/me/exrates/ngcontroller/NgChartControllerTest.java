@@ -1,6 +1,9 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.CandleDto;
+import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -13,13 +16,11 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,18 +53,35 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
     }
 
     @Test
-    public void getCandleChartHistoryData_WhenOk() {
+    public void getCandleChartHistoryData_WhenOk() throws Exception {
+        String resolution = "30";
+        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         CurrencyPair currencyPair = new CurrencyPair();
 
+        List<CandleDto> result = orderService.getCachedDataForCandle(currencyPair,
+                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList());
 
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+        when(orderService.getCachedDataForCandle(any(CurrencyPair.class),any(ChartTimeFrame.class))
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList())).thenReturn(result);
+
+        mockMvc.perform(get(BASE_URL + "/history")
+                .param("symbol", "btc")
+                .param("to", "2")
+                .param("from", "3")
+                .param("resolution", "30")
+                .param("countback", "countback"))
+                .andExpect(status().isOk());
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFound() throws Exception {
-        Map<String, Object> map = new HashMap<>();
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
-        when(ngOrderService.filterDataPeriod(anyList(), anyLong(),anyLong(),anyString())).thenReturn(map);
 
         mockMvc.perform(get(BASE_URL + "/history")
                 .param("symbol", "freg")
@@ -71,7 +89,6 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .param("from", "3")
                 .param("resolution", "deq")
                 .param("countback", "eqded"))
-                .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
