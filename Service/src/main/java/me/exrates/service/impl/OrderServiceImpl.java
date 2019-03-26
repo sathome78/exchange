@@ -371,21 +371,10 @@ public class OrderServiceImpl implements OrderService {
         return dto;
     }
 
-    @Override
-    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
-        List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
-        result = result
-                .stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(Collectors.toList());
-        processStats(result, locale);
-        return result;
-    }
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds) {
-        List<ExOrderStatisticsShortByPairsDto> dto = null;
-        dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
+        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
         Locale locale = Locale.ENGLISH;
         try {
             processStats(dto, locale);
@@ -401,8 +390,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
             e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
             e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-            BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(e.getPercentChange(), locale, 2));
         });
     }
 
@@ -2107,7 +2095,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
-        List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
+       /* List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);*/
+        List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
                 .filter(p -> p.getType() == CurrencyPairType.ICO)
@@ -2175,25 +2164,8 @@ public class OrderServiceImpl implements OrderService {
                         .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
                 .flatMap(p -> p)
                 .collect(Collectors.toList());
-        setStatisitcValues(statisticList);
+        processStats(statisticList, Locale.ENGLISH);
         return statisticList;
-    }
-
-    private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
-        Locale locale = Locale.ENGLISH;
-        ordersList.forEach(e -> {
-            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-            BigDecimal percentChange;
-            if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-                percentChange = BigDecimal.ZERO;
-            } else {
-                percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-            }
-            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-        });
     }
 
 
