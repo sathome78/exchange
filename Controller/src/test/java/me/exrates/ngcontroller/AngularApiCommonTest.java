@@ -89,7 +89,7 @@ public abstract class AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.REGISTERED);
+        user.setUserStatus(UserStatus.REGISTERED);
         user.setPassword("TEST_PASSWORD");
         return user;
     }

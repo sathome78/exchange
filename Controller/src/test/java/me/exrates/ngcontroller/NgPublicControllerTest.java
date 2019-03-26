@@ -116,7 +116,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     @Test
     public void checkIfNewUserEmailExists_whenOk() throws Exception {
         User user = new User();
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
 
         when(userService.findByEmail(anyString())).thenReturn(user);
 
@@ -152,7 +152,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void checkIfNewUserEmailExists_whenRegistrationIncomplete() throws Exception {
         String actualMessage = String.format("User with email %s registration is not complete", EMAIL);
         User user = new User();
-        user.setStatus(UserStatus.REGISTERED);
+        user.setUserStatus(UserStatus.REGISTERED);
 
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());
@@ -173,7 +173,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     public void checkIfNewUserEmailExists_whenUserDeleted() throws Exception {
         String actualMessage = String.format("User with email %s is not active", EMAIL);
         User user = new User();
-        user.setStatus(UserStatus.DELETED);
+        user.setUserStatus(UserStatus.DELETED);
 
         when(userService.findByEmail(anyString())).thenReturn(user);
         doNothing().when(ngUserService).resendEmailForFinishRegistration(anyObject());

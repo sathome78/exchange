@@ -141,8 +141,8 @@ public class NgOrderServiceImpl implements NgOrderService {
         BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
         BigDecimal inputTotal = inputOrder.getTotal();
 
-        if (totalWithComission.setScale(5, RoundingMode.HALF_UP)
-                .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
+        if (totalWithComission.setScale(2, RoundingMode.HALF_UP)
+                .compareTo(inputTotal.setScale(2, RoundingMode.HALF_UP)) != 0) {
 
 //        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
             logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),

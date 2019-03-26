@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -19,6 +20,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ import java.util.Properties;
 @Service
 @PropertySource("classpath:/merchants/nixmoney.properties")
 @Conditional(MonolitConditional.class)
+@Log4j2(topic = "nixmoney_log")
 public class NixMoneyServiceImpl implements NixMoneyService {
 
     private @Value("${nixmoney.url}")
@@ -107,37 +110,42 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
-        String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
-        Currency currency = currencyService.findByName(params.get("PAYMENT_UNITS"));
-        Merchant merchant = merchantService.findByName("Nix Money");
-        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
+        try {
+            Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
+            String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
+            Currency currency = currencyService.findByName(params.get("PAYMENT_UNITS"));
+            Merchant merchant = merchantService.findByName("Nix Money");
+            BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
 
-        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+            RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+                    .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
 
-        String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();
-        ;
-        String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
-                + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
-                + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();
+            String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();
+            ;
+            String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
+                    + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
+                    + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();
 
-        if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)) {
-            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                    .requestId(requestId)
-                    .merchantId(merchant.getId())
-                    .currencyId(currency.getId())
-                    .amount(amount)
-                    .merchantTransactionId(merchantTransactionId)
-                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
-                    .build();
+            if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)) {
+                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                        .requestId(requestId)
+                        .merchantId(merchant.getId())
+                        .currencyId(currency.getId())
+                        .amount(amount)
+                        .merchantTransactionId(merchantTransactionId)
+                        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                        .build();
 
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+                refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+                final String username = refillService.getUsernameByRequestId(requestId);
 
-            logger.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+                logger.debug("Process of sending data to Google Analytics...");
+                gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+            }
+        } catch (Throwable e){
+            log.error(ExceptionUtils.getStackTrace(e));
+            throw e;
         }
     }
 

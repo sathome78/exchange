@@ -230,17 +230,17 @@
                     </sec:authorize>
                     <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-status"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.status"/></label>
+                        <label for="user-status" class="input-block-wrapper__label">
+                          <loc:message code="admin.status"/>
+                        </label>
                       </div>
                       <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:select path="status" id="user-status"
+                        <form:select path="userStatus" id="user-status"
                                      class="input-block-wrapper__input admin-form-input"
                                      name="user-status">
                           <c:forEach items="${statusList}" var="status">
                             <option value="${status}"
-                                    <c:if test="${status eq user.status}">SELECTED</c:if>>${status}</option>
+                                    <c:if test="${status eq user.userStatus}">SELECTED</c:if>>${status}</option>
                           </c:forEach>
                         </form:select>
                       </div>

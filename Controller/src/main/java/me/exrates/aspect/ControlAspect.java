@@ -31,10 +31,10 @@ public class ControlAspect {
         log.info("check user status");
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(email);
-        log.info("user {} status {}", email, user.getStatus());
-        if(!activeStatuses.contains(user.getStatus())) {
-            log.error("status checking: user {} logged in and has status {}", email, user.getStatus());
-            throw new RuntimeException("USER " + email + " BANNED, status " + user.getStatus());
+        log.info("user {} status {}", email, user.getUserStatus());
+        if(!activeStatuses.contains(user.getUserStatus())) {
+            log.error("status checking: user {} logged in and has status {}", email, user.getUserStatus());
+            throw new RuntimeException("USER " + email + " BANNED, status " + user.getUserStatus());
         }
     }
 }
