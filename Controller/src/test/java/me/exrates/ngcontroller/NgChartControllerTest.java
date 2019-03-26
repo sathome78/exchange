@@ -14,13 +14,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,7 +63,6 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
         String resolution = "30";
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         CurrencyPair currencyPair = new CurrencyPair();
-
         List<CandleDto> result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream()
@@ -70,31 +75,69 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .map(CandleDto::new)
                 .collect(Collectors.toList())).thenReturn(result);
 
+        Map<String, Object> map = new HashMap<>();
+        map.put("symbol","symbol");
+        map.put("from",5);
+        when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
+
         mockMvc.perform(get(BASE_URL + "/history")
                 .param("symbol", "btc")
                 .param("to", "2")
                 .param("from", "3")
                 .param("resolution", "30")
                 .param("countback", "countback"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.symbol", is("symbol")))
+                .andExpect(jsonPath("$.from", is(5)))
+                .andExpect(jsonPath("$.*", hasSize(2)));
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFound() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
 
+        Map<String, Object> map = new HashMap<>();
+        map.put("symbol","symbol");
+        map.put("from",5);
+        when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
+
         mockMvc.perform(get(BASE_URL + "/history")
                 .param("symbol", "freg")
                 .param("to", "2")
                 .param("from", "3")
                 .param("resolution", "deq")
-                .param("countback", "eqded"))
+                .param("countback", "eqded")).andDo(print())
+                .andExpect(jsonPath("$.s", is("error")))
+                .andExpect(jsonPath("$.errmsg", is("can not find currencyPair")))
+                .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    public void getCandleTimeScaleMarks() {
+    public void getCandleTimeScaleMarks_WhenNotFound() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/timescale_marks")
+                .param("symbol", "symbol")
+                .param("to", "2")
+                .param("from", "3")
+                .param("resolution", "W")
+                .param("countback", "eqded"))
+                .andExpect(jsonPath("$.s", is("error")))
+                .andExpect(jsonPath("$.errmsg", is("can not find currencyPair")))
+                .andExpect(jsonPath("$.*", hasSize(2)))
+                .andExpect(status().isNotFound());
+    }
 
+    @Test
+    public void getCandleTimeScaleMarks_WhenOk() throws Exception {
+        CurrencyPair currencyPair = new CurrencyPair();
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+        mockMvc.perform(get(BASE_URL + "/timescale_marks")
+                .param("symbol", "symbol")
+                .param("to", "2")
+                .param("from", "3")
+                .param("resolution", "W")
+                .param("countback", "eqded")).andDo(print())
+                .andExpect(status().isOk());
     }
 
     @Test
