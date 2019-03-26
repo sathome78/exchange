@@ -61,13 +61,14 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
         String resolution = "30";
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         CurrencyPair currencyPair = new CurrencyPair();
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+
         List<CandleDto> result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream()
                 .map(CandleDto::new)
                 .collect(Collectors.toList());
 
-        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
         when(orderService.getCachedDataForCandle(any(CurrencyPair.class),any(ChartTimeFrame.class))
                 .stream()
                 .map(CandleDto::new)
@@ -127,8 +128,7 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
 
     @Test
     public void getCandleTimeScaleMarks_WhenOk() throws Exception {
-        CurrencyPair currencyPair = new CurrencyPair();
-        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
         mockMvc.perform(get(BASE_URL + "/timescale_marks")
                 .param("symbol", "symbol")
                 .param("to", "2")
