@@ -295,14 +295,6 @@ public interface OrderService {
     @Transactional
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
 
-    /**
-     * Returns statistics of orders by currency pairs.
-     * Statistics contains last and pred last rates for each currency pair
-     *
-     * @return statistics of orders by currency pairs
-     * @author ValkSam
-     */
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale);
 
     /**
      * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
