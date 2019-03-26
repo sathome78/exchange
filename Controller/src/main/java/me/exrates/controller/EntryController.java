@@ -20,19 +20,6 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.News;
-import me.exrates.model.SessionParams;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.dto.ChangePasswordDto;
-import me.exrates.model.dto.Generic2faResponseDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.PinDto;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.exceptions.InvalidCredentialsException;
 import me.exrates.model.exceptions.SessionParamTimeExceedException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
@@ -223,7 +210,7 @@ public class EntryController {
         if (principal != null) {
             userService.updateGaTag(getGaCookie(request), principal.getName());
             User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
+            int userStatus = user.getUserStatus().getStatus();
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
             model.addObject("accessToOperationForUser", accessToOperationForUser);
 
@@ -292,7 +279,7 @@ public class EntryController {
         model.addObject(orderCreateDto);
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
+            int userStatus = user.getUserStatus().getStatus();
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));

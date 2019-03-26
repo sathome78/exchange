@@ -186,10 +186,26 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public List<Wallet> findAllByUser(int userId) {
+    public List<Wallet> findAllForNotHiddenCurByUser(int userId) {
         final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
                 "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId " +
                 " WHERE CURRENCY.hidden != 1 ";
+        final Map<String, Integer> params = new HashMap<String, Integer>() {
+            {
+                put("userId", userId);
+            }
+        };
+        ArrayList<Wallet> result = (ArrayList<Wallet>) slaveJdbcTemplate.query(sql, params,
+                walletRowMapper);
+
+        return result;
+    }
+
+    @Override
+    public List<Wallet> findAllByUser(int userId) {
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
+                "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId ";
+
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
                 put("userId", userId);
