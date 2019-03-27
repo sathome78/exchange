@@ -11,8 +11,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class NgMailingControllerTest {
@@ -30,7 +32,6 @@ public class NgMailingControllerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-
         mockMvc = MockMvcBuilders.standaloneSetup(ngMailingController)
                 .build();
     }
@@ -50,5 +51,7 @@ public class NgMailingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(json))
                 .andExpect(status().isOk());
+
+        verify(sendMailService, times(1)).sendListingRequestEmail(anyObject());
     }
 }
