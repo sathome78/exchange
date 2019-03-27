@@ -1,7 +1,5 @@
 package me.exrates.ngcontroller;
 
-import me.exrates.model.mail.ListingRequest;
-import me.exrates.model.ngExceptions.ValidationException;
 import me.exrates.service.SendMailService;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,12 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.validation.Errors;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class NgMailingControllerTest {
@@ -38,22 +33,6 @@ public class NgMailingControllerTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(ngMailingController)
                 .build();
-    }
-
-    @Test
-    public void sendEmail_WhenException() throws Exception {
-        String json = "{\n" +
-                "  \"name\":\"name\",\n" +
-                "  \"email\":\"email@email.com\",\n" +
-                "  \"telegram\":\"telegram\",\n" +
-                "  \"text\":\"text\"\n" +
-                "}";
-//        when(errors.hasErrors()).thenReturn(Boolean.TRUE);
-
-        mockMvc.perform(MockMvcRequestBuilders.post(BASE_URL + "/mail/send")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(json)).andDo(print())
-                .andExpect(status().isBadRequest());
     }
 
     @Test
