@@ -132,6 +132,11 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
     }
 
     @Override
+    public List<UserCurrencyOperationPermissionDto> findAllCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
+        return null;
+    }
+
+    @Override
     public List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId) {
         return null;
     }

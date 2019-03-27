@@ -667,10 +667,10 @@ public class MobileEntryController {
 
         User user = userService.findByEmail(authenticationDto.getEmail());
 
-        if (user.getStatus() == UserStatus.REGISTERED) {
+        if (user.getUserStatus() == UserStatus.REGISTERED) {
             throw new UnconfirmedUserException("User account not yet confirmed");
         }
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getUserStatus() == UserStatus.DELETED) {
             throw new UserNotEnabledException("Blocked account");
         }
         authTokenDto.setNickname(user.getNickname());
@@ -735,7 +735,7 @@ public class MobileEntryController {
         String newPass = decodePassword(body.get("password"), passEncodeKey);
         try {
             User user = userService.findByEmail(email);
-            if (user.getStatus() == UserStatus.DELETED) {
+            if (user.getUserStatus() == UserStatus.DELETED) {
                 throw new UserNotEnabledException("Account disabled");
             }
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());

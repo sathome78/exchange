@@ -133,12 +133,22 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     }
 
     @Override
+    public List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail) {
+        return null;
+    }
+
+    @Override
     public List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail) {
         return null;
     }
 
     @Override
     public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection) {
+        return null;
+    }
+
+    @Override
+    public List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForWithdraw(String userEmail) {
         return null;
     }
 

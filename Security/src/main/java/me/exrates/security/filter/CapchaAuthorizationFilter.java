@@ -7,7 +7,6 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
@@ -126,7 +125,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
                 throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
         }
-        if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
+        if(userService.findByEmail(request.getParameter("username")).getUserStatus()==UserStatus.REGISTERED){
             throw new UnconfirmedUserException(userService.findByEmail(request.getParameter("username")).getEmail());
         }
         /*---------------*/

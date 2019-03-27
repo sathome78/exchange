@@ -315,7 +315,7 @@ public class RegisterFormValidation implements Validator {
         int userId = userService.getIdByEmail(user.getEmail());
         if (userId != 0) {
             User findUser = userService.getUserById(userId);
-            if (findUser.getStatus() == UserStatus.DELETED) {
+            if (findUser.getUserStatus() == UserStatus.DELETED) {
                 errors.rejectValue("email", "email.incorrect", statusIncorrect);
             }
         } else {

@@ -1,5 +1,8 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -14,7 +17,8 @@ public class User implements Serializable {
 	private String nickname;
 	private String email;
 	private String phone;
-	private UserStatus status = UserStatus.REGISTERED;
+	@JsonProperty("status")
+	private UserStatus userStatus = UserStatus.REGISTERED;
 	private String password;
 	private String finpassword;
 	private Date regdate;
@@ -94,12 +98,12 @@ public class User implements Serializable {
 		this.phone = phone;
 	}
 
-	public UserStatus getStatus() {
-		return status;
+    public UserStatus getUserStatus() {
+		return userStatus;
 	}
 
-	public void setStatus(UserStatus status) {
-		this.status = status;
+    public void setUserStatus(UserStatus userStatus) {
+		this.userStatus = userStatus;
 	}
 
 	public String getPassword() {
@@ -157,7 +161,7 @@ public class User implements Serializable {
 				", nickname='" + nickname + '\'' +
 				", email='" + email + '\'' +
 				", phone='" + phone + '\'' +
-				", status=" + status +
+				", userStatus=" + userStatus +
 				", regdate=" + regdate +
 				", ipaddress='" + ipaddress + '\'' +
 				", readRules=" + readRules +

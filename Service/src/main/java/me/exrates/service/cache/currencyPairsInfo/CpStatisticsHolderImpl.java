@@ -20,12 +20,11 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 
-@Log4j2
-@Component
-public class CpStatisticsHolderImpl implements CpStatisticsHolder {
+
+public class CpStatisticsHolderImpl  {
 
 
-    private Map<Integer, Semaphore> synchronizersMap = new ConcurrentHashMap<>();
+    /*private Map<Integer, Semaphore> synchronizersMap = new ConcurrentHashMap<>();
     private static final int SLEEP_TIME_MS = 2000;
 
     private final NgOrderService orderService;
@@ -40,12 +39,11 @@ public class CpStatisticsHolderImpl implements CpStatisticsHolder {
         this.redisRepository = redisRepository;
         this.stompMessenger = stompMessenger;
         this.pairsCache = pairsCache;
-    }
+    }*/
 
-    @Async
-    @Override
+
     public void onOrderAccept(Integer pairId) {
-        if (!synchronizersMap.containsKey(pairId)) {
+      /*  if (!synchronizersMap.containsKey(pairId)) {
             putSynchronizer(pairId);
         }
         Semaphore semaphore = synchronizersMap.get(pairId);
@@ -60,9 +58,9 @@ public class CpStatisticsHolderImpl implements CpStatisticsHolder {
             } finally {
                 semaphore.release();
             }
-        }
+        }*/
     }
-
+/*
     @Synchronized
     private void putSynchronizer(Integer pairId) {
         synchronizersMap.putIfAbsent(pairId, new Semaphore(1));
@@ -84,7 +82,7 @@ public class CpStatisticsHolderImpl implements CpStatisticsHolder {
             redisRepository.put(dto, pairId);
             return dto;
         }
-    }
+    }*/
 
 
 

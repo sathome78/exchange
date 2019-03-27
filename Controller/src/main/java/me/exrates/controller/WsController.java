@@ -48,16 +48,14 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
-    private final CpStatisticsHolder cpStatisticsHolder;
 
     @Autowired
-    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, CpStatisticsHolder cpStatisticsHolder) {
+    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.objectMapper = objectMapper;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
-        this.cpStatisticsHolder = cpStatisticsHolder;
     }
 
 
@@ -89,7 +87,7 @@ public class WsController {
 
     @SubscribeMapping("/statistics/pairInfo/{pairName}")
     public ResponseInfoCurrencyPairDto subscribePairInfo(@DestinationVariable String pairName) {
-        return cpStatisticsHolder.get(OpenApiUtils.transformCurrencyPair(pairName));
+        return orderService.getStatForPair(OpenApiUtils.transformCurrencyPair(pairName));
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
@@ -133,11 +131,13 @@ public class WsController {
                 orderService.findAllOrderBookItems(OrderType.BUY , currencyPair.getId(), precissionsEnum.getValue()));
     }
 
+    /*alterdice use it*/
     @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairName}")
     public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable String currencyPairName) {
         return orderService.getOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName));
     }
 
+    /*alterdice use it*/
     @SubscribeMapping("/queue/my_orders/{currencyPairName}")
     public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable String currencyPairName, Principal principal) {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());

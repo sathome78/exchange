@@ -249,13 +249,13 @@ public class NgUserController {
             throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
         }
 
-        if (user.getStatus() == UserStatus.REGISTERED) {
+        if (user.getUserStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
             String message = String.format("User with email %s registration is not complete", authenticationDto.getEmail());
             logger.debug(message);
             throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
         }
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getUserStatus() == UserStatus.DELETED) {
             String message = String.format("User with email %s is not active", authenticationDto.getEmail());
             logger.debug(message);
             throw new NgResponseException("USER_NOT_ACTIVE", message);

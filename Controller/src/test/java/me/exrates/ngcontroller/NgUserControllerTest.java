@@ -94,7 +94,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);
@@ -137,7 +137,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);
@@ -184,7 +184,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);
@@ -236,7 +236,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);
@@ -344,7 +344,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.REGISTERED);
+        user.setUserStatus(UserStatus.REGISTERED);
         user.setPassword("TEST_PASSWORD");
 
         when(userService.findByEmail(anyString())).thenReturn(user);
@@ -380,7 +380,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.DELETED);
+        user.setUserStatus(UserStatus.DELETED);
         user.setPassword("TEST_PASSWORD");
 
         when(userService.findByEmail(anyString())).thenReturn(user);
@@ -414,7 +414,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);
@@ -456,7 +456,7 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         user.setNickname("TEST_NICKNAME");
         user.setEmail("TEST_EMAIL");
         user.setParentEmail("+380508008000");
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
         user.setPassword("TEST_PASSWORD");
 
         UserDetails userDetails = Mockito.mock(UserDetails.class);

@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -415,16 +414,19 @@ public class InputOutputDaoImpl implements InputOutputDao {
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(TransactionFilterDataDto filter, Locale locale) {
-        String limitStr = filter.getLimit() < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", filter.getLimit());
-        String offsetStr = filter.getOffset() < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", filter.getOffset());
+    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String userEmail, Integer currencyId, String currencyName,
+                                                                                 LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                                 Integer limit, Integer offset, List<Integer> operationTypesList,
+                                                                                 Locale locale) {
+        String limitStr = limit < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", limit);
+        String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", offset);
 
         String currencyCondition = StringUtils.EMPTY;
         String curId = StringUtils.EMPTY;
-        if (filter.getCurrencyId() > 0) {
+        if (currencyId > 0) {
             currencyCondition = " TRANSACTION.currency_id = :currencyId AND ";
             curId = " AND CUR.id = :currencyId ";
-        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
+        } else if (currencyId == 0 && StringUtils.isNotBlank(currencyName)) {
             currencyCondition = " TRANSACTION.currency_id IN (SELECT CUR.id FROM CURRENCY CUR WHERE LOWER(CUR.name) LIKE LOWER(:currencyNamePart)) AND ";
             curId = " AND LOWER(CUR.name) LIKE LOWER(:currencyNamePart) ";
         }
@@ -434,19 +436,19 @@ public class InputOutputDaoImpl implements InputOutputDao {
         String dateClauseWithdrawRequest = StringUtils.EMPTY;
         String dateClauseTransferRequest = StringUtils.EMPTY;
         String dateClauseTransferRequestTr = StringUtils.EMPTY;
-        if (Objects.nonNull(filter.getDateFrom()) && Objects.nonNull(filter.getDateTo())) {
+        if (Objects.nonNull(dateTimeFrom) && Objects.nonNull(dateTimeTo)) {
             dateClauseTransaction = " (TRANSACTION.datetime BETWEEN :dateFrom AND :dateTo) AND ";
             dateClauseRefillRequest = " AND (RR.date_creation BETWEEN :dateFrom AND :dateTo) ";
             dateClauseWithdrawRequest = " AND (WR.date_creation BETWEEN :dateFrom AND :dateTo) ";
             dateClauseTransferRequest = " AND (TR.date_creation BETWEEN :dateFrom AND :dateTo) ";
             dateClauseTransferRequestTr = " AND (TR.datetime BETWEEN :dateFrom AND :dateTo) ";
-        } else if (Objects.nonNull(filter.getDateFrom()) && Objects.isNull(filter.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeFrom)) {
             dateClauseTransaction = " TRANSACTION.datetime >= :dateFrom AND ";
             dateClauseRefillRequest = " AND RR.date_creation >= :dateFrom ";
             dateClauseWithdrawRequest = " AND WR.date_creation >= :dateFrom ";
             dateClauseTransferRequest = " AND TR.date_creation >= :dateFrom ";
             dateClauseTransferRequestTr = " AND TR.datetime >= :dateFrom ";
-        } else if (Objects.isNull(filter.getDateFrom()) && Objects.nonNull(filter.getDateTo())) {
+        } else if (Objects.nonNull(dateTimeTo)) {
             dateClauseTransaction = " TRANSACTION.datetime <= :dateTo AND ";
             dateClauseRefillRequest = " AND RR.date_creation <= :dateTo ";
             dateClauseWithdrawRequest = " AND WR.date_creation <= :dateTo ";
@@ -487,7 +489,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 currencyCondition +
                 dateClauseTransaction +
                 "    USER.email = :email " +
-                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'USER_TRANSFER') " +
+                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW') " +
                 "    AND TRANSACTION.status_id IN (1, 2)" +
 
                 "  UNION " +
@@ -632,18 +634,18 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "  ORDER BY datetime DESC, operation_id DESC " + limitStr + offsetStr;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("email", filter.getEmail());
-        if (Objects.nonNull(filter.getDateFrom())) {
-            params.put("dateFrom", Timestamp.valueOf(filter.getDateFrom()));
+        params.put("email", userEmail);
+        if (Objects.nonNull(dateTimeFrom)) {
+            params.put("dateFrom", Timestamp.valueOf(dateTimeFrom));
         }
-        if (Objects.nonNull(filter.getDateTo())) {
-            params.put("dateTo", Timestamp.valueOf(filter.getDateTo()));
+        if (Objects.nonNull(dateTimeTo)) {
+            params.put("dateTo", Timestamp.valueOf(dateTimeTo));
         }
-        params.put("operation_type_id_list", filter.getOperationTypes());
-        if (filter.getCurrencyId() > 0) {
-            params.put("currencyId", filter.getCurrencyId());
-        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
-            params.put("currencyNamePart", String.join(StringUtils.EMPTY, "%", filter.getCurrencyName(), "%"));
+        params.put("operation_type_id_list", operationTypesList);
+        if (currencyId > 0) {
+            params.put("currencyId", currencyId);
+        } else if (currencyId == 0 && StringUtils.isNotBlank(currencyName)) {
+            params.put("currencyNamePart", String.join(StringUtils.EMPTY, "%", currencyName, "%"));
         }
 
         try {

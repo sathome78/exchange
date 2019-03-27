@@ -29,42 +29,31 @@ public class CurrencyStatisticsHandler {
     private Set<Integer> currenciesSet = Sets.newConcurrentHashSet();
 
     private final Semaphore semaphoreMain = new Semaphore(1, true);
-    private static final long DELAY = 700;
-    private ReentrantLock lock = new ReentrantLock();
-    private final CountDownLatch cdl  = new CountDownLatch(1);
+    private static final long DELAY = 1000;
+    private final Object syncObj = new Object();
 
     @Async
     public void onEvent(int pairId) {
-       /* cache.setNeedUpdate(true);*/
-        try {
-            if (lock.isLocked()) {
-                cdl.await(5, TimeUnit.SECONDS);
-            }
-            log.debug("add pair {}", pairId);
+        synchronized (syncObj) {
             currenciesSet.add(pairId);
-            if (semaphoreMain.tryAcquire()) {
+        }
+        if (semaphoreMain.tryAcquire()) {
+            try {
                 Thread.sleep(DELAY);
-                lock.lock();
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                List<Integer> forUpdate = Lists.newArrayList(currenciesSet);
-                currenciesSet.clear();
-                semaphoreMain.release();
-                cdl.countDown();
-                lock.unlock();
-                if(!forUpdate.isEmpty()) {
-                    log.debug("currencies list {}", forUpdate.size());
+                Set<Integer> forUpdate;
+                synchronized (syncObj) {
+                    forUpdate = Sets.newHashSet(currenciesSet);
+                    currenciesSet.clear();
+                }
+                if (!forUpdate.isEmpty()) {
                     stompMessenger.sendStatisticMessage(forUpdate);
                 }
-            }
-        } catch (Exception e) {
-            log.error(e);
-        } finally {
-            semaphoreMain.release();
-            if(lock.isLocked()) {
-                lock.unlock();
+            } catch (Exception e) {
+                log.error(e);
+            } finally {
+                semaphoreMain.release();
             }
         }
     }
-
 
 }

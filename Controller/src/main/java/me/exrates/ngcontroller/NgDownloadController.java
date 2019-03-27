@@ -3,7 +3,6 @@ package me.exrates.ngcontroller;
 import com.google.common.io.ByteSource;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
@@ -32,8 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @RequestMapping("/api/private/v2/download/")
 @RestController
@@ -62,24 +63,37 @@ public class NgDownloadController {
     @GetMapping("/orders/{status}/export")
     public ResponseEntity exportExcelOrders(@PathVariable("status") String status,
                                             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
-                                            @RequestParam(required = false, name = "scope", defaultValue = "") String scope,
+                                            @RequestParam(required = false, name = "scope", defaultValue = StringUtils.EMPTY) String scope,
                                             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
                                             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
                                             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
                                             HttpServletRequest request) {
-
-        OrderStatus orderStatus = OrderStatus.valueOf(status);
-
-        int userId = userService.getIdByEmail(getPrincipalEmail());
-        CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
+        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+
+        CurrencyPair currencyPair = null;
+        if (currencyPairId > 0) {
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        }
 
         ReportDto reportDto;
         try {
-            List<OrderWideListDto> orders = orderService.getOrdersForExcel(userId, currencyPair, orderStatus, scope,
-                    hideCanceled, locale, dateFrom, dateTo);
+            List<OrderWideListDto> orders = orderService.getOrdersForExcel(
+                    userId,
+                    currencyPair,
+                    StringUtils.EMPTY,
+                    orderStatus,
+                    scope,
+                    0,
+                    0,
+                    hideCanceled,
+                    Collections.emptyMap(),
+                    dateTimeFrom,
+                    dateTimeTo,
+                    locale);
 
             reportDto = orderService.getOrderExcelFile(orders, orderStatus);
 
@@ -107,18 +121,21 @@ public class NgDownloadController {
                                                       @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
                                                       HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
-
-        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
-                .email(getPrincipalEmail())
-                .currencyId(currencyId)
-                .currencyName(currencyName)
-                .dateFrom(LocalDateTime.of(dateFrom, LocalTime.MIN))
-                .dateTo(LocalDateTime.of(dateTo, LocalTime.MAX))
-                .build();
+        String userEmail = getPrincipalEmail();
+        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
+        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
 
         ReportDto reportDto;
         try {
-            List<MyInputOutputHistoryDto> transactions = balanceService.getUserInputOutputHistoryExcel(filter, locale);
+            List<MyInputOutputHistoryDto> transactions = balanceService.getUserInputOutputHistoryExcel(
+                    userEmail,
+                    currencyId,
+                    currencyName,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    0,
+                    0,
+                    locale);
 
             reportDto = orderService.getTransactionExcelFile(transactions);
 

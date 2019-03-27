@@ -2,13 +2,12 @@ package me.exrates.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.dao.OrderDao;
-import me.exrates.model.dto.OrderFilterDataDto;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.OrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -25,9 +24,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @Slf4j
@@ -40,42 +42,62 @@ public class OrderServiceImplTest {
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
 
-    private OrderFilterDataDto filter;
-    private Locale locale;
-
-    @Before
-    public void setUp() {
-        locale = Locale.ENGLISH;
-
-        LocalDateTime now = LocalDateTime.now();
-        filter = OrderFilterDataDto.builder()
-                .userId(1)
-                .currencyPair(null)
-                .currencyName(StringUtils.EMPTY)
-                .status(OrderStatus.CLOSED)
-                .scope(StringUtils.EMPTY)
-                .offset(0)
-                .limit(15)
-                .hideCanceled(false)
-                .sortedColumns(Collections.emptyMap())
-                .dateFrom(now.minusDays(1))
-                .dateTo(now)
-                .build();
-    }
-
     @Test
     public void getMyOrdersWithStateMap_foundOneRecordTest() {
         log.debug("getMyOrdersWithStateMap_foundOneRecordTest() - start");
 
-        doReturn(1).when(orderDao).getMyOrdersWithStateCount(filter);
+        LocalDateTime now = LocalDateTime.now();
 
-        doReturn(Collections.singletonList(new OrderWideListDto())).when(orderDao).getMyOrdersWithState(filter, locale);
+        doReturn(1).when(orderDao).getMyOrdersWithStateCount(
+                1,
+                new CurrencyPair("BTC/USD"),
+                StringUtils.EMPTY,
+                OrderStatus.CLOSED,
+                StringUtils.EMPTY,
+                15,
+                0,
+                false,
+                Collections.emptyMap(),
+                now.minusDays(1),
+                now
+        );
 
-        Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(filter, locale);
+        doReturn(Collections.singletonList(new OrderWideListDto())).when(orderDao).getMyOrdersWithState(
+                1,
+                new CurrencyPair("BTC/USD"),
+                StringUtils.EMPTY,
+                OrderStatus.CLOSED,
+                StringUtils.EMPTY,
+                15,
+                0,
+                false,
+                Collections.emptyMap(),
+                now.minusDays(1),
+                now,
+                Locale.ENGLISH
+        );
 
-        verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(any(OrderFilterDataDto.class));
+        Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
+                1,
+                new CurrencyPair("BTC/USD"),
+                StringUtils.EMPTY,
+                OrderStatus.CLOSED,
+                StringUtils.EMPTY,
+                15,
+                0,
+                false,
+                Collections.emptyMap(),
+                now.minusDays(1),
+                now,
+                Locale.ENGLISH);
 
-        verify(orderDao, atLeastOnce()).getMyOrdersWithState(any(OrderFilterDataDto.class), any(Locale.class));
+        verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class));
+
+        verify(orderDao, atLeastOnce()).getMyOrdersWithState(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
 
         assertNotNull("Pair could not be null", pair);
         assertEquals("Number of records could be equals", 1, (int) pair.getLeft());
@@ -89,13 +111,37 @@ public class OrderServiceImplTest {
     public void getMyOrdersWithStateMap_notFoundRecordsTest() {
         log.debug("getMyOrdersWithStateMap_notFoundRecordsTest() - start");
 
-        doReturn(0).when(orderDao).getMyOrdersWithStateCount(filter);
+        LocalDateTime now = LocalDateTime.now();
+        doReturn(0).when(orderDao).getMyOrdersWithStateCount(
+                1,
+                new CurrencyPair("BTC/USD"),
+                StringUtils.EMPTY,
+                OrderStatus.CLOSED,
+                StringUtils.EMPTY,
+                15,
+                0,
+                false,
+                Collections.emptyMap(),
+                now.minusDays(1),
+                now);
 
-        Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(filter, locale);
+        Pair<Integer, List<OrderWideListDto>> pair = orderService.getMyOrdersWithStateMap(
+                1,
+                new CurrencyPair("BTC/USD"),
+                StringUtils.EMPTY,
+                OrderStatus.CLOSED,
+                StringUtils.EMPTY,
+                15,
+                0,
+                false,
+                Collections.emptyMap(),
+                now.minusDays(1),
+                now,
+                Locale.ENGLISH);
 
-        verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(any(OrderFilterDataDto.class));
-
-        verify(orderDao, never()).getMyOrdersWithState(any(OrderFilterDataDto.class), any(Locale.class));
+        verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(LocalDateTime.class), any(LocalDateTime.class));
 
         assertNotNull("Pair could not be null", pair);
         assertEquals("Number of records could be equals", 0, (int) pair.getLeft());
