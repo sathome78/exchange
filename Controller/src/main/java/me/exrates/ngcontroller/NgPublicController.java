@@ -183,14 +183,17 @@ public class NgPublicController {
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
-            // todo to handle with error handler
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = "Chat message cannot be empty.";
+            logger.warn(message);
+            throw new NgResponseException("EMPTY_CHAT_MESSAGE", message);
         }
         final ChatMessage message;
         try {
             message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
         } catch (IllegalChatMessageException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String msg = "Chat message cannot persist " + e.getMessage();
+            logger.warn(msg, e);
+            throw new NgResponseException("FAIL_TO_PERSIST_CHAT_MESSAGE", msg);
         }
         String destination = "/topic/chat/".concat(language.toLowerCase());
         simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
@@ -213,10 +216,10 @@ public class NgPublicController {
             ResponseInfoCurrencyPairDto currencyPairInfo = ngOrderService.getCurrencyPairInfo(currencyPairId);
             return new ResponseEntity<>(currencyPairInfo, HttpStatus.OK);
         } catch (Exception e) {
-            logger.error("Error - {}", e);
+            String msg = "Cannot get to currency pair info " + e.getMessage();
+            logger.error(msg, e);
+            throw new NgResponseException("FAIL_TO_GET_CURRENCY_PAIR_INFO", msg);
         }
-
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/info/max/{name}")

@@ -66,6 +66,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -327,7 +328,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void sendChatMessage_WhenOK() throws Exception {
+    public void sendChatMessage_isOK() throws Exception {
         Map<String, String> body = new HashMap<>();
         body.put("MESSAGE", "TEST_MESSAGE");
         body.put("LANG", "EN");
@@ -361,24 +362,16 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/chat")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(Collections.emptyMap())))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.url", is("http://localhost/api/public/v2/chat")))
+                .andExpect(jsonPath("$.cause", is("NgResponseException")))
+                .andExpect(jsonPath("$.detail", is("Chat message cannot be empty.")))
+                .andExpect(jsonPath("$.title", is("EMPTY_CHAT_MESSAGE")))
+                .andExpect(jsonPath("$.code", is(400)));
     }
 
     @Test
     public void sendChatMessage_WhenIllegalChatMessageException() throws Exception {
-        when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenThrow(IllegalChatMessageException.class);
-
-        mockMvc.perform(post(BASE_URL + "/chat")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsBytes(Collections.emptyMap())))
-                .andExpect(status().isBadRequest());
-
-        reset(chatService);
-        reset(messagingTemplate);
-    }
-
-    @Test
-    public void sendChatMessage_bad_request() throws Exception {
         Map<String, String> body = new HashMap<>();
         body.put("MESSAGE", "TEST{}MESSAGE");
         body.put("LANG", "EN");
@@ -389,7 +382,12 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/chat")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsBytes(body)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.url", is("http://localhost/api/public/v2/chat")))
+                .andExpect(jsonPath("$.cause", is("NgResponseException")))
+                .andExpect(jsonPath("$.detail", is("Chat message cannot persist null")))
+                .andExpect(jsonPath("$.title", is("FAIL_TO_PERSIST_CHAT_MESSAGE")))
+                .andExpect(jsonPath("$.code", is(400)));
 
         verify(chatService, times(1)).persistPublicMessage(anyString(), anyString(), anyObject());
         verify(messagingTemplate, never()).convertAndSend(anyString(), anyString());
@@ -458,7 +456,12 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/info/{currencyPairId}", 100)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.url", is("http://localhost/api/public/v2/info/100")))
+                .andExpect(jsonPath("$.cause", is("NgResponseException")))
+                .andExpect(jsonPath("$.detail", is("Cannot get to currency pair info null")))
+                .andExpect(jsonPath("$.title", is("FAIL_TO_GET_CURRENCY_PAIR_INFO")))
+                .andExpect(jsonPath("$.code", is(400)));
 
         verify(ngOrderService, times(1)).getCurrencyPairInfo(anyInt());
         reset(ngOrderService);
@@ -539,7 +542,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         reset(orderService);
     }
 
-    @Ignore
+    @Test
     public void getLastAcceptedOrders_isOk() throws Exception {
         OrderAcceptedHistoryDto dto = new OrderAcceptedHistoryDto();
         dto.setOrderId(500);
@@ -564,7 +567,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.[0].acceptionTime", is(1552655155000L)))
                 .andExpect(jsonPath("$.[0].rate", is("TEST_RATE")))
                 .andExpect(jsonPath("$.[0].amountBase", is("TEST_AMOUNT_BASE")))
-                .andExpect(jsonPath("$.[0].operationType", is("BUY")));
+                .andExpect(jsonPath("$.[0].operationType", is("BUY"))).andDo(print());
 
         verify(currencyService, times(1)).findCurrencyPairById(anyInt());
         verify(orderService, times(1)).getOrderAcceptedForPeriodEx(anyObject(), anyObject(), anyInt(), anyObject(), anyObject());
