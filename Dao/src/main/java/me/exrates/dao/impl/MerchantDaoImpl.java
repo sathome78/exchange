@@ -6,7 +6,11 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.condition.MonolitConditional;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
@@ -18,10 +22,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,12 +32,15 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -793,30 +798,25 @@ public class MerchantDaoImpl implements MerchantDao {
         });
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
+    public void updateMerchantCommissionsLimits(MerchantCurrencyOptionsDto merchantCommissionsLimit) {
         String sql = "UPDATE MERCHANT_CURRENCY " +
-                "SET merchant_fixed_commission = ?, merchant_fixed_commission_usd = ?, usd_rate = ? " +
-                "WHERE merchant_id = ? AND currency_id = ?";
+                "SET merchant_fixed_commission = :min_fixed_commission, " +
+                "merchant_fixed_commission_usd = :min_fixed_commission_usd, " +
+                "usd_rate = :usd_rate " +
+                "WHERE merchant_id = :merchant_id AND currency_id = :currency_id";
 
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MerchantCurrencyOptionsDto dto = merchantCommissionsLimits.get(i);
-                ps.setBigDecimal(1, dto.getMinFixedCommission());
-                ps.setBigDecimal(2, dto.getMinFixedCommissionUsdRate());
-                ps.setBigDecimal(3, dto.getCurrencyUsdRate());
-                ps.setInt(4, dto.getMerchantId());
-                ps.setInt(5, dto.getCurrencyId());
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("min_fixed_commission", merchantCommissionsLimit.getMinFixedCommission());
+                put("min_fixed_commission_usd", merchantCommissionsLimit.getMinFixedCommissionUsdRate());
+                put("usd_rate", merchantCommissionsLimit.getCurrencyUsdRate());
+                put("merchant_id", merchantCommissionsLimit.getMerchantId());
+                put("currency_id", merchantCommissionsLimit.getCurrencyId());
             }
-
-            @Override
-            public int getBatchSize() {
-                return merchantCommissionsLimits.size();
-            }
-        });
+        };
+        masterJdbcTemplate.update(sql, params);
     }
 }
 

@@ -534,6 +534,7 @@ public class MerchantServiceImpl implements MerchantService {
         return merchantDao.setPropertyRecalculateCommissionLimitToUsd(merchantName, currencyName, recalculateToUsd);
     }
 
+    @Transactional
     @Override
     public void updateMerchantCommissionsLimits() {
         StopWatch stopWatch = StopWatch.createStarted();
@@ -569,9 +570,8 @@ public class MerchantServiceImpl implements MerchantService {
                 minFixedCommissionUsdRate = minFixedCommission.multiply(usdRate);
                 merchantCommissionsLimit.setMinFixedCommissionUsdRate(minFixedCommissionUsdRate);
             }
+            merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimit);
         }
-        merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimits);
-
         LOG.info("Process of updating merchant commissions limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
