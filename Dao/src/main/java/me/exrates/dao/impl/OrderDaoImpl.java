@@ -2355,7 +2355,7 @@ public class OrderDaoImpl implements OrderDao {
                 "   LIMIT 1) AS last24hr " +
                 "        FROM EXORDERS EO " +
                 "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
-                "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 240000 HOUR " +
+                "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
                 "        GROUP BY EO.currency_pair_id) AGR " +
                 "RIGHT JOIN CURRENCY_PAIR CP2 ON (CP2.id = AGR.currency_pair_id) " +
                 whereClause;
