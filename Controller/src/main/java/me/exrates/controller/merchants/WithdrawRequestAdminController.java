@@ -60,7 +60,7 @@ public class WithdrawRequestAdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
     public ModelAndView withdrawalRequests(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
-        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
+        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getAllCurrencyOperationPermittedForWithdraw(principal.getName())
                 .stream()
                 .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                 .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))

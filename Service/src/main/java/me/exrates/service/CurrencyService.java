@@ -70,9 +70,15 @@ public interface CurrencyService {
 
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail);
 
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail);
+
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail);
 
     List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection);
+
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForWithdraw(String userEmail);
 
     Set<String> getCurrencyPermittedNameList(String userEmail);
 

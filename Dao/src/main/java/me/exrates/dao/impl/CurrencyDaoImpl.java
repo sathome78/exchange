@@ -7,7 +7,6 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -25,7 +24,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -368,6 +366,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "			 	AND (IOP.operation_direction=:operation_direction) " +
                 "				AND (IOP.user_id=:user_id) " +
                 " WHERE CUR.hidden IS NOT TRUE " +
+                " ORDER BY CUR.id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("operation_direction", operationDirection);
+        }};
+        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+            dto.setUserId(userId);
+            dto.setCurrencyId(rs.getInt("id"));
+            dto.setCurrencyName(rs.getString("name"));
+            Integer permissionCode = rs.getObject("invoice_operation_permission_id") == null ? 0 : (Integer) rs.getObject("invoice_operation_permission_id");
+            dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
+            return dto;
+        });
+    }
+
+    @Override
+    public List<UserCurrencyOperationPermissionDto> findAllCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
+        String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
+                " FROM CURRENCY CUR " +
+                " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+                "				(IOP.currency_id=CUR.id) " +
+                "			 	AND (IOP.operation_direction=:operation_direction) " +
+                "				AND (IOP.user_id=:user_id) " +
                 " ORDER BY CUR.id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
