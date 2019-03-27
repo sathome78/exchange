@@ -296,13 +296,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
         BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
-        BigDecimal predLastOrderRate = nonNull(statistic.getPredLastOrderRate())
-                ? new BigDecimal(statistic.getPredLastOrderRate())
+        BigDecimal lastOrderRate24hr = nonNull(statistic.getLastOrderRate24hr())
+                ? new BigDecimal(statistic.getLastOrderRate24hr())
                 : BigDecimal.ZERO;
 
         BigDecimal percentChange = BigDecimal.ZERO;
-        if (BigDecimalProcessing.moreThanZero(lastOrderRate) && BigDecimalProcessing.moreThanZero(predLastOrderRate)) {
-            percentChange = BigDecimalProcessing.doAction(predLastOrderRate, lastOrderRate, ActionType.PERCENT_GROWTH);
+        if (BigDecimalProcessing.moreThanZero(lastOrderRate) && BigDecimalProcessing.moreThanZero(lastOrderRate24hr)) {
+            percentChange = BigDecimalProcessing.doAction(lastOrderRate24hr, lastOrderRate, ActionType.PERCENT_GROWTH);
         }
         return percentChange.toPlainString();
     }

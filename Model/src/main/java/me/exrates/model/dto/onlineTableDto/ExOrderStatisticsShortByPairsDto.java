@@ -36,6 +36,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
 
     private String high24hr;
     private String low24hr;
+    private String lastOrderRate24hr;
 
     private boolean hidden;
     private String lastUpdateCache;
@@ -66,6 +67,9 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
         this.currencyVolume = statistic.currencyVolume;
         this.high24hr = statistic.high24hr;
         this.low24hr = statistic.low24hr;
+        this.lastOrderRate24hr = statistic.lastOrderRate24hr;
+        this.hidden = statistic.hidden;
+        this.lastUpdateCache = statistic.lastUpdateCache;
     }
 
     @Override
