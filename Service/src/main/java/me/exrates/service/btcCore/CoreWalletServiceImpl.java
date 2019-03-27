@@ -299,7 +299,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         try {
-            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, 0);
+            List<Payment> result = btcdClient.listTransactions("*", TRANSACTION_LIMIT, 0);
 
             return result.stream()
                     .map(payment -> {
@@ -712,7 +712,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
-        return btcdClient.listTransactions("", transactionsPerPage, page * transactionsPerPage).stream()
+        return btcdClient.listTransactions("*", transactionsPerPage, page * transactionsPerPage).stream()
                 .map(payment -> {
                     BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                     dto.setTxId(payment.getTxId());
@@ -729,7 +729,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
     @Override
     public List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException {
-        return ImmutableList.copyOf(btcdClient.listTransactions("", length, start).stream()
+        return ImmutableList.copyOf(btcdClient.listTransactions("*", length, start).stream()
                 .map(payment -> {
                     BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                     dto.setTxId(payment.getTxId());
