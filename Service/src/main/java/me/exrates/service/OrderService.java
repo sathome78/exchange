@@ -18,11 +18,12 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.RefreshStatisticDto;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -50,15 +51,14 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.util.BiTuple;
-import me.exrates.service.events.OrderEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -69,13 +69,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface OrderService {
 
 
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
-    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
+    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds);
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
 
@@ -98,7 +99,7 @@ public interface OrderService {
      * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
      * @return generated ID of the newly created order, or 0 if order was not be created
      */
-    int createOrder(OrderCreateDto order, OrderActionEnum action, List<OrderEvent> eventsList, boolean sendEvent);
+    int createOrder(OrderCreateDto order, OrderActionEnum action, List<ExOrder> eventsList, boolean sendEvent);
 
     int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action);
 
@@ -172,7 +173,7 @@ public interface OrderService {
      * @param ordersList     is list the ID of order that must be accepted
      * @param locale         is current locale. Used to generate messages
      */
-    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<OrderEvent> eventsList, boolean partialAccept);
+    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale, List<ExOrder> eventsList, boolean partialAccept);
 
     /**
      * Accepts the order
@@ -209,7 +210,7 @@ public interface OrderService {
      * @param exOrder is the entity ExOrder of order that must be cancelled
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
-    boolean cancelOrder(ExOrder exOrder, Locale locale, List<OrderEvent> acceptEventsList, boolean forPartialAccept);
+    boolean cancelOrder(ExOrder exOrder, Locale locale, List<ExOrder> acceptEventsList, boolean forPartialAccept);
 
     /**
      * Updates order's fields:
@@ -253,7 +254,7 @@ public interface OrderService {
 
     Object deleteOrderByAdmin(int orderId);
 
-    Object deleteOrderForPartialAccept(int orderId, List<OrderEvent> acceptEventsList);
+    Object deleteOrderForPartialAccept(int orderId, List<ExOrder> acceptEventsList);
 
     /**
      * Searches order by its params:
@@ -294,14 +295,6 @@ public interface OrderService {
     @Transactional
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
 
-    /**
-     * Returns statistics of orders by currency pairs.
-     * Statistics contains last and pred last rates for each currency pair
-     *
-     * @return statistics of orders by currency pairs
-     * @author ValkSam
-     */
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale);
 
     /**
      * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
@@ -429,7 +422,9 @@ public interface OrderService {
 
     String getAllCurrenciesStatForRefreshForAllPairs();
 
-    Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+    RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyId);
+
+    ResponseInfoCurrencyPairDto getStatForPair(String pairName);
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
@@ -464,18 +459,22 @@ public interface OrderService {
 
 
     @Transactional(readOnly = true)
-    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);
+    Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                                  OrderStatus orderStatus, String scope, Integer limit,
+                                                                  Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                  LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     @Transactional
     boolean cancelOrders(Collection<Integer> orderIds);
 
-    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                             String scope, boolean hideCanceled,
-                                             Locale locale, LocalDate dateFrom, LocalDate dateTo);
+    List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                             OrderStatus orderStatus, String scope, Integer limit,
+                                             Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                             LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
-    void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response);
+    ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 
-    void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response);
+    ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception;
 
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
@@ -485,7 +484,9 @@ public interface OrderService {
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 
-    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
-
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
+
+    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

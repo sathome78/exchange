@@ -1,6 +1,6 @@
 DROP PROCEDURE IF EXISTS `Alter_Table`;
 
-DELIMITER ';;'
+DELIMITER ;;
 CREATE PROCEDURE Alter_Table()
   BEGIN
     /* delete columns if they exist */
@@ -24,7 +24,7 @@ CREATE PROCEDURE Alter_Table()
 
   END;;
 
-DELIMITER ';'
+DELIMITER ;
 
 CALL Alter_Table();
 

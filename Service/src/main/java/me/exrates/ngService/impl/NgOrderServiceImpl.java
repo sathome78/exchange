@@ -36,7 +36,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -138,28 +138,28 @@ public class NgOrderServiceImpl implements NgOrderService {
             throw new NgDashboardException(errorMap.toString());
         }
 
-        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
-        BigDecimal inputTotal = inputOrder.getTotal();
-
-        if (totalWithComission.setScale(5, RoundingMode.HALF_UP)
-                .compareTo(inputTotal.setScale(5, RoundingMode.HALF_UP)) != 0) {
-
-//        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
-            logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
-                    prepareNewOrder.getTotalWithComission());
-            throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
-                    inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
-        }
-
-        BigDecimal commissionPrepareOrder = prepareNewOrder.getComission();
-        BigDecimal inputOrderCommission = inputOrder.getCommission();
-        if (commissionPrepareOrder.setScale(5, RoundingMode.HALF_UP)
-                .compareTo(inputOrderCommission.setScale(5, RoundingMode.HALF_UP)) != 0) {
-            logger.error("Comparing commission, from user - {}, from server - {}", inputOrder.getCommission(),
-                    prepareNewOrder.getComission());
-            throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
-                    inputOrder.getCommission(), prepareNewOrder.getComission()));
-        }
+//        BigDecimal totalWithComission = prepareNewOrder.getTotalWithComission();
+//        BigDecimal inputTotal = inputOrder.getTotal();
+//
+//        if (totalWithComission.setScale(2, RoundingMode.HALF_UP)
+//                .compareTo(inputTotal.setScale(2, RoundingMode.HALF_UP)) != 0) {
+//
+////        if (prepareNewOrder.getTotalWithComission().compareTo(inputOrder.getTotal()) != 0) {
+//            logger.error("Comparing total, from user - {}, from server - {}", inputOrder.getTotal(),
+//                    prepareNewOrder.getTotalWithComission());
+//            throw new NgDashboardException(String.format("Total value %.2f doesn't equal to calculate %.2f",
+//                    inputOrder.getTotal(), prepareNewOrder.getTotalWithComission()));
+//        }
+//
+//        BigDecimal commissionPrepareOrder = prepareNewOrder.getComission();
+//        BigDecimal inputOrderCommission = inputOrder.getCommission();
+//        if (commissionPrepareOrder.setScale(5, RoundingMode.HALF_UP)
+//                .compareTo(inputOrderCommission.setScale(5, RoundingMode.HALF_UP)) != 0) {
+//            logger.error("Comparing commission, from user - {}, from server - {}", inputOrder.getCommission(),
+//                    prepareNewOrder.getComission());
+//            throw new NgDashboardException(String.format("Commission %.2f doesn't equal to calculate %.2f",
+//                    inputOrder.getCommission(), prepareNewOrder.getComission()));
+//        }
 
         return prepareNewOrder;
     }

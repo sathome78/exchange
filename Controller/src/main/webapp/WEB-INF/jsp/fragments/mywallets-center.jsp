@@ -25,6 +25,7 @@
         </tr>
         <script type="text/template" id="balance-table_row">
             <tr class="balance-table__row">
+                <td class="mywallet-item-id" hidden><@=id@></td>
                 <td class="left blue-white"><@=currencyName@></td>
                 <td class="left blue-white"><@=currencyDescription@></td>
                 <td class="right"><@=activeBalance@></td>

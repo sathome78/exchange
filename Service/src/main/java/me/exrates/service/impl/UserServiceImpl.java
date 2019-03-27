@@ -48,7 +48,7 @@ import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
@@ -81,6 +81,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -256,7 +257,7 @@ public class UserServiceImpl implements UserService {
         result = userDao.deleteTemporalToken(temporalToken);
         if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
             User user = userDao.getUserById(temporalToken.getUserId());
-            if (user.getStatus() == UserStatus.REGISTERED) {
+            if (user.getUserStatus() == UserStatus.REGISTERED) {
                 LOGGER.debug(String.format("DELETING USER %s", user.getEmail()));
                 referralService.updateReferralParentForChildren(user);
                 result = userDao.delete(user);
@@ -634,7 +635,6 @@ public class UserServiceImpl implements UserService {
         if (!("ru".equalsIgnoreCase(lang) || "en".equalsIgnoreCase(lang))) {
             lang = "en";
         }
-
         return new Locale(lang);
     }
 
@@ -740,6 +740,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserRole getUserRoleFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (Objects.isNull(authentication)) {
+            throw new AuthenticationNotAvailableException();
+        }
         String grantedAuthority = authentication.getAuthorities().
                 stream()
                 .map(GrantedAuthority::getAuthority)
@@ -774,7 +778,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public String getEmailById(Integer id) {
-
         return userDao.getEmailById(id);
     }
 
@@ -853,7 +856,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getUserEmailFromSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
+        if (Objects.isNull(auth)) {
             throw new AuthenticationNotAvailableException();
         }
         return auth.getName();
@@ -1021,7 +1024,7 @@ public class UserServiceImpl implements UserService {
     public void blockUserByRequest(int userId) {
         User user = new User();
         user.setId(userId);
-        user.setStatus(UserStatus.DELETED);
+        user.setUserStatus(UserStatus.DELETED);
         userDao.updateUserStatus(user);
         userSessionService.invalidateUserSessionExceptSpecific(getEmailById(userId), null);
     }

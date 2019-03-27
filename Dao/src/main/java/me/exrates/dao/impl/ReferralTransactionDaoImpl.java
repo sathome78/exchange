@@ -93,6 +93,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     @Override
     public ReferralTransaction create(final ReferralTransaction referralTransaction) {
         final String sql = "INSERT INTO REFERRAL_TRANSACTION (initiator_id, user_id, order_id, referral_level_id) VALUES (:initiatorId, :userId, :orderId, :refLevelId)";
+
         final Map<String, Integer> params = new HashMap<>();
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         params.put("initiatorId", referralTransaction.getInitiatorId());
@@ -145,10 +146,12 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         String sql = "UPDATE REFERRAL_TRANSACTION " +
                 " SET status = :status" +
                 " WHERE id = :transaction_id ";
+
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("transaction_id", refTransactionId);
             put("status", status.name());
         }};
+
         boolean res = jdbcTemplate.update(sql, params) > 0;
         if (!res) throw new RuntimeException("error change status to ref transaction " + refTransactionId);
     }

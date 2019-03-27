@@ -4,14 +4,12 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +36,9 @@ public interface InputOutputService {
     List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                               List<Integer> userRoleIdList);
 
-    Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale);
+    Integer getUserInputOutputHistoryCount(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
+                                           LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale);
 
-    List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
+    List<MyInputOutputHistoryDto> getUserInputOutputHistory(String userEmail, Integer currencyId, String currencyName, LocalDateTime dateTimeFrom,
+                                                            LocalDateTime dateTimeTo, Integer limit, Integer offset, Locale locale);
 }

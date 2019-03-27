@@ -154,7 +154,11 @@ public class NeoServiceImpl implements NeoService {
     public void scanLastBlocksAndUpdatePayments() {
         log.debug("Start scanning blocks");
         ProfileData profileData = new ProfileData(500);
-        scanBlocks();
+        try {
+            scanBlocks();
+        } catch (Exception e){
+            log.error(e + "scanBlocks()");
+        }
         profileData.setTime1();
         updateExistingPayments();
         profileData.setTime2();

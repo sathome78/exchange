@@ -20,7 +20,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
@@ -33,7 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -161,7 +167,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyDao.findCurrencyPairById(currencyPairId);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }

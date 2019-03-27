@@ -27,7 +27,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;

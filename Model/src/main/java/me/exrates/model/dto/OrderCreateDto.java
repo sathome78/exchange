@@ -56,6 +56,7 @@ To determine which of these forms to be filled, we must set field operationType
     private BigDecimal comission; //calculated comission amount depending on operationType and corresponding comission rate
     private BigDecimal totalWithComission; //total + comission
     private Integer sourceId;
+    private Long tradeId;
 
     /*constructors*/
 
@@ -303,5 +304,13 @@ To determine which of these forms to be filled, we must set field operationType
 
     public void setOrderBaseType(OrderBaseType orderBaseType) {
         this.orderBaseType = orderBaseType;
+    }
+
+    public Long getTradeId() {
+        return tradeId;
+    }
+
+    public void setTradeId(Long tradeId) {
+        this.tradeId = tradeId;
     }
 }

@@ -121,12 +121,12 @@ public class ReferralServiceImpl implements ReferralService {
         CompanyWallet cWallet = companyWalletService.findByCurrency(currency);
         Integer parent = null;
         for (ReferralLevel level : levels) {
-            if (parent == null) {
+            if (Objects.isNull(parent)) {
                 parent = referralUserGraphDao.getParent(userId);
             } else {
                 parent = referralUserGraphDao.getParent(parent);
             }
-            if (parent != null && !level.getPercent().equals(ZERO)) {
+            if (Objects.nonNull(parent) && !level.getPercent().equals(ZERO)) {
                 final ReferralTransaction referralTransaction = new ReferralTransaction();
                 referralTransaction.setExOrder(exOrder);
                 referralTransaction.setReferralLevel(level);

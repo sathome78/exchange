@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
@@ -108,10 +108,11 @@ public class NgUserController {
 
         User user = authenticateUser(authenticationDto, request);
 
+        String ipAddress = request.getHeader("X-Forwarded-For");
         boolean shouldLoginWithGoogle = g2faService.isGoogleAuthenticatorEnable(user.getId());
         if (isEmpty(authenticationDto.getPin())) {
             if (!shouldLoginWithGoogle) {
-                secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                secureService.sendLoginPincode(user, request, ipAddress);
             }
             String mode = shouldLoginWithGoogle ? "GOOGLE" : "EMAIL";
             String message = String.format("User with email: %s must login with %s authorization code", authenticationDto.getEmail(), mode);
@@ -128,7 +129,7 @@ public class NgUserController {
         } else {
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
                 if (authenticationDto.getTries() % 3 == 0 && authenticationDto.getTries() > 1) {
-                    secureService.sendLoginPincode(user, request, authenticationDto.getClientIp());
+                    secureService.sendLoginPincode(user, request, ipAddress);
                 }
                 String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
                 throw new NgResponseException("EMAIL_AUTHORIZATION_FAILED", message);
@@ -158,10 +159,10 @@ public class NgUserController {
         boolean registered = ngUserService.registerUser(userEmailDto, request);
 
         if (registered) {
-            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REGISTER);
+            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
         }
-        String ipAddress = request.getHeader("client_ip");
+        String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) ipAddress = request.getRemoteAddr();
         ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
         return ResponseEntity.badRequest().build();
@@ -185,9 +186,9 @@ public class NgUserController {
                                                      HttpServletRequest request) {
         boolean result = ngUserService.recoveryPassword(userEmailDto, request);
         if (!result) {
-            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
+            ipBlockingService.failureProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
         }
-        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
+        ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
@@ -197,9 +198,9 @@ public class NgUserController {
                                                  HttpServletRequest request) {
         boolean result = ngUserService.createPasswordRecovery(passwordCreateDto, request);
         if (!result) {
-            ipBlockingService.failureProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
+            ipBlockingService.failureProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         }
-        ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
+        ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
@@ -248,13 +249,13 @@ public class NgUserController {
             throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
         }
 
-        if (user.getStatus() == UserStatus.REGISTERED) {
+        if (user.getUserStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
             String message = String.format("User with email %s registration is not complete", authenticationDto.getEmail());
             logger.debug(message);
             throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
         }
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getUserStatus() == UserStatus.DELETED) {
             String message = String.format("User with email %s is not active", authenticationDto.getEmail());
             logger.debug(message);
             throw new NgResponseException("USER_NOT_ACTIVE", message);

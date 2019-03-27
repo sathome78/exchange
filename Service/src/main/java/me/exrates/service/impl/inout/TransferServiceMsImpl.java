@@ -88,4 +88,9 @@ public class TransferServiceMsImpl implements TransferService {
     public String getHash(Integer id, Principal principal) {
         return null;
     }
+
+    @Override
+    public void revokeTransferRequest(Integer requestId) {
+
+    }
 }

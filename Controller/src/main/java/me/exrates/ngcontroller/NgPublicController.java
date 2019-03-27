@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -15,7 +15,11 @@ import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
@@ -40,12 +44,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -107,13 +125,13 @@ public class NgPublicController {
             logger.warn(message, esc);
             throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
         }
-        if (user.getStatus() == UserStatus.REGISTERED) {
+        if (user.getUserStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
             String message = String.format("User with email %s registration is not complete", email);
             logger.debug(message);
             throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
         }
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getUserStatus() == UserStatus.DELETED) {
             String message = String.format("User with email %s is not active", email);
             logger.debug(message);
             throw new NgResponseException("USER_NOT_ACTIVE", message);
