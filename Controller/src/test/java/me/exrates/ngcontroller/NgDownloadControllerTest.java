@@ -119,12 +119,6 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
 
     @Test
     public void exportExcelOrders_isOk() throws Exception {
-        ReportDto reportDto = new ReportDto();
-        reportDto.setId(100);
-        reportDto.setFileName("TEST_FILE_NAME");
-        reportDto.setContent("TEST_CONTENT".getBytes());
-        reportDto.setCreatedAt(LocalDateTime.of(2015, Month.JULY, 29, 19, 30, 40));
-
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(localeResolver.resolveLocale(any(HttpServletRequest.class))).thenReturn(Locale.ENGLISH);
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair());
@@ -143,7 +137,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(Locale.class))
         ).thenReturn(Collections.singletonList(new OrderWideListDto()));
         when(orderService.getOrderExcelFile(anyListOf(OrderWideListDto.class), any(OrderStatus.class)))
-                .thenReturn(reportDto);
+                .thenReturn(getMockReportDto());
 
         mockMvc.perform(get(BASE_URL + "/orders/{status}/export", OrderStatus.OPENED)
                 .param("currencyPairId", "2"))
@@ -208,12 +202,6 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getMyInputOutputDataToExcel_isOk() throws Exception {
-        ReportDto reportDto = new ReportDto();
-        reportDto.setId(100);
-        reportDto.setFileName("TEST_FILE_NAME");
-        reportDto.setContent("TEST_CONTENT".getBytes());
-        reportDto.setCreatedAt(LocalDateTime.of(2015, Month.JULY, 29, 19, 30, 40));
-
         when(localeResolver.resolveLocale(any(HttpServletRequest.class))).thenReturn(Locale.ENGLISH);
         when(balanceService.getUserInputOutputHistoryExcel(
                 anyString(),
@@ -225,7 +213,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 any(Locale.class))
         ).thenReturn(Collections.singletonList(new MyInputOutputHistoryDto()));
-        when(orderService.getTransactionExcelFile(anyListOf(MyInputOutputHistoryDto.class))).thenReturn(reportDto);
+        when(orderService.getTransactionExcelFile(anyListOf(MyInputOutputHistoryDto.class))).thenReturn(getMockReportDto());
 
         mockMvc.perform(get(BASE_URL + "/inputOutputData/excel"))
                 .andExpect(status().isOk())
@@ -246,5 +234,14 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 any(Locale.class));
         verify(orderService, times(1))
                 .getTransactionExcelFile(anyListOf(MyInputOutputHistoryDto.class));
+    }
+
+    private ReportDto getMockReportDto() {
+        ReportDto reportDto = new ReportDto();
+        reportDto.setId(100);
+        reportDto.setFileName("TEST_FILE_NAME");
+        reportDto.setContent("TEST_CONTENT".getBytes());
+        reportDto.setCreatedAt(LocalDateTime.of(2015, Month.JULY, 29, 19, 30, 40));
+        return reportDto;
     }
 }

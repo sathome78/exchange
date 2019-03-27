@@ -25,14 +25,15 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class NgChartControllerTest  extends AngularApiCommonTest  {
+public class NgChartControllerTest extends AngularApiCommonTest {
 
     private final static String BASE_URL = "/api/public/v2/graph";
 
@@ -51,8 +52,8 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-
-        mockMvc = MockMvcBuilders.standaloneSetup(ngChartController)
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(ngChartController)
                 .build();
     }
 
@@ -61,7 +62,6 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
         String resolution = "30";
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         CurrencyPair currencyPair = new CurrencyPair();
-        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
 
         List<CandleDto> result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
@@ -69,14 +69,15 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .map(CandleDto::new)
                 .collect(Collectors.toList());
 
-        when(orderService.getCachedDataForCandle(any(CurrencyPair.class),any(ChartTimeFrame.class))
+        Map<String, Object> map = new HashMap<>();
+        map.put("symbol", "symbol");
+        map.put("from", 5);
+
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(currencyPair);
+        when(orderService.getCachedDataForCandle(any(CurrencyPair.class), any(ChartTimeFrame.class))
                 .stream()
                 .map(CandleDto::new)
                 .collect(Collectors.toList())).thenReturn(result);
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("symbol","symbol");
-        map.put("from",5);
         when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
 
         mockMvc.perform(get(BASE_URL + "/history")
@@ -89,15 +90,19 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .andExpect(jsonPath("$.symbol", is("symbol")))
                 .andExpect(jsonPath("$.from", is(5)))
                 .andExpect(jsonPath("$.*", hasSize(2)));
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
+        verify(orderService, times(2)).getCachedDataForCandle(any(CurrencyPair.class), any(ChartTimeFrame.class));
+        verify(ngOrderService, times(1)).filterDataPeriod(anyList(), anyLong(), anyLong(), anyString());
     }
 
     @Test
     public void getCandleChartHistoryData_WhenNotFound() throws Exception {
-        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
-
         Map<String, Object> map = new HashMap<>();
-        map.put("symbol","symbol");
-        map.put("from",5);
+        map.put("symbol", "symbol");
+        map.put("from", 5);
+
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
         when(ngOrderService.filterDataPeriod(anyList(), anyLong(), anyLong(), anyString())).thenReturn(map);
 
         mockMvc.perform(get(BASE_URL + "/history")
@@ -105,11 +110,14 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .param("to", "2")
                 .param("from", "3")
                 .param("resolution", "deq")
-                .param("countback", "eqded")).andDo(print())
+                .param("countback", "eqded"))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.s", is("error")))
                 .andExpect(jsonPath("$.errmsg", is("can not find currencyPair")))
-                .andExpect(jsonPath("$.*", hasSize(4)))
-                .andExpect(status().isNotFound());
+                .andExpect(jsonPath("$.*", hasSize(4)));
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
+        verify(ngOrderService, times(1)).filterDataPeriod(anyList(), anyLong(), anyLong(), anyString());
     }
 
     @Test
@@ -129,13 +137,16 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
     @Test
     public void getCandleTimeScaleMarks_WhenOk() throws Exception {
         when(currencyService.getCurrencyPairByName(anyString())).thenReturn(new CurrencyPair());
+
         mockMvc.perform(get(BASE_URL + "/timescale_marks")
                 .param("symbol", "symbol")
                 .param("to", "2")
                 .param("from", "3")
                 .param("resolution", "W")
-                .param("countback", "eqded")).andDo(print())
+                .param("countback", "eqded"))
                 .andExpect(status().isOk());
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
     }
 
     @Test
@@ -161,7 +172,6 @@ public class NgChartControllerTest  extends AngularApiCommonTest  {
                 .andExpect(jsonPath("$.supported_resolutions.[0]", is("30")))
                 .andExpect(jsonPath("$.supported_resolutions.[9]", is("M")))
                 .andExpect(status().isOk());
-
     }
 
     @Test

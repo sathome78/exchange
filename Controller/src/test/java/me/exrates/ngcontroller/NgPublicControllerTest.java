@@ -3,10 +3,18 @@ package me.exrates.ngcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDto;
+import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.NgUserService;
@@ -35,6 +43,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.handler.HandlerExceptionResolverComposite;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -322,7 +333,14 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
         body.put("LANG", "EN");
         body.put("EMAIL", "testemail@gmail.com");
 
-        when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenReturn(getMockChatMessage());
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setId(100L);
+        chatMessage.setNickname("TEST_NICKNAME");
+        chatMessage.setNickname("TEST_BODY");
+        chatMessage.setTime(LocalDateTime.of(2019, 3, 15, 11, 5, 25));
+        chatMessage.setUserId(111);
+
+        when(chatService.persistPublicMessage(anyString(), anyString(), anyObject())).thenReturn(chatMessage);
         doNothing().when(messagingTemplate).convertAndSend(anyString(), anyString());
 
         mockMvc.perform(post(BASE_URL + "/chat")
@@ -382,7 +400,15 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getOpenOrders() throws Exception {
-        when(orderService.findAllOrderBookItems(anyObject(), anyInt(), anyInt())).thenReturn(getMockOrderBookWrapperDto());
+        OrderBookWrapperDto dto = OrderBookWrapperDto.builder().build();
+        dto.setOrderType(OrderType.SELL);
+        dto.setLastExrate("TEST_LAST_EXRATE");
+        dto.setPreLastExrate("TEST_PRE_LAST_EXRATE");
+        dto.setPositive(Boolean.TRUE);
+        dto.setTotal(BigDecimal.valueOf(25));
+        dto.setOrderBookItems(Collections.emptyList());
+
+        when(orderService.findAllOrderBookItems(anyObject(), anyInt(), anyInt())).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/open-orders/{pairId}/{precision}", 0, 5)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -400,7 +426,16 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getCurrencyPairInfo_isOk() throws Exception {
-        when(ngOrderService.getCurrencyPairInfo(anyInt())).thenReturn(getMockResponseInfoCurrencyPairDto());
+        ResponseInfoCurrencyPairDto dto = new ResponseInfoCurrencyPairDto();
+        dto.setCurrencyRate("TEST_CURRENCY_RATE");
+        dto.setPercentChange("TEST_PERCENT_CHANGE");
+        dto.setChangedValue("TEST_CHANGED_VALUE");
+        dto.setLastCurrencyRate("TEST_LAST_CURRENCY_RATE");
+        dto.setVolume24h("TEST_VOLUME_24H");
+        dto.setRateHigh("TEST_RATE_HIGH");
+        dto.setRateLow("TEST_RATE_LOW");
+
+        when(ngOrderService.getCurrencyPairInfo(anyInt())).thenReturn(dto);
 
         mockMvc.perform(get(BASE_URL + "/info/{currencyPairId}", 100)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -506,9 +541,17 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Ignore
     public void getLastAcceptedOrders_isOk() throws Exception {
+        OrderAcceptedHistoryDto dto = new OrderAcceptedHistoryDto();
+        dto.setOrderId(500);
+        dto.setDateAcceptionTime("TEST_DATE_ACCEPTION_TIME");
+        dto.setAcceptionTime(Timestamp.valueOf(LocalDateTime.of(2019, 3, 15, 15, 5, 55)));
+        dto.setRate("TEST_RATE");
+        dto.setAmountBase("TEST_AMOUNT_BASE");
+        dto.setOperationType(OperationType.BUY);
+
         when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair());
         when(orderService.getOrderAcceptedForPeriodEx(anyObject(), anyObject(), anyInt(), anyObject(), anyObject()))
-                .thenReturn(Collections.singletonList(getMockOrderAcceptedHistoryDto()));
+                .thenReturn(Collections.singletonList(dto));
 
         mockMvc.perform(get(BASE_URL + "/accepted-orders/fast")
                 .param("pairId", "1")
@@ -642,5 +685,25 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
         verify(currencyService, times(1)).getCurrencies(anyObject(), anyObject());
         reset(currencyService);
+    }
+
+    private ExOrderStatisticsShortByPairsDto getMockExOrderStatisticsShortByPairsDto() {
+        ExOrderStatisticsShortByPairsDto dto = new ExOrderStatisticsShortByPairsDto();
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("TEST_CURRENCY_PAIR_NAME");
+        dto.setCurrencyPairPrecision(200);
+        dto.setLastOrderRate("TEST_LAST_ORDER_RATE");
+        dto.setPredLastOrderRate("TEST_PRED_LAST_ORDER_RATE");
+        dto.setPercentChange("TEST_PERCENT_CHANGE");
+        dto.setMarket("TEST_MARKET");
+        dto.setPriceInUSD("TEST_PRICE_IN_USD");
+        dto.setType(CurrencyPairType.MAIN);
+        dto.setVolume("TEST_VOLUME");
+        dto.setCurrencyVolume("TEST_CURRENCY_VOLUME");
+        dto.setHigh24hr("TEST_HIGH_24H");
+        dto.setLow24hr("TEST_LOW_24H");
+        dto.setHidden(Boolean.TRUE);
+        dto.setLastUpdateCache("TEST_LAST_UPDATE_CACHE");
+        return dto;
     }
 }
