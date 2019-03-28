@@ -1414,7 +1414,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "TUSD",
-                "TUSD", false, ExConvert.Unit.WEI);
+                "TUSD", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "fpwrServiceImpl")
