@@ -95,7 +95,7 @@ public interface MerchantDao {
 
     List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits();
 
-    void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits);
+    void updateMerchantCommissionsLimits(MerchantCurrencyOptionsDto merchantCommissionsLimit);
 
     boolean checkAvailable(Integer currencyId, Integer merchantId);
 

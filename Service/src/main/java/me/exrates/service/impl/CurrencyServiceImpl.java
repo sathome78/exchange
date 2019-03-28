@@ -168,6 +168,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type) {
+        List<CurrencyPair> result = currencyDao.getAllCurrencyPairsWithHidden(type);
+        result.sort(Comparator.comparing(CurrencyPair::getName));
+        return result;
+    }
+
+    @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyDao.findCurrencyPairById(currencyPairId);

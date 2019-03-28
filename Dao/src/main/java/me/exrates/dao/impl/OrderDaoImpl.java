@@ -2315,7 +2315,8 @@ public class OrderDaoImpl implements OrderDao {
         return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .lastOrderRate(rs.getBigDecimal("last").toPlainString())
-                .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString()).build());
+                .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
+                .build());
     }
 
     @Override
@@ -2327,23 +2328,31 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT " +
                 "CP2.id AS currency_pair_id, " +
-                "CP2.ticker_name AS currency_pair_name, " +
+                "CP2.name AS currency_pair_name, " +
                 "CP2.scale AS currency_pair_precision, " +
                 "CP2.market, " +
                 "CP2.type AS currency_pair_type, " +
                 "CP2.hidden, " +
-                "(IF (AGR.baseVolume IS NOT NULL, AGR.baseVolume, 0)) AS baseVolume, " +
-                "(IF (AGR.quoteVolume IS NOT NULL, AGR.quoteVolume, 0)) AS quoteVolume, " +
-                "(IF (AGR.high24hr IS NOT NULL, AGR.high24hr, 0)) AS high24hr, " +
-                "(IF (AGR.low24hr IS NOT NULL, AGR.low24hr, 0)) AS low24hr " +
+                "(IFNULL (AGR.baseVolume, 0)) AS baseVolume, " +
+                "(IFNULL (AGR.quoteVolume, 0)) AS quoteVolume, " +
+                "(IFNULL (AGR.high24hr, 0)) AS high24hr, " +
+                "(IFNULL (AGR.low24hr, 0)) AS low24hr, " +
+                "(IFNULL (AGR.last24hr, 0)) AS last24hr " +
                 "FROM " +
                 "   (SELECT" +
-                "       CP.ticker_name, " +
+                "       CP.name, " +
                 "       EO.currency_pair_id, " +
                 "       SUM(EO.amount_base) AS baseVolume, " +
                 "       SUM(EO.amount_convert) AS quoteVolume, " +
                 "       MAX(EO.exrate) AS high24hr, " +
-                "       MIN(EO.exrate) AS low24hr " +
+                "       MIN(EO.exrate) AS low24hr, " +
+                "(SELECT LASTORDER.exrate" +
+                "   FROM EXORDERS LASTORDER" +
+                "   WHERE" +
+                "       LASTORDER.currency_pair_id = EO.currency_pair_id AND" +
+                "       LASTORDER.status_id = EO.status_id" +
+                "   ORDER BY LASTORDER.date_acception ASC" +
+                "   LIMIT 1) AS last24hr " +
                 "        FROM EXORDERS EO " +
                 "        JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) " +
                 "        WHERE EO.status_id = 3 AND EO.date_acception >= now() - INTERVAL 24 HOUR " +
@@ -2367,6 +2376,7 @@ public class OrderDaoImpl implements OrderDao {
                 .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
                 .high24hr(rs.getBigDecimal("high24hr").toPlainString())
                 .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                .lastOrderRate24hr(rs.getBigDecimal("last24hr").toPlainString())
                 .build());
     }
 

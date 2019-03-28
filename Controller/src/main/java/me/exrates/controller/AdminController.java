@@ -236,7 +236,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
         ModelAndView model = new ModelAndView();
-        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType.ALL);
         model.addObject("currencyPairList", currencyPairList);
         model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
         model.addObject("statusList", Arrays.asList(OrderStatus.values()));

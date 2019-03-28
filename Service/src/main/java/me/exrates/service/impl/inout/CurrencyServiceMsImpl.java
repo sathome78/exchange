@@ -103,6 +103,11 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     }
 
     @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type) {
+        return null;
+    }
+
+    @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         return null;
     }
