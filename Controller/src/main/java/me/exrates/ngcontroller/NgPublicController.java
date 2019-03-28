@@ -10,6 +10,7 @@ import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
@@ -123,18 +124,18 @@ public class NgPublicController {
         } catch (UserNotFoundException esc) {
             String message = String.format("User with email %s not found", email);
             logger.warn(message, esc);
-            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_FOUND, message);
         }
         if (user.getUserStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
             String message = String.format("User with email %s registration is not complete", email);
             logger.debug(message);
-            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
+            throw new NgResponseException(ErrorApiTitles.USER_REGISTRATION_NOT_COMPLETED, message);
         }
         if (user.getUserStatus() == UserStatus.DELETED) {
             String message = String.format("User with email %s is not active", email);
             logger.debug(message);
-            throw new NgResponseException("USER_NOT_ACTIVE", message);
+            throw new NgResponseException(ErrorApiTitles.USER_NOT_ACTIVE, message);
         }
         return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
@@ -161,7 +162,6 @@ public class NgPublicController {
             return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
-
         }
     }
 
@@ -185,7 +185,7 @@ public class NgPublicController {
         if (isEmpty(simpleMessage)) {
             String message = "Chat message cannot be empty.";
             logger.warn(message);
-            throw new NgResponseException("EMPTY_CHAT_MESSAGE", message);
+            throw new NgResponseException(ErrorApiTitles.EMPTY_CHAT_MESSAGE, message);
         }
         final ChatMessage message;
         try {
@@ -193,7 +193,7 @@ public class NgPublicController {
         } catch (IllegalChatMessageException e) {
             String msg = "Chat message cannot persist " + e.getMessage();
             logger.warn(msg, e);
-            throw new NgResponseException("FAIL_TO_PERSIST_CHAT_MESSAGE", msg);
+            throw new NgResponseException(ErrorApiTitles.FAIL_TO_PERSIST_CHAT_MESSAGE, msg);
         }
         String destination = "/topic/chat/".concat(language.toLowerCase());
         simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
@@ -218,7 +218,7 @@ public class NgPublicController {
         } catch (Exception e) {
             String msg = "Cannot get to currency pair info " + e.getMessage();
             logger.error(msg, e);
-            throw new NgResponseException("FAIL_TO_GET_CURRENCY_PAIR_INFO", msg);
+            throw new NgResponseException(ErrorApiTitles.FAIL_TO_GET_CURRENCY_PAIR_INFO, msg);
         }
     }
 
