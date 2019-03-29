@@ -6,19 +6,29 @@ import me.exrates.model.enums.EmailSenderType;
 import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
 import me.exrates.service.util.MessageFormatterUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -145,7 +155,7 @@ public class SendMailServiceImpl implements SendMailService {
                 message.setFrom(email.getFrom());
                 message.setTo(email.getTo());
                 message.setSubject(email.getSubject());
-                message.setText(email.getMessage(), true);
+                message.setText(prepareTemplate(email.getMessage()), true);
                 if (email.getAttachments() != null) {
                     for (Email.Attachment attachment : email.getAttachments())
                         message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
@@ -184,5 +194,18 @@ public class SendMailServiceImpl implements SendMailService {
     public void destroy() {
         EXECUTORS.shutdown();
         SUPPORT_MAIL_EXECUTORS.shutdown();
+    }
+
+    private String prepareTemplate(String text) {
+        File file;
+        String html;
+        try {
+            file = ResourceUtils.getFile("classpath:email/template.html");
+            byte[] encoded = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+            html = new String(encoded, StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            return text;
+        }
+        return html.replace("{::text::}", text);
     }
 }

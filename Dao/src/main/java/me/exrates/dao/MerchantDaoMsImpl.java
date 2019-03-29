@@ -201,7 +201,7 @@ public class MerchantDaoMsImpl implements MerchantDao {
     }
 
     @Override
-    public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
+    public void updateMerchantCommissionsLimits(MerchantCurrencyOptionsDto merchantCommissionsLimit) {
 
     }
 

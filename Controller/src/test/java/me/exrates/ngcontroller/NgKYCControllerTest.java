@@ -7,6 +7,7 @@ import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.kyc.responces.DispatchInfo;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
@@ -98,11 +99,19 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
 
     @Test
     public void callback1_isOk() throws Exception {
+        String[] missingOptionalDocs = new String[5];
+
+        KycStatusResponseDto dto = new KycStatusResponseDto();
+        dto.setStatus("TEST_STATUS");
+        dto.setErrorMsg("TEST_ERROR_MSG");
+        dto.setMissingOptionalDocs(missingOptionalDocs);
+        dto.setAnalysisResults(Collections.EMPTY_LIST);
+
         doNothing().when(kycService).processingCallBack(anyString(), anyObject());
 
         mockMvc.perform(MockMvcRequestBuilders.post(PUBLIC_KYC + "/webhook/{referenceId}", "15")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(getMockKycStatusResponseDto())))
+                .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
 
         verify(kycService, times(1)).processingCallBack(anyString(), anyObject());

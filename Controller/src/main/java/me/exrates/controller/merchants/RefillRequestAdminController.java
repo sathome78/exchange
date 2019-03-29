@@ -68,7 +68,7 @@ public class RefillRequestAdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/refill")
     public ModelAndView refillRequests(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
-        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
+        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getAllCurrencyOperationPermittedForRefill(principal.getName())
                 .stream()
                 .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                 .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))

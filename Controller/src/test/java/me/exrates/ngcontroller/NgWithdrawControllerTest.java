@@ -1,6 +1,8 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.dto.PinOrderInfoDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -14,6 +16,7 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -38,6 +41,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyObject;
@@ -48,7 +52,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -111,20 +114,25 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         verify(messageSource, times(1)).getMessage(anyString(), anyObject(), anyObject());
     }
 
-    @Test(expected = Exception.class)
-    public void createWithdrawalRequest_RequestLimitExceededException() throws Exception {
+    @Test
+    public void createWithdrawalRequest_RequestLimitExceededException() {
         when(userOperationService.getStatusAuthorityForUserByOperation(anyInt(), anyObject())).thenReturn(Boolean.TRUE);
         when(messageSource.getMessage(anyString(), anyObject(), anyObject())).thenReturn("TEST ERROR MSG");
         when(withdrawService.checkOutputRequestsLimit(anyInt(), anyString())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(post(BASE_URL + "/request/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))));
+        try {
+            mockMvc.perform(post(BASE_URL + "/request/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "TEST ERROR MSG";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userOperationService, times(1))
                 .getStatusAuthorityForUserByOperation(anyInt(), anyObject());
         verify(messageSource, times(1)).getMessage(anyString(), anyObject(), anyObject());
-        verify(withdrawService, times(1)).checkOutputRequestsLimit(anyObject(), anyString());
     }
 
     @Test
@@ -252,7 +260,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .prepareCreditsOperation(anyObject(), anyString(), anyObject());
     }
 
-    //    TODO
     @Test
     public void outputCredits_isOk_merchantCurrencyData_is_empty() throws Exception {
         List<String> warningCodeList = new ArrayList<>();
@@ -484,5 +491,23 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
+    }
+
+    private WithdrawRequestParamsDto getMockWithdrawRequestParamsDto(String securityCode) {
+        WithdrawRequestParamsDto dto = new WithdrawRequestParamsDto();
+        dto.setCurrency(100);
+        dto.setMerchant(200);
+        dto.setSum(BigDecimal.TEN);
+        dto.setDestination("TEST_DESTINATION");
+        dto.setDestinationTag("TEST_DESTINATION_TAG");
+        dto.setMerchantImage(300);
+        dto.setOperationType(OperationType.BUY);
+        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
+        dto.setUserFullName("TEST_USER_FULL_NAME");
+        dto.setRemark("TEST_REMARK");
+        dto.setWalletNumber("TEST_WALLET_NUMBER");
+        dto.setSecurityCode(securityCode);
+
+        return dto;
     }
 }

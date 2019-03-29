@@ -1,5 +1,7 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.dto.RefillRequestParamsDto;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
@@ -313,8 +315,15 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getRefillConfirmationsForCurrencyy_isOk() throws Exception {
+        RefillOnConfirmationDto dto = new RefillOnConfirmationDto();
+        dto.setHash("TEST_HASH");
+        dto.setAmount(BigDecimal.valueOf(100));
+        dto.setAddress("TEST_ADDRESS");
+        dto.setCollectedConfirmations(200);
+        dto.setNeededConfirmations(300);
+
         Mockito.when(refillService.getOnConfirmationRefills(anyString(), anyInt()))
-                .thenReturn(Collections.singletonList(getMockRefillOnConfirmationDto()));
+                .thenReturn(Collections.singletonList(dto));
 
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/requests_on_confirmation/{currencyId}", 100)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -338,5 +347,25 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$", is(Collections.emptyList())));
 
         verify(refillService, times(1)).getOnConfirmationRefills(anyString(), anyInt());
+    }
+
+    private RefillRequestParamsDto getMockRefillRequestParamsDto(OperationType operationType, boolean generateNewAddress) {
+        RefillRequestParamsDto dto = new RefillRequestParamsDto();
+        dto.setOperationType(operationType);
+        dto.setCurrency(100);
+        dto.setSum(BigDecimal.TEN);
+        dto.setMerchant(200);
+        dto.setRecipientBankId(300);
+        dto.setRecipientBankCode("TEST_RECIPIENT_BANK_CODE");
+        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
+        dto.setRecipient("TEST_RECIPIENT");
+        dto.setUserFullName("TEST_USER_FULL_NAME");
+        dto.setRemark("TEST_REMARK");
+        dto.setMerchantRequestSign("TEST_MERCHANT_REQUEST_SING");
+        dto.setAddress("TEST_ADDRESS");
+        dto.setGenerateNewAddress(generateNewAddress);
+        dto.setChildMerchant("TEST_CHILD_MERCHANT");
+
+        return dto;
     }
 }

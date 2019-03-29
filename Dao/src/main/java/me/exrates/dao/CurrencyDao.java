@@ -58,6 +58,8 @@ public interface CurrencyDao {
 
     List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
 
+    List<UserCurrencyOperationPermissionDto> findAllCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
+
     List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
 
     List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
@@ -118,4 +120,6 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
+
+    boolean isCurrencyPairHidden(int currencyPairId);
 }

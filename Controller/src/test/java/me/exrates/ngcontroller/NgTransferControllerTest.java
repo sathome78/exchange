@@ -1,6 +1,11 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.Commission;
+import me.exrates.model.dto.TransferDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -12,6 +17,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.RateLimitService;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -26,6 +32,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.LocaleResolver;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,6 +41,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -130,11 +139,23 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         Map<String, String> params = new HashMap<>();
         params.put("CODE", "VOUCHER_CODE");
 
+        TransferDto dto = TransferDto.builder().build();
+        dto.setWalletUserFrom(getMockWallet());
+        dto.setWalletUserTo(getMockWallet());
+        dto.setUserToNickName("TEST_USER_TO_NICK_NAME");
+        dto.setCurrencyId(100);
+        dto.setUserFromId(200);
+        dto.setUserToId(300);
+        dto.setCommission(Commission.zeroComission());
+        dto.setNotyAmount("TEST_NOTY_AMOUNT");
+        dto.setInitialAmount(BigDecimal.TEN);
+        dto.setComissionAmount(BigDecimal.ZERO);
+
         when(rateLimitService.checkLimitsExceed(anyString())).thenReturn(Boolean.TRUE);
         when(transferService.getByHashAndStatus(anyString(), anyInt(), anyBoolean()))
                 .thenReturn(java.util.Optional.ofNullable(getMockTransferRequestFlatDto()));
         when(transferService.checkRequest(anyObject(), anyString())).thenReturn(Boolean.TRUE);
-        when(transferService.performTransfer(anyObject(), anyObject(), anyObject())).thenReturn(getMockTransferDto());
+        when(transferService.performTransfer(anyObject(), anyObject(), anyObject())).thenReturn(dto);
 
         mockMvc.perform(post(BASE_URL + "/accept")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -180,16 +201,22 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
                 .correctAmountAndCalculateCommissionPreliminarily(anyInt(), anyObject(), anyObject(), anyInt(), anyObject());
     }
 
-    @Test(expected = Exception.class)
-    public void createTransferRequest_IllegalOperationTypeException() throws Exception {
+    @Test
+    public void createTransferRequest_IllegalOperationTypeException() {
         Integer userId = 100;
 
         when(userService.getIdByEmail(anyString())).thenReturn(userId);
         when(localeResolver.resolveLocale(anyObject())).thenReturn(Locale.ENGLISH);
 
-        mockMvc.perform(post(BASE_URL + "/voucher/request/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.INPUT, "TEST_RECIPIENT"))));
+        try {
+            mockMvc.perform(post(BASE_URL + "/voucher/request/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.INPUT, "TEST_RECIPIENT"))));
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = "INPUT";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -231,8 +258,8 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         verify(userOperationService, times(1)).getStatusAuthorityForUserByOperation(anyInt(), anyObject());
     }
 
-    @Test(expected = Exception.class)
-    public void createTransferRequest_InvalidAmountException() throws Exception {
+    @Test
+    public void createTransferRequest_InvalidAmountException() {
         Integer userId = 100;
 
         when(userService.getIdByEmail(anyString())).thenReturn(userId);
@@ -241,10 +268,16 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         when(merchantService.findMerchantForTransferByCurrencyId(anyInt(), anyObject())).thenReturn(getMockMerchantCurrency());
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject())).thenReturn(null);
 
-        mockMvc.perform(post(BASE_URL + "/voucher/request/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/voucher/request/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(getMockTransferRequestParamsDto(OperationType.USER_TRANSFER, "TEST_RECIPIENT"))))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            String expected = null;
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
@@ -447,5 +480,42 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.error", is(nullValue())));
 
         verify(currencyService, times(1)).getCurrencies(anyObject());
+    }
+
+    private TransferRequestFlatDto getMockTransferRequestFlatDto() {
+        TransferRequestFlatDto dto = new TransferRequestFlatDto();
+        dto.setId(100);
+        dto.setAmount(BigDecimal.valueOf(10));
+        dto.setDateCreation(LocalDateTime.of(2019, 3, 20, 14, 53, 1));
+        dto.setStatus(TransferStatusEnum.POSTED);
+        dto.setStatusModificationDate(LocalDateTime.of(2019, 3, 20, 14, 59, 1));
+        dto.setMerchantId(200);
+        dto.setCurrencyId(300);
+        dto.setUserId(400);
+        dto.setRecipientId(500);
+        dto.setCommissionAmount(BigDecimal.valueOf(20));
+        dto.setCommissionId(600);
+        dto.setHash("TEST_HASH");
+        dto.setInitiatorEmail("TEST_INITIATOR_EMAIL");
+        dto.setMerchantName("TEST_MERCHANT_NAME");
+        dto.setCreatorEmail("TEST_CREATOR_EMAIL");
+        dto.setRecipientEmail("TEST_RECIPIENT_EMAIL");
+        dto.setCurrencyName("TEST_CURRENCY_NAME");
+        dto.setInvoiceOperationPermission(InvoiceOperationPermission.ACCEPT_DECLINE);
+
+        return dto;
+    }
+
+    private TransferRequestParamsDto getMockTransferRequestParamsDto(OperationType operationType, String recipient) {
+        TransferRequestParamsDto dto = new TransferRequestParamsDto();
+        dto.setOperationType(operationType);
+        dto.setMerchant(100);
+        dto.setCurrency(200);
+        dto.setSum(BigDecimal.TEN);
+        dto.setRecipient(recipient);
+        dto.setPin("TEST_PIN");
+        dto.setType("TRANSFER");
+
+        return dto;
     }
 }
