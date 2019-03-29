@@ -1,6 +1,8 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.service.UserService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -12,9 +14,12 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.util.NestedServletException;
 
 import java.security.Principal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -100,8 +105,18 @@ public class LanguageControllerTest extends AngularApiCommonTest {
                 .param("language", "NEW_LANGUAGE")
                 .principal(principal);
 
-        mockMvc.perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        try {
+            mockMvc.perform(requestBuilder)
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("PREFERRED_LOCALE_NOT_SAVE", responseException.getTitle());
+
+            String expected = "Preferred locale for user cannot save in DB";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(userService, times(1)).setPreferedLang(anyInt(), anyObject());
