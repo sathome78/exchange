@@ -848,4 +848,18 @@ public class CurrencyDaoImpl implements CurrencyDao {
             }
         });
     }
+
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        String sql = "SELECT cp.hidden FROM CURRENCY_PAIR cp WHERE cp.id = :currency_pair_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, Boolean.TYPE);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException("Currency pair not found");
+        }
+    }
 }

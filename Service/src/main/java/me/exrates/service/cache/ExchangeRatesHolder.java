@@ -22,4 +22,8 @@ public interface ExchangeRatesHolder {
     Map<String, BigDecimal> getRatesForMarket(TradeMarket market);
 
     BigDecimal getBtcUsdRate();
+
+    void addCurrencyPairToCache(int currencyPairId);
+
+    void deleteCurrencyPairFromCache(int currencyPairId);
 }

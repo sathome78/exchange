@@ -346,10 +346,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates())
-                .stream()
-                .filter(statistic -> !statistic.isHidden())
-                .collect(Collectors.toList());
+        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
         switch (refreshObjectsEnum) {
             case ICO_CURRENCIES_STATISTIC: {
                 dto = dto
@@ -370,7 +367,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return dto;
     }
-
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(Set<Integer> pairsIds) {
@@ -2095,7 +2091,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
-       /* List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);*/
+        /* List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);*/
         List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()

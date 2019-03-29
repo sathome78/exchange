@@ -147,4 +147,6 @@ public interface CurrencyService {
     List<CurrencyPair> getPairsByFirstPartName(String partName);
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
+
+    boolean isCurrencyPairHidden(int currencyPairId);
 }

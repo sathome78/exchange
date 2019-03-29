@@ -112,6 +112,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 ));
         return orderService.getAllDataForCache(currencyPairId)
                 .stream()
+                .filter(statistic -> !statistic.isHidden())
                 .peek(data -> {
                     final Integer id = data.getCurrencyPairId();
                     ExOrderStatisticsShortByPairsDto rate = ratesDataForCache.get(id);
@@ -151,7 +152,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .peek(statistic -> {
                     statistic.setPercentChange(calculatePercentChange(statistic));
                     statistic.setPriceInUSD(calculatePriceInUSD(statistic));
-                    statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
                 })
                 .collect(Collectors.toList());
         ratesRedisRepository.batchUpdate(statisticList);
@@ -197,7 +197,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             statistic.setLow24hr(low24hr.compareTo(lastOrderRate) > 0
                     ? lastOrderRate.toPlainString()
                     : statistic.getLow24hr());
-            statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         } else {
             statistic = new ExOrderStatisticsShortByPairsDto();
             statistic.setCurrencyPairId(currencyPairId);
@@ -258,6 +257,22 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     public BigDecimal getBtcUsdRate() {
         ExOrderStatisticsShortByPairsDto dto = ratesRedisRepository.get(BTC_USD);
         return isNull(dto) ? BigDecimal.ZERO : new BigDecimal(dto.getLastOrderRate());
+    }
+
+    @Override
+    public void addCurrencyPairToCache(int currencyPairId) {
+        final ExOrderStatisticsShortByPairsDto statistic = getExratesCache(currencyPairId).get(0);
+        statistic.setPercentChange(calculatePercentChange(statistic));
+        statistic.setPriceInUSD(calculatePriceInUSD(statistic));
+
+        ratesRedisRepository.put(statistic);
+    }
+
+    @Override
+    public void deleteCurrencyPairFromCache(int currencyPairId) {
+        final String currencyPairName = getCurrencyPairNameById(currencyPairId);
+
+        ratesRedisRepository.delete(currencyPairName);
     }
 
     private String calculatePriceInUSD(ExOrderStatisticsShortByPairsDto statistic) {

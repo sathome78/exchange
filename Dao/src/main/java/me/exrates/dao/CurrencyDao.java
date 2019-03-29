@@ -120,4 +120,6 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
+
+    boolean isCurrencyPairHidden(int currencyPairId);
 }

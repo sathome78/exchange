@@ -285,4 +285,9 @@ public class CurrencyDaoMsImpl implements CurrencyDao {
     public List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName) {
         return null;
     }
+
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        return false;
+    }
 }
