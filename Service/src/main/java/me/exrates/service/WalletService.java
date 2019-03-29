@@ -36,6 +36,8 @@ public interface WalletService {
 
     void balanceRepresentation(Wallet wallet);
 
+    List<Wallet> getAllForNotHiddenCurWallets(int userId);
+
     List<Wallet> getAllWallets(int userId);
 
     List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId);

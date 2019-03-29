@@ -210,7 +210,7 @@ public class EntryController {
         if (principal != null) {
             userService.updateGaTag(getGaCookie(request), principal.getName());
             User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
+            int userStatus = user.getUserStatus().getStatus();
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
             model.addObject("accessToOperationForUser", accessToOperationForUser);
 
@@ -279,7 +279,7 @@ public class EntryController {
         model.addObject(orderCreateDto);
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
+            int userStatus = user.getUserStatus().getStatus();
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));

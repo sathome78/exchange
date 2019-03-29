@@ -89,14 +89,14 @@ public class NgUserSettingsController {
     @Autowired
     public NgUserSettingsController(UserService userService,
                                     NotificationService notificationService,
-                                    SessionParamsService sessionService,
-                                    PageLayoutSettingsService layoutSettingsService,
-                                    UserVerificationService verificationService) {
+                                    SessionParamsService sessionParamsService,
+                                    PageLayoutSettingsService pageLayoutSettingsService,
+                                    UserVerificationService userVerificationService) {
         this.userService = userService;
         this.notificationService = notificationService;
-        this.sessionService = sessionService;
-        this.layoutSettingsService = layoutSettingsService;
-        this.verificationService = verificationService;
+        this.sessionService = sessionParamsService;
+        this.layoutSettingsService = pageLayoutSettingsService;
+        this.verificationService = userVerificationService;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -164,7 +164,7 @@ public class NgUserSettingsController {
     public ResponseModel<Integer> getSessionPeriod() {
         SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
-            new ResponseModel<>(0);
+            return new ResponseModel<>(0);
         }
         return new ResponseModel<>(params.getSessionTimeMinutes());
     }
@@ -289,13 +289,13 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping("currency_pair/favourites")
+    @GetMapping("/currency_pair/favourites")
     @ResponseBody
     public List<Integer> getUserFavouriteCurrencyPairs() {
         return userService.getUserFavouriteCurrencyPairs(getPrincipalEmail());
     }
 
-    @PutMapping("currency_pair/favourites")
+    @PutMapping("/currency_pair/favourites")
     public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody Map<String, String> params) {
         int currencyPairId;
         boolean toDelete;
@@ -319,7 +319,7 @@ public class NgUserSettingsController {
         dto.setFinpassword(user.getFinpassword());
         dto.setPassword(user.getPassword());
         dto.setRole(user.getRole());
-        dto.setStatus(user.getStatus());
+        dto.setStatus(user.getUserStatus());
         dto.setPhone(user.getPhone());
         return dto;
     }

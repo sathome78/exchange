@@ -150,7 +150,7 @@ public class BotServiceImpl implements BotService {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(UserRole.BOT_TRADER);
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
 
         userService.createUserByAdmin(user);
         Integer userId = userService.getIdByEmail(email);

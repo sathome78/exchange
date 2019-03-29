@@ -1414,7 +1414,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "TUSD",
-                "TUSD", false, ExConvert.Unit.WEI);
+                "TUSD", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "fpwrServiceImpl")
@@ -1998,6 +1998,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x21ab6c9fac80c59d401b37cb43f81ea9dde7fe34");
         return new EthTokenServiceImpl(tokensList, "BRC","BRC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "gnyServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService gnyServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x247551f2eb3362e222c742e9c788b8957d9bc87e");
+        return new EthTokenServiceImpl(tokensList, "GNY","GNY", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

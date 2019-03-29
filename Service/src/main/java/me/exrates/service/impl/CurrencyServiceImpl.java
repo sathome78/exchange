@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
@@ -14,13 +15,18 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.aspect.CheckCurrencyPairVisibility;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
@@ -37,7 +43,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -164,6 +169,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type) {
+        List<CurrencyPair> result = currencyDao.getAllCurrencyPairsWithHidden(type);
+        result.sort(Comparator.comparing(CurrencyPair::getName));
+        return result;
+    }
+
+    @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyDao.findCurrencyPairById(currencyPairId);
@@ -212,8 +224,20 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail) {
+        return getAllCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.REFILL);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail) {
         return getCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.WITHDRAW);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForWithdraw(String userEmail) {
+        return getAllCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.WITHDRAW);
     }
 
     @Override
@@ -240,6 +264,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     private List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedList(String userEmail, InvoiceOperationDirection direction) {
         Integer userId = userService.getIdByEmail(userEmail);
         return findWithOperationPermissionByUserAndDirection(userId, direction);
+    }
+
+    private List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedList(String userEmail, InvoiceOperationDirection direction) {
+        Integer userId = userService.getIdByEmail(userEmail);
+        return currencyDao.findAllCurrencyOperationPermittedByUserAndDirection(userId, direction.name());
     }
 
     @Override
@@ -371,6 +400,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.findAllCurrencyPair();
     }
 
+    @CheckCurrencyPairVisibility
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
         return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
@@ -445,5 +475,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<CurrencyPair> getPairsBySecondPartName(String partName) {
         return currencyDao.findAllCurrenciesBySecondPartName(partName);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        return currencyDao.isCurrencyPairHidden(currencyPairId);
     }
 }

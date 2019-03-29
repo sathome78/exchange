@@ -1,7 +1,9 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.Generic2faResponseDto;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
@@ -68,7 +70,8 @@ public class NgTwoFaController {
             ngUserService.sendEmailEnable2Fa(user.getEmail());
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.badRequest().build();
+        String message = String.format("Incorrectly filled data %s", body);
+        throw new NgResponseException(ErrorApiTitles.GOOGLE2FA_SUBMIT_FAILED, message);
     }
 
     @PutMapping("/google2fa/disable")
@@ -79,7 +82,8 @@ public class NgTwoFaController {
             ngUserService.sendEmailDisable2Fa(user.getEmail());
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.badRequest().build();
+        String message = String.format("Incorrectly filled data %s", body);
+        throw new NgResponseException(ErrorApiTitles.GOOGLE2FA_DISABLE_FAILED, message);
     }
 
     @GetMapping(value = "/verify_google2fa")
@@ -89,7 +93,8 @@ public class NgTwoFaController {
         if (g2faService.checkGoogle2faVerifyCode(code, userId)) {
             return ResponseEntity.ok(Boolean.TRUE);
         }
-        return ResponseEntity.badRequest().build();
+        String message = String.format("Verification code [%s] wrong", code);
+        throw new NgResponseException(ErrorApiTitles.VERIFY_GOOGLE2FA_FAILED, message);
     }
 
     private String getPrincipalEmail() {

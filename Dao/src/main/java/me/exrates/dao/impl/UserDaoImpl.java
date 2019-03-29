@@ -110,7 +110,7 @@ public class UserDaoImpl implements UserDao {
             user.setPassword(resultSet.getString("password"));
             user.setRegdate(resultSet.getDate("regdate"));
             user.setPhone(resultSet.getString("phone"));
-            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+            user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
             user.setFinpassword(resultSet.getString("finpassword"));
             user.setKycStatus(resultSet.getString("kyc_status"));
@@ -130,7 +130,7 @@ public class UserDaoImpl implements UserDao {
             user.setPassword(resultSet.getString("password"));
             user.setRegdate(resultSet.getDate("regdate"));
             user.setPhone(resultSet.getString("phone"));
-            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+            user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));
             user.setKycStatus(resultSet.getString("kyc_status"));
             return user;
@@ -194,7 +194,7 @@ public class UserDaoImpl implements UserDao {
             phone = null;
         }
         namedParameters.put("phone", phone);
-        namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+        namedParameters.put("status", String.valueOf(user.getUserStatus().getStatus()));
         namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
         KeyHolder keyHolder = new GeneratedKeyHolder();
         namedParameterJdbcTemplate.update(sqlUser, new MapSqlParameterSource(namedParameters), keyHolder);
@@ -438,7 +438,7 @@ public class UserDaoImpl implements UserDao {
             User user = new User();
             user.setEmail(rs.getString("email"));
             user.setPassword(rs.getString("password"));
-            user.setStatus(UserStatus.values()[rs.getInt("status") - 1]);
+            user.setUserStatus(UserStatus.values()[rs.getInt("status") - 1]);
             user.setNickname(rs.getString("nickname"));
             user.setId(rs.getInt("id"));
             return user;
@@ -693,7 +693,7 @@ public class UserDaoImpl implements UserDao {
     public boolean updateUserStatus(User user) {
         String sql = "update USER set status=:status where id=:id";
         Map<String, String> namedParameters = new HashMap<String, String>();
-        namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+        namedParameters.put("status", String.valueOf(user.getUserStatus().getStatus()));
         namedParameters.put("id", String.valueOf(user.getId()));
         return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
     }

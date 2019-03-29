@@ -58,6 +58,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type);
+
     CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
@@ -70,9 +72,15 @@ public interface CurrencyService {
 
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail);
 
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail);
+
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail);
 
     List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection);
+
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForWithdraw(String userEmail);
 
     Set<String> getCurrencyPermittedNameList(String userEmail);
 
@@ -139,4 +147,6 @@ public interface CurrencyService {
     List<CurrencyPair> getPairsByFirstPartName(String partName);
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
+
+    boolean isCurrencyPairHidden(int currencyPairId);
 }

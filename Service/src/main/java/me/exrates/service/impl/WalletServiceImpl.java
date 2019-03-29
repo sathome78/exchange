@@ -129,6 +129,14 @@ public class WalletServiceImpl implements WalletService {
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
+    public List<Wallet> getAllForNotHiddenCurWallets(int userId) {
+        final List<Wallet> wallets = walletDao.findAllForNotHiddenCurByUser(userId);
+        wallets.forEach(this::balanceRepresentation);
+        return wallets;
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
     public List<Wallet> getAllWallets(int userId) {
         final List<Wallet> wallets = walletDao.findAllByUser(userId);
         wallets.forEach(this::balanceRepresentation);

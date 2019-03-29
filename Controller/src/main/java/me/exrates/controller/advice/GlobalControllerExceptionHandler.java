@@ -3,9 +3,12 @@ package me.exrates.controller.advice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.dao.exception.notfound.NotFoundException;
 import me.exrates.model.UserFile;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
+import me.exrates.security.exception.IncorrectPasswordException;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
@@ -18,7 +21,6 @@ import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
 import me.exrates.service.exception.api.OrderParamsWrongException;
-import me.exrates.dao.exception.notfound.NotFoundException;
 import me.exrates.service.exception.process.ProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -203,5 +205,12 @@ public class GlobalControllerExceptionHandler {
     @ResponseBody
     public OpenApiError jsonMappingExceptionHandler(HttpServletRequest req, HttpMessageNotReadableException exception) {
         return new OpenApiError(ErrorCode.REQUEST_NOT_READABLE, req.getRequestURL(), exception.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler({IncorrectPasswordException.class})
+    @ResponseBody
+    public ErrorInfo UnauthorizedErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 }

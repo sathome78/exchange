@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -32,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Objects.isNull;
 
@@ -414,31 +414,47 @@ public class InputOutputDaoImpl implements InputOutputDao {
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(TransactionFilterDataDto filter, Locale locale) {
-        String limitStr = filter.getLimit() < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", filter.getLimit());
-        String offsetStr = filter.getOffset() < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", filter.getOffset());
+    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String userEmail, Integer currencyId, String currencyName,
+                                                                                 LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
+                                                                                 Integer limit, Integer offset, List<Integer> operationTypesList,
+                                                                                 Locale locale) {
+        String limitStr = limit < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", limit);
+        String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", offset);
 
         String currencyCondition = StringUtils.EMPTY;
         String curId = StringUtils.EMPTY;
-        if (filter.getCurrencyId() > 0) {
+        if (currencyId > 0) {
             currencyCondition = " TRANSACTION.currency_id = :currencyId AND ";
             curId = " AND CUR.id = :currencyId ";
-        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
+        } else if (currencyId == 0 && StringUtils.isNotBlank(currencyName)) {
             currencyCondition = " TRANSACTION.currency_id IN (SELECT CUR.id FROM CURRENCY CUR WHERE LOWER(CUR.name) LIKE LOWER(:currencyNamePart)) AND ";
             curId = " AND LOWER(CUR.name) LIKE LOWER(:currencyNamePart) ";
         }
 
-        String dateFromClauseTransaction = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " TRANSACTION.datetime >= :dateFrom AND ";
-        String dateFromClauseRefillRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND RR.date_creation >= :dateFrom ";
-        String dateFromClauseWithdrawRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND WR.date_creation >= :dateFrom ";
-        String dateFromClauseTransferwRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND TR.date_creation >= :dateFrom ";
-        String dateFromClauseTransferwRequestTr = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND TR.datetime >= :dateFrom ";
-
-        String dateToClauseTransaction = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " TRANSACTION.datetime <= :dateTo AND ";
-        String dateToClauseRefillRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND RR.date_creation <= :dateTo ";
-        String dateToClauseWithdrawRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND WR.date_creation <= :dateTo ";
-        String dateToClauseTransferwRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND TR.date_creation <= :dateTo ";
-        String dateToClauseTransferwRequestTr = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND TR.datetime <= :dateTo ";
+        String dateClauseTransaction = StringUtils.EMPTY;
+        String dateClauseRefillRequest = StringUtils.EMPTY;
+        String dateClauseWithdrawRequest = StringUtils.EMPTY;
+        String dateClauseTransferRequest = StringUtils.EMPTY;
+        String dateClauseTransferRequestTr = StringUtils.EMPTY;
+        if (Objects.nonNull(dateTimeFrom) && Objects.nonNull(dateTimeTo)) {
+            dateClauseTransaction = " (TRANSACTION.datetime BETWEEN :dateFrom AND :dateTo) AND ";
+            dateClauseRefillRequest = " AND (RR.date_creation BETWEEN :dateFrom AND :dateTo) ";
+            dateClauseWithdrawRequest = " AND (WR.date_creation BETWEEN :dateFrom AND :dateTo) ";
+            dateClauseTransferRequest = " AND (TR.date_creation BETWEEN :dateFrom AND :dateTo) ";
+            dateClauseTransferRequestTr = " AND (TR.datetime BETWEEN :dateFrom AND :dateTo) ";
+        } else if (Objects.nonNull(dateTimeFrom)) {
+            dateClauseTransaction = " TRANSACTION.datetime >= :dateFrom AND ";
+            dateClauseRefillRequest = " AND RR.date_creation >= :dateFrom ";
+            dateClauseWithdrawRequest = " AND WR.date_creation >= :dateFrom ";
+            dateClauseTransferRequest = " AND TR.date_creation >= :dateFrom ";
+            dateClauseTransferRequestTr = " AND TR.datetime >= :dateFrom ";
+        } else if (Objects.nonNull(dateTimeTo)) {
+            dateClauseTransaction = " TRANSACTION.datetime <= :dateTo AND ";
+            dateClauseRefillRequest = " AND RR.date_creation <= :dateTo ";
+            dateClauseWithdrawRequest = " AND WR.date_creation <= :dateTo ";
+            dateClauseTransferRequest = " AND TR.date_creation <= :dateTo ";
+            dateClauseTransferRequestTr = " AND TR.datetime <= :dateTo ";
+        }
 
         String sql = " SELECT " +
                 "    IFNULL(IFNULL(WITHDRAW_REQUEST.date_creation,REFILL_REQUEST.date_creation),TRANSACTION.datetime) AS datetime, " +
@@ -471,10 +487,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "  WHERE " +
                 "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND " +
                 currencyCondition +
-                dateFromClauseTransaction +
-                dateToClauseTransaction +
+                dateClauseTransaction +
                 "    USER.email = :email " +
-                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW', 'USER_TRANSFER') " +
+                "    AND TRANSACTION.source_type IN ('REFILL', 'WITHDRAW') " +
                 "    AND TRANSACTION.status_id IN (1, 2)" +
 
                 "  UNION " +
@@ -504,9 +519,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "   WHERE USER.email=:email " +
                 " AND RR.status_id IN (8, 9, 10, 11, 12) " +
                 " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type = 'REFILL' " +
-                " AND TX.source_id = RR.id AND TX.operation_type_id = 1) " + curId +
-                dateFromClauseRefillRequest +
-                dateToClauseRefillRequest +
+                " AND TX.source_id = RR.id AND TX.operation_type_id = 1) " +
+                curId +
+                dateClauseRefillRequest +
                 "  )  " +
                 "  UNION " +
                 "  (SELECT " +
@@ -532,9 +547,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "   WHERE USER.email=:email " +
                 " AND WR.status_id IN (7, 8, 9, 10, 12) " +
                 " AND NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' " +
-                " AND TX.source_id = WR.id AND TX.operation_type_id = 2) " + curId +
-                dateFromClauseWithdrawRequest +
-                dateToClauseWithdrawRequest +
+                " AND TX.source_id = WR.id AND TX.operation_type_id = 2) " +
+                curId +
+                dateClauseWithdrawRequest +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -560,8 +575,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "   WHERE USER.email=:email " +
                 " AND TR.status_id IN (2, 3, 5) " +
                 curId +
-                dateFromClauseTransferwRequest +
-                dateToClauseTransferwRequest +
+                dateClauseTransferRequest +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -588,8 +602,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "   WHERE REC.email=:email AND TR.status_id = 2 " +
                 " AND TR.status_id IN (2, 3, 5) " +
                 curId +
-                dateFromClauseTransferwRequest +
-                dateToClauseTransferwRequest +
+                dateClauseTransferRequest +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -616,20 +629,23 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 " AND TR.source_type='NOTIFICATIONS' " +
                 " AND TR.status_id IN (2, 3, 5) " +
                 curId +
-                dateFromClauseTransferwRequestTr +
-                dateToClauseTransferwRequestTr +
+                dateClauseTransferRequestTr +
                 "  )  " +
                 "  ORDER BY datetime DESC, operation_id DESC " + limitStr + offsetStr;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("email", filter.getEmail());
-        params.put("dateFrom", filter.getDateFrom());
-        params.put("dateTo", filter.getDateTo());
-        params.put("operation_type_id_list", filter.getOperationTypes());
-        if (filter.getCurrencyId() > 0) {
-            params.put("currencyId", filter.getCurrencyId());
-        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
-            params.put("currencyNamePart", String.join(StringUtils.EMPTY, "%", filter.getCurrencyName(), "%"));
+        params.put("email", userEmail);
+        if (Objects.nonNull(dateTimeFrom)) {
+            params.put("dateFrom", Timestamp.valueOf(dateTimeFrom));
+        }
+        if (Objects.nonNull(dateTimeTo)) {
+            params.put("dateTo", Timestamp.valueOf(dateTimeTo));
+        }
+        params.put("operation_type_id_list", operationTypesList);
+        if (currencyId > 0) {
+            params.put("currencyId", currencyId);
+        } else if (currencyId == 0 && StringUtils.isNotBlank(currencyName)) {
+            params.put("currencyNamePart", String.join(StringUtils.EMPTY, "%", currencyName, "%"));
         }
 
         try {

@@ -68,9 +68,6 @@ public class NeoNodeServiceImpl implements NeoNodeService {
     }
 
 
-
-
-
     private <T> T invokeJsonRpcMethod(String methodName, List<Object> args, TypeReference<NeoJsonRpcResponse<T>> typeReference) {
         NeoJsonRpcRequest request = new NeoJsonRpcRequest();
         request.setMethod(methodName);

@@ -7,7 +7,6 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -25,7 +24,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -73,6 +71,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Currency currency2 = new Currency();
         currency2.setId(rs.getInt("currency2_id"));
         currency2.setName(rs.getString("currency2_name"));
+        currencyPair.setCurrency2(currency2);
+        /**/
+        currencyPair.setMarket(rs.getString("market"));
+
+        return currencyPair;
+
+    };
+
+    public static RowMapper<CurrencyPair> currencyPairRowMapperWithDescrption = (rs, row) -> {
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(rs.getInt("id"));
+        currencyPair.setName(rs.getString("name"));
+        currencyPair.setPairType(CurrencyPairType.valueOf(rs.getString("type")));
+        /**/
+        Currency currency1 = new Currency();
+        currency1.setId(rs.getInt("currency1_id"));
+        currency1.setName(rs.getString("currency1_name"));
+        currency1.setDescription(rs.getString("description"));
+        currencyPair.setCurrency1(currency1);
+        /**/
+        Currency currency2 = new Currency();
+        currency2.setId(rs.getInt("currency2_id"));
+        currency2.setName(rs.getString("currency2_name"));
+        currency2.setDescription(rs.getString("description"));
         currencyPair.setCurrency2(currency2);
         /**/
         currencyPair.setMarket(rs.getString("market"));
@@ -279,12 +301,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
             typeClause = " AND type =:pairType ";
         }
         String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
-                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
-                "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+                "(select name, description from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name, description from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR " +
                 " WHERE hidden IS NOT TRUE " + typeClause +
                 " ORDER BY -pair_order DESC";
-        return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+        return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
 
     @Override
@@ -368,6 +390,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "			 	AND (IOP.operation_direction=:operation_direction) " +
                 "				AND (IOP.user_id=:user_id) " +
                 " WHERE CUR.hidden IS NOT TRUE " +
+                " ORDER BY CUR.id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("operation_direction", operationDirection);
+        }};
+        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+            dto.setUserId(userId);
+            dto.setCurrencyId(rs.getInt("id"));
+            dto.setCurrencyName(rs.getString("name"));
+            Integer permissionCode = rs.getObject("invoice_operation_permission_id") == null ? 0 : (Integer) rs.getObject("invoice_operation_permission_id");
+            dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
+            return dto;
+        });
+    }
+
+    @Override
+    public List<UserCurrencyOperationPermissionDto> findAllCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
+        String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
+                " FROM CURRENCY CUR " +
+                " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+                "				(IOP.currency_id=CUR.id) " +
+                "			 	AND (IOP.operation_direction=:operation_direction) " +
+                "				AND (IOP.user_id=:user_id) " +
                 " ORDER BY CUR.id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
@@ -825,5 +871,19 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 return currencyLimits.size();
             }
         });
+    }
+
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        String sql = "SELECT cp.hidden FROM CURRENCY_PAIR cp WHERE cp.id = :currency_pair_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, Boolean.TYPE);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException("Currency pair not found");
+        }
     }
 }

@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.dto.BalanceFilterDataDto;
-import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -26,11 +25,11 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +47,7 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,7 +146,7 @@ public class NgBalanceController {
                                                       @PathVariable String operation) {
         int userId = userService.getIdByEmail(getPrincipalEmail());
 
-        try{
+        try {
             if (operation.equalsIgnoreCase("REFILL")) {
                 if (!refillService.getFlatById(requestId).getUserId().equals(userId)) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -165,7 +164,7 @@ public class NgBalanceController {
                 transferService.revokeTransferRequest(requestId);
             }
             return ResponseEntity.ok().build();
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error(String.format("Failed to revoke request with id: %d and operation type: %s", requestId, operation), ex);
         }
         logger.error("Failed to revoke such request ({}) is not supported", operation);
@@ -269,22 +268,24 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
-            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false, name = "dateFrom") String dateFrom,
+            @RequestParam(required = false, name = "dateTo") String dateTo,
             HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
+        String userEmail = getPrincipalEmail();
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
-        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
-                .email(getPrincipalEmail())
-                .currencyId(currencyId)
-                .currencyName(currencyName)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo)
-                .limit(limit)
-                .offset(offset)
-                .build();
         try {
-            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(
+                    userEmail,
+                    currencyId,
+                    currencyName,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    limit,
+                    offset,
+                    locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);
@@ -298,18 +299,18 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
+        String userEmail = getPrincipalEmail();
 
-        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
-                .email(getPrincipalEmail())
-                .limit(limit)
-                .offset(offset)
-                .currencyId(0)
-                .currencyName(StringUtils.EMPTY)
-                .dateFrom(null)
-                .dateTo(null)
-                .build();
         try {
-            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(
+                    userEmail,
+                    0,
+                    StringUtils.EMPTY,
+                    null,
+                    null,
+                    limit,
+                    offset,
+                    locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user default inputOutputData", ex);

@@ -289,7 +289,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         return merchantName;
     }
 
-    public void subscribeToTransactions() throws IOException {
+    protected void subscribeToTransactions() throws IOException {
         JSONObject login = new JSONObject();
         login.put("id", 0);
         login.put("method", "call");
