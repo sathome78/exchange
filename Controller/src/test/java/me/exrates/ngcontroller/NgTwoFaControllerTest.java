@@ -2,10 +2,12 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -27,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -122,8 +127,18 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.submitGoogleSecret(anyObject(), anyMapOf(String.class, String.class))).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.POST, null, body, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.POST, null, body, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("GOOGLE2FA_SUBMIT_FAILED", responseException.getTitle());
+
+            String expected = "Incorrectly filled data {TEST_KEY=TEST_VALUE}";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, never()).sendGoogleAuthPinConfirm(anyObject(), any(HttpServletRequest.class));
@@ -190,8 +205,18 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(g2faService.disableGoogleAuth(anyObject(), anyMapOf(String.class, String.class))).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.PUT, null, body, MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.PUT, null, body, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("GOOGLE2FA_DISABLE_FAILED", responseException.getTitle());
+
+            String expected = "Incorrectly filled data {TEST_KEY=TEST_VALUE}";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).disableGoogleAuth(anyObject(), anyMapOf(String.class, String.class));
@@ -225,8 +250,18 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         when(userService.getIdByEmail(anyString())).thenReturn(1);
         when(g2faService.checkGoogle2faVerifyCode(anyString(), anyInt())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, "", MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(getApiRequestBuilder(uriComponents.toUri(), HttpMethod.GET, null, StringUtils.EMPTY, MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("VERIFY_GOOGLE2FA_FAILED", responseException.getTitle());
+
+            String expected = "Verification code [TEST_CODE] wrong";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(g2faService, times(1)).checkGoogle2faVerifyCode(anyString(), anyInt());
