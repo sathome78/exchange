@@ -46,8 +46,8 @@ public class IpBlockingServiceImpl implements IpBlockingService {
         ipchecker.put(IpTypesOfChecking.OPEN_API, new ConcurrentReferenceHashMap<>());
         ipchecker.put(IpTypesOfChecking.CREATE_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
         ipchecker.put(IpTypesOfChecking.REGISTER, new ConcurrentReferenceHashMap<>());
-        ipchecker.put(IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
-        ipchecker.put(IpTypesOfChecking.UPDATE_MAIN_PASSWORD, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD, new ConcurrentHashMap<>());
+        ipchecker.put(IpTypesOfChecking.UPDATE_MAIN_PASSWORD, new ConcurrentHashMap<>());
     }
 
     @Override

@@ -15,7 +15,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -60,7 +60,7 @@ public class WithdrawRequestAdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
     public ModelAndView withdrawalRequests(Principal principal) {
         final Map<String, Object> params = new HashMap<>();
-        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
+        List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getAllCurrencyOperationPermittedForWithdraw(principal.getName())
                 .stream()
                 .filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
                 .sorted(Comparator.comparing(UserCurrencyOperationPermissionDto::getCurrencyName))

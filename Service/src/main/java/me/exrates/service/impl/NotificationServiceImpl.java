@@ -117,22 +117,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
       User user = userService.getUserById(userId);
-      /*NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);*/
-      /*if (option.isSendNotification()) {
-        createNotification(
-            userId,
-            titleMessage,
-            message,
-            cause);
-      }*/
-      /*Always on email notifications*/
-      if (true/*option.isSendEmail()*/) {
         Email email = new Email();
         email.setSubject(titleMessage);
         email.setMessage(message);
         email.setTo(user.getEmail());
-        sendMailService.sendInfoMail(email);
-      }
+        sendMailService.sendMailMandrill(email);
     }
 
 

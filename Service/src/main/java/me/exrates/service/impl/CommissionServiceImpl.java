@@ -17,6 +17,7 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;

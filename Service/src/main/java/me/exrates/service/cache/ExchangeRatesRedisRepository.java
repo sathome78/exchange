@@ -14,6 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @PropertySource("classpath:redis.properties")
 @Repository
 public class ExchangeRatesRedisRepository {
@@ -28,7 +30,7 @@ public class ExchangeRatesRedisRepository {
         this.key = key;
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
         redisTemplate.delete(key);
-        ops = redisTemplate.opsForHash();
+        this.ops = redisTemplate.opsForHash();
     }
 
     public void put(ExOrderStatisticsShortByPairsDto statistic) {

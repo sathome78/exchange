@@ -33,6 +33,11 @@ import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.*;
 import me.exrates.service.B2XTransferToReserveAccount;
+import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
+import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificatorsService;
@@ -89,7 +94,9 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
-import static me.exrates.model.enums.GroupUserRoleEnum.*;
+import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
+import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
+import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.*;
@@ -229,7 +236,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
         ModelAndView model = new ModelAndView();
-        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType.ALL);
         model.addObject("currencyPairList", currencyPairList);
         model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
         model.addObject("statusList", Arrays.asList(OrderStatus.values()));
@@ -337,7 +344,7 @@ public class AdminController {
     public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id, @RequestParam(defaultValue = "false") Boolean onlyBalances) {
         boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
         return getExtendedInfo && !onlyBalances ? walletService.getAllUserWalletsForAdminDetailed(id) :
-                walletService.getAllWallets(id)
+                walletService.getAllForNotHiddenCurWallets(id)
                         .stream()
                         .map(WalletFormattedDto::new)
                         .collect(Collectors.toList());
@@ -574,7 +581,7 @@ public class AdminController {
                     updateUserDto.setRole(user.getRole());
                 }
             }
-            updateUserDto.setStatus(user.getStatus());
+            updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
                 userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);

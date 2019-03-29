@@ -25,7 +25,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -89,14 +89,14 @@ public class NgUserSettingsController {
     @Autowired
     public NgUserSettingsController(UserService userService,
                                     NotificationService notificationService,
-                                    SessionParamsService sessionService,
-                                    PageLayoutSettingsService layoutSettingsService,
-                                    UserVerificationService verificationService) {
+                                    SessionParamsService sessionParamsService,
+                                    PageLayoutSettingsService pageLayoutSettingsService,
+                                    UserVerificationService userVerificationService) {
         this.userService = userService;
         this.notificationService = notificationService;
-        this.sessionService = sessionService;
-        this.layoutSettingsService = layoutSettingsService;
-        this.verificationService = verificationService;
+        this.sessionService = sessionParamsService;
+        this.layoutSettingsService = pageLayoutSettingsService;
+        this.verificationService = userVerificationService;
     }
 
     // /info/private/v2/settings/updateMainPassword
@@ -122,7 +122,7 @@ public class NgUserSettingsController {
         }
         currentPassword = RestApiUtils.decodePassword(currentPassword);
         if (!userService.checkPassword(user.getId(), currentPassword)) {
-            String clientIp = Optional.ofNullable(request.getHeader("client_ip")).orElse("");
+            String clientIp = Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("");
             String message = String.format("Failed to check password for user: %s from ip: %s ", user.getEmail(), clientIp);
             logger.warn(message);
             ipBlockingService.failureProcessing(clientIp, IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
@@ -133,7 +133,7 @@ public class NgUserSettingsController {
         user.setConfirmPassword(newPassword);
         //   registerFormValidation.validateResetPassword(user, result, locale);
         if (userService.update(getUpdateUserDto(user), locale)) {
-            ipBlockingService.successfulProcessing(request.getHeader("client_ip"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
+            ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.UPDATE_MAIN_PASSWORD);
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -164,7 +164,7 @@ public class NgUserSettingsController {
     public ResponseModel<Integer> getSessionPeriod() {
         SessionParams params = sessionService.getByEmailOrDefault(getPrincipalEmail());
         if (null == params) {
-            new ResponseModel<>(0);
+            return new ResponseModel<>(0);
         }
         return new ResponseModel<>(params.getSessionTimeMinutes());
     }
@@ -289,13 +289,13 @@ public class NgUserSettingsController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping("currency_pair/favourites")
+    @GetMapping("/currency_pair/favourites")
     @ResponseBody
     public List<Integer> getUserFavouriteCurrencyPairs() {
         return userService.getUserFavouriteCurrencyPairs(getPrincipalEmail());
     }
 
-    @PutMapping("currency_pair/favourites")
+    @PutMapping("/currency_pair/favourites")
     public ResponseEntity<Void> manegeUserFavouriteCurrencyPairs(@RequestBody Map<String, String> params) {
         int currencyPairId;
         boolean toDelete;
@@ -319,7 +319,7 @@ public class NgUserSettingsController {
         dto.setFinpassword(user.getFinpassword());
         dto.setPassword(user.getPassword());
         dto.setRole(user.getRole());
-        dto.setStatus(user.getStatus());
+        dto.setStatus(user.getUserStatus());
         dto.setPhone(user.getPhone());
         return dto;
     }

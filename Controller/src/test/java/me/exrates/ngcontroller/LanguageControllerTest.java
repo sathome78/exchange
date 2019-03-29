@@ -15,9 +15,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
 
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class LanguageControllerTest extends AngularApiCommonTest {
 
@@ -49,10 +51,9 @@ public class LanguageControllerTest extends AngularApiCommonTest {
                 .principal(principal);
 
         mockMvc.perform(requestBuilder)
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(userService, times(1)).getPreferedLangByEmail(anyString());
+        Mockito.verify(userService, times(1)).getPreferedLangByEmail(anyString());
     }
 
     @Test
@@ -65,7 +66,6 @@ public class LanguageControllerTest extends AngularApiCommonTest {
                 .principal(principal);
 
         mockMvc.perform(requestBuilder)
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isServiceUnavailable());
 
         verify(userService, times(1)).getPreferedLangByEmail(anyString());
@@ -83,7 +83,6 @@ public class LanguageControllerTest extends AngularApiCommonTest {
                 .principal(principal);
 
         mockMvc.perform(requestBuilder)
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isAccepted());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -102,7 +101,6 @@ public class LanguageControllerTest extends AngularApiCommonTest {
                 .principal(principal);
 
         mockMvc.perform(requestBuilder)
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());

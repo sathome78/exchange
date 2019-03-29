@@ -34,7 +34,7 @@ public class UserOperationDaoImpl implements UserOperationDao {
 
     try {
       return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) > 0;
-    } catch (EmptyResultDataAccessException e) {
+    } catch (EmptyResultDataAccessException ex) {
     return false;
     }
   }

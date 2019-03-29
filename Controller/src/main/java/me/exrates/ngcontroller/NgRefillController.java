@@ -21,7 +21,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

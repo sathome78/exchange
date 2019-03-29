@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class OrderWsDetailDto {
 
     private int id;
+    @JsonProperty("order_type")
     private OperationType orderType;
     private String price;
     private String amount;
@@ -32,6 +34,19 @@ public class OrderWsDetailDto {
         this.amount = exOrder.getAmountBase().toPlainString();
         this.amountConvert = exOrder.getAmountConvert().toPlainString();
         this.orderEvent = orderEventEnum.name();
+        this.dateAcception = exOrder.getDateAcception();
+        this.timestamp = exOrder.getEventTimestamp();
+        this.orderParentId = exOrder.getSourceId();
+        this.orderStatus = exOrder.getStatus() == null ? null : exOrder.getStatus().name();
+    }
+
+    public OrderWsDetailDto(ExOrder exOrder) {
+        this.id = exOrder.getId();
+        this.orderType = exOrder.getOperationType();
+        this.price = exOrder.getExRate().toPlainString();
+        this.amount = exOrder.getAmountBase().toPlainString();
+        this.amountConvert = exOrder.getAmountConvert().toPlainString();
+        this.orderEvent = exOrder.getEvent().name();
         this.dateAcception = exOrder.getDateAcception();
         this.timestamp = exOrder.getEventTimestamp();
         this.orderParentId = exOrder.getSourceId();

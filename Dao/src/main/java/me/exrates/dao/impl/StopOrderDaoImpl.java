@@ -31,7 +31,12 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -78,6 +83,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
         log.debug(sql);
         log.debug(order);
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", order.getUserId())
                 .addValue("currency_pair_id", order.getCurrencyPairId())
@@ -89,6 +95,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
                 .addValue("commission_id", order.getComissionId())
                 .addValue("commission_fixed_amount", order.getCommissionFixedAmount())
                 .addValue("status_id", OrderStatus.INPROCESS.getStatus());
+
         int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {
@@ -118,7 +125,6 @@ public class StopOrderDaoImpl implements StopOrderDao {
         int result = namedParameterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
     }
-
 
 
     @Override
@@ -193,7 +199,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
         String userJoinClause;
-        if(scope == null || scope.isEmpty()) {
+        if (scope == null || scope.isEmpty()) {
             userFilterClause = " AND CREATOR.email = :email ";
             userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=STOP_ORDERS.user_id ";
         } else {
@@ -370,7 +376,7 @@ public class StopOrderDaoImpl implements StopOrderDao {
     }
 
     @Override
-    public boolean updateOrder(int orderId, StopOrder order){
+    public boolean updateOrder(int orderId, StopOrder order) {
 
         String sql = "UPDATE STOP_ORDERS SET" +
                 " user_id = :user_id, currency_pair_id = :currency_pair_id, operation_type_id = :operation_type_id," +
@@ -392,5 +398,33 @@ public class StopOrderDaoImpl implements StopOrderDao {
                 .addValue("id", orderId);
 
         return namedParameterJdbcTemplate.update(sql, parameters) > 0;
+    }
+
+    @Override
+    public List<Integer> getAllOpenedStopOrdersByUserId(Integer userId) {
+        String sql = "SELECT so.id " +
+                " FROM STOP_ORDERS so" +
+                " WHERE so.user_id = :user_id AND so.status_id = :status_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("status_id", OrderStatus.OPENED.getStatus());
+
+        return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
+    }
+
+    @Override
+    public List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair) {
+        String sql = "SELECT so.id " +
+                " FROM STOP_ORDERS so" +
+                " JOIN CURRENCY_PAIR cp on so.currency_pair_id = cp.id" +
+                " WHERE so.user_id = :user_id AND cp.name = :currency_pair AND so.status_id = :status_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("currency_pair", currencyPair);
+        params.put("status_id", OrderStatus.OPENED.getStatus());
+
+        return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
     }
 }

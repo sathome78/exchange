@@ -2,10 +2,11 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.exception.notfound.CurrencyPairLimitNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -13,13 +14,16 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -33,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -347,7 +350,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, String> params = new HashMap<>();
         params.put("currency_pair", currencyPair);
 
-        return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
+        }
     }
 
     @Override
@@ -359,6 +366,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "			 	AND (IOP.operation_direction=:operation_direction) " +
                 "				AND (IOP.user_id=:user_id) " +
                 " WHERE CUR.hidden IS NOT TRUE " +
+                " ORDER BY CUR.id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", userId);
+            put("operation_direction", operationDirection);
+        }};
+        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+            UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+            dto.setUserId(userId);
+            dto.setCurrencyId(rs.getInt("id"));
+            dto.setCurrencyName(rs.getString("name"));
+            Integer permissionCode = rs.getObject("invoice_operation_permission_id") == null ? 0 : (Integer) rs.getObject("invoice_operation_permission_id");
+            dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
+            return dto;
+        });
+    }
+
+    @Override
+    public List<UserCurrencyOperationPermissionDto> findAllCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
+        String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
+                " FROM CURRENCY CUR " +
+                " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+                "				(IOP.currency_id=CUR.id) " +
+                "			 	AND (IOP.operation_direction=:operation_direction) " +
+                "				AND (IOP.user_id=:user_id) " +
                 " ORDER BY CUR.id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
@@ -446,7 +477,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " WHERE EXORDERS.id = :order_id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("order_id", String.valueOf(orderId));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException("Currency pair not found");
+        }
     }
 
     @Override
@@ -460,16 +496,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("user_role_id", roleId);
         namedParameters.put("order_type_id", orderTypeId);
-        return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
-            CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
-            dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            dto.setMinRate(rs.getBigDecimal("min_rate"));
-            dto.setMaxRate(rs.getBigDecimal("max_rate"));
-            dto.setMinAmount(rs.getBigDecimal("min_amount"));
-            dto.setMaxAmount(rs.getBigDecimal("max_amount"));
-            return dto;
-        });
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+                CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
+                dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+                dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                dto.setMinRate(rs.getBigDecimal("min_rate"));
+                dto.setMaxRate(rs.getBigDecimal("max_rate"));
+                dto.setMinAmount(rs.getBigDecimal("min_amount"));
+                dto.setMaxAmount(rs.getBigDecimal("max_amount"));
+                return dto;
+            });
+        } catch (Exception ex) {
+            throw new CurrencyPairLimitNotFoundException(String.format("Currency pair limit for pair: %d not found", currencyPairId));
+        }
+
     }
 
     @Override
