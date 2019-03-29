@@ -7,6 +7,7 @@ import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -31,6 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.util.NestedServletException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,6 +44,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -100,16 +103,26 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void acceptTransfer_isBadRequest() throws Exception {
+    public void acceptTransfer_isBadRequest() {
         Map<String, String> params = new HashMap<>();
         params.put("CODE", "VOUCHER_CODE");
 
         when(rateLimitService.checkLimitsExceed(anyString())).thenReturn(Boolean.FALSE);
 
-        mockMvc.perform(post(BASE_URL + "/accept")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(objectMapper.writeValueAsString(params)))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/accept")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .content(objectMapper.writeValueAsString(params)))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_ACCEPT_TRANSFER", responseException.getTitle());
+
+            String expected = "Limits exceeded for user testemail@gmail.com";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(rateLimitService, times(1)).checkLimitsExceed(anyString());
     }

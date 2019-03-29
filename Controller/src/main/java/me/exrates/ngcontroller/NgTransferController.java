@@ -3,10 +3,12 @@ package me.exrates.ngcontroller;
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
@@ -20,10 +22,11 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -33,7 +36,6 @@ import me.exrates.service.TransferService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -140,13 +142,15 @@ public class NgTransferController {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
             log.info("Limits exceeded for user " + email);
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Limits exceeded for user %s", email);
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
         }
         InvoiceActionTypeEnum action = PRESENT_VOUCHER;
         List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
         if (requiredStatus.size() > 1) {
             log.info("To many invoices: " + requiredStatus.size());
-            return ResponseEntity.badRequest().build();
+            String message = String.format("To many invoices: %s", requiredStatus.size());
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
         }
         String code = params.getOrDefault("CODE", "");
         Optional<TransferRequestFlatDto> dto = transferService
@@ -287,7 +291,8 @@ public class NgTransferController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("Failed to send user email", e);
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Failed to send user email");
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_USER_EMAIL, message);
         }
     }
 
