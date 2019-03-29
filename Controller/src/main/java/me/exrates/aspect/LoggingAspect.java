@@ -42,60 +42,6 @@ public class LoggingAspect {
 
 
 
-
-   /* @AfterReturning(value = ("within(me.exrates.controller.openAPI..*)"),
-            returning = "returnValue")
-    public void endpointAfterReturning(JoinPoint p, Object returnValue) {
-        if (isAlterdiceUser()) {
-            String log = String.format("%s -> %s",
-                    getUrl(),  p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName());
-            Object[] signatureArgs = p.getArgs();
-            if (signatureArgs[0] != null) {
-                log = log.concat(" \n Request object:" + signatureArgs[0]);
-            }
-            log = log.concat("\n Response object: " + returnValue.toString());
-            alterdiceApiLog.debug(log);
-        }
-    }
-
-    @AfterReturning(value = ("within(me.exrates.controller.advice..*)"),
-            returning = "returnValue")
-    public void advicesLog(JoinPoint p, Object returnValue) {
-        if (isAlterdiceUser()) {
-            String log = String.format("%s -> %s",
-                    getUrl(),  p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName());
-            Object[] signatureArgs = p.getArgs();
-            if (signatureArgs[0] != null) {
-                log = log.concat(" \n Request object:" + signatureArgs[0]);
-            }
-            log = log.concat("\n Response object: " + returnValue.toString());
-            alterdiceApiLog.error(log);
-        }
-    }
-
-
-    @AfterThrowing(pointcut = ("within(me.exrates.controller.openAPI..*)"), throwing = "e")
-    public void endpointAfterThrowing(JoinPoint p, Exception e) {
-        if (isAlterdiceUser()) {
-            alterdiceApiLog.error(getUrl() + " " + p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName() + " " + e.getMessage());
-        }
-    }*/
-
-   /* private String getUrl() {
-        HttpServletRequest s = (HttpServletRequest) RequestContextHolder
-                .currentRequestAttributes()
-                .resolveReference(RequestAttributes.REFERENCE_REQUEST);
-        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
-        return String.format("%s %s %s", s.getMethod(), response.getStatus(), s.getRequestURL() + "?" + (s.getQueryString() == null ? "" : s.getQueryString()));
-    }
-
-    private boolean isAlterdiceUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        alterdiceApiLog.debug(auth.getName());
-        return auth != null || false;
-    }*/
-
-
     @AfterReturning(value = "execution(* * (..)) && " +
             "@annotation(me.exrates.controller.annotation.AdminLoggable)", returning = "res")
     public void logAdminExec(JoinPoint joinPoint, Object res) {

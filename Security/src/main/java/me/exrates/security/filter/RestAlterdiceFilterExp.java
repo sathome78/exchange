@@ -1,18 +1,20 @@
-package me.exrates.controller.filter;
-
+package me.exrates.security.filter;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -23,7 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @Log4j2(topic = "alterdice_api_logger")
-public class RestAlterDiceFilter extends OncePerRequestFilter {
+public class RestAlterdiceFilterExp extends GenericFilterBean {
 
     private static final List<MediaType> VISIBLE_TYPES = Arrays.asList(
             MediaType.valueOf("text/*"),
@@ -35,37 +37,46 @@ public class RestAlterDiceFilter extends OncePerRequestFilter {
             MediaType.MULTIPART_FORM_DATA
     );
 
+    private static final List<String> rolesToFilter = Arrays.asList("OUTER_MARKET_BOT", "BOT_TRADER");
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        request.getUserPrincipal();
-        if (isAsyncDispatch(request) || !isAlterdiceUser()) {
-            filterChain.doFilter(request, response);
-        } else {
-            doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain);
-        }
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp  = (HttpServletResponse) response;
+        doFilterWrapped(wrapRequest(req), wrapResponse(resp), chain);
     }
 
     private void doFilterWrapped(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, FilterChain filterChain) throws ServletException, IOException {
         final StringBuilder sb = new StringBuilder();
         try {
-            sb.append(beforeRequest(request, response));
+            sb.append(beforeRequest(request));
             filterChain.doFilter(request, response);
         }
         finally {
-            sb.append(afterRequest(request, response));
-            log.debug(sb.toString());
+            if(isAlterdiceUser()) {
+                sb.append(afterRequest(request, response));
+                log.debug(sb.toString());
+            }
             response.copyBodyToResponse();
         }
     }
 
-    private String beforeRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) {
-        return logRequestHeader(request, request.getRemoteAddr() + "|>");
+    private String beforeRequest(ContentCachingRequestWrapper request) {
+        try {
+            return logRequestHeader(request, "       |>/ ");
+        } catch (Exception e) {
+            return StringUtils.EMPTY;
+        }
     }
 
     private String afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) {
-        StringBuilder sb = logRequestBody(request, request.getRemoteAddr() + "|>");
-        StringBuilder sbr = logResponse(response, request.getRemoteAddr() + "|<");
-        return sb.toString().concat(sbr.toString());
+        try {
+            StringBuilder sb = logRequestBody(request, "       |>");
+            StringBuilder sbr = logResponse(response, "       |<");
+            return sb.toString().concat(sbr.toString());
+        } catch (Exception e) {
+            return StringUtils.EMPTY;
+        }
     }
 
     private static String logRequestHeader(ContentCachingRequestWrapper request, String prefix) {
@@ -76,10 +87,9 @@ public class RestAlterDiceFilter extends OncePerRequestFilter {
         } else {
             sb.append(String.format("\n %s %s %s?%s", prefix, request.getMethod(), request.getRequestURI(), queryString));
         }
-        Collections.list(request.getHeaderNames()).forEach(headerName ->
+        Collections.list(request.getHeaderNames()).stream().filter(p->p.contains("api") || p.contains("API")).forEach(headerName ->
                 Collections.list(request.getHeaders(headerName)).forEach(headerValue ->
                         sb.append(String.format("\n %s %s: %s", prefix, headerName, headerValue))));
-        sb.append(prefix);
         return sb.toString();
     }
 
@@ -96,9 +106,6 @@ public class RestAlterDiceFilter extends OncePerRequestFilter {
         int status = response.getStatus();
         final StringBuilder sb = new StringBuilder();
         sb.append(String.format("\n %s %s %s", prefix, status, HttpStatus.valueOf(status).getReasonPhrase()));
-        response.getHeaderNames().forEach(headerName ->
-                response.getHeaders(headerName).forEach(headerValue ->
-                        sb.append(String.format("\n %s %s: %s  ", prefix, headerName, headerValue))));
         sb.append(prefix);
         byte[] content = response.getContentAsByteArray();
         if (content.length > 0) {
@@ -141,11 +148,11 @@ public class RestAlterDiceFilter extends OncePerRequestFilter {
     }
 
     private boolean isAlterdiceUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            auth.getAuthorities().forEach(p-> System.out.println(p));
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            return auth != null && auth.getAuthorities().stream().anyMatch(p-> rolesToFilter.contains(p.getAuthority()));
+        } catch (Exception e) {
+            return false;
         }
-        return true;
     }
-
 }
