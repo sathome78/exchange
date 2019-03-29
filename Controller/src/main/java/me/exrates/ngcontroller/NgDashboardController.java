@@ -7,6 +7,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -16,6 +17,7 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.NgOrderService;
@@ -115,15 +117,21 @@ public class NgDashboardController {
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
-
-        return StringUtils.isEmpty(result) ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) :
-                new ResponseEntity<>(HttpStatus.CREATED);
+        if (StringUtils.isEmpty(result)) {
+            String message = String.format("Invalid orderId= %s", inputOrder.getOrderId());
+            throw new NgResponseException(ErrorApiTitles.CREATE_ORDER_FAILED, message);
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result = (Integer) orderService.deleteOrderByAdmin(id);
-        return result == 1 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity(HttpStatus.BAD_REQUEST);
+        if (result == 1) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        String message = String.format("Invalid orderId= %s", id);
+        throw new NgResponseException(ErrorApiTitles.DELETE_ORDER_FAILED, message);
     }
 
     @PutMapping("/order")
@@ -174,11 +182,12 @@ public class NgDashboardController {
         } catch (Exception e) {
             logger.error("Error while get balance by currency user {}, currency {} , e {}",
                     user.getEmail(), currency.getName(), e.getLocalizedMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = String.format("Error while get balance by currency user {%s}, currency {%s}",
+                    user.getEmail(), currency.getName());
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_GET_BALANCE_BY_CURRENCY, message);
         }
         return new ResponseEntity<>(balanceByCurrency, HttpStatus.OK);
     }
-
 
     @GetMapping("/commission/{orderType}/{currencyPairId}")
     public ResponseEntity<WalletsAndCommissionsForOrderCreationDto> getCommission(@PathVariable OperationType orderType,
@@ -265,7 +274,8 @@ public class NgDashboardController {
 
             return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
+            String message = "Failed to filtered orders";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_FILTERED_ORDERS, message);
         }
     }
 
@@ -323,7 +333,8 @@ public class NgDashboardController {
 
             return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
+            String message = "Failed to get last orders";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_GET_LAST_ORDERS, message);
         }
     }
 
@@ -417,5 +428,4 @@ public class NgDashboardController {
             return "";
         }
     }
-
 }
