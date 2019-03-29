@@ -2091,8 +2091,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
-        /* List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);*/
-        List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);
+        List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
+       /* List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);*/
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
                 .filter(p -> p.getType() == CurrencyPairType.ICO)
