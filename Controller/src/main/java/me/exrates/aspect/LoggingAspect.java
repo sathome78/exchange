@@ -4,14 +4,21 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
@@ -32,6 +39,61 @@ public class LoggingAspect {
     private static final Logger transferLog = LogManager.getLogger("transfer_asp_log");
     private static final Logger transferExtLog = LogManager.getLogger("transfer_asp_ext_log");
     private static final Logger adminLog = LogManager.getLogger("admin_log");
+
+
+
+
+   /* @AfterReturning(value = ("within(me.exrates.controller.openAPI..*)"),
+            returning = "returnValue")
+    public void endpointAfterReturning(JoinPoint p, Object returnValue) {
+        if (isAlterdiceUser()) {
+            String log = String.format("%s -> %s",
+                    getUrl(),  p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName());
+            Object[] signatureArgs = p.getArgs();
+            if (signatureArgs[0] != null) {
+                log = log.concat(" \n Request object:" + signatureArgs[0]);
+            }
+            log = log.concat("\n Response object: " + returnValue.toString());
+            alterdiceApiLog.debug(log);
+        }
+    }
+
+    @AfterReturning(value = ("within(me.exrates.controller.advice..*)"),
+            returning = "returnValue")
+    public void advicesLog(JoinPoint p, Object returnValue) {
+        if (isAlterdiceUser()) {
+            String log = String.format("%s -> %s",
+                    getUrl(),  p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName());
+            Object[] signatureArgs = p.getArgs();
+            if (signatureArgs[0] != null) {
+                log = log.concat(" \n Request object:" + signatureArgs[0]);
+            }
+            log = log.concat("\n Response object: " + returnValue.toString());
+            alterdiceApiLog.error(log);
+        }
+    }
+
+
+    @AfterThrowing(pointcut = ("within(me.exrates.controller.openAPI..*)"), throwing = "e")
+    public void endpointAfterThrowing(JoinPoint p, Exception e) {
+        if (isAlterdiceUser()) {
+            alterdiceApiLog.error(getUrl() + " " + p.getTarget().getClass().getSimpleName() + " " + p.getSignature().getName() + " " + e.getMessage());
+        }
+    }*/
+
+   /* private String getUrl() {
+        HttpServletRequest s = (HttpServletRequest) RequestContextHolder
+                .currentRequestAttributes()
+                .resolveReference(RequestAttributes.REFERENCE_REQUEST);
+        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+        return String.format("%s %s %s", s.getMethod(), response.getStatus(), s.getRequestURL() + "?" + (s.getQueryString() == null ? "" : s.getQueryString()));
+    }
+
+    private boolean isAlterdiceUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        alterdiceApiLog.debug(auth.getName());
+        return auth != null || false;
+    }*/
 
 
     @AfterReturning(value = "execution(* * (..)) && " +

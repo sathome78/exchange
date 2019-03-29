@@ -8,6 +8,7 @@ import me.exrates.SSMGetter;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.interceptor.LoggingInterceptor;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.controller.interceptor.TokenInterceptor;
@@ -458,6 +459,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
         registry.addInterceptor(new MDCInterceptor());
+        registry.addInterceptor(new LoggingInterceptor()).addPathPatterns("/openapi/v1/orders/**");
     }
 
     private void addTokenInterceptor(InterceptorRegistry registry) {

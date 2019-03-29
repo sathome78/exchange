@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import me.exrates.controller.filter.HeaderFilter;
+import me.exrates.controller.filter.RestAlterDiceFilter;
 import me.exrates.controller.filter.XssRequestFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,6 +69,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
     protected void registerDispatcherServlet(ServletContext servletContext) {
         super.registerDispatcherServlet(servletContext);
         servletContext.addListener(HttpSessionEventPublisher.class);
+        servletContext.addFilter("My filter", RestAlterDiceFilter.class).addMappingForUrlPatterns(null, false, "/openapi/v1/*");
         //TODO temporary disable
         //  servletContext.addListener(StoreSessionListenerImpl.class);
     }

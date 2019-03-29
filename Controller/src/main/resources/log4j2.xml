@@ -690,6 +690,15 @@
             </Policies>
             <DefaultRolloverStrategy max="1"/>
         </RollingFile>
+        <RollingFile name="alterdice_logger" fileName="${sys:catalina.home}/logs/api/alterdice/requests_log.log"
+                     filePattern="${sys:catalina.home}/logs/api/alterdice/requests_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
@@ -969,6 +978,9 @@
         </logger>
         <logger name="ordersTxLogger" level="ALL" additivity="false">
             <AppenderRef ref="ordersTxLogger"/>
+        </logger>
+        <logger name="alterdice_api_logger" level="ALL" additivity="false">
+            <AppenderRef ref="alterdice_logger"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
