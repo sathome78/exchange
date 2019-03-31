@@ -2350,7 +2350,8 @@ public class OrderDaoImpl implements OrderDao {
                 "   FROM EXORDERS LASTORDER" +
                 "   WHERE" +
                 "       LASTORDER.currency_pair_id = EO.currency_pair_id AND" +
-                "       LASTORDER.status_id = EO.status_id" +
+                "       LASTORDER.status_id = EO.status_id AND" +
+                "       LASTORDER.date_acception >= now() - INTERVAL 24 HOUR" +
                 "   ORDER BY LASTORDER.date_acception ASC" +
                 "   LIMIT 1) AS last24hr " +
                 "        FROM EXORDERS EO " +
