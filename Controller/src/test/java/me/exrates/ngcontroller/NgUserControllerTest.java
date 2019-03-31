@@ -468,6 +468,10 @@ public class NgUserControllerTest extends AngularApiCommonTest {
                     .andExpect(status().isBadRequest());
             Assert.fail();
         } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_SEND_RECOVERY_PASSWORD", responseException.getTitle());
+
             String expected = "Failed to send recovery password";
             assertEquals(expected, e.getCause().getMessage());
         }
@@ -494,10 +498,20 @@ public class NgUserControllerTest extends AngularApiCommonTest {
         doNothing().when(ipBlockingService).failureProcessing(anyString(), anyObject());
         doNothing().when(ipBlockingService).successfulProcessing(anyString(), anyObject());
 
-        mockMvc.perform(post(BASE_URL + "/password/recovery/create")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsString(getMockPasswordCreateDto())))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/password/recovery/create")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(objectMapper.writeValueAsString(getMockPasswordCreateDto())))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_CREATE_RECOVERY_PASSWORD", responseException.getTitle());
+
+            String expected = "Failed to create recovery password";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(ngUserService, times(1)).createPasswordRecovery(anyObject(), anyObject());
     }

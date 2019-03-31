@@ -88,13 +88,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Currency currency1 = new Currency();
         currency1.setId(rs.getInt("currency1_id"));
         currency1.setName(rs.getString("currency1_name"));
-        currency1.setDescription(rs.getString("description"));
+        currency1.setDescription(rs.getString("currency1_description"));
         currencyPair.setCurrency1(currency1);
         /**/
         Currency currency2 = new Currency();
         currency2.setId(rs.getInt("currency2_id"));
         currency2.setName(rs.getString("currency2_name"));
-        currency2.setDescription(rs.getString("description"));
+        currency2.setDescription(rs.getString("currency2_description"));
         currencyPair.setCurrency2(currency2);
         /**/
         currencyPair.setMarket(rs.getString("market"));
@@ -300,12 +300,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
         if (type != null && type != CurrencyPairType.ALL) {
             typeClause = " AND type =:pairType ";
         }
-        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
-                "(select name, description from CURRENCY where id = currency1_id) as currency1_name, " +
-                "(select name, description from CURRENCY where id = currency2_id) as currency2_name " +
-                " FROM CURRENCY_PAIR " +
-                " WHERE hidden IS NOT TRUE " + typeClause +
-                " ORDER BY -pair_order DESC";
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+                "       (select name from CURRENCY where id = currency1_id) as currency1_name," +
+                "       (select description from CURRENCY where id = currency1_id) as currency1_description," +
+                "       (select name from CURRENCY where id = currency2_id) as currency2_name," +
+                "       (select description from CURRENCY where id = currency2_id) as currency2_description " +
+                "FROM CURRENCY_PAIR  WHERE hidden IS NOT TRUE  ORDER BY pair_order DESC";
         return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
 

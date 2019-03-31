@@ -188,7 +188,7 @@ public class NgUserController {
         if (result) {
             return ResponseEntity.ok().build();
         }
-        throw new NgResponseException("", "Failed to send recovery password");
+        throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_RECOVERY_PASSWORD, "Failed to send recovery password");
     }
 
     @PostMapping("/password/recovery/create")
@@ -200,7 +200,10 @@ public class NgUserController {
             ipBlockingService.failureProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
         }
         ipBlockingService.successfulProcessing(request.getHeader("X-Forwarded-For"), IpTypesOfChecking.CREATE_RECOVERY_PASSWORD);
-        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        if (result) {
+            return ResponseEntity.ok().build();
+        }
+        throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_RECOVERY_PASSWORD, "Failed to create recovery password");
     }
 
     @GetMapping("/validateTempToken/{token}")
