@@ -8,7 +8,9 @@ import me.exrates.model.ApiAuthToken;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.impl.AuthTokenServiceImpl;
+import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -46,7 +48,7 @@ public class AuthTokenServiceImplTest {
     public void getUserByToken_whenTokenIsOk() {
         LocalDateTime future = LocalDateTime.now().plusMinutes(10);
         when(apiAuthTokenDao.retrieveTokenById(anyLong())).thenReturn(Optional.of(createToken(future)));
-        UserDetails user = authTokenService.getUserByToken(getToken(future).get().getToken());
+        UserDetails user = authTokenService.getUserByToken(getToken(future).orElseThrow(RuntimeException::new).getToken());
         assertNull(user);
     }
 
@@ -55,7 +57,7 @@ public class AuthTokenServiceImplTest {
         LocalDateTime past = LocalDateTime.now().minusMinutes(10);
         when(apiAuthTokenDao.retrieveTokenById(anyLong())).thenReturn(Optional.of(createToken(past)));
         try {
-            authTokenService.getUserByToken(getToken(past).get().getToken());
+            authTokenService.getUserByToken(getToken(past).orElseThrow(RuntimeException::new).getToken());
             fail();
         } catch (TokenException e) {
             e.printStackTrace();
@@ -89,8 +91,8 @@ public class AuthTokenServiceImplTest {
     static class InnerConfig {
 
         @Bean
-        public AuthTokenService authTokenService() {
-            return new AuthTokenServiceImpl();
+        public UserService userService() {
+            return Mockito.mock(UserService.class);
         }
 
         @Bean
@@ -111,6 +113,17 @@ public class AuthTokenServiceImplTest {
         @Bean
         public SessionParamsService sessionParamsService() {
             return Mockito.mock(SessionParamsService.class);
+        }
+
+        @Bean
+        public ReferralService referralService() {
+            return Mockito.mock(ReferralService.class);
+        }
+
+        @Bean
+        public AuthTokenService authTokenService() {
+            return new AuthTokenServiceImpl(passwordEncoder(), apiAuthTokenDao(), userDetailsService(),
+                    sessionParamsService(), userService(), referralService());
         }
     }
 }

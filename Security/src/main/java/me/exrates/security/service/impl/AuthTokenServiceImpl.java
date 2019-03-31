@@ -9,15 +9,19 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.SessionParams;
+import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.TokenException;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.service.ReferralService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.util.IpUtils;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,18 +65,26 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     @Value("${pass.encode.key}")
     private String PASS_ENCODE_KEY;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final ApiAuthTokenDao apiAuthTokenDao;
+    private final UserDetailsService userDetailsService;
+    private final SessionParamsService sessionParamsService;
+    private final UserService userService;
+    private final ReferralService referralService;
 
     @Autowired
-    private ApiAuthTokenDao apiAuthTokenDao;
-
-    @Autowired
-    @Qualifier("userDetailsService")
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private SessionParamsService sessionParamsService;
+    public AuthTokenServiceImpl(PasswordEncoder passwordEncoder,
+                                ApiAuthTokenDao apiAuthTokenDao,
+                                @Qualifier("userDetailsService") UserDetailsService userDetailsService,
+                                SessionParamsService sessionParamsService,
+                                UserService userService, ReferralService referralService) {
+        this.passwordEncoder = passwordEncoder;
+        this.apiAuthTokenDao = apiAuthTokenDao;
+        this.userDetailsService = userDetailsService;
+        this.sessionParamsService = sessionParamsService;
+        this.userService = userService;
+        this.referralService = referralService;
+    }
 
 
     @Override
@@ -167,6 +179,27 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     }
 
     @Override
+    public AuthTokenDto refreshTokenNg(String email, HttpServletRequest request) {
+
+        User user = userService.findByEmail(email);
+        AuthTokenDto authTokenDto = retrieveTokenNg(user.getEmail())
+                .orElseThrow(() -> {
+                    String message = String.format("Failed to refresh token for user %s", user.getEmail());
+                    return new NgResponseException(ErrorApiTitles.FAILED_TO_GET_USER_TOKEN, message);
+                });
+        authTokenDto.setNickname(user.getEmail());
+        authTokenDto.setUserId(user.getId());
+        authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
+        String avatarLogicalPath = userService.getAvatarPath(user.getId());
+        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
+        authTokenDto.setAvatarPath(avatarFullPath);
+        authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
+        authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+
+        return authTokenDto;
+    }
+
+    @Override
     public boolean isValid(HttpServletRequest request) {
         String token = request.getHeader("Exrates-Rest-Token");
         if (token == null) {
@@ -227,6 +260,11 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         } else {
             throw new TokenException("Token not found", ErrorCode.TOKEN_NOT_FOUND);
         }
+    }
+
+    private String getAvatarPathPrefix(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort() + "/rest";
     }
 
     private Optional<AuthTokenDto> prepareAuthTokenNg(String username) {

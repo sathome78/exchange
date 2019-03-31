@@ -74,7 +74,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         this.ratesRedisRepository = ratesRedisRepository;
     }
 
-    @PostConstruct
+//    @PostConstruct
     private void init() {
         EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
             List<ExOrderStatisticsShortByPairsDto> newData = getExratesCache(null);
