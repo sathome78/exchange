@@ -537,6 +537,11 @@
             <artifactId>ssm-integration</artifactId>
             <version>1.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.yandex.money.api</groupId>
+            <artifactId>yandex-money-sdk-java</artifactId>
+            <version>5.0.8</version>
+        </dependency>
     </dependencies>
 
 
@@ -573,6 +578,11 @@
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
+        </repository>
+        <repository>
+            <id>ProjectRepo</id>
+            <name>ProjectRepo</name>
+            <url>file://${project.basedir}/Service/libs</url>
         </repository>
     </repositories>
 </project>
