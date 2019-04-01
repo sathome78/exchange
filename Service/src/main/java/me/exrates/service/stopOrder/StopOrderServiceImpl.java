@@ -32,6 +32,7 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,7 +186,9 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     public boolean cancelOrder(int orderId, Locale locale) {
         OrderCreateDto orderCreateDto = this.getOrderById(orderId, true);
-
+        if (orderCreateDto == null) {
+            throw new OrderCancellingException(messageSource.getMessage("orderinfo.searcherror", null, locale));
+        }
         if (isNull(locale)) {
             final String currentUserEmail = getUserEmailFromSecurityContext();
 
@@ -199,7 +202,7 @@ public class StopOrderServiceImpl implements StopOrderService {
         }
 
         if (orderCreateDto.getStatus() != OrderStatus.OPENED) {
-            throw new OrderCancellingException(messageSource.getMessage("order.cannotcancel", null, locale));
+            throw new OrderCancellingException(messageSource.getMessage("order.cannotcancel.allreadycancelled", null, locale));
         }
         ExOrder exOrder = new ExOrder(orderCreateDto);
         boolean res;

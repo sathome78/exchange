@@ -112,6 +112,7 @@ import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.exception.process.AlreadyAcceptedOrderException;
+import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -1326,7 +1327,7 @@ public class OrderServiceImpl implements OrderService {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.ADD);
         }
     }
-
+    /*Убрать этот костыль!!!!*/
     @Transactional
     @Override
     public boolean cancelOrder(Integer orderId) {
@@ -1405,8 +1406,11 @@ public class OrderServiceImpl implements OrderService {
                 exOrder.getOperationType());
 
         OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
+        if (currentStatus == OrderStatus.CANCELLED) {
+            throw new CancelOrderException(messageSource.getMessage("order.cannotcancel.allreadycancelled", null, locale));
+        }
         if (currentStatus != OrderStatus.OPENED) {
-            throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
+            throw new CancelOrderException(messageSource.getMessage("order.cannotcancel", null, locale));
         }
         String description = transactionDescription.get(currentStatus, CANCEL);
         WalletTransferStatus transferResult = walletService.walletInnerTransfer(

@@ -140,6 +140,7 @@ public class GlobalControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = IncorrectCurrentUserException.class)
+    @ResponseBody
     public OpenApiError incorrectCurrentUserExceptionHandler(HttpServletRequest req, IncorrectCurrentUserException exception) {
         return new OpenApiError(ErrorCode.USER_MISMATCH, req.getRequestURL(), exception.getMessage());
     }
