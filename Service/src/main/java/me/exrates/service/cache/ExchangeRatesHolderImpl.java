@@ -77,12 +77,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @PostConstruct
     private void init() {
         EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
-            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCache(null);
+            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null);
             exratesCache = new CopyOnWriteArrayList<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
 
         FIAT_SCHEDULER.scheduleAtFixedRate(() -> {
-            Map<String, BigDecimal> newData = getFiatCache();
+            Map<String, BigDecimal> newData = getFiatCacheFromAPI();
             fiatCache = new ConcurrentHashMap<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
 
@@ -104,6 +104,10 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     .filter(cache -> Objects.equals(currencyPairId, cache.getCurrencyPairId()))
                     .collect(Collectors.toList());
         }
+        return getExratesCacheFromDB(currencyPairId);
+    }
+
+    private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId) {
         Map<Integer, ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(currencyPairId)
                 .stream()
                 .collect(Collectors.toMap(
@@ -136,14 +140,17 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<String, BigDecimal> getFiatCache() {
         if (nonNull(fiatCache) && !fiatCache.isEmpty()) {
             return fiatCache;
-        } else {
-            return exchangeApi.getRatesByCurrencyType(FIAT).entrySet().stream()
-                    .filter(entry -> !USD.equals(entry.getKey()))
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> entry.getValue().getLeft()
-                    ));
         }
+        return getFiatCacheFromAPI();
+    }
+
+    private Map<String, BigDecimal> getFiatCacheFromAPI() {
+        return exchangeApi.getRatesByCurrencyType(FIAT).entrySet().stream()
+                .filter(entry -> !USD.equals(entry.getKey()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().getLeft()
+                ));
     }
 
     private void initExchangePairsCache() {
@@ -261,7 +268,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public void addCurrencyPairToCache(int currencyPairId) {
-        final ExOrderStatisticsShortByPairsDto statistic = getExratesCache(currencyPairId).get(0);
+        final ExOrderStatisticsShortByPairsDto statistic = getExratesCacheFromDB(currencyPairId).get(0);
         statistic.setPercentChange(calculatePercentChange(statistic));
         statistic.setPriceInUSD(calculatePriceInUSD(statistic));
 
