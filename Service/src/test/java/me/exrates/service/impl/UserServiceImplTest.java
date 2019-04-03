@@ -1,9 +1,13 @@
 package me.exrates.service.impl;
 
+import com.sun.nio.zipfs.ZipFileSystem;
+import com.sun.nio.zipfs.ZipFileSystemProvider;
+import com.sun.nio.zipfs.ZipPath;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.NotificationService;
@@ -31,14 +35,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
@@ -399,30 +415,248 @@ public class UserServiceImplTest {
 
     @Test
     public void getIdByNickname() {
+        when(userDao.getIdByNickname(anyString())).thenReturn(41);
+
+        assertEquals(41, userService.getIdByNickname("Nick"));
+
+        verify(userDao, times(1)).getIdByNickname("Nick");
     }
 
     @Test
     public void setNickname() {
+        when(userDao.setNickname(anyString(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.setNickname("Nick", "test@test.com"));
+
+        verify(userDao, times(1)).setNickname("Nick", "test@test.com");
     }
 
     @Test
-    public void hasNickname() {
+    public void hasNickname_WhenNicknameExists() {
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+
+        assertEquals(true, userService.hasNickname("test@test.com"));
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
+    }
+
+    @Test
+    public void hasNickname_WhenNicknameNull() {
+        User user = new User();
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+
+        assertEquals(false, userService.hasNickname("test@test.com"));
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
+    }
+
+    @Test
+    public void hasNickname_WhenNicknameIsSpacesOnly() {
+        User user = new User();
+        user.setNickname("  ");
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+
+        assertEquals(false, userService.hasNickname("test@test.com"));
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
     }
 
     @Test
     public void findByEmail() {
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+
+        assertEquals(user, userService.findByEmail("test@test.com"));
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
     }
 
     @Test
     public void findByNickname() {
+        when(userDao.findByNickname(anyString())).thenReturn(user);
+
+        assertEquals(user, userService.findByNickname("Nick"));
+
+        verify(userDao, times(1)).findByNickname("Nick");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void createUserFile_When3docs() {
+        UserFile userFile = new UserFile();
+        userFile.setUserId(40);
+        when(userDao.findUserDoc(anyInt())).thenReturn(Arrays.asList(userFile, new UserFile(),new UserFile()));
+
+        userService.createUserFile(13, null);
+
+        verify(userDao, times(1)).findUserDoc(13);
     }
 
     @Test
-    public void createUserFile() {
+    public void createUserFile_WhenLessThan3docs() {
+        UserFile userFile = new UserFile();
+        userFile.setUserId(40);
+        // TODO more than 3 times must call Excaption too, but now only 3 times for calling findUserDoc()
+        when(userDao.findUserDoc(anyInt())).thenReturn(Arrays.asList(userFile, new UserFile()));
+        doNothing().when(userDao).createUserDoc(anyInt(), anyList());
+
+        userService.createUserFile(13, null);
+
+        verify(userDao, times(1)).findUserDoc(13);
+        verify(userDao, times(1)).createUserDoc(13,null);
     }
 
     @Test
-    public void setUserAvatar() {
+    public void setUserAvatar(){
+        doNothing().when(userDao).setUserAvatar(anyInt(), anyString());
+
+        Path path = new Path() {
+            @Override
+            public FileSystem getFileSystem() {
+                return null;
+            }
+
+            @Override
+            public boolean isAbsolute() {
+                return false;
+            }
+
+            @Override
+            public Path getRoot() {
+                return null;
+            }
+
+            @Override
+            public Path getFileName() {
+                return null;
+            }
+
+            @Override
+            public Path getParent() {
+                return null;
+            }
+
+            @Override
+            public int getNameCount() {
+                return 0;
+            }
+
+            @Override
+            public Path getName(int index) {
+                return null;
+            }
+
+            @Override
+            public Path subpath(int beginIndex, int endIndex) {
+                return null;
+            }
+
+            @Override
+            public boolean startsWith(Path other) {
+                return false;
+            }
+
+            @Override
+            public boolean startsWith(String other) {
+                return false;
+            }
+
+            @Override
+            public boolean endsWith(Path other) {
+                return false;
+            }
+
+            @Override
+            public boolean endsWith(String other) {
+                return false;
+            }
+
+            @Override
+            public Path normalize() {
+                return null;
+            }
+
+            @Override
+            public Path resolve(Path other) {
+                return null;
+            }
+
+            @Override
+            public Path resolve(String other) {
+                return null;
+            }
+
+            @Override
+            public Path resolveSibling(Path other) {
+                return null;
+            }
+
+            @Override
+            public Path resolveSibling(String other) {
+                return null;
+            }
+
+            @Override
+            public Path relativize(Path other) {
+                return null;
+            }
+
+            @Override
+            public URI toUri() {
+                return null;
+            }
+
+            @Override
+            public Path toAbsolutePath() {
+                return null;
+            }
+
+            @Override
+            public Path toRealPath(LinkOption... options) throws IOException {
+                return null;
+            }
+
+            @Override
+            public File toFile() {
+                return null;
+            }
+
+            @Override
+            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
+                return null;
+            }
+
+            @Override
+            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
+                return null;
+            }
+
+            @Override
+            public Iterator<Path> iterator() {
+                return null;
+            }
+
+            @Override
+            public int compareTo(Path other) {
+                return 0;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return false;
+            }
+
+            @Override
+            public int hashCode() {
+                return 0;
+            }
+
+            @Override
+            public String toString() {
+                return null;
+            }
+        };
+        userService.setUserAvatar(7, path);
+
+        verify(userDao, times(1)).setUserAvatar(7,path.toString());
     }
 
     @Test
