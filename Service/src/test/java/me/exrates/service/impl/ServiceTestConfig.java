@@ -69,6 +69,7 @@ import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -463,6 +464,11 @@ public class ServiceTestConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return Mockito.mock(PasswordEncoder.class);
+    }
+
+    @Bean("DelegatingMessageSource")
+    public MessageSource messageSource() {
+           return Mockito.mock(MessageSource.class);
     }
 
     @Bean
