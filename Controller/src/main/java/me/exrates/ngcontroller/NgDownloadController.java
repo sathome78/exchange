@@ -10,6 +10,7 @@ import me.exrates.ngService.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,14 +66,14 @@ public class NgDownloadController {
                                             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
                                             @RequestParam(required = false, name = "scope", defaultValue = StringUtils.EMPTY) String scope,
                                             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-                                            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-                                            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                            @RequestParam(required = false, name = "dateFrom") String dateFrom,
+                                            @RequestParam(required = false, name = "dateTo") String dateTo,
                                             HttpServletRequest request) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
         OrderStatus orderStatus = OrderStatus.valueOf(status);
-        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
@@ -117,13 +118,13 @@ public class NgDownloadController {
     @GetMapping(value = "/inputOutputData/excel")
     public ResponseEntity getMyInputOutputDataToExcel(@RequestParam(required = false, defaultValue = "0") Integer currencyId,
                                                       @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
-                                                      @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-                                                      @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                                      @RequestParam(required = false, name = "dateFrom") String dateFrom,
+                                                      @RequestParam(required = false, name = "dateTo") String dateTo,
                                                       HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
         String userEmail = getPrincipalEmail();
-        LocalDateTime dateTimeFrom = Objects.nonNull(dateFrom) ? LocalDateTime.of(dateFrom, LocalTime.MIN) : null;
-        LocalDateTime dateTimeTo = Objects.nonNull(dateTo) ? LocalDateTime.of(dateTo, LocalTime.MAX) : null;
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
         ReportDto reportDto;
         try {
