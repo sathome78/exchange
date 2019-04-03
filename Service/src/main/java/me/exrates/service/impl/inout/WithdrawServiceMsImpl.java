@@ -162,4 +162,9 @@ public class WithdrawServiceMsImpl implements WithdrawService {
     public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId) {
         return null;
     }
+
+    @Override
+    public BigDecimal getLeftOutputRequestsSum(int id, String email) {
+        return null;
+    }
 }

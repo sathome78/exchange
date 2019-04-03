@@ -751,4 +751,10 @@ public class WithdrawServiceImpl implements WithdrawService {
                                                                          int requesterId) {
         return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getLeftOutputRequestsSum(int currencyId, String email) {
+        return withdrawRequestDao.getLeftOutputRequestsSum(currencyId, email);
+    }
 }

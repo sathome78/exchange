@@ -194,6 +194,11 @@ public class NgWithdrawController {
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
 
+            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsSum(currency.getId(), email);
+            if (leftRequestSum.compareTo(BigDecimal.ZERO) < 0) {
+                leftRequestSum = BigDecimal.ZERO;
+            }
+
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
                     .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
@@ -201,6 +206,7 @@ public class NgWithdrawController {
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
                     .maxDailyRequestSum(maxDailyRequestSum)
+                    .leftRequestSum(leftRequestSum)
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)

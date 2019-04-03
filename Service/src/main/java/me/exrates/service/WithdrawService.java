@@ -84,4 +84,6 @@ public interface WithdrawService {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> userRoles,
                                                                 int requesterId);
+
+  BigDecimal getLeftOutputRequestsSum(int id, String email);
 }

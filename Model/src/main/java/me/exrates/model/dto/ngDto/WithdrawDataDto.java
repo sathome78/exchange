@@ -30,6 +30,8 @@ public class WithdrawDataDto {
     private BigDecimal minWithdrawSum;
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal maxDailyRequestSum;
+    @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
+    private BigDecimal leftRequestSum;
     private Integer scaleForCurrency;
     private List<Integer> currenciesId;
     private List<MerchantCurrency> merchantCurrencyData;
