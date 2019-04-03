@@ -46,11 +46,11 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     @PostConstruct
     public void init() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
-        List<StopOrder> activeOrders = stopOrderService
-                .getActiveStopOrdersByCurrencyPairsId(currencyPairs
-                        .stream()
-                        .map(CurrencyPair::getId)
-                        .collect(Collectors.toList()));
+        List<Integer> currencyPairIds = currencyPairs
+                .stream()
+                .map(CurrencyPair::getId)
+                .collect(Collectors.toList());
+        List<StopOrder> activeOrders = stopOrderService.getActiveStopOrdersByCurrencyPairsId(currencyPairIds);
         currencyPairs.forEach(p -> {
             List<StopOrder> thisPairsOrders = activeOrders
                     .stream()
