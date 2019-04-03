@@ -46,6 +46,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   private @Value("${edcmerchant.token}") String token;
   private @Value("${edcmerchant.main_account}") String main_account;
   private @Value("${edcmerchant.hook}") String hook;
+  private @Value("${edcmerchant.new_account}") String urlCreateNewAccount;
 
   private @Value("${edc.blockchain.host_delayed}") String RPC_URL_DELAYED;
   private @Value("${edc.blockchain.host_fast}") String RPC_URL_FAST;
@@ -343,7 +344,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     formBuilder.add("hook", hook);
 
     final Request request = new Request.Builder()
-        .url("https://receive.edinarcoin.com/new-account/" + token)
+        .url(urlCreateNewAccount + token)
         .post(formBuilder.build())
         .build();
     final String returnResponse;
