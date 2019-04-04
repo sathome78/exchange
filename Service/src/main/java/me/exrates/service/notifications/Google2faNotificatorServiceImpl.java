@@ -17,6 +17,7 @@ import me.exrates.service.exception.MessageUndeliweredException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "message_notify")
@@ -53,8 +55,8 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    private static String APP_NAME = "Exrates";
+    private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+    private static final String APP_NAME = "Exrates";
 
     private static final Cache<Integer, String> GOOGLE_SECRETS_STORE = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -78,20 +80,29 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     }
 
     @Override
-    public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
-        User user = userService.findByEmail(userEmail);
-        String secret2faCode = getGoogleAuthenticatorCode(user.getId());
-        return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+    public String generateQRUrl(String userEmail, String secretCode) throws UnsupportedEncodingException {
+        return QR_PREFIX
+                + URLEncoder.encode(
+                        String.format(
+                                "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+                                APP_NAME,
+                                userEmail,
+                                secretCode,
+                                APP_NAME
+                        ), "UTF-8");
     }
 
     @Override
     public String getGoogleAuthenticatorCode(Integer userId) {
+        final String newSecret2faCode = Base32.random();
+
         String secret2faCode = g2faDao.getGoogleAuthSecretCodeByUser(userId);
-        if (secret2faCode == null || secret2faCode.isEmpty()){
-            g2faDao.set2faGoogleAuthenticator(userId);
-            secret2faCode = g2faDao.getGoogleAuthSecretCodeByUser(userId);
+        if (Objects.nonNull(secret2faCode) && !secret2faCode.isEmpty()) {
+            g2faDao.updateGoogleAuthSecretCode(userId, newSecret2faCode, false);
+        } else {
+            g2faDao.setGoogleAuthSecretCode(userId, newSecret2faCode);
         }
-        return secret2faCode;
+        return newSecret2faCode;
     }
 
 
@@ -117,17 +128,13 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
 
     @Override
     public boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId) {
-
         String google2faSecret = g2faDao.getGoogleAuthSecretCodeByUser(userId);
         final Totp totp = new Totp(google2faSecret);
-        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-            return false;
-        }
-        return true;
+        return isValidLong(verificationCode) && totp.verify(verificationCode);
     }
 
     @Override
-    public void setEnable2faGoogleAuth(Integer userId, Boolean connection){
+    public void setEnable2faGoogleAuth(Integer userId, Boolean connection) {
         g2faDao.setEnable2faGoogleAuth(userId, connection);
         if (!connection) {
             notificationUserSettingsDao.delete(userId);
@@ -140,6 +147,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     @Override
     public Generic2faResponseDto getGoogleAuthenticatorCodeNg(Integer userId) {
         String secret = getGoogleAuthenticatorCode(userId);
+        GOOGLE_SECRETS_STORE.invalidate(userId);
         GOOGLE_SECRETS_STORE.put(userId, secret);
 
         Generic2faResponseDto result = new Generic2faResponseDto("", "");
@@ -167,10 +175,10 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             return false;
-        } else if(!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
+        } else if (!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
             return false;
         }
-        g2faDao.setGoogleAuthSecretCode(user.getId(), secret);
+        g2faDao.updateGoogleAuthSecretCode(user.getId(), secret, true);
         return true;
     }
 
@@ -189,13 +197,13 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[] {pin}, locale);
+                new String[]{pin}, locale);
         System.out.println(messageText);
         notificationService.notifyUser(user.getId(), NotificationEvent.CUSTOM, subject, messageText);
     }
 
     private NotificationsUserSetting getLoginSettings(User user) {
-        return  NotificationsUserSetting
+        return NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.CHANGE_2FA_SETTING)
                 .notificatorId(NotificationMessageEventEnum.CHANGE_2FA_SETTING.getCode())
@@ -210,7 +218,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             return false;
-        } else if(!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
+        } else if (!userService.checkPin(user.getEmail(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
             return false;
         }
         g2faDao.setEnable2faGoogleAuth(user.getId(), false);

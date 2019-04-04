@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 public interface G2faService {
-    String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
+    String generateQRUrl(String userEmail, String secretCode) throws UnsupportedEncodingException;
 
     String getGoogleAuthenticatorCode(Integer userId);
 
