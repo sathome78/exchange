@@ -57,7 +57,6 @@ public class OrderServiceImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
                 now.minusDays(1),
                 now
         );
@@ -71,7 +70,7 @@ public class OrderServiceImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
+                "DESC",
                 now.minusDays(1),
                 now,
                 Locale.ENGLISH
@@ -86,17 +85,17 @@ public class OrderServiceImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
+                "DESC",
                 now.minusDays(1),
                 now,
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
-                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(),
                 any(LocalDateTime.class), any(LocalDateTime.class));
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithState(anyInt(), any(CurrencyPair.class), anyString(),
-                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyString(),
                 any(LocalDateTime.class), any(LocalDateTime.class), any(Locale.class));
 
         assertNotNull("Pair could not be null", pair);
@@ -121,7 +120,6 @@ public class OrderServiceImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
                 now.minusDays(1),
                 now);
 
@@ -134,13 +132,13 @@ public class OrderServiceImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
+                "DESC",
                 now.minusDays(1),
                 now,
                 Locale.ENGLISH);
 
         verify(orderDao, atLeastOnce()).getMyOrdersWithStateCount(anyInt(), any(CurrencyPair.class), anyString(),
-                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(), anyMapOf(String.class, String.class),
+                any(OrderStatus.class), anyString(), anyInt(), anyInt(), anyBoolean(),
                 any(LocalDateTime.class), any(LocalDateTime.class));
 
         assertNotNull("Pair could not be null", pair);

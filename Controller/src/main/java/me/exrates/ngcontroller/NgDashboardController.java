@@ -58,7 +58,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -242,10 +241,6 @@ public class NgDashboardController {
 
         Integer offset = (page - 1) * limit;
 
-        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
-                ? Collections.emptyMap()
-                : Collections.singletonMap("date_creation", sortByCreated);
-
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
@@ -263,7 +258,7 @@ public class NgDashboardController {
                     limit,
                     offset,
                     hideCanceled,
-                    sortedColumns,
+                    sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -322,7 +317,7 @@ public class NgDashboardController {
                     limit,
                     offset,
                     hideCanceled,
-                    Collections.emptyMap(),
+                    "DESC",
                     null,
                     null,
                     locale);

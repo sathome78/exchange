@@ -2330,7 +2330,7 @@ public class OrderServiceImpl implements OrderService {
     public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair,
                                                                          String currencyName, OrderStatus orderStatus,
                                                                          String scope, Integer limit, Integer offset,
-                                                                         Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                         Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
                                                                          Locale locale) {
 
@@ -2343,7 +2343,6 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
                 dateTimeFrom,
                 dateTimeTo);
 
@@ -2358,7 +2357,7 @@ public class OrderServiceImpl implements OrderService {
                     limit,
                     offset,
                     hideCanceled,
-                    sortedColumns,
+                    sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -2377,7 +2376,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
-                                                    Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                    Integer offset, Boolean hideCanceled, String sortByCreated,
                                                     LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
         return orderDao.getMyOrdersWithState(
                 userId,
@@ -2388,7 +2387,7 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
+                sortByCreated,
                 dateTimeFrom,
                 dateTimeTo,
                 locale);

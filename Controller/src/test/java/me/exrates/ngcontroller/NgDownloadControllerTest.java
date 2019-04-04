@@ -86,7 +86,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -108,7 +108,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -131,7 +131,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -159,7 +159,7 @@ public class NgDownloadControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));

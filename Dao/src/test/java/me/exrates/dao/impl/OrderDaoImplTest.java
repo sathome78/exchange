@@ -50,7 +50,7 @@ public class OrderDaoImplTest {
                 15,
                 0,
                 false,
-                Collections.emptyMap(),
+                "DESC",
                 null,
                 null,
                 Locale.ENGLISH
