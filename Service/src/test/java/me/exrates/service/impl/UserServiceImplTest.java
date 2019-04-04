@@ -41,6 +41,7 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -506,154 +507,9 @@ public class UserServiceImplTest {
 
     @Test
     public void setUserAvatar(){
+        Path path = Paths.get("/directory");
         doNothing().when(userDao).setUserAvatar(anyInt(), anyString());
 
-        Path path = new Path() {
-            @Override
-            public FileSystem getFileSystem() {
-                return null;
-            }
-
-            @Override
-            public boolean isAbsolute() {
-                return false;
-            }
-
-            @Override
-            public Path getRoot() {
-                return null;
-            }
-
-            @Override
-            public Path getFileName() {
-                return null;
-            }
-
-            @Override
-            public Path getParent() {
-                return null;
-            }
-
-            @Override
-            public int getNameCount() {
-                return 0;
-            }
-
-            @Override
-            public Path getName(int index) {
-                return null;
-            }
-
-            @Override
-            public Path subpath(int beginIndex, int endIndex) {
-                return null;
-            }
-
-            @Override
-            public boolean startsWith(Path other) {
-                return false;
-            }
-
-            @Override
-            public boolean startsWith(String other) {
-                return false;
-            }
-
-            @Override
-            public boolean endsWith(Path other) {
-                return false;
-            }
-
-            @Override
-            public boolean endsWith(String other) {
-                return false;
-            }
-
-            @Override
-            public Path normalize() {
-                return null;
-            }
-
-            @Override
-            public Path resolve(Path other) {
-                return null;
-            }
-
-            @Override
-            public Path resolve(String other) {
-                return null;
-            }
-
-            @Override
-            public Path resolveSibling(Path other) {
-                return null;
-            }
-
-            @Override
-            public Path resolveSibling(String other) {
-                return null;
-            }
-
-            @Override
-            public Path relativize(Path other) {
-                return null;
-            }
-
-            @Override
-            public URI toUri() {
-                return null;
-            }
-
-            @Override
-            public Path toAbsolutePath() {
-                return null;
-            }
-
-            @Override
-            public Path toRealPath(LinkOption... options) throws IOException {
-                return null;
-            }
-
-            @Override
-            public File toFile() {
-                return null;
-            }
-
-            @Override
-            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
-                return null;
-            }
-
-            @Override
-            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
-                return null;
-            }
-
-            @Override
-            public Iterator<Path> iterator() {
-                return null;
-            }
-
-            @Override
-            public int compareTo(Path other) {
-                return 0;
-            }
-
-            @Override
-            public boolean equals(Object other) {
-                return false;
-            }
-
-            @Override
-            public int hashCode() {
-                return 0;
-            }
-
-            @Override
-            public String toString() {
-                return null;
-            }
-        };
         userService.setUserAvatar(7, path);
 
         verify(userDao, times(1)).setUserAvatar(7,path.toString());
@@ -661,22 +517,49 @@ public class UserServiceImplTest {
 
     @Test
     public void deleteUserFile() {
+        doNothing().when(userDao).deleteUserDoc(anyInt());
+
+        userService.deleteUserFile(12);
+
+        verify(userDao, times(1)).deleteUserDoc(12);
     }
 
     @Test
     public void findUserDoc() {
+        UserFile userFile = new UserFile();
+        userFile.setPath(Paths.get("/path"));
+        when(userDao.findUserDoc(anyInt())).thenReturn(Arrays.asList(userFile));
+
+        assertEquals(Arrays.asList(userFile),userService.findUserDoc(15));
+
+        verify(userDao, times(1)).findUserDoc(15);
     }
 
     @Test
     public void ifNicknameIsUnique() {
+        when(userDao.ifNicknameIsUnique(anyString())).thenReturn(true);
+
+        assertEquals(true,userService.ifNicknameIsUnique("Some String"));
+
+        verify(userDao, times(1)).ifNicknameIsUnique("Some String");
     }
 
     @Test
     public void ifEmailIsUnique() {
+        when(userDao.ifEmailIsUnique(anyString())).thenReturn(true);
+
+        assertEquals(true,userService.ifEmailIsUnique("test@test.com"));
+
+        verify(userDao, times(1)).ifEmailIsUnique("test@test.com");
     }
 
     @Test
     public void userExistByEmail() {
+        when(userDao.userExistByEmail(anyString())).thenReturn(true);
+
+        assertEquals(true,userService.userExistByEmail("test@test.com"));
+
+        verify(userDao, times(1)).userExistByEmail("test@test.com");
     }
 
     @Test
