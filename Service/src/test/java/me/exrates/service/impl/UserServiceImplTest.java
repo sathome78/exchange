@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
+import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -9,7 +10,9 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.NotificationService;
@@ -36,6 +39,9 @@ import org.quartz.JobKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,6 +51,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +123,10 @@ public class UserServiceImplTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(new AnonymousAuthenticationToken("USER", "testemail@gmail.com",
+                        AuthorityUtils.createAuthorityList("USER")));
 
         LOCALES_LIST = new ArrayList<String>() {{
             add("EN");
@@ -1108,20 +1119,118 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void getUserComments() {
+    public void getUserComments_WhenSetEditableTrue() {
+        Collection<Comment> comments = new ArrayList<>();
+        Comment comment = new Comment();
+        comment.setCreator(user);
+        comment.setCreationTime(LocalDateTime.now());
+        comment.setMessageSent(false);
+        comment.setEditable(true);
+        ((ArrayList<Comment>) comments).add(comment);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.getUserComments(anyInt())).thenReturn(comments);
 
+        assertEquals(((ArrayList<Comment>) comments).get(0).isEditable(),
+                ((ArrayList<Comment>)userService.getUserComments(15, "test@test.com")).get(0).isEditable());
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
+        verify(userDao, times(1)).getUserComments(15);
     }
 
     @Test
-    public void addUserComment() {
+    public void getUserComments_WhenSetEditableFalse() {
+        Collection<Comment> comments = new ArrayList<>();
+        User user2 = new User();
+        user2.setId(8);
+        Comment comment = new Comment();
+        comment.setCreator(user2);
+        comment.setCreationTime(LocalDateTime.now().minusDays(3));
+        comment.setMessageSent(true);
+        comment.setEditable(false);
+        ((ArrayList<Comment>) comments).add(comment);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.getUserComments(anyInt())).thenReturn(comments);
+
+        assertEquals(((ArrayList<Comment>) comments).get(0).isEditable(),
+                ((ArrayList<Comment>)userService.getUserComments(15, "test@test.com")).get(0).isEditable());
+
+        verify(userDao, times(1)).findByEmail("test@test.com");
+        verify(userDao, times(1)).getUserComments(15);
     }
 
     @Test
+    public void addUserComment_WhenOk() {
+        Comment comment = new Comment();
+        comment.setMessageSent(false);
+        comment.setUser(user);
+        comment.setComment("newComment");
+        comment.setUserCommentTopic(UserCommentTopicEnum.GENERAL);
+        comment.setCreator(user);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.addUserComment(any(Comment.class))).thenReturn(true);
+
+        assertEquals(true, userService.addUserComment(UserCommentTopicEnum.GENERAL,
+                "newComment", "email", false));
+
+        verify(userDao, times(1)).findByEmail("email");
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
+        verify(userDao, times(1)).addUserComment(comment);
+    }
+
+    @Test
+    public void addUserComment_WhenException() {
+        Comment comment = new Comment();
+        comment.setMessageSent(false);
+        comment.setUser(user);
+        comment.setComment("newComment");
+        comment.setUserCommentTopic(UserCommentTopicEnum.GENERAL);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        SecurityContextHolder.getContext()
+                .setAuthentication(null);
+        when(userDao.addUserComment(any(Comment.class))).thenReturn(true);
+
+        assertEquals(true, userService.addUserComment(UserCommentTopicEnum.GENERAL,
+                "newComment", "email", false));
+
+        verify(userDao, times(1)).findByEmail("email");
+        verify(userDao, times(1)).addUserComment(comment);
+    }
+
+    @Ignore
+    public void addUserComment_WhenMessageSentTrue() {
+        Comment comment = new Comment();
+        comment.setMessageSent(false);
+        comment.setUser(user);
+        comment.setComment("newComment");
+        comment.setUserCommentTopic(UserCommentTopicEnum.GENERAL);
+        comment.setCreator(user);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.findByEmail(anyString())).thenReturn(user);
+        when(userDao.addUserComment(any(Comment.class))).thenReturn(true);
+//        doNothing().when(notificationService).notifyUser(anyInt(), any(NotificationEvent.class),
+//                anyString(), anyString(), any(Object[].class));
+// todo messageSource when sendMessage is true
+        assertEquals(true, userService.addUserComment(UserCommentTopicEnum.GENERAL,
+                "newComment", "email", true));
+
+        verify(userDao, times(1)).findByEmail("email");
+        verify(userDao, times(1)).findByEmail("testemail@gmail.com");
+        verify(userDao, times(1)).addUserComment(comment);
+    }
+
+    @Ignore
     public void editUserComment() {
+        // TODO notifyUser -> messageSource
     }
 
     @Test
     public void deleteUserComment() {
+        when(userDao.deleteUserComment(anyInt())).thenReturn(true);
+
+        assertEquals(true, userService.deleteUserComment(56));
+
+        verify(userDao, times(1)).deleteUserComment(56);
     }
 
     @Test
