@@ -271,9 +271,9 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
         when(userService.findByEmail(email)).thenReturn(new User());
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path("/openapi/v1/user/info/check-existence/{email:.+}")
-                .build()
-                .expand(email);
+                .path("/openapi/v1/user/info/email/exists")
+                .queryParam("email", email)
+                .build();
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -287,9 +287,9 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
         when(userService.findByEmail(email)).thenThrow(new UserNotFoundException(String.format("User: %s not found", email)));
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .path("/openapi/v1/user/info/check-existence/{email:.+}")
-                .build()
-                .expand(email);
+                .path("/openapi/v1/user/info/email/exists")
+                .queryParam("email", email)
+                .build();
 
         mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk())

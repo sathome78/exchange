@@ -275,8 +275,8 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
 
-    @GetMapping(value = "/info/check-existence/{email:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@PathVariable String email) {
+    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
         try {
             userService.findByEmail(email);
             return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
