@@ -1,14 +1,16 @@
 package me.exrates.service.impl;
 
-import com.sun.nio.zipfs.ZipFileSystem;
-import com.sun.nio.zipfs.ZipFileSystemProvider;
-import com.sun.nio.zipfs.ZipPath;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
@@ -16,6 +18,8 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.exception.ResetPasswordExpirationException;
+import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
@@ -31,31 +35,28 @@ import org.mockito.MockitoAnnotations;
 import org.quartz.JobKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
@@ -128,8 +129,10 @@ public class UserServiceImplTest {
         user.setNickname("Nick");
         user.setIp("127.0.0.1");
         user.setId(5);
+        user.setRole(UserRole.USER);
         reset(userDao);
         reset(tokenScheduler);
+        reset(userSessionService);
 //        reset(messageSource);
     }
 
@@ -293,6 +296,7 @@ public class UserServiceImplTest {
         verify(userDao, times(1)).verifyToken("token");
         verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
         verify(tokenScheduler, times(1)).deleteJobsRelatedWithToken(temporalToken);
+        verify(userDao, times(1)).setIpStateConfirmed(49, "127.0.0.1");
     }
 
     @Test
@@ -312,6 +316,7 @@ public class UserServiceImplTest {
         verify(userDao, times(1)).verifyToken("token");
         verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
         verify(tokenScheduler, times(1)).deleteJobsRelatedWithToken(temporalToken);
+        verify(userDao, times(1)).setIpStateConfirmed(49, "127.0.0.1");
     }
 
     @Test
@@ -563,119 +568,548 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void logIP() {
+    public void logIP_WhenUserIPNull() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(30);
+        when(userDao.getIP(anyInt())).thenReturn(null);
+        when(userDao.setIP(anyInt(), anyString())).thenReturn(true);
+        when(userDao.addIPToLog(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals(null, userService.logIP("test@test.com", "127.0.0.1"));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(userDao, times(1)).getIP(30);
+        verify(userDao, times(1)).setIP(30, "127.0.0.1");
+        verify(userDao, times(1)).addIPToLog(30, "127.0.0.1");
+    }
+
+    @Test
+    public void logIP_WhenUserIPNotNull() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(30);
+        when(userDao.getIP(anyInt())).thenReturn("userIp");
+        when(userDao.addIPToLog(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals("userIp", userService.logIP("test@test.com", "127.0.0.1"));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(userDao, times(1)).getIP(30);
+        verify(userDao, times(1)).addIPToLog(30, "127.0.0.1");
     }
 
     @Test
     public void getAllRoles() {
+        when(userDao.getAllRoles()).thenReturn(Arrays.asList(UserRole.USER));
+
+        assertEquals(Arrays.asList(UserRole.USER),userService.getAllRoles());
+
+        verify(userDao, times(1)).getAllRoles();
     }
 
     @Test
     public void getUserById() {
+        when(userDao.getUserById(anyInt())).thenReturn(user);
+
+        assertEquals(user,userService.getUserById(78));
+
+        verify(userDao, times(1)).getUserById(78);
     }
 
     @Test
-    public void createUserByAdmin() {
+    public void createUserByAdmin_WhenResultFalse() {
+        when(userDao.create(any(User.class))).thenReturn(false);
+
+        assertEquals(false, userService.createUserByAdmin(user));
+
+        verify(userDao, times(1)).create(user);
     }
 
     @Test
-    public void updateUserByAdmin() {
+    public void createUserByAdmin_WhenUserRoleUSER() {
+        User user1 = new User();
+        user1.setRole(UserRole.USER);
+        when(userDao.create(any(User.class))).thenReturn(true);
+
+        assertEquals(true, userService.createUserByAdmin(user1));
+
+        verify(userDao, times(1)).create(user1);
+    }
+
+    @Test
+    public void createUserByAdmin_WhenUserRoleROLE_CHANGE_PASSWORD() {
+        User user1 = new User();
+        user1.setRole(UserRole.ROLE_CHANGE_PASSWORD);
+        when(userDao.create(any(User.class))).thenReturn(true);
+
+        assertEquals(true, userService.createUserByAdmin(user1));
+
+        verify(userDao, times(1)).create(user1);
+    }
+
+    @Test
+    public void createUserByAdmin_WhenCreateAdminAuthoritiesForUser() {
+        User user1 = new User();
+        user1.setRole(UserRole.ADMINISTRATOR);
+        user1.setEmail("test1@test.com");
+        when(userDao.create(any(User.class))).thenReturn(true);
+        when(userDao.getIdByEmail(anyString())).thenReturn(15);
+        when(userDao.createAdminAuthoritiesForUser(anyInt(), any(UserRole.class))).thenReturn(false);
+
+        assertEquals(false, userService.createUserByAdmin(user1));
+
+        verify(userDao, times(1)).create(user1);
+        verify(userDao, times(1)).getIdByEmail("test1@test.com");
+        verify(userDao, times(1)).createAdminAuthoritiesForUser(15, UserRole.ADMINISTRATOR);
+    }
+
+    @Test
+    public void updateUserByAdmin_WhenResultFalse() {
+        UpdateUserDto updateUserDto = new UpdateUserDto(55);
+        when(userDao.update(any(UpdateUserDto.class))).thenReturn(false);
+
+        assertEquals(false, userService.updateUserByAdmin(updateUserDto));
+
+        verify(userDao, times(1)).update(updateUserDto);
+    }
+
+    @Test
+    public void updateUserByAdmin_WhenRemoveUserAuthorities() {
+        UpdateUserDto updateUserDto = new UpdateUserDto(55);
+        updateUserDto.setRole(UserRole.USER);
+        when(userDao.update(any(UpdateUserDto.class))).thenReturn(true);
+        when(userDao.hasAdminAuthorities(anyInt())).thenReturn(true);
+        when(userDao.removeUserAuthorities(anyInt())).thenReturn(true);
+
+        assertEquals(true, userService.updateUserByAdmin(updateUserDto));
+
+        verify(userDao, times(1)).update(updateUserDto);
+        verify(userDao, times(1)).hasAdminAuthorities(55);
+        verify(userDao, times(1)).removeUserAuthorities(55);
+    }
+
+    @Test
+    public void updateUserByAdmin_WhenCreateAdminAuthoritiesForUser() {
+        UpdateUserDto updateUserDto = new UpdateUserDto(55);
+        updateUserDto.setRole(UserRole.ADMINISTRATOR);
+        when(userDao.update(any(UpdateUserDto.class))).thenReturn(true);
+        when(userDao.hasAdminAuthorities(anyInt())).thenReturn(false);
+        when(userDao.createAdminAuthoritiesForUser(anyInt(), any(UserRole.class))).thenReturn(true);
+
+        assertEquals(true, userService.updateUserByAdmin(updateUserDto));
+
+        verify(userDao, times(1)).update(updateUserDto);
+        verify(userDao, times(1)).hasAdminAuthorities(55);
+        verify(userDao, times(1)).createAdminAuthoritiesForUser(55,UserRole.ADMINISTRATOR);
     }
 
     @Test
     public void updateUserSettings() {
+        UpdateUserDto updateUserDto = new UpdateUserDto(55);
+        when(userDao.update(any(UpdateUserDto.class))).thenReturn(true);
+
+        assertEquals(true, userService.updateUserSettings(updateUserDto));
+
+        verify(userDao, times(1)).update(updateUserDto);
     }
 
-    @Test
+    @Ignore
     public void update() {
     }
 
-    @Test
+    @Ignore
     public void update1() {
     }
 
-    @Test
+    @Ignore
     public void sendEmailWithToken() {
     }
 
-    @Test
+    @Ignore
     public void sendEmailWithToken1() {
     }
 
-    @Test
+    @Ignore
     public void sendUnfamiliarIpNotificationEmail() {
+//        String var1, Object[] var2, Locale var3
+//        User user, String emailSubject, String emailText, Locale locale
+//        "admin.changePasswordTitle", "user.settings.changePassword.successful
+        User user = new User();
+        user.setEmail("Test@test.com");
+        user.setIp("127.0.0.1");
+        when(messageSource.getMessage(anyString(), any(Object[].class), any(Locale.class))).thenReturn("str");
+//        doNothing().when(sendMailService).sendInfoMail(any(Email.class));
+
+        userService.sendUnfamiliarIpNotificationEmail(user, "admin.changePasswordTitle", "user.settings.changePassword.successful", Locale.ENGLISH);
+
     }
 
     @Test
-    public void createTemporalToken() {
+    public void createTemporalToken_WhenResultFalse() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        when(userDao.createTemporalToken(any(TemporalToken.class))).thenReturn(false);
+
+        assertEquals(false, userService.createTemporalToken(temporalToken));
+
+        verify(userDao, times(1)).createTemporalToken(temporalToken);
     }
 
     @Test
-    public void getCommonReferralRoot() {
+    public void createTemporalToken_WhenResultTrue() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        when(userDao.createTemporalToken(any(TemporalToken.class))).thenReturn(true);
+        when(tokenScheduler.initTrigers()).thenReturn(Arrays.asList(new JobKey("jobKey")));
+
+        assertEquals(true, userService.createTemporalToken(temporalToken));
+
+        verify(userDao, times(1)).createTemporalToken(temporalToken);
+        verify(tokenScheduler, times(1)).initTrigers();
     }
 
     @Test
+    public void getCommonReferralRoot_WhenOk() {
+        when(userDao.getCommonReferralRoot()).thenReturn(user);
+
+        assertEquals(user, userService.getCommonReferralRoot());
+
+        verify(userDao, times(1)).getCommonReferralRoot();
+    }
+
+    @Test
+    public void getCommonReferralRoot_WhenException() {
+        when(userDao.getCommonReferralRoot()).thenThrow(EmptyResultDataAccessException.class);
+
+        assertEquals(null, userService.getCommonReferralRoot());
+
+        verify(userDao, times(1)).getCommonReferralRoot();
+    }
+
+    @Ignore
     public void checkFinPassword() {
     }
 
     @Test
     public void updateCommonReferralRoot() {
+        doNothing().when(userDao).updateCommonReferralRoot(anyInt());
+
+        userService.updateCommonReferralRoot(5);
+
+        verify(userDao, times(1)).updateCommonReferralRoot(5);
     }
 
     @Test
     public void getPreferedLang() {
+        when(userDao.getPreferredLang(anyInt())).thenReturn("PreferredLang");
+
+        assertEquals("PreferredLang", userService.getPreferedLang(57));
+
+        verify(userDao, times(1)).getPreferredLang(57);
     }
 
     @Test
     public void getPreferedLangByEmail() {
+        when(userDao.getPreferredLangByEmail(anyString())).thenReturn("PreferredLang");
+
+        assertEquals("PreferredLang", userService.getPreferedLangByEmail("test@test.com"));
+
+        verify(userDao, times(1)).getPreferredLangByEmail("test@test.com");
     }
 
     @Test
     public void setPreferedLang() {
+        when(userDao.setPreferredLang(anyInt(), any(Locale.class))).thenReturn(true);
+
+        assertEquals(true, userService.setPreferedLang(38, Locale.ENGLISH));
+
+        verify(userDao, times(1)).setPreferredLang(38, Locale.ENGLISH);
     }
 
     @Test
     public void insertIp() {
+        when(userDao.insertIp(anyString(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.insertIp("test@test.com", "127.0.0.1"));
+
+        verify(userDao, times(1)).insertIp("test@test.com", "127.0.0.1");
     }
 
     @Test
     public void getUserIpState() {
+        UserIpDto userIpDto = new UserIpDto(77);
+        when(userDao.getUserIpState(anyString(), anyString())).thenReturn(userIpDto);
+
+        assertEquals(userIpDto, userService.getUserIpState("test@test.com", "127.0.0.1"));
+
+        verify(userDao, times(1)).getUserIpState("test@test.com", "127.0.0.1");
     }
 
     @Test
     public void setLastRegistrationDate() {
+        when(userDao.setLastRegistrationDate(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.setLastRegistrationDate(88, "127.0.0.1"));
+
+        verify(userDao, times(1)).setLastRegistrationDate(88, "127.0.0.1");
     }
 
-    @Test
+    @Ignore
     public void saveTemporaryPasswordAndNotify() {
     }
 
+    @Test(expected = TokenNotFoundException.class)
+    public void replaceUserPassAndDelete_WhenTokenNotFoundException() {
+        when(userDao.verifyToken(anyString())).thenReturn(null);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+
+        userService.replaceUserPassAndDelete("str",3L);
+    }
+
+    @Test(expected = ResetPasswordExpirationException.class)
+    public void replaceUserPassAndDelete_WhenResetPasswordExpirationException() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        TemporaryPasswordDto temporaryPasswordDto = new TemporaryPasswordDto();
+        temporaryPasswordDto.setDateCreation(LocalDateTime.now().minusDays(3));
+
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+        when(userDao.getTemporaryPasswordById(anyLong())).thenReturn(temporaryPasswordDto);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+
+        userService.replaceUserPassAndDelete("str",3L);
+    }
+
     @Test
-    public void replaceUserPassAndDelete() {
+    public void replaceUserPassAndDelete_WhenTemporalTokenIsNotNull_AndDeleteTemporalTokensFalse() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        TemporaryPasswordDto temporaryPasswordDto = new TemporaryPasswordDto();
+        temporaryPasswordDto.setDateCreation(LocalDateTime.now());
+        temporaryPasswordDto.setUserId(10);
+
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+        when(userDao.getTemporaryPasswordById(anyLong())).thenReturn(temporaryPasswordDto);
+        when(userDao.updateUserPasswordFromTemporary(anyLong())).thenReturn(true);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+        when(userDao.getUserById(anyInt())).thenReturn(user);
+        doNothing().when(userSessionService).invalidateUserSessionExceptSpecific(anyString(), anyString());
+        when(userDao.deleteTemporalTokensOfTokentypeForUser(any(TemporalToken.class))).thenReturn(false);
+
+        assertEquals(true, userService.replaceUserPassAndDelete("str",3L));
+
+        verify(userDao, times(1)).verifyToken("str");
+        verify(userDao, times(1)).getTemporaryPasswordById(3L);
+        verify(userDao, times(1)).updateUserPasswordFromTemporary(3L);
+        verify(userDao, times(1)).deleteTemporaryPassword(3L);
+        verify(userDao, times(1)).getUserById(10);
+        verify(userSessionService, times(1)).invalidateUserSessionExceptSpecific(user.getEmail(),null);
+        verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
+    }
+
+    @Test
+    public void replaceUserPassAndDelete_WhenTemporalTokenIsNotNull_AndTokenTypeCONFIRM_NEW_IP_False() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        temporalToken.setTokenType(TokenType.CHANGE_FIN_PASSWORD);
+        TemporaryPasswordDto temporaryPasswordDto = new TemporaryPasswordDto();
+        temporaryPasswordDto.setDateCreation(LocalDateTime.now());
+        temporaryPasswordDto.setUserId(10);
+
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+        when(userDao.getTemporaryPasswordById(anyLong())).thenReturn(temporaryPasswordDto);
+        when(userDao.updateUserPasswordFromTemporary(anyLong())).thenReturn(true);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+        when(userDao.getUserById(anyInt())).thenReturn(user);
+        doNothing().when(userSessionService).invalidateUserSessionExceptSpecific(anyString(), anyString());
+        when(userDao.deleteTemporalTokensOfTokentypeForUser(any(TemporalToken.class))).thenReturn(true);
+        when(tokenScheduler.deleteJobsRelatedWithToken(any(TemporalToken.class)))
+                .thenReturn(Arrays.asList(new JobKey("Name")));
+
+        assertEquals(true, userService.replaceUserPassAndDelete("str",3L));
+
+        verify(userDao, times(1)).verifyToken("str");
+        verify(userDao, times(1)).getTemporaryPasswordById(3L);
+        verify(userDao, times(1)).updateUserPasswordFromTemporary(3L);
+        verify(userDao, times(1)).deleteTemporaryPassword(3L);
+        verify(userDao, times(1)).getUserById(10);
+        verify(userSessionService, times(1)).invalidateUserSessionExceptSpecific(user.getEmail(),null);
+        verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
+        verify(tokenScheduler, times(1)).deleteJobsRelatedWithToken(temporalToken);
+    }
+
+    @Test
+    public void replaceUserPassAndDelete_WhenTemporalTokenIsNotNull_AndSetIpStateConfirmedTrue() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        temporalToken.setTokenType(TokenType.CONFIRM_NEW_IP);
+        temporalToken.setCheckIp("127.0.0.1");
+        TemporaryPasswordDto temporaryPasswordDto = new TemporaryPasswordDto();
+        temporaryPasswordDto.setDateCreation(LocalDateTime.now());
+        temporaryPasswordDto.setUserId(10);
+
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+        when(userDao.getTemporaryPasswordById(anyLong())).thenReturn(temporaryPasswordDto);
+        when(userDao.updateUserPasswordFromTemporary(anyLong())).thenReturn(true);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+        when(userDao.getUserById(anyInt())).thenReturn(user);
+        doNothing().when(userSessionService).invalidateUserSessionExceptSpecific(anyString(), anyString());
+        when(userDao.deleteTemporalTokensOfTokentypeForUser(any(TemporalToken.class))).thenReturn(true);
+        when(tokenScheduler.deleteJobsRelatedWithToken(any(TemporalToken.class))).thenReturn(Arrays.asList(new JobKey("Name")));
+        when(userDao.setIpStateConfirmed(anyInt(), anyString())).thenReturn(true);
+
+        assertEquals(true, userService.replaceUserPassAndDelete("str",3L));
+
+        verify(userDao, times(1)).verifyToken("str");
+        verify(userDao, times(1)).getTemporaryPasswordById(3L);
+        verify(userDao, times(1)).updateUserPasswordFromTemporary(3L);
+        verify(userDao, times(1)).deleteTemporaryPassword(3L);
+        verify(userDao, times(1)).getUserById(10);
+        verify(userSessionService, times(1)).invalidateUserSessionExceptSpecific(user.getEmail(),null);
+        verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
+        verify(tokenScheduler, times(1)).deleteJobsRelatedWithToken(temporalToken);
+        verify(userDao, times(1)).setIpStateConfirmed(49, "127.0.0.1");
+    }
+
+    @Test
+    public void replaceUserPassAndDelete_WhenTemporalTokenIsNotNull_AndSetIpStateConfirmedFalse() {
+        TemporalToken temporalToken = new TemporalToken();
+        temporalToken.setUserId(49);
+        temporalToken.setTokenType(TokenType.CONFIRM_NEW_IP);
+        temporalToken.setCheckIp("127.0.0.1");
+        TemporaryPasswordDto temporaryPasswordDto = new TemporaryPasswordDto();
+        temporaryPasswordDto.setDateCreation(LocalDateTime.now());
+        temporaryPasswordDto.setUserId(10);
+
+        when(userDao.verifyToken(anyString())).thenReturn(temporalToken);
+        when(userDao.getTemporaryPasswordById(anyLong())).thenReturn(temporaryPasswordDto);
+        when(userDao.updateUserPasswordFromTemporary(anyLong())).thenReturn(true);
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+        when(userDao.getUserById(anyInt())).thenReturn(user);
+        doNothing().when(userSessionService).invalidateUserSessionExceptSpecific(anyString(), anyString());
+        when(userDao.deleteTemporalTokensOfTokentypeForUser(any(TemporalToken.class))).thenReturn(true);
+        when(tokenScheduler.deleteJobsRelatedWithToken(any(TemporalToken.class))).thenReturn(Arrays.asList(new JobKey("Name")));
+        when(userDao.setIpStateConfirmed(anyInt(), anyString())).thenReturn(false);
+
+        assertEquals(false, userService.replaceUserPassAndDelete("str",3L));
+
+        verify(userDao, times(1)).verifyToken("str");
+        verify(userDao, times(1)).getTemporaryPasswordById(3L);
+        verify(userDao, times(1)).updateUserPasswordFromTemporary(3L);
+        verify(userDao, times(1)).deleteTemporaryPassword(3L);
+        verify(userDao, times(1)).getUserById(10);
+        verify(userSessionService, times(1)).invalidateUserSessionExceptSpecific(user.getEmail(),null);
+        verify(userDao, times(1)).deleteTemporalTokensOfTokentypeForUser(temporalToken);
+        verify(tokenScheduler, times(1)).deleteJobsRelatedWithToken(temporalToken);
+        verify(userDao, times(1)).setIpStateConfirmed(49, "127.0.0.1");
     }
 
     @Test
     public void removeTemporaryPassword() {
+        when(userDao.deleteTemporaryPassword(anyLong())).thenReturn(true);
+
+        assertEquals(true, userService.removeTemporaryPassword(15L));
+
+        verify(userDao, times(1)).deleteTemporaryPassword(15L);
     }
 
     @Test
-    public void tempDeleteUser() {
+    public void tempDeleteUser_WhenTrue() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(19);
+        when(userDao.tempDeleteUserWallets(anyInt())).thenReturn(true);
+        when(userDao.tempDeleteUser(anyInt())).thenReturn(true);
+
+        assertEquals(true, userService.tempDeleteUser("test@test.com"));
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(userDao, times(1)).tempDeleteUserWallets(19);
+        verify(userDao, times(1)).tempDeleteUser(19);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void tempDeleteUser_WhenTempDeleteUserWalletsFalse() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(19);
+        when(userDao.tempDeleteUserWallets(anyInt())).thenReturn(false);
+
+        userService.tempDeleteUser("test@test.com");
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(userDao, times(1)).tempDeleteUserWallets(19);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void tempDeleteUser_WhenTempDeleteUserFalse() {
+        when(userDao.getIdByEmail(anyString())).thenReturn(19);
+        when(userDao.tempDeleteUserWallets(anyInt())).thenReturn(true);
+        when(userDao.tempDeleteUser(anyInt())).thenReturn(false);
+
+        userService.tempDeleteUser("test@test.com");
+
+        verify(userDao, times(1)).getIdByEmail("test@test.com");
+        verify(userDao, times(1)).tempDeleteUserWallets(19);
+        verify(userDao, times(1)).tempDeleteUser(19);
     }
 
     @Test
-    public void getUserSessionInfo() {
+    public void getUserSessionInfo_WhenOk() {
+        UserSessionInfoDto userSessionInfoDto = new UserSessionInfoDto();
+        userSessionInfoDto.setUserEmail("email");
+        Set<String> strings = new HashSet<>();
+        strings.add("str");
+        when(userDao.getUserSessionInfo(anySet())).thenReturn(Arrays.asList(userSessionInfoDto));
+
+        assertEquals(Arrays.asList(userSessionInfoDto), userService.getUserSessionInfo(strings));
+
+        verify(userDao, times(1)).getUserSessionInfo(strings);
+    }
+
+    @Test
+    public void getUserSessionInfo_WhenException() {
+        Set<String> strings = new HashSet<>();
+        strings.add("str");
+        when(userDao.getUserSessionInfo(anySet())).thenThrow(Exception.class);
+
+        assertEquals(Collections.EMPTY_LIST, userService.getUserSessionInfo(strings));
+
+        verify(userDao, times(1)).getUserSessionInfo(strings);
     }
 
     @Test
     public void getAvatarPath() {
+        when(userDao.getAvatarPath(anyInt())).thenReturn("str");
+
+        assertEquals("str", userService.getAvatarPath(15));
+
+        verify(userDao, times(1)).getAvatarPath(15);
     }
 
     @Test
-    public void getUserLocaleForMobile() {
+    public void getUserLocaleForMobile_WhenLangRu() {
+        when(userDao.getPreferredLangByEmail(anyString())).thenReturn("ru");
+
+        assertEquals(new Locale("ru"),userService.getUserLocaleForMobile("test@test.com"));
+
+        verify(userDao, times(1)).getPreferredLangByEmail("test@test.com");
+    }
+
+    @Test
+    public void getUserLocaleForMobile_WhenLangEn() {
+        when(userDao.getPreferredLangByEmail(anyString())).thenReturn("en");
+
+        assertEquals(new Locale("en"),userService.getUserLocaleForMobile("test@test.com"));
+
+        verify(userDao, times(1)).getPreferredLangByEmail("test@test.com");
+    }
+
+    @Test
+    public void getUserLocaleForMobile_WhenLangNotEnNotRu() {
+        when(userDao.getPreferredLangByEmail(anyString())).thenReturn("fr");
+
+        assertEquals(new Locale("en"),userService.getUserLocaleForMobile("test@test.com"));
+
+        verify(userDao, times(1)).getPreferredLangByEmail("test@test.com");
     }
 
     @Test
     public void getUserComments() {
+
     }
 
     @Test

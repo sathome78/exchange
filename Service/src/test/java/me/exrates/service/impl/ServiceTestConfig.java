@@ -132,7 +132,7 @@ public class ServiceTestConfig {
 
     @Bean
     public UserSessionService userSessionService() {
-        return new UserSessionService();
+        return Mockito.spy(UserSessionService.class);
     }
 
     @Bean("ExratesSessionRegistry")
@@ -209,7 +209,6 @@ public class ServiceTestConfig {
     public G2faService g2faService() {
         return new Google2faNotificatorServiceImpl();
     }
-
 
     @Bean
     public ExchangeApi exchangeApi() {
@@ -466,7 +465,7 @@ public class ServiceTestConfig {
         return Mockito.mock(PasswordEncoder.class);
     }
 
-    @Bean("DelegatingMessageSource")
+    @Bean("XmlWebApplicationContext")
     public MessageSource messageSource() {
            return Mockito.mock(MessageSource.class);
     }
