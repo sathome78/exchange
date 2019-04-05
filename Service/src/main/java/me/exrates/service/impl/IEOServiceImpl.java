@@ -160,7 +160,7 @@ public class IEOServiceImpl implements IEOService {
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
         if (ieoDetails.getMinAmount().compareTo(BigDecimal.ZERO) != 0
-                && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) < 0) {
+                && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) > 0) {
             String message = String.format("Failed to accept claim as minimal amount to buy is %s %s, but you submitted %s %s",
                     ieoDetails.getMinAmount().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
             logger.warn(message);
