@@ -24,6 +24,7 @@ import me.exrates.dao.UserRoleDao;
 import me.exrates.dao.UserSettingsDao;
 import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CommissionService;
@@ -474,4 +475,9 @@ public class ServiceTestConfig {
     public UserSettingsDao userSettingsDao() {
         return Mockito.mock(UserSettingsDao.class);
     }
+
+//    @Bean
+//    public AdminAuthority adminAuthority() {
+//        return AdminAuthority.MANAGE_ACCESS;
+//    }
 }

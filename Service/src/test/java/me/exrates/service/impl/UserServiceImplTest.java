@@ -2,25 +2,30 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.dao.UserDao;
+import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.exception.AuthenticationNotAvailableException;
+import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.ResetPasswordExpirationException;
 import me.exrates.service.exception.TokenNotFoundException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
@@ -116,6 +121,9 @@ public class UserServiceImplTest {
 
     @Autowired
     private ReferralUserGraphDao referralUserGraphDao;
+
+//    @Autowired
+//    private AdminAuthority adminAuthority;
 
     private List<String> LOCALES_LIST;
     private User user;
@@ -1235,34 +1243,135 @@ public class UserServiceImplTest {
 
     @Test
     public void getAuthorityOptionsForUser() {
+//        AdminAuthorityOption adminAuthorityOption = new AdminAuthorityOption();
+//        adminAuthorityOption.setAdminAuthority(AdminAuthority.MANAGE_ACCESS);
+//        Set<String> allowedAuthorities = new HashSet<>();
+//        allowedAuthorities.add("MANAGE_ACCESS");
+//        when(userDao.getAuthorityOptionsForUser(anyInt())).thenReturn(Arrays.asList(adminAuthorityOption));
+//        doNothing().when(adminAuthorityOption)
+//        when(adminAuthority.toLocalizedString(any(MessageSource.class), any(Locale.class))).thenReturn("str");
+//
+//        assertEquals(Arrays.asList(adminAuthorityOption),
+//                userService.getAuthorityOptionsForUser(5, allowedAuthorities, Locale.ENGLISH));
+
     }
 
     @Test
     public void getActiveAuthorityOptionsForUser() {
+        AdminAuthorityOption adminAuthorityOption = new AdminAuthorityOption();
+        adminAuthorityOption.setEnabled(true);
+        when(userDao.getAuthorityOptionsForUser(anyInt())).thenReturn(Arrays.asList(adminAuthorityOption));
+
+        assertEquals(Arrays.asList(adminAuthorityOption),
+                userService.getActiveAuthorityOptionsForUser(5));
+
+        verify(userDao, times(1)).getAuthorityOptionsForUser(5);
+    }
+
+    @Test(expected = ForbiddenOperationException.class)
+    public void updateAdminAuthorities_WhenForbiddenOperationException() {
+        AdminAuthorityOption adminAuthorityOption = new AdminAuthorityOption();
+        when(userDao.getUserRoles(anyString())).thenReturn(UserRole.USER);
+        when(userDao.getUserRoleById(anyInt())).thenReturn(UserRole.ADMINISTRATOR);
+
+        userService.updateAdminAuthorities(Arrays.asList(adminAuthorityOption), 15, "currentUserEmail");
     }
 
     @Test
-    public void updateAdminAuthorities() {
+    public void updateAdminAuthorities_WhenCurrentUserRoleIsADMINISTRATOR() {
+        AdminAuthorityOption adminAuthorityOption = new AdminAuthorityOption();
+        when(userDao.getUserRoles(anyString())).thenReturn(UserRole.ADMINISTRATOR);
+        when(userDao.getUserRoleById(anyInt())).thenReturn(UserRole.ADMINISTRATOR);
+        doNothing().when(userDao).updateAdminAuthorities(anyList(), anyInt());
+
+        userService.updateAdminAuthorities(Arrays.asList(adminAuthorityOption), 15, "currentUserEmail");
+
+        verify(userDao, times(1)).getUserRoles("currentUserEmail");
+        verify(userDao, times(1)).getUserRoleById(15);
+        verify(userDao, times(1)).updateAdminAuthorities(Arrays.asList(adminAuthorityOption) ,15);
+    }
+
+    @Test
+    public void updateAdminAuthorities_WhenUpdatedUserRoleIsNotADMINISTRATOR() {
+        AdminAuthorityOption adminAuthorityOption = new AdminAuthorityOption();
+        when(userDao.getUserRoles(anyString())).thenReturn(UserRole.ADMINISTRATOR);
+        when(userDao.getUserRoleById(anyInt())).thenReturn(UserRole.USER);
+        doNothing().when(userDao).updateAdminAuthorities(anyList(), anyInt());
+
+        userService.updateAdminAuthorities(Arrays.asList(adminAuthorityOption), 15, "currentUserEmail");
+
+        verify(userDao, times(1)).getUserRoles("currentUserEmail");
+        verify(userDao, times(1)).getUserRoleById(15);
+        verify(userDao, times(1)).updateAdminAuthorities(Arrays.asList(adminAuthorityOption) ,15);
     }
 
     @Test
     public void findNicknamesByPart() {
+        when(userDao.retrieveNicknameSearchLimit()).thenReturn(18);
+        when(userDao.findNicknamesByPart(anyString(), anyInt())).thenReturn(Arrays.asList("str", "str2"));
+
+        assertEquals(Arrays.asList("str", "str2") ,userService.findNicknamesByPart("anyStr"));
+
+        verify(userDao, times(1)).retrieveNicknameSearchLimit();
+        verify(userDao, times(1)).findNicknamesByPart("anyStr", 18);
+    }
+
+    @Test(expected = AuthenticationNotAvailableException.class)
+    public void getUserRoleFromSecurityContext_WhenException() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(null);
+
+        userService.getUserRoleFromSecurityContext();
     }
 
     @Test
-    public void getUserRoleFromSecurityContext() {
+    public void getUserRoleFromSecurityContext_WhenUserRoleIsFromUSER_ROLES() {
+       assertEquals(UserRole.USER, userService.getUserRoleFromSecurityContext());
     }
+
+    @Test
+    public void getUserRoleFromSecurityContext_WhenUserRoleIsROLE_DEFAULT_COMMISSION() {
+             SecurityContextHolder.getContext()
+             .setAuthentication(new AnonymousAuthenticationToken("w1", "testemail@gmail.com",
+                                AuthorityUtils.createAuthorityList("d1")));
+        assertEquals(UserRole.USER, userService.getUserRoleFromSecurityContext());
+    }
+
 
     @Test
     public void setCurrencyPermissionsByUserId() {
+        UserCurrencyOperationPermissionDto userDto = new UserCurrencyOperationPermissionDto();
+        UserCurrencyOperationPermissionDto userDto2 = new UserCurrencyOperationPermissionDto();
+        UserCurrencyOperationPermissionDto userDto3 = new UserCurrencyOperationPermissionDto();
+        userDto.setUserId(78);
+        userDto.setInvoiceOperationPermission(InvoiceOperationPermission.ACCEPT_DECLINE);
+        userDto2.setInvoiceOperationPermission(InvoiceOperationPermission.VIEW_ONLY);
+        userDto3.setInvoiceOperationPermission(InvoiceOperationPermission.NONE);
+        doNothing().when(userDao).setCurrencyPermissionsByUserId(anyInt(), anyList());
+
+        userService.setCurrencyPermissionsByUserId(Arrays.asList(userDto,userDto2,userDto3));
+
+        verify(userDao, times(1)).setCurrencyPermissionsByUserId(78, Arrays.asList(userDto,userDto2));
     }
 
     @Test
     public void getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection() {
+        when(userDao.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(anyInt(), anyInt(), any(InvoiceOperationDirection.class)))
+                .thenReturn(InvoiceOperationPermission.ACCEPT_DECLINE);
+
+        assertEquals(InvoiceOperationPermission.ACCEPT_DECLINE,
+                userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(45,45, InvoiceOperationDirection.REFILL));
+
+        verify(userDao, times(1)).getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(45,45, InvoiceOperationDirection.REFILL);
     }
 
     @Test
     public void getEmailById() {
+        when(userDao.getEmailById(anyInt())).thenReturn("test@test.com");
+
+        assertEquals("test@test.com", userService.getEmailById(15));
+
+        verify(userDao, times(1)).getEmailById(15);
     }
 
     @Test
