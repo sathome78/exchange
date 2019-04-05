@@ -149,4 +149,10 @@ public interface CurrencyService {
     List<CurrencyPair> getPairsBySecondPartName(String partName);
 
     boolean isCurrencyPairHidden(int currencyPairId);
+
+    @Transactional
+    void addCurrencyForIco(String name, String description);
+
+    @Transactional
+    void addCurrencyPairForIco(String firstCurrencyName, String secondCurrencyName);
 }

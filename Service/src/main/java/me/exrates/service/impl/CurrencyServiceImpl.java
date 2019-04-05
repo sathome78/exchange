@@ -16,6 +16,7 @@ import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -484,18 +485,26 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.isCurrencyPairHidden(currencyPairId);
     }
 
-    public void addCurrencyAndPairForIco(String firstCurrencyName, String secondCurrencyName) {
-        /*insert currency and all other inserts*/
+    @Override
+    @Transactional
+    public void addCurrencyForIco(String name, String description) {
+        currencyDao.addCurrency(name, description, "no_bean", "/client/img/merchants/ico.png", true, true);
     }
 
+
+    @Override
     @Transactional
-    public void addCurrencyPair(String firstCurrencyName, String secondCurrencyName) {
-        /*create pair*/
+    public void addCurrencyPairForIco(String firstCurrencyName, String secondCurrencyName) {
         Currency currency1 = findByName(firstCurrencyName);
         Currency currency2 = findByName(secondCurrencyName);
         Preconditions.checkArgument(currency1 != null && currency2 != null);
         String newPairName = String.format("%s/%s", firstCurrencyName, secondCurrencyName);
-        Preconditions.checkArgument(findCurrencyPairIdByName(newPairName) == null);
-        /*currencyDao.addCurrencyPair(currency1, currency2, newPairName);*/
+        try {
+            getCurrencyPairByName(newPairName);
+        } catch (CurrencyPairNotFoundException e) {
+            currencyDao.addCurrencyPair(currency1, currency2, newPairName, CurrencyPairType.ICO, Market.ICO, newPairName, true);
+            return;
+        }
+        throw new RuntimeException("pair allready exist");
     }
 }

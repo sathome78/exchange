@@ -45,7 +45,7 @@
                     <h4 class="modal-title">IEO</h4>
                 </div>
                 <br><div class="col-md-12 content">
-                <button id="ieo_create" class="btn btn-default"><loc:message code="ieo.create_new"/></button>
+                <button id="ieo_create" class="btn btn-default" style="cursor: pointer"><loc:message code="ieo.create_new"/></button>
                 <br>
                 <div id="create_ieo" class="collapse" hidden>
                     <form id="create_ieo_form" class="form_full_height_width">
@@ -183,12 +183,11 @@
                                 </div>
                             </div>
 
-                        <a id="ieo_create_send" class="blue-box"><loc:message
-                                code="ieo.create_new"/></a>
-                        <a id="ieo_create_close" class="blue-box"><loc:message
-                                code="ieo.close"/></a>
-
                     </form>
+                    <button id="ieo_create_send" class="blue-box" style="cursor: pointer"><loc:message
+                            code="ieo.create_new"/></button>
+                    <button id="ieo_create_close" class="blue-box" style="cursor: pointer"><loc:message
+                            code="ieo.close"/></button>
 
                 </div>
                 <br>
@@ -399,11 +398,11 @@
                                 </div>
                             </div>
 
-                            <a id="ieo_update_send" class="blue-box"><loc:message
+                            <a id="ieo_update_send" class="blue-box" style="cursor: pointer"><loc:message
                                 code="button.update"/></a>
-                        <a id="ieo_update_close" class="blue-box"><loc:message
+                        <a id="ieo_update_close" class="blue-box" style="cursor: pointer" ><loc:message
                                 code="ieo.close"/></a>
-                        <a id="ieo_revert_send" class="blue-box"><loc:message
+                        <a id="ieo_revert_send" class="blue-box" style="cursor: pointer"><loc:message
                                 code="ieo.revert_ieo"/></a>
 
                     </form>

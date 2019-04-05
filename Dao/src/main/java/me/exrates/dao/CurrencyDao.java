@@ -11,6 +11,7 @@ import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -122,4 +123,8 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
 
     boolean isCurrencyPairHidden(int currencyPairId);
+
+    void addCurrency(String currencyName, String description, String beanName, String imgPath, boolean hidden, boolean lockInOut);
+
+    void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market, String tiker, boolean hidden);
 }

@@ -56,7 +56,7 @@ public class AdminIeoController {
     @ResponseBody
     public ResponseEntity createIeo(@RequestBody @Valid IeoDetailsCreateDto dto) {
         ieoService.createIeo(dto);
-        return ResponseEntity.ok(null);
+        return new ResponseEntity(null, HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/{id}", method = PUT, consumes =  MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

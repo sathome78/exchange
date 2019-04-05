@@ -7,6 +7,7 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -15,6 +16,7 @@ import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.Market;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -24,6 +26,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -32,12 +35,16 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -888,25 +895,61 @@ public class CurrencyDaoImpl implements CurrencyDao {
         }
     }
 
-   /*todo execute script*/
-    public void addCurrency() {
+    @Override
+    public void addCurrency(String currencyName, String description, String beanName, String imgPath, boolean hidden, boolean lockInOut) {
+        final String sql = "{call add_currency(:currencyName, :description, :beanName, :imgPath, :hidden, :lockInOut)}";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("currencyName", currencyName);
+        params.addValue("description", description);
+        params.addValue("beanName", beanName);
+        params.addValue("hidden", hidden);
+        params.addValue("lockInOut", lockInOut);
+        params.addValue("imgPath", imgPath);
+        try {
+            npJdbcTemplate.execute(sql, params, ps -> {
+                ResultSet rs = ps.executeQuery();
+                rs.close();
+                return rs;
+            });
+        } catch (DataAccessException e) {
+            log.error("Failed to insert currency pair ", e);
+            throw new RuntimeException(String.format("Error crete new currency in db for %s to DB", currencyName));
+        }
 
-        final String insertPair = "INSERT INTO CURRENCY_PAIR (:currency1_id, :currency2_id, :name, pair_order, true, :market, :ticker_name)" +
-                "VALUES((select id from CURRENCY where name = 'RBC'), (select id from CURRENCY where name = 'BTC'), 'RBC/BTC', 160, 0, 'BTC', 'RBC/BTC') ";
 
-        final String insertPairLimit = "INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)" +
-                "  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP " +
-                "    JOIN USER_ROLE UR " +
-                "    JOIN ORDER_TYPE OT where CP.name='RBC/BTC';";
     }
-    /*todo execute*/
-    public void addCurrencyPair(Currency currency1, Currency currency2, String newPairName) {
-        final String insertPair = "INSERT INTO CURRENCY_PAIR (:currency1_id, :currency2_id, :name, pair_order, true, :market, :ticker_name)" +
-                "VALUES((select id from CURRENCY where name = 'RBC'), (select id from CURRENCY where name = 'BTC'), 'RBC/BTC', 160, 0, 'BTC', 'RBC/BTC') ";
 
-        final String insertPairLimit = "INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)" +
+    @Override
+    public void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market,  String tiker, boolean hidden) {
+        final String insertPair = "INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market, ticker_name, type)" +
+                "VALUES(:currency1_id, :currency2_id, :pairName, 160, :hidden, :market, :ticker, :type) ";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("currency1_id", currency1.getId());
+        params.addValue("currency2_id", currency2.getId());
+        params.addValue("pairName", newPairName);
+        params.addValue("hidden", hidden);
+        params.addValue("market", market.name());
+        params.addValue("ticker", tiker);
+        params.addValue("type", type.name());
+        try {
+            npJdbcTemplate.update(insertPair, params, keyHolder);
+        } catch (DataAccessException e) {
+            log.error("Failed to insert currency pair ", e);
+            throw new RuntimeException(String.format("Error insert new pair to db for %s to DB", newPairName));
+        }
+        final String insertPairLimit = "INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)" +
                 "  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP " +
                 "    JOIN USER_ROLE UR " +
-                "    JOIN ORDER_TYPE OT where CP.name='RBC/BTC';";
+                "    JOIN ORDER_TYPE OT where CP.name = :name;";
+        MapSqlParameterSource paramsForLimit = new MapSqlParameterSource();
+        paramsForLimit.addValue("name", newPairName);
+        try {
+            npJdbcTemplate.update(insertPairLimit, paramsForLimit, keyHolder);
+        } catch (DataAccessException e) {
+            log.error("Failed to insert Currency pir limits ", e);
+            throw new RuntimeException(String.format("Error insert pair limits for %s to DB", newPairName));
+        }
     }
 }

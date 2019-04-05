@@ -19,7 +19,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
 import org.apache.logging.log4j.LogManager;
@@ -148,14 +147,14 @@ public class IEOServiceImpl implements IEOService {
     public void createIeo(IeoDetailsCreateDto dto) {
         Integer makerId = userService.getIdByEmail(dto.getMakerEmail());
         Integer creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        /*create currency and pairs*/
+        currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getDescription());
+        currencyService.addCurrencyPairForIco(dto.getCurrencyName(), "BTC");
         ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
     }
 
     @Override
     @Transactional
     public void updateIeo(Integer id, IeoDetailsUpdateDto dto) {
-        /*create currency and pairs*/
         ieoDetailsRepository.updateSafe(dto.toIEODetails(id));
     }
 

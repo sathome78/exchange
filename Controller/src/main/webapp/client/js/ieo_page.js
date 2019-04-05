@@ -106,16 +106,16 @@ $(function () {
         $('#currencyName').val(data.currencyName);
         $('#description').val(data.currencyDescription);
         /*$('#makerEmail').val(data.makerEmail);*/
-        $('#status').val(data.status); /*select*/
+        $('#status').val(data.status);
         $('#rate').val(data.rate);
         $('#amount').val(data.amount);
         $('#available_balance').val(data.availableBalance);
         $('#minAmount').val(data.minAmount);
         $('#maxAmountPerUser').val(data.maxAmountPerUser);
         $('#maxAmountPerClaim').val(data.maxAmountPerClaim);
-        $('#start_date_upd').val(data.startDate); /*date*/
-        $('#end_date_upd').val(data.endDate); /*date*/
-        $('#createdAt').val(data.createdAt); /*date*/
+        $('#start_date_upd').val(data.startDate);
+        $('#end_date_upd').val(data.endDate);
+        $('#createdAt').val(data.createdAt);
         $('#createdBy').val(data.createdBy);
         $('#version').val(data.version);
         $('#update_ieo').show();
@@ -124,19 +124,21 @@ $(function () {
 
     function sendCreateIeo() {
         var formData = JSON.stringify($("#create_ieo_form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
+        $("#ieo_create_send").attr("disabled", true);
         $.ajax({
             type: "POST",
             url: "/2a8fy7b07dxe44/ieo",
             data: formData,
             contentType:"application/json; charset=utf-8",
             success: function(data) {
+                $('#ieo_create_send').attr("disabled", false);
                 successNoty("Ieo created!");
                 loadIeoTable();
                 $('#create_ieo_form').find("input, textarea").val("");
                 $('#create_ieo').hide();
             },
             error: function(msg) {
-                errorNoty(msg);
+                $('#ieo_create_send').attr("disabled", false);
                 loadIeoTable();
             }
         });
