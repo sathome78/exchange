@@ -26,9 +26,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.TransactionPersistException;
 import me.exrates.service.exception.TransactionProvidingException;
@@ -60,21 +58,24 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
     private static final int decimalPlaces = 8;
 
+    private final CompanyWalletService companyWalletService;
+    private final CurrencyService currencyService;
+    private final MerchantService merchantService;
+    private final TransactionDao transactionDao;
+    private final WalletService walletService;
 
     @Autowired
-    private TransactionDao transactionDao;
-    @Autowired
-    private WalletService walletService;
-    @Autowired
-    private CompanyWalletService companyWalletService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private OrderService orderService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
+    public TransactionServiceImpl(TransactionDao transactionDao,
+                                  WalletService walletService,
+                                  CompanyWalletService companyWalletService,
+                                  MerchantService merchantService,
+                                  CurrencyService currencyService) {
+        this.transactionDao = transactionDao;
+        this.walletService = walletService;
+        this.companyWalletService = companyWalletService;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+    }
 
 
     @PostConstruct
@@ -93,12 +94,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Transaction save(Collection<Transaction> transactions) {
-
-
-
-
-        return null;
+    public boolean save(Collection<Transaction> transactions) {
+        return transactionDao.saveInBatch(transactions);
     }
 
     @Override
@@ -324,7 +321,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public boolean setStatusById(Integer trasactionId, Integer statusId) {
-        if(trasactionId == 0) return true;
+        if (trasactionId == 0) return true;
         return transactionDao.setStatusById(trasactionId, statusId);
     }
 

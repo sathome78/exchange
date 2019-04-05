@@ -368,7 +368,8 @@ public class ServiceTestConfig {
 
     @Bean
     public TransactionService transactionService() {
-        return new TransactionServiceImpl();
+        return new TransactionServiceImpl(transactionDao(), walletService(), companyWalletService(), merchantService(),
+                currencyService());
     }
 
     @Bean

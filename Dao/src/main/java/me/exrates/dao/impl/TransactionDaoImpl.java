@@ -14,6 +14,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.adapters.TransactionSqlAdapter;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
@@ -50,6 +51,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -612,9 +614,9 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public boolean updateStoredTransactionSourceType(Set<TransactionSourceType> values) {
-        SqlParameterSource [] batch = SqlParameterSourceUtils.createBatch(values.toArray());
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(values.toArray());
         String sql = "INSERT INTO TRANSACTION_SOURCE_TYPE VALUES (:code, :name)";
-        int [] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
         return updateCounts.length > 0;
     }
 
@@ -860,4 +862,21 @@ public final class TransactionDaoImpl implements TransactionDao {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public boolean saveInBatch(Collection<Transaction> transactions) {
+        TransactionSqlAdapter[] adapters = transactions
+                .stream()
+                .map(TransactionSqlAdapter::valueOf)
+                .collect(Collectors.toList())
+                .toArray(new TransactionSqlAdapter[]{});
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(adapters);
+        String sql = "INSERT INTO TRANSACTION (user_wallet_id, amount, commission_amount, operation_type_id, currency_id,"
+                + " provided, active_balance_before, source_type, description)"
+                + " VALUES (:userWalletId, :amount, :commissionAmount, :operationTypeId, :currencyId, :provided," +
+                " :activeBalanceBefore, :sourceType, :description)";
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
+    }
+
 }

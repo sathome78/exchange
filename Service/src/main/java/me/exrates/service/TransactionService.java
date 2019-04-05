@@ -26,7 +26,7 @@ public interface TransactionService {
 
     Transaction save(Transaction transaction);
 
-    Transaction save(Collection<Transaction> transactions);
+    boolean save(Collection<Transaction> transactions);
 
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 

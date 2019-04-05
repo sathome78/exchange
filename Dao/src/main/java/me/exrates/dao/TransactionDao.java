@@ -14,6 +14,7 @@ import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -63,4 +64,6 @@ public interface TransactionDao {
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     List<UserSummaryDto> getUsersWalletSummaryDataByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, String userEmail, int requesterId);
+
+    boolean saveInBatch(Collection<Transaction> transactions);
 }
