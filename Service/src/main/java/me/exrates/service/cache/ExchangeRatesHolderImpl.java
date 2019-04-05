@@ -11,8 +11,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -39,7 +37,6 @@ import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 
 @Log4j2
 @Component
-@PropertySource(value = "classpath:/exrates_holder.properties")
 public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -65,9 +62,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     private static final ScheduledExecutorService EXRATES_SCHEDULER = Executors.newSingleThreadScheduledExecutor();
     private static final ScheduledExecutorService FIAT_SCHEDULER = Executors.newSingleThreadScheduledExecutor();
-
-    @Value("${isEnabled}")
-    public boolean isEnabled;
 
     @Autowired
     public ExchangeRatesHolderImpl(ExchangeApi exchangeApi,
@@ -95,9 +89,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         BTC_USD_ID = currencyService.findCurrencyPairIdByName(BTC_USD);
         ETH_USD_ID = currencyService.findCurrencyPairIdByName(ETH_USD);
 
-        log.info("Start init ExchangeRatesHolder, isEnabled = " + isEnabled);
+        log.info("Start init ExchangeRatesHolder");
 
-        if(isEnabled) initExchangePairsCache();
+        initExchangePairsCache();
 
         log.info("Finish init ExchangeRatesHolder");
     }
