@@ -113,6 +113,7 @@ public class IEOProcessor implements Runnable {
         ieoResultRepository.save(ieoResult);
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
         ieoDetails.setAvailableAmount(availableAmount);
+        ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
         CompletableFuture.runAsync(() -> sendNotifications(ieoClaim.getCreatorEmail(), ieoDetails, notificationMessage));
     }
 

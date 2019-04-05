@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
@@ -11,6 +12,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEOClaim;
+import me.exrates.model.IEODetails;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -118,15 +120,13 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
-    private UserTransferService userTransferService;
-    @Autowired
-    private OrderService orderService;
-    @Autowired
     private ExchangeApi exchangeApi;
     @Autowired
     private WalletsApi walletsApi;
     @Autowired
     private TransactionService transactionService;
+    @Autowired
+    private IeoDetailsRepository ieoDetailsRepository;
 
 
     @Override
@@ -878,6 +878,20 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId) {
         return walletDao.getAvailableAmountInBtcLocked(userId, currencyId);
+    }
+
+    @Override
+    public Map<String, BigDecimal> findUserCurrencyBalances(User user) {
+        List<String> ieoCurrencyNames = ieoDetailsRepository.findAll()
+                .stream()
+                .map(IEODetails::getCurrencyName)
+                .collect(Collectors.toList());
+        return walletDao.findUserCurrencyBalances(user, ieoCurrencyNames);
+    }
+
+    @Override
+    public BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim) {
+        return walletDao.findUserCurrencyBalance(ieoClaim);
     }
 
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim) {

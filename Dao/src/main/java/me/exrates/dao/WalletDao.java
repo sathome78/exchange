@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -25,8 +26,10 @@ import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public interface WalletDao {
@@ -144,4 +147,8 @@ public interface WalletDao {
     BigDecimal retrieveSummaryBTC();
 
     void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance, LocalDateTime lastReservedBalanceUpdate);
+
+    Map<String, BigDecimal> findUserCurrencyBalances(User user, Collection<String> currencyNames);
+
+    BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }

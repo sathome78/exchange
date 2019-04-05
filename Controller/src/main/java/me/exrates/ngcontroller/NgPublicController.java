@@ -156,7 +156,7 @@ public class NgPublicController {
     @GetMapping("/ieo")
     @ResponseBody
     public Collection<IEODetails> getAllIeo() {
-        return ieoService.findAll();
+        return ieoService.findAll(null);
     }
 
     @GetMapping(value = "/if_username_exists")

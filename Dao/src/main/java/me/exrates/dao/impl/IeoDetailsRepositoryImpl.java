@@ -18,6 +18,8 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 @Log4j
@@ -156,17 +158,14 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     @Override
-    public Collection<IEODetails> findAllExceptForMaker(User user) {
-        if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
-            String sql = "SELECT * FROM IEO_DETAILS WHERE maker_id = :makerId";
-            MapSqlParameterSource params = new MapSqlParameterSource("makerId", user.getId());
-            try {
-                return jdbcTemplate.query(sql, params, ieoDetailsRowMapper());
-            } catch (DataAccessException e) {
-                return Lists.newArrayList();
-            }
+    public Collection<IEODetails> findAllExceptForMaker(int userId) {
+        String sql = "SELECT * FROM IEO_DETAILS WHERE maker_id = :makerId";
+        MapSqlParameterSource params = new MapSqlParameterSource("makerId", userId);
+        try {
+            return jdbcTemplate.query(sql, params, ieoDetailsRowMapper());
+        } catch (DataAccessException e) {
+            return Lists.newArrayList();
         }
-        return findAll();
     }
 
     @Override
