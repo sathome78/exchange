@@ -62,7 +62,7 @@ public class BalanceServiceImplTest {
         doReturn(BigDecimal.valueOf(0.01)).when(exchangeRatesHolder).getBtcUsdRate();
 
         balanceService = new BalanceServiceImpl(null, null, ngWalletService,
-                null, null, exchangeRatesHolder, null);
+                null, null, exchangeRatesHolder, null, userDao, walletDao, currencyDao);
 
         locale = Locale.ENGLISH;
 

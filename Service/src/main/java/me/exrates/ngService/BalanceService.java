@@ -35,4 +35,6 @@ public interface BalanceService {
                                                                  Integer limit, Integer offset, Locale locale);
 
     Map<String, BigDecimal> getBalancesSumInBtcAndUsd();
+
+    BigDecimal getActiveBalanceByCurrencyNameAndEmail(String email, String currencyName);
 }
