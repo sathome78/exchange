@@ -1,6 +1,9 @@
 package me.exrates.ngService;
 
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.UserDao;
+import me.exrates.dao.WalletDao;
 import me.exrates.model.dto.BalanceFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.CurrencyType;
@@ -49,6 +52,15 @@ public class BalanceServiceImplTest {
     private NgWalletService ngWalletService;
     @Mock
     private ExchangeRatesHolder exchangeRatesHolder;
+
+    @Mock
+    private UserDao userDao;
+
+    @Mock
+    private WalletDao walletDao;
+
+    @Mock
+    private CurrencyDao currencyDao;
 
     private BalanceService balanceService;
 
