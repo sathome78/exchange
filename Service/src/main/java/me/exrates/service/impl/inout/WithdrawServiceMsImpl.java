@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -97,10 +96,5 @@ public class WithdrawServiceMsImpl extends WithdrawServiceImpl {
                 entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {});
 
         return response.getBody();
-    }
-
-    @Override
-    public BigDecimal getLeftOutputRequestsSum(int id, String email) {
-        return null;
     }
 }
