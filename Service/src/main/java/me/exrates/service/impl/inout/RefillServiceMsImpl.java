@@ -119,7 +119,6 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @Transactional
     public void processRefillRequest(WalletOperationMsDto dto) {
         WalletOperationData walletOperationData = dto.getWalletOperationData();
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
