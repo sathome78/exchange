@@ -56,7 +56,6 @@ public class StompMessengerImpl implements StompMessenger {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 

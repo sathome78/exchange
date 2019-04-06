@@ -27,6 +27,8 @@ public class IEODetails {
     private BigDecimal rate;
     private BigDecimal amount;
     private BigDecimal availableAmount;
+    // not stored in db -> consider pattern visitor
+    private BigDecimal personalAmount;
     private int contributors;
     private IEODetailsStatus status;
     private BigDecimal minAmount;

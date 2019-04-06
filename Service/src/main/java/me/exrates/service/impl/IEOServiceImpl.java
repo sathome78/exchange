@@ -15,6 +15,7 @@ import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.PolicyEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
@@ -30,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class IEOServiceImpl implements IEOService {
@@ -128,18 +131,27 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public Collection<IEODetails> findAll() {
-        return ieoDetailsRepository.findAll();
+    public Collection<IEODetails> findAll(User user) {
+        if (Objects.isNull(user)) {
+            return ieoDetailsRepository.findAll();
+        } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
+            return ieoDetailsRepository.findAllExceptForMaker(user.getId());
+        }
+        Map<String, BigDecimal> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
+        Collection<IEODetails> details = ieoDetailsRepository.findAll();
+        details.forEach(det -> {
+            if (userCurrencyBalances.containsKey(det)) {
+                det.setPersonalAmount(userCurrencyBalances.get(det));
+            } else {
+                det.setPersonalAmount(BigDecimal.ZERO);
+            }
+        });
+        return details;
     }
 
     @Override
     public IEODetails findOne(int ieoId) {
         return ieoDetailsRepository.findOne(ieoId);
-    }
-
-    @Override
-    public Collection<IEODetails> findAllExceptForMaker(User user) {
-        return ieoDetailsRepository.findAllExceptForMaker(user);
     }
 
     @Override
@@ -160,7 +172,7 @@ public class IEOServiceImpl implements IEOService {
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
         if (ieoDetails.getMinAmount().compareTo(BigDecimal.ZERO) != 0
-                && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) < 0) {
+                && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) > 0) {
             String message = String.format("Failed to accept claim as minimal amount to buy is %s %s, but you submitted %s %s",
                     ieoDetails.getMinAmount().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
             logger.warn(message);

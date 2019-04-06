@@ -1,5 +1,6 @@
 package me.exrates.controller.openAPI.config;
 
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.security.service.OpenApiAuthService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -26,12 +27,17 @@ public class WebAppTestConfig {
     }
 
     @Bean
-    public UserService userService(){
+    public UserService userService() {
         return Mockito.mock(UserService.class);
     }
 
     @Bean
-    public CurrencyService currencyService(){
+    public IeoDetailsRepository ieoDetailsRepository() {
+        return Mockito.mock(IeoDetailsRepository.class);
+    }
+
+    @Bean
+    public CurrencyService currencyService() {
         return Mockito.mock(CurrencyService.class);
     }
 

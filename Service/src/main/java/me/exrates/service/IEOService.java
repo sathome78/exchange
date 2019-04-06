@@ -15,11 +15,9 @@ public interface IEOService {
 
     IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);
 
-    Collection<IEODetails> findAll();
+    Collection<IEODetails> findAll(User user);
 
     IEODetails findOne(int ieoId);
-
-    Collection<IEODetails> findAllExceptForMaker(User user);
 
     @Transactional
     void createIeo(IeoDetailsCreateDto dto);

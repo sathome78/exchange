@@ -1,6 +1,8 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.User;
 import me.exrates.security.config.OpenApiSecurityConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,9 +18,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.LocalDate;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {WebAppTestConfig.class, OpenApiSecurityConfig.class})
@@ -258,5 +262,37 @@ public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(orderService, times(1)).getOrderTransactions(orderId);
+    }
+
+    @Test
+    public void checkEmailExistence_existTest() throws Exception {
+        String email = "test@test.com";
+
+        when(userService.findByEmail(email)).thenReturn(new User());
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path("/openapi/v1/user/info/email/exists")
+                .queryParam("email", email)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.status", is(true)));
+    }
+
+    @Test
+    public void checkEmailExistence_notExistTest() throws Exception {
+        String email = "test@test.com";
+
+        when(userService.findByEmail(email)).thenThrow(new UserNotFoundException(String.format("User: %s not found", email)));
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .path("/openapi/v1/user/info/email/exists")
+                .queryParam("email", email)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.status", is(false)));
     }
 }

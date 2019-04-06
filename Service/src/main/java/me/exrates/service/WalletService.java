@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface WalletService {
 
@@ -177,4 +178,8 @@ public interface WalletService {
     boolean performIeoTransfer(IEOClaim ieoClaim);
 
     BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
+
+    Map<String, BigDecimal> findUserCurrencyBalances(User user);
+
+    BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }

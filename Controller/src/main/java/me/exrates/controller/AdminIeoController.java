@@ -46,7 +46,7 @@ public class AdminIeoController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/all", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Collection<IEODetailsFlatDto> getAllIEOs() {
-        return ieoService.findAll()
+        return ieoService.findAll(null)
                 .stream()
                 .map(IEODetailsFlatDto::new)
                 .collect(Collectors.toList());

@@ -15,6 +15,7 @@ import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.ngExceptions.NgBalanceException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
@@ -324,6 +325,12 @@ public class NgBalanceController {
     @GetMapping("/myBalances")
     public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
         return balanceService.getBalancesSumInBtcAndUsd();
+    }
+
+    @GetMapping("/myBalances/{currencyName}")
+    public ResponseModel<?> getBtcAndUsdBalancesSum(@PathVariable String currencyName) {
+        BigDecimal result = balanceService.getActiveBalanceByCurrencyNameAndEmail(getPrincipalEmail(), currencyName);
+        return new ResponseModel<>(result.toPlainString());
     }
 
     private String getPrincipalEmail() {

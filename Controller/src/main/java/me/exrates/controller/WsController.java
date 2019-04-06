@@ -158,7 +158,7 @@ public class WsController {
     @SubscribeMapping("/queue/ieo_details")
     public Collection<IEODetails> subscribeIeoDetailsPersonal(Principal principal) {
         User user = userService.findByEmail(principal.getName());
-        return ieoService.findAllExceptForMaker(user);
+        return ieoService.findAll(user);
     }
 
     @SubscribeMapping("/ieo/ieo_details/{detailId}")
