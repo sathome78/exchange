@@ -119,6 +119,7 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void processRefillRequest(WalletOperationMsDto dto) {
         WalletOperationData walletOperationData = dto.getWalletOperationData();
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
