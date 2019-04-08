@@ -140,8 +140,8 @@ public class IEOServiceImpl implements IEOService {
         Map<String, String> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
         Collection<IEODetails> details = ieoDetailsRepository.findAll();
         details.forEach(item -> {
-            if (userCurrencyBalances.containsKey(item)) {
-                item.setPersonalAmount(new BigDecimal(userCurrencyBalances.get(item)));
+            if (userCurrencyBalances.containsKey(item.getCurrencyName())) {
+                item.setPersonalAmount(new BigDecimal(userCurrencyBalances.get(item.getCurrencyName())));
             } else {
                 item.setPersonalAmount(BigDecimal.ZERO);
             }
