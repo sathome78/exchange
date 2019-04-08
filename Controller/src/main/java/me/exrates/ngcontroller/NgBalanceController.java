@@ -208,9 +208,7 @@ public class NgBalanceController {
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
                         )
-                        .forEach(o -> {
-                            mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate()));
-                        });
+                        .forEach(o -> mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate())));
                 if (!mapWalletTotalUsdDto.isEmpty()) {
                     walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
@@ -327,7 +325,7 @@ public class NgBalanceController {
     @GetMapping("/myBalances")
     public ResponseModel<?> getBtcAndUsdBalancesSum(@RequestParam(value = "names", required = false) String[] currencyNames) {
         if (currencyNames == null || currencyNames.length == 0) {
-            new ResponseModel<>(balanceService.getBalancesSumInBtcAndUsd());
+            return new ResponseModel<>(balanceService.getBalancesSumInBtcAndUsd());
         }
 
         Map<String, String> result = balanceService.getActiveBalanceByCurrencyNamesAndEmail(getPrincipalEmail(),
