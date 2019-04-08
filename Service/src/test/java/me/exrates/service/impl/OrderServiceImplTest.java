@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.User;
+import me.exrates.model.UserRoleSettings;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleChartItemDto;
@@ -12,9 +14,11 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.SimpleOrderBookItem;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -23,6 +27,7 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.IntervalType2;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
@@ -32,7 +37,9 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +50,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -68,6 +78,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
@@ -93,6 +104,14 @@ public class OrderServiceImplTest {
     private CurrencyService currencyService;
     @Mock
     private UserService userService;
+    @Mock
+    private MessageSource messageSource;
+    @Mock
+    private UserRoleService userRoleService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private WalletService walletService;
 
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
@@ -1190,6 +1209,111 @@ public class OrderServiceImplTest {
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
+    }
+
+    @Ignore
+    public void createOrder() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setAmountBase(BigDecimal.TEN);
+
+        String result = "";
+
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(orderDao.selectTopOrders(
+                anyInt(),
+                any(BigDecimal.class),
+                any(OperationType.class),
+                any(Boolean.class),
+                anyInt(),
+                any(OrderBaseType.class))
+        ).thenReturn(Collections.singletonList(exOrder));
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn(result);
+
+        orderService.createOrder(getMockOrderCreateDto(BigDecimal.TEN), OrderActionEnum.CREATE, Locale.ENGLISH);
+
+        System.out.println();
+
+
+    }
+
+    @Test
+    public void autoAcceptOrders_list_ExOrder_is_empty() {
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(orderDao.selectTopOrders(
+                anyInt(),
+                any(BigDecimal.class),
+                any(OperationType.class),
+                any(Boolean.class),
+                anyInt(),
+                any(OrderBaseType.class))
+        ).thenReturn(Collections.EMPTY_LIST);
+
+        Optional<OrderCreationResultDto> orderCreationResultDto = orderService.autoAcceptOrders(getMockOrderCreateDto(
+                BigDecimal.TEN),
+                Locale.ENGLISH
+        );
+        assertEquals(Optional.empty(), orderCreationResultDto);
+
+        verify(userRoleService, times(1)).isOrderAcceptionAllowedForUser(anyInt());
+        verify(userService, times(1)).getUserRoleFromDB(anyInt());
+        verify(orderDao, times(1)).selectTopOrders(
+                anyInt(),
+                any(BigDecimal.class),
+                any(OperationType.class),
+                any(Boolean.class),
+                anyInt(),
+                any(OrderBaseType.class));
+    }
+
+    @Ignore
+    public void autoAcceptOrders_list_ExOrder_has_element_amount_more_amountBase() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setId(3);
+        exOrder.setAmountBase(BigDecimal.TEN);
+
+        OrderCreateDto mockOrderCreateDto = getMockOrderCreateDto(BigDecimal.TEN);
+        mockOrderCreateDto.setAmount(BigDecimal.valueOf(11));
+
+        UserRoleSettings userRoleSettings = new UserRoleSettings();
+        userRoleSettings.setUserRole(UserRole.BOT_TRADER);
+        userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
+
+        WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
+        walletsForOrderAcceptionDto.setOrderStatusId(3);
+
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(orderDao.selectTopOrders(
+                anyInt(),
+                any(BigDecimal.class),
+                any(OperationType.class),
+                any(Boolean.class),
+                anyInt(),
+                any(OrderBaseType.class))
+        ).thenReturn(Collections.singletonList(exOrder));
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.TRUE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.BOT_TRADER);
+        when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
+        when(orderDao.getOrderById(anyInt())).thenReturn(exOrder);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(new WalletsForOrderAcceptionDto());
+
+        Optional<OrderCreationResultDto> orderCreationResultDto = orderService.autoAcceptOrders(
+                mockOrderCreateDto,
+                Locale.ENGLISH
+        );
+        assertEquals(Optional.empty(), orderCreationResultDto);
+
+        verify(userRoleService, times(1)).isOrderAcceptionAllowedForUser(anyInt());
+        verify(userService, times(1)).getUserRoleFromDB(anyInt());
+        verify(orderDao, times(1)).selectTopOrders(
+                anyInt(),
+                any(BigDecimal.class),
+                any(OperationType.class),
+                any(Boolean.class),
+                anyInt(),
+                any(OrderBaseType.class));
     }
 
     @Test
