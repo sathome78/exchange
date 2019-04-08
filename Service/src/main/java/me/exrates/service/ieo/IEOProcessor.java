@@ -123,7 +123,7 @@ public class IEOProcessor implements Runnable {
             if (StringUtils.isNotEmpty(userEmail)) {
                 String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, message));
                 stompMessenger.sendPersonalMessageToUser(userEmail, payload);
-                sendMailService.sendMailMandrill(prepareEmail(userEmail, message));
+                sendMailService.sendInfoMail(prepareEmail(userEmail, message));
             }
         } catch (Exception e) {
             /*ignore*/
