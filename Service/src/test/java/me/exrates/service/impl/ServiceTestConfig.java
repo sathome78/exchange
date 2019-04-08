@@ -6,6 +6,7 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.G2faDao;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.NewsDao;
 import me.exrates.dao.NotificationDao;
@@ -47,6 +48,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.merchantStrategy.MerchantServiceContextImpl;
 import me.exrates.service.notifications.EmailNotificatorServiceImpl;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.Google2faNotificatorServiceImpl;
@@ -67,6 +69,7 @@ import me.exrates.service.stopOrder.StopOrdersHolder;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -117,6 +120,11 @@ public class ServiceTestConfig {
     @Bean
     public UserDao userDao() {
         return Mockito.mock(UserDao.class);
+    }
+
+    @Bean
+    public IeoDetailsRepository ieoDetailsRepository() {
+        return Mockito.mock(IeoDetailsRepository.class);
     }
 
     @Bean
@@ -267,7 +275,7 @@ public class ServiceTestConfig {
 
     @Bean
     public MerchantServiceContext merchantServiceContext () {
-        return new MerchantServiceContext();
+        return new MerchantServiceContextImpl();
     }
 
     @Bean
@@ -367,7 +375,8 @@ public class ServiceTestConfig {
 
     @Bean
     public TransactionService transactionService() {
-        return new TransactionServiceImpl();
+        return new TransactionServiceImpl(transactionDao(), walletService(), companyWalletService(), merchantService(),
+                currencyService());
     }
 
     @Bean

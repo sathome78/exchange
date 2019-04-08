@@ -34,12 +34,13 @@ import java.util.Locale;
  */
 @Log4j2
 @Service("secureServiceImpl")
-@PropertySource("classpath:session.properties")
+@PropertySource(value = {"classpath:session.properties", "classpath:/security.properties"})
 public class SecureServiceImpl implements SecureService {
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.authenticationParamName}") String authenticationParamName;
     private @Value("${session.passwordParam}") String passwordParam;
+    private @Value("${security.isLoginPinEnabled}") boolean isEnabled;
 
     @Autowired
     private NotificationMessageService notificationService;
@@ -58,7 +59,7 @@ public class SecureServiceImpl implements SecureService {
                                CapchaAuthorizationFilter filter) {
         request.getSession().setAttribute("2fa_".concat(NotificationMessageEventEnum.LOGIN.name()), new PinAttempsDto());
         PinDto result = reSendLoginMessage(request, authentication.getName(), false);
-        if (result != null) {
+        if (result != null && isEnabled) {
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);
             request.getSession().setAttribute(passwordParam, request.getParameter(filter.getPasswordParameter()));

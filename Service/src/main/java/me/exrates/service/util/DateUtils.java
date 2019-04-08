@@ -1,4 +1,4 @@
-package me.exrates.utils;
+package me.exrates.service.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,6 +7,8 @@ import org.joda.time.DateTime;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -37,6 +39,18 @@ public class DateUtils {
             return URLDecoder.decode(input, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
             logger.warn("Can't decode url param: {}", input);
+            return null;
+        }
+    }
+
+    public static Date getDateFromStringForKyc(int year, int month, int day) {
+        String pattern = "yyyy-MM-dd";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+
+        try {
+            return simpleDateFormat.parse(year + "-" + month + "-" + day);
+        } catch (ParseException e) {
+            logger.error("Error parse date {} {} {}", year, month, day);
             return null;
         }
     }

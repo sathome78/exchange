@@ -112,8 +112,12 @@
                 <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="manageOrder.title"/></a>
             </sec:authorize>
         </li>
-
-
+        <%--ieo--%>
+        <li>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/ieo/page'/>">IEO</a>
+            </sec:authorize>
+        </li>
         <li>
             <%--Финансисты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">

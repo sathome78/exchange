@@ -21,7 +21,8 @@ public enum TransactionSourceType {
   WITHDRAW(9),
   STOP_ORDER(10),
   REFILL(11),
-  NOTIFICATIONS(12);
+  NOTIFICATIONS(12),
+  IEO(13);
 
   private final int code;
 
@@ -41,6 +42,10 @@ public enum TransactionSourceType {
         .filter(e -> e.name().equals(name))
         .findAny()
         .orElseThrow(() -> new UnsupportedTransactionSourceTypeNameException(name));
+  }
+
+  public String getName() {
+    return this.name();
   }
 
   public String toString(MessageSource messageSource, Locale locale) {

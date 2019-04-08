@@ -30,6 +30,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +49,7 @@ import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNIN
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 @RestController
+@PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/refill",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

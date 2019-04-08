@@ -5,22 +5,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
+import me.exrates.model.User;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WsMessageTypeEnum;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
+import me.exrates.service.cache.ChartsCacheManager;
+import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
+import me.exrates.service.impl.IEOServiceImpl;
 import me.exrates.service.util.OpenApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -32,6 +40,7 @@ import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,14 +54,16 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
+    private final IEOService ieoService;
 
     @Autowired
-    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService) {
+    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, IEOService ieoService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.objectMapper = objectMapper;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
+        this.ieoService = ieoService;
     }
 
 
@@ -92,7 +103,6 @@ public class WsController {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
         return initOrders(currencyId, role);
     }
-
 
     @SubscribeMapping("/trades/{currencyPairId}")
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
@@ -138,6 +148,22 @@ public class WsController {
     @SubscribeMapping("/queue/my_orders/{currencyPairName}")
     public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable String currencyPairName, Principal principal) {
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
+    }
+
+    @SubscribeMapping("/queue/personal_message")
+    public WsMessageObject subscribePersonalMessages(Principal principal) {
+        return new WsMessageObject(WsMessageTypeEnum.SUBSCRIBE, "ok");
+    }
+
+    @SubscribeMapping("/queue/ieo_details")
+    public Collection<IEODetails> subscribeIeoDetailsPersonal(Principal principal) {
+        User user = userService.findByEmail(principal.getName());
+        return ieoService.findAll(user);
+    }
+
+    @SubscribeMapping("/ieo/ieo_details/{detailId}")
+    public IEODetails subscribeIeoDetails(@DestinationVariable Integer detailId) {
+        return ieoService.findOne(Preconditions.checkNotNull(detailId));
     }
 
     private List<OrdersListWrapper> initOrders(Integer currencyPair, UserRole userRole) throws IOException {

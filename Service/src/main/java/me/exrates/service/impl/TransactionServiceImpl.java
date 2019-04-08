@@ -11,7 +11,6 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -26,9 +25,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.TransactionPersistException;
 import me.exrates.service.exception.TransactionProvidingException;
@@ -40,11 +37,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -53,23 +55,46 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 public class TransactionServiceImpl implements TransactionService {
 
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
-    private static final int decimalPlaces = 8;
+
+    private final CompanyWalletService companyWalletService;
+    private final CurrencyService currencyService;
+    private final MerchantService merchantService;
+    private final TransactionDao transactionDao;
+    private final WalletService walletService;
+
+    @Autowired
+    public TransactionServiceImpl(TransactionDao transactionDao,
+                                  WalletService walletService,
+                                  CompanyWalletService companyWalletService,
+                                  MerchantService merchantService,
+                                  CurrencyService currencyService) {
+        this.transactionDao = transactionDao;
+        this.walletService = walletService;
+        this.companyWalletService = companyWalletService;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
+    }
 
 
-    @Autowired
-    private TransactionDao transactionDao;
-    @Autowired
-    private WalletService walletService;
-    @Autowired
-    private CompanyWalletService companyWalletService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private OrderService orderService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
+    @PostConstruct
+    public void init() {
+        Set<TransactionSourceType> storedTypes = transactionDao.findAllTransactionSourceTypes();
+        Set<TransactionSourceType> enumValues = new HashSet<>(Arrays.asList(TransactionSourceType.values()));
+        enumValues.removeAll(storedTypes);
+        if (!enumValues.isEmpty()) {
+            transactionDao.updateStoredTransactionSourceType(enumValues);
+        }
+    }
+
+    @Override
+    public Transaction save(Transaction transaction) {
+        return transactionDao.create(transaction);
+    }
+
+    @Override
+    public boolean save(Collection<Transaction> transactions) {
+        return transactionDao.saveInBatch(transactions);
+    }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
@@ -111,25 +136,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.findById(id);
     }
 
-    @Override
-    public void updateTransactionAmount(Transaction transaction) {
-        updateAmount(transaction, transaction.getAmount());
-    }
-
-    @Override
-    public void updateTransactionAmount(final Transaction transaction, final BigDecimal amount) {
-        if (transaction.getOperationType() != OperationType.INPUT) {
-            throw new IllegalArgumentException("Updating amount only available for INPUT operation");
-        }
-        updateAmount(transaction, amount);
-    }
-
-    @Override
-    public BigDecimal calculateNewCommission(Transaction transaction, BigDecimal amount) {
-        return calculateCommissionFromAmpunt(amount, transaction.getCommission().getValue(),
-                currencyService.resolvePrecision(transaction.getCurrency().getName()));
-    }
-
     private void updateAmount(Transaction transaction, BigDecimal amount) {
         int scale = currencyService.resolvePrecision(transaction.getCurrency().getName());
         BigDecimal commissionRate = transaction.getCommission().getValue();
@@ -144,19 +150,6 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal mass = BigDecimal.valueOf(100L).add(commissionRate);
         return amount.multiply(commissionRate)
                 .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
-    }
-
-    @Override
-    public void nullifyTransactionAmountForWithdraw(final Transaction transaction) {
-        if (transaction.getOperationType() != OperationType.OUTPUT) {
-            throw new IllegalArgumentException("Nullifying amount only available for OUTPUT operations");
-        }
-        updateAmount(transaction, BigDecimal.ZERO);
-    }
-
-    @Override
-    public void updateTransactionConfirmation(final int transactionId, final int confirmations) {
-        transactionDao.updateTransactionConfirmations(transactionId, confirmations);
     }
 
     @Override
@@ -176,14 +169,6 @@ public class TransactionServiceImpl implements TransactionService {
         }
         if (!transactionDao.provide(transaction.getId())) {
             throw new TransactionProvidingException("Failed to provide transaction #" + transaction.getId());
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void invalidateTransaction(Transaction transaction) {
-        if (!transactionDao.delete(transaction.getId())) {
-            throw new TransactionProvidingException("Failed to delete transaction #" + transaction.getId());
         }
     }
 
@@ -264,82 +249,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BigDecimal maxCommissionAmount() {
-        return transactionDao.maxCommissionAmount();
-    }
-
-    @Override
-    public List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale) {
-        return transactionDao.getAccountStatement(walletId, offset, limit, locale);
-    }
-
-    @Override
-    @Transactional
-    public void setSourceId(Integer trasactionId, Integer sourceId) {
-        transactionDao.setSourceId(trasactionId, sourceId);
-    }
-
-    @Override
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-    public List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
-            String startDate,
-            String endDate,
-            Integer operationType,
-            List<Integer> roleIdList,
-            List<Integer> currencyList,
-            List<String> sourceTypeList) {
-        return transactionDao.findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(startDate, endDate, operationType, roleIdList, currencyList, sourceTypeList);
-    }
-
-    @Override
     @Transactional
     public boolean setStatusById(Integer trasactionId, Integer statusId) {
-        if(trasactionId == 0) return true;
+        if (trasactionId == 0) return true;
         return transactionDao.setStatusById(trasactionId, statusId);
     }
-
-    private List<String> convertTrListToString(List<OperationViewDto> transactions) {
-        List<String> transactionsResult = new ArrayList<>();
-        transactionsResult.add(getCSVTransactionsHeader());
-        transactionsResult.add("\n");
-        transactions.forEach(i -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append(i.getDatetime())
-                    .append(";")
-                    .append(i.getOperationType())
-                    .append(";")
-                    .append(i.getStatus())
-                    .append(";")
-                    .append(i.getCurrency())
-                    .append(";")
-                    .append(BigDecimalProcessing.formatNonePoint(i.getAmount(), false))
-                    .append(";")
-                    .append(BigDecimalProcessing.formatNonePoint(i.getCommissionAmount(), false))
-                    .append(";")
-                    .append(i.getMerchant().getName())
-                    .append(";")
-                    .append(i.getOrder() != null ? i.getOrder().getId() : 0);
-            transactionsResult.add(sb.toString());
-            transactionsResult.add("\n");
-        });
-        return transactionsResult;
-    }
-
-    private String getCSVTransactionsHeader() {
-        return "Date;Operation Type;Status;Currency;Amount;Comission;Merchant;Source Id";
-    }
-
-    private void setTransactionMerchant(Transaction transaction) {
-        LOG.debug(transaction);
-        TransactionSourceType sourceType = transaction.getSourceType();
-        if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
-            transaction.setMerchant(transaction.getMerchant());
-        } else {
-            transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
-        }
-
-    }
-
 
     @Override
     public List<Transaction> getPayedRefTransactionsByOrderId(int orderId) {

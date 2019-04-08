@@ -16,6 +16,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -137,8 +138,6 @@ public interface RefillService {
 
     List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses);
 
-    String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
-
     List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     int getTxOffsetForAddress(String address);
@@ -191,5 +190,7 @@ public interface RefillService {
 
     Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId);
 
-    void processRefillRequest(WalletOperationMsDto walletOperationMsDto);
+    default void processRefillRequest(WalletOperationMsDto walletOperationMsDto){
+        throw new NotImplementedException();
+    }
 }

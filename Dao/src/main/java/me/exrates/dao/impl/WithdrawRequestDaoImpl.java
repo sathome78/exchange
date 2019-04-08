@@ -29,6 +29,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -372,9 +373,11 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
                 " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
                 " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ;";
-        Map<String, Object> params = new HashMap<String, Object>();
+
+        Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("email", email);
+
         return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
     }
 
@@ -531,6 +534,24 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public BigDecimal getLeftOutputRequestsSum(int currencyId, String email) {
+        String sql = "SELECT " +
+                "(SELECT CURRENCY_LIMIT.max_daily_request FROM CURRENCY_LIMIT  " +
+                " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
+                " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) - " +
+                " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
+                " JOIN USER ON(USER.id = REQUEST.user_id) " +
+                " WHERE USER.email = :email and REQUEST.currency_id = :currency_id " +
+                " and DATE(REQUEST.date_creation) = CURDATE())";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_id", currencyId);
+        params.put("email", email);
+
+        return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
     private String getPermissionClause(Integer requesterUserId) {

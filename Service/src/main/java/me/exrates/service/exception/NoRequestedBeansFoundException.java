@@ -1,4 +1,4 @@
-package me.exrates.controller.exception;
+package me.exrates.service.exception;
 
 /**
  * Created by OLEG on 10.05.2017.

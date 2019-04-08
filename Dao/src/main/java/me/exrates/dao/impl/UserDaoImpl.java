@@ -6,6 +6,7 @@ import me.exrates.dao.exception.notfound.UserRoleNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.PagingData;
+import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -17,9 +18,11 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.model.enums.UserRole;
@@ -55,6 +58,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +78,7 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -114,6 +118,7 @@ public class UserDaoImpl implements UserDao {
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
             user.setFinpassword(resultSet.getString("finpassword"));
             user.setKycStatus(resultSet.getString("kyc_status"));
+            user.setCountry(resultSet.getString("country"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
@@ -1354,11 +1359,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean updateKycReferenceIdByEmail(String email, String refernceUID) {
-        String sql = "UPDATE USER SET kyc_reference = :value WHERE email = :email";
+    public boolean updatePrivacyDataAndKycReferenceIdByEmail(String email, String refernceUID, String country,
+                                               String firstName, String lastName, Date birthDay) {
+        String sql = "UPDATE USER SET kyc_reference = :value, country = :country," +
+                "firstName = :firstName, lastName = :lastName, birthDay = :birthDay WHERE email = :email";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("value", refernceUID);
         params.addValue("email", email);
+        params.addValue("country", country);
+        params.addValue("firsName", firstName);
+        params.addValue("lastName", lastName);
+        params.addValue("birthDay", birthDay);
         try {
             return namedParameterJdbcTemplate.update(sql, params) > 0;
         } catch (EmptyResultDataAccessException e) {
@@ -1385,6 +1396,67 @@ public class UserDaoImpl implements UserDao {
     public String findKycReferenceByUserEmail(String email) {
         String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+    }
+
+    @Override
+    public List<Policy> getAllPoliciesByUserId(String id) {
+
+        String sql = "SELECT p.* FROM POLICY p " +
+                "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
+                "WHERE up.user_id = :id";
+
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("id", id);
+            }
+        };
+        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            Policy policy = new Policy();
+            policy.setId(rs.getInt("id"));
+            policy.setName(rs.getString("name"));
+            policy.setTitle(rs.getString("title"));
+            policy.setDesciption(rs.getString("description"));
+            return policy;
+        });
+    }
+
+    @Override
+    public boolean existPolicyByUserIdAndPolicy(int id, String policyName) {
+
+        String sql = "SELECT COUNT(*) FROM POLICY p " +
+                "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
+                "WHERE up.user_id = :id AND p.name = :policy LIMIT 1" ;
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("id", String.valueOf(id));
+                put("policy", policyName);
+            }
+        };
+
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) > 0;
+    }
+
+    @Override
+    public boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum) {
+        String sql = "INSERT INTO USER_POLICES (user_id, policy_id) VALUES (" +
+                "(SELECT u.id FROM USER u WHERE u.email = :email), " +
+                "(SELECT p.id FROM POLICY p WHERE p.name = :policyName)" +
+                ")";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        params.addValue("policyName", policyEnum.getName());
+
+        try {
+            return namedParameterJdbcTemplate.update(sql, params) > 0;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+    }
+
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        // todo implement
+
+        return null;
     }
 
 }

@@ -12,11 +12,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.TransferTypeVoucher;
-import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -99,6 +95,7 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     @Qualifier("bitcoinServiceImpl")
     private BitcoinService bitcoinService;
+    private EDCServiceNode edcServiceNode;
 
     @Override
     public List<Merchant> findAllByCurrency(Currency currency) {
@@ -583,5 +580,42 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType) {
         return merchantDao.getMerchantByCurrencyForVoucher(currencyId, transferType);
+    }
+
+    @Override
+    @SneakyThrows
+    public Map<String, String> getWalletBalanceByCurrencyName(String currencyName, String token, String address) {
+        if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
+            throw new RuntimeException("Some unexpected exception");
+        }
+        if (currencyName.equals("EDR")) {
+            String balance = edcServiceNode.extractBalance(address, 0);
+            Map<String, String> response = new HashMap<>();
+            response.put("EDR", balance);
+            return response;
+        }
+        Currency byName = currencyService.findByName(currencyName);
+
+        List<Merchant> allByCurrency = findAllByCurrency(byName);
+        List<Merchant> collect = allByCurrency
+                .stream().
+                        filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
+        Map<String, String> collect1 = collect.
+                stream().
+                collect(Collectors.toMap(
+                        Merchant::getName,
+                        merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
+
+
+        return collect1;
+    }
+
+    private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
+        String serviceBeanName = findByName(merchantName).getServiceBeanName();
+        IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);
+        if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+            throw new NoRequestedBeansFoundException(serviceBeanName);
+        }
+        return (BitcoinService) merchantService;
     }
 }

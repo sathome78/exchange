@@ -216,6 +216,7 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
         mockIdentityDataRequest.setFirstNames(new String[3]);
         mockIdentityDataRequest.setLastName("Dou");
         mockIdentityDataRequest.setTypeDoc(DocTypeEnum.ID);
+        mockIdentityDataRequest.setCountry("Ukraine");
 
         Mockito.when(kycService.startKyCProcessing(anyObject(), anyString()))
                 .thenReturn(

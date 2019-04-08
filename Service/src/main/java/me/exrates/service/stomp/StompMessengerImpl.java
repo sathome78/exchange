@@ -1,10 +1,13 @@
 package me.exrates.service.stomp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.RefreshStatisticDto;
+import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -50,7 +53,8 @@ public class StompMessengerImpl implements StompMessenger {
     private DefaultSimpUserRegistry registry;
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -66,7 +70,6 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination("/app/trade_orders/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToDestination("/app/orders/sfwfrf442fewdf/".concat(String.valueOf(currencyPair.getId())), message);
         sendMessageToOrderBookNg(currencyPair, operationType);
-        /*sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);*/
     }
 
     private void sendMessageToOrderBookNg(CurrencyPair currencyPair, OperationType operationType) {
@@ -94,33 +97,6 @@ public class StompMessengerImpl implements StompMessenger {
     @Override
     public void sendRefreshTradeOrdersDetailMessage(String pairName, String message) {
         sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairName), message);
-    }
-
-    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
-        Set<SimpSubscription> subscriptions =
-                findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));
-        if (!subscriptions.isEmpty()) {
-            Map<UserRole, List<SimpSubscription>> map = new HashMap<>();
-            subscriptions.forEach(p -> {
-                String userEmail = p.getSession().getUser().getName();
-                if (!StringUtils.isEmpty(userEmail)) {
-                    UserRole role = userService.getUserRoleFromDB(userEmail);
-                    if (map.containsKey(role)) {
-                        map.get(role).add(p);
-                    } else {
-                        map.put(role, new ArrayList<SimpSubscription>() {{
-                            add(p);
-                        }});
-                    }
-                }
-            });
-            map.forEach((k, v) -> {
-                String message = orderService.getOrdersForRefresh(pairId, operationType, k);
-                for (SimpSubscription subscription : v) {
-                    sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
-                }
-            });
-        }
     }
 
 
@@ -165,21 +141,6 @@ public class StompMessengerImpl implements StompMessenger {
     }
 
 
-    private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {
-        List<BackDealInterval> intervals = new ArrayList<>();
-        orderService.getIntervals().forEach(p -> {
-            Set<SimpSubscription> subscribers = findSubscribersByDestination("/app/charts/".concat(pairId.toString().concat("/").concat(p.getInterval())));
-            if (subscribers.size() > 0) {
-                intervals.add(p);
-            }
-        });
-        return intervals;
-    }
-
-   /* public void sendChartUpdate(Integer currencyPairId) {
-       registry.findSubscriptions(sub -> sub.).forEach(sub -> sub.);
-    }*/
-
     @Synchronized
     @Override
     public void sendStatisticMessage(Set<Integer> currenciesIds) {
@@ -215,6 +176,22 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 
+    @Override
+    public void sendPersonalMessageToUser(String userEmail, String payload) {
+        String destination = "/queue/personal_message";
+        messagingTemplate.convertAndSendToUser(userEmail, destination, payload);
+    }
+
+    @Override
+    public void sendPersonalDetailsIeo(String userEmail, String payload) {
+        String destination = "/queue/ieo_details";
+        messagingTemplate.convertAndSendToUser(userEmail, destination, payload);
+    }
+
+    @Override
+    public void sendDetailsIeo(Integer detailId, String payload) {
+        sendMessageToDestination("/app/ieo/ieo_details/".concat(detailId.toString()), payload);
+    }
 
     private Set<SimpSubscription> findSubscribersByDestination(final String destination) {
         return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));

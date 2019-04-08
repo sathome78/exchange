@@ -10,4 +10,6 @@ public interface KYCSettingsDao {
     List<KycCountryDto> getCountriesDictionary();
 
     List<KycLanguageDto> getLanguagesDictionary();
+
+    KycCountryDto getCountryByCode(String code);
 }

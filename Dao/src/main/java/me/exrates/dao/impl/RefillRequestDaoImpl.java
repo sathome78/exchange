@@ -59,7 +59,6 @@ import static me.exrates.model.enums.TransactionSourceType.REFILL;
  */
 
 @Repository
-@Conditional(MonolitConditional.class)
 public class RefillRequestDaoImpl implements RefillRequestDao {
 
     private static final Logger log = LogManager.getLogger("refill");

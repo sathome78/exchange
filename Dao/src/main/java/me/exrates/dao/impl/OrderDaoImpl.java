@@ -942,7 +942,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                        OrderStatus orderStatus, String scope, Integer limit, Integer offset,
-                                                       Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                       Boolean hideCanceled, String sortByCreated,
                                                        LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
         String currencyPairClauseWhere = isNull(currencyPair)
                 ? StringUtils.EMPTY
@@ -982,14 +982,7 @@ public class OrderDaoImpl implements OrderDao {
                 break;
         }
 
-        String orderClause;
-        if (orderStatus == OrderStatus.CLOSED) {
-            orderClause = " ORDER BY x.date_creation ASC ";
-        } else {
-            orderClause = sortedColumns.isEmpty()
-                    ? " ORDER BY x.date_creation DESC "
-                    : " ORDER BY x.date_creation ASC ";
-        }
+        String orderClause = String.format(" ORDER BY x.date_creation %s ", sortByCreated);
 
         String limitStr = limit < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", limit);
         String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", offset);
@@ -1953,8 +1946,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
-                                             String scope, Integer limit, Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
-                                             LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo) {
+                                             String scope, Integer limit, Integer offset, Boolean hideCanceled, LocalDateTime dateTimeFrom,
+                                             LocalDateTime dateTimeTo) {
         String currencyPairClauseWhere = StringUtils.EMPTY;
         String currencyPairClauseWhereForStopLimit = StringUtils.EMPTY;
         if (nonNull(currencyPair)

@@ -17,6 +17,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
@@ -64,6 +65,7 @@ public class WsControllerTest {
     private ObjectMapper objectMapper;
     private UserService userService;
     private UsersAlertsService usersAlertsService;
+    private IEOService ieoService;
 
     private TestMessageChannel clientOutboundChannel;
     private TestAnnotationMethodHandler annotationMethodHandler;
@@ -81,7 +83,8 @@ public class WsControllerTest {
                 currencyService,
                 objectMapper,
                 userService,
-                usersAlertsService
+                usersAlertsService,
+                ieoService
         );
 
         this.clientOutboundChannel = new TestMessageChannel();

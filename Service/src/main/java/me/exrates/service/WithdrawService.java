@@ -84,4 +84,7 @@ public interface WithdrawService {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> userRoles,
                                                                 int requesterId);
+  void setAdditionalData(MerchantCurrency merchantCurrency);
+
+  BigDecimal getLeftOutputRequestsSum(int id, String email);
 }

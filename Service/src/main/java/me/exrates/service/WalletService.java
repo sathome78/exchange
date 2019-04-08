@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface WalletService {
 
@@ -165,4 +167,19 @@ public interface WalletService {
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
+
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    @Transactional()
+    boolean performIeoTransfer(IEOClaim ieoClaim);
+
+    BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
+
+    Map<String, BigDecimal> findUserCurrencyBalances(User user);
+
+    BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }

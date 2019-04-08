@@ -14,6 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
     <btcd-cli4j.version>0.5.9.17</btcd-cli4j.version>
+    <aws-java-sdk.version>1.11.433</aws-java-sdk.version>
   </properties>
   <dependencies>
     <dependency>
@@ -196,7 +197,18 @@
       <artifactId>failsafe</artifactId>
       <version>1.0.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <version>${aws-java-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-ssm</artifactId>
+      <version>${aws-java-sdk.version}</version>
+    </dependency>
   </dependencies>
+
   <repositories>
     <repository>
       <id>btcd-cli4j-inner</id>

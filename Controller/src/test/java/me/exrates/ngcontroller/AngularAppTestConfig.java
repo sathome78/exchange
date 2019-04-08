@@ -18,6 +18,7 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.GtagRefillService;
+import me.exrates.service.IEOService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
@@ -306,5 +307,10 @@ public class AngularAppTestConfig {
     @Bean
     public NgOptionsController ngOptionsController() {
         return new NgOptionsController();
+    }
+
+    @Bean
+    public IEOService ieoService() {
+        return Mockito.mock(IEOService.class);
     }
 }

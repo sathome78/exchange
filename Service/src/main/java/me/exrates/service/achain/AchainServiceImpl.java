@@ -34,7 +34,7 @@ public class AchainServiceImpl implements AchainService {
 
     private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
     private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.1).setScale(2, RoundingMode.HALF_UP);
-    private static final String MERCHANT_NAME = "ACHAIN";
+    public static final String MERCHANT_NAME = "ACHAIN";
 
     private final NodeService nodeService;
     private final CurrencyService currencyService;

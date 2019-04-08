@@ -47,7 +47,6 @@ import java.util.Optional;
  */
 @Log4j
 @Repository
-@Conditional(MonolitConditional.class)
 public class MerchantDaoImpl implements MerchantDao {
 
     @Autowired

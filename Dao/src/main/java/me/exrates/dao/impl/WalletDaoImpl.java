@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.TransactionDao;
@@ -9,6 +10,7 @@ import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -41,8 +43,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -57,6 +61,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +71,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.asLifoQueue;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.OperationType.SELL;
@@ -95,6 +101,20 @@ public class WalletDaoImpl implements WalletDao {
         userWallet.setCurrencyId(resultSet.getInt("currency_id"));
         userWallet.setUser(userDao.getUserById(resultSet.getInt("user_id")));
         userWallet.setActiveBalance(resultSet.getBigDecimal("active_balance"));
+        userWallet.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
+
+        return userWallet;
+    };
+
+    protected final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
+
+        final Wallet userWallet = new Wallet();
+        userWallet.setId(resultSet.getInt("id"));
+        userWallet.setName(resultSet.getString("name"));
+        userWallet.setCurrencyId(resultSet.getInt("currency_id"));
+        userWallet.setUser(userDao.getUserById(resultSet.getInt("user_id")));
+        userWallet.setActiveBalance(resultSet.getBigDecimal("active_balance"));
+        userWallet.setIeoReserved(resultSet.getBigDecimal("ieo_reserve"));
         userWallet.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
 
         return userWallet;
@@ -689,6 +709,24 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public Wallet findByUserAndCurrency(int userId, String currencyName) {
+        final String sql = "SELECT WALLET.id, WALLET.currency_id, WALLET.user_id, WALLET.active_balance, WALLET.reserved_balance, WALLET.ieo_reserve, CURRENCY.name as name" +
+                " FROM WALLET INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id" +
+                " WHERE user_id = :userId and CURRENCY.name = :currencyName";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("userId", userId);
+                put("currencyName", currencyName);
+            }
+        };
+        try {
+            return jdbcTemplate.queryForObject(sql, params, ieoWalletRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
     public Wallet findById(Integer walletId) {
         final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name " +
                 "FROM WALLET " +
@@ -700,11 +738,16 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet createWallet(User user, int currencyId) {
-        final String sql = "INSERT INTO WALLET (currency_id,user_id) VALUES(:currId,:userId)";
+        return createWallet(user.getId(), currencyId);
+    }
+
+    @Override
+    public Wallet createWallet(int userId, int currencyId) {
+        final String sql = "INSERT INTO WALLET (currency_id, user_id) VALUES(:currId,:userId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", currencyId)
-                .addValue("userId", user.getId());
+                .addValue("userId", userId);
         if (jdbcTemplate.update(sql, parameters, keyHolder) > 0) {
             Wallet wallet = new Wallet();
             wallet.setActiveBalance(BigDecimal.valueOf(0));
@@ -1075,6 +1118,40 @@ public class WalletDaoImpl implements WalletDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId) {
+        String sql = "SELECT active_balance FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId FOR UPDATE";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        } catch (Exception ex) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId) {
+        String sql = "UPDATE WALLET SET active_balance = (active_balance - :amountInBtc)," +
+                " ieo_reserve = (ieo_reserve + :amountInBtc)" +
+                " WHERE user_id = :userId AND currency_id = :currencyId";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId)
+                .addValue("amountInBtc", amountInBtc);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId) {
+        String sql = "UPDATE WALLET SET active_balance = (active_balance + :amountInBtc)," +
+                " ieo_reserve = (ieo_reserve - :amountInBtc)" +
+                " WHERE user_id = :userId AND currency_id = :currencyId";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId)
+                .addValue("amountInBtc", amountInBtc.doubleValue());
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
@@ -1551,6 +1628,41 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public Map<String, BigDecimal> findUserCurrencyBalances(User user, Collection<String> currencyNames) {
+        String sql = "SELECT c.name AS currency, w.active_balance AS balance FROM WALLET as w"
+                + " INNER JOIN CURRENCY as c ON c.id = w.currency_id"
+                + " WHERE user_id = :userId AND c.name IN (:currencyNames);";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", user.getId())
+                .addValue("currencyNames", currencyNames);
+        try {
+            return jdbcTemplate.query(sql, params, rs -> {
+                Map<String, BigDecimal> values = new HashMap<>();
+                while (rs.next()) {
+                    values.put(rs.getString("currency"), rs.getBigDecimal("balance"));
+                }
+                return values;
+            });
+        } catch (DataAccessException e) {
+            log.warn("Failed to find any wallets for user: " + user.getId() + " for currencies: " + currencyNames, e);
+            return Maps.newHashMap();
+        }
+    }
+
+    @Override
+    public BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim) {
+        String sql = "SELECT W.active_balance FROM WALLET AS W"
+                + " INNER JOIN CURRENCY AS C ON C.id = W.currency_id"
+                + " WHERE W.user_id = :userId AND C.name = :currencyName;";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", ieoClaim.getUserId())
+                .addValue("currencyName", ieoClaim.getCurrencyName());
+        try {
+            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        } catch (DataAccessException e) {
+           return BigDecimal.ZERO;
+        }
     }
 
     @SuppressWarnings("Duplicates")

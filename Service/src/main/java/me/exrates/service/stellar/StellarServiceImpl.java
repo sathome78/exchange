@@ -82,7 +82,7 @@ public class StellarServiceImpl implements StellarService {
     }
 
 
-    private static final String XLM_MERCHANT = "Stellar";
+    public static final String XLM_MERCHANT = "Stellar";
 
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
 

@@ -30,6 +30,10 @@ public class User implements Serializable {
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
 	private String kycStatus;
+	private String country;
+	private String firstName;
+	private String lastName;
+	private Date birthDay;
 
 	public User() {
 	}
@@ -152,6 +156,38 @@ public class User implements Serializable {
 
 	public void setKycStatus(String kycStatus) {
 		this.kycStatus = kycStatus;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public Date getBirthDay() {
+		return birthDay;
+	}
+
+	public void setBirthDay(Date birthDay) {
+		this.birthDay = birthDay;
 	}
 
 	@Override

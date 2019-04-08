@@ -52,7 +52,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
@@ -353,7 +352,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(), anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -379,7 +378,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -400,7 +399,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -426,7 +425,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -446,7 +445,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -477,7 +476,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -498,7 +497,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -521,7 +520,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -543,7 +542,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -569,7 +568,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -590,7 +589,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -615,7 +614,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -634,7 +633,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -665,7 +664,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));

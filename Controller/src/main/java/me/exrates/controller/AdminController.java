@@ -5,7 +5,10 @@ import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.AdminLoggable;
-import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.exception.NotAcceptableOrderException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.Currency;
 import me.exrates.model.*;
@@ -32,7 +35,6 @@ import me.exrates.service.*;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.*;
-import me.exrates.service.B2XTransferToReserveAccount;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.process.OrderAcceptionException;
@@ -140,8 +142,6 @@ public class AdminController {
     @Autowired
     private ReferralService referralService;
     @Autowired
-    private Map<String, BitcoinService> bitcoinLikeServices;
-    @Autowired
     private NotificationService notificationService;
     @Autowired
     private PhraseTemplateService phraseTemplateService;
@@ -164,8 +164,6 @@ public class AdminController {
     @Autowired
     private NotificatorsService notificatorsService;
     @Autowired
-    private EDCServiceNode edcServiceNode;
-    @Autowired
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
@@ -174,8 +172,6 @@ public class AdminController {
     @Autowired
     private OmniService omniService;
 
-    @Autowired
-    private B2XTransferToReserveAccount b2XTransferToReserveAccount;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -1070,10 +1066,9 @@ public class AdminController {
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
-        String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
-        IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
+        IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
         if (merchantService == null || !(merchantService instanceof BitcoinService)) {
-            throw new NoRequestedBeansFoundException(serviceBeanName);
+            throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;
     }
@@ -1285,31 +1280,8 @@ public class AdminController {
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
                                                                               @RequestParam("token") String token,
-                                                                              @RequestParam(value = "address", required = false) String address) throws IOException {
-
-        if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
-            throw new RuntimeException("Some unexpected exception");
-        }
-        if (currencyName.equals("EDR")) {
-            String balance = edcServiceNode.extractBalance(address, 0);
-            Map<String, String> response = new HashMap<>();
-            response.put("EDR", balance);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-        Currency byName = currencyService.findByName(currencyName);
-
-        List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
-        List<Merchant> collect = allByCurrency
-                .stream().
-                filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
-        Map<String, String> collect1 = collect.
-                stream().
-                collect(Collectors.toMap(
-                        Merchant::getName,
-                        merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
-
-
-        return new ResponseEntity<>(collect1, HttpStatus.OK);
+                                                                              @RequestParam(value = "address", required = false) String address) {
+        return ResponseEntity.ok(merchantService.getWalletBalanceByCurrencyName(currencyName, token, address));
     }
 
     @AdminLoggable
@@ -1675,14 +1647,6 @@ public class AdminController {
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
 
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve", method = POST)
-    public ResponseEntity sendMoneyToReserveAddress(@RequestParam("transactionCount") int transactionCount,
-                                                    @RequestParam("transactionAmount") String amount) {
-        b2XTransferToReserveAccount.transferToReserveAccountFromNode(transactionCount, amount);
-        return ResponseEntity.ok().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

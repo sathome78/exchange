@@ -28,7 +28,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
-import me.exrates.utils.DateUtils;
+import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,7 +59,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -103,6 +103,7 @@ public class NgDashboardController {
     }
 
     // /info/private/v2/dashboard/order
+    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
         OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
@@ -124,6 +125,7 @@ public class NgDashboardController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result = (Integer) orderService.deleteOrderByAdmin(id);
@@ -134,6 +136,7 @@ public class NgDashboardController {
         throw new NgResponseException(ErrorApiTitles.DELETE_ORDER_FAILED, message);
     }
 
+    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
@@ -242,10 +245,6 @@ public class NgDashboardController {
 
         Integer offset = (page - 1) * limit;
 
-        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
-                ? Collections.emptyMap()
-                : Collections.singletonMap("date_creation", sortByCreated);
-
         CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
@@ -263,7 +262,7 @@ public class NgDashboardController {
                     limit,
                     offset,
                     hideCanceled,
-                    sortedColumns,
+                    sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -322,7 +321,7 @@ public class NgDashboardController {
                     limit,
                     offset,
                     hideCanceled,
-                    Collections.emptyMap(),
+                    "DESC",
                     null,
                     null,
                     locale);
@@ -396,6 +395,11 @@ public class NgDashboardController {
         User user = userService.findByEmail(userName);
         Map<String, Map<String, String>> result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping("/policy/{name}")
+    public ResponseModel<Boolean> addPolicyToUser(@PathVariable String name) {
+        return new ResponseModel<>(userService.addPolicyToUser(getPrincipalEmail(), name));
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
