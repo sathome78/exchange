@@ -1,7 +1,6 @@
 package me.exrates.ngcontroller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Collection;
 
 @RequestMapping("/api/private/v2/ieo")
 @RestController

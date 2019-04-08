@@ -78,6 +78,15 @@ public class IEOServiceImpl implements IEOService {
             throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
         }
 
+        IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
+
+        if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
+            String message = String.format("Failed to create claim, check status false",
+                    claimDto.getCurrencyName());
+            logger.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_CHECK_STATUS_FAILURE, message);
+        }
+
         User user = userService.findByEmail(email);
 
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
