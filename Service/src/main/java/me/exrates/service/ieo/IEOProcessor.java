@@ -18,7 +18,7 @@ import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsMessageTypeEnum;
 import me.exrates.service.SendMailService;
 import me.exrates.service.WalletService;
-import me.exrates.service.exception.IeoException;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
 

@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.io.Serializable;
@@ -50,4 +51,5 @@ public class Transaction implements Serializable {
     private String description;
     private WithdrawRequest withdrawRequest;
     private RefillRequest refillRequest;
+    private InvoiceStatus invoiceStatus;
 }

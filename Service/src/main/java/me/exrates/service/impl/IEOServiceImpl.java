@@ -20,7 +20,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.exception.IeoException;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

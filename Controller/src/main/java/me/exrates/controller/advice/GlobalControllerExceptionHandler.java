@@ -12,7 +12,7 @@ import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
-import me.exrates.service.exception.IeoException;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;

@@ -872,9 +872,9 @@ public final class TransactionDaoImpl implements TransactionDao {
                 .toArray(new TransactionSqlAdapter[]{});
         SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(adapters);
         String sql = "INSERT INTO TRANSACTION (user_wallet_id, amount, commission_amount, operation_type_id, currency_id,"
-                + " provided, active_balance_before, source_type, description)"
+                + " provided, active_balance_before, source_type, status_id, description)"
                 + " VALUES (:userWalletId, :amount, :commissionAmount, :operationTypeId, :currencyId, :provided," +
-                " :activeBalanceBefore, :sourceType, :description)";
+                " :activeBalanceBefore, :sourceType, :statusId, :description)";
         int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
         return updateCounts.length > 0;
     }

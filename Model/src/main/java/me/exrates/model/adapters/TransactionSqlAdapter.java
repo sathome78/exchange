@@ -19,6 +19,7 @@ public class TransactionSqlAdapter {
     private double commissionAmount;
     private int operationTypeId;
     private int currencyId;
+    private int statusId;
     private boolean provided = true;
     private double activeBalanceBefore;
     private String sourceType;
@@ -34,6 +35,7 @@ public class TransactionSqlAdapter {
                 .currencyId(transaction.getCurrency().getId())
                 .activeBalanceBefore(transaction.getActiveBalanceBefore().doubleValue())
                 .sourceType(transaction.getSourceType().name())
+                .statusId(transaction.getInvoiceStatus().getCode())
                 .description(transaction.getDescription())
                 .build();
     }
