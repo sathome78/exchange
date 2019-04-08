@@ -81,10 +81,10 @@ public class IEOServiceImpl implements IEOService {
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
 
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
-            String message = String.format("Failed to create claim, check status false",
+            String message = String.format("Failed to create claim, as user KYC status check failed",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_CHECK_STATUS_FAILURE, message);
+            throw new IeoException(ErrorApiTitles.IEO_CHECK_KYC_STATUS_FAILURE, message);
         }
 
         User user = userService.findByEmail(email);
