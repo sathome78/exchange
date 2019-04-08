@@ -881,7 +881,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Map<String, BigDecimal> findUserCurrencyBalances(User user) {
+    public Map<String, String> findUserCurrencyBalances(User user) {
         List<String> ieoCurrencyNames = ieoDetailsRepository.findAll()
                 .stream()
                 .map(IEODetails::getCurrencyName)

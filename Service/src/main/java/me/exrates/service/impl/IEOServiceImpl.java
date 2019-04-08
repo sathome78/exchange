@@ -137,14 +137,16 @@ public class IEOServiceImpl implements IEOService {
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
             return ieoDetailsRepository.findAllExceptForMaker(user.getId());
         }
-        Map<String, BigDecimal> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
+        Map<String, String> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
         Collection<IEODetails> details = ieoDetailsRepository.findAll();
-        details.forEach(det -> {
-            if (userCurrencyBalances.containsKey(det)) {
-                det.setPersonalAmount(userCurrencyBalances.get(det));
+        details.forEach(item -> {
+            if (userCurrencyBalances.containsKey(item)) {
+                item.setPersonalAmount(new BigDecimal(userCurrencyBalances.get(item)));
             } else {
-                det.setPersonalAmount(BigDecimal.ZERO);
+                item.setPersonalAmount(BigDecimal.ZERO);
             }
+            IEOStatusInfo statusInfo = checkUserStatusForIEO(user.getEmail(), item.getId());
+            item.setReadyToIeo(statusInfo.isKycCheck() && statusInfo.isCountryCheck() && statusInfo.isPolicyCheck());
         });
         return details;
     }

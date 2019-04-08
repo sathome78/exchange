@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public interface WalletService {
 
@@ -179,7 +180,7 @@ public interface WalletService {
 
     BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
 
-    Map<String, BigDecimal> findUserCurrencyBalances(User user);
+    Map<String, String> findUserCurrencyBalances(User user);
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }
