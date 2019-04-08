@@ -47,7 +47,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -354,10 +353,6 @@ public class NgPublicController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
-    }
-
-    private String getPrincipalEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
 }
