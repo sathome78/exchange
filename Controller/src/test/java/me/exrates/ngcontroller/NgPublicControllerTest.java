@@ -570,7 +570,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.[0].dateAcceptionTime", is("TEST_DATE_ACCEPTION_TIME")))
                 .andExpect(jsonPath("$.[0].rate", is("TEST_RATE")))
                 .andExpect(jsonPath("$.[0].amountBase", is("TEST_AMOUNT_BASE")))
-                .andExpect(jsonPath("$.[0].operationType", is("BUY"))).andDo(print());
+                .andExpect(jsonPath("$.[0].operationType", is("BUY")));
 
         verify(currencyService, times(1)).findCurrencyPairById(anyInt());
         verify(orderService, times(1)).getOrderAcceptedForPeriodEx(anyObject(), anyObject(), anyInt(), anyObject(), anyObject());

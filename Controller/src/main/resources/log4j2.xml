@@ -609,6 +609,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="rabbit_refill" fileName="${sys:catalina.home}/logs/rabbit/rabbit_refill.log"
+                     filePattern="${sys:catalina.home}/logs/rabbit/rabbit_refill%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="crea" fileName="${sys:catalina.home}/logs/crypto/crea.log"
                      filePattern="${sys:catalina.home}/logs/crypto/crea%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -861,6 +870,9 @@
         </logger>
         <logger name="ethereum_classic_log" level="ALL" additivity="false">
             <AppenderRef ref="ethereum_classic_log"/>
+        </logger>
+        <logger name="rabbit_refill" level="ALL" additivity="false">
+            <AppenderRef ref="rabbit_refill"/>
         </logger>
         <logger name="etherzero_log" level="ALL" additivity="false">
             <AppenderRef ref="etherzero_log"/>
