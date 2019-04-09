@@ -90,6 +90,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -710,9 +711,9 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(2, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_1"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
 
         verify(currencyService, times(1)).findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
     }
@@ -744,11 +745,11 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(3, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_5"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndTypeAndUser(anyInt(), any(OperationType.class), any(User.class));
@@ -785,11 +786,11 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(3, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndTypeAndUser(anyInt(), any(OperationType.class), any(User.class));
@@ -831,13 +832,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_2"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndTypeAndUser(anyInt(), any(OperationType.class), any(User.class));
@@ -879,13 +880,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_2"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1)).findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -955,13 +956,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.maxvalue"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_1"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_1"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_1"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_5"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
 
         verify(currencyService, times(1)).findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -1000,13 +1001,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.maxrate"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_0"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_0"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_0"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_1"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_3"));
 
         verify(currencyService, times(1)).findLimitForRoleByCurrencyPairAndTypeAndUser(
                 anyInt(),
@@ -1040,11 +1041,11 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(3, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_5"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_5"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_3"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_2"));
 
         verify(currencyService, times(1)).findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
     }
@@ -1079,11 +1080,11 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(3, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
@@ -1124,13 +1125,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_2"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
@@ -1171,13 +1172,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.fillfield"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_2"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_6"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_6"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_4"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_4"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
@@ -1234,13 +1235,13 @@ public class OrderServiceImplTest {
         assertTrue(orderValidationDto.getErrors().containsValue("order.maxrate"));
         assertEquals(4, orderValidationDto.getErrorParams().size());
         assertTrue(orderValidationDto.getErrorParams().containsKey("stop_0"));
-        assertEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_0"));
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(10)}, orderValidationDto.getErrorParams().get("stop_0"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_2"));
-        assertEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
+        assertArrayEquals(new String[]{"10", "10"}, orderValidationDto.getErrorParams().get("amount_2"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("amount_1"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("amount_1"));
         assertTrue(orderValidationDto.getErrorParams().containsKey("exrate_3"));
-        assertEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_3"));
+        assertArrayEquals(new String[]{"10"}, orderValidationDto.getErrorParams().get("exrate_3"));
 
         verify(currencyService, times(1))
                 .findLimitForRoleByCurrencyPairAndType(anyInt(), any(OperationType.class));
