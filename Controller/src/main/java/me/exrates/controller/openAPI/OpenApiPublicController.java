@@ -2,6 +2,7 @@ package me.exrates.controller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
@@ -11,6 +12,7 @@ import me.exrates.model.dto.openAPI.TickerJsonDto;
 import me.exrates.model.dto.openAPI.TradeHistoryDto;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -171,10 +173,10 @@ public class OpenApiPublicController {
                                                                                @RequestParam(required = false, defaultValue = "50") Integer limit,
                                                                                @RequestParam(required = false, defaultValue = "ASC") String direction) {
         if (fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("From date is after to date"));
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_DATES, "From date is after to date");
         }
         if (nonNull(limit) && limit <= 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, "Limit value equals or less than zero");
         }
 
         final String transformedCurrencyPair = transformCurrencyPair(currencyPair);

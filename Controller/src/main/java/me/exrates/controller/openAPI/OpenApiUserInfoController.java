@@ -1,12 +1,15 @@
 package me.exrates.controller.openAPI;
 
+import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
 import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -136,8 +139,12 @@ public class OpenApiUserInfoController {
                 ? transformCurrencyPair(currencyPair)
                 : null;
 
-        validateNaturalInt(limit);
-        validateNaturalInt(offset);
+        try {
+            validateNaturalInt(limit);
+            validateNaturalInt(offset);
+        } catch (InvalidNumberParamException e) {
+            throw new OpenApiException(ErrorApiTitles.API_VALIDATE_NUMBER_ERROR, e.getMessage());
+        }
 
         return orderService.getUserClosedOrders(currencyPairName, limit, offset);
     }
@@ -174,9 +181,12 @@ public class OpenApiUserInfoController {
         final String currencyPairName = nonNull(currencyPair)
                 ? transformCurrencyPair(currencyPair)
                 : null;
-
-        validateNaturalInt(limit);
-        validateNaturalInt(offset);
+        try {
+            validateNaturalInt(limit);
+            validateNaturalInt(offset);
+        } catch (InvalidNumberParamException e) {
+            throw new OpenApiException(ErrorApiTitles.API_VALIDATE_NUMBER_ERROR, e.getMessage());
+        }
 
         return ResponseEntity.ok(BaseResponse.success(orderService.getUserCanceledOrders(currencyPairName, limit, offset)));
     }
@@ -238,10 +248,10 @@ public class OpenApiUserInfoController {
                                                                                                      @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
                                                                                                      @RequestParam(required = false, defaultValue = "50") Integer limit) {
         if (fromDate.isAfter(toDate)) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("From date is before to date"));
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_DATES, "From date is after to date");
         }
         if (nonNull(limit) && limit <= 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("Limit value equals or less than zero"));
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, "Limit value equals or less than zero");
         }
 
         final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
