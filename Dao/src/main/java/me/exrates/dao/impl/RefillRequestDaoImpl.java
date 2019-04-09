@@ -268,7 +268,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             put("hash", hash);
         }};
         try {
-            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
+            return Optional.ofNullable(slaveJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }

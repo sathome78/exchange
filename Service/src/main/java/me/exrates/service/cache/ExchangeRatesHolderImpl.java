@@ -130,9 +130,26 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                         lastOrderRate = BigDecimal.ZERO.toPlainString();
                         predLastOrderRate = BigDecimal.ZERO.toPlainString();
                     }
+
+                    BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
+                    if (high24hr.compareTo(BigDecimal.ZERO) == 0) {
+                        data.setHigh24hr(lastOrderRate);
+                    }
+                    BigDecimal low24hr = new BigDecimal(data.getLow24hr());
+                    if (low24hr.compareTo(BigDecimal.ZERO) == 0) {
+                        data.setLow24hr(lastOrderRate);
+                    }
+                    BigDecimal lastOrderRate24hr = new BigDecimal(data.getLastOrderRate24hr());
+                    if (lastOrderRate24hr.compareTo(BigDecimal.ZERO) == 0) {
+                        data.setLastOrderRate24hr(lastOrderRate);
+                    }
+
                     data.setLastOrderRate(lastOrderRate);
                     data.setPredLastOrderRate(predLastOrderRate);
                     data.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+
+                    data.setPercentChange(calculatePercentChange(data));
+                    data.setPriceInUSD(calculatePriceInUSD(data));
                 })
                 .collect(Collectors.toList());
     }
@@ -154,13 +171,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private void initExchangePairsCache() {
-        List<ExOrderStatisticsShortByPairsDto> statisticList = getExratesCache(null)
-                .stream()
-                .peek(statistic -> {
-                    statistic.setPercentChange(calculatePercentChange(statistic));
-                    statistic.setPriceInUSD(calculatePriceInUSD(statistic));
-                })
-                .collect(Collectors.toList());
+        List<ExOrderStatisticsShortByPairsDto> statisticList = getExratesCache(null);
+
         ratesRedisRepository.batchUpdate(statisticList);
     }
 
@@ -269,8 +281,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @Override
     public void addCurrencyPairToCache(int currencyPairId) {
         final ExOrderStatisticsShortByPairsDto statistic = getExratesCacheFromDB(currencyPairId).get(0);
-        statistic.setPercentChange(calculatePercentChange(statistic));
-        statistic.setPriceInUSD(calculatePriceInUSD(statistic));
 
         ratesRedisRepository.put(statistic);
     }
