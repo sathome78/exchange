@@ -91,7 +91,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale) {
-        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+        int orderId = orderService.createOrder(orderCreateDto, actionEnum);
         if (orderId <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
         }
@@ -143,7 +143,7 @@ public class StopOrderServiceImpl implements StopOrderService {
 
 
     @Transactional
-    private void proceedStopOrder(ExOrder exOrder) {
+    public void proceedStopOrder(ExOrder exOrder) {
         OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairById(
                 exOrder.getCurrencyPair().getId()), exOrder.getOperationType(),
                 userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.LIMIT);
@@ -159,7 +159,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     }
 
     @Transactional
-    private void cancelCostsReserveForStopOrder(ExOrder dto, Locale locale, OrderActionEnum actionEnum) {
+    public void cancelCostsReserveForStopOrder(ExOrder dto, Locale locale, OrderActionEnum actionEnum) {
         WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(
                 dto.getId(), dto.getOperationType(), dto.getCurrencyPairId());
         OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
@@ -237,13 +237,8 @@ public class StopOrderServiceImpl implements StopOrderService {
         log.debug("orderAccepted");
         ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
-        checkExecutors.execute(() -> {
-            checkOrders(exOrder, OperationType.BUY);
-
-        });
-        checkExecutors.execute(() -> {
-            checkOrders(exOrder, OperationType.SELL);
-        });
+        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.BUY));
+        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.SELL));
     }
 
 
