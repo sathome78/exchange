@@ -1,7 +1,13 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.CallBackLogDao;
+import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -9,6 +15,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
@@ -16,10 +23,14 @@ import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.SimpleOrderBookItem;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ChartResolutionTimeUnit;
@@ -33,15 +44,23 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.TransactionDescription;
+import me.exrates.model.vo.WalletOperationData;
+import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.ReferralService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Ignore;
@@ -50,6 +69,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
@@ -59,6 +79,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,10 +100,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -93,6 +114,7 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
 public class OrderServiceImplTest {
+    private final static DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
 
     @Mock
     private OrderDao orderDao;
@@ -112,6 +134,20 @@ public class OrderServiceImplTest {
     private ApplicationEventPublisher eventPublisher;
     @Mock
     private WalletService walletService;
+    @Mock
+    TransactionDescription transactionDescription;
+    @Mock
+    private CommissionDao commissionDao;
+    @Mock
+    private CompanyWalletService companyWalletService;
+    @Mock
+    private ReferralService referralService;
+    @Mock
+    private ObjectMapper objectMapper;
+    @Mock
+    private StopOrderService stopOrderService;
+    @Mock
+    private CallBackLogDao callBackDao;
 
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
@@ -647,7 +683,6 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(), orderCreateDto.getComissionId());
 
-        verify(userService, times(1)).getUserRoleFromDB(anyString());
         verify(orderDao, times(1)).getWalletAndCommission(
                 anyString(),
                 any(Currency.class),
@@ -1267,21 +1302,40 @@ public class OrderServiceImplTest {
                 any(OrderBaseType.class));
     }
 
-    @Ignore
+    @Test
     public void autoAcceptOrders_list_ExOrder_has_element_amount_more_amountBase() {
         ExOrder exOrder = new ExOrder();
         exOrder.setId(3);
         exOrder.setAmountBase(BigDecimal.TEN);
+        exOrder.setOperationType(OperationType.MANUAL);
+        exOrder.setAmountConvert(BigDecimal.ONE);
+        exOrder.setCommissionFixedAmount(BigDecimal.ONE);
+        exOrder.setComissionId(100);
+        exOrder.setOrderBaseType(OrderBaseType.LIMIT);
 
         OrderCreateDto mockOrderCreateDto = getMockOrderCreateDto(BigDecimal.TEN);
         mockOrderCreateDto.setAmount(BigDecimal.valueOf(11));
+        mockOrderCreateDto.setOrderBaseType(OrderBaseType.ICO);
 
         UserRoleSettings userRoleSettings = new UserRoleSettings();
         userRoleSettings.setUserRole(UserRole.BOT_TRADER);
         userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
 
         WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
-        walletsForOrderAcceptionDto.setOrderStatusId(3);
+        walletsForOrderAcceptionDto.setOrderStatusId(2);
+
+        String descriptionForCreator = "TEST_DESCRIPTION_FOR_CREATION";
+        String descriptionForAcceptor = "TEST_DESCRIPTION_FOR_ACCEPTION";
+
+        CurrencyPair cp = new CurrencyPair();
+        cp.setName("BTC/USD");
+        cp.setCurrency1(new Currency());
+
+        Commission commission = new Commission();
+        commission.setValue(BigDecimal.TEN);
+
+        User user = new User();
+        user.setEmail("test@test.com");
 
         when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
@@ -1297,23 +1351,61 @@ public class OrderServiceImplTest {
         when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.BOT_TRADER);
         when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
         when(orderDao.getOrderById(anyInt())).thenReturn(exOrder);
-        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(new WalletsForOrderAcceptionDto());
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForCreator);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn(descriptionForAcceptor);
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(cp);
+        when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
+        when(walletService.walletInnerTransfer(
+                anyInt(),
+                any(BigDecimal.class),
+                any(TransactionSourceType.class),
+                anyInt(),
+                anyString())
+        ).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(AcceptOrderEvent.class));
+        when(userService.getUserById(anyInt())).thenReturn(user);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
 
         Optional<OrderCreationResultDto> orderCreationResultDto = orderService.autoAcceptOrders(
                 mockOrderCreateDto,
                 Locale.ENGLISH
         );
-        assertEquals(Optional.empty(), orderCreationResultDto);
 
-        verify(userRoleService, times(1)).isOrderAcceptionAllowedForUser(anyInt());
-        verify(userService, times(1)).getUserRoleFromDB(anyInt());
-        verify(orderDao, times(1)).selectTopOrders(
+        assertNotNull(orderCreationResultDto);
+
+        verify(userRoleService, atLeastOnce()).isOrderAcceptionAllowedForUser(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(orderDao, atLeastOnce()).selectTopOrders(
                 anyInt(),
                 any(BigDecimal.class),
                 any(OperationType.class),
                 any(Boolean.class),
                 anyInt(),
                 any(OrderBaseType.class));
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(userRoleService, atLeastOnce()).retrieveSettingsForRole(anyInt());
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(walletService, atLeastOnce()).getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt());
+        verify(transactionDescription, atLeastOnce()).get(any(OrderStatus.class), any(OrderActionEnum.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(commissionDao, atLeastOnce()).getCommission(any(OperationType.class), any(UserRole.class));
+        verify(walletService, atLeastOnce()).walletInnerTransfer(
+                anyInt(),
+                any(BigDecimal.class),
+                any(TransactionSourceType.class),
+                anyInt(),
+                anyString());
+        verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
+        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(AcceptOrderEvent.class));
     }
 
     @Test
@@ -1423,6 +1515,487 @@ public class OrderServiceImplTest {
     }
 
     @Test
+    public void getUserSummaryOrdersData() {
+        UserSummaryOrdersDto dto = UserSummaryOrdersDto.builder().build();
+        dto.setCreatorEmail("test@test.com");
+        dto.setCreatorRole("USER");
+        dto.setAcceptorRole("USER");
+        dto.setAcceptorEmail("test@test.com");
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setCurrencyName("BTC/USD");
+        dto.setAmount(BigDecimal.TEN);
+        dto.setCommission(BigDecimal.ONE);
+
+        List<UserRole> userRoles = Arrays.asList(
+                UserRole.ADMINISTRATOR,
+                UserRole.ACCOUNTANT,
+                UserRole.ADMIN_USER,
+                UserRole.USER,
+                UserRole.ROLE_CHANGE_PASSWORD,
+                UserRole.EXCHANGE,
+                UserRole.VIP_USER,
+                UserRole.TRADER,
+                UserRole.FIN_OPERATOR,
+                UserRole.BOT_TRADER,
+                UserRole.ICO_MARKET_MAKER,
+                UserRole.OUTER_MARKET_BOT
+        );
+
+        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.singletonList(dto));
+        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.singletonList(dto));
+
+        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
+                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
+                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
+                userRoles,
+                77);
+
+        assertNotNull(userSummaryOrdersData);
+        assertEquals(2, userSummaryOrdersData.size());
+        assertTrue(userSummaryOrdersData.containsKey("SELL"));
+        assertEquals(1, userSummaryOrdersData.get("SELL").size());
+        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("SELL").get(0).getCreatorEmail());
+        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("SELL").get(0).getCreatorRole());
+        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("SELL").get(0).getAcceptorEmail());
+        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("SELL").get(0).getAcceptorRole());
+        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyName());
+        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyPairName());
+        assertEquals(dto.getAmount(), userSummaryOrdersData.get("SELL").get(0).getAmount());
+        assertEquals(dto.getCommission(), userSummaryOrdersData.get("SELL").get(0).getCommission());
+        assertTrue(userSummaryOrdersData.containsKey("BUY"));
+        assertEquals(1, userSummaryOrdersData.get("BUY").size());
+        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("BUY").get(0).getCreatorEmail());
+        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("BUY").get(0).getCreatorRole());
+        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("BUY").get(0).getAcceptorEmail());
+        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("BUY").get(0).getAcceptorRole());
+        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyName());
+        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyPairName());
+        assertEquals(dto.getAmount(), userSummaryOrdersData.get("BUY").get(0).getAmount());
+        assertEquals(dto.getCommission(), userSummaryOrdersData.get("BUY").get(0).getCommission());
+
+        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+    }
+
+    @Test
+    public void getUserSummaryOrdersData_isEmpty() {
+        List<UserRole> userRoles = Arrays.asList(
+                UserRole.ADMINISTRATOR,
+                UserRole.ACCOUNTANT,
+                UserRole.ADMIN_USER,
+                UserRole.USER,
+                UserRole.ROLE_CHANGE_PASSWORD,
+                UserRole.EXCHANGE,
+                UserRole.VIP_USER,
+                UserRole.TRADER,
+                UserRole.FIN_OPERATOR,
+                UserRole.BOT_TRADER,
+                UserRole.ICO_MARKET_MAKER,
+                UserRole.OUTER_MARKET_BOT
+        );
+
+        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.EMPTY_LIST);
+        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.EMPTY_LIST);
+
+        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
+                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
+                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
+                userRoles,
+                77);
+
+        assertNotNull(userSummaryOrdersData);
+        assertEquals(2, userSummaryOrdersData.size());
+        assertTrue(userSummaryOrdersData.containsKey("SELL"));
+        assertTrue(userSummaryOrdersData.containsKey("BUY"));
+        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
+        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
+
+        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+    }
+
+    @Test
+    public void logCallBackData() {
+        doNothing().when(callBackDao).logCallBackData(any(CallBackLogDto.class));
+
+        orderService.logCallBackData(new CallBackLogDto());
+
+        verify(callBackDao, times(1)).logCallBackData(any(CallBackLogDto.class));
+    }
+
+    @Test
+    public void getMyOrdersWithStateMap_recordsCount_more_zero() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        when(orderDao.getMyOrdersWithStateCount(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class)
+        )).thenReturn(1);
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                anyString(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Locale.class)
+        )).thenReturn(Collections.singletonList(dto));
+
+        Pair<Integer, List<OrderWideListDto>> myOrdersWithStateMap = orderService.getMyOrdersWithStateMap(
+                100,
+                new CurrencyPair(),
+                "BTC/USD",
+                OrderStatus.CANCELLED,
+                "SCOUP",
+                50,
+                10,
+                Boolean.TRUE,
+                "DESC",
+                LocalDateTime.of(2019, 4, 8, 15, 10, 10),
+                LocalDateTime.of(2019, 4, 8, 16, 10, 10),
+                Locale.ENGLISH
+        );
+
+        assertNotNull(myOrdersWithStateMap);
+        assertEquals(Integer.valueOf(1), myOrdersWithStateMap.getKey());
+        assertEquals(1, myOrdersWithStateMap.getValue().size());
+        assertEquals(dto.getUserId(), myOrdersWithStateMap.getValue().get(0).getUserId());
+        assertEquals(dto.getCurrencyPairId(), myOrdersWithStateMap.getValue().get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrencyPairName(), myOrdersWithStateMap.getValue().get(0).getCurrencyPairName());
+        assertEquals(dto.getStatus(), myOrdersWithStateMap.getValue().get(0).getStatus());
+
+        verify(orderDao, times(1)).getMyOrdersWithStateCount(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class));
+        verify(orderDao, times(1)).getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                anyString(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Locale.class));
+    }
+
+    @Test
+    public void getMyOrdersWithStateMap_recordsCount_less_zero() {
+        when(orderDao.getMyOrdersWithStateCount(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class)
+        )).thenReturn(0);
+
+        Pair<Integer, List<OrderWideListDto>> myOrdersWithStateMap = orderService.getMyOrdersWithStateMap(
+                100,
+                new CurrencyPair(),
+                "BTC/USD",
+                OrderStatus.CANCELLED,
+                "SCOUP",
+                50,
+                10,
+                Boolean.TRUE,
+                "DESC",
+                LocalDateTime.of(2019, 4, 8, 15, 10, 10),
+                LocalDateTime.of(2019, 4, 8, 16, 10, 10),
+                Locale.ENGLISH
+        );
+
+        assertNotNull(myOrdersWithStateMap);
+        assertEquals(Integer.valueOf(0), myOrdersWithStateMap.getKey());
+        assertEquals(Collections.EMPTY_LIST, myOrdersWithStateMap.getValue());
+
+        verify(orderDao, times(1)).getMyOrdersWithStateCount(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class)
+        );
+    }
+
+    @Test
+    public void cancelOrders_true() {
+        boolean cancelOrders = orderService.cancelOrders(Collections.EMPTY_LIST);
+
+        assertEquals(Boolean.TRUE, cancelOrders);
+    }
+
+    @Test
+    public void cancelOrders_false() {
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.FALSE);
+
+        boolean cancelOrders = orderService.cancelOrders(Collections.singletonList(1));
+
+        assertEquals(Boolean.FALSE, cancelOrders);
+
+        verify(stopOrderService, times(1)).cancelOrder(anyInt(), any());
+    }
+
+    @Test
+    public void getOrdersForExcel() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                anyString(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Locale.class)
+        )).thenReturn(Collections.singletonList(dto));
+
+        List<OrderWideListDto> ordersForExcel = orderService.getOrdersForExcel(
+                100,
+                new CurrencyPair(),
+                "TEST_CURRENCY_NAME",
+                OrderStatus.CANCELLED,
+                "SCOPE",
+                20,
+                10,
+                Boolean.TRUE,
+                "DESC",
+                LocalDateTime.of(2019, 4, 8, 15, 10, 10),
+                LocalDateTime.of(2019, 4, 8, 16, 10, 10),
+                Locale.ENGLISH
+        );
+
+        assertNotNull(ordersForExcel);
+        assertEquals(1, ordersForExcel.size());
+        assertEquals(dto.getUserId(), ordersForExcel.get(0).getUserId());
+        assertEquals(dto.getCurrencyPairId(), ordersForExcel.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrencyPairName(), ordersForExcel.get(0).getCurrencyPairName());
+        assertEquals(dto.getStatus(), ordersForExcel.get(0).getStatus());
+
+        verify(orderDao, times(1)).getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                anyString(),
+                any(OrderStatus.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                anyBoolean(),
+                anyString(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Locale.class)
+        );
+    }
+
+    @Test
+    public void getOrderExcelFile_OrderStatus_OPENED() {
+        try {
+            ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.OPENED);
+
+            assertNotNull(transactionExcelFile);
+            assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
+        } catch (Exception e) {
+            throw new RuntimeException("Test failed " + e);
+        }
+    }
+
+    @Test
+    public void getOrderExcelFile_not_supported() {
+        try {
+            orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.DELETED);
+        } catch (Exception e) {
+            assertEquals("Not supported", e.getMessage());
+        }
+    }
+
+    @Test
+    public void getOrderExcelFile_OrderStatus_CLOSED() {
+
+        try {
+            ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.CLOSED);
+
+            assertNotNull(transactionExcelFile);
+            assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
+        } catch (Exception e) {
+            throw new RuntimeException("Test failed " + e);
+        }
+    }
+
+    @Test
+    public void getTransactionExcelFile() {
+        try {
+            ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.singletonList(new MyInputOutputHistoryDto()));
+
+            assertNotNull(transactionExcelFile);
+            assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
+        } catch (Exception e) {
+            throw new RuntimeException("Test failed " + e);
+        }
+    }
+
+    @Test
+    public void getTransactionExcelFile_transactions_isEmpty() {
+        try {
+            ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.EMPTY_LIST);
+
+            assertNotNull(transactionExcelFile);
+            assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
+        } catch (Exception e) {
+            throw new RuntimeException("Test failed " + e);
+        }
+    }
+
+    @Test
+    public void getAllCurrenciesMarkersForAllPairsModel() {
+        ExOrderStatisticsShortByPairsDto dto = new ExOrderStatisticsShortByPairsDto();
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+
+        when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(dto));
+
+        List<ExOrderStatisticsShortByPairsDto> allCurrenciesMarkersForAllPairsModel = orderService.getAllCurrenciesMarkersForAllPairsModel();
+
+        assertNotNull(allCurrenciesMarkersForAllPairsModel);
+        assertEquals(1, allCurrenciesMarkersForAllPairsModel.size());
+        assertEquals(dto.getCurrencyPairId(), allCurrenciesMarkersForAllPairsModel.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrencyPairName(), allCurrenciesMarkersForAllPairsModel.get(0).getCurrencyPairName());
+
+        verify(exchangeRatesHolder, times(1)).getAllRates();
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPair() {
+        when(orderDao.getLastOrderPriceByCurrencyPair(anyInt())).thenReturn(Optional.of(BigDecimal.TEN));
+
+        Optional<BigDecimal> lastOrderPriceByCurrencyPair = orderService.getLastOrderPriceByCurrencyPair(new CurrencyPair());
+
+        assertNotNull(lastOrderPriceByCurrencyPair);
+        assertEquals(Optional.of(BigDecimal.TEN), lastOrderPriceByCurrencyPair);
+
+        verify(orderDao, times(1)).getLastOrderPriceByCurrencyPair(anyInt());
+    }
+
+    @Test
+    public void getMyOpenOrdersForWs_CurrencyPair_equals_null() {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
+
+        List<OrdersListWrapper> ordersListWrappers = orderService.getMyOpenOrdersForWs("BTC/USD", "USER_NAME");
+
+        assertNull(ordersListWrappers);
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
+    }
+
+    @Test
+    public void getMyOpenOrdersForWs_CurrencyPair_not_null() {
+        CurrencyPair cp = new CurrencyPair();
+        cp.setId(100);
+
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(cp);
+        when(userService.getIdByEmail(anyString())).thenReturn(200);
+        when(orderDao.getMyOpenOrdersForCurrencyPair(
+                any(CurrencyPair.class),
+                any(OrderType.class),
+                anyInt())
+        ).thenReturn(getMockOrderListDto());
+
+        List<OrdersListWrapper> ordersListWrappers = orderService.getMyOpenOrdersForWs("BTC/USD", "USER_NAME");
+
+        assertNotNull(ordersListWrappers);
+        assertEquals(2, ordersListWrappers.size());
+        assertEquals(100, ordersListWrappers.get(0).getCurrencyPairId());
+        assertEquals(OrderType.SELL.toString(), ordersListWrappers.get(0).getType());
+        assertEquals(100, ordersListWrappers.get(1).getCurrencyPairId());
+        assertEquals(OrderType.BUY.toString(), ordersListWrappers.get(1).getType());
+
+        verify(currencyService, times(1)).getCurrencyPairByName(anyString());
+        verify(userService, times(1)).getIdByEmail(anyString());
+        verify(orderDao, times(2)).getMyOpenOrdersForCurrencyPair(
+                any(CurrencyPair.class),
+                any(OrderType.class),
+                anyInt());
+    }
+
+    @Test
     public void findAllOrderBookItems_ExOrderStatisticsShortByPairsDto_not_null() {
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
@@ -1481,8 +2054,7 @@ public class OrderServiceImplTest {
         verify(exchangeRatesHolder, times(1)).getOne(anyInt());
     }
 
-    //TODO: objectMapper.writeValueAsString(Collections.singletonList(dto)) throw NullPointerException
-    @Ignore
+    @Test
     public void findAllOrderBookItemsForAllPrecissions() {
         List<PrecissionsEnum> precisionsList = Arrays.asList(
                 PrecissionsEnum.ONE,
@@ -1499,6 +2071,48 @@ public class OrderServiceImplTest {
                 .findAllOrderBookItemsForAllPrecissions(OrderType.SELL, 1, precisionsList);
 
         assertNotNull(allOrderBookItemsForAllPrecisions);
+        assertEquals(5, allOrderBookItemsForAllPrecisions.size());
+        assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.ONE));
+        assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.TWO));
+        assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.THREE));
+        assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.FOUR));
+        assertTrue(allOrderBookItemsForAllPrecisions.containsKey(PrecissionsEnum.FIVE));
+
+        verify(orderDao, atLeastOnce()).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
+        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyInt());
+    }
+
+    @Test
+    public void findAllOrderBookItemsForAllPrecissions_exception() {
+        List<PrecissionsEnum> precisionsList = Arrays.asList(
+                PrecissionsEnum.ONE,
+                PrecissionsEnum.TWO,
+                PrecissionsEnum.THREE,
+                PrecissionsEnum.FOUR,
+                PrecissionsEnum.FIVE
+        );
+
+        when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
+        when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+        try {
+            when(objectMapper.writeValueAsString(any(Object.class))).thenThrow(Exception.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Test failed " + e);
+        }
+
+        Map<PrecissionsEnum, String> allOrderBookItemsForAllPrecisions = orderService
+                .findAllOrderBookItemsForAllPrecissions(OrderType.SELL, 1, precisionsList);
+
+        assertNotNull(allOrderBookItemsForAllPrecisions);
+        assertEquals(0, allOrderBookItemsForAllPrecisions.size());
+
+        verify(orderDao, atLeastOnce()).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
+        verify(exchangeRatesHolder, atLeastOnce()).getOne(anyInt());
+        try {
+            verify(objectMapper, atLeastOnce()).writeValueAsString(any(Object.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Test failed " + e);
+        }
     }
 
     @Test
@@ -1643,18 +2257,6 @@ public class OrderServiceImplTest {
         return orderCreateDto;
     }
 
-    private OrderBookWrapperDto getMockOrderBookWrapperDto_SELL() {
-        OrderBookWrapperDto orderBookWrapperDto = OrderBookWrapperDto.builder().build();
-        orderBookWrapperDto.setOrderType(OrderType.SELL);
-        orderBookWrapperDto.setLastExrate("1");
-        orderBookWrapperDto.setPreLastExrate("2");
-        orderBookWrapperDto.setPositive(Boolean.FALSE);
-        orderBookWrapperDto.setTotal(BigDecimal.valueOf(76477.473721603));
-        orderBookWrapperDto.setOrderBookItems(getMockSimpleOrderBookItem_SELL());
-
-        return orderBookWrapperDto;
-    }
-
     private List<SimpleOrderBookItem> getMockSimpleOrderBookItem_SELL() {
         SimpleOrderBookItem item1 = SimpleOrderBookItem.builder().build();
         item1.setCurrencyPairId(1);
@@ -1693,18 +2295,6 @@ public class OrderServiceImplTest {
         item4.setSumAmount(BigDecimal.valueOf(3921.736532431));
 
         return Arrays.asList(item1, item2, item3, item4);
-    }
-
-    private OrderBookWrapperDto getMockOrderBookWrapperDto_BUY() {
-        OrderBookWrapperDto orderBookWrapperDto = OrderBookWrapperDto.builder().build();
-        orderBookWrapperDto.setOrderType(OrderType.BUY);
-        orderBookWrapperDto.setLastExrate("1");
-        orderBookWrapperDto.setPreLastExrate("2");
-        orderBookWrapperDto.setPositive(Boolean.FALSE);
-        orderBookWrapperDto.setTotal(BigDecimal.valueOf(2));
-        orderBookWrapperDto.setOrderBookItems(getMockSimpleOrderBookItem_BUY());
-
-        return orderBookWrapperDto;
     }
 
     private List<SimpleOrderBookItem> getMockSimpleOrderBookItem_BUY() {
