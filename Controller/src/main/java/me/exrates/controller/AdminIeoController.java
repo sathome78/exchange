@@ -71,7 +71,7 @@ public class AdminIeoController {
     @ResponseBody
     public ResponseEntity revertIeo(@PathVariable("id") Integer id) {
 
-        ieoService.revertIEO(id, getPrincipalEmail());
+        ieoService.startRevertIEO(id, getPrincipalEmail());
         return ResponseEntity.ok(null);
     }
 
