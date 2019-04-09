@@ -183,4 +183,7 @@ public interface WalletService {
     Map<String, String> findUserCurrencyBalances(User user);
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
+
+    @Transactional()
+    boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 }

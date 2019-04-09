@@ -207,10 +207,10 @@ public class IEOServiceImpl implements IEOService {
         ieoEntity.setStatus(IEODetailsStatus.PROCESSING_FAIL);
         ieoDetailsRepository.update(ieoEntity);
 
-        consumeClaimByPartition(idIeo, claim -> {
+        consumeClaimByPartition(idIeo, walletService::performIeoRollbackTransfer);
 
-        });
-
+        ieoEntity.setStatus(IEODetailsStatus.FAILED);
+        ieoDetailsRepository.update(ieoEntity);
         Email email = new Email();
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");

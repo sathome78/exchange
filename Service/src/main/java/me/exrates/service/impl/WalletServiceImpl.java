@@ -895,6 +895,11 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.findUserCurrencyBalance(ieoClaim);
     }
 
+    @Override
+    public boolean performIeoRollbackTransfer(IEOClaim ieoClaim) {
+        return false;
+    }
+
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
         String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
