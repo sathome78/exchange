@@ -88,8 +88,7 @@ public class IEOServiceImpl implements IEOService {
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
 
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
-            String message = String.format("Failed to create claim, as user KYC status check failed",
-                    claimDto.getCurrencyName());
+            String message = "Failed to create claim, as user KYC status check failed for ieo: " + claimDto.getCurrencyName();
             logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_CHECK_KYC_STATUS_FAILURE, message);
         }
@@ -161,8 +160,11 @@ public class IEOServiceImpl implements IEOService {
             } else {
                 item.setPersonalAmount(BigDecimal.ZERO);
             }
-            IEOStatusInfo statusInfo = checkUserStatusForIEO(user.getEmail(), item.getId());
-            item.setReadyToIeo(statusInfo.isKycCheck() && statusInfo.isCountryCheck() && statusInfo.isPolicyCheck());
+            if (item.getStatus() == IEODetailsStatus.RUNNING
+                    && item.getStatus() == IEODetailsStatus.PENDING) {
+                IEOStatusInfo statusInfo = checkUserStatusForIEO(user.getEmail(), item.getId());
+                item.setReadyToIeo(statusInfo.isKycCheck() && statusInfo.isCountryCheck() && statusInfo.isPolicyCheck());
+            }
         });
         return details;
     }
@@ -175,8 +177,8 @@ public class IEOServiceImpl implements IEOService {
     @Override
     @Transactional
     public void createIeo(IeoDetailsCreateDto dto) {
-        Integer makerId = userService.getIdByEmail(dto.getMakerEmail());
-        Integer creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        int makerId = userService.getIdByEmail(dto.getMakerEmail());
+        int creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
         currencyService.addCurrencyForIco(dto.getCurrencyName(), dto.getDescription());
         currencyService.addCurrencyPairForIco(dto.getCurrencyName(), "BTC");
         ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
