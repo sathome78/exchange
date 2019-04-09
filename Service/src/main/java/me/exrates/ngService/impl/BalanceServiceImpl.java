@@ -50,6 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -330,15 +331,9 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     @Override
-    public BigDecimal getActiveBalanceByCurrencyNameAndEmail(String email, String currencyName) {
+    public Map<String, String> getActiveBalanceByCurrencyNamesAndEmail(String email, Set<String> currencyNames) {
         User user = userDao.findByEmail(email);
-        Wallet wallet = walletDao.findByUserAndCurrency(user.getId(), currencyName);
-
-        if (wallet == null) {
-            return BigDecimal.ZERO;
-        }
-
-        return wallet.getActiveBalance();
+        return walletDao.findUserCurrencyBalances(user, currencyNames);
     }
 
     private BalancesShortDto getBalanceForOtherCurrency(String currencyName, BigDecimal sumBalances, BigDecimal btcUsdRate) {

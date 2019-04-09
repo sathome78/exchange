@@ -1631,7 +1631,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public Map<String, BigDecimal> findUserCurrencyBalances(User user, Collection<String> currencyNames) {
+    public Map<String, String> findUserCurrencyBalances(User user, Collection<String> currencyNames) {
         String sql = "SELECT c.name AS currency, w.active_balance AS balance FROM WALLET as w"
                 + " INNER JOIN CURRENCY as c ON c.id = w.currency_id"
                 + " WHERE user_id = :userId AND c.name IN (:currencyNames);";
@@ -1639,9 +1639,9 @@ public class WalletDaoImpl implements WalletDao {
                 .addValue("currencyNames", currencyNames);
         try {
             return jdbcTemplate.query(sql, params, rs -> {
-                Map<String, BigDecimal> values = new HashMap<>();
+                Map<String, String> values = new HashMap<>();
                 while (rs.next()) {
-                    values.put(rs.getString("currency"), rs.getBigDecimal("balance"));
+                    values.put(rs.getString("currency"), rs.getBigDecimal("balance").toPlainString());
                 }
                 return values;
             });

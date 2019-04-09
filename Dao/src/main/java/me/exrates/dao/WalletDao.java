@@ -148,7 +148,7 @@ public interface WalletDao {
 
     void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance, LocalDateTime lastReservedBalanceUpdate);
 
-    Map<String, BigDecimal> findUserCurrencyBalances(User user, Collection<String> currencyNames);
+    Map<String, String> findUserCurrencyBalances(User user, Collection<String> currencyNames);
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }

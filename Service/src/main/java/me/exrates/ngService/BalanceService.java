@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public interface BalanceService {
@@ -36,5 +37,5 @@ public interface BalanceService {
 
     Map<String, BigDecimal> getBalancesSumInBtcAndUsd();
 
-    BigDecimal getActiveBalanceByCurrencyNameAndEmail(String email, String currencyName);
+    Map<String, String> getActiveBalanceByCurrencyNamesAndEmail(String email, Set<String> currencyNames);
 }

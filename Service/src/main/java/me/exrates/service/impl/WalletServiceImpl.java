@@ -881,7 +881,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Map<String, BigDecimal> findUserCurrencyBalances(User user) {
+    public Map<String, String> findUserCurrencyBalances(User user) {
         List<String> ieoCurrencyNames = ieoDetailsRepository.findAll()
                 .stream()
                 .map(IEODetails::getCurrencyName)
@@ -902,7 +902,7 @@ public class WalletServiceImpl implements WalletService {
                 .builder()
                 .userWallet(wallet)
                 .amount(amount)
-                .commissionAmount(amount)
+                .commissionAmount(ZERO)
                 .operationType(OperationType.INPUT)
                 .currency(currency)
                 .datetime(LocalDateTime.now())
@@ -921,7 +921,7 @@ public class WalletServiceImpl implements WalletService {
                 .builder()
                 .userWallet(wallet)
                 .amount(ieoClaim.getPriceInBtc())
-                .commissionAmount(ieoClaim.getPriceInBtc())
+                .commissionAmount(ZERO)
                 .operationType(OperationType.OUTPUT)
                 .currency(currency)
                 .datetime(LocalDateTime.now())

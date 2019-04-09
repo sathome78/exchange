@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
 import me.exrates.dao.IeoDetailsRepository;
+import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
@@ -15,13 +16,11 @@ import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsMessageTypeEnum;
-import me.exrates.service.UserService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.IeoException;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +31,7 @@ public class IEOProcessor implements Runnable {
     private final IEOResultRepository ieoResultRepository;
     private final IEOClaimRepository ieoClaimRepository;
     private final IeoDetailsRepository ieoDetailsRepository;
+    private final SendMailService sendMailService;
     private final WalletService walletService;
     private final IEOClaim ieoClaim;
     private final ObjectMapper objectMapper;
@@ -40,13 +40,14 @@ public class IEOProcessor implements Runnable {
     public IEOProcessor(IEOResultRepository ieoResultRepository,
                         IEOClaimRepository ieoClaimRepository,
                         IeoDetailsRepository ieoDetailsRepository,
-                        IEOClaim ieoClaim,
+                        SendMailService sendMailService, IEOClaim ieoClaim,
                         WalletService walletService,
                         ObjectMapper objectMapper,
                         StompMessenger stompMessenger) {
         this.ieoResultRepository = ieoResultRepository;
         this.ieoClaimRepository = ieoClaimRepository;
         this.ieoDetailsRepository = ieoDetailsRepository;
+        this.sendMailService = sendMailService;
         this.walletService = walletService;
         this.ieoClaim = ieoClaim;
         this.objectMapper = objectMapper;
@@ -117,11 +118,12 @@ public class IEOProcessor implements Runnable {
         CompletableFuture.runAsync(() -> sendNotifications(ieoClaim.getCreatorEmail(), ieoDetails, notificationMessage));
     }
 
-    private void sendNotifications(String userEmail, IEODetails ieoDetails, Object notificationObject) {
+    private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
         try {
             if (StringUtils.isNotEmpty(userEmail)) {
-                String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, notificationObject));
+                String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, message));
                 stompMessenger.sendPersonalMessageToUser(userEmail, payload);
+                sendMailService.sendInfoMail(prepareEmail(userEmail, message));
             }
         } catch (Exception e) {
             /*ignore*/
@@ -138,5 +140,13 @@ public class IEOProcessor implements Runnable {
         } catch (Exception e) {
             /*ignore*/
         }
+    }
+
+    private Email prepareEmail(String userEmail, UserNotificationMessage message) {
+        Email email = new Email();
+        email.setTo(userEmail);
+        email.setMessage(message.getText());
+        email.setSubject(message.getNotificationType().name());
+        return email;
     }
 }

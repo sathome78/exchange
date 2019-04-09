@@ -78,6 +78,15 @@ public class IEOServiceImpl implements IEOService {
             throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
         }
 
+        IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
+
+        if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
+            String message = String.format("Failed to create claim, check status false",
+                    claimDto.getCurrencyName());
+            logger.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_CHECK_STATUS_FAILURE, message);
+        }
+
         User user = userService.findByEmail(email);
 
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
@@ -137,14 +146,16 @@ public class IEOServiceImpl implements IEOService {
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
             return ieoDetailsRepository.findAllExceptForMaker(user.getId());
         }
-        Map<String, BigDecimal> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
+        Map<String, String> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
         Collection<IEODetails> details = ieoDetailsRepository.findAll();
-        details.forEach(det -> {
-            if (userCurrencyBalances.containsKey(det)) {
-                det.setPersonalAmount(userCurrencyBalances.get(det));
+        details.forEach(item -> {
+            if (userCurrencyBalances.containsKey(item.getCurrencyName())) {
+                item.setPersonalAmount(new BigDecimal(userCurrencyBalances.get(item.getCurrencyName())));
             } else {
-                det.setPersonalAmount(BigDecimal.ZERO);
+                item.setPersonalAmount(BigDecimal.ZERO);
             }
+            IEOStatusInfo statusInfo = checkUserStatusForIEO(user.getEmail(), item.getId());
+            item.setReadyToIeo(statusInfo.isKycCheck() && statusInfo.isCountryCheck() && statusInfo.isPolicyCheck());
         });
         return details;
     }

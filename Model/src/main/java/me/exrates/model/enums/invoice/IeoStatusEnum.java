@@ -2,46 +2,46 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.*;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
+import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.InvoiceActionParamsValue;
 
 /**
  * Created by ValkSam
  */
 @Log4j2
-public enum TransferStatusEnum implements InvoiceStatus {
-  CREATED_USER(1) {
-    @Override
-    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(POSTPONE, POSTPONED_AS_VOUCHER);
-      schemaMap.put(POST, POSTED);
-    }
-  },
-  POSTED(2) {
+public enum IeoStatusEnum implements InvoiceStatus {
+
+  ACCEPTED_AUTO(9) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  REVOKED_USER(3) {
+  REVOKED_USER(11) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  REVOKED_ADMIN(5) {
+  EXPIRED(12) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  POSTPONED_AS_VOUCHER(4) {
+  PROCESSED_BY_CLAIM(13) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(REVOKE, REVOKED_USER);
-      schemaMap.put(REVOKE_ADMIN, REVOKED_ADMIN);
-      schemaMap.put(PRESENT_VOUCHER, POSTED);
     }
   };
 
@@ -58,9 +58,9 @@ public enum TransferStatusEnum implements InvoiceStatus {
   public InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionParamsValue paramsValue) {
     try {
       action.checkAvailabilityTheActionForParamsValue(paramsValue);
-    } catch (InvoiceActionIsProhibitedForNotHolderException e) {
+    } catch (InvoiceActionIsProhibitedForNotHolderException e){
       throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
-    } catch (InvoiceActionIsProhibitedForCurrencyPermissionOperationException e) {
+    } catch (InvoiceActionIsProhibitedForCurrencyPermissionOperationException e){
       throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), paramsValue.getPermittedOperation().name()));
     } catch (Exception e) {
       throw e;
@@ -74,44 +74,24 @@ public enum TransferStatusEnum implements InvoiceStatus {
     return availableForAction(schemaMap, action);
   }
 
-  static {
-    for (TransferStatusEnum status : TransferStatusEnum.class.getEnumConstants()) {
-      status.initSchema(status.schemaMap);
-    }
-    /*check schemaMap*/
-    getBeginState();
-  }
-
-  public static List<InvoiceStatus> getAvailableForActionStatusesList(InvoiceActionTypeEnum action) {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
-        .filter(e -> e.availableForAction(action))
-        .collect(Collectors.toList());
-  }
-
-  public static List<InvoiceStatus> getAvailableForActionStatusesList(List<InvoiceActionTypeEnum> action) {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
-        .filter(e -> action.stream().filter(e::availableForAction).findFirst().isPresent())
-        .collect(Collectors.toList());
-  }
-
   public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionParamsValue paramsValue) {
     return schemaMap.keySet()
             .stream()
-        .filter(e -> e.isMatchesTheParamsValue(paramsValue))
+        .filter(e->e.isMatchesTheParamsValue(paramsValue))
         .collect(Collectors.toSet());
   }
 
   /**/
 
-  public static TransferStatusEnum convert(int id) {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
+  public static IeoStatusEnum convert(int id) {
+    return Arrays.stream(IeoStatusEnum.class.getEnumConstants())
         .filter(e -> e.code == id)
         .findAny()
         .orElseThrow(() -> new UnsupportedWithdrawRequestStatusIdException(String.valueOf(id)));
   }
 
-  public static TransferStatusEnum convert(String name) {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
+  public static IeoStatusEnum convert(String name) {
+    return Arrays.stream(IeoStatusEnum.class.getEnumConstants())
         .filter(e -> e.name().equals(name))
         .findAny()
         .orElseThrow(() -> new UnsupportedWithdrawRequestStatusNameException(name));
@@ -119,7 +99,7 @@ public enum TransferStatusEnum implements InvoiceStatus {
 
   public static InvoiceStatus getBeginState() {
     Set<InvoiceStatus> allNodesSet = collectAllSchemaMapNodesSet();
-    List<InvoiceStatus> candidateList = Arrays.stream(TransferStatusEnum.class.getEnumConstants())
+    List<InvoiceStatus> candidateList = Arrays.stream(IeoStatusEnum.class.getEnumConstants())
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
     if (candidateList.size() == 0) {
@@ -133,35 +113,6 @@ public enum TransferStatusEnum implements InvoiceStatus {
     return candidateList.get(0);
   }
 
-  public static Set<InvoiceStatus> getMiddleStatesSet() {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
-        .filter(e -> !e.schemaMap.isEmpty())
-        .collect(Collectors.toSet());
-  }
-
-  public static Set<InvoiceStatus> getEndStatesSet() {
-    return Arrays.stream(TransferStatusEnum.class.getEnumConstants())
-        .filter(e -> e.schemaMap.isEmpty())
-        .collect(Collectors.toSet());
-  }
-
-  public static InvoiceStatus getInvoiceStatusAfterAction(InvoiceActionTypeEnum action) {
-    TreeSet<InvoiceStatus> statusSet = new TreeSet(
-        Arrays.stream(TransferStatusEnum.class.getEnumConstants())
-            .filter(e -> e.availableForAction(action))
-            .map(e -> e.nextState(action))
-            .collect(Collectors.toList()));
-    if (statusSet.size() == 0) {
-      log.fatal("no state found !");
-      throw new AssertionError();
-    }
-    if (statusSet.size() > 1) {
-      log.fatal("more then one state found !");
-      throw new AssertionError();
-    }
-    return statusSet.first();
-  }
-
   @Override
   public Boolean isEndStatus() {
     return schemaMap.isEmpty();
@@ -170,39 +121,29 @@ public enum TransferStatusEnum implements InvoiceStatus {
   @Override
   public Boolean isSuccessEndStatus() {
     Map<InvoiceActionTypeEnum, InvoiceStatus> schema = new HashMap<>();
-    Arrays.stream(TransferStatusEnum.class.getEnumConstants())
+    Arrays.stream(IeoStatusEnum.class.getEnumConstants())
         .forEach(e -> schema.putAll(e.schemaMap));
     return schema.entrySet().stream()
         .filter(e -> e.getValue() == this)
-        .filter(e -> e.getKey().isLeadsToSuccessFinalState())
-        .findAny()
-        .isPresent();
+        .anyMatch(e -> e.getKey().isLeadsToSuccessFinalState());
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {
     Set<InvoiceStatus> result = new HashSet<>();
-    Arrays.stream(TransferStatusEnum.class.getEnumConstants())
+    Arrays.stream(IeoStatusEnum.class.getEnumConstants())
         .forEach(e -> result.addAll(e.schemaMap.values()));
     return result;
   }
 
   private Integer code;
 
-  TransferStatusEnum(Integer code) {
+  IeoStatusEnum(Integer code) {
     this.code = code;
   }
 
   @Override
   public Integer getCode() {
     return code;
-  }
-
-  public InvoiceActionTypeEnum getStartAction(Boolean isVoucher) {
-    if (isVoucher) {
-      return POSTPONE;
-    } else {
-      return POST;
-    }
   }
 
 }

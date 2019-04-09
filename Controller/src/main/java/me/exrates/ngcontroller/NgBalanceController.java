@@ -50,8 +50,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -206,9 +208,7 @@ public class NgBalanceController {
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
                         )
-                        .forEach(o -> {
-                            mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate()));
-                        });
+                        .forEach(o -> mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate())));
                 if (!mapWalletTotalUsdDto.isEmpty()) {
                     walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
@@ -320,17 +320,17 @@ public class NgBalanceController {
     }
 
     // /info/private/v2/balances/myBalances
-//        map.put("BTC", 0.00002343);
-//        map.put("USD", 32.00);
+    // map.put("BTC", 0.00002343);
+    // map.put("USD", 32.00);
     @GetMapping("/myBalances")
-    public Map<String, BigDecimal> getBtcAndUsdBalancesSum() {
-        return balanceService.getBalancesSumInBtcAndUsd();
-    }
+    public ResponseModel<?> getBtcAndUsdBalancesSum(@RequestParam(value = "names", required = false) String[] currencyNames) {
+        if (currencyNames == null || currencyNames.length == 0) {
+            return new ResponseModel<>(balanceService.getBalancesSumInBtcAndUsd());
+        }
 
-    @GetMapping("/myBalances/{currencyName}")
-    public ResponseModel<?> getBtcAndUsdBalancesSum(@PathVariable String currencyName) {
-        BigDecimal result = balanceService.getActiveBalanceByCurrencyNameAndEmail(getPrincipalEmail(), currencyName);
-        return new ResponseModel<>(result.toPlainString());
+        Map<String, String> result = balanceService.getActiveBalanceByCurrencyNamesAndEmail(getPrincipalEmail(),
+                new HashSet<>(Arrays.asList(currencyNames)));
+        return new ResponseModel<>(result);
     }
 
     private String getPrincipalEmail() {
