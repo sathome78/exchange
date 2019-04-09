@@ -897,7 +897,32 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public boolean performIeoRollbackTransfer(IEOClaim ieoClaim) {
-        return false;
+
+        Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
+        Wallet userIeoWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), ieoClaim.getCurrencyName());
+
+        Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
+
+        BigDecimal userBtcInitActiveBalance = userBtcWallet.getActiveBalance();
+        userBtcWallet.setActiveBalance(userBtcInitActiveBalance.add(ieoClaim.getPriceInBtc()));
+
+        BigDecimal userIeoWalletActiveBalance = userIeoWallet.getActiveBalance();
+        userIeoWallet.setActiveBalance(userIeoWalletActiveBalance.subtract(ieoClaim.getAmount()));
+
+        BigDecimal makerBtcActiveBalance = makerBtcWallet.getActiveBalance();
+        makerBtcWallet.setActiveBalance(makerBtcActiveBalance.subtract(ieoClaim.getPriceInBtc()));
+
+        boolean updateResult = walletDao.update(makerBtcWallet)
+                && walletDao.update(userBtcWallet)
+                && walletDao.update(userIeoWallet);
+        if (updateResult) {
+            final Wallet makerWallet = makerBtcWallet;
+            final Wallet userWallet = userIeoWallet;
+            final Wallet userMainWallet = userBtcWallet;
+            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcActiveBalance, makerWallet,
+                    userIeoWalletActiveBalance, userWallet, userMainWallet, IeoStatusEnum.REVOKED_BY_IEO_FAILURE));
+        }
+        return updateResult;
     }
 
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
