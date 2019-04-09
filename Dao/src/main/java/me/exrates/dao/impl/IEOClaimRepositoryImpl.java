@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -61,6 +62,22 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         params.put("status", status.name());
         params.put("id", claimId);
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public Collection<Integer> getAllSuccessClaimIdsByIeoId(int ieoId) {
+        String sql = "SElECT id FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("status", IEOResult.IEOResultStatus.SUCCESS.name());
+        params.addValue("ieoId", ieoId);
+        return jdbcTemplate.queryForList(sql, params, Integer.class);
+    }
+
+    @Override
+    public List<IEOClaim> getClaimsByIds(List<Integer> ids) {
+        String sql = "SElECT * FROM IEO_CLAIM WHERE id in (:ids)";
+        MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
+        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
 
     private RowMapper<IEOClaim> ieoClaimRowMapper() {

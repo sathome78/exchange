@@ -4,6 +4,7 @@ import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface IEOClaimRepository {
 
@@ -12,5 +13,9 @@ public interface IEOClaimRepository {
     Collection<IEOClaim> findUnprocessedIeoClaims();
 
     boolean updateStatusIEOClaim(int claimId, IEOResult.IEOResultStatus status);
+
+    Collection<Integer> getAllSuccessClaimIdsByIeoId(int claimId);
+
+    List<IEOClaim> getClaimsByIds(List<Integer> ids);
 }
 

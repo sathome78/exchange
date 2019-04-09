@@ -30,9 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @Service
 public class IEOServiceImpl implements IEOService {
@@ -181,6 +184,19 @@ public class IEOServiceImpl implements IEOService {
         ieoDetailsRepository.updateSafe(dto.toIEODetails(id));
     }
 
+    @Override
+    public void revertIEO(Integer idIeo, String email) {
+        User user = userService.findByEmail(email);
+        if (user.getRole() != UserRole.ADMIN_USER ) {
+            throw new RuntimeException("NOT ADMIN!!!"); // fix it
+        }
+
+        consumeClaimByPartition(idIeo, claim -> {
+            //todo implement logic revert
+
+        });
+    }
+
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
         if (ieoDetails.getMinAmount().compareTo(BigDecimal.ZERO) != 0
                 && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) > 0) {
@@ -203,5 +219,24 @@ public class IEOServiceImpl implements IEOService {
                 throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_PER_USER_FAILURE, message);
             }
         }
+    }
+
+    private void consumeClaimByPartition(Integer ieoId, Consumer<IEOClaim> c) {
+        Collection<Integer> allIds = ieoClaimRepository.getAllSuccessClaimIdsByIeoId(ieoId);
+        int partitionSize = 50;
+        List<Integer> accumulator = new ArrayList<>(partitionSize);
+        for (Integer each : allIds) {
+            accumulator.add(each);
+            if (accumulator.size() == partitionSize) {
+                List<IEOClaim> claims = ieoClaimRepository.getClaimsByIds(accumulator);
+                claims.forEach(c);
+                accumulator.clear();
+                claims.clear();
+            }
+        }
+        List<IEOClaim> claims = ieoClaimRepository.getClaimsByIds(accumulator);
+        claims.forEach(c);
+        accumulator.clear();
+        claims.clear();
     }
 }
