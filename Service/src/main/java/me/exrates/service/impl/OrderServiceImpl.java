@@ -1489,7 +1489,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // TODO: Not use
     @Override
     public List<CoinmarketApiDto> getHourlyCoinmarketData(String currencyPairName) {
         return getCoinmarketDataForActivePairs(currencyPairName, new BackDealInterval("1 HOUR"));
@@ -1561,7 +1560,6 @@ public class OrderServiceImpl implements OrderService {
         return (Integer) result;
     }
 
-    // TODO: Not use
     @Override
     public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
         Integer ot = OperationType.valueOf(orderType).getType();
@@ -1790,7 +1788,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
     }
 
-    // TODO: Not use
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
@@ -1798,7 +1795,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
     }
 
-    // TODO: Not use
     @Override
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
                                                                    BackDealInterval backDealInterval,
@@ -1811,7 +1807,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-    // TODO: Not use
     @Override
     public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale) {
         List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, null);
@@ -1823,7 +1818,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-    // TODO: Not use
     @Override
     public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale) {
         List<OrderListDto> result = orderDao.getOrdersSellForCurrencyPair(currencyPair, null);
@@ -1957,7 +1951,6 @@ public class OrderServiceImpl implements OrderService {
         return transactions.size();
     }
 
-    // TODO: Not use
     @Override
     public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
         return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
@@ -2037,7 +2030,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
     }
 
-    // TODO: Not use
     @Transactional(transactionManager = "slaveTxManager")
     @Override
     public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {

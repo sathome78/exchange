@@ -18,6 +18,7 @@ import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -1410,6 +1411,158 @@ public class OrderServiceImplTest {
     }
 
     @Test
+    public void getCurrencyPairTurnoverByPeriodAndRoles() {
+        CurrencyPairTurnoverReportDto dto = CurrencyPairTurnoverReportDto.builder()
+                .currencyPairId(100)
+                .currencyPairName("BTC/USD")
+                .currencyPairId(1)
+                .currencyAccountingName("ACCOUNTING_NAME")
+                .quantity(10)
+                .amountConvert(BigDecimal.ONE)
+                .amountCommission(BigDecimal.TEN)
+                .build();
+
+        when(orderDao.getCurrencyPairTurnoverByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class))).thenReturn(Collections.singletonList(dto));
+
+        List<CurrencyPairTurnoverReportDto> currencyPairTurnoverByPeriodAndRoles = orderService.getCurrencyPairTurnoverByPeriodAndRoles(
+                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
+                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
+                getUserRoles());
+
+        assertNotNull(currencyPairTurnoverByPeriodAndRoles);
+        assertEquals(1, currencyPairTurnoverByPeriodAndRoles.size());
+        assertEquals(dto.getCurrencyPairId(), currencyPairTurnoverByPeriodAndRoles.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrencyPairName(), currencyPairTurnoverByPeriodAndRoles.get(0).getCurrencyPairName());
+        assertEquals(dto.getCurrencyAccountingName(), currencyPairTurnoverByPeriodAndRoles.get(0).getCurrencyAccountingName());
+        assertEquals(dto.getQuantity(), currencyPairTurnoverByPeriodAndRoles.get(0).getQuantity());
+        assertEquals(dto.getAmountConvert(), currencyPairTurnoverByPeriodAndRoles.get(0).getAmountConvert());
+        assertEquals(dto.getAmountCommission(), currencyPairTurnoverByPeriodAndRoles.get(0).getAmountCommission());
+
+        verify(orderDao, atLeastOnce()).getCurrencyPairTurnoverByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class));
+    }
+
+    @Test
+    public void getUserSummaryOrdersData() {
+        UserSummaryOrdersDto dto = UserSummaryOrdersDto.builder().build();
+        dto.setCreatorEmail("test@test.com");
+        dto.setCreatorRole("USER");
+        dto.setAcceptorRole("USER");
+        dto.setAcceptorEmail("test@test.com");
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setCurrencyName("BTC/USD");
+        dto.setAmount(BigDecimal.TEN);
+        dto.setCommission(BigDecimal.ONE);
+
+        List<UserRole> userRoles = getUserRoles();
+
+        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.singletonList(dto));
+        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.singletonList(dto));
+
+        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
+                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
+                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
+                userRoles,
+                77);
+
+        assertNotNull(userSummaryOrdersData);
+        assertEquals(2, userSummaryOrdersData.size());
+        assertTrue(userSummaryOrdersData.containsKey("SELL"));
+        assertEquals(1, userSummaryOrdersData.get("SELL").size());
+        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("SELL").get(0).getCreatorEmail());
+        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("SELL").get(0).getCreatorRole());
+        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("SELL").get(0).getAcceptorEmail());
+        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("SELL").get(0).getAcceptorRole());
+        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyName());
+        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyPairName());
+        assertEquals(dto.getAmount(), userSummaryOrdersData.get("SELL").get(0).getAmount());
+        assertEquals(dto.getCommission(), userSummaryOrdersData.get("SELL").get(0).getCommission());
+        assertTrue(userSummaryOrdersData.containsKey("BUY"));
+        assertEquals(1, userSummaryOrdersData.get("BUY").size());
+        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("BUY").get(0).getCreatorEmail());
+        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("BUY").get(0).getCreatorRole());
+        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("BUY").get(0).getAcceptorEmail());
+        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("BUY").get(0).getAcceptorRole());
+        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyName());
+        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyPairName());
+        assertEquals(dto.getAmount(), userSummaryOrdersData.get("BUY").get(0).getAmount());
+        assertEquals(dto.getCommission(), userSummaryOrdersData.get("BUY").get(0).getCommission());
+
+        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+    }
+
+    @Test
+    public void getUserSummaryOrdersData_isEmpty() {
+        List<UserRole> userRoles = getUserRoles();
+
+        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.EMPTY_LIST);
+        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt())).thenReturn(Collections.EMPTY_LIST);
+
+        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
+                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
+                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
+                userRoles,
+                77);
+
+        assertNotNull(userSummaryOrdersData);
+        assertEquals(2, userSummaryOrdersData.size());
+        assertTrue(userSummaryOrdersData.containsKey("SELL"));
+        assertTrue(userSummaryOrdersData.containsKey("BUY"));
+        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
+        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
+
+        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyListOf(UserRole.class),
+                anyInt());
+    }
+
+    @Test
+    public void logCallBackData() {
+        doNothing().when(callBackDao).logCallBackData(any(CallBackLogDto.class));
+
+        orderService.logCallBackData(new CallBackLogDto());
+
+        verify(callBackDao, times(1)).logCallBackData(any(CallBackLogDto.class));
+    }
+
+    @Test
     public void getMyOrdersWithStateMap_foundOneRecordTest() {
         log.debug("getMyOrdersWithStateMap_foundOneRecordTest() - start");
 
@@ -1513,147 +1666,6 @@ public class OrderServiceImplTest {
         assertTrue("List could be empty", pair.getRight().isEmpty());
 
         log.debug("getMyOrdersWithStateMap_notFoundRecordsTest() - end");
-    }
-
-    @Test
-    public void getUserSummaryOrdersData() {
-        UserSummaryOrdersDto dto = UserSummaryOrdersDto.builder().build();
-        dto.setCreatorEmail("test@test.com");
-        dto.setCreatorRole("USER");
-        dto.setAcceptorRole("USER");
-        dto.setAcceptorEmail("test@test.com");
-        dto.setCurrencyPairName("BTC/USD");
-        dto.setCurrencyName("BTC/USD");
-        dto.setAmount(BigDecimal.TEN);
-        dto.setCommission(BigDecimal.ONE);
-
-        List<UserRole> userRoles = Arrays.asList(
-                UserRole.ADMINISTRATOR,
-                UserRole.ACCOUNTANT,
-                UserRole.ADMIN_USER,
-                UserRole.USER,
-                UserRole.ROLE_CHANGE_PASSWORD,
-                UserRole.EXCHANGE,
-                UserRole.VIP_USER,
-                UserRole.TRADER,
-                UserRole.FIN_OPERATOR,
-                UserRole.BOT_TRADER,
-                UserRole.ICO_MARKET_MAKER,
-                UserRole.OUTER_MARKET_BOT
-        );
-
-        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt())).thenReturn(Collections.singletonList(dto));
-        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt())).thenReturn(Collections.singletonList(dto));
-
-        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
-                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
-                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
-                userRoles,
-                77);
-
-        assertNotNull(userSummaryOrdersData);
-        assertEquals(2, userSummaryOrdersData.size());
-        assertTrue(userSummaryOrdersData.containsKey("SELL"));
-        assertEquals(1, userSummaryOrdersData.get("SELL").size());
-        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("SELL").get(0).getCreatorEmail());
-        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("SELL").get(0).getCreatorRole());
-        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("SELL").get(0).getAcceptorEmail());
-        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("SELL").get(0).getAcceptorRole());
-        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyName());
-        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("SELL").get(0).getCurrencyPairName());
-        assertEquals(dto.getAmount(), userSummaryOrdersData.get("SELL").get(0).getAmount());
-        assertEquals(dto.getCommission(), userSummaryOrdersData.get("SELL").get(0).getCommission());
-        assertTrue(userSummaryOrdersData.containsKey("BUY"));
-        assertEquals(1, userSummaryOrdersData.get("BUY").size());
-        assertEquals(dto.getCreatorEmail(), userSummaryOrdersData.get("BUY").get(0).getCreatorEmail());
-        assertEquals(dto.getCreatorRole(), userSummaryOrdersData.get("BUY").get(0).getCreatorRole());
-        assertEquals(dto.getAcceptorEmail(), userSummaryOrdersData.get("BUY").get(0).getAcceptorEmail());
-        assertEquals(dto.getAcceptorRole(), userSummaryOrdersData.get("BUY").get(0).getAcceptorRole());
-        assertEquals(dto.getCurrencyName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyName());
-        assertEquals(dto.getCurrencyPairName(), userSummaryOrdersData.get("BUY").get(0).getCurrencyPairName());
-        assertEquals(dto.getAmount(), userSummaryOrdersData.get("BUY").get(0).getAmount());
-        assertEquals(dto.getCommission(), userSummaryOrdersData.get("BUY").get(0).getCommission());
-
-        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt());
-        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt());
-    }
-
-    @Test
-    public void getUserSummaryOrdersData_isEmpty() {
-        List<UserRole> userRoles = Arrays.asList(
-                UserRole.ADMINISTRATOR,
-                UserRole.ACCOUNTANT,
-                UserRole.ADMIN_USER,
-                UserRole.USER,
-                UserRole.ROLE_CHANGE_PASSWORD,
-                UserRole.EXCHANGE,
-                UserRole.VIP_USER,
-                UserRole.TRADER,
-                UserRole.FIN_OPERATOR,
-                UserRole.BOT_TRADER,
-                UserRole.ICO_MARKET_MAKER,
-                UserRole.OUTER_MARKET_BOT
-        );
-
-        when(orderDao.getUserBuyOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt())).thenReturn(Collections.EMPTY_LIST);
-        when(orderDao.getUserSellOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt())).thenReturn(Collections.EMPTY_LIST);
-
-        Map<String, List<UserSummaryOrdersDto>> userSummaryOrdersData = orderService.getUserSummaryOrdersData(
-                LocalDateTime.of(2019, 4, 8, 10, 45, 11),
-                LocalDateTime.of(2019, 4, 9, 12, 45, 11),
-                userRoles,
-                77);
-
-        assertNotNull(userSummaryOrdersData);
-        assertEquals(2, userSummaryOrdersData.size());
-        assertTrue(userSummaryOrdersData.containsKey("SELL"));
-        assertTrue(userSummaryOrdersData.containsKey("BUY"));
-        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
-        assertTrue(userSummaryOrdersData.containsValue(Collections.EMPTY_LIST));
-
-        verify(orderDao, times(1)).getUserBuyOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt());
-        verify(orderDao, times(1)).getUserSellOrdersDataByPeriodAndRoles(
-                any(LocalDateTime.class),
-                any(LocalDateTime.class),
-                anyListOf(UserRole.class),
-                anyInt());
-    }
-
-    @Test
-    public void logCallBackData() {
-        doNothing().when(callBackDao).logCallBackData(any(CallBackLogDto.class));
-
-        orderService.logCallBackData(new CallBackLogDto());
-
-        verify(callBackDao, times(1)).logCallBackData(any(CallBackLogDto.class));
     }
 
     @Test
@@ -2361,5 +2373,22 @@ public class OrderServiceImplTest {
         item2.setOrderSourceId(13);
 
         return Arrays.asList(item1, item2);
+    }
+
+    private List<UserRole> getUserRoles() {
+        return Arrays.asList(
+                UserRole.ADMINISTRATOR,
+                UserRole.ACCOUNTANT,
+                UserRole.ADMIN_USER,
+                UserRole.USER,
+                UserRole.ROLE_CHANGE_PASSWORD,
+                UserRole.EXCHANGE,
+                UserRole.VIP_USER,
+                UserRole.TRADER,
+                UserRole.FIN_OPERATOR,
+                UserRole.BOT_TRADER,
+                UserRole.ICO_MARKET_MAKER,
+                UserRole.OUTER_MARKET_BOT
+        );
     }
 }
