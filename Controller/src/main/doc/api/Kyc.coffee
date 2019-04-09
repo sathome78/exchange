@@ -40,7 +40,7 @@ curl -X POST \
           ],
           "lastName": "Ivanov",
           "docType":"P",
-          "country: "UKR"
+          "country: "UA"
 }'
 
 @apiSuccess {Object} data Data
@@ -77,3 +77,26 @@ HTTP/1.1 400 OK
 }
 ###
 
+###
+@api {get} api/private/v2/kyc/countries Get all countries
+@apiName Get all countries
+@apiVersion 0.0.1
+@apiGroup KYC
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+curl -X GET \
+  http://preprod.exapp/api/private/v2/kyc/countries \
+  -H 'Exrates-rest-token: $token
+
+
+
+@apiSuccessExample {json} Success-Response:
+[
+    {
+        "countryName": "Aland Islands",
+        "countryCode": "AX"
+    },
+  ...
+]
+###
