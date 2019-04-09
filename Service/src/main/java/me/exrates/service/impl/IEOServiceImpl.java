@@ -4,6 +4,7 @@ import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserDao;
+import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
@@ -14,10 +15,12 @@ import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.model.exceptions.IeoException;
@@ -49,7 +52,7 @@ public class IEOServiceImpl implements IEOService {
     private final IeoDetailsRepository ieoDetailsRepository;
     private final WalletService walletService;
     private final UserDao userDao;
-
+    private final SendMailService sendMailService;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -58,7 +61,7 @@ public class IEOServiceImpl implements IEOService {
                           IEOQueueService ieoQueueService,
                           UserService userService,
                           WalletService walletService,
-                          KYCSettingsDao kycSettingsDao, UserDao userDao) {
+                          KYCSettingsDao kycSettingsDao, UserDao userDao, SendMailService sendMailService) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
@@ -67,6 +70,7 @@ public class IEOServiceImpl implements IEOService {
         this.ieoQueueService = ieoQueueService;
         this.kycSettingsDao = kycSettingsDao;
         this.userDao = userDao;
+        this.sendMailService = sendMailService;
     }
 
     @Transactional
@@ -185,16 +189,33 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public void revertIEO(Integer idIeo, String email) {
-        User user = userService.findByEmail(email);
+    public void startRevertIEO(Integer idIeo, String adminEmail) {
+        User user = userService.findByEmail(adminEmail);
         if (user.getRole() != UserRole.ADMIN_USER ) {
             throw new RuntimeException("NOT ADMIN!!!"); // fix it
         }
+        IEODetails ieoEntity = findOne(idIeo);
+
+        if (ieoEntity.getStatus() == IEODetailsStatus.PROCESSING_FAIL) {
+            throw new RuntimeException("ALREADY STARTED!!!"); // fix it
+        }
+
+        if (ieoEntity.getStatus() == IEODetailsStatus.FAILED) {
+            throw new RuntimeException("ALREADY FAIL!!!"); // fix it
+        }
+
+        ieoEntity.setStatus(IEODetailsStatus.PROCESSING_FAIL);
+        ieoDetailsRepository.update(ieoEntity);
 
         consumeClaimByPartition(idIeo, claim -> {
-            //todo implement logic revert
 
         });
+
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setMessage("Revert IEO");
+        email.setSubject(String.format("Revert ieo for %s finish successful!", ieoEntity.getCurrencyName()));
+        sendMailService.sendInfoMail(email);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
