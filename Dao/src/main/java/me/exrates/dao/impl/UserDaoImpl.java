@@ -1459,4 +1459,13 @@ public class UserDaoImpl implements UserDao {
         return null;
     }
 
+    @Override
+    public boolean updateUserRole(int userId, UserRole userRole) {
+        String sql = "UPDATE USER SET roleid= :role_id WHERE id = :user_id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("role_id", userRole.getRole());
+        params.addValue("user_id", userId);
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
 }

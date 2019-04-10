@@ -271,4 +271,6 @@ public interface UserService {
     boolean addPolicyToUser(String email, String policy);
 
     IeoUserStatus findIeoUserStatusByEmail(String email);
+
+    boolean updateUserRole(int userId, UserRole userRole);
 }

@@ -66,7 +66,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public Collection<Integer> getAllSuccessClaimIdsByIeoId(int ieoId) {
-        String sql = "SElECT id FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId";
+        String sql = "SElECT id FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId FOR UPDATE";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("status", IEOResult.IEOResultStatus.SUCCESS.name());
         params.addValue("ieoId", ieoId);
@@ -78,15 +78,6 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         String sql = "SElECT * FROM IEO_CLAIM WHERE id in (:ids)";
         MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
-    }
-
-    @Override
-    public Boolean isExistSuccessClaimByIeoId(int id) {
-        String sql = "SELECT CASE WHEN count(*) > 0 THEN TRUE ELSE FALSE END FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId";
-        Map<String, Object> params = new HashMap<>();
-        params.put("status", IEOResult.IEOResultStatus.SUCCESS.name());
-        params.put("id", id);
-        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
     }
 
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
