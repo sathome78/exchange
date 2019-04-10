@@ -202,6 +202,9 @@ public class MerchantServiceImpl implements MerchantService {
     @Transactional(readOnly = true)
     @Override
     public Merchant findByName(String name) {
+        if (isNull(merchantByNameCache)) {
+            return merchantDao.findByName(name);
+        }
         return merchantByNameCache.get(name, () -> merchantDao.findByName(name));
     }
 

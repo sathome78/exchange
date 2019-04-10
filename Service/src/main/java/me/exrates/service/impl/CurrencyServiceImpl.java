@@ -130,6 +130,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Transactional(readOnly = true)
     @Override
     public Currency findByName(String name) {
+        if (isNull(currencyByNameCache)) {
+            return currencyDao.findByName(name);
+        }
         return currencyByNameCache.get(name, () -> currencyDao.findByName(name));
     }
 
