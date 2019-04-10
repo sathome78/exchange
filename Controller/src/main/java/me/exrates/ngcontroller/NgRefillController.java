@@ -18,6 +18,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderExceptio
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
@@ -161,6 +162,7 @@ public class NgRefillController {
      * @return merchant data for selected currency name
      */
     @GetMapping(value = "/merchants/input")
+    @CheckUserAuthority(authority = UserOperationAuthority.INPUT)
     public RefillPageDataDto inputCredits(@RequestParam("currency") String currencyName) {
         Currency currency = currencyService.findByName(currencyName);
         if (currency == null) {
@@ -192,6 +194,7 @@ public class NgRefillController {
     }
 
     @PostMapping(value = "/request/create")
+    @CheckUserAuthority(authority = UserOperationAuthority.INPUT)
     public ResponseEntity<Map<String, Object>> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());

@@ -24,6 +24,7 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -118,6 +119,7 @@ public class NgWithdrawController {
     // POST: /api/private/v2/balances/withdraw/request/create
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
+    @CheckUserAuthority(authority = UserOperationAuthority.OUTPUT)
     public ResponseEntity<Map<String, String>> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
         String email = getPrincipalEmail();
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(email), UserOperationAuthority.OUTPUT);
@@ -168,6 +170,7 @@ public class NgWithdrawController {
     // response for BTC = https://api.myjson.com/bins/15aa4m
     // response for USD = https://api.myjson.com/bins/v8206
     @GetMapping(value = "/merchants/output")
+    @CheckUserAuthority(authority = UserOperationAuthority.OUTPUT)
     public ResponseEntity<WithdrawDataDto> outputCredits(@RequestParam("currency") String currencyName) {
         String email = getPrincipalEmail();
         try {
@@ -222,6 +225,7 @@ public class NgWithdrawController {
     // 200 - no pincode use google oauth
     @CheckActiveUserStatus
     @PostMapping(value = "/request/pin")
+    @CheckUserAuthority(authority = UserOperationAuthority.OUTPUT)
     public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
         try {
             User user = userService.findByEmail(getPrincipalEmail());
@@ -237,27 +241,6 @@ public class NgWithdrawController {
             throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
         }
     }
-
-    // Not used for now
-//    // POST: /info/private/v2/balances/withdraw/request/pin?pin=123456
-//    @CheckActiveUserStatus
-//    @PostMapping(value = "/request/pin")
-//    @ResponseBody
-//    public ResponseEntity<Void> withdrawRequestCheckPin(@RequestParam String pin) {
-//        logger.debug("withdraw pin {}", pin);
-//        User user = userService.findByEmail(getPrincipalEmail());
-//        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-//            if (!g2faService.checkGoogle2faVerifyCode(pin, user.getId())) {
-//                throw new IncorrectPinException("Incorrect pin: " + pin);
-//            }
-//        } else {
-//            if (!userService.checkPin(getPrincipalEmail(), pin, NotificationMessageEventEnum.WITHDRAW)) {
-//                secureService.sendWithdrawPincode(user);
-//                throw new IncorrectPinException("Incorrect pin: " + pin);
-//            }
-//        }
-//        return ResponseEntity.ok().build();
-//    }
 
     @GetMapping("/commission")
     public Map<String, String> getCommissions(

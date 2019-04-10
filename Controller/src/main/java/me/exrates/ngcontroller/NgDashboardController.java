@@ -22,6 +22,7 @@ import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
@@ -107,18 +108,8 @@ public class NgDashboardController {
     }
 
     @PostMapping("/order")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        String email = getPrincipalEmail();
-        User user = userService.findByEmail(email);
-        boolean checkStatus =
-                userOperationService.getStatusAuthorityForUserByOperation(user.getId(), UserOperationAuthority.TRADING);
-
-        if(!checkStatus) {
-            String message = String.format("No permission for trade operation, email %s", email);
-            logger.error(message);
-            throw new NgResponseException(ErrorApiTitles.USER_OPERATION_DENIED, message);
-        }
-
         OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
 
         String result;
@@ -139,6 +130,7 @@ public class NgDashboardController {
     }
 
     @DeleteMapping("/order/{id}")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result = (Integer) orderService.deleteOrderByAdmin(id);
         if (result == 1) {
@@ -149,6 +141,7 @@ public class NgDashboardController {
     }
 
     @PutMapping("/order")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
         throw new NgDashboardException("Update orders is not supported");
