@@ -6,6 +6,8 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.openapi.OpenApiCommonService;
+import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import me.exrates.service.userOperation.UserOperationService;
 import org.mockito.Mockito;
 import org.springframework.context.MessageSource;
@@ -59,5 +61,10 @@ public class WebAppTestConfig {
     @Bean
     public WalletService walletService() {
         return Mockito.mock(WalletService.class);
+    }
+
+    @Bean
+    public OpenApiCommonService openApiCommonService() {
+        return new OpenApiCommonServiceImpl(userService(), messageSource(), userOperationService());
     }
 }

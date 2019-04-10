@@ -207,7 +207,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyPairByIdCache.get(currencyPairId, () -> currencyDao.findCurrencyPairById(currencyPairId));
-        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex ) {
+        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }
@@ -390,7 +390,10 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public Integer findCurrencyPairIdByName(String pairName) {
-        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> new CurrencyPairNotFoundException(pairName));
+        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> {
+            String massage = "Failed to find currency pair details for pairName " + (pairName == null ? "null" : pairName);
+            return new CurrencyPairNotFoundException(massage);
+        });
     }
 
     @Override
