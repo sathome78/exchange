@@ -758,7 +758,7 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));
-            throw new OrderParamsWrongException(errors.toString());
+            throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String [] {})));
         }
         return orderCreateDto;
     }

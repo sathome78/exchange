@@ -72,10 +72,9 @@ public class OpenApiOrderController {
                     orderParamsDto.getAmount(), orderParamsDto.getPrice(), principal);
             return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
         } catch (NotCreatableOrderException e) {
-            // "This pair available only through website"
             throw new OpenApiException(ErrorApiTitles.API_UNAVAILABLE_CURRENCY_PAIR, e.getMessage());
         } catch (OrderParamsWrongException e) {
-            throw new OpenApiException(ErrorApiTitles.API_WRONG_ORDER_PARAMS, e.getMessage());
+            throw new OpenApiException(ErrorApiTitles.API_INVALID_ORDER_CREATION_PARAMS, e.getMessage());
         } catch (Exception e) {
             throw new OpenApiException(ErrorApiTitles.API_CREATE_ORDER_ERROR, e.getMessage());
         }
@@ -91,10 +90,9 @@ public class OpenApiOrderController {
                     orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
             return new ResponseEntity<>(new OrderCreationResultOpenApiDtoExtended(resultDto), HttpStatus.CREATED);
         } catch (NotCreatableOrderException e) {
-            // "This pair available only through website"
             throw new OpenApiException(ErrorApiTitles.API_UNAVAILABLE_CURRENCY_PAIR, e.getMessage());
         } catch (OrderParamsWrongException e) {
-            throw new OpenApiException(ErrorApiTitles.API_WRONG_ORDER_PARAMS, e.getMessage());
+            throw new OpenApiException(ErrorApiTitles.API_INVALID_ORDER_CREATION_PARAMS, e.getMessage());
         } catch (Exception e) {
             throw new OpenApiException(ErrorApiTitles.API_CREATE_ORDER_ERROR, e.getMessage());
         }

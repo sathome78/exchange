@@ -1,6 +1,7 @@
 package me.exrates.controller.exception;
 
 import lombok.ToString;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.exceptions.IeoException;
@@ -37,6 +38,9 @@ public class ErrorInfo {
             if (custom.getCode() != null) {
                 this.code = custom.getCode();
             }
+        } else if (ex instanceof OpenApiException) {
+            OpenApiException exception = (OpenApiException) ex;
+            this.title = exception.getTitle();
         }
         this.uuid = MDC.get("process.id");
     }

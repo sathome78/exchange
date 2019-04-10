@@ -20,7 +20,7 @@ public class OpenApiUtils {
             log.warn(message);
             throw new OpenApiException(ErrorApiTitles.API_WRONG_CURRENCY_PAIR_PATTERN, message);
         }
-        return currencyPair.replace('_', '/').toUpperCase();
+        return currencyPair.replace('_', '/').replace('-', '/').toUpperCase();
     }
 
     public static String transformCurrencyPairBack(String currencyPair) {
