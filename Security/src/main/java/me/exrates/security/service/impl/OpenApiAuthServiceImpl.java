@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -43,6 +44,7 @@ public class OpenApiAuthServiceImpl implements OpenApiAuthService {
         this.userDetailsService = userDetailsService;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDetails getUserByPublicKey(String method, String endpoint, Long timestamp, String publicKey, String signatureHex) {
         validateTimestamp(timestamp);

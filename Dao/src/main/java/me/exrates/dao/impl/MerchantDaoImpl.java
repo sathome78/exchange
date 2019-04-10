@@ -5,7 +5,6 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
@@ -22,7 +21,6 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -103,7 +101,7 @@ public class MerchantDaoImpl implements MerchantDao {
         final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
         final Map<String, String> params = Collections.singletonMap("name", name);
         try {
-            return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+            return slaveJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
         } catch (EmptyResultDataAccessException ex) {
             log.debug("Method 'MerchantDaoImpl::findByName' did not return any result");
             return null;

@@ -331,6 +331,7 @@ public class UserServiceImpl implements UserService {
         return userDao.ifNicknameIsUnique(nickname);
     }
 
+    @Transactional(readOnly = true)
     public boolean ifEmailIsUnique(String email) {
         return userDao.ifEmailIsUnique(email);
     }

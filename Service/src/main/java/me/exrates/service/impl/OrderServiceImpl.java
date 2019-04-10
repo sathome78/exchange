@@ -2201,6 +2201,7 @@ public class OrderServiceImpl implements OrderService {
                 direction);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserOrdersDto> getUserOpenOrders(@Nullable String currencyPairName) {
         logTransaction("getUserOpenOrders", "begin", -1, -1, null);
@@ -2212,6 +2213,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserOrdersDto> getUserClosedOrders(@Null String currencyPairName,
                                                    @Null Integer limit,

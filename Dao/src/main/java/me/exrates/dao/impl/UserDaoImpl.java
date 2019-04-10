@@ -91,6 +91,10 @@ public class UserDaoImpl implements UserDao {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate namedParameterSlaveJdbcTemplate;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private RowMapper<Comment> userCommentRowMapper = (resultSet, i) -> {
@@ -149,7 +153,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", email);
 
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return namedParameterSlaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException ex) {
             throw new UserNotFoundException(String.format("User: %s not found", email));
         }
@@ -295,7 +299,7 @@ public class UserDaoImpl implements UserDao {
                 "inner join ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.admin_authority_id = ADMIN_AUTHORITY.id " +
                 "where USER.email = :email AND USER_ADMIN_AUTHORITY.enabled = 1 ";
         Map<String, String> namedParameters = Collections.singletonMap("email", email);
-        return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> rs.getString("role_name"));
+        return namedParameterSlaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> rs.getString("role_name"));
     }
 
     @Override
@@ -396,7 +400,7 @@ public class UserDaoImpl implements UserDao {
     public UserShortDto findShortByEmail(String email) {
         String sql = "SELECT id, email, password, status FROM USER WHERE email = :email";
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
+            return namedParameterSlaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
                 UserShortDto dto = new UserShortDto();
                 dto.setEmail(rs.getString("email"));
                 dto.setId(rs.getInt("id"));
@@ -544,7 +548,7 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT id FROM USER WHERE email = :email";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
-        return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+        return namedParameterSlaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             if (rs.next()) {
                 return rs.getInt("id");
             } else return 0;
@@ -1360,7 +1364,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean updatePrivacyDataAndKycReferenceIdByEmail(String email, String refernceUID, String country,
-                                               String firstName, String lastName, Date birthDay) {
+                                                             String firstName, String lastName, Date birthDay) {
         String sql = "UPDATE USER SET kyc_reference = :value, country = :country," +
                 "firstName = :firstName, lastName = :lastName, birthDay = :birthDay WHERE email = :email";
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -1425,7 +1429,7 @@ public class UserDaoImpl implements UserDao {
 
         String sql = "SELECT COUNT(*) FROM POLICY p " +
                 "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
-                "WHERE up.user_id = :id AND p.name = :policy LIMIT 1" ;
+                "WHERE up.user_id = :id AND p.name = :policy LIMIT 1";
         final Map<String, String> params = new HashMap<String, String>() {
             {
                 put("id", String.valueOf(id));

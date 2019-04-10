@@ -62,6 +62,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -1586,7 +1587,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return namedParameterJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
     @Override
