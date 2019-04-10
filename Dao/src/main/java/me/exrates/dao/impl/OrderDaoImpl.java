@@ -2305,7 +2305,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("currency_pair_id", currencyPairId);
         }
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .lastOrderRate(rs.getBigDecimal("last").toPlainString())
                 .predLastOrderRate(rs.getBigDecimal("pred_last").toPlainString())
@@ -2359,7 +2359,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("currency_pair_id", currencyPairId);
         }
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> ExOrderStatisticsShortByPairsDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .currencyPairName(rs.getString("currency_pair_name"))
                 .currencyPairPrecision(rs.getInt("currency_pair_precision"))
@@ -2372,19 +2372,6 @@ public class OrderDaoImpl implements OrderDao {
                 .low24hr(rs.getBigDecimal("low24hr").toPlainString())
                 .lastOrderRate24hr(rs.getBigDecimal("last24hr").toPlainString())
                 .build());
-    }
-
-    private String calculatePercentChange(ResultSet rs) throws SQLException {
-        BigDecimal first = rs.getBigDecimal("first") == null
-                ? BigDecimal.ZERO
-                : rs.getBigDecimal("first");
-        BigDecimal last = rs.getBigDecimal("last") == null
-                ? BigDecimal.ZERO
-                : rs.getBigDecimal("last");
-
-        return first.compareTo(BigDecimal.ZERO) == 0
-                ? "0"
-                : BigDecimalProcessing.doAction(first, last, ActionType.PERCENT_GROWTH).toPlainString();
     }
 
     private RowMapper<ExOrder> getExOrderRowMapper() {
@@ -2428,14 +2415,6 @@ public class OrderDaoImpl implements OrderDao {
             return null;
         }
         return timestamp.toLocalDateTime();
-    }
-
-    private String convertToPlainString(ResultSet rs, String columnName) throws SQLException {
-        BigDecimal value = rs.getBigDecimal(columnName);
-        if (Objects.isNull(value)) {
-            return BigDecimal.ZERO.toPlainString();
-        }
-        return value.toPlainString();
     }
 
 }
