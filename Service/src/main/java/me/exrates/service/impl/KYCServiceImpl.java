@@ -323,7 +323,7 @@ public class KYCServiceImpl implements KYCService {
         //start create applicant
         String uuid = UUID.randomUUID().toString();
         KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
-        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[1],
+        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[0],
                 identityDataRequest.getLastName(), dateOfBirth);
         PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
         CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
