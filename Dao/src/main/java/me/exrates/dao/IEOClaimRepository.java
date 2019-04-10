@@ -17,5 +17,7 @@ public interface IEOClaimRepository {
     Collection<Integer> getAllSuccessClaimIdsByIeoId(int claimId);
 
     List<IEOClaim> getClaimsByIds(List<Integer> ids);
+
+    Boolean isExistSuccessClaimByIeoId(int id);
 }
 

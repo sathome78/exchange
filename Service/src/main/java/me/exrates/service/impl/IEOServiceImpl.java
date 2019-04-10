@@ -18,12 +18,12 @@ import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -193,18 +193,21 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public void startRevertIEO(Integer idIeo, String adminEmail) {
         User user = userService.findByEmail(adminEmail);
-        if (user.getRole() != UserRole.ADMIN_USER ) {
-            throw new RuntimeException("NOT ADMIN!!!"); // fix it
+        if (user.getRole() != UserRole.ADMIN_USER) {
+            logger.error("Error while start revert IEO, user not ADMIN {}", adminEmail);
+            throw new IeoException("NOT ADMIN!!!");
         }
         IEODetails ieoEntity = findOne(idIeo);
 
-        //todo create complex check for already processing
-        if (ieoEntity.getStatus() == IEODetailsStatus.PROCESSING_FAIL) {
-            throw new RuntimeException("ALREADY STARTED!!!"); // fix it
+        if (ieoEntity.getStatus() == IEODetailsStatus.PROCESSING_FAIL
+                && !ieoClaimRepository.isExistSuccessClaimByIeoId(ieoEntity.getId())) {
+            logger.error("Error while start revert IEO, already started, IEO {}", ieoEntity.getCurrencyName());
+            throw new IeoException("ALREADY STARTED!!!");
         }
 
         if (ieoEntity.getStatus() == IEODetailsStatus.FAILED) {
-            throw new RuntimeException("ALREADY FAIL!!!"); // fix it
+            logger.error("Error while start revert IEO, already FAIL, IEO {}", ieoEntity.getCurrencyName());
+            throw new RuntimeException("ALREADY FAIL!!!");
         }
 
         ieoEntity.setStatus(IEODetailsStatus.PROCESSING_FAIL);

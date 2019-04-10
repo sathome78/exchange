@@ -80,6 +80,15 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
 
+    @Override
+    public Boolean isExistSuccessClaimByIeoId(int id) {
+        String sql = "SELECT CASE WHEN count(*) > 0 THEN TRUE ELSE FALSE END FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId";
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", IEOResult.IEOResultStatus.SUCCESS.name());
+        params.put("id", id);
+        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();

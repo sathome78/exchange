@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -13,6 +14,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
+import me.exrates.model.IEOResult;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -128,6 +130,8 @@ public class WalletServiceImpl implements WalletService {
     private TransactionService transactionService;
     @Autowired
     private IeoDetailsRepository ieoDetailsRepository;
+    @Autowired
+    private IEOClaimRepository ieoClaimRepository;
 
 
     @Override
@@ -920,6 +924,9 @@ public class WalletServiceImpl implements WalletService {
             final Wallet makerWallet = makerBtcWallet;
             final Wallet userWallet = userIeoWallet;
             final Wallet userMainWallet = userBtcWallet;
+
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), IEOResult.IEOResultStatus.REVOKED);
+
             CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcActiveBalance, makerWallet,
                     userIeoWalletActiveBalance, userWallet, userMainWallet, IeoStatusEnum.REVOKED_BY_IEO_FAILURE));
         }
