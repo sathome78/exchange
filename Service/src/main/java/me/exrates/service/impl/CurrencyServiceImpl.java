@@ -363,7 +363,10 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public Integer findCurrencyPairIdByName(String pairName) {
-        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> new CurrencyPairNotFoundException(pairName));
+        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> {
+            String massage = "Failed to find currency pair details for pairName " + (pairName == null ? "null" : pairName);
+            return new CurrencyPairNotFoundException(massage);
+        });
     }
 
     @Override

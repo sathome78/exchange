@@ -2,6 +2,7 @@ package me.exrates.controller.openAPI;
 
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.model.BaseResponse;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
@@ -78,8 +79,13 @@ public class OpenApiUserInfoController {
         } catch (InvalidNumberParamException e) {
             throw new OpenApiException(ErrorApiTitles.API_VALIDATE_NUMBER_ERROR, e.getMessage());
         }
-
-        return orderService.getUserClosedOrders(currencyPairName, limit, offset);
+        try {
+            return orderService.getUserClosedOrders(currencyPairName, limit, offset);
+        } catch (CurrencyPairNotFoundException e) {
+            throw new OpenApiException(ErrorApiTitles.API_INVALID_CURRENCY_PAIR_NAME, e.getMessage());
+        } catch (Exception e) {
+            throw new OpenApiException(ErrorApiTitles.API_ORDER_NOT_FOUND, "Failed to closed orders");
+        }
     }
 
     @GetMapping(value = "/orders/canceled", produces = MediaType.APPLICATION_JSON_VALUE)
