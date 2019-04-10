@@ -175,7 +175,6 @@ public interface WalletService {
 
     boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
 
-    @Transactional()
     boolean performIeoTransfer(IEOClaim ieoClaim);
 
     BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
@@ -184,6 +183,5 @@ public interface WalletService {
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 
-    @Transactional()
     boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 }

@@ -198,6 +198,7 @@ public class IEOServiceImpl implements IEOService {
         }
         IEODetails ieoEntity = findOne(idIeo);
 
+        //todo create complex check for already processing
         if (ieoEntity.getStatus() == IEODetailsStatus.PROCESSING_FAIL) {
             throw new RuntimeException("ALREADY STARTED!!!"); // fix it
         }

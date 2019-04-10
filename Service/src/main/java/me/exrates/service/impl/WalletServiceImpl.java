@@ -896,6 +896,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    @Transactional()
     public boolean performIeoRollbackTransfer(IEOClaim ieoClaim) {
 
         Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
