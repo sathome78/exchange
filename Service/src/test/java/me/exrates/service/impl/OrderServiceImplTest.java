@@ -11,29 +11,50 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.PagingData;
 import me.exrates.model.User;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.RefreshStatisticDto;
 import me.exrates.model.dto.ReportDto;
-import me.exrates.model.dto.SimpleOrderBookItem;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.dto.openAPI.OpenOrderDto;
+import me.exrates.model.dto.openAPI.OrderBookItem;
+import me.exrates.model.dto.openAPI.TradeHistoryDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
+import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
+import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.ChartResolutionTimeUnit;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IntervalType;
@@ -46,9 +67,12 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CompanyWalletService;
@@ -61,14 +85,18 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONArray;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -77,8 +105,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -89,6 +121,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -98,6 +131,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -107,6 +141,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -150,6 +185,8 @@ public class OrderServiceImplTest {
     private StopOrderService stopOrderService;
     @Mock
     private CallBackLogDao callBackDao;
+    @Mock
+    private ServiceCacheableProxy serviceCacheableProxy;
 
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
@@ -515,14 +552,12 @@ public class OrderServiceImplTest {
     public void getStatForSomeCurrencies_exception() {
         when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(null);
 
-        try {
-            orderService.getStatForSomeCurrencies(new HashSet<Integer>() {{
-                add(1);
-                add(2);
-                add(3);
-            }});
-        } catch (Exception ex) {
-        }
+        orderService.getStatForSomeCurrencies(new HashSet<Integer>() {{
+            add(1);
+            add(2);
+            add(3);
+        }});
+
         verify(exchangeRatesHolder, times(1)).getCurrenciesRates(anySetOf(Integer.class));
     }
 
@@ -551,7 +586,6 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
         assertEquals(24, orderCreateDto.getComissionId());
 
-        verify(userService, times(1)).getUserRoleFromDB(anyString());
         verify(orderDao, times(1)).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
     }
 
@@ -1250,9 +1284,7 @@ public class OrderServiceImplTest {
 
     @Ignore
     public void createOrder() {
-        ExOrder exOrder = new ExOrder();
-        exOrder.setAmountBase(BigDecimal.TEN);
-
+        ExOrder exOrder = getMockExOrder();
         String result = "";
 
         when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
@@ -1306,14 +1338,7 @@ public class OrderServiceImplTest {
 
     @Test
     public void autoAcceptOrders_list_ExOrder_has_element_amount_more_amountBase() {
-        ExOrder exOrder = new ExOrder();
-        exOrder.setId(3);
-        exOrder.setAmountBase(BigDecimal.TEN);
-        exOrder.setOperationType(OperationType.MANUAL);
-        exOrder.setAmountConvert(BigDecimal.ONE);
-        exOrder.setCommissionFixedAmount(BigDecimal.ONE);
-        exOrder.setComissionId(100);
-        exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+        ExOrder exOrder = getMockExOrder();
 
         OrderCreateDto mockOrderCreateDto = getMockOrderCreateDto(BigDecimal.TEN);
         mockOrderCreateDto.setAmount(BigDecimal.valueOf(11));
@@ -1880,15 +1905,11 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getOrderExcelFile_OrderStatus_OPENED() {
-        try {
-            ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.OPENED);
+    public void getOrderExcelFile_OrderStatus_OPENED() throws Exception {
+        ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.OPENED);
 
-            assertNotNull(transactionExcelFile);
-            assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        assertNotNull(transactionExcelFile);
+        assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
     }
 
     @Test
@@ -1901,40 +1922,27 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void getOrderExcelFile_OrderStatus_CLOSED() {
+    public void getOrderExcelFile_OrderStatus_CLOSED() throws Exception {
+        ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.CLOSED);
 
-        try {
-            ReportDto transactionExcelFile = orderService.getOrderExcelFile(Collections.singletonList(new OrderWideListDto()), OrderStatus.CLOSED);
-
-            assertNotNull(transactionExcelFile);
-            assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        assertNotNull(transactionExcelFile);
+        assertEquals(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
     }
 
     @Test
-    public void getTransactionExcelFile() {
-        try {
-            ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.singletonList(new MyInputOutputHistoryDto()));
+    public void getTransactionExcelFile() throws Exception {
+        ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.singletonList(new MyInputOutputHistoryDto()));
 
-            assertNotNull(transactionExcelFile);
-            assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        assertNotNull(transactionExcelFile);
+        assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
     }
 
     @Test
-    public void getTransactionExcelFile_transactions_isEmpty() {
-        try {
-            ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.EMPTY_LIST);
+    public void getTransactionExcelFile_transactions_isEmpty() throws Exception {
+        ReportDto transactionExcelFile = orderService.getTransactionExcelFile(Collections.EMPTY_LIST);
 
-            assertNotNull(transactionExcelFile);
-            assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        assertNotNull(transactionExcelFile);
+        assertEquals(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)), transactionExcelFile.getFileName());
     }
 
     @Test
@@ -2096,7 +2104,7 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    public void findAllOrderBookItemsForAllPrecissions_exception() {
+    public void findAllOrderBookItemsForAllPrecissions_exception() throws Exception {
         List<PrecissionsEnum> precisionsList = Arrays.asList(
                 PrecissionsEnum.ONE,
                 PrecissionsEnum.TWO,
@@ -2107,11 +2115,7 @@ public class OrderServiceImplTest {
 
         when(orderDao.findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class))).thenReturn(getMockOrderListDto());
         when(exchangeRatesHolder.getOne(anyInt())).thenReturn(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
-        try {
-            when(objectMapper.writeValueAsString(any(Object.class))).thenThrow(Exception.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(Object.class));
 
         Map<PrecissionsEnum, String> allOrderBookItemsForAllPrecisions = orderService
                 .findAllOrderBookItemsForAllPrecissions(OrderType.SELL, 1, precisionsList);
@@ -2121,11 +2125,7 @@ public class OrderServiceImplTest {
 
         verify(orderDao, atLeastOnce()).findAllByOrderTypeAndCurrencyId(anyInt(), any(OrderType.class));
         verify(exchangeRatesHolder, atLeastOnce()).getOne(anyInt());
-        try {
-            verify(objectMapper, atLeastOnce()).writeValueAsString(any(Object.class));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Test failed " + e);
-        }
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(Object.class));
     }
 
     @Test
@@ -2184,6 +2184,1366 @@ public class OrderServiceImplTest {
         verify(orderDao, times(1)).getAllDataForCache(anyInt());
     }
 
+    @Test
+    public void getOrderTransactions() {
+        TransactionDto dto = TransactionDto.builder()
+                .transactionId(111)
+                .walletId(555)
+                .amount(BigDecimal.TEN)
+                .commission(BigDecimal.ONE)
+                .currency("3254")
+                .time(LocalDateTime.of(2019, 4, 9, 12, 26, 16))
+                .operationType(OperationType.BUY)
+                .orderStatus(OrderStatus.OPENED)
+                .transactionStatus(TransactionStatus.CREATED)
+                .build();
+
+        when(userService.getIdByEmail(any())).thenReturn(100);
+        when(orderDao.getOrderTransactions(anyInt(), anyInt())).thenReturn(Collections.singletonList(dto));
+
+        List<TransactionDto> orderTransactions = orderService.getOrderTransactions(1);
+
+        assertNotNull(orderTransactions);
+        assertEquals(1, orderTransactions.size());
+        assertEquals(dto.getTransactionId(), orderTransactions.get(0).getTransactionId());
+        assertEquals(dto.getWalletId(), orderTransactions.get(0).getWalletId());
+        assertEquals(dto.getAmount(), orderTransactions.get(0).getAmount());
+        assertEquals(dto.getCommission(), orderTransactions.get(0).getCommission());
+        assertEquals(dto.getCurrency(), orderTransactions.get(0).getCurrency());
+        assertEquals(dto.getTime(), orderTransactions.get(0).getTime());
+        assertEquals(dto.getOperationType(), orderTransactions.get(0).getOperationType());
+        assertEquals(dto.getOrderStatus(), orderTransactions.get(0).getOrderStatus());
+        assertEquals(dto.getTransactionStatus(), orderTransactions.get(0).getTransactionStatus());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getOrderTransactions(anyInt(), anyInt());
+    }
+
+    @Test
+    public void getUserTradeHistoryByCurrencyPair() {
+        UserTradeHistoryDto dto = new UserTradeHistoryDto();
+        dto.setUserId(100);
+        dto.setIsMaker(Boolean.TRUE);
+
+        when(userService.getIdByEmail(any())).thenReturn(100);
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(1);
+        when(orderDao.getUserTradeHistoryByCurrencyPair(
+                anyInt(),
+                anyInt(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyInt())).thenReturn(Collections.singletonList(dto));
+
+        List<UserTradeHistoryDto> userTradeHistoryByCurrencyPair = orderService.getUserTradeHistoryByCurrencyPair(
+                "BTC/USD",
+                LocalDate.of(2019, 4, 8),
+                LocalDate.of(2019, 4, 9),
+                50
+        );
+
+        assertNotNull(userTradeHistoryByCurrencyPair);
+        assertEquals(1, userTradeHistoryByCurrencyPair.size());
+        assertEquals(dto.getUserId(), userTradeHistoryByCurrencyPair.get(0).getUserId());
+        assertEquals(dto.getIsMaker(), userTradeHistoryByCurrencyPair.get(0).getIsMaker());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getUserTradeHistoryByCurrencyPair(
+                anyInt(),
+                anyInt(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyInt());
+    }
+
+    @Test
+    public void getOpenOrders() {
+        OpenOrderDto dto = new OpenOrderDto();
+        dto.setId(15);
+        dto.setOrderType("BUY");
+        dto.setAmount(BigDecimal.TEN);
+        dto.setPrice(BigDecimal.valueOf(1.325));
+
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(100);
+        when(orderDao.getOpenOrders(anyInt(), any(OrderType.class))).thenReturn(Collections.singletonList(dto));
+
+        List<OpenOrderDto> openOrders = orderService.getOpenOrders("BTC/USD", OrderType.BUY);
+
+        assertNotNull(openOrders);
+        assertEquals(1, openOrders.size());
+        assertEquals(dto.getId(), openOrders.get(0).getId());
+        assertEquals(dto.getOrderType(), openOrders.get(0).getOrderType());
+        assertEquals(dto.getAmount(), openOrders.get(0).getAmount());
+        assertEquals(dto.getPrice(), openOrders.get(0).getPrice());
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getOpenOrders(anyInt(), any(OrderType.class));
+    }
+
+    @Test
+    public void getAllUserOrders() {
+        when(userService.getIdByEmail(any())).thenReturn(15);
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(1);
+        when(orderDao.getUserOrders(anyInt(), anyInt(), anyInt(), anyInt()))
+                .thenReturn(Collections.singletonList(getUserOrdersDto()));
+
+        List<UserOrdersDto> allUserOrders = orderService.getAllUserOrders("BTC/USD", 20, 3);
+
+        assertNotNull(allUserOrders);
+        assertEquals(1, allUserOrders.size());
+        assertEquals(getUserOrdersDto().getCurrencyPair(), allUserOrders.get(0).getCurrencyPair());
+        assertEquals(getUserOrdersDto().getAmount(), allUserOrders.get(0).getAmount());
+        assertEquals(getUserOrdersDto().getOrderType(), allUserOrders.get(0).getOrderType());
+        assertEquals(getUserOrdersDto().getPrice(), allUserOrders.get(0).getPrice());
+        assertEquals(getUserOrdersDto().getDateCreation(), allUserOrders.get(0).getDateCreation());
+        assertEquals(getUserOrdersDto().getDateAcceptance(), allUserOrders.get(0).getDateAcceptance());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getUserOrders(anyInt(), anyInt(), anyInt(), anyInt());
+    }
+
+    @Test
+    public void getUserCanceledOrders() {
+        when(userService.getIdByEmail(any())).thenReturn(1);
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(1);
+        when(orderDao.getUserOrdersByStatus(
+                anyInt(),
+                anyInt(),
+                any(OrderStatus.class),
+                anyInt(),
+                anyInt())).thenReturn(Collections.singletonList(getUserOrdersDto()));
+
+        List<UserOrdersDto> userCanceledOrders = orderService.getUserCanceledOrders("BTC/USD", 14, 2);
+
+        assertNotNull(userCanceledOrders);
+        assertEquals(1, userCanceledOrders.size());
+        assertEquals(getUserOrdersDto().getCurrencyPair(), userCanceledOrders.get(0).getCurrencyPair());
+        assertEquals(getUserOrdersDto().getAmount(), userCanceledOrders.get(0).getAmount());
+        assertEquals(getUserOrdersDto().getOrderType(), userCanceledOrders.get(0).getOrderType());
+        assertEquals(getUserOrdersDto().getPrice(), userCanceledOrders.get(0).getPrice());
+        assertEquals(getUserOrdersDto().getDateCreation(), userCanceledOrders.get(0).getDateCreation());
+        assertEquals(getUserOrdersDto().getDateAcceptance(), userCanceledOrders.get(0).getDateAcceptance());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getUserOrdersByStatus(
+                anyInt(),
+                anyInt(),
+                any(OrderStatus.class),
+                anyInt(),
+                anyInt());
+    }
+
+    @Test
+    public void getUserClosedOrders() {
+        when(userService.getIdByEmail(any())).thenReturn(1);
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(21);
+        when(orderDao.getUserOrdersByStatus(anyInt(), anyInt(), any(OrderStatus.class), anyInt(), anyInt()))
+                .thenReturn(Collections.singletonList(getUserOrdersDto()));
+
+        List<UserOrdersDto> userCanceledOrders = orderService.getUserClosedOrders("BTC/USD", 1, 2);
+
+        assertNotNull(userCanceledOrders);
+        assertEquals(1, userCanceledOrders.size());
+        assertEquals(getUserOrdersDto().getCurrencyPair(), userCanceledOrders.get(0).getCurrencyPair());
+        assertEquals(getUserOrdersDto().getAmount(), userCanceledOrders.get(0).getAmount());
+        assertEquals(getUserOrdersDto().getOrderType(), userCanceledOrders.get(0).getOrderType());
+        assertEquals(getUserOrdersDto().getPrice(), userCanceledOrders.get(0).getPrice());
+        assertEquals(getUserOrdersDto().getDateCreation(), userCanceledOrders.get(0).getDateCreation());
+        assertEquals(getUserOrdersDto().getDateAcceptance(), userCanceledOrders.get(0).getDateAcceptance());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getUserOrdersByStatus(anyInt(), anyInt(), any(OrderStatus.class), anyInt(), anyInt());
+    }
+
+    @Test
+    public void getUserOpenOrders_currencyPairName_not_null() {
+        when(userService.getIdByEmail(any())).thenReturn(15);
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(105);
+        when(orderDao.getUserOpenOrders(anyInt(), anyInt())).thenReturn(Collections.singletonList(getUserOrdersDto()));
+
+        List<UserOrdersDto> userOpenOrders = orderService.getUserOpenOrders("BTC/USD");
+
+        assertNotNull(userOpenOrders);
+        assertEquals(1, userOpenOrders.size());
+        assertEquals(getUserOrdersDto().getCurrencyPair(), userOpenOrders.get(0).getCurrencyPair());
+        assertEquals(getUserOrdersDto().getAmount(), userOpenOrders.get(0).getAmount());
+        assertEquals(getUserOrdersDto().getOrderType(), userOpenOrders.get(0).getOrderType());
+        assertEquals(getUserOrdersDto().getPrice(), userOpenOrders.get(0).getPrice());
+        assertEquals(getUserOrdersDto().getDateCreation(), userOpenOrders.get(0).getDateCreation());
+        assertEquals(getUserOrdersDto().getDateAcceptance(), userOpenOrders.get(0).getDateAcceptance());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getUserOpenOrders(anyInt(), anyInt());
+    }
+
+    @Test
+    public void getUserOpenOrders_currencyPairName_null() {
+        when(userService.getIdByEmail(any())).thenReturn(15);
+        when(orderDao.getUserOpenOrders(anyInt(), any())).thenReturn(Collections.singletonList(getUserOrdersDto()));
+
+        List<UserOrdersDto> userOpenOrders = orderService.getUserOpenOrders(null);
+
+        assertNotNull(userOpenOrders);
+        assertEquals(1, userOpenOrders.size());
+        assertEquals(getUserOrdersDto().getCurrencyPair(), userOpenOrders.get(0).getCurrencyPair());
+        assertEquals(getUserOrdersDto().getAmount(), userOpenOrders.get(0).getAmount());
+        assertEquals(getUserOrdersDto().getOrderType(), userOpenOrders.get(0).getOrderType());
+        assertEquals(getUserOrdersDto().getPrice(), userOpenOrders.get(0).getPrice());
+        assertEquals(getUserOrdersDto().getDateCreation(), userOpenOrders.get(0).getDateCreation());
+        assertEquals(getUserOrdersDto().getDateAcceptance(), userOpenOrders.get(0).getDateAcceptance());
+
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getUserOpenOrders(anyInt(), any());
+    }
+
+    @Test
+    public void getTradeHistory() {
+        TradeHistoryDto dto = new TradeHistoryDto();
+        dto.setOrderId(23);
+        dto.setDateAcceptance(LocalDateTime.of(2019, 4, 9, 15, 42, 33));
+        dto.setDateCreation(LocalDateTime.of(2019, 4, 9, 15, 40, 0));
+        dto.setAmount(BigDecimal.TEN);
+        dto.setPrice(BigDecimal.ONE);
+        dto.setTotal(BigDecimal.TEN);
+        dto.setCommission(BigDecimal.ZERO);
+        dto.setOrderType(OrderType.BUY);
+
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(45);
+        when(orderDao.getTradeHistory(
+                anyInt(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyInt(),
+                anyString())).thenReturn(Collections.singletonList(dto));
+
+        List<TradeHistoryDto> tradeHistory = orderService.getTradeHistory(
+                "BTC/USD",
+                LocalDate.of(2019, 4, 9),
+                LocalDate.of(2019, 4, 9),
+                5,
+                "DESCRIPTION");
+
+        assertNotNull(tradeHistory);
+        assertEquals(1, tradeHistory.size());
+        assertEquals(dto.getOrderId(), tradeHistory.get(0).getOrderId());
+        assertEquals(dto.getDateAcceptance(), tradeHistory.get(0).getDateAcceptance());
+        assertEquals(dto.getDateCreation(), tradeHistory.get(0).getDateCreation());
+        assertEquals(dto.getAmount(), tradeHistory.get(0).getAmount());
+        assertEquals(dto.getPrice(), tradeHistory.get(0).getPrice());
+        assertEquals(dto.getTotal(), tradeHistory.get(0).getTotal());
+        assertEquals(dto.getCommission(), tradeHistory.get(0).getCommission());
+        assertEquals(dto.getOrderType(), tradeHistory.get(0).getOrderType());
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getTradeHistory(
+                anyInt(),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyInt(),
+                anyString());
+    }
+
+    private UserOrdersDto getUserOrdersDto() {
+        return new UserOrdersDto(
+                10,
+                "BTC/USD",
+                BigDecimal.TEN,
+                "BUY",
+                BigDecimal.ONE,
+                LocalDateTime.of(2019, 4, 1, 12, 35, 21),
+                LocalDateTime.of(2019, 4, 1, 15, 35, 21));
+    }
+
+    @Test
+    public void getOrderBook_OrderType_not_null() {
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(56);
+        when(orderDao.getOrderBookItemsForType(anyInt(), any(OrderType.class)))
+                .thenReturn(Collections.singletonList(getMockOrderBookItem()));
+
+        Map<OrderType, List<OrderBookItem>> orderBook = orderService.getOrderBook("BTC/USD", OrderType.BUY);
+
+        assertNotNull(orderBook);
+        assertEquals(1, orderBook.size());
+        assertTrue(orderBook.containsKey(OrderType.BUY));
+        assertEquals(1, orderBook.get(OrderType.BUY).size());
+        assertEquals(getMockOrderBookItem().getOrderType(), orderBook.get(OrderType.BUY).get(0).getOrderType());
+        assertEquals(getMockOrderBookItem().getAmount(), orderBook.get(OrderType.BUY).get(0).getAmount());
+        assertEquals(getMockOrderBookItem().getRate(), orderBook.get(OrderType.BUY).get(0).getRate());
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getOrderBookItemsForType(anyInt(), any(OrderType.class));
+    }
+
+    @Test
+    public void getOrderBook_OrderType_null() {
+        when(currencyService.findCurrencyPairIdByName(anyString())).thenReturn(56);
+        when(orderDao.getOrderBookItems(anyInt())).thenReturn(Collections.singletonList(getMockOrderBookItem()));
+
+        Map<OrderType, List<OrderBookItem>> orderBook = orderService.getOrderBook("BTC/USD", null);
+
+        assertNotNull(orderBook);
+        assertEquals(1, orderBook.size());
+        assertTrue(orderBook.containsKey(OrderType.BUY));
+        assertEquals(1, orderBook.get(OrderType.BUY).size());
+        assertEquals(getMockOrderBookItem().getOrderType(), orderBook.get(OrderType.BUY).get(0).getOrderType());
+        assertEquals(getMockOrderBookItem().getAmount(), orderBook.get(OrderType.BUY).get(0).getAmount());
+        assertEquals(getMockOrderBookItem().getRate(), orderBook.get(OrderType.BUY).get(0).getRate());
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairIdByName(anyString());
+        verify(orderDao, atLeastOnce()).getOrderBookItems(anyInt());
+    }
+
+    @Test
+    public void getStatForPair_ExOrderStatisticsShortByPairsDto_not_empty() {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class)))
+                .thenReturn(Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+
+        ResponseInfoCurrencyPairDto statForPair = orderService.getStatForPair("BTC/USD");
+
+        assertNotNull(statForPair);
+        assertEquals("0.000000000", statForPair.getCurrencyRate());
+        assertEquals("0.00", statForPair.getPercentChange());
+        assertEquals("0", statForPair.getChangedValue());
+        assertEquals("0.000000000", statForPair.getLastCurrencyRate());
+        assertEquals("0.000000000", statForPair.getVolume24h());
+        assertEquals("0.000000000", statForPair.getRateHigh());
+        assertEquals("0.000000000", statForPair.getRateLow());
+        assertEquals("BTC/USD", statForPair.getPairName());
+
+        verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+    }
+
+    @Test
+    public void getStatForPair_ExOrderStatisticsShortByPairsDto_isEmpty() {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(Collections.EMPTY_LIST);
+
+        ResponseInfoCurrencyPairDto statForPair = orderService.getStatForPair("BTC/USD");
+
+        assertNull(statForPair);
+
+        verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+    }
+
+    @Test
+    public void getSomeCurrencyStatForRefresh_dtos_isEmpty() {
+        Set<Integer> currencyIds = new HashSet<>(Arrays.asList(1, 2, 3));
+
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(Collections.EMPTY_LIST);
+
+        RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
+
+        assertNotNull(someCurrencyStatForRefresh);
+        assertNull(someCurrencyStatForRefresh.getIcoData());
+        assertNull(someCurrencyStatForRefresh.getMainCurrenciesData());
+        assertNull(someCurrencyStatForRefresh.getStatisticInfoDtos());
+
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+    }
+
+    @Test
+    public void getSomeCurrencyStatForRefresh_CurrencyPairType_ICO() throws Exception {
+        Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
+        List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(exOrderStatisticsShortByPairsDtos, "ICO_CURRENCY_STATISTIC");
+
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
+
+        assertNotNull(someCurrencyStatForRefresh);
+        assertEquals(expected, someCurrencyStatForRefresh.getIcoData());
+        assertNull(someCurrencyStatForRefresh.getMainCurrenciesData());
+        assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getSomeCurrencyStatForRefresh_CurrencyPairType_ICO_writeValueAsString_exception() throws Exception {
+        Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
+        List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO));
+
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
+
+        try {
+            orderService.getSomeCurrencyStatForRefresh(currencyIds);
+            fail();
+        } catch (Exception e) {
+            assertEquals("com.fasterxml.jackson.core.JsonProcessingException: N/A", e.getMessage());
+        }
+
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getSomeCurrencyStatForRefresh_CurrencyPairType_MAIN() throws Exception {
+        Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
+        List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(exOrderStatisticsShortByPairsDtos, "MAIN_CURRENCY_STATISTIC");
+
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        RefreshStatisticDto someCurrencyStatForRefresh = orderService.getSomeCurrencyStatForRefresh(currencyIds);
+
+        assertNotNull(someCurrencyStatForRefresh);
+        assertNull(someCurrencyStatForRefresh.getIcoData());
+        assertEquals(expected, someCurrencyStatForRefresh.getMainCurrenciesData());
+        assertEquals(1, someCurrencyStatForRefresh.getStatisticInfoDtos().size());
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsKey("BTC/USD"));
+        assertTrue(someCurrencyStatForRefresh.getStatisticInfoDtos().containsValue(wrapper));
+
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getSomeCurrencyStatForRefresh_CurrencyPairType_MAIN_writeValueAsString_exception() throws Exception {
+        Set<Integer> currencyIds = new HashSet<>(Collections.singletonList(1));
+        List<ExOrderStatisticsShortByPairsDto> exOrderStatisticsShortByPairsDtos = Collections.singletonList(getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.MAIN));
+
+        when(exchangeRatesHolder.getCurrenciesRates(anySetOf(Integer.class))).thenReturn(exOrderStatisticsShortByPairsDtos);
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
+
+        try {
+            orderService.getSomeCurrencyStatForRefresh(currencyIds);
+            fail();
+        } catch (Exception e) {
+            assertEquals("com.fasterxml.jackson.core.JsonProcessingException: N/A", e.getMessage());
+        }
+
+        verify(exchangeRatesHolder, atLeastOnce()).getCurrenciesRates(anySetOf(Integer.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getAllCurrenciesStatForRefreshForAllPairs() throws Exception {
+        Object[] data = {getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)};
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(data, "CURRENCIES_STATISTIC", 0);
+
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
+
+        assertNotNull(allCurrenciesStatForRefreshForAllPairs);
+        assertEquals(expected, allCurrenciesStatForRefreshForAllPairs);
+
+        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getAllCurrenciesStatForRefreshForAllPairs_exception() throws Exception {
+        when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
+
+        String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefreshForAllPairs();
+        assertNull(allCurrenciesStatForRefreshForAllPairs);
+
+        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getAllCurrenciesStatForRefresh() throws Exception {
+        Object[] data = {getMockExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)};
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(data, "CURRENCIES_STATISTIC", 0);
+
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefresh(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC);
+
+        assertNotNull(allCurrenciesStatForRefreshForAllPairs);
+        assertEquals(expected, allCurrenciesStatForRefreshForAllPairs);
+
+        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getAllCurrenciesStatForRefresh_exception() throws Exception {
+        when(exchangeRatesHolder.getAllRates()).thenReturn(Collections.singletonList(getExOrderStatisticsShortByPairsDto(CurrencyPairType.ICO)));
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
+
+        String allCurrenciesStatForRefreshForAllPairs = orderService.getAllCurrenciesStatForRefresh(RefreshObjectsEnum.ICO_CURRENCIES_STATISTIC);
+        assertNull(allCurrenciesStatForRefreshForAllPairs);
+
+        verify(exchangeRatesHolder, atLeastOnce()).getAllRates();
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPairAndOperationType() {
+        when(orderDao.getLastOrderPriceByCurrencyPairAndOperationType(anyInt(), anyInt())).thenReturn(Optional.ofNullable(BigDecimal.ZERO));
+
+        Optional<BigDecimal> lastOrderPriceByCurrencyPairAndOperationType = orderService.getLastOrderPriceByCurrencyPairAndOperationType(new CurrencyPair(), OperationType.SELL);
+
+        assertNotNull(lastOrderPriceByCurrencyPairAndOperationType);
+        assertEquals(Optional.ofNullable(BigDecimal.ZERO), lastOrderPriceByCurrencyPairAndOperationType);
+    }
+
+    @Test
+    public void getAllAndMyTradesForInit_principal_null() throws Exception {
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderAcceptedHistoryDto(), RefreshObjectsEnum.ALL_TRADES.name(), 1);
+
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(getMockOrderAcceptedHistoryDto()));
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        String allAndMyTradesForInit = orderService.getAllAndMyTradesForInit(1, null);
+
+        assertNotNull(allAndMyTradesForInit);
+        assertEquals(expected, allAndMyTradesForInit);
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getAllAndMyTradesForInit_principal_not_null() throws Exception {
+        Principal principal = Mockito.mock(Principal.class);
+
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderAcceptedHistoryDto(), RefreshObjectsEnum.ALL_TRADES.name(), 1);
+        String wrapper = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(getMockOrderAcceptedHistoryDto()));
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(wrapper);
+
+        String allAndMyTradesForInit = orderService.getAllAndMyTradesForInit(1, principal);
+
+        assertNotNull(allAndMyTradesForInit);
+        assertEquals(expected, allAndMyTradesForInit);
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getTradesForRefresh() throws Exception {
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderAcceptedHistoryDto(), RefreshObjectsEnum.ALL_TRADES.name(), 1);
+        String expected_left = new ObjectMapper().writeValueAsString(ordersListWrapper);
+        String expected_right = new JSONArray() {{
+            put(new ObjectMapper().writeValueAsString(ordersListWrapper));
+        }}.toString();
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(getMockOrderAcceptedHistoryDto()));
+        when(objectMapper.writeValueAsString(any(OrdersListWrapper.class))).thenReturn(expected_left);
+
+        BiTuple tradesForRefresh = orderService.getTradesForRefresh(1, "test@test.com", RefreshObjectsEnum.ALL_TRADES);
+
+        assertNotNull(tradesForRefresh);
+        assertEquals(expected_left, tradesForRefresh.left);
+        assertEquals(expected_right, tradesForRefresh.right);
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getTradesForRefresh_exception() throws Exception {
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderAcceptedHistoryDto(), RefreshObjectsEnum.ALL_TRADES.name(), 1);
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(getMockOrderAcceptedHistoryDto()));
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(any(OrdersListWrapper.class));
+
+        BiTuple tradesForRefresh = orderService.getTradesForRefresh(1, "test@test.com", RefreshObjectsEnum.ALL_TRADES);
+
+        assertNull(tradesForRefresh);
+
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(any(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(any(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getOrdersForRefresh_default() {
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+
+        String ordersForRefresh = orderService.getOrdersForRefresh(1, OperationType.REFERRAL, UserRole.USER);
+
+        assertNull(ordersForRefresh);
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+    }
+
+    @Test
+    public void getOrdersForRefresh_exception() throws Exception {
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        doThrow(JsonProcessingException.class).when(objectMapper).writeValueAsString(anyListOf(OrdersListWrapper.class));
+
+        String ordersForRefresh = orderService.getOrdersForRefresh(1, OperationType.BUY, UserRole.USER);
+
+        assertNull(ordersForRefresh);
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(objectMapper, atLeastOnce()).writeValueAsString(anyListOf(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getOrdersForRefresh_BUY() throws Exception {
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderListDto(), OperationType.BUY.name(), 1);
+        String expected = new ObjectMapper().writeValueAsString(Collections.singletonList(ordersListWrapper));
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any(UserRole.class))).thenReturn(getMockOrderListDto());
+        when(objectMapper.writeValueAsString(anyListOf(OrdersListWrapper.class))).thenReturn(expected);
+
+        String ordersForRefresh = orderService.getOrdersForRefresh(1, OperationType.BUY, UserRole.USER);
+
+        assertNotNull(ordersForRefresh);
+        assertEquals(expected, ordersForRefresh);
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(orderDao, atLeastOnce()).getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any(UserRole.class));
+        verify(objectMapper, atLeastOnce()).writeValueAsString(anyListOf(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getOrdersForRefresh_SELL() throws Exception {
+        OrdersListWrapper ordersListWrapper = new OrdersListWrapper(getMockOrderListDto(), OperationType.SELL.name(), 1);
+        String expected = new ObjectMapper().writeValueAsString(Collections.singletonList(ordersListWrapper));
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(getMockCurrencyPair(CurrencyPairType.MAIN));
+        when(orderDao.getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any(UserRole.class))).thenReturn(getMockOrderListDto());
+        when(objectMapper.writeValueAsString(anyListOf(OrdersListWrapper.class))).thenReturn(expected);
+
+        String ordersForRefresh = orderService.getOrdersForRefresh(1, OperationType.SELL, UserRole.USER);
+
+        assertNotNull(ordersForRefresh);
+        assertEquals(expected, ordersForRefresh);
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(objectMapper, atLeastOnce()).writeValueAsString(anyListOf(OrdersListWrapper.class));
+    }
+
+    @Test
+    public void getUserSummaryOrdersByCurrencyPairList() {
+        UserSummaryOrdersByCurrencyPairsDto dto = new UserSummaryOrdersByCurrencyPairsDto();
+        dto.setOperationType("BUY");
+        dto.setDate(LocalDate.now().toString());
+        dto.setOwnerEmail("test@test.com");
+        dto.setOwnerNickname("TEST_NICK");
+        dto.setOwnerNickname("test@test.com");
+        dto.setAcceptorNickname("TEST_NICK");
+        dto.setCurrencyPair("BTC/USD");
+        dto.setAmountBase(BigDecimal.TEN);
+        dto.setAmountConvert(BigDecimal.TEN);
+        dto.setExrate(BigDecimal.TEN);
+
+        when(orderDao.getUserSummaryOrdersByCurrencyPairList(anyInt(), anyString(), anyString(), anyListOf(Integer.class)))
+                .thenReturn(Collections.singletonList(dto));
+
+        List<UserSummaryOrdersByCurrencyPairsDto> userSummaryOrdersByCurrencyPairList = orderService
+                .getUserSummaryOrdersByCurrencyPairList(1, LocalDate.now().toString(), LocalDate.now().toString(), Arrays.asList(1, 2, 3));
+
+        assertNotNull(userSummaryOrdersByCurrencyPairList);
+        assertEquals(dto, userSummaryOrdersByCurrencyPairList.get(0));
+
+        verify(orderDao, atLeastOnce()).getUserSummaryOrdersByCurrencyPairList(anyInt(), anyString(), anyString(), anyListOf(Integer.class));
+    }
+
+    @Test
+    public void getMyOrdersWithState() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(1);
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class))).thenReturn(Collections.singletonList(dto));
+
+        List<OrderWideListDto> myOrdersWithState = orderService.getMyOrdersWithState(
+                "test@test.com",
+                new CurrencyPair(),
+                OrderStatus.OPENED,
+                OperationType.SELL,
+                "ALL",
+                10,
+                15,
+                Locale.ENGLISH);
+
+        assertNotNull(myOrdersWithState);
+        assertEquals(dto, myOrdersWithState.get(0));
+
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class));
+    }
+
+    @Test
+    public void getUsersOrdersWithStateForAdmin() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(1);
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class))).thenReturn(Collections.singletonList(dto));
+
+        List<OrderWideListDto> myOrdersWithState = orderService.getUsersOrdersWithStateForAdmin(
+                "test@test.com",
+                new CurrencyPair(),
+                OrderStatus.OPENED,
+                OperationType.SELL,
+                10,
+                15,
+                Locale.ENGLISH);
+
+        assertNotNull(myOrdersWithState);
+        assertEquals(dto, myOrdersWithState.get(0));
+
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class));
+    }
+
+    @Test
+    public void getOrdersForReport() {
+        OrderReportInfoDto dto = new OrderReportInfoDto();
+        dto.setId(100);
+        dto.setDateAcception(LocalDateTime.of(2019, 4, 11, 11, 4, 52));
+        dto.setDateAcception(LocalDateTime.of(2019, 4, 11, 12, 4, 52));
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setOrderTypeName("SELL");
+        dto.setExrate("FIAT");
+
+        when(orderDao.getOrdersForReport(any(AdminOrderFilterData.class))).thenReturn(Collections.singletonList(dto));
+
+        List<OrderReportInfoDto> ordersForReport = orderService.getOrdersForReport(new AdminOrderFilterData());
+
+        assertNotNull(ordersForReport);
+        assertEquals(1, ordersForReport.size());
+        assertEquals(dto, ordersForReport.get(0));
+
+        verify(orderDao, atLeastOnce()).getOrdersForReport(any(AdminOrderFilterData.class));
+    }
+
+    @Test
+    public void searchOrdersByAdmin() {
+        OrderBasicInfoDto dto = new OrderBasicInfoDto();
+        dto.setId(100);
+        dto.setDateCreation(LocalDateTime.of(2019, 4, 11, 11, 4, 52));
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setOrderTypeName("SELL");
+        dto.setExrate("FIAT");
+
+        PagingData<List<OrderBasicInfoDto>> searchResult = new PagingData<>();
+        searchResult.setTotal(10);
+        searchResult.setFiltered(5);
+        searchResult.setData(Collections.singletonList(dto));
+
+        when(orderDao.searchOrders(any(AdminOrderFilterData.class), any(DataTableParams.class), any(Locale.class)))
+                .thenReturn(searchResult);
+
+        DataTable<List<OrderBasicInfoDto>> listDataTable = orderService.searchOrdersByAdmin(
+                new AdminOrderFilterData(),
+                DataTableParams.defaultParams(),
+                Locale.ENGLISH);
+
+        assertNotNull(listDataTable);
+        assertEquals(searchResult.getTotal(), listDataTable.getRecordsTotal());
+        assertEquals(searchResult.getFiltered(), listDataTable.getRecordsFiltered());
+        assertEquals(1, listDataTable.getData().size());
+        assertEquals(dto, listDataTable.getData().get(0));
+
+        verify(orderDao, atLeastOnce()).searchOrders(any(AdminOrderFilterData.class), any(DataTableParams.class), any(Locale.class));
+    }
+
+    @Test
+    public void getWalletAndCommission_authentication_null() {
+        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
+        when(orderDao.getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class)))
+                .thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
+
+        WalletsAndCommissionsForOrderCreationDto walletAndCommission = orderService.getWalletAndCommission(
+                "test@test.com",
+                getMockCurrency(),
+                OperationType.BUY
+        );
+
+        assertNotNull(walletAndCommission);
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getUserId(), walletAndCommission.getUserId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletId(), walletAndCommission.getSpendWalletId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletActiveBalance(), walletAndCommission.getSpendWalletActiveBalance());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(), walletAndCommission.getCommissionId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), walletAndCommission.getCommissionValue());
+
+        verify(orderDao, atLeastOnce()).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
+    }
+
+    @Test
+    public void getWalletAndCommission_authentication_not_null() {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(authentication);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+        when(orderDao.getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class)))
+                .thenReturn(getMockWalletsAndCommissionsForOrderCreationDto());
+
+        WalletsAndCommissionsForOrderCreationDto walletAndCommission = orderService.getWalletAndCommission(
+                "test@test.com",
+                getMockCurrency(),
+                OperationType.BUY
+        );
+
+        assertNotNull(walletAndCommission);
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getUserId(), walletAndCommission.getUserId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletId(), walletAndCommission.getSpendWalletId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getSpendWalletActiveBalance(), walletAndCommission.getSpendWalletActiveBalance());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(), walletAndCommission.getCommissionId());
+        assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), walletAndCommission.getCommissionValue());
+
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(orderDao, atLeastOnce()).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
+    }
+
+    @Test
+    public void getOpenOrdersForWs_CurrencyPair_null() {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(null);
+
+        List<OrdersListWrapper> ordersListWrapper = orderService.getOpenOrdersForWs("BTC/USD");
+
+        assertNull(ordersListWrapper);
+        verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
+    }
+
+    @Test
+    public void getOpenOrdersForWs_CurrencyPair_not_null() {
+        when(currencyService.getCurrencyPairByName(anyString())).thenReturn(getMockCurrencyPair(CurrencyPairType.ICO));
+        when(orderDao.getOrdersSellForCurrencyPair(any(CurrencyPair.class), any()))
+                .thenReturn(getMockOrderListDto());
+        when(orderDao.getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any()))
+                .thenReturn(getMockOrderListDto());
+
+        List<OrdersListWrapper> ordersListWrapper = orderService.getOpenOrdersForWs("BTC/USD");
+
+        assertNotNull(ordersListWrapper);
+        assertEquals(2, ordersListWrapper.size());
+        assertEquals("SELL", ordersListWrapper.get(0).getType());
+        assertEquals(100, ordersListWrapper.get(0).getCurrencyPairId());
+        assertEquals("BUY", ordersListWrapper.get(1).getType());
+        assertEquals(100, ordersListWrapper.get(1).getCurrencyPairId());
+
+        verify(currencyService, atLeastOnce()).getCurrencyPairByName(anyString());
+        verify(orderDao, atLeastOnce()).getOrdersSellForCurrencyPair(any(CurrencyPair.class), any());
+        verify(orderDao, atLeastOnce()).getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any());
+    }
+
+    @Test
+    public void getAllSellOrders_Cache_null() {
+        HttpSession session = Mockito.mock(HttpSession.class);
+        session.setAttribute("cacheHashMap", "123");
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        request.setAttribute("cacheHashMap", "OBJECT");
+
+        CacheData cacheData = new CacheData(request, "KEY123987", Boolean.TRUE);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+        when(serviceCacheableProxy.getAllSellOrders(any(CurrencyPair.class), any(UserRole.class), anyBoolean()))
+                .thenReturn(getMockOrderListDto());
+        when(request.getSession()).thenReturn(session);
+
+        List<OrderListDto> allSellOrders = orderService.getAllSellOrders(
+                cacheData,
+                getMockCurrencyPair(CurrencyPairType.MAIN),
+                Locale.ENGLISH,
+                Boolean.TRUE);
+
+        assertNotNull(allSellOrders);
+        assertEquals(2, allSellOrders.size());
+
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(serviceCacheableProxy, atLeastOnce()).getAllSellOrders(any(CurrencyPair.class), any(UserRole.class), anyBoolean());
+    }
+
+    @Ignore
+    public void getAllSellOrders_Cache_not_null() {
+        HttpSession session = Mockito.mock(HttpSession.class);
+        session.setAttribute("cacheHashMap", getMockOrderListDto());
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        request.setAttribute("cacheHashMap", "OBJECT");
+
+        CacheData cacheData = getMockCacheData(request);
+        Map<String, Integer> cacheHashMap = new HashMap<>();
+        cacheHashMap.put("cacheHashMap", 1);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+        when(serviceCacheableProxy.getAllSellOrders(any(CurrencyPair.class), any(UserRole.class), anyBoolean()))
+                .thenReturn(getMockOrderListDto());
+        when(request.getSession()).thenReturn(session);
+        when(request.getSession().getAttribute(anyString())).thenReturn(cacheHashMap);
+
+        List<OrderListDto> allSellOrders = orderService.getAllSellOrders(
+                cacheData,
+                getMockCurrencyPair(CurrencyPairType.MAIN),
+                Locale.ENGLISH,
+                Boolean.TRUE);
+
+        assertNotNull(allSellOrders);
+        assertEquals(2, allSellOrders.size());
+    }
+
+    @Test
+    public void getAllSellOrdersEx() {
+        when(orderDao.getOrdersSellForCurrencyPair(any(CurrencyPair.class), any(UserRole.class))).thenReturn(getMockOrderListDto());
+
+        List<OrderListDto> allSellOrdersEx = orderService.getAllSellOrdersEx(getMockCurrencyPair(CurrencyPairType.MAIN), Locale.ENGLISH, UserRole.USER);
+
+        assertNotNull(allSellOrdersEx);
+        assertEquals(2, allSellOrdersEx.size());
+        assertEquals(getMockOrderListDto().get(0).getOrderType(), allSellOrdersEx.get(0).getOrderType());
+        assertEquals(getMockOrderListDto().get(0).getAmountBase(), allSellOrdersEx.get(0).getAmountBase());
+        assertEquals(getMockOrderListDto().get(1).getOrderType(), allSellOrdersEx.get(1).getOrderType());
+        assertEquals(getMockOrderListDto().get(1).getAmountBase(), allSellOrdersEx.get(1).getAmountBase());
+
+        verify(orderDao, atLeastOnce()).getOrdersSellForCurrencyPair(any(CurrencyPair.class), any(UserRole.class));
+    }
+
+    @Test
+    public void getAllBuyOrdersEx() {
+        when(orderDao.getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any(UserRole.class))).thenReturn(getMockOrderListDto());
+
+        List<OrderListDto> allBuyOrdersEx = orderService.getAllBuyOrdersEx(getMockCurrencyPair(CurrencyPairType.MAIN), Locale.ENGLISH, UserRole.USER);
+
+        assertNotNull(allBuyOrdersEx);
+        assertEquals(2, allBuyOrdersEx.size());
+        assertEquals(OperationType.BUY, allBuyOrdersEx.get(0).getOrderType());
+        assertEquals(OperationType.BUY, allBuyOrdersEx.get(1).getOrderType());
+
+        verify(orderDao, atLeastOnce()).getOrdersBuyForCurrencyPair(any(CurrencyPair.class), any(UserRole.class));
+    }
+
+    @Test
+    public void getAllCommissions() {
+        CommissionsDto dto = new CommissionsDto();
+        dto.setInputCommission(BigDecimal.ONE);
+        dto.setOutputCommission(BigDecimal.TEN);
+        dto.setSellCommission(BigDecimal.ZERO);
+        dto.setBuyCommission(BigDecimal.ZERO);
+        dto.setTransferCommission(BigDecimal.ONE);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+        when(orderDao.getAllCommissions(any(UserRole.class))).thenReturn(dto);
+
+        CommissionsDto allCommissions = orderService.getAllCommissions();
+
+        assertNotNull(allCommissions);
+        assertEquals(dto.getBuyCommission(), allCommissions.getBuyCommission());
+        assertEquals(dto.getInputCommission(), allCommissions.getInputCommission());
+        assertEquals(dto.getOutputCommission(), allCommissions.getOutputCommission());
+        assertEquals(dto.getSellCommission(), allCommissions.getSellCommission());
+        assertEquals(dto.getTransferCommission(), allCommissions.getTransferCommission());
+
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(orderDao, atLeastOnce()).getAllCommissions(any(UserRole.class));
+    }
+
+    @Test
+    public void getCommissionForOrder() {
+        OrderCommissionsDto dto = new OrderCommissionsDto();
+        dto.setBuyCommission(BigDecimal.ZERO);
+        dto.setSellCommission(BigDecimal.ONE);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+        when(orderDao.getCommissionForOrder(any(UserRole.class))).thenReturn(dto);
+
+        OrderCommissionsDto commissionForOrder = orderService.getCommissionForOrder();
+
+        assertNotNull(commissionForOrder);
+        assertEquals(dto.getBuyCommission(), commissionForOrder.getBuyCommission());
+        assertEquals(dto.getSellCommission(), commissionForOrder.getSellCommission());
+
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(orderDao, atLeastOnce()).getCommissionForOrder(any(UserRole.class));
+    }
+
+    @Test
+    public void getOrderAcceptedForPeriodEx() {
+        OrderAcceptedHistoryDto dto = getMockOrderAcceptedHistoryDto();
+        when(orderDao.getOrderAcceptedForPeriod(anyString(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(dto));
+
+        List<OrderAcceptedHistoryDto> orderAcceptedForPeriodEx = orderService.getOrderAcceptedForPeriodEx(
+                "test@test.com",
+                new BackDealInterval(),
+                10,
+                new CurrencyPair(),
+                Locale.ENGLISH
+        );
+
+        assertNotNull(orderAcceptedForPeriodEx);
+        assertEquals(1, orderAcceptedForPeriodEx.size());
+        assertEquals(dto.getOrderId(), orderAcceptedForPeriodEx.get(0).getOrderId());
+        assertEquals(dto.getDateAcceptionTime(), orderAcceptedForPeriodEx.get(0).getDateAcceptionTime());
+        assertEquals(dto.getAcceptionTime(), orderAcceptedForPeriodEx.get(0).getAcceptionTime());
+        assertEquals("1.500000000", orderAcceptedForPeriodEx.get(0).getRate());
+        assertEquals("25.000000000", orderAcceptedForPeriodEx.get(0).getAmountBase());
+        assertEquals(dto.getOperationType(), orderAcceptedForPeriodEx.get(0).getOperationType());
+
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(anyString(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+    }
+
+    @Test
+    public void getOrderAcceptedForPeriod() {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        CacheData mockCacheData = getMockCacheData(request);
+        OrderAcceptedHistoryDto dto = getMockOrderAcceptedHistoryDto();
+        when(orderDao.getOrderAcceptedForPeriod(anyString(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class)))
+                .thenReturn(Collections.singletonList(dto));
+
+        List<OrderAcceptedHistoryDto> orderAcceptedForPeriod = orderService.getOrderAcceptedForPeriod(
+                mockCacheData,
+                "test@test.com",
+                new BackDealInterval(),
+                10,
+                new CurrencyPair(),
+                Locale.ENGLISH
+        );
+
+        assertNotNull(orderAcceptedForPeriod);
+        assertEquals(1, orderAcceptedForPeriod.size());
+        assertEquals(dto.getOrderId(), orderAcceptedForPeriod.get(0).getOrderId());
+        assertEquals(dto.getDateAcceptionTime(), orderAcceptedForPeriod.get(0).getDateAcceptionTime());
+        assertEquals(dto.getAcceptionTime(), orderAcceptedForPeriod.get(0).getAcceptionTime());
+        assertEquals("1.500000000", orderAcceptedForPeriod.get(0).getRate());
+        assertEquals("25.000000000", orderAcceptedForPeriod.get(0).getAmountBase());
+        assertEquals(dto.getOperationType(), orderAcceptedForPeriod.get(0).getOperationType());
+
+        verify(orderDao, atLeastOnce()).getOrderAcceptedForPeriod(anyString(), any(BackDealInterval.class), anyInt(), any(CurrencyPair.class));
+    }
+
+    @Test
+    public void searchOrderByAdmin() {
+        when(orderDao.searchOrderByAdmin(anyInt(), anyInt(), anyString(), any(BigDecimal.class), any(BigDecimal.class))).thenReturn(100);
+
+        Integer orderByAdmin = orderService.searchOrderByAdmin(100, "BUY", "2019-10-15", BigDecimal.TEN, BigDecimal.ONE);
+
+        assertEquals(Integer.valueOf(100), orderByAdmin);
+    }
+
+    @Test
+    public void deleteOrderForPartialAccept_exception() {
+        try {
+            Object deleteOrderForPartialAccept = orderService.deleteOrderForPartialAccept(1, Collections.singletonList(getMockExOrder()));
+        } catch (Exception e) {
+            assertEquals("NOT_FOUND", e.getMessage());
+        }
+    }
+
+    @Ignore
+    public void deleteOrderForPartialAccept() {
+        OrderDetailDto dto = new OrderDetailDto(
+                1,
+                7,
+                BigDecimal.TEN,
+                11,
+                15,
+                3,
+                BigDecimal.TEN,
+                18,
+                19,
+                BigDecimal.ONE);
+
+        when(walletService.getOrderRelatedDataAndBlock(anyInt())).thenReturn(Collections.singletonList(dto));
+
+
+        Object deleteOrderForPartialAccept = orderService.deleteOrderForPartialAccept(1, Collections.singletonList(getMockExOrder()));
+        assertNotNull(deleteOrderForPartialAccept);
+    }
+
+    @Test
+    public void getAdminOrderInfo_getUserRoleFromDB_TRADER() {
+        OrderInfoDto dto = new OrderInfoDto();
+        dto.setOrderCreatorEmail("test@test.com");
+
+        when(orderDao.getOrderInfo(anyInt(), any(Locale.class))).thenReturn(dto);
+        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.TRADER);
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.TRADER);
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(any(BusinessUserRoleEnum.class)))
+                .thenReturn(Collections.singletonList(8));
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("admin.orders.accept.warning");
+
+        AdminOrderInfoDto adminOrderInfo = orderService.getAdminOrderInfo(1, Locale.ENGLISH);
+
+        assertNotNull(adminOrderInfo);
+        assertTrue(adminOrderInfo.isAcceptable());
+        assertEquals("admin.orders.accept.warning", adminOrderInfo.getNotification());
+
+        verify(orderDao, atLeastOnce()).getOrderInfo(anyInt(), any(Locale.class));
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyString());
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(userRoleService, atLeastOnce()).getRealUserRoleIdByBusinessRoleList(any(BusinessUserRoleEnum.class));
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
+    }
+
+    @Test
+    public void getAdminOrderInfo_getUserRoleFromDB_not_TRADER() {
+        OrderInfoDto dto = new OrderInfoDto();
+        dto.setOrderCreatorEmail("test@test.com");
+
+        when(orderDao.getOrderInfo(anyInt(), any(Locale.class))).thenReturn(dto);
+        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.TRADER);
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("admin.orders.cantaccept");
+
+        AdminOrderInfoDto adminOrderInfo = orderService.getAdminOrderInfo(1, Locale.ENGLISH);
+
+        assertNotNull(adminOrderInfo);
+        assertFalse(adminOrderInfo.isAcceptable());
+        assertEquals("admin.orders.cantaccept", adminOrderInfo.getNotification());
+
+        verify(orderDao, atLeastOnce()).getOrderInfo(anyInt(), any(Locale.class));
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyString());
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
+    }
+
+    @Test
+    public void getAdminOrderInfo_getUserRoleFromDB_default() {
+        OrderInfoDto dto = new OrderInfoDto();
+        dto.setOrderCreatorEmail("test@test.com");
+
+        when(orderDao.getOrderInfo(anyInt(), any(Locale.class))).thenReturn(dto);
+        when(userService.getUserRoleFromDB(anyString())).thenReturn(UserRole.USER);
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.ACCOUNTANT);
+
+        AdminOrderInfoDto adminOrderInfo = orderService.getAdminOrderInfo(1, Locale.ENGLISH);
+
+        assertNotNull(adminOrderInfo);
+        assertTrue(adminOrderInfo.isAcceptable());
+
+        verify(orderDao, atLeastOnce()).getOrderInfo(anyInt(), any(Locale.class));
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyString());
+        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+    }
+
+    @Test
+    public void getHourlyCoinmarketData() {
+        CoinmarketApiDto dto = getMockCoinmarketApiDto();
+
+        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
+
+        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getHourlyCoinmarketData("BTC/USD");
+
+        assertNotNull(hourlyCoinmarketData);
+        assertEquals(1, hourlyCoinmarketData.size());
+        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
+        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
+
+        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
+    }
+
+    @Test
+    public void getCoinmarketDataForActivePairs() {
+        CoinmarketApiDto dto = getMockCoinmarketApiDto();
+
+        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
+
+        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getCoinmarketDataForActivePairs("BTC/USD", new BackDealInterval());
+
+        assertNotNull(hourlyCoinmarketData);
+        assertEquals(1, hourlyCoinmarketData.size());
+        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
+        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
+
+        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
+    }
+
+    @Test
+    public void getDailyCoinmarketData_currencyPairName_empty() {
+        CoinmarketApiDto dto = getMockCoinmarketApiDto();
+
+        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
+        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(dto));
+
+        List<CoinmarketApiDto> hourlyCoinmarketData = orderService.getDailyCoinmarketData("");
+
+        assertNotNull(hourlyCoinmarketData);
+        assertEquals(1, hourlyCoinmarketData.size());
+        assertEquals(dto.getCurrencyPairId(), hourlyCoinmarketData.get(0).getCurrencyPairId());
+        assertEquals(dto.getCurrency_pair_name(), hourlyCoinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(dto.getFirst(), hourlyCoinmarketData.get(0).getFirst());
+        assertEquals(dto.getLast(), hourlyCoinmarketData.get(0).getLast());
+
+        verify(orderDao, atLeastOnce()).getCoinmarketData(anyString());
+    }
+
+    @Test
+    public void getCoinmarketData() {
+        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.ALL);
+        mockCurrencyPair.setName("BTC/USD");
+
+        when(orderDao.getCoinmarketData(anyString())).thenReturn(Collections.singletonList(getMockCoinmarketApiDto()));
+        when(currencyService.getAllCurrencyPairs(any(CurrencyPairType.class)))
+                .thenReturn(Collections.singletonList(mockCurrencyPair));
+
+        List<CoinmarketApiDto> coinmarketData = orderService.getCoinmarketData("BTC/USD", new BackDealInterval());
+
+        assertNotNull(coinmarketData);
+        assertEquals(1, coinmarketData.size());
+        assertEquals(Integer.valueOf(mockCurrencyPair.getId()), coinmarketData.get(0).getCurrencyPairId());
+        assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrency_pair_name());
+        assertEquals(BigDecimal.TEN, coinmarketData.get(0).getFirst());
+        assertEquals(BigDecimal.ONE, coinmarketData.get(0).getLast());
+    }
+
+    private CoinmarketApiDto getMockCoinmarketApiDto() {
+        CoinmarketApiDto dto = new CoinmarketApiDto();
+        dto.setCurrencyPairId(100);
+        dto.setCurrency_pair_name("BTC/USD");
+        dto.setFirst(BigDecimal.TEN);
+        dto.setLast(BigDecimal.ONE);
+        return dto;
+    }
+
+    private ExOrder getMockExOrder() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setId(3);
+        exOrder.setAmountBase(BigDecimal.TEN);
+        exOrder.setOperationType(OperationType.MANUAL);
+        exOrder.setAmountConvert(BigDecimal.ONE);
+        exOrder.setCommissionFixedAmount(BigDecimal.ONE);
+        exOrder.setComissionId(100);
+        exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+        return exOrder;
+    }
+
+    private CacheData getMockCacheData(HttpServletRequest request) {
+        return new CacheData(request, "cacheHashMap", Boolean.TRUE);
+    }
+
+    private Currency getMockCurrency() {
+        return Currency.builder()
+                .id(10)
+                .name("NAME")
+                .description("DESCRIPTION")
+                .hidden(Boolean.FALSE)
+                .build();
+    }
+
+    private OrderAcceptedHistoryDto getMockOrderAcceptedHistoryDto() {
+        OrderAcceptedHistoryDto dto = new OrderAcceptedHistoryDto();
+        dto.setOrderId(100);
+        dto.setDateAcceptionTime(LocalDateTime.now().toString());
+        dto.setAcceptionTime(Timestamp.valueOf(LocalDateTime.now()));
+        dto.setRate("1.5");
+        dto.setAmountBase("25");
+        dto.setOperationType(OperationType.BUY);
+
+        return dto;
+    }
+
+    private OrderBookItem getMockOrderBookItem() {
+        OrderBookItem item = new OrderBookItem();
+        item.setOrderType(OrderType.BUY);
+        item.setAmount(BigDecimal.TEN);
+        item.setRate(BigDecimal.ONE);
+
+        return item;
+    }
+
+    private ExOrderStatisticsShortByPairsDto getExOrderStatisticsShortByPairsDto(CurrencyPairType pairType) {
+        ExOrderStatisticsShortByPairsDto mock = getMockExOrderStatisticsShortByPairsDto(pairType);
+        mock.setLastOrderRate("10.0");
+        mock.setPairOrder(666);
+        mock.setCurrency1Id(215);
+
+        return mock;
+    }
+
     private BackDealInterval getMockBackDealInterval() {
         BackDealInterval interval = new BackDealInterval();
         interval.setIntervalValue(12);
@@ -2227,14 +3587,13 @@ public class OrderServiceImplTest {
         return currencyPairLimit;
     }
 
-    private CurrencyPair getMockCurrencyPair(CurrencyPairType all) {
+    private CurrencyPair getMockCurrencyPair(CurrencyPairType pairType) {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(100);
-        currencyPair.setPairType(all);
+        currencyPair.setPairType(pairType);
 
         return currencyPair;
     }
-
 
     private OrderCreateDto getMockOrderCreateDto(BigDecimal exchangeRate) {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -2268,59 +3627,6 @@ public class OrderServiceImplTest {
         orderCreateDto.setOrderBaseType(OrderBaseType.STOP_LIMIT);
 
         return orderCreateDto;
-    }
-
-    private List<SimpleOrderBookItem> getMockSimpleOrderBookItem_SELL() {
-        SimpleOrderBookItem item1 = SimpleOrderBookItem.builder().build();
-        item1.setCurrencyPairId(1);
-        item1.setOrderType(OrderType.SELL);
-        item1.setCurrencyPairName(null);
-        item1.setExrate(BigDecimal.valueOf(13));
-        item1.setAmount(BigDecimal.valueOf(3904.636432431));
-        item1.setTotal(BigDecimal.valueOf(50760.273621603));
-        item1.setSumAmount(BigDecimal.valueOf(3904.636432431));
-
-        SimpleOrderBookItem item2 = SimpleOrderBookItem.builder().build();
-        item2.setCurrencyPairId(1);
-        item2.setOrderType(OrderType.SELL);
-        item2.setCurrencyPairName(null);
-        item2.setExrate(BigDecimal.valueOf(1000));
-        item2.setAmount(BigDecimal.valueOf(14.1001));
-        item2.setTotal(BigDecimal.valueOf(64874.473721603));
-        item2.setSumAmount(BigDecimal.valueOf(3918.736532431));
-
-        SimpleOrderBookItem item3 = SimpleOrderBookItem.builder().build();
-        item3.setCurrencyPairId(1);
-        item3.setOrderType(OrderType.SELL);
-        item3.setCurrencyPairName(null);
-        item3.setExrate(BigDecimal.valueOf(3600));
-        item3.setAmount(BigDecimal.valueOf(1));
-        item3.setTotal(BigDecimal.valueOf(68475.473721603));
-        item3.setSumAmount(BigDecimal.valueOf(3919.736532431));
-
-        SimpleOrderBookItem item4 = SimpleOrderBookItem.builder().build();
-        item4.setCurrencyPairId(1);
-        item4.setOrderType(OrderType.SELL);
-        item4.setCurrencyPairName(null);
-        item4.setExrate(BigDecimal.valueOf(4000));
-        item4.setAmount(BigDecimal.valueOf(2));
-        item4.setTotal(BigDecimal.valueOf(76477.473721603));
-        item4.setSumAmount(BigDecimal.valueOf(3921.736532431));
-
-        return Arrays.asList(item1, item2, item3, item4);
-    }
-
-    private List<SimpleOrderBookItem> getMockSimpleOrderBookItem_BUY() {
-        SimpleOrderBookItem item1 = SimpleOrderBookItem.builder().build();
-        item1.setCurrencyPairId(1);
-        item1.setOrderType(OrderType.BUY);
-        item1.setCurrencyPairName(null);
-        item1.setExrate(BigDecimal.valueOf(2));
-        item1.setAmount(BigDecimal.valueOf(1));
-        item1.setTotal(BigDecimal.valueOf(2));
-        item1.setSumAmount(BigDecimal.valueOf(1));
-
-        return Collections.singletonList(item1);
     }
 
     private ExOrderStatisticsShortByPairsDto getMockExOrderStatisticsShortByPairsDto(CurrencyPairType pairType) {
