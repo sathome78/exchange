@@ -202,8 +202,6 @@ public class BalanceServiceImpl implements BalanceService {
                 currencyName,
                 dateTimeFrom,
                 dateTimeTo,
-                limit,
-                offset,
                 locale);
 
         List<MyInputOutputHistoryDto> historyDtoList = Collections.emptyList();
