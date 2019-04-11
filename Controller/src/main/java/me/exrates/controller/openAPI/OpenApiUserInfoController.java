@@ -127,27 +127,6 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByCurrencyPair(transformedCurrencyPair, fromDate, toDate, limit)));
     }
 
-    /**
-     * @api {get} /openapi/v1/user/history/{order_id}/transactions Order transactions history
-     * @apiName Order transactions history
-     * @apiGroup User API
-     * @apiPermission NonPublicAuth
-     * @apiDescription Provides collection of user transactions info objects
-     * @apiParamExample Request Example:
-     * openapi/v1/user/history/1/transactions
-     * @apiSuccess {Array} Array of user trade info objects
-     * @apiSuccess {Object} data Container object
-     * @apiSuccess {Integer} data.transaction_id Transaction id
-     * @apiSuccess {Integer} data.wallet_id User wallet id
-     * @apiSuccess {Number} data.amount Amount to sell/buy
-     * @apiSuccess {Number} data.commission Commission
-     * @apiSuccess {String} data.currency Operation currency
-     * @apiSuccess {String} data.time Transaction creation date
-     * @apiSuccess {String} data.operation_type Transaction operation type
-     * @apiSuccess {String} data.transaction_status Transaction status
-     * @apiError AuthenticationNotAvailableException
-     * @apiError NotFoundException
-     */
     @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));

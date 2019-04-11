@@ -23,11 +23,6 @@
 @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
 @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
 
-@apiError AuthenticationNotAvailableException
-@apiError InvalidCurrencyPairFormatException
-@apiError OrderParamsWrongException
-@apiError NotFoundException
-@apiError ProcessingException
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -39,7 +34,14 @@ HTTP/1.1 400 Bad request
 @apiErrorExample {json} Error-Response:
   HTTP/1.1 400 Bad request
   {
-    "title": "API_WRONG_ORDER_PARAMS",
+    "title": "API_USER_RESOURCE_ACCESS_DENIED",
+    "message": "message exception",
+  }
+
+@apiErrorExample {json} Error-Response:
+  HTTP/1.1 400 Bad request
+  {
+    "title": "API_INVALID_ORDER_CREATION_PARAMS",
     "message": "message exception",
   }
 
@@ -47,13 +49,6 @@ HTTP/1.1 400 Bad request
   HTTP/1.1 400 Bad request
   {
     "title": "API_CREATE_ORDER_ERROR",
-    "message": "message exception",
-  }
-
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_USER_RESOURCE_ACCESS_DENIED",
     "message": "message exception",
   }
 
@@ -94,11 +89,17 @@ HTTP/1.1 400 Bad request
   "title": "API_UNAVAILABLE_CURRENCY_PAIR",
   "message": "message exception",
 }
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "title": "API_USER_RESOURCE_ACCESS_DENIED",
+  "message": "message exception",
+}
 
 @apiErrorExample {json} Error-Response:
   HTTP/1.1 400 Bad request
   {
-    "title": "API_WRONG_ORDER_PARAMS",
+    "title": "API_INVALID_ORDER_CREATION_PARAMS",
     "message": "message exception",
   }
 @apiErrorExample {json} Error-Response:
@@ -126,13 +127,10 @@ HTTP/1.1 200 OK
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
-"errorCode": "ACCEPTING_ORDER_ERROR",
+"errorCode": "API_ACCEPT_ORDER_ERROR",
 "url" : String,
 "detail" : String
 }
-@apiError AuthenticationNotAvailableException
-@apiError NotFoundException
-@apiError ProcessingException
 
 ###
 
@@ -203,10 +201,7 @@ HTTP/1.1 400 Bad request
 /openapi/v1/orders/123
 @apiSuccessExample {json} Success-Response:
 HTTP/1.1 200 OK
-@apiError AuthenticationNotAvailableException
-@apiError IncorrectCurrentUserException
-@apiError NotFoundException
-@apiError ProcessingException
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -245,9 +240,6 @@ HTTP/1.1 200 OK
 {
 "status": true
 }
-@apiError AuthenticationNotAvailableException
-@apiError CallBackUrlAlreadyExistException
-@apiError NotFoundException
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -307,8 +299,14 @@ HTTP/1.1 200 OK
 @apiSuccess {String} data.order_type type of order (BUY or SELL)
 @apiSuccess {Number} data.amount Amount in base currency
 @apiSuccess {Number} data.price Exchange rate
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "errorCode": "API_USER_RESOURCE_ACCESS_DENIED",
+  "url" : String,
+  "detail" : String
+}
 
 ###
 
@@ -378,9 +376,6 @@ HTTP/1.1 200 OK
 amount -	order amount in base currency
 rate	- exchange rate
 
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
-
 ###
 
 ###
@@ -410,8 +405,20 @@ openapi/v1/public/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=
 @apiSuccess {Number} data.commission commission
 @apiSuccess {String} data.order_type Order type (BUY or SELL)
 
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "errorCode": "API_REQUEST_ERROR_DATES",
+  "url" : String,
+  "detail" : String
+}
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "errorCode": "API_REQUEST_ERROR_LIMIT",
+  "url" : String,
+  "detail" : String
+}
 
 ###
 
@@ -481,8 +488,6 @@ HTTP/1.1 200 OK
  }
 ]
 
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
 ###
 
 ###
@@ -498,7 +503,7 @@ HTTP/1.1 200 OK
 @apiSuccess {String} data.currencyName Name of currency
 @apiSuccess {Number} data.activeBalance Balance that is available for spending
 @apiSuccess {Number} data.reservedBalance Balance reserved for orders or withdraw
-@apiError AuthenticationNotAvailableException
+
 ###
 
 ###
@@ -519,9 +524,7 @@ HTTP/1.1 200 OK
 @apiSuccess {Number} data.price Exchange rate
 @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
 @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
-@apiError AuthenticationNotAvailableException
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
+
 ###
 
 ###
@@ -545,15 +548,27 @@ HTTP/1.1 200 OK
 @apiSuccess {Number} data.price Exchange rate
 @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
 @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
-@apiError AuthenticationNotAvailableException
-@apiError InvalidCurrencyPairFormatException
-@apiError InvalidNumberParamException
-@apiError NotFoundException
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
   "errorCode": "API_VALIDATE_NUMBER_ERROR",
+  "url" : String,
+  "detail" : String
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "errorCode": "API_INVALID_CURRENCY_PAIR_NAME",
+  "url" : String,
+  "detail" : String
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 Bad request
+{
+  "errorCode": "API_ORDER_NOT_FOUND",
   "url" : String,
   "detail" : String
 }
@@ -579,10 +594,7 @@ HTTP/1.1 400 Bad request
 @apiSuccess {Number} data.price Exchange rate
 @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
 @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
-@apiError AuthenticationNotAvailableException
-@apiError InvalidCurrencyPairFormatException
-@apiError InvalidNumberParamException
-@apiError NotFoundException
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -609,8 +621,6 @@ Commissions for orders (sell and buy) are calculated and withdrawn from amount i
 @apiSuccess {Number} data.sell Commission for sell operations
 @apiSuccess {Number} data.buy Commission for buy operations
 @apiSuccess {Number} data.transfer Commission for transfer operations
-@apiError AuthenticationNotAvailableException
-@apiError NotFoundException
 
 ###
 
@@ -638,9 +648,6 @@ openapi/v1/user/history/btc_usd/trades?from_date=2018-09-01&to_date=2018-09-05&l
 @apiSuccess {Number} data.total Total sum
 @apiSuccess {Number} data.commission commission
 @apiSuccess {String} data.order_type Order type (BUY or SELL)
-@apiError AuthenticationNotAvailableException
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -678,7 +685,5 @@ openapi/v1/user/history/1/transactions
 @apiSuccess {String} data.time Transaction creation date
 @apiSuccess {String} data.operation_type Transaction operation type
 @apiSuccess {String} data.transaction_status Transaction status
-@apiError AuthenticationNotAvailableException
-@apiError NotFoundException
 
 ###
