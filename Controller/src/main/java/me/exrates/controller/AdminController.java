@@ -487,7 +487,7 @@ public class AdminController {
 
         model.addObject("user", user);
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-        model.addObject("currencies", currencyService.findAllCurrencies());
+        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(user.getId()));

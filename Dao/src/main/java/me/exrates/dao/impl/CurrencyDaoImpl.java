@@ -399,7 +399,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "				(IOP.currency_id=CUR.id) " +
                 "			 	AND (IOP.operation_direction=:operation_direction) " +
                 "				AND (IOP.user_id=:user_id) " +
-                " WHERE CUR.hidden IS NOT TRUE " +
                 " ORDER BY CUR.id ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
