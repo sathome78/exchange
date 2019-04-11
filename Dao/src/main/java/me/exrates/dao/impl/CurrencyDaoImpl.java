@@ -138,7 +138,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<Currency> getAllCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY";
 
-        return npJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
+        return npSlaveJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
                 .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .build());
@@ -805,7 +805,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "FROM CURRENCY_LIMIT " +
                 "JOIN CURRENCY ON CURRENCY_LIMIT.currency_id = CURRENCY.id";
 
-        return npJdbcTemplate.query(sql, (rs, row) -> {
+        return npSlaveJdbcTemplate.query(sql, (rs, row) -> {
             Currency currency = new Currency(rs.getInt("currency_id"));
             currency.setName(rs.getString("name"));
 
@@ -996,7 +996,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<RateDto> getCurrencyRates() {
         final String sql = "SELECT currency_name, usd_rate, btc_rate FROM CURRENT_CURRENCY_RATES";
 
-        return npJdbcTemplate.query(sql, (rs, row) -> RateDto.builder()
+        return npSlaveJdbcTemplate.query(sql, (rs, row) -> RateDto.builder()
                 .currencyName(rs.getString("currency_name"))
                 .usdRate(rs.getBigDecimal("usd_rate"))
                 .btcRate(rs.getBigDecimal("btc_rate"))
@@ -1030,7 +1030,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<BalanceDto> getCurrencyBalances() {
         final String sql = "SELECT currency_name, balance, last_updated_at FROM CURRENT_CURRENCY_BALANCES";
 
-        return npJdbcTemplate.query(sql, (rs, row) -> BalanceDto.builder()
+        return npSlaveJdbcTemplate.query(sql, (rs, row) -> BalanceDto.builder()
                 .currencyName(rs.getString("currency_name"))
                 .balance(rs.getBigDecimal("balance"))
                 .lastUpdatedAt(rs.getTimestamp("last_updated_at").toLocalDateTime())

@@ -728,7 +728,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 "FROM MERCHANT_CURRENCY " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id";
 
-        return masterJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
+        return slaveJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
                 .merchantId(rs.getInt("merchant_id"))
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
