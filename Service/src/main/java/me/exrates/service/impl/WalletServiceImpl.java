@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.IEOClaimRepository;
-import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -933,7 +932,7 @@ public class WalletServiceImpl implements WalletService {
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
         String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
-                    + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
+                + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
         return Transaction
                 .builder()
                 .userWallet(wallet)

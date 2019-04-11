@@ -23,7 +23,6 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
@@ -34,7 +33,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public interface WalletService {
 
