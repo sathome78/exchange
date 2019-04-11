@@ -64,7 +64,7 @@ public class ExchangeApi {
                 .build();
     }
 
-    @Scheduled(initialDelay = 0, fixedDelay = 5 * 60 * 1_000)
+    @Scheduled(initialDelay = 0, fixedDelay = 30 * 60 * 1_000)
     public void updateExchangeCurrencyRates() {
         currencyService.updateCurrencyExchangeRates(getRatesFromApi());
     }

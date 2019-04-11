@@ -95,7 +95,7 @@ public class WalletsApi {
                         e -> e.getValue().toString())));
     }
 
-    @Scheduled(initialDelay = 0, fixedDelay = 5 * 60 * 1_000)
+    @Scheduled(initialDelay = 0, fixedDelay = 30 * 60 * 1_000)
     public void updateCurrencyBalances() {
         currencyService.updateCurrencyBalances(getBalancesFromApi());
     }
