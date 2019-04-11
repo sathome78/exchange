@@ -53,6 +53,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
@@ -78,6 +79,7 @@ import java.util.stream.Stream;
 import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
+import static me.exrates.configurations.CacheConfiguration.MERCHANT_BY_NAME_CACHE;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
@@ -92,38 +94,32 @@ public class MerchantServiceImpl implements MerchantService {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
+    private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
+
     @Value("${btc.walletspass.folder}")
     private String walletPropsFolder;
 
     @Autowired
     private MerchantDao merchantDao;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private SendMailService sendMailService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private MerchantServiceContext merchantServiceContext;
-
     @Autowired
     private CommissionService commissionService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private ExchangeApi exchangeApi;
-
     @Autowired
     private BigDecimalConverter converter;
-
-    private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
-
+    @Autowired
+    @Qualifier(MERCHANT_BY_NAME_CACHE)
+    private Cache merchantByNameCache;
     @Autowired
     @Qualifier("bitcoinServiceImpl")
     private BitcoinService bitcoinService;
@@ -205,9 +201,13 @@ public class MerchantServiceImpl implements MerchantService {
         return merchantDao.findById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Merchant findByName(String name) {
-        return merchantDao.findByName(name);
+        if (isNull(merchantByNameCache)) {
+            return merchantDao.findByName(name);
+        }
+        return merchantByNameCache.get(name, () -> merchantDao.findByName(name));
     }
 
     @Override

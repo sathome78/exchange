@@ -244,4 +244,6 @@ public interface UserDao {
     boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum);
 
     IeoUserStatus findIeoUserStatusByEmail(String email);
+
+    boolean updateUserRole(int userId, UserRole userRole);
 }

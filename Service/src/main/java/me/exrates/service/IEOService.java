@@ -26,4 +26,6 @@ public interface IEOService {
     void updateIeo(Integer id, IeoDetailsUpdateDto dto);
 
     void startRevertIEO(Integer idIeo, String email);
+
+    void updateIeoStatuses();
 }

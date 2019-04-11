@@ -19,6 +19,6 @@ public class IEOResult {
     private BigDecimal availableAmount;
 
     public enum IEOResultStatus {
-        SUCCESS, FAILED, NONE
+        SUCCESS, FAILED, NONE, REVOKED
     }
 }

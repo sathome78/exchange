@@ -1092,8 +1092,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairById(currencyPairId);
+    public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair) {
         String sql = "SELECT " +
                 " SO.id AS order_id, " +
                 " SO.status_id AS order_status_id, " +

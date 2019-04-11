@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class UserSecureServiceImpl implements UserSecureService {
 
 	private static final Logger logger = LogManager.getLogger(UserSecureServiceImpl.class);
 
-
+	@Transactional(readOnly = true)
 	@Override
 	public UserShortDto getUserByUsername(String email) {
 		return userDao.findShortByEmail(email);
@@ -66,6 +67,7 @@ public class UserSecureServiceImpl implements UserSecureService {
 		return userDao.getUserRoles(email);
 	}
 
+	@Transactional(readOnly = true)
 	@Override
     public List<String> getUserAuthorities(String email) {
 		return userDao.getUserRoleAndAuthorities(email);

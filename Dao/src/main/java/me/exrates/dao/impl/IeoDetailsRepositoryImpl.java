@@ -3,9 +3,7 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEODetails;
-import me.exrates.model.User;
 import me.exrates.model.enums.IEODetailsStatus;
-import me.exrates.model.enums.UserRole;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -18,8 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 
 @Repository
 @Log4j
@@ -90,18 +87,6 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     @Override
-    public Collection<IEODetails> findByCurrencyName(String currencyName) {
-        String sql = "SELECT * FROM IEO_DETAILS WHERE currency_name = :currencyName";
-        MapSqlParameterSource params = new MapSqlParameterSource("currencyName", currencyName);
-        try {
-            return jdbcTemplate.query(sql, params, ieoDetailsRowMapper());
-        } catch (Exception e) {
-            log.warn("Failed to find ieoInfos for currency name " + currencyName, e);
-            throw e;
-        }
-    }
-
-    @Override
     public IEODetails findOpenIeoByCurrencyName(String currencyName) {
         String sql = "SELECT * FROM IEO_DETAILS" +
                 " WHERE currency_name = :currencyName AND starts_at < CURRENT_TIMESTAMP AND terminates_at >= CURRENT_TIMESTAMP";
@@ -136,18 +121,6 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     @Override
-    public BigDecimal getAvailableAmount(int ieoId) {
-        String sql = "SELECT available_amount FROM IEO_DETAILS WHERE id = :ieoId";
-        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoId);
-        try {
-            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
-        } catch (DataAccessException e) {
-            log.warn("Failed to retrieve available amount for ieo with id: " + ieoId, e);
-            return BigDecimal.ZERO;
-        }
-    }
-
-    @Override
     public Collection<IEODetails> findAll() {
         String sql = "SELECT * FROM IEO_DETAILS";
         try {
@@ -179,6 +152,13 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         params.addValue("ieo_id", idIeo);
 
         return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
+    public boolean updateIeoStatuses() {
+        String sql = "UPDATE IEO_DETAILS SET status = 'RUNNING', available_amount = amount" +
+                " WHERE status = 'PENDING' AND starts_at <= CURRENT_TIMESTAMP;";
+        return jdbcTemplate.update(sql, new HashMap<>()) > 0;
     }
 
     private RowMapper<IEODetails> ieoDetailsRowMapper() {

@@ -34,6 +34,8 @@ import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,10 @@ import java.util.stream.Collectors;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME_CACHE;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -74,6 +80,22 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private BigDecimalConverter converter;
+
+    @Autowired
+    @Qualifier(CURRENCY_BY_NAME_CACHE)
+    private Cache currencyByNameCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_NAME_CACHE)
+    private Cache currencyPairByNameCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_ID_CACHE)
+    private Cache currencyPairByIdCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
+    private Cache currencyPairsListByTypeCache;
 
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
@@ -107,9 +129,13 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.getAllCurrencies();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Currency findByName(String name) {
-        return currencyDao.findByName(name);
+        if (isNull(currencyByNameCache)) {
+            return currencyDao.findByName(name);
+        }
+        return currencyByNameCache.get(name, () -> currencyDao.findByName(name));
     }
 
     @Override
@@ -152,9 +178,10 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currencyId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type) {
-        return currencyDao.getAllCurrencyPairs(type);
+        return currencyPairsListByTypeCache.get(type, () -> currencyDao.getAllCurrencyPairs(type));
     }
 
     @Override
@@ -162,9 +189,10 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.getAllCurrencyPairsWithHidden(type);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
-        List<CurrencyPair> result = currencyDao.getAllCurrencyPairs(type);
+        List<CurrencyPair> result = currencyPairsListByTypeCache.get(type, () -> currencyDao.getAllCurrencyPairs(type));
         result.sort(Comparator.comparing(CurrencyPair::getName));
         return result;
     }
@@ -176,11 +204,12 @@ public class CurrencyServiceImpl implements CurrencyService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
-            return currencyDao.findCurrencyPairById(currencyPairId);
-        } catch (EmptyResultDataAccessException ex) {
+            return currencyPairByIdCache.get(currencyPairId, () -> currencyDao.findCurrencyPairById(currencyPairId));
+        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }
@@ -355,14 +384,18 @@ public class CurrencyServiceImpl implements CurrencyService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CurrencyPair getCurrencyPairByName(String currencyPair) {
-        return currencyDao.findCurrencyPairByName(currencyPair);
+        return currencyPairByNameCache.get(currencyPair, () -> currencyDao.findCurrencyPairByName(currencyPair));
     }
 
     @Override
     public Integer findCurrencyPairIdByName(String pairName) {
-        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> new CurrencyPairNotFoundException(pairName));
+        return currencyDao.findOpenCurrencyPairIdByName(pairName).orElseThrow(() -> {
+            String massage = "Failed to find currency pair details for pairName " + (pairName == null ? "null" : pairName);
+            return new CurrencyPairNotFoundException(massage);
+        });
     }
 
     @Override

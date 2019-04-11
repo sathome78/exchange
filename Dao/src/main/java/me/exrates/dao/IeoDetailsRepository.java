@@ -14,19 +14,17 @@ public interface IeoDetailsRepository {
 
     IEODetails updateSafe(IEODetails ieoDetails);
 
-    Collection<IEODetails> findByCurrencyName(String currencyName);
-
     IEODetails findOpenIeoByCurrencyName(String currencyName);
 
     IEODetails findOne(int ieoId);
 
     boolean updateAvailableAmount(int ieoId, BigDecimal availableAmount);
 
-    BigDecimal getAvailableAmount(int ieoId);
-
     Collection<IEODetails> findAll();
 
     Collection<IEODetails> findAllExceptForMaker(int userId);
 
     boolean isCountryRestrictedByIeoId(int idIeo, String countryCode);
+
+    boolean updateIeoStatuses();
 }

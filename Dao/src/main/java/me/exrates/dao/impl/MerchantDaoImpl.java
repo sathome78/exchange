@@ -104,7 +104,7 @@ public class MerchantDaoImpl implements MerchantDao {
         final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
         final Map<String, String> params = Collections.singletonMap("name", name);
         try {
-            return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+            return slaveJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
         } catch (EmptyResultDataAccessException ex) {
             log.debug("Method 'MerchantDaoImpl::findByName' did not return any result");
             return null;

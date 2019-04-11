@@ -66,7 +66,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public Collection<Integer> getAllSuccessClaimIdsByIeoId(int ieoId) {
-        String sql = "SElECT id FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId";
+        String sql = "SElECT id FROM IEO_CLAIM WHERE status = :status AND ieo_id = :ieoId FOR UPDATE";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("status", IEOResult.IEOResultStatus.SUCCESS.name());
         params.addValue("ieoId", ieoId);

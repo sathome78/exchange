@@ -11,6 +11,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -51,6 +52,7 @@ public class OpenApiTokenServiceImpl implements OpenApiTokenService {
         return openApiTokenDao.getById(id).orElseThrow(() -> new TokenNotFoundException("Token not found by id: " + id));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public OpenApiToken getByPublicKey(String publicKey, String currentUserEmail) {
         OpenApiToken token = openApiTokenDao.getByPublicKey(publicKey).

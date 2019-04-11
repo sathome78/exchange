@@ -22,14 +22,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.ws.rs.DELETE;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
-import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RequestMapping("/api/v1/private")
@@ -37,22 +35,22 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 public class OpenApiPrivateV1Controller {
 
     private final WalletService walletService;
+    private final UserService userService;
+    private final UserOperationService userOperationService;
+    private final MessageSource messageSource;
+    private final OrderService orderService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserOperationService userOperationService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    public OpenApiPrivateV1Controller(WalletService walletService) {
+    public OpenApiPrivateV1Controller(WalletService walletService,
+                                      UserService userService,
+                                      UserOperationService userOperationService,
+                                      MessageSource messageSource,
+                                      OrderService orderService) {
         this.walletService = walletService;
+        this.userService = userService;
+        this.userOperationService = userOperationService;
+        this.messageSource = messageSource;
+        this.orderService = orderService;
     }
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -64,14 +62,8 @@ public class OpenApiPrivateV1Controller {
     @RequestMapping(value = "/orders", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultOpenApiDto> createOrder(@RequestBody @Valid OrderParamsDto orderParamsDto) {
-        String currencyPairName = transformCurrencyPair(orderParamsDto.getCurrencyPair());
         String userEmail = userService.getUserEmailFromSecurityContext();
-        int userId = userService.getIdByEmail(userEmail);
-        Locale locale = new Locale(userService.getPreferedLang(userId));
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
-        if (!accessToOperationForUser) {
-            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
-        }
+        String currencyPairName = validateUserAndCurrencyPair(orderParamsDto.getCurrencyPair(), userEmail);
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
                 orderParamsDto.getAmount(), orderParamsDto.getPrice(), userEmail);
         return new ResponseEntity<>(new OrderCreationResultOpenApiDto(resultDto), HttpStatus.CREATED);
@@ -114,5 +106,16 @@ public class OpenApiPrivateV1Controller {
     @ResponseBody
     public OpenApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), String.format("An internal error occurred: %s", exception.getMessage()));
+    }
+
+    private String validateUserAndCurrencyPair(String currencyPair, String userEmail) {
+        String currencyPairName = transformCurrencyPair(currencyPair);
+        int userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
+        if (!accessToOperationForUser) {
+            throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
+        }
+        return currencyPairName;
     }
 }

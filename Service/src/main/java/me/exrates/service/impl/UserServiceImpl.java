@@ -332,6 +332,7 @@ public class UserServiceImpl implements UserService {
         return userDao.ifNicknameIsUnique(nickname);
     }
 
+    @Transactional(readOnly = true)
     public boolean ifEmailIsUnique(String email) {
         return userDao.ifEmailIsUnique(email);
     }
@@ -1093,6 +1094,16 @@ public class UserServiceImpl implements UserService {
 
     public IeoUserStatus findIeoUserStatusByEmail(String email) {
         return userDao.findIeoUserStatusByEmail(email);
+    }
+
+    @Override
+    public boolean updateUserRole(int userId, UserRole userRole) {
+        return userDao.updateUserRole(userId, userRole);
+    }
+
+    @Override
+    public boolean existPolicyByUserIdAndPolicy(int id, String name) {
+        return userDao.existPolicyByUserIdAndPolicy(id, name);
     }
 
 }
