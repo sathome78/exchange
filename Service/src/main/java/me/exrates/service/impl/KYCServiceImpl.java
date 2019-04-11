@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,8 @@ import me.exrates.model.Email;
 import me.exrates.model.User;
 import me.exrates.model.UserVerificationInfo;
 import me.exrates.model.constants.Constants;
+import me.exrates.model.dto.UserNotificationMessage;
+import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
@@ -25,6 +29,8 @@ import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsMessageTypeEnum;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.KYCService;
@@ -32,6 +38,7 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -91,6 +98,8 @@ public class KYCServiceImpl implements KYCService {
     private final KycHttpClient kycHttpClient;
     private final UserVerificationInfoDao userVerificationInfoDao;
     private final KYCSettingsDao kycSettingsDao;
+    private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
 
     @Value("${server-host}")
     private String host;
@@ -113,7 +122,9 @@ public class KYCServiceImpl implements KYCService {
                           SendMailService sendMailService,
                           KycHttpClient kycHttpClient,
                           UserVerificationInfoDao userVerificationInfoDao,
-                          KYCSettingsDao kycSettingsDao) {
+                          KYCSettingsDao kycSettingsDao,
+                          StompMessenger stompMessenger,
+                          ObjectMapper objectMapper) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -131,6 +142,8 @@ public class KYCServiceImpl implements KYCService {
         this.kycHttpClient = kycHttpClient;
         this.userVerificationInfoDao = userVerificationInfoDao;
         this.kycSettingsDao = kycSettingsDao;
+        this.stompMessenger = stompMessenger;
+        this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -369,6 +382,23 @@ public class KYCServiceImpl implements KYCService {
                 .build();
 
         sendMailService.sendMailMandrill(email);
+
+        UserNotificationType type;
+        String msg = String.format(emailMessagePattern, eventStatus);
+        if (eventStatus.equalsIgnoreCase("success")) {
+            type = UserNotificationType.SUCCESS;
+        } else {
+            type = UserNotificationType.ERROR;
+        }
+
+        final UserNotificationMessage message = new UserNotificationMessage(type, msg);
+
+        String payload = null;
+        try {
+            payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.KYC, message));
+        } catch (JsonProcessingException e) {
+        }
+        stompMessenger.sendPersonalMessageToUser(userEmail, payload);
     }
 
     private void validateMerchantSignature(String signature, String response) {

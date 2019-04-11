@@ -5,5 +5,6 @@ package me.exrates.model.enums;
 public enum  WsMessageTypeEnum {
 
     SUBSCRIBE,
-    IEO;
+    IEO,
+    KYC;
 }
