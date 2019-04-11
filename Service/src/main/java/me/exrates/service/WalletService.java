@@ -30,6 +30,7 @@ import me.exrates.model.vo.WalletOperationData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -135,8 +136,6 @@ public interface WalletService {
 
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
-    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
-
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
@@ -170,6 +169,8 @@ public interface WalletService {
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
     Wallet findByUserAndCurrency(int userId, String currencyName);
+
+    Map<String, Wallet> findAllByUserAndCurrencyNames(int userId, Collection<String> currencyNames);
 
     boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
 

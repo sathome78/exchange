@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -100,7 +101,7 @@ public interface WalletDao {
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
-    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
+    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair);
 
     BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId);
 

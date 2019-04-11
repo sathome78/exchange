@@ -1,8 +1,10 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.openAPI.config.WebAppTestConfig;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.config.OpenApiSecurityConfig;
 import me.exrates.service.util.OpenApiUtils;
@@ -20,6 +22,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -165,7 +170,7 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
     }
 
     @Test
-    public void getTradeHistory_wrongDateRangeTest() throws Exception {
+    public void getTradeHistory_wrongDateRangeTest() {
         String cpName = "btc_usd";
         LocalDate datesFrom = LocalDate.now();
         LocalDate datesTo = LocalDate.now().minusDays(1);
@@ -177,8 +182,16 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .build()
                 .expand(cpName);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            fail();
+        } catch (Exception ex) {
+            assertTrue(((NestedServletException) ex).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException) ex).getRootCause();
+            assertEquals(ErrorApiTitles.API_REQUEST_ERROR_DATES, exception.getTitle());
+            assertEquals("From date is after to date", exception.getMessage());
+        }
     }
 
     @Test
@@ -195,8 +208,15 @@ public class OpenApiPublicOldControllerTest extends OpenApiCommonTest {
                 .build()
                 .expand(cpName);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get(uriComponents.toUri().toString()))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        } catch (Exception ex) {
+            assertTrue(((NestedServletException)ex).getRootCause() instanceof OpenApiException);
+            OpenApiException exception = (OpenApiException) ((NestedServletException)ex).getRootCause();
+            assertEquals(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, exception.getTitle());
+            assertEquals("Limit value equals or less than zero", exception.getMessage());
+        }
     }
 
     @Test(expected = NestedServletException.class)

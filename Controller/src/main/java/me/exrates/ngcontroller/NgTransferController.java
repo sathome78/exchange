@@ -28,6 +28,7 @@ import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -140,6 +141,7 @@ public class NgTransferController {
      */
     @CheckActiveUserStatus
     @PostMapping(value = "/accept")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
@@ -193,6 +195,7 @@ public class NgTransferController {
 
     @CheckActiveUserStatus
     @RequestMapping(value = "/voucher/request/create", method = POST)
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     @ResponseBody
     public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
                                                      HttpServletRequest servletRequest) {
@@ -282,6 +285,7 @@ public class NgTransferController {
 
     @CheckActiveUserStatus
     @PostMapping(value = "/request/pin")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
         try {
             User user = userService.findByEmail(getPrincipalEmail());

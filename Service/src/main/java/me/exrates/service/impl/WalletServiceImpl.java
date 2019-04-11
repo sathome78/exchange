@@ -2,6 +2,8 @@ package me.exrates.service.impl;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.WalletDao;
@@ -9,7 +11,6 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEOClaim;
@@ -25,7 +26,6 @@ import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.UserGroupBalanceDto;
-import me.exrates.model.dto.UserRoleBalanceDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletFormattedDto;
@@ -41,7 +41,6 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.IeoStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -54,10 +53,8 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
@@ -81,6 +78,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -132,6 +131,8 @@ public class WalletServiceImpl implements WalletService {
     private IeoDetailsRepository ieoDetailsRepository;
     @Autowired
     private IEOClaimRepository ieoClaimRepository;
+    @Autowired
+    private CurrencyDao currencyDao;
 
 
     @Override
@@ -525,9 +526,10 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
-        return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPairId);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPair);
     }
 
     @Override
@@ -555,23 +557,6 @@ public class WalletServiceImpl implements WalletService {
 
     }
 
-
-    @Override
-    public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
-        return walletDao.getWalletBalancesSummaryByRoles(roles
-                .stream()
-                .map(UserRole::getRole)
-                .collect(Collectors.toList()))
-                .stream()
-                //wolper 19.04.18
-                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet()
-                .stream()
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
-                        .stream()
-                        .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
-                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
-                .collect(Collectors.toList());
-    }
 
     @Override
     public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
@@ -825,6 +810,18 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    public Map<String, Wallet> findAllByUserAndCurrencyNames(int userId, Collection<String> currencyNames) {
+        List<Currency> currencies = currencyDao.findAllByNames(currencyNames);
+        List<Wallet> wallets = walletDao.findAllByUser(userId);
+        Map<String, Wallet> userWallets = new HashMap<>(currencies.size());
+        currencies.forEach(currency -> {
+            Wallet wallet = wallets.stream().filter(w -> w.getCurrencyId() == currency.getId()).findFirst().orElse(null);
+            userWallets.put(currency.getName(), wallet);
+        });
+        return userWallets;
+    }
+
+    @Override
     public boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc) {
         int currencyId = currencyService.findByName("BTC").getId();
         return walletDao.reserveUserBtcForIeo(userId, amountInBtc, currencyId);
@@ -851,8 +848,8 @@ public class WalletServiceImpl implements WalletService {
             userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
         }
 
-        BigDecimal makerBtcInitialAmount = makerBtcWallet.getActiveBalance();
-        makerBtcWallet.setActiveBalance(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
+        BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
+        makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
 
         userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
 
@@ -914,8 +911,8 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal userIeoWalletActiveBalance = userIeoWallet.getActiveBalance();
         userIeoWallet.setActiveBalance(userIeoWalletActiveBalance.subtract(ieoClaim.getAmount()));
 
-        BigDecimal makerBtcActiveBalance = makerBtcWallet.getActiveBalance();
-        makerBtcWallet.setActiveBalance(makerBtcActiveBalance.subtract(ieoClaim.getPriceInBtc()));
+        BigDecimal makerBtcActiveBalance = makerBtcWallet.getIeoReserved();
+        makerBtcWallet.setIeoReserved(makerBtcActiveBalance.subtract(ieoClaim.getPriceInBtc()));
 
         boolean updateResult = walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)

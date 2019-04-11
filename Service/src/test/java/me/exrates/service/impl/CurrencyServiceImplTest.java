@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import me.exrates.configurations.CacheConfiguration;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
@@ -33,6 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -50,6 +53,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_BY_NAME_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIRS_LIST_BY_TYPE_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_ID_CACHE;
+import static me.exrates.configurations.CacheConfiguration.CURRENCY_PAIR_BY_NAME_CACHE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -66,7 +73,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {ServiceTestConfig.class})
+@ContextConfiguration(classes = {ServiceTestConfig.class, CacheConfiguration.class})
 public class CurrencyServiceImplTest {
 
     @Autowired
@@ -86,6 +93,22 @@ public class CurrencyServiceImplTest {
 
     @Autowired
     private BigDecimalConverter converter;
+
+    @Autowired
+    @Qualifier(CURRENCY_BY_NAME_CACHE)
+    private Cache currencyByNameCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_NAME_CACHE)
+    private Cache currencyPairByNameCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIR_BY_ID_CACHE)
+    private Cache currencyPairByIdCache;
+
+    @Autowired
+    @Qualifier(CURRENCY_PAIRS_LIST_BY_TYPE_CACHE)
+    private Cache currencyPairsListByTypeCache;
 
     private List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList;
 
@@ -243,7 +266,7 @@ public class CurrencyServiceImplTest {
         assertEquals(result.get(1),currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(1));
 
 
-        verify(currencyDao, times(2)).getAllCurrencyPairs(CurrencyPairType.MAIN);
+        verify(currencyDao, times(1)).getAllCurrencyPairs(CurrencyPairType.MAIN);
     }
 
     @Test

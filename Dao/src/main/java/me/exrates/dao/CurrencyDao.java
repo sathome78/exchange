@@ -18,6 +18,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -121,6 +122,8 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
+
+    List<Currency> findAllByNames(Collection<String> names);
 
     boolean isCurrencyPairHidden(int currencyPairId);
 
