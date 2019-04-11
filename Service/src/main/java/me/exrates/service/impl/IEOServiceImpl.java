@@ -193,6 +193,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public void startRevertIEO(Integer idIeo, String adminEmail) {
+        logger.info("Start revert IEO id {}, email {}", idIeo, adminEmail);
         User user = userService.findByEmail(adminEmail);
         if (user.getRole() != UserRole.ADMIN_USER) {
             String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
@@ -219,7 +220,7 @@ public class IEOServiceImpl implements IEOService {
         User maker = userService.getUserById(ieoEntity.getMakerId());
         maker.setRole(UserRole.USER);
         userService.updateUserRole(maker.getId(), UserRole.USER);
-
+        logger.info("Finished revert IEO id {}, email {}", idIeo, adminEmail);
         Email email = new Email();
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
