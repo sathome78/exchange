@@ -3,8 +3,8 @@ package me.exrates.dao.impl;
 import me.exrates.dao.KYCSettingsDao;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
-import me.exrates.model.ngExceptions.NgDashboardException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,17 +47,15 @@ public class KYCSettingsDaoImpl implements KYCSettingsDao {
                 put("code", code);
             }
         };
-        try {
-            return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
-                KycCountryDto dto = new KycCountryDto();
-                dto.setCountryName(rs.getString("country_name"));
-                dto.setCountryCode(rs.getString("country_code"));
-                return dto;
-            });
+        return jdbcTemplate.queryForObject(sql, params, getCountryRowMapper());
+    }
 
-        } catch (Exception e) {
-            throw new NgDashboardException("Error getting country by code");
-        }
-
+    private RowMapper<KycCountryDto> getCountryRowMapper() {
+        return (resultSet, i) -> {
+            final KycCountryDto countryDto = new KycCountryDto();
+            countryDto.setCountryCode(resultSet.getString("country_code"));
+            countryDto.setCountryName(resultSet.getString("country_name"));
+            return countryDto;
+        };
     }
 }

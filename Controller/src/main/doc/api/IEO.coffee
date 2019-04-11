@@ -68,6 +68,7 @@ HTTP/1.1 400 OK
 @apiVersion 0.0.1
 @apiGroup IEO
 @apiUse Exrates
+@apiUse ApiJSON
 
 @apiExample {curl} Example usage:
 curl -X PUT \

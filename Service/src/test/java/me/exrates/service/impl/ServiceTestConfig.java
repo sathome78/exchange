@@ -6,6 +6,7 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.G2faDao;
+import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.NewsDao;
@@ -141,6 +142,12 @@ public class ServiceTestConfig {
     public UserSessionService userSessionService() {
         return new UserSessionService();
     }
+
+    @Bean
+    public IEOClaimRepository ieoClaimRepository(){
+        return Mockito.mock(IEOClaimRepository.class);
+    }
+
 
     @Bean("ExratesSessionRegistry")
     public SessionRegistry sessionRegistry() {

@@ -76,7 +76,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     } else if (sourceType == USER_TRANSFER) {
       this.status = TransferStatusEnum.convert(statusId);
     } else if (sourceType == IEO) {
-      this.status = IeoStatusEnum.PROCESSED_BY_CLAIM;
+      this.status = IeoStatusEnum.convert(statusId);
     }
   }
 

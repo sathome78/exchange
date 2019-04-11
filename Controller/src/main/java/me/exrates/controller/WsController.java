@@ -161,6 +161,11 @@ public class WsController {
         return ieoService.findAll(user);
     }
 
+    @SubscribeMapping("/ieo/ieo_details")
+    public Collection<IEODetails> subscribeIeoDetailsPublic() {
+        return ieoService.findAll(null);
+    }
+
     @SubscribeMapping("/ieo/ieo_details/{detailId}")
     public IEODetails subscribeIeoDetails(@DestinationVariable Integer detailId) {
         return ieoService.findOne(Preconditions.checkNotNull(detailId));

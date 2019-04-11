@@ -23,17 +23,16 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public interface WalletService {
 
@@ -135,8 +134,6 @@ public interface WalletService {
 
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
-    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
-
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
@@ -171,11 +168,12 @@ public interface WalletService {
 
     Wallet findByUserAndCurrency(int userId, String currencyName);
 
+    Map<String, Wallet> findAllByUserAndCurrencyNames(int userId, Collection<String> currencyNames);
+
     boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
 
     boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
 
-    @Transactional()
     boolean performIeoTransfer(IEOClaim ieoClaim);
 
     BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
@@ -183,4 +181,6 @@ public interface WalletService {
     Map<String, String> findUserCurrencyBalances(User user);
 
     BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
+
+    boolean performIeoRollbackTransfer(IEOClaim ieoClaim);
 }

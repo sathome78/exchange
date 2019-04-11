@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -71,7 +70,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.asLifoQueue;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
 import static me.exrates.model.enums.OperationType.SELL;
@@ -1094,8 +1092,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairById(currencyPairId);
+    public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair) {
         String sql = "SELECT " +
                 " SO.id AS order_id, " +
                 " SO.status_id AS order_status_id, " +
@@ -1661,7 +1658,7 @@ public class WalletDaoImpl implements WalletDao {
         try {
             return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
         } catch (DataAccessException e) {
-           return BigDecimal.ZERO;
+            return BigDecimal.ZERO;
         }
     }
 

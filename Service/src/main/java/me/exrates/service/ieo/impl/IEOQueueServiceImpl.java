@@ -7,6 +7,7 @@ import me.exrates.dao.IEOResultRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOProcessor;
 import me.exrates.service.ieo.IEOQueueService;
@@ -35,6 +36,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
     private final ObjectMapper objectMapper;
     private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
+    private final UserService userService;
 
     @Autowired
     public IEOQueueServiceImpl(IEOClaimRepository claimRepository,
@@ -43,9 +45,11 @@ public class IEOQueueServiceImpl implements IEOQueueService {
                                IeoDetailsRepository ieoDetailsRepository,
                                ObjectMapper objectMapper,
                                SendMailService sendMailService,
-                               StompMessenger stompMessenger) {
+                               StompMessenger stompMessenger,
+                               UserService userService) {
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.sendMailService = sendMailService;
+        this.userService = userService;
         this.claims = new ConcurrentLinkedQueue<>();
         this.executor = Executors.newSingleThreadExecutor();
         this.claimRepository = claimRepository;
@@ -67,7 +71,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
             IEOClaim claim = claims.poll();
             if (claim != null) {
                 executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository,
-                        sendMailService, claim, walletService, objectMapper, stompMessenger));
+                        sendMailService, userService, claim, walletService, objectMapper, stompMessenger));
             }
         }
     }

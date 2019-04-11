@@ -5,6 +5,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.dao.exception.notfound.NotFoundException;
 import me.exrates.model.UserFile;
+import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
@@ -12,7 +13,7 @@ import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
-import me.exrates.service.exception.IeoException;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -101,6 +102,13 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(IeoException.class)
     @ResponseBody
     public ErrorInfo handleIeoException(HttpServletRequest req, IeoException exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(OpenApiException.class)
+    @ResponseBody
+    public ErrorInfo handleOpenAPIAuthenticationException(HttpServletRequest req, OpenApiException exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
