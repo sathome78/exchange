@@ -7,11 +7,12 @@ import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -34,17 +35,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -856,7 +857,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .build();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateWithdrawLimits(List<CurrencyLimit> currencyLimits) {
         String sql = "UPDATE CURRENCY_LIMIT " +
@@ -920,7 +921,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     }
 
     @Override
-    public void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market,  String tiker, boolean hidden) {
+    public void addCurrencyPair(Currency currency1, Currency currency2, String newPairName, CurrencyPairType type, Market market, String tiker, boolean hidden) {
         final String insertPair = "INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market, ticker_name, type)" +
                 "VALUES(:currency1_id, :currency2_id, :pairName, 160, :hidden, :market, :ticker, :type) ";
 
@@ -951,5 +952,73 @@ public class CurrencyDaoImpl implements CurrencyDao {
             log.error("Failed to insert Currency pir limits ", e);
             throw new RuntimeException(String.format("Error insert pair limits for %s to DB", newPairName));
         }
+    }
+
+    @Override
+    public void updateCurrencyExchangeRates(List<RateDto> rates) {
+        final String sql = "UPDATE CURRENT_CURRENCY_RATES " +
+                "SET usd_rate = ?, btc_rate = ? " +
+                "WHERE currency_name = ?";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                RateDto rateDto = rates.get(i);
+                ps.setBigDecimal(1, rateDto.getUsdRate());
+                ps.setBigDecimal(2, rateDto.getBtcRate());
+                ps.setString(3, rateDto.getCurrencyName());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return rates.size();
+            }
+        });
+    }
+
+    @Override
+    public List<RateDto> getCurrencyRates() {
+        final String sql = "SELECT currency_name, usd_rate, btc_rate FROM CURRENT_CURRENCY_RATES";
+
+        return npJdbcTemplate.query(sql, (rs, row) -> RateDto.builder()
+                .currencyName(rs.getString("currency_name"))
+                .usdRate(rs.getBigDecimal("usd_rate"))
+                .btcRate(rs.getBigDecimal("btc_rate"))
+                .build());
+    }
+
+    @Override
+    public void updateCurrencyBalances(List<BalanceDto> balances) {
+        final String sql = "UPDATE CURRENT_CURRENCY_BALANCES " +
+                "SET balance = ?, last_updated_at = ? " +
+                "WHERE currency_name = ?";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                BalanceDto balanceDto = balances.get(i);
+                ps.setBigDecimal(1, balanceDto.getBalance());
+                ps.setTimestamp(2, Timestamp.valueOf(balanceDto.getLastUpdatedAt()));
+                ps.setString(3, balanceDto.getCurrencyName());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return balances.size();
+            }
+        });
+    }
+
+    @Override
+    public List<BalanceDto> getCurrencyBalances() {
+        final String sql = "SELECT currency_name, balance, last_updated_at FROM CURRENT_CURRENCY_BALANCES";
+
+        return npJdbcTemplate.query(sql, (rs, row) -> BalanceDto.builder()
+                .currencyName(rs.getString("currency_name"))
+                .balance(rs.getBigDecimal("balance"))
+                .lastUpdatedAt(rs.getTimestamp("last_updated_at").toLocalDateTime())
+                .build());
     }
 }

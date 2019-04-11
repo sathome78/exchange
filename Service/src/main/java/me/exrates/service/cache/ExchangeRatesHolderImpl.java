@@ -10,6 +10,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -76,24 +77,31 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @PostConstruct
     private void init() {
+        StopWatch stopWatch = StopWatch.createStarted();
+
+        log.debug("Process of updating exrates cache start...");
         EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
             List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null);
             exratesCache = new CopyOnWriteArrayList<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
 
+        log.debug("Process of updating exrates cache end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+
+        log.debug("Process of updating fiat cache start...");
         FIAT_SCHEDULER.scheduleAtFixedRate(() -> {
             Map<String, BigDecimal> newData = getFiatCacheFromAPI();
             fiatCache = new ConcurrentHashMap<>(newData);
         }, 0, 1, TimeUnit.MINUTES);
+        log.debug("Process of updating fiat cache end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
 
         BTC_USD_ID = currencyService.findCurrencyPairIdByName(BTC_USD);
         ETH_USD_ID = currencyService.findCurrencyPairIdByName(ETH_USD);
 
-        log.info("Start init ExchangeRatesHolder");
+        log.debug("Start init ExchangeRatesHolder...");
 
         initExchangePairsCache();
 
-        log.info("Finish init ExchangeRatesHolder");
+        log.debug("Finish init ExchangeRatesHolder... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCache(Integer currencyPairId) {
@@ -166,7 +174,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .filter(entry -> !USD.equals(entry.getKey()))
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> entry.getValue().getLeft()
+                        Map.Entry::getValue
                 ));
     }
 

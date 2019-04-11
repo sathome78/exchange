@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.exrates.model.dto.InvoiceReportDto;
+import me.exrates.model.dto.api.RateDto;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -20,11 +20,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -34,7 +32,7 @@ public class ReportSevenExcelGeneratorUtil {
     private static final String SHEET1_NAME = "Sheet1 - Выгрузить свод ввода-вывода";
 
     public static byte[] generate(List<InvoiceReportDto> resultList,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  Map<String, RateDto> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle header1Style = getHeader1Style(workbook);
@@ -150,11 +148,9 @@ public class ReportSevenExcelGeneratorUtil {
             final String operation = nonNull(ir.getOperation()) ? ir.getOperation() : StringUtils.EMPTY;
             final String system = nonNull(ir.getSystem()) ? ir.getSystem() : StringUtils.EMPTY;
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-            }
-            final double usdRate = ratePair.getLeft().doubleValue();
+            RateDto rateDto = rates.getOrDefault(currency, RateDto.zeroRate(currency));
+
+            final double usdRate = rateDto.getUsdRate().doubleValue();
 
             row = sheet.createRow(i + 1);
 

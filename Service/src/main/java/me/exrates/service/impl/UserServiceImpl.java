@@ -21,6 +21,7 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
@@ -994,7 +995,7 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .collect(Collectors.groupingBy(UserBalancesDto::getUserId));
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
+        final Map<String, RateDto> ratesMap = exchangeApi.getRates();
 
         return usersInfo.toBuilder()
                 .notZeroBalanceUsers((int) usersBalances.entrySet()
@@ -1007,11 +1008,9 @@ public class UserServiceImpl implements UserService {
                                         double activeBalance = balance.getActiveBalance().doubleValue();
                                         double reservedBalance = balance.getReservedBalance().doubleValue();
 
-                                        Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
-                                        if (isNull(ratePair)) {
-                                            ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-                                        }
-                                        final double usdRate = ratePair.getLeft().doubleValue();
+                                        RateDto rateDto = ratesMap.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+
+                                        final double usdRate = rateDto.getUsdRate().doubleValue();
 
                                         return (activeBalance + reservedBalance) * usdRate;
                                     })
