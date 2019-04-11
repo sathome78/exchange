@@ -2,28 +2,28 @@ package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
+import me.exrates.service.BitcoinService;
 import me.exrates.service.NodeCheckerService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class NodeCheckerServiceImpl implements NodeCheckerService {
 
-    private final Map<String, IRefillable> merchantNodeMap = new HashMap<>();;
+    private final Map<String, IRefillable> btcNodeMap = new HashMap<>();;
 
-    public NodeCheckerServiceImpl(Map<String, IRefillable> bitcoinServiceMap) {
-        for (Map.Entry<String, IRefillable> entry : bitcoinServiceMap.entrySet()) {
-            merchantNodeMap.put(entry.getValue().getMerchantName(), entry.getValue());
+    public NodeCheckerServiceImpl(Map<String, BitcoinService> bitcoinServiceMap) {
+        for (Map.Entry<String, BitcoinService> entry : bitcoinServiceMap.entrySet()) {
+            btcNodeMap.put(entry.getValue().getMerchantName(), entry.getValue());
         }
     }
 
     @Override
     public Long getBTCBlocksCount(String ticker) {
         try {
-            return merchantNodeMap.get(ticker).getBlocksCount();
+            return btcNodeMap.get(ticker).getBlocksCount();
         } catch (Exception e){
             return null;
         }
@@ -31,11 +31,11 @@ public class NodeCheckerServiceImpl implements NodeCheckerService {
 
     @Override
     public List<String> listOfRefillableServicesNames() {
-        return new LinkedList<>(merchantNodeMap.keySet());
+        return new LinkedList<>(btcNodeMap.keySet());
     }
 
     @Override
     public Long getLastBlockTime(String ticker) throws BitcoindException, CommunicationException {
-        return  merchantNodeMap.get(ticker).getLastBlockTime();
+        return  btcNodeMap.get(ticker).getLastBlockTime();
     }
 }
