@@ -1102,4 +1102,9 @@ public class UserServiceImpl implements UserService {
         return userDao.updateUserRole(userId, userRole);
     }
 
+    @Override
+    public boolean existPolicyByUserIdAndPolicy(int id, String name) {
+        return userDao.existPolicyByUserIdAndPolicy(id, name);
+    }
+
 }

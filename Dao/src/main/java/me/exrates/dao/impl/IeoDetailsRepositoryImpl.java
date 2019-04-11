@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.HashMap;
 
 @Repository
 @Log4j
@@ -151,6 +152,13 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         params.addValue("ieo_id", idIeo);
 
         return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    @Override
+    public boolean updateIeoStatuses() {
+        String sql = "UPDATE IEO_DETAILS SET status = 'RUNNING', available_amount = amount" +
+                " WHERE status = 'PENDING' AND starts_at <= CURRENT_TIMESTAMP;";
+        return jdbcTemplate.update(sql, new HashMap<>()) > 0;
     }
 
     private RowMapper<IEODetails> ieoDetailsRowMapper() {

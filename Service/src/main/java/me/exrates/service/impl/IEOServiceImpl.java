@@ -1,15 +1,15 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.KYCSettingsDao;
-import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
@@ -26,6 +26,8 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOQueueService;
+import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +55,9 @@ public class IEOServiceImpl implements IEOService {
     private final KYCSettingsDao kycSettingsDao;
     private final IeoDetailsRepository ieoDetailsRepository;
     private final WalletService walletService;
-    private final UserDao userDao;
     private final SendMailService sendMailService;
+    private final StompMessenger stompMessenger;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -63,7 +66,10 @@ public class IEOServiceImpl implements IEOService {
                           IEOQueueService ieoQueueService,
                           UserService userService,
                           WalletService walletService,
-                          KYCSettingsDao kycSettingsDao, UserDao userDao, SendMailService sendMailService) {
+                          KYCSettingsDao kycSettingsDao,
+                          SendMailService sendMailService,
+                          StompMessenger stompMessenger,
+                          ObjectMapper objectMapper) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
@@ -71,8 +77,9 @@ public class IEOServiceImpl implements IEOService {
         this.walletService = walletService;
         this.ieoQueueService = ieoQueueService;
         this.kycSettingsDao = kycSettingsDao;
-        this.userDao = userDao;
         this.sendMailService = sendMailService;
+        this.stompMessenger = stompMessenger;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -132,7 +139,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public IEOStatusInfo checkUserStatusForIEO(String email, int idIeo) {
-        User user = userDao.findByEmail(email);
+        User user = userService.findByEmail(email);
 
         String statusKyc = userService.getUserKycStatusByEmail(email);
         boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS");
@@ -143,12 +150,13 @@ public class IEOServiceImpl implements IEOService {
             checkCountry = !ieoDetailsRepository.isCountryRestrictedByIeoId(idIeo, countryDto.getCountryCode());
         }
 
-        boolean policyCheck = userDao.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
+        boolean policyCheck = userService.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
         return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto);
     }
 
     @Override
     public Collection<IEODetails> findAll(User user) {
+        ieoDetailsRepository.updateIeoStatuses();
         if (Objects.isNull(user)) {
             return ieoDetailsRepository.findAll();
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
@@ -173,6 +181,7 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public IEODetails findOne(int ieoId) {
+        ieoDetailsRepository.updateIeoStatuses();
         return ieoDetailsRepository.findOne(ieoId);
     }
 
@@ -231,6 +240,30 @@ public class IEOServiceImpl implements IEOService {
         sendMailService.sendInfoMail(email);
     }
 
+    @Override
+    public void updateIeoStatuses() {
+        boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
+        if (updateResult) {
+            String userEmail = userService.getUserEmailFromSecurityContext();
+            try {
+                if (StringUtils.isNotEmpty(userEmail)) {
+                    User user = userService.findByEmail(userEmail);
+                    stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(findAll(user)));
+                }
+            } catch (Exception e) {
+                /*ignore*/
+            }
+            Collection<IEODetails> ieoDetails = ieoDetailsRepository.findAll();
+            ieoDetails.forEach(ieoDetail -> {
+                try {
+                    stompMessenger.sendDetailsIeo(ieoDetail.getId(), objectMapper.writeValueAsString(ieoDetail));
+                } catch (Exception e) {
+                    /*ignore*/
+                }
+            });
+        }
+    }
+
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
         if (ieoDetails.getMinAmount().compareTo(BigDecimal.ZERO) != 0
                 && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) > 0) {
@@ -246,9 +279,9 @@ public class IEOServiceImpl implements IEOService {
             throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_FAILURE, message);
         } else if (ieoDetails.getMaxAmountPerUser().compareTo(BigDecimal.ZERO) != 0) {
             Wallet userIeoWallet = walletService.findByUserAndCurrency(user.getId(), ieoDetails.getCurrencyName());
-            if (userIeoWallet != null && userIeoWallet.getActiveBalance().compareTo(claimDto.getAmount()) > 0) {
-                String message = String.format("Failed to accept claim as maximum amount per user to buy is %s %s, but you submitted only %s %s",
-                        ieoDetails.getMaxAmountPerUser().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
+            if (userIeoWallet != null && userIeoWallet.getActiveBalance().compareTo(ieoDetails.getMaxAmountPerUser()) >= 0) {
+                String message = String.format("Failed to accept claim as user reached maximum amount per user within IEO is %s %s",
+                        ieoDetails.getMaxAmountPerUser().toPlainString(), ieoDetails.getCurrencyName());
                 logger.warn(message);
                 throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_PER_USER_FAILURE, message);
             }

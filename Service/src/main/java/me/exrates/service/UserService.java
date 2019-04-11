@@ -273,4 +273,6 @@ public interface UserService {
     IeoUserStatus findIeoUserStatusByEmail(String email);
 
     boolean updateUserRole(int userId, UserRole userRole);
+
+    boolean existPolicyByUserIdAndPolicy(int id, String name);
 }
