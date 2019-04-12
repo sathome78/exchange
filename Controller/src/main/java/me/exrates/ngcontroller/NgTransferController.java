@@ -213,6 +213,17 @@ public class NgTransferController {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
+        User user = userService.findByEmail(email);
+        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
+                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
+            }
+        } else {
+            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+                secureService.sendWithdrawPincode(user);
+                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+            }
+        }
 
         TransferTypeVoucher transferType = TransferTypeVoucher.convert(requestParamsDto.getType());
         MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(requestParamsDto.getCurrency(),
@@ -227,20 +238,6 @@ public class NgTransferController {
                 .orElseThrow(InvalidAmountException::new);
         requestParamsDto.setMerchant(merchant.getMerchantId());
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-
-        if (!DEV_MODE) {
-            User user = userService.findByEmail(email);
-            if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-                if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
-                    throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
-                }
-            } else {
-                if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
-                    secureService.sendWithdrawPincode(user);
-                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
-                }
-            }
-        }
         return transferService.createTransferRequest(transferRequest);
     }
 

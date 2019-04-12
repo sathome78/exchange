@@ -62,11 +62,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Autowired
     @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate npJdbcTemplate;
+    private NamedParameterJdbcTemplate masterJdbcTemplate;
 
     @Autowired
     @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate npSlaveJdbcTemplate;
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -129,7 +129,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<Currency> getAllActiveCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
 
-        return npJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
+        return masterJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
                 .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .build());
@@ -138,7 +138,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<Currency> getAllCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY";
 
-        return npSlaveJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
+        return masterJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
                 .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .build());
@@ -149,7 +149,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "SELECT currency_id FROM WALLET WHERE id = :walletId ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletId));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        return masterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "SELECT name FROM CURRENCY WHERE  id = :id ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(currencyId));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+        return masterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             }
         };
         try {
-            return npSlaveJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+            return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
         } catch (Exception ex) {
             log.warn("Failed to find currency for name " + name, ex);
             throw ex;
@@ -184,13 +184,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("id", id);
             }
         };
-        return npJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+        return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
     }
 
     @Override
     public List<Currency> findAllCurrencies() {
         final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE order by name";
-        return npJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+        return masterJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
     }
 
     @Override
@@ -213,7 +213,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             put("operation_type_id", operationType.getType());
         }};
 
-        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             Currency currency = new Currency(rs.getInt("currency_id"));
             currency.setName(rs.getString("name"));
 
@@ -237,7 +237,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("user_role_id", roleId);
         params.put("currency_ids", currencyIds);
 
-        return npJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             TransferLimitDto dto = new TransferLimitDto();
             dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setTransferMinLimit(rs.getBigDecimal("min_sum"));
@@ -255,7 +255,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("operation_type_id", operationType.getType());
         params.put("currency_id", currencyId);
 
-        return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        return masterJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
     @Override
@@ -268,7 +268,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("operation_type_id", operationType.getType());
         params.put("currency_id", currencyId);
 
-        return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        return masterJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
     @Override
@@ -287,7 +287,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("max_daily_request", maxDailyRequest);
             }
         };
-        npJdbcTemplate.update(sql, params);
+        masterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -305,7 +305,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("max_daily_request", maxDailyRequest);
             }
         };
-        npJdbcTemplate.update(sql, params);
+        masterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -320,7 +320,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "       (select name from CURRENCY where id = currency2_id) as currency2_name," +
                 "       (select description from CURRENCY where id = currency2_id) as currency2_description " +
                 "FROM CURRENCY_PAIR  WHERE hidden IS NOT TRUE  ORDER BY pair_order DESC";
-        return npSlaveJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
+        return slaveJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
 
     @Override
@@ -334,7 +334,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "(select name from CURRENCY where id = currency2_id) as currency2_name " +
                 " FROM CURRENCY_PAIR " + typeClause +
                 " ORDER BY -pair_order DESC";
-        return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+        return masterJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
     }
 
 
@@ -347,7 +347,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("currency1Id", String.valueOf(currency1Id));
         namedParameters.put("currency2Id", String.valueOf(currency2Id));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        return masterJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
     }
 
     @Override
@@ -358,7 +358,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
-        return npSlaveJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        return slaveJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
     }
 
     @Override
@@ -369,7 +369,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM CURRENCY_PAIR WHERE name = :currencyPairName AND hidden IS NOT TRUE ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("currencyPairName", String.valueOf(currencyPairName));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        return masterJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
     }
 
     @Override
@@ -389,7 +389,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("currency_pair", currencyPair);
 
         try {
-            return npSlaveJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+            return slaveJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
         } catch (Exception ex) {
             throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
         }
@@ -409,7 +409,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             put("user_id", userId);
             put("operation_direction", operationDirection);
         }};
-        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
             dto.setUserId(userId);
             dto.setCurrencyId(rs.getInt("id"));
@@ -433,7 +433,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             put("user_id", userId);
             put("operation_direction", operationDirection);
         }};
-        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
             dto.setUserId(userId);
             dto.setCurrencyId(rs.getInt("id"));
@@ -456,7 +456,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
         }};
-        return npJdbcTemplate.query(sql, params, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> {
             UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
             dto.setUserId(userId);
             dto.setCurrencyId(rs.getInt("id"));
@@ -478,7 +478,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
         params.put("topic", currencyWarningTopicEnum.name());
-        return npJdbcTemplate.queryForList(sql, params, String.class);
+        return masterJdbcTemplate.queryForList(sql, params, String.class);
     }
 
     @Override
@@ -488,7 +488,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " JOIN USER_COMMENT_TOPIC UCT ON (UCT.id = PHT.topic_id) AND (UCT.topic = :topic)  ";
         Map<String, Object> params = new HashMap<>();
         params.put("topic", currencyWarningTopicEnum.name());
-        return npJdbcTemplate.queryForList(sql, params, String.class);
+        return masterJdbcTemplate.queryForList(sql, params, String.class);
     }
 
     @Override
@@ -501,7 +501,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<>();
         params.put("merchant_id", merchantId);
         params.put("topic", currencyWarningTopicEnum.name());
-        return npJdbcTemplate.queryForList(sql, params, String.class);
+        return masterJdbcTemplate.queryForList(sql, params, String.class);
     }
 
     @Override
@@ -517,7 +517,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("order_id", String.valueOf(orderId));
 
         try {
-            return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
         } catch (Exception ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
@@ -536,7 +536,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("order_type_id", orderTypeId);
 
         try {
-            return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+            return masterJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
                 CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
                 dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 dto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -562,7 +562,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("user_role_ids", roleIds);
         namedParameters.put("order_type_id", orderTypeId);
-        return npJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+        return masterJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
             CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
             dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
             dto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -587,7 +587,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("max_rate", maxRate);
         namedParameters.put("min_amount", minAmount);
         namedParameters.put("max_amount", maxAmount);
-        npJdbcTemplate.update(sql, namedParameters);
+        masterJdbcTemplate.update(sql, namedParameters);
     }
 
     @Override
@@ -603,7 +603,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "                JOIN CURRENCY_PAIR_LIMIT LIM_BUY ON CP.id = LIM_BUY.currency_pair_id AND LIM_BUY.user_role_id = :role_id " +
                 "                                                     AND LIM_BUY.order_type_id = 2 " +
                 "        WHERE CP.hidden != 1 ";
-        return npJdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
+        return masterJdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
             CurrencyPair currencyPair = currencyPairRowMapper.mapRow(rs, row);
             return new CurrencyPairWithLimitsDto(currencyPair,
                     rs.getBigDecimal("min_rate_sell"),
@@ -621,7 +621,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<Currency> findAllCurrenciesWithHidden() {
         final String sql = "SELECT * FROM CURRENCY";
-        return npJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+        return masterJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
     }
 
     @Override
@@ -633,7 +633,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("currency_id", currencyId);
         }};
-        return npJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+        return masterJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
             MerchantCurrencyScaleDto result = new MerchantCurrencyScaleDto();
             result.setCurrencyId(rs.getInt("id"));
             result.setMerchantId(null);
@@ -649,7 +649,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "JOIN MERCHANT_CURRENCY MC ON MC.currency_id = CURRENCY.id " +
                 "JOIN MERCHANT M ON M.id = MC.merchant_id " +
                 "WHERE M.process_type = :process_type ";
-        return npJdbcTemplate.query(sql,
+        return masterJdbcTemplate.query(sql,
                 new HashMap<String, Object>() {{
                     put("process_type", processType.name());
                 }},
@@ -672,7 +672,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         if (currencyPairType != CurrencyPairType.ALL) {
             sql = sql.concat(" AND type =:type");
         }
-        return npJdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()), currencyPairRowMapper);
+        return masterJdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()), currencyPairRowMapper);
     }
 
 
@@ -681,13 +681,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "SELECT id " +
                 "         FROM CURRENCY_PAIR " +
                 "         WHERE hidden IS NOT TRUE AND type = 'ICO' AND currency1_id =:currency_id ";
-        return !npJdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
+        return !masterJdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
     }
 
     @Override
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         String sql = "SELECT name FROM CURRENCY_PAIR WHERE hidden != 1 ORDER BY name ASC";
-        return npJdbcTemplate.query(sql, Collections.emptyMap(),
+        return masterJdbcTemplate.query(sql, Collections.emptyMap(),
                 (rs, row) -> new CurrencyPairInfoItem(rs.getString("name")));
     }
 
@@ -695,7 +695,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public Optional<Integer> findOpenCurrencyPairIdByName(String pairName) {
         String sql = "SELECT id FROM CURRENCY_PAIR WHERE name = :pair_name AND hidden != 1";
         try {
-            return Optional.of(npJdbcTemplate.queryForObject(sql, Collections.singletonMap("pair_name", pairName), Integer.class));
+            return Optional.of(masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("pair_name", pairName), Integer.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -704,7 +704,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<Currency> findAllCurrency() {
         String sql = "SELECT id, name, description, hidden FROM CURRENCY";
-        return npJdbcTemplate.query(sql, (rs, i) -> {
+        return masterJdbcTemplate.query(sql, (rs, i) -> {
             Currency result = new Currency();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
@@ -719,13 +719,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "UPDATE CURRENCY SET hidden = !hidden WHERE id = :currency_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_id", currencyId);
-        return npJdbcTemplate.update(sql, params) > 0;
+        return masterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
     public List<CurrencyPair> findAllCurrencyPair() {
         String sql = "SELECT id, name, hidden, permitted_link FROM CURRENCY_PAIR";
-        return npJdbcTemplate.query(sql, (rs, i) -> {
+        return masterJdbcTemplate.query(sql, (rs, i) -> {
             CurrencyPair result = new CurrencyPair();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
@@ -740,7 +740,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
-        return npJdbcTemplate.update(sql, params) > 0;
+        return masterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
@@ -748,7 +748,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "UPDATE CURRENCY_PAIR SET permitted_link = !permitted_link WHERE id = :currency_pair_id";
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
-        return npJdbcTemplate.update(sql, params) > 0;
+        return masterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
@@ -763,7 +763,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             put("currencyId", currencyId);
         }};
 
-        return npJdbcTemplate.query(sql, params, (rs, i) -> {
+        return masterJdbcTemplate.query(sql, params, (rs, i) -> {
             CurrencyReportInfoDto result = new CurrencyReportInfoDto();
             result.setEmail(rs.getString("email"));
             result.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), Locale.ENGLISH, 2));
@@ -788,7 +788,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("role_ids", roleIds);
         params.put("recalculate_to_usd", recalculateToUsd);
 
-        return npJdbcTemplate.update(sql, params) > 0;
+        return masterJdbcTemplate.update(sql, params) > 0;
     }
 
     @Transactional(readOnly = true)
@@ -805,7 +805,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "FROM CURRENCY_LIMIT " +
                 "JOIN CURRENCY ON CURRENCY_LIMIT.currency_id = CURRENCY.id";
 
-        return npSlaveJdbcTemplate.query(sql, (rs, row) -> {
+        return masterJdbcTemplate.query(sql, (rs, row) -> {
             Currency currency = new Currency(rs.getInt("currency_id"));
             currency.setName(rs.getString("name"));
 
@@ -832,7 +832,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .map(String::valueOf)
                 .collect(Collectors.toList());
         MapSqlParameterSource params = new MapSqlParameterSource("processTypes", processTypes);
-        return npJdbcTemplate.query(sql, params, getCurrencyRowMapper());
+        return masterJdbcTemplate.query(sql, params, getCurrencyRowMapper());
     }
 
     @Override
@@ -841,7 +841,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("part", partName.toUpperCase());
         }};
-        return npJdbcTemplate.query(sql, params, currencyPairRowShort);
+        return masterJdbcTemplate.query(sql, params, currencyPairRowShort);
     }
 
     @Override
@@ -850,14 +850,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("part", partName.toUpperCase());
         }};
-        return npJdbcTemplate.query(sql, params, currencyPairRowShort);
+        return masterJdbcTemplate.query(sql, params, currencyPairRowShort);
     }
 
     @Override
     public List<Currency> findAllByNames(Collection<String> names) {
         String sql = "SELECT id, name FROM CURRENCY WHERE name IN (:names) ";
         MapSqlParameterSource params = new MapSqlParameterSource("names", names);
-        return npJdbcTemplate.query(sql, params, (rs, row) -> Currency.builder()
+        return masterJdbcTemplate.query(sql, params, (rs, row) -> Currency.builder()
                 .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .build());
@@ -905,7 +905,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.put("currency_pair_id", currencyPairId);
 
         try {
-            return npJdbcTemplate.queryForObject(sql, params, Boolean.TYPE);
+            return masterJdbcTemplate.queryForObject(sql, params, Boolean.TYPE);
         } catch (Exception ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
@@ -922,7 +922,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.addValue("lockInOut", lockInOut);
         params.addValue("imgPath", imgPath);
         try {
-            npJdbcTemplate.execute(sql, params, ps -> {
+            masterJdbcTemplate.execute(sql, params, ps -> {
                 ResultSet rs = ps.executeQuery();
                 rs.close();
                 return rs;
@@ -950,7 +950,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         params.addValue("ticker", tiker);
         params.addValue("type", type.name());
         try {
-            npJdbcTemplate.update(insertPair, params, keyHolder);
+            masterJdbcTemplate.update(insertPair, params, keyHolder);
         } catch (DataAccessException e) {
             log.error("Failed to insert currency pair ", e);
             throw new RuntimeException(String.format("Error insert new pair to db for %s to DB", newPairName));
@@ -962,7 +962,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         MapSqlParameterSource paramsForLimit = new MapSqlParameterSource();
         paramsForLimit.addValue("name", newPairName);
         try {
-            npJdbcTemplate.update(insertPairLimit, paramsForLimit, keyHolder);
+            masterJdbcTemplate.update(insertPairLimit, paramsForLimit, keyHolder);
         } catch (DataAccessException e) {
             log.error("Failed to insert Currency pir limits ", e);
             throw new RuntimeException(String.format("Error insert pair limits for %s to DB", newPairName));
@@ -996,7 +996,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<RateDto> getCurrencyRates() {
         final String sql = "SELECT currency_name, usd_rate, btc_rate FROM CURRENT_CURRENCY_RATES";
 
-        return npSlaveJdbcTemplate.query(sql, (rs, row) -> RateDto.builder()
+        return masterJdbcTemplate.query(sql, (rs, row) -> RateDto.builder()
                 .currencyName(rs.getString("currency_name"))
                 .usdRate(rs.getBigDecimal("usd_rate"))
                 .btcRate(rs.getBigDecimal("btc_rate"))
@@ -1030,7 +1030,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public List<BalanceDto> getCurrencyBalances() {
         final String sql = "SELECT currency_name, balance, last_updated_at FROM CURRENT_CURRENCY_BALANCES";
 
-        return npSlaveJdbcTemplate.query(sql, (rs, row) -> BalanceDto.builder()
+        return masterJdbcTemplate.query(sql, (rs, row) -> BalanceDto.builder()
                 .currencyName(rs.getString("currency_name"))
                 .balance(rs.getBigDecimal("balance"))
                 .lastUpdatedAt(rs.getTimestamp("last_updated_at").toLocalDateTime())

@@ -153,7 +153,7 @@ public class GlobalControllerExceptionHandler {
         return new OpenApiError(ErrorCode.ACCESS_DENIED, req.getRequestURL(), exception.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IncorrectCurrentUserException.class)
     @ResponseBody
     public OpenApiError incorrectCurrentUserExceptionHandler(HttpServletRequest req, IncorrectCurrentUserException exception) {

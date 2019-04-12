@@ -1,7 +1,7 @@
 package me.exrates.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.KYCSettingsDao;
@@ -45,6 +45,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
 
@@ -242,26 +243,32 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public void updateIeoStatuses() {
+        log.info("<<IEO>>: Starting to update IEO statuses ...");
         boolean updateResult = ieoDetailsRepository.updateIeoStatuses();
+        log.info("<<IEO>>: Finished update IEO statuses, result: " + updateResult);
         if (updateResult) {
             String userEmail = userService.getUserEmailFromSecurityContext();
+            log.info("<<IEO>>: Principal email from Security Context: " + userEmail);
             try {
                 if (StringUtils.isNotEmpty(userEmail)) {
                     User user = userService.findByEmail(userEmail);
+                    log.info("<<IEO>>: Principal id from Security Context: " + (user == null ? "null" : user.getId()));
                     stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(findAll(user)));
                 }
             } catch (Exception e) {
-                /*ignore*/
+                log.error("Failed to send personal messages as ", e);
             }
             Collection<IEODetails> ieoDetails = ieoDetailsRepository.findAll();
             ieoDetails.forEach(ieoDetail -> {
                 try {
                     stompMessenger.sendDetailsIeo(ieoDetail.getId(), objectMapper.writeValueAsString(ieoDetail));
                 } catch (Exception e) {
-                    /*ignore*/
+                    log.error("Failed to send all ieo detail for id: " + ieoDetail.getId(), e);
                 }
             });
+            log.info("<<IEO>>: Finished sending statuses ..... ");
         }
+        log.info("<<IEO>>: Exiting IEO statuses, result: " + updateResult);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
