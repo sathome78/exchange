@@ -350,6 +350,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
 	}
 
+	@Bean(name = "vollarServiceImpl")
+	public BitcoinService vollarServiceImpl() {
+		return new BitcoinServiceImpl("merchants/vollar_wallet.properties","VOLLAR","VOLLAR", 30, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
