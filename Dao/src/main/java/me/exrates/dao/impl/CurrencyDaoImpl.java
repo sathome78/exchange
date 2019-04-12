@@ -316,7 +316,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 "       (select name from CURRENCY where id = currency2_id) as currency2_name," +
                 "       (select description from CURRENCY where id = currency2_id) as currency2_description " +
                 "FROM CURRENCY_PAIR  WHERE hidden IS NOT TRUE  ORDER BY pair_order DESC";
-        return slaveJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
+        return masterJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
 
     @Override
