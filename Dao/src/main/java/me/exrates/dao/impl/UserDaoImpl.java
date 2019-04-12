@@ -153,7 +153,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", email);
 
         try {
-            return namedParameterSlaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException ex) {
             throw new UserNotFoundException(String.format("User: %s not found", email));
         }
