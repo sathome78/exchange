@@ -11,6 +11,7 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.exceptions.OpenApiException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -53,7 +54,8 @@ public class OpenApiUserInfoController {
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<WalletBalanceDto> userBalances() {
-        return walletService.getBalancesForUser();
+        throw new OpenApiException("DO_NOT_WORRY_BE_HAPPY", "Please, do not worry this data will be available soon!");
+//        return walletService.getBalancesForUser();
     }
 
     @GetMapping(value = "/orders/open", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
