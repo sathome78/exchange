@@ -6,6 +6,7 @@ import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.exceptions.OpenApiException;
 import me.exrates.security.config.OpenApiSecurityConfig;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
 
     @Test
+    @Ignore
     public void userBalances_successTest() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path("/openapi/v1/user/balances")
