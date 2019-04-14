@@ -39,6 +39,7 @@ import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -85,6 +86,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
@@ -113,6 +115,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -3478,6 +3481,911 @@ public class OrderServiceImplTest {
         assertEquals(mockCurrencyPair.getName(), coinmarketData.get(0).getCurrency_pair_name());
         assertEquals(BigDecimal.TEN, coinmarketData.get(0).getFirst());
         assertEquals(BigDecimal.ONE, coinmarketData.get(0).getLast());
+    }
+
+    @Test
+    public void updateOrder_true() {
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
+
+        boolean updateOrder = orderService.updateOrder(getMockExOrder());
+
+        assertTrue(updateOrder);
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+    }
+
+    @Test
+    public void updateOrder_false() {
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.FALSE);
+
+        boolean updateOrder = orderService.updateOrder(getMockExOrder());
+
+        assertFalse(updateOrder);
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+    }
+
+    @Test
+    public void cancelOrder_locale_null_IncorrectCurrentUserException() {
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test1@test1.com");
+
+        try {
+            orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.TRUE);
+        } catch (Exception e) {
+            assertEquals("Creator email: test1@test1.com and currentUser email: test@test.com are different", e.getMessage());
+        }
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+    }
+
+
+    @Test
+    public void cancelOrder_locale_null_OrderStatus_CANCELLED_CancelOrderException() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(4);
+
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(messageSource.getMessage(anyString(), any(), any())).thenReturn("order.cannotcancel.allreadycancelled");
+
+        try {
+            orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.TRUE);
+        } catch (Exception e) {
+            assertEquals("order.cannotcancel.allreadycancelled", e.getMessage());
+        }
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any());
+    }
+
+    @Test
+    public void cancelOrder_locale_null_OrderStatus_CLOSED_CancelOrderException() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(3);
+
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(messageSource.getMessage(anyString(), any(), any())).thenReturn("order.cannotcancel");
+
+        try {
+            orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.TRUE);
+        } catch (Exception e) {
+            assertEquals("order.cannotcancel", e.getMessage());
+        }
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any());
+    }
+
+    @Test
+    public void cancelOrder_locale_null_OrderStatus_CLOSED_OrderCancellingException() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.WALLET_NOT_FOUND);
+        try {
+            orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.TRUE);
+        } catch (Exception e) {
+            assertEquals("WALLET_NOT_FOUND", e.getMessage());
+        }
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+    }
+
+    @Test
+    public void cancelOrder_locale_null_false() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.FALSE);
+
+        boolean cancelOrder = orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.TRUE);
+
+        assertFalse(cancelOrder);
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+    }
+
+    @Test
+    public void cancelOrder_locale_null_true_forPartialAccept_false() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        ExOrder exOrder = getMockExOrder();
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelOrder = orderService.cancelOrder(exOrder, null, Collections.singletonList(exOrder), Boolean.FALSE);
+
+        assertTrue(cancelOrder);
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelOrder_locale_null_true_forPartialAccept_true() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        ExOrder exOrder = getMockExOrder();
+        List<ExOrder> acceptEventsList = new ArrayList<>();
+        acceptEventsList.add(exOrder);
+
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelOrder = orderService.cancelOrder(exOrder, null, acceptEventsList, Boolean.TRUE);
+
+        assertTrue(cancelOrder);
+
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelAllOpenOrders_false_openedOrders_and_openedStopOrders_empty() {
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getAllOpenedOrdersByUserId(anyInt())).thenReturn(Collections.EMPTY_LIST);
+        when(stopOrderService.getAllOpenedStopOrdersByUserId(anyInt())).thenReturn(Collections.EMPTY_LIST);
+
+        boolean cancelAllOpenOrders = orderService.cancelAllOpenOrders();
+
+        assertFalse(cancelAllOpenOrders);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getAllOpenedOrdersByUserId(anyInt());
+        verify(stopOrderService, atLeastOnce()).getAllOpenedStopOrdersByUserId(anyInt());
+    }
+
+    @Test
+    public void cancelAllOpenOrders_true() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getAllOpenedOrdersByUserId(anyInt())).thenReturn(Collections.singletonList(getMockExOrder()));
+        when(stopOrderService.getAllOpenedStopOrdersByUserId(anyInt())).thenReturn(Collections.singletonList(1));
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.TRUE);
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelAllOpenOrders = orderService.cancelAllOpenOrders();
+
+        assertTrue(cancelAllOpenOrders);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getAllOpenedOrdersByUserId(anyInt());
+        verify(stopOrderService, atLeastOnce()).getAllOpenedStopOrdersByUserId(anyInt());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelAllOpenOrders_false() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getAllOpenedOrdersByUserId(anyInt())).thenReturn(Collections.singletonList(getMockExOrder()));
+        when(stopOrderService.getAllOpenedStopOrdersByUserId(anyInt())).thenReturn(Collections.singletonList(1));
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.FALSE);
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelAllOpenOrders = orderService.cancelAllOpenOrders();
+
+        assertFalse(cancelAllOpenOrders);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getAllOpenedOrdersByUserId(anyInt());
+        verify(stopOrderService, atLeastOnce()).getAllOpenedStopOrdersByUserId(anyInt());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelOpenOrdersByCurrencyPair_false_openedOrders_and_openedStopOrders_empty() {
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.EMPTY_LIST);
+        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.EMPTY_LIST);
+
+        boolean cancelOpenOrdersByCurrencyPair = orderService.cancelOpenOrdersByCurrencyPair("1");
+
+        assertFalse(cancelOpenOrdersByCurrencyPair);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getOpenedOrdersByCurrencyPair(anyInt(), anyString());
+        verify(stopOrderService, atLeastOnce()).getOpenedStopOrdersByCurrencyPair(anyInt(), anyString());
+    }
+
+    @Test
+    public void cancelOpenOrdersByCurrencyPair_true() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(getMockExOrder()));
+        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(1));
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.TRUE);
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelOpenOrdersByCurrencyPair = orderService.cancelOpenOrdersByCurrencyPair("1");
+
+        assertTrue(cancelOpenOrdersByCurrencyPair);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getOpenedOrdersByCurrencyPair(anyInt(), anyString());
+        verify(stopOrderService, atLeastOnce()).getOpenedStopOrdersByCurrencyPair(anyInt(), anyString());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelOpenOrdersByCurrencyPair_false() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getOpenedOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(getMockExOrder()));
+        when(stopOrderService.getOpenedStopOrdersByCurrencyPair(anyInt(), anyString())).thenReturn(Collections.singletonList(1));
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.FALSE);
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelOpenOrdersByCurrencyPair = orderService.cancelOpenOrdersByCurrencyPair("1");
+
+        assertFalse(cancelOpenOrdersByCurrencyPair);
+        verify(userService, atLeastOnce()).getIdByEmail(any());
+        verify(orderDao, atLeastOnce()).getOpenedOrdersByCurrencyPair(anyInt(), anyString());
+        verify(stopOrderService, atLeastOnce()).getOpenedStopOrdersByCurrencyPair(anyInt(), anyString());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelOrder_exOrder_notNull_true() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(orderDao.getOrderById(anyInt())).thenReturn(getMockExOrder());
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        boolean cancelOrder = orderService.cancelOrder(100);
+
+        assertTrue(cancelOrder);
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(ApplicationEvent.class));
+    }
+
+    @Test
+    public void cancelOrder_exOrder_notNull_false() {
+        WalletsForOrderCancelDto walletsForOrderCancelDto = new WalletsForOrderCancelDto();
+        walletsForOrderCancelDto.setOrderStatusId(2);
+
+        when(orderDao.getOrderById(anyInt())).thenReturn(getMockExOrder());
+        when(userService.getUserEmailFromSecurityContext()).thenReturn("test@test.com");
+        when(userService.getEmailById(anyInt())).thenReturn("test@test.com");
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class)))
+                .thenReturn(walletsForOrderCancelDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString()))
+                .thenReturn(WalletTransferStatus.SUCCESS);
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.FALSE);
+
+        boolean cancelOrder = orderService.cancelOrder(100);
+
+        assertFalse(cancelOrder);
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserEmailFromSecurityContext();
+        verify(userService, atLeastOnce()).getEmailById(anyInt());
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(walletService, atLeastOnce()).getWalletForOrderByOrderIdAndOperationTypeAndBlock(anyInt(), any(OperationType.class));
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+    }
+
+    @Test
+    public void cancelOrder_exOrder_null_true() {
+        when(orderDao.getOrderById(anyInt())).thenReturn(null);
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.TRUE);
+
+        boolean cancelOrder = orderService.cancelOrder(100);
+
+        assertTrue(cancelOrder);
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+    }
+
+
+    @Test
+    public void cancelOrder_exOrder_null_false() {
+        when(orderDao.getOrderById(anyInt())).thenReturn(null);
+        when(stopOrderService.cancelOrder(anyInt(), any())).thenReturn(Boolean.FALSE);
+
+        boolean cancelOrder = orderService.cancelOrder(100);
+
+        assertFalse(cancelOrder);
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(stopOrderService, atLeastOnce()).cancelOrder(anyInt(), any());
+    }
+
+    @Test
+    public void acceptOrderByAdmin() {
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.TRUE);
+        when(orderDao.getOrderById(anyInt())).thenReturn(getMockExOrder());
+
+        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.MAIN);
+        mockCurrencyPair.setName("BTC/USD");
+
+        ExOrder mockExOrder = getMockExOrder();
+        mockExOrder.setOperationType(OperationType.INPUT);
+        mockExOrder.setCurrencyPair(mockCurrencyPair);
+        when(orderDao.getOrderById(anyInt())).thenReturn(mockExOrder);
+
+        UserRoleSettings userRoleSettings = new UserRoleSettings();
+        userRoleSettings.setUserRole(UserRole.VIP_USER);
+        userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+
+        WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
+        walletsForOrderAcceptionDto.setOrderStatusId(2);
+        walletsForOrderAcceptionDto.setUserCreatorOutWalletId(15);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.ACCOUNTANT);
+        Commission commission = new Commission();
+        commission.setValue(BigDecimal.TEN);
+        when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString())).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(ApplicationEvent.class);
+
+        orderService.acceptOrderByAdmin("test@test.com", 1, Locale.ENGLISH);
+
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(userRoleService, atLeastOnce()).retrieveSettingsForRole(anyInt());
+        verify(userRoleService, atLeastOnce()).isOrderAcceptionAllowedForUser(anyInt());
+        verify(walletService, atLeastOnce()).getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt());
+        verify(transactionDescription, atLeastOnce()).get(any(OrderStatus.class), any(OrderActionEnum.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(commissionDao, atLeastOnce()).getCommission(any(OperationType.class), any(UserRole.class));
+        verify(walletService, atLeastOnce()).walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString());
+        verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
+        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+    }
+
+    @Test
+    public void acceptManyOrdersByAdmin() {
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.TRUE);
+        when(orderDao.getOrderById(anyInt())).thenReturn(getMockExOrder());
+
+        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.MAIN);
+        mockCurrencyPair.setName("BTC/USD");
+
+        ExOrder mockExOrder = getMockExOrder();
+        mockExOrder.setOperationType(OperationType.INPUT);
+        mockExOrder.setCurrencyPair(mockCurrencyPair);
+        when(orderDao.getOrderById(anyInt())).thenReturn(mockExOrder);
+
+        UserRoleSettings userRoleSettings = new UserRoleSettings();
+        userRoleSettings.setUserRole(UserRole.VIP_USER);
+        userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+
+        WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
+        walletsForOrderAcceptionDto.setOrderStatusId(2);
+        walletsForOrderAcceptionDto.setUserCreatorOutWalletId(15);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.ACCOUNTANT);
+        Commission commission = new Commission();
+        commission.setValue(BigDecimal.TEN);
+        when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString())).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(ApplicationEvent.class);
+
+        orderService.acceptManyOrdersByAdmin("test@test.com", Collections.singletonList(1), Locale.ENGLISH);
+
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(userRoleService, atLeastOnce()).retrieveSettingsForRole(anyInt());
+        verify(userRoleService, atLeastOnce()).isOrderAcceptionAllowedForUser(anyInt());
+        verify(walletService, atLeastOnce()).getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt());
+        verify(transactionDescription, atLeastOnce()).get(any(OrderStatus.class), any(OrderActionEnum.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(commissionDao, atLeastOnce()).getCommission(any(OperationType.class), any(UserRole.class));
+        verify(walletService, atLeastOnce()).walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString());
+        verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
+        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+    }
+
+    @Test
+    public void acceptOrder_OrderAcceptionException() {
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.FALSE);
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("order.lockerror");
+
+        try {
+            orderService.acceptOrder("test@test.com", 1);
+        } catch (Exception e) {
+            assertEquals("order.lockerror", e.getMessage());
+        }
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
+    }
+
+    @Test
+    public void acceptOrder_checkAcceptPermissionForUser_AttemptToAcceptBotOrderException() {
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.TRUE);
+        when(orderDao.getOrderById(anyInt())).thenReturn(getMockExOrder());
+
+        UserRoleSettings userRoleSettings = new UserRoleSettings();
+        userRoleSettings.setUserRole(UserRole.VIP_USER);
+        userRoleSettings.setBotAcceptionAllowedOnly(Boolean.TRUE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("orders.acceptsaveerror");
+
+        try {
+            orderService.acceptOrder("test@test.com", 1);
+        } catch (Exception e) {
+            assertTrue(e instanceof AttemptToAcceptBotOrderException);
+            assertEquals("orders.acceptsaveerror", e.getMessage());
+        }
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(userRoleService, atLeastOnce()).retrieveSettingsForRole(anyInt());
+        verify(messageSource, atLeastOnce()).getMessage(anyString(), any(), any(Locale.class));
+    }
+
+    @Test
+    public void acceptOrder() {
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.lockOrdersListForAcception(anyListOf(Integer.class))).thenReturn(Boolean.TRUE);
+
+        CurrencyPair mockCurrencyPair = getMockCurrencyPair(CurrencyPairType.MAIN);
+        mockCurrencyPair.setName("BTC/USD");
+
+        ExOrder mockExOrder = getMockExOrder();
+        mockExOrder.setOperationType(OperationType.INPUT);
+        mockExOrder.setCurrencyPair(mockCurrencyPair);
+        when(orderDao.getOrderById(anyInt())).thenReturn(mockExOrder);
+
+        UserRoleSettings userRoleSettings = new UserRoleSettings();
+        userRoleSettings.setUserRole(UserRole.VIP_USER);
+        userRoleSettings.setBotAcceptionAllowedOnly(Boolean.FALSE);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.USER);
+        when(userRoleService.retrieveSettingsForRole(anyInt())).thenReturn(userRoleSettings);
+        when(userRoleService.isOrderAcceptionAllowedForUser(anyInt())).thenReturn(Boolean.TRUE);
+
+        WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
+        walletsForOrderAcceptionDto.setOrderStatusId(2);
+        walletsForOrderAcceptionDto.setUserCreatorOutWalletId(15);
+        when(walletService.getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt())).thenReturn(walletsForOrderAcceptionDto);
+        when(transactionDescription.get(any(OrderStatus.class), any(OrderActionEnum.class))).thenReturn("DESCRIPTION");
+
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        when(userService.getUserRoleFromDB(anyInt())).thenReturn(UserRole.ACCOUNTANT);
+        Commission commission = new Commission();
+        commission.setValue(BigDecimal.TEN);
+        when(commissionDao.getCommission(any(OperationType.class), any(UserRole.class))).thenReturn(commission);
+        when(walletService.walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString())).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        when(walletService.walletBalanceChange(any(WalletOperationData.class))).thenReturn(WalletTransferStatus.SUCCESS);
+        doNothing().when(companyWalletService).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        when(currencyService.findCurrencyPairById(anyInt())).thenReturn(mockCurrencyPair);
+        doNothing().when(referralService).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        when(orderDao.updateOrder(any(ExOrder.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(eventPublisher).publishEvent(ApplicationEvent.class);
+
+        orderService.acceptOrder("test@test.com", 1);
+
+        verify(userService, atLeastOnce()).getUserLocaleForMobile(anyString());
+        verify(userService, atLeastOnce()).getIdByEmail(anyString());
+        verify(orderDao, atLeastOnce()).lockOrdersListForAcception(anyListOf(Integer.class));
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(userRoleService, atLeastOnce()).retrieveSettingsForRole(anyInt());
+        verify(userRoleService, atLeastOnce()).isOrderAcceptionAllowedForUser(anyInt());
+        verify(walletService, atLeastOnce()).getWalletsForOrderByOrderIdAndBlock(anyInt(), anyInt());
+        verify(transactionDescription, atLeastOnce()).get(any(OrderStatus.class), any(OrderActionEnum.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(userService, atLeastOnce()).getUserRoleFromDB(anyInt());
+        verify(commissionDao, atLeastOnce()).getCommission(any(OperationType.class), any(UserRole.class));
+        verify(walletService, atLeastOnce()).walletInnerTransfer(anyInt(), any(BigDecimal.class), any(TransactionSourceType.class), anyInt(), anyString());
+        verify(walletService, atLeastOnce()).walletBalanceChange(any(WalletOperationData.class));
+        verify(companyWalletService, atLeastOnce()).deposit(any(CompanyWallet.class), any(BigDecimal.class), any(BigDecimal.class));
+        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
+        verify(referralService, atLeastOnce()).processReferral(any(ExOrder.class), any(BigDecimal.class), any(Currency.class), anyInt());
+        verify(orderDao, atLeastOnce()).updateOrder(any(ExOrder.class));
+    }
+
+    @Test
+    public void setStatus_false() {
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.FALSE);
+
+        boolean setStatus = orderService.setStatus(1, OrderStatus.OPENED);
+
+        assertFalse(setStatus);
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+    }
+
+    @Test
+    public void setStatus_true() {
+        when(orderDao.setStatus(anyInt(), any(OrderStatus.class))).thenReturn(Boolean.TRUE);
+
+        boolean setStatus = orderService.setStatus(1, OrderStatus.OPENED);
+
+        assertTrue(setStatus);
+        verify(orderDao, atLeastOnce()).setStatus(anyInt(), any(OrderStatus.class));
+    }
+
+    @Test
+    public void getOrderById() {
+        ExOrder mockExOrder = getMockExOrder();
+        when(orderDao.getOrderById(anyInt(), anyInt())).thenReturn(mockExOrder);
+
+        ExOrder exOrder = orderService.getOrderById(100, 200);
+
+        assertNotNull(exOrder);
+        assertEquals(mockExOrder, exOrder);
+
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt(), anyInt());
+    }
+
+    @Test
+    public void getOrderById_null() {
+        when(orderDao.getOrderById(anyInt(), anyInt())).thenReturn(null);
+
+        ExOrder exOrder = orderService.getOrderById(100, 200);
+
+        assertNull(exOrder);
+
+        verify(orderDao, atLeastOnce()).getOrderById(anyInt(), anyInt());
+    }
+
+    @Test
+    public void OrderCreateDto_null() {
+        when(orderDao.getMyOrderById(anyInt())).thenReturn(null);
+
+        OrderCreateDto orderCreateDto = orderService.getMyOrderById(100);
+
+        assertNull(orderCreateDto);
+
+        verify(orderDao, atLeastOnce()).getMyOrderById(anyInt());
+    }
+
+    @Test
+    public void OrderCreateDto() {
+        OrderCreateDto dto = new OrderCreateDto();
+        when(orderDao.getMyOrderById(anyInt())).thenReturn(dto);
+
+        OrderCreateDto orderCreateDto = orderService.getMyOrderById(100);
+
+        assertNotNull(orderCreateDto);
+        assertEquals(dto, orderCreateDto);
+
+        verify(orderDao, atLeastOnce()).getMyOrderById(anyInt());
+    }
+
+    @Test
+    public void getMyOrdersWithState_with_cacheData_checkCache_false() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        HttpSession session = Mockito.mock(HttpSession.class);
+        session.setAttribute("cacheHashMap", dto);
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        request.setAttribute("cacheHashMap", dto);
+
+        CacheData cacheData = getMockCacheData(request);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(request.getSession()).thenReturn(session);
+        when(request.getSession()).thenReturn(session);
+
+        List<OrderWideListDto> wideListDtos = orderService.getMyOrdersWithState(
+                cacheData,
+                "test@test.com",
+                getMockCurrencyPair(CurrencyPairType.MAIN),
+                OrderStatus.OPENED,
+                OperationType.BUY,
+                "FIAT",
+                10,
+                10,
+                Locale.ENGLISH);
+
+        assertNotNull(wideListDtos);
+        assertEquals(1, wideListDtos.size());
+        assertEquals(0, wideListDtos.get(0).getId());
+        assertEquals(100, wideListDtos.get(0).getUserId());
+        assertEquals(OrderStatus.OPENED, wideListDtos.get(0).getStatus());
+        assertEquals("BTC/USD", wideListDtos.get(0).getCurrencyPairName());
+    }
+
+    @Ignore
+    public void getMyOrdersWithState_with_cacheData_checkCache_true() {
+        OrderWideListDto dto = new OrderWideListDto();
+        dto.setUserId(100);
+        dto.setCurrencyPairId(100);
+        dto.setCurrencyPairName("BTC/USD");
+        dto.setStatus(OrderStatus.OPENED);
+
+        HttpSession session = Mockito.mock(HttpSession.class);
+        session.setAttribute("cacheHashMap", dto);
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        request.setAttribute("cacheHashMap", dto);
+
+        CacheData cacheData = getMockCacheData(request);
+
+        when(userService.getIdByEmail(anyString())).thenReturn(100);
+        when(orderDao.getMyOrdersWithState(
+                anyInt(),
+                any(CurrencyPair.class),
+                any(OrderStatus.class),
+                any(OperationType.class),
+                anyString(),
+                anyInt(),
+                anyInt(),
+                any(Locale.class))).thenReturn(Collections.singletonList(dto));
+        when(request.getSession()).thenReturn(session);
+
+        Map<String, Integer> cacheHashMap = new HashMap<>();
+        cacheHashMap.put("cacheHashMap", dto.hashCode());
+        when(request.getSession().getAttribute(anyString())).thenReturn(cacheHashMap);
+
+        List<OrderWideListDto> wideListDtos = orderService.getMyOrdersWithState(
+                cacheData,
+                "test@test.com",
+                getMockCurrencyPair(CurrencyPairType.MAIN),
+                OrderStatus.OPENED,
+                OperationType.BUY,
+                "FIAT",
+                10,
+                10,
+                Locale.ENGLISH);
+
+        assertNotNull(wideListDtos);
+        assertEquals(1, wideListDtos.size());
+        assertEquals(0, wideListDtos.get(0).getId());
+        assertEquals(100, wideListDtos.get(0).getUserId());
+        assertEquals(OrderStatus.OPENED, wideListDtos.get(0).getStatus());
+        assertEquals("BTC/USD", wideListDtos.get(0).getCurrencyPairName());
+    }
+
+    @Test
+    public void getAllBuyOrders() {
+        List<OrderListDto> mockOrderListDto = getMockOrderListDto();
+
+        HttpSession session = Mockito.mock(HttpSession.class);
+        session.setAttribute("cacheHashMap", mockOrderListDto);
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        request.setAttribute("cacheHashMap", mockOrderListDto);
+
+        CacheData cacheData = getMockCacheData(request);
+
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.ACCOUNTANT);
+        when(serviceCacheableProxy.getAllBuyOrders(any(CurrencyPair.class), any(UserRole.class), anyBoolean()))
+                .thenReturn(mockOrderListDto);
+        when(request.getSession()).thenReturn(session);
+        Map<String, Integer> cacheHashMap = new HashMap<>();
+        cacheHashMap.put("cacheHashMap", mockOrderListDto.hashCode());
+        when(request.getSession().getAttribute(anyString())).thenReturn(cacheHashMap);
+
+        List<OrderListDto> allBuyOrders = orderService.getAllBuyOrders(
+                cacheData,
+                getMockCurrencyPair(CurrencyPairType.MAIN),
+                Locale.ENGLISH,
+                Boolean.TRUE);
+
+        assertNotNull(allBuyOrders);
+        assertEquals(2, allBuyOrders.size());
+        assertEquals(OperationType.BUY, allBuyOrders.get(0).getOrderType());
+        assertEquals("4185.00", allBuyOrders.get(0).getExrate());
+        assertEquals("0.001958208", allBuyOrders.get(0).getAmountBase());
+        assertEquals("8.195100480", allBuyOrders.get(0).getAmountConvert());
+        assertEquals("47069689", allBuyOrders.get(0).getOrdersIds());
+        assertEquals(OperationType.BUY, allBuyOrders.get(0).getOrderType());
+        assertEquals("4150.00", allBuyOrders.get(1).getExrate());
+        assertEquals("0.055629498", allBuyOrders.get(1).getAmountBase());
+        assertEquals("230.862416700", allBuyOrders.get(1).getAmountConvert());
+        assertEquals("47074186", allBuyOrders.get(1).getOrdersIds());
     }
 
     private CoinmarketApiDto getMockCoinmarketApiDto() {
