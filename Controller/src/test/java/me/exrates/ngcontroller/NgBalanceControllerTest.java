@@ -20,7 +20,6 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,7 +34,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -43,13 +41,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -62,7 +57,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -103,7 +97,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void getBalances_required_true() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL)
@@ -140,7 +133,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void getBalances_exception() throws Exception {
         String ngDashboardException = "Failed to get user balances: null";
 
@@ -341,7 +333,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void getUserTotalBalance_resultWallet_size_equals_one() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/totalBalance")
@@ -366,7 +357,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void getUserTotalBalance_resultWallet_size_more_one() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/totalBalance")
@@ -511,7 +501,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
 
     @Test
-    @Ignore
     public void getMyInputOutputData_isOk() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/inputOutputData")
@@ -563,7 +552,6 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    @Ignore
     public void getMyInputOutputData_exception() throws Exception {
         String ngBalanceException = "Failed to get user inputOutputData as null";
 

@@ -14,7 +14,6 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.ngExceptions.NgBalanceException;
 import me.exrates.model.ngExceptions.NgDashboardException;
-import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
@@ -107,23 +106,22 @@ public class NgBalanceController {
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
             @RequestParam(required = false) CurrencyType currencyType) {
         final String email = getPrincipalEmail();
-        throw new NgDashboardException("Please, do not worry this data will be available soon!");
 
-//        final BalanceFilterDataDto filter = BalanceFilterDataDto.builder()
-//                .limit(limit)
-//                .offset(offset)
-//                .excludeZero(excludeZero)
-//                .currencyName(currencyName)
-//                .currencyId(currencyId)
-//                .currencyType(currencyType)
-//                .email(email)
-//                .build();
-//        try {
-//            return ResponseEntity.ok(balanceService.getWalletsDetails(filter));
-//        } catch (Exception ex) {
-//            logger.error("Failed to get user balances", ex);
-//            throw new NgDashboardException(String.format("Failed to get user balances: %s", ex.getMessage()), ex);
-//        }
+        final BalanceFilterDataDto filter = BalanceFilterDataDto.builder()
+                .limit(limit)
+                .offset(offset)
+                .excludeZero(excludeZero)
+                .currencyName(currencyName)
+                .currencyId(currencyId)
+                .currencyType(currencyType)
+                .email(email)
+                .build();
+        try {
+            return ResponseEntity.ok(balanceService.getWalletsDetails(filter));
+        } catch (Exception ex) {
+            logger.error("Failed to get user balances", ex);
+            throw new NgDashboardException(String.format("Failed to get user balances: %s", ex.getMessage()), ex);
+        }
     }
 
     // apiUrl/info/private/v2/balances/pendingRequests?limit=20&offset=0
@@ -181,60 +179,61 @@ public class NgBalanceController {
     @GetMapping("/totalBalance")
     @ResponseBody
     public Map<String, Object> getUserTotalBalance(HttpServletRequest request) {
-        throw new NgDashboardException("Please, do not worry this data will be available soon!");
-//        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(),
-//                localeResolver.resolveLocale(request), CurrencyPairType.MAIN);
-//        HashMap<String, Object> map = new HashMap<>();
-//        map.put("mapWallets", resultWallet);
-//
-//        if (resultWallet.size() > 1) {
-//            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
-//
-//            final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
-//            resultOrders
-//                    .stream()
-//                    .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
-//                    .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
-//
-//            final List<WalletTotalUsdDto> walletTotalUsdDtoList = new ArrayList<>();
-//            for (MyWalletsStatisticsDto myWalletsStatisticsDto : resultWallet) {
-//                WalletTotalUsdDto walletTotalUsdDto = new WalletTotalUsdDto(myWalletsStatisticsDto.getCurrencyName());
-//                Map<String, BigDecimal> mapWalletTotalUsdDto = new HashMap<>();
-//                if (myWalletsStatisticsDto.getCurrencyName().equals("USD")) {
-//                    walletTotalUsdDto.setSumUSD(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
-//                    walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
-//                    walletTotalUsdDtoList.add(walletTotalUsdDto);
-//                }
-//                resultOrders
-//                        .stream()
-//                        .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
-//                                || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
-//                                || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
-//                        )
-//                        .forEach(o -> mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate())));
-//                if (!mapWalletTotalUsdDto.isEmpty()) {
-//                    walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
-//                    walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
-//                    walletTotalUsdDtoList.add(walletTotalUsdDto);
-//                }
-//            }
-//
-//            walletTotalUsdDtoList.forEach(wallet -> {
-//                if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
-//                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
-//                } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
-//                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/BTC"))
-//                            .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("BTC/USD")));
-//                } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/ETH"))) {
-//                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/ETH"))
-//                            .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("ETH/USD")));
-//                }
-//            });
-//
-//            map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getSumUSD().doubleValue()).sum());
-//        }
-//
-//        return map;
+        List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(),
+                localeResolver.resolveLocale(request), CurrencyPairType.MAIN);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("mapWallets", resultWallet);
+
+        if (resultWallet.size() > 1) {
+            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
+
+            final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
+            resultOrders
+                    .stream()
+                    .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
+                    .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
+
+            final List<WalletTotalUsdDto> walletTotalUsdDtoList = new ArrayList<>();
+            for (MyWalletsStatisticsDto myWalletsStatisticsDto : resultWallet) {
+                WalletTotalUsdDto walletTotalUsdDto = new WalletTotalUsdDto(myWalletsStatisticsDto.getCurrencyName());
+                Map<String, BigDecimal> mapWalletTotalUsdDto = new HashMap<>();
+                if (myWalletsStatisticsDto.getCurrencyName().equals("USD")) {
+                    walletTotalUsdDto.setSumUSD(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+                    walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+                    walletTotalUsdDtoList.add(walletTotalUsdDto);
+                }
+                resultOrders
+                        .stream()
+                        .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
+                                || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
+                                || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
+                        )
+                        .forEach(o -> {
+                            mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate()));
+                        });
+                if (!mapWalletTotalUsdDto.isEmpty()) {
+                    walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+                    walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+                    walletTotalUsdDtoList.add(walletTotalUsdDto);
+                }
+            }
+
+            walletTotalUsdDtoList.forEach(wallet -> {
+                if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
+                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
+                } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
+                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/BTC"))
+                            .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("BTC/USD")));
+                } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/ETH"))) {
+                    wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/ETH"))
+                            .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("ETH/USD")));
+                }
+            });
+
+            map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getSumUSD().doubleValue()).sum());
+        }
+
+        return map;
     }
 
     // /info/private/v2/balances/currencies/{currencyId}
@@ -275,27 +274,26 @@ public class NgBalanceController {
             @RequestParam(required = false, name = "dateFrom") String dateFrom,
             @RequestParam(required = false, name = "dateTo") String dateTo,
             HttpServletRequest request) {
-        throw new NgDashboardException("Please, do not worry this data will be available soon!");
-//        Locale locale = localeResolver.resolveLocale(request);
-//        String userEmail = getPrincipalEmail();
-//        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
-//        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
-//
-//        try {
-//            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(
-//                    userEmail,
-//                    currencyId,
-//                    currencyName,
-//                    dateTimeFrom,
-//                    dateTimeTo,
-//                    limit,
-//                    offset,
-//                    locale);
-//            return ResponseEntity.ok(page);
-//        } catch (Exception ex) {
-//            logger.error("Failed to get user inputOutputData", ex);
-//            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
-//        }
+        Locale locale = localeResolver.resolveLocale(request);
+        String userEmail = getPrincipalEmail();
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
+
+        try {
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(
+                    userEmail,
+                    currencyId,
+                    currencyName,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    limit,
+                    offset,
+                    locale);
+            return ResponseEntity.ok(page);
+        } catch (Exception ex) {
+            logger.error("Failed to get user inputOutputData", ex);
+            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
+        }
     }
 
     @GetMapping("/inputOutputData/default")
