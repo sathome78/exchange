@@ -295,8 +295,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
         verify(userOperationService, times(1)).getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(merchantService, times(1)).findMerchantForTransferByCurrencyId(anyInt(), anyObject());
-        verify(inputOutputService, times(1)).prepareCreditsOperation(anyObject(), anyString(), anyObject());
     }
 
     @Test
@@ -358,8 +356,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
         verify(userOperationService, times(1)).getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(merchantService, times(1)).findMerchantForTransferByCurrencyId(anyInt(), anyObject());
-        verify(inputOutputService, times(1)).prepareCreditsOperation(anyObject(), anyString(), anyObject());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(g2faService, times(1)).checkGoogle2faVerifyCode(anyString(), anyObject());
@@ -391,8 +387,6 @@ public class NgTransferControllerTest extends AngularApiCommonTest {
         verify(userService, times(1)).getIdByEmail(anyString());
         verify(localeResolver, times(1)).resolveLocale(anyObject());
         verify(userOperationService, times(1)).getStatusAuthorityForUserByOperation(anyInt(), anyObject());
-        verify(merchantService, times(1)).findMerchantForTransferByCurrencyId(anyInt(), anyObject());
-        verify(inputOutputService, times(1)).prepareCreditsOperation(anyObject(), anyString(), anyObject());
         verify(userService, times(1)).findByEmail(anyString());
         verify(g2faService, times(1)).isGoogleAuthenticatorEnable(anyInt());
         verify(userService, times(1)).checkPin(anyString(), anyString(), anyObject());

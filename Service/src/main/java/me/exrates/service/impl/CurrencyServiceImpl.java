@@ -531,7 +531,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         String newPairName = String.format("%s/%s", firstCurrencyName, secondCurrencyName);
         try {
             getCurrencyPairByName(newPairName);
-        } catch (CurrencyPairNotFoundException e) {
+        } catch (CurrencyPairNotFoundException | Cache.ValueRetrievalException e) {
             currencyDao.addCurrencyPair(currency1, currency2, newPairName, CurrencyPairType.ICO, Market.ICO, newPairName, true);
             return;
         }
