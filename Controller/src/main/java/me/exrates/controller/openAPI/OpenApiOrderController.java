@@ -17,6 +17,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.OrderAcceptionException;
@@ -75,6 +76,8 @@ public class OpenApiOrderController {
             throw new OpenApiException(ErrorApiTitles.API_UNAVAILABLE_CURRENCY_PAIR, e.getMessage());
         } catch (OrderParamsWrongException e) {
             throw new OpenApiException(ErrorApiTitles.API_INVALID_ORDER_CREATION_PARAMS, e.getMessage());
+        } catch (InsufficientCostsInWalletException ex) {
+            throw new OpenApiException(ErrorApiTitles.API_INSUFFICIENT_FUNDS_ERROR, ex.getMessage());
         } catch (Exception e) {
             throw new OpenApiException(ErrorApiTitles.API_CREATE_ORDER_ERROR, e.getMessage());
         }

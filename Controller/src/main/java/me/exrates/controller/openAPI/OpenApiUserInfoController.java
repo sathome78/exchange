@@ -54,8 +54,7 @@ public class OpenApiUserInfoController {
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<WalletBalanceDto> userBalances() {
-        throw new OpenApiException("DO_NOT_WORRY_BE_HAPPY", "Please, do not worry this data will be available soon!");
-//        return walletService.getBalancesForUser();
+        return walletService.getBalancesForUser();
     }
 
     @GetMapping(value = "/orders/open", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -155,13 +154,13 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
 
-    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
-        try {
-            userService.findByEmail(email);
-            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
-        } catch (UserNotFoundException ex) {
-            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
-        }
-    }
+//    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
+//        try {
+//            userService.findByEmail(email);
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
+//        } catch (UserNotFoundException ex) {
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
+//        }
+//    }
 }

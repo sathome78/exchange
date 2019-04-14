@@ -111,6 +111,7 @@ import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.process.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
@@ -757,6 +758,9 @@ public class OrderServiceImpl implements OrderService {
         OrderValidationDto orderValidationDto = validateOrder(orderCreateDto, false, null);
         Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
+            if (errors.keySet().stream().anyMatch(key -> key.startsWith("balance_"))) {
+                throw new InsufficientCostsInWalletException("Failed as user has insufficient funds for this operation!");
+            }
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));
             throw new OrderParamsWrongException(String.join(", ", errors.values().toArray(new String [] {})));
         }
