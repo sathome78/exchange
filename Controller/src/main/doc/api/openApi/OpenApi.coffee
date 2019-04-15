@@ -23,6 +23,11 @@
 @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
 @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
 
+@apiError API_UNAVAILABLE_CURRENCY_PAIR error with currency pair, this pair available only through website
+@apiError API_USER_RESOURCE_ACCESS_DENIED user doesn't have permission for create order
+@apiError API_INVALID_ORDER_CREATION_PARAMS input params is incorrect
+@apiError API_CREATE_ORDER_ERROR error while creating order
+@apiError API_WRONG_CURRENCY_PAIR_PATTERN incorrect pattern of currency pair as expected: btc_usd
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -30,27 +35,6 @@ HTTP/1.1 400 Bad request
   "title": "API_UNAVAILABLE_CURRENCY_PAIR",
   "message": "message exception",
 }
-
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_USER_RESOURCE_ACCESS_DENIED",
-    "message": "message exception",
-  }
-
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_INVALID_ORDER_CREATION_PARAMS",
-    "message": "message exception",
-  }
-
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_CREATE_ORDER_ERROR",
-    "message": "message exception",
-  }
 
 ###
 
@@ -83,31 +67,17 @@ HTTP/1.1 400 Bad request
 @apiSuccess {Integer} orderCreationResult.order_id_to_accept id of order that opened and accepted as a result of partially accept)
 @apiSuccess {Integer} orderCreationResult.order_id_to_open id of order that opened and placed in common stack as a results of partially accept)
 
+@apiError API_UNAVAILABLE_CURRENCY_PAIR error with currency pair, this pair available only through website
+@apiError API_USER_RESOURCE_ACCESS_DENIED user doesn't have permission for create order
+@apiError API_INVALID_ORDER_CREATION_PARAMS input params is incorrect
+@apiError API_CREATE_ORDER_ERROR error while creating order
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
   "title": "API_UNAVAILABLE_CURRENCY_PAIR",
   "message": "message exception",
 }
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 Bad request
-{
-  "title": "API_USER_RESOURCE_ACCESS_DENIED",
-  "message": "message exception",
-}
-
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_INVALID_ORDER_CREATION_PARAMS",
-    "message": "message exception",
-  }
-@apiErrorExample {json} Error-Response:
-  HTTP/1.1 400 Bad request
-  {
-    "title": "API_CREATE_ORDER_ERROR",
-    "message": "message exception",
-  }
 ###
 
 ###
@@ -124,6 +94,9 @@ HTTP/1.1 400 Bad request
 /openapi/v1/orders/accept/1233
 @apiSuccessExample {json} Success-Response:
 HTTP/1.1 200 OK
+
+@apiError API_ACCEPT_ORDER_ERROR error while not found order
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -180,6 +153,10 @@ HTTP/1.1 200 OK
   "stop": null,
   "partiallyAcceptedAmount": null
 }
+
+@apiError API_ORDER_NOT_FOUND error while not found order
+
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -202,17 +179,13 @@ HTTP/1.1 400 Bad request
 @apiSuccessExample {json} Success-Response:
 HTTP/1.1 200 OK
 
+@apiError API_ORDER_CREATED_BY_ANOTHER_USER error, order was created by another user
+@apiError API_ORDER_CANCEL_ERROR error while canceling order, order already closed
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
   "errorCode": "API_ORDER_CREATED_BY_ANOTHER_USER",
-  "url" : String,
-  "detail" : String
-}
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 Bad request
-{
-  "errorCode": "API_ORDER_CANCEL_ERROR",
   "url" : String,
   "detail" : String
 }
@@ -240,6 +213,8 @@ HTTP/1.1 200 OK
 {
 "status": true
 }
+
+@apiError API_ORDER_ADD_CALLBACK_ERROR callback already exist
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -276,8 +251,6 @@ HTTP/1.1 200 OK
 "status": "false",
 "error" : " Callback url is null or empty"
 }
-@apiError AuthenticationNotAvailableException
-@apiError NotFoundException
 
 ###
 
@@ -299,6 +272,9 @@ HTTP/1.1 200 OK
 @apiSuccess {String} data.order_type type of order (BUY or SELL)
 @apiSuccess {Number} data.amount Amount in base currency
 @apiSuccess {Number} data.price Exchange rate
+
+
+@apiError API_USER_RESOURCE_ACCESS_DENIED user doesn't have permission for this operation
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
@@ -352,9 +328,6 @@ HTTP/1.1 200 OK
      "low": 1
  }
 ]
-
-@apiError InvalidCurrencyPairFormatException
-@apiError NotFoundException
 
 ###
 
@@ -549,6 +522,10 @@ HTTP/1.1 200 OK
 @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
 @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
 
+@apiError API_INVALID_CURRENCY_PAIR_NAME Currency name is incorrect
+@apiError API_VALIDATE_NUMBER_ERROR limit or offset in not integer
+@apiError API_ORDER_NOT_FOUND order not found
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -557,21 +534,6 @@ HTTP/1.1 400 Bad request
   "detail" : String
 }
 
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 Bad request
-{
-  "errorCode": "API_INVALID_CURRENCY_PAIR_NAME",
-  "url" : String,
-  "detail" : String
-}
-
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 Bad request
-{
-  "errorCode": "API_ORDER_NOT_FOUND",
-  "url" : String,
-  "detail" : String
-}
 ###
 
 ###
@@ -595,6 +557,7 @@ HTTP/1.1 400 Bad request
 @apiSuccess {Number} data.date_created Creation time as UNIX timestamp in millis
 @apiSuccess {Number} data.date_accepted Acceptance time as UNIX timestamp in millis
 
+@apiError API_VALIDATE_NUMBER_ERROR limit or offset in not integer
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
@@ -649,17 +612,13 @@ openapi/v1/user/history/btc_usd/trades?from_date=2018-09-01&to_date=2018-09-05&l
 @apiSuccess {Number} data.commission commission
 @apiSuccess {String} data.order_type Order type (BUY or SELL)
 
+@apiError API_REQUEST_ERROR_DATES From date is after to date
+@apiError API_REQUEST_ERROR_LIMIT Limit value equals or less than zero
+
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 Bad request
 {
   "errorCode": "API_REQUEST_ERROR_DATES",
-  "url" : String,
-  "detail" : String
-}
-@apiErrorExample {json} Error-Response:
-HTTP/1.1 400 Bad request
-{
-  "errorCode": "API_REQUEST_ERROR_LIMIT",
   "url" : String,
   "detail" : String
 }
