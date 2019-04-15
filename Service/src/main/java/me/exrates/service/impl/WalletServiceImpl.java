@@ -525,7 +525,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPair);
