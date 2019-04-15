@@ -677,6 +677,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
+    @Ignore
     public void cancelOrder_data_true() throws Exception {
         Mockito.when(orderService.getOrderById(anyInt())).thenReturn(getMockExOrder());
         Mockito.when(orderService.cancelOrder(anyInt())).thenReturn(Boolean.TRUE);
@@ -694,6 +695,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
+    @Ignore
     public void cancelOrder_data_false() throws Exception {
         Mockito.when(orderService.getOrderById(anyInt())).thenReturn(null);
         Mockito.when(stopOrderService.cancelOrder(anyInt(), anyObject())).thenReturn(Boolean.FALSE);

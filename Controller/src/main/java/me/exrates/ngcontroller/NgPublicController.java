@@ -286,6 +286,12 @@ public class NgPublicController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @GetMapping("/ieo/refresh")
+    public ResponseEntity<Void> refresh(){
+        ieoService.updateIeoStatuses();
+        return ResponseEntity.ok().build();
+    }
+
     private String fromChatMessage(ChatMessage message) {
         String send = "";
         ChatHistoryDto dto = new ChatHistoryDto();

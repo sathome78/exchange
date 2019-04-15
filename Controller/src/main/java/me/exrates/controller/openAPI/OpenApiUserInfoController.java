@@ -11,6 +11,7 @@ import me.exrates.model.dto.openAPI.UserOrdersDto;
 import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.exceptions.OpenApiException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -132,13 +133,13 @@ public class OpenApiUserInfoController {
         return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
 
-    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
-        try {
-            userService.findByEmail(email);
-            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
-        } catch (UserNotFoundException ex) {
-            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
-        }
-    }
+//    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
+//        try {
+//            userService.findByEmail(email);
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
+//        } catch (UserNotFoundException ex) {
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
+//        }
+//    }
 }

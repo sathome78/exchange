@@ -5,7 +5,6 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.InputCreateOrderDto;
@@ -14,6 +13,7 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -348,12 +348,16 @@ public class NgDashboardController {
      * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel")
-    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
-        ExOrder orderById = orderService.getOrderById(orderId);
-        if (orderById != null) {
-            return new ResponseModel<>(orderService.cancelOrder(orderId));
-        } else {
-            return new ResponseModel<>(stopOrderService.cancelOrder(orderId, null));
+    public ResponseModel cancelOrder(@RequestParam("order_id") int orderId,
+                                     @RequestParam("type") String type) {
+        OrderBaseType orderBaseType = OrderBaseType.convert(type);
+        switch (orderBaseType) {
+            case LIMIT:
+                return new ResponseModel<>(orderService.cancelOrder(orderId));
+            case STOP_LIMIT:
+                return new ResponseModel<>(stopOrderService.cancelOrder(orderId, null));
+            default:
+                throw new NgDashboardException(ErrorApiTitles.ORDER_TYPE_NOT_SUPPORTED);
         }
     }
 

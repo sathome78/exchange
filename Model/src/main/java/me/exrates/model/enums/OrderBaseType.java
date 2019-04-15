@@ -28,7 +28,7 @@ public enum OrderBaseType {
     }
 
     public static OrderBaseType convert(String name) {
-        return Arrays.stream(OrderBaseType.values()).filter(ot -> ot.name().equals(name)).findAny()
+        return Arrays.stream(OrderBaseType.values()).filter(ot -> ot.name().equalsIgnoreCase(name)).findAny()
                 .orElseThrow(UnsupportedOrderTypeException::new);
     }
 }

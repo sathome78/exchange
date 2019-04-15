@@ -27,7 +27,7 @@ public class G2faDaoImpl implements G2faDao {
         try {
             return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
         }catch (EmptyResultDataAccessException ex){
-            return StringUtils.EMPTY;
+            return null;
         }
     }
 

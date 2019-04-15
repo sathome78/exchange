@@ -60,13 +60,6 @@ public class NgIEOController {
         return new ResponseModel<>(ieoService.findAll(user));
     }
 
-    @GetMapping("/refresh")
-    public ResponseEntity<Void> refresh(){
-        ieoService.updateIeoStatuses();
-        return ResponseEntity.ok().build();
-    }
-
-
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
