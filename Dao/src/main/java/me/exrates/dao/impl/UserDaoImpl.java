@@ -153,7 +153,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", email);
 
         try {
-            return slaveTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return masterTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException ex) {
             throw new UserNotFoundException(String.format("User: %s not found", email));
         }
@@ -165,7 +165,7 @@ public class UserDaoImpl implements UserDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("nickname", nickname);
         try {
-            return slaveTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return masterTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException e) {
             return 0;
         }
@@ -240,7 +240,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public List<UserFile> findUserDoc(final int userId) {
         final String sql = "SELECT * FROM USER_DOC where user_id = :userId";
-        return slaveTemplate.query(sql, singletonMap("userId", userId), (resultSet, i) -> {
+        return masterTemplate.query(sql, singletonMap("userId", userId), (resultSet, i) -> {
             final UserFile userFile = new UserFile();
             userFile.setId(resultSet.getInt("id"));
             userFile.setUserId(resultSet.getInt("user_id"));
