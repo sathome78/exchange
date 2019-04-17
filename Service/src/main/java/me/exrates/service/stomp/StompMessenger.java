@@ -3,6 +3,7 @@ package me.exrates.service.stomp;
 import lombok.SneakyThrows;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.OperationType;
 
@@ -36,7 +37,7 @@ public interface StompMessenger {
     void sendAlerts(String message, String lang);
 
     @SneakyThrows
-    void sendPersonalMessageToUser(String userEmail, String payload);
+    void sendPersonalMessageToUser(String userEmail, UserNotificationMessage message);
 
     void sendPersonalDetailsIeo(String userEmail, String payload);
 

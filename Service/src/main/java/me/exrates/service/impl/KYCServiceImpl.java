@@ -30,7 +30,7 @@ import me.exrates.model.dto.kyc.responces.KycResponseStatusDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.enums.UserNotificationType;
-import me.exrates.model.enums.WsMessageTypeEnum;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.KYCService;
@@ -55,7 +55,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -391,14 +390,9 @@ public class KYCServiceImpl implements KYCService {
             type = UserNotificationType.ERROR;
         }
 
-        final UserNotificationMessage message = new UserNotificationMessage(type, msg);
+        final UserNotificationMessage message = new UserNotificationMessage(WsSourceTypeEnum.KYC, type, msg);
 
-        String payload = null;
-        try {
-            payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.KYC, message));
-        } catch (JsonProcessingException e) {
-        }
-        stompMessenger.sendPersonalMessageToUser(userEmail, payload);
+        stompMessenger.sendPersonalMessageToUser(userEmail, message);
     }
 
     private void validateMerchantSignature(String signature, String response) {

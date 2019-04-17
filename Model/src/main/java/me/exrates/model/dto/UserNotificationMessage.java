@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserNotificationMessage {
 
+    private WsSourceTypeEnum sourceTypeEnum;
     private UserNotificationType notificationType;
     private String text;
 }

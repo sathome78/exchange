@@ -78,7 +78,7 @@ public class UserDaoImpl implements UserDao {
 
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
-                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country FROM USER " +
+                    "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -123,6 +123,7 @@ public class UserDaoImpl implements UserDao {
             user.setFinpassword(resultSet.getString("finpassword"));
             user.setKycStatus(resultSet.getString("kyc_status"));
             user.setCountry(resultSet.getString("country"));
+            user.setPublicId(resultSet.getString("pub_id"));
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
@@ -476,7 +477,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User getCommonReferralRoot() {
-        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
+        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name, USER.pub_id FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
         final List<User> result = masterTemplate.query(sql, getUserRowMapper());
         if (result.isEmpty()) {
             return null;
@@ -990,6 +991,28 @@ public class UserDaoImpl implements UserDao {
             return masterTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
         } catch (Exception ex) {
             throw new UserNotFoundException(String.format("User: %d not found", id));
+        }
+    }
+
+    @Override
+    public String getEmailByPubId(String pubId) {
+        String sql = "SELECT U.email FROM USER U WHERE U.pub_id = :id";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("id", pubId), String.class);
+        } catch (Exception ex) {
+            throw new UserNotFoundException(String.format("User: %s not found", pubId));
+        }
+    }
+
+    @Override
+    public String getPubIdByEmail(String email) {
+        String sql = "SELECT U.pub_id FROM USER U WHERE U.email = :email";
+
+        try {
+            return masterTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+        } catch (Exception ex) {
+            throw new UserNotFoundException(String.format("User: %s not found", email));
         }
     }
 

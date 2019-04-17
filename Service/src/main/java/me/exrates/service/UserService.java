@@ -275,4 +275,8 @@ public interface UserService {
     boolean updateUserRole(int userId, UserRole userRole);
 
     boolean existPolicyByUserIdAndPolicy(int id, String name);
+
+    String getEmailByPubId(String pubId);
+
+    String getPubIdByEmail(String email);
 }

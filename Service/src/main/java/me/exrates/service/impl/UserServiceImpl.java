@@ -1107,4 +1107,14 @@ public class UserServiceImpl implements UserService {
         return userDao.existPolicyByUserIdAndPolicy(id, name);
     }
 
+    @Override
+    public String getEmailByPubId(String pubId) {
+        return userDao.getEmailByPubId(pubId);
+    }
+
+    @Override
+    public String getPubIdByEmail(String email) {
+        return userDao.getPubIdByEmail(email);
+    }
+
 }

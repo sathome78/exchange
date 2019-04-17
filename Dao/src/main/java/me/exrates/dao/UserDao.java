@@ -168,6 +168,10 @@ public interface UserDao {
 
     String getEmailById(Integer id);
 
+    String getEmailByPubId(String pubId);
+
+    String getPubIdByEmail(String email);
+
     UserRole getUserRoleByEmail(String email);
 
     void savePollAsDoneByUser(String email);

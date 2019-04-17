@@ -2,7 +2,7 @@ package me.exrates.model.enums;
 
 
 /*define type of message*/
-public enum  WsMessageTypeEnum {
+public enum WsSourceTypeEnum {
 
     SUBSCRIBE,
     IEO,
