@@ -16,7 +16,7 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
 import me.exrates.model.enums.UserNotificationType;
-import me.exrates.model.enums.WsMessageTypeEnum;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -61,7 +61,7 @@ public class IEOProcessor implements Runnable {
     @Override
     public void run() {
         String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
-        final UserNotificationMessage notificationMessage = new UserNotificationMessage(UserNotificationType.SUCCESS, msg);
+        final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
         IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
@@ -77,9 +77,8 @@ public class IEOProcessor implements Runnable {
             String principalEmail = userService.getUserEmailFromSecurityContext();
             if (StringUtils.isNotEmpty(principalEmail)) {
                 try {
-                    String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, notificationMessage));
-                    stompMessenger.sendPersonalMessageToUser(principalEmail, payload);
-                } catch (JsonProcessingException e) {
+                    stompMessenger.sendPersonalMessageToUser(principalEmail, notificationMessage);
+                } catch (Exception e) {
                     log.warn("Failed to parse notificationMessage", e);
                 }
             } else {
@@ -139,8 +138,7 @@ public class IEOProcessor implements Runnable {
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
         try {
             if (StringUtils.isNotEmpty(userEmail)) {
-                String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, message));
-                stompMessenger.sendPersonalMessageToUser(userEmail, payload);
+                stompMessenger.sendPersonalMessageToUser(userEmail, message);
                 sendMailService.sendInfoMail(prepareEmail(userEmail, message));
             }
         } catch (Exception e) {
